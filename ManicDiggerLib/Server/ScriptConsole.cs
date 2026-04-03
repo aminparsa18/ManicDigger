@@ -1,10 +1,4 @@
 ﻿// Copyright (c) 2011 by Henon <meinrad.recheis@gmail.com>
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Jint.Delegates;
-using ManicDigger;
-
 public class ScriptConsole
 {
     public ScriptConsole(Server s, int client_id)

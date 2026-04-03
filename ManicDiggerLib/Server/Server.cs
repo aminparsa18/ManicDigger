@@ -1,24 +1,11 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Net.Sockets;
+using ManicDigger;
+using ManicDigger.ClientNative;
+using OpenTK.Mathematics;
+using ProtoBuf;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using System.Xml;
-using ManicDigger;
-using OpenTK;
-using ProtoBuf;
-using System.Xml.Serialization;
-using System.Drawing;
 using System.Text.RegularExpressions;
-using System.Threading;
-using Jint.Delegates;
-using System.Diagnostics;
-using ManicDigger.ClientNative;
-
-
 
 public class ClientException : Exception
 {

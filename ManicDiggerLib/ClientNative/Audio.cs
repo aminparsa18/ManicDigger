@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using OpenTK.Audio;
-using System.Threading;
+﻿using OpenTK.Audio.OpenAL;
+using OpenTK.Mathematics;
 using System.Diagnostics;
-using OpenTK;
 
 namespace ManicDigger
 {
@@ -16,8 +11,9 @@ namespace ManicDigger
         {
             try
             {
-                IList<string> x = AudioContext.AvailableDevices;//only with this line an exception can be catched.
-                context = new AudioContext();
+                ALDevice device = ALC.OpenDevice(null);
+                context = ALC.CreateContext(device, new ALContextAttributes());
+                ALC.MakeContextCurrent(context);
             }
             catch (Exception e)
             {
@@ -35,7 +31,7 @@ namespace ManicDigger
                 Console.WriteLine(e);
             }
         }
-        AudioContext context;
+        ALContext context;
         // Loads a wave/riff audio file.
         public static byte[] LoadWave(Stream stream, out int channels, out int bits, out int rate)
         {

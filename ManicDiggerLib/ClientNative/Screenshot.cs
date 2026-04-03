@@ -6,6 +6,7 @@ using OpenTK.Graphics;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System.IO;
+using OpenTK.Windowing.Desktop;
 
 namespace ManicDigger.ClientNative
 {

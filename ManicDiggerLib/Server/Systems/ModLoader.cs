@@ -5,17 +5,12 @@ using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 using System.IO;
 using ManicDigger.ClientNative;
+using Jint;
 
 namespace ManicDigger
 {
     public class ServerSystemModLoader : ServerSystem
     {
-        public ServerSystemModLoader()
-        {
-            jintEngine.DisableSecurity();
-            jintEngine.AllowClr = true;
-        }
-
         bool started;
         public override void Update(Server server, float dt)
         {
@@ -117,7 +112,10 @@ namespace ManicDigger
             return scripts;
         }
 
-        Jint.JintEngine jintEngine = new Jint.JintEngine();
+        Engine jintEngine = new(options =>
+        {
+            options.AllowClr();
+        });
         Dictionary<string, string> javascriptScripts = new Dictionary<string, string>();
         public void CompileScripts(Dictionary<string, string> scripts, bool restart)
         {
@@ -294,13 +292,13 @@ namespace ManicDigger
 
         void StartJsMods(ModManager m)
         {
-            jintEngine.SetParameter("m", m);
+            jintEngine.SetValue("m", m);
             // todo: javascript mod requirements
             foreach (var k in javascriptScripts)
             {
                 try
                 {
-                    jintEngine.Run(k.Value);
+                    jintEngine.Execute(k.Value);
                     Console.WriteLine("Loaded mod: {0}", k.Key);
                 }
                 catch

@@ -1,5 +1,4 @@
-﻿using System;
-using LibNoise;
+﻿using LibNoise;
 
 namespace ManicDigger.Mods.War
 {

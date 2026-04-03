@@ -1,25 +1,31 @@
-﻿using System.IO;
+﻿using ENet;
 using ManicDigger;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using OpenTK.Graphics.OpenGL;
-using System.Drawing;
-using System;
-using System.Text;
-using System.Net;
-using OpenTK.Input;
-using OpenTK;
-using System.Diagnostics;
-using ManicDigger.Renderers;
-using System.Globalization;
-using OpenTK.Audio;
 using ManicDigger.ClientNative;
-using System.Xml.Serialization;
-using System.Text.RegularExpressions;
-using System.Windows.Forms;
-using System.Threading;
+using ManicDigger.Renderers;
+using OpenTK;
+using OpenTK.Audio;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Common.Input;
+using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Globalization;
+using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Forms;
+using System.Xml.Serialization;
 
 public class GamePlatformNative : GamePlatform
 {
@@ -58,9 +64,6 @@ public class GamePlatformNative : GamePlatform
     {
         return a % b;
     }
-
-
-
 
     public override int IntParse(string value)
     {
@@ -228,6 +231,7 @@ public class GamePlatformNative : GamePlatform
     {
         System.Windows.Forms.Clipboard.SetText(s);
     }
+
     ManicDigger.Renderers.TextRenderer r = new ManicDigger.Renderers.TextRenderer();
     Dictionary<TextAndSize, SizeF> textsizes = new Dictionary<TextAndSize, SizeF>();
     public SizeF TextSize(string text, float fontsize)
@@ -1229,35 +1233,40 @@ public class GamePlatformNative : GamePlatform
     public override void EnetHostInitializeServer(EnetHost host, int port, int peerLimit)
     {
         EnetHostNative host_ = (EnetHostNative)host;
-        host_.host.InitializeServer(port, peerLimit);
+        host_.host.Create(port, peerLimit);
     }
 
     public override bool EnetHostService(EnetHost host, int timeout, EnetEventRef enetEvent)
     {
         EnetHostNative host_ = (EnetHostNative)host;
         ENet.Event e;
-        bool ret = host_.host.Service(timeout, out e);
+        int ret = host_.host.Service(timeout, out e);
         EnetEventNative ee = new EnetEventNative();
         ee.e = e;
         enetEvent.e = ee;
-        return ret;
+        return ret > 0;
     }
 
     public override bool EnetHostCheckEvents(EnetHost host, EnetEventRef event_)
     {
         EnetHostNative host_ = (EnetHostNative)host;
         ENet.Event e;
-        bool ret = host_.host.CheckEvents(out e);
+        int ret = host_.host.CheckEvents(out e);
         EnetEventNative ee = new EnetEventNative();
         ee.e = e;
         event_.e = ee;
-        return ret;
+        return ret > 0;
     }
 
     public override EnetPeer EnetHostConnect(EnetHost host, string hostName, int port, int data, int channelLimit)
     {
         EnetHostNative host_ = (EnetHostNative)host;
-        ENet.Peer peer = host_.host.Connect(hostName, port, data, channelLimit);
+
+        Address address = new Address();
+        address.SetHost(hostName);
+        address.Port = (ushort)port;
+
+        ENet.Peer peer = host_.host.Connect(address, channelLimit, (uint)data);
         EnetPeerNative peer_ = new EnetPeerNative();
         peer_.peer = peer;
         return peer_;
@@ -1268,7 +1277,11 @@ public class GamePlatformNative : GamePlatform
         try
         {
             EnetPeerNative peer_ = (EnetPeerNative)peer;
-            peer_.peer.Send(channelID, data, (ENet.PacketFlags)flags);
+
+            Packet packet = default(Packet);
+            packet.Create(data, dataLength, (PacketFlags)flags);
+
+            peer_.peer.Send(channelID, ref packet);
         }
         catch
         {
@@ -1282,7 +1295,7 @@ public class GamePlatformNative : GamePlatform
             throw new Exception();
         }
         EnetHostNative host_ = (EnetHostNative)host;
-        host_.host.Initialize(null, peerLimit, channelLimit, incomingBandwidth, outgoingBandwidth);
+        host_.host.Create(peerLimit, channelLimit, (uint)incomingBandwidth, (uint)outgoingBandwidth);
     }
     #endregion
 
@@ -1314,31 +1327,31 @@ public class GamePlatformNative : GamePlatform
 
     public override int GetCanvasWidth()
     {
-        return window.Width;
+        return window.ClientSize.X;
     }
 
     public override int GetCanvasHeight()
     {
-        return window.Height;
+        return window.ClientSize.Y;
     }
 
     public void Start()
     {
-        window.Keyboard.KeyRepeat = true;
-        window.KeyDown += new EventHandler<KeyboardKeyEventArgs>(game_KeyDown);
-        window.KeyUp += new EventHandler<KeyboardKeyEventArgs>(game_KeyUp);
-        window.KeyPress += new EventHandler<OpenTK.KeyPressEventArgs>(game_KeyPress);
-        window.MouseDown += new EventHandler<MouseButtonEventArgs>(Mouse_ButtonDown);
-        window.MouseUp += new EventHandler<MouseButtonEventArgs>(Mouse_ButtonUp);
-        window.MouseMove += new EventHandler<MouseMoveEventArgs>(Mouse_Move);
-        window.MouseWheel += new EventHandler<OpenTK.Input.MouseWheelEventArgs>(Mouse_WheelChanged);
-        window.RenderFrame += new EventHandler<OpenTK.FrameEventArgs>(window_RenderFrame);
-        window.Closed += new EventHandler<EventArgs>(window_Closed);
-        window.TargetRenderFrequency = 0;
+        // window.Keyboard.KeyRepeat is gone - no direct equivalent, KeyRepeat is on by default
+        window.KeyDown += game_KeyDown;
+        window.KeyUp += game_KeyUp;
+        window.TextInput += game_KeyPress; // KeyPress is gone, use KeyDown for text input
+        window.MouseDown += Mouse_ButtonDown;
+        window.MouseUp += Mouse_ButtonUp;
+        window.MouseMove += Mouse_Move;
+        window.MouseWheel += Mouse_WheelChanged;
+        window.RenderFrame += window_RenderFrame;
+        window.Closing += window_Closed; // Closed -> Closing, different signature
+        window.UpdateFrequency = 0;      // TargetRenderFrequency -> UpdateFrequency
         window.Title = "Manic Digger";
     }
 
-    void window_Closed(object sender, EventArgs e)
+    void window_Closed(EventArgs e)
     {
         gameexit.exit = true;
     }
@@ -1371,7 +1384,7 @@ public class GamePlatformNative : GamePlatform
         {
             gameexit.exit = true;
         }
-        window.Exit();
+        window.Close();
     }
 
     public override void SetTitle(string applicationname)
@@ -1381,18 +1394,14 @@ public class GamePlatformNative : GamePlatform
 
     public override string KeyName(int key)
     {
-        if (Enum.IsDefined(typeof(OpenTK.Input.Key), key))
+        if (Enum.IsDefined(typeof(OpenTK.Windowing.GraphicsLibraryFramework.Keys), key))
         {
-            string s = Enum.GetName(typeof(OpenTK.Input.Key), key);
+            string s = Enum.GetName(typeof(OpenTK.Windowing.GraphicsLibraryFramework.Keys), key);
             return s;
         }
-        //if (Enum.IsDefined(typeof(SpecialKey), key))
-        //{
-        //    string s = Enum.GetName(typeof(SpecialKey), key);
-        //    return s;
-        //}
         return key.ToString();
     }
+
     DisplayResolutionCi[] resolutions;
     int resolutionsCount;
     public override DisplayResolutionCi[] GetDisplayResolutions(IntRef retResolutionsCount)
@@ -1425,7 +1434,7 @@ public class GamePlatformNative : GamePlatform
 
     public override void SetWindowState(WindowState value)
     {
-        window.WindowState = (OpenTK.WindowState)value;
+        window.WindowState = (OpenTK.Windowing.Common.WindowState)value;
     }
 
     public override void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate)
@@ -1669,7 +1678,7 @@ public class GamePlatformNative : GamePlatform
         if (ENABLE_TRANSPARENCY)
         {
             GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             //GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvMode, (int)TextureEnvMode.Blend);
             //GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvColor, new Color4(0, 0, 0, byte.MaxValue));
         }
@@ -1961,7 +1970,7 @@ public class GamePlatformNative : GamePlatform
         window.Cursor = MouseCursor.Default;
     }
 
-    public static int ToGlKey(OpenTK.Input.Key key)
+    public static int ToGlKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys key)
     {
         return (int)key;
     }
@@ -1979,7 +1988,7 @@ public class GamePlatformNative : GamePlatform
                 //Cursor already hidden. Do nothing.
                 return;
             }
-            window.CursorVisible = false;
+            window.CursorState = CursorState.Hidden;
             mouseCursorVisible = false;
         }
         else
@@ -1989,7 +1998,7 @@ public class GamePlatformNative : GamePlatform
                 //Cursor already visible. Do nothing.
                 return;
             }
-            window.CursorVisible = true;
+            window.CursorState = CursorState.Normal;
             mouseCursorVisible = true;
         }
     }
@@ -2008,10 +2017,10 @@ public class GamePlatformNative : GamePlatform
 
     public override bool Focused()
     {
-        return window.Focused;
+        return window.IsFocused;
     }
 
-    void window_RenderFrame(object sender, OpenTK.FrameEventArgs e)
+    void window_RenderFrame(FrameEventArgs e)
     {
         UpdateMousePosition();
         foreach (NewFrameHandler h in newFrameHandlers)
@@ -2025,16 +2034,16 @@ public class GamePlatformNative : GamePlatform
 
     void UpdateMousePosition()
     {
-        current = Mouse.GetState();
-        if (!window.Focused)
+        current = window.MouseState;
+        if (!window.IsFocused)
         {
             return;
         }
         if (current != previous)
         {
             // Mouse state has changed
-            int xdelta = current.X - previous.X;
-            int ydelta = current.Y - previous.Y;
+            int xdelta = (int)(current.X - current.PreviousX);
+            int ydelta = (int)(current.Y - current.PreviousY);
             foreach (MouseEventHandler h in mouseEventHandlers)
             {
                 MouseEventArgs args = new MouseEventArgs();
@@ -2066,34 +2075,39 @@ public class GamePlatformNative : GamePlatform
              * Opening "mission control" by gesture does not free cursor
              */
 
-            int centerx = window.Bounds.Left + (window.Bounds.Width / 2);
-            int centery = window.Bounds.Top + (window.Bounds.Height / 2);
+            int centerx = window.Bounds.Min.X + (window.ClientSize.X / 2);
+            int centery = window.Bounds.Min.Y + (window.ClientSize.Y / 2);
 
             // Setting cursor position this way works on Windows and Mac
-            Mouse.SetPosition(centerx, centery);
+            System.Windows.Forms.Cursor.Position = new System.Drawing.Point(centerx, centery);
         }
     }
 
-    void Mouse_WheelChanged(object sender, OpenTK.Input.MouseWheelEventArgs e)
+    void Mouse_WheelChanged(OpenTK.Windowing.Common.MouseWheelEventArgs e)
     {
         foreach (MouseEventHandler h in mouseEventHandlers)
         {
             MouseWheelEventArgs args = new MouseWheelEventArgs();
-            args.SetDelta(e.Delta);
-            args.SetDeltaPrecise(e.DeltaPrecise);
+            args.SetDelta((int)e.OffsetY);           // GetDelta() -> OffsetY
+            args.SetDeltaPrecise(e.OffsetY);         // GetDeltaPrecise() -> OffsetY
             h.OnMouseWheel(args);
         }
     }
 
-    void Mouse_ButtonDown(object sender, MouseButtonEventArgs e)
+    void Mouse_ButtonDown(MouseButtonEventArgs e)
     {
+        // Get position from window's MouseState instead of event args
+        var mousePos = window.MouseState.Position;
+        float x = mousePos.X;
+        float y = mousePos.Y;
+
         if (TouchTest)
         {
             foreach (TouchEventHandler h in touchEventHandlers)
             {
                 TouchEventArgs args = new TouchEventArgs();
-                args.SetX(e.X);
-                args.SetY(e.Y);
+                args.SetX((int)x);
+                args.SetY((int)y);
                 args.SetId(0);
                 h.OnTouchStart(args);
             }
@@ -2103,23 +2117,27 @@ public class GamePlatformNative : GamePlatform
             foreach (MouseEventHandler h in mouseEventHandlers)
             {
                 MouseEventArgs args = new MouseEventArgs();
-                args.SetX(e.X);
-                args.SetY(e.Y);
+                args.SetX((int)x);
+                args.SetY((int)y);
                 args.SetButton((int)e.Button);
                 h.OnMouseDown(args);
             }
         }
     }
 
-    void Mouse_ButtonUp(object sender, MouseButtonEventArgs e)
+    void Mouse_ButtonUp(MouseButtonEventArgs e)
     {
+        var mousePos = window.MouseState.Position;
+        float x = mousePos.X;
+        float y = mousePos.Y;
+
         if (TouchTest)
         {
             foreach (TouchEventHandler h in touchEventHandlers)
             {
                 TouchEventArgs args = new TouchEventArgs();
-                args.SetX(e.X);
-                args.SetY(e.Y);
+                args.SetX((int)x);
+                args.SetY((int)y);
                 args.SetId(0);
                 h.OnTouchEnd(args);
             }
@@ -2129,25 +2147,26 @@ public class GamePlatformNative : GamePlatform
             foreach (MouseEventHandler h in mouseEventHandlers)
             {
                 MouseEventArgs args = new MouseEventArgs();
-                args.SetX(e.X);
-                args.SetY(e.Y);
+                args.SetX((int)x);
+                args.SetY((int)y);
                 args.SetButton((int)e.Button);
                 h.OnMouseUp(args);
             }
         }
     }
 
-    void Mouse_Move(object sender, MouseMoveEventArgs e)
+    void Mouse_Move(MouseMoveEventArgs e)
     {
-        lastX = e.X;
-        lastY = e.Y;
+        lastX = (int)e.X;
+        lastY = (int)e.Y;
+
         if (TouchTest)
         {
             foreach (TouchEventHandler h in touchEventHandlers)
             {
                 TouchEventArgs args = new TouchEventArgs();
-                args.SetX(e.X);
-                args.SetY(e.Y);
+                args.SetX((int)e.X);
+                args.SetY((int)e.Y);
                 args.SetId(0);
                 h.OnTouchMove(args);
             }
@@ -2157,27 +2176,27 @@ public class GamePlatformNative : GamePlatform
             foreach (MouseEventHandler h in mouseEventHandlers)
             {
                 MouseEventArgs args = new MouseEventArgs();
-                args.SetX(e.X);
-                args.SetY(e.Y);
-                args.SetMovementX(e.XDelta);
-                args.SetMovementY(e.YDelta);
+                args.SetX((int)e.X);
+                args.SetY((int)e.Y);
+                args.SetMovementX((int)e.DeltaX);  // XDelta -> DeltaX
+                args.SetMovementY((int)e.DeltaY);  // YDelta -> DeltaY
                 args.SetEmulated(false);
                 h.OnMouseMove(args);
             }
         }
     }
 
-    void game_KeyPress(object sender, OpenTK.KeyPressEventArgs e)
+    void game_KeyPress(TextInputEventArgs e)
     {
         foreach (KeyEventHandler h in keyEventHandlers)
         {
             KeyPressEventArgs args = new KeyPressEventArgs();
-            args.SetKeyChar((int)e.KeyChar);
+            args.SetKeyChar(e.Unicode);
             h.OnKeyPress(args);
         }
     }
 
-    void game_KeyDown(object sender, KeyboardKeyEventArgs e)
+    void game_KeyDown(KeyboardKeyEventArgs e)
     {
         foreach (KeyEventHandler h in keyEventHandlers)
         {
@@ -2190,7 +2209,7 @@ public class GamePlatformNative : GamePlatform
         }
     }
 
-    void game_KeyUp(object sender, KeyboardKeyEventArgs e)
+    void game_KeyUp(KeyboardKeyEventArgs e)
     {
         foreach (KeyEventHandler h in keyEventHandlers)
         {
@@ -2401,12 +2420,15 @@ public class EnetPacketNative : EnetPacket
     internal ENet.Packet packet;
     public override int GetBytesCount()
     {
-        return packet.GetBytes().Length;
+        return packet.Length;
     }
 
     public override byte[] GetBytes()
     {
-        return packet.GetBytes();
+        // GetBytes() is gone, manually copy from native pointer
+        byte[] bytes = new byte[packet.Length];
+        System.Runtime.InteropServices.Marshal.Copy(packet.Data, bytes, 0, (int)packet.Length);
+        return bytes;
     }
 
     public override void Dispose()
@@ -2420,17 +2442,18 @@ public class EnetPeerNative : EnetPeer
     public ENet.Peer peer;
     public override int UserData()
     {
-        return peer.UserData.ToInt32();
+        return peer.Data.ToInt32();
     }
 
     public override void SetUserData(int value)
     {
-        peer.UserData = new IntPtr(value);
+        peer.Data = new IntPtr(value);
     }
 
     public override IPEndPointCi GetRemoteAddress()
     {
-        return IPEndPointCiDefault.Create(peer.GetRemoteAddress().Address.ToString());
+        // GetRemoteAddress() -> separate IP and Port properties
+        return IPEndPointCiDefault.Create(peer.IP);
     }
 }
 
@@ -2445,13 +2468,22 @@ public class TextureNative : Texture
 }
 
 
-public class GameWindowNative : OpenTK.GameWindow
+public class GameWindowNative : GameWindow
 {
     public GamePlatformNative platform;
-    public GameWindowNative(OpenTK.Graphics.GraphicsMode mode)
-        : base(1280, 720, mode)
+    public GameWindowNative()
+        : base(
+            new GameWindowSettings
+            {
+                UpdateFrequency = 60,
+            },
+            new NativeWindowSettings
+            {
+                ClientSize = new OpenTK.Mathematics.Vector2i(1280, 720),
+                Title = "ManicDigger",
+                WindowState = OpenTK.Windowing.Common.WindowState.Normal,
+            })
     {
-        VSync = OpenTK.VSyncMode.Off;
-        WindowState = OpenTK.WindowState.Normal;
+        VSync = VSyncMode.Off;
     }
 }

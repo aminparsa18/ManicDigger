@@ -1,11 +1,5 @@
 ﻿// Copyright (c) 2011 by Henon <meinrad.recheis@gmail.com>
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
 using Jint;
-using Jint.Native;
 
 
 public interface IScriptInterpreter
@@ -20,16 +14,14 @@ public interface IScriptInterpreter
 
 public class JavaScriptInterpreter : IScriptInterpreter
 {
-    private JintEngine m_engine;
+    private Engine m_engine;
 
     public JavaScriptInterpreter()
     {
         Console.Write("Loading JavaScript interpreter: ");
         try
         {
-            m_engine = new JintEngine();
-            m_engine.AllowClr = false;
-            m_engine.DisableSecurity();
+            m_engine = new Engine();
             Console.WriteLine("done.");
         }
         catch (Exception e)
@@ -51,7 +43,7 @@ public class JavaScriptInterpreter : IScriptInterpreter
     {
         try
         {
-            result = m_engine.Run(script);
+            result = m_engine.Execute(script);
         }
         catch (Exception e)
         {
@@ -70,12 +62,12 @@ public class JavaScriptInterpreter : IScriptInterpreter
 
     public void SetVariable(string name, object value)
     {
-        m_engine.SetParameter(name, value);
+        m_engine.SetValue(name, value);
     }
 
     public void SetFunction(string name, Delegate function)
     {
-        m_engine.SetFunction(name, function);
+        m_engine.SetValue(name, function);
     }
 }
 

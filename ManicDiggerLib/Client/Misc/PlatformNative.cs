@@ -63,8 +63,7 @@ public class GamePlatformNative : GamePlatform
 
     public override bool FloatTryParse(string s, FloatRef ret)
     {
-        float f;
-        if (float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out f))
+        if (float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out float f))
         {
             ret.value = f;
             return true;
@@ -1906,20 +1905,9 @@ public class GamePlatformNative : GamePlatform
     }
 
     public CrashReporter crashreporter;
-    private OnCrashHandler onCrashHandler;
     public override void AddOnCrash(OnCrashHandler handler)
     {
-#if !DEBUG
-        crashreporter.OnCrash = OnCrash;
-        onCrashHandler = handler;
-#endif
-    }
-    private void OnCrash()
-    {
-        if (onCrashHandler != null)
-        {
-            onCrashHandler.OnCrash();
-        }
+        crashreporter.OnCrash += handler.OnCrash;
     }
 
     #endregion

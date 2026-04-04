@@ -197,3 +197,4 @@
    at OpenTK.GameWindow.Run(Double updates_per_second, Double frames_per_second)
    at OpenTK.GameWindow.Run()
    at ManicDiggerProgram.Start(String[] args) in C:\Users\aminp\Downloads\manicdigger-2015-10-14a\manicdigger-2015-10-14a\ManicDigger\Program.cs:line 71
+4/5/2026 1:27:28 AM: Creating GameWindowNative

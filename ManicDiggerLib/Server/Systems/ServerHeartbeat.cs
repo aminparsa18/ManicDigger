@@ -42,7 +42,7 @@ public class ServerSystemHeartbeat : ServerSystem
         d_Heartbeat.PasswordProtected = server.config.IsPasswordProtected();
         d_Heartbeat.AllowGuests = server.config.AllowGuests;
         d_Heartbeat.Port = server.config.Port;
-        d_Heartbeat.Version = ManicDigger.ClientNative.GameVersion.Version;
+        d_Heartbeat.Version = GameVersion.Version;
         d_Heartbeat.Key = server.config.Key;
         d_Heartbeat.Motd = server.config.Motd;
         List<string> playernames = new List<string>();

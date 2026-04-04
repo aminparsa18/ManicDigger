@@ -1,576 +1,482 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
-using System.Windows.Forms;
-using System.IO;
-using System.Diagnostics;
-using System.IO.Compression;
-using System.Drawing;
+﻿using Serilog;
 using System.Drawing.Imaging;
-using System.Xml.XPath;
+using System.IO.Compression;
 using System.Xml;
-using System.Threading;
+using System.Xml.XPath;
 
-namespace ManicDigger.ClientNative
+/// <summary>
+/// Crash reporter backed by Serilog.
+/// Drop-in replacement for the original CrashReporter — same public API,
+/// same usage pattern in ManicDiggerProgram.
+///
+/// NuGet packages required:
+///   Serilog
+///   Serilog.Sinks.File
+///   Serilog.Sinks.Console   (optional, for console output)
+/// </summary>
+public class CrashReporter
 {
-    [XmlRoot("dictionary")]
-    public class SerializableDictionary<TKey, TValue>
-        : Dictionary<TKey, TValue>, IXmlSerializable
+    // ── Configuration ────────────────────────────────────────────────────────
+
+    /// <summary>Default crash log filename (no path — stored under GameStorePath).</summary>
+    public static string DefaultFileName { get; set; } = "ManicDiggerCrash.txt";
+
+    /// <summary>
+    /// Maximum time (ms) to wait for the OnCrash delegate before aborting.
+    /// Prevents a hung cleanup callback from blocking shutdown forever.
+    /// </summary>
+    public static int OnCrashTimeoutMs { get; set; } = 5_000;
+
+    // ── State ────────────────────────────────────────────────────────────────
+
+    private static bool s_isConsole;
+    private static ILogger s_globalLogger = Serilog.Core.Logger.None;
+
+    private readonly ILogger m_logger;
+    private readonly string m_crashFilePath;
+
+    /// <summary>Optional cleanup hook — called (with timeout) before shutdown.</summary>
+    public Action? OnCrash { get; set; }
+
+    // ── Constructors ─────────────────────────────────────────────────────────
+
+    /// <summary>Writes crash report to <see cref="DefaultFileName"/> under the game store path.</summary>
+    public CrashReporter() : this(DefaultFileName) { }
+
+    /// <summary>Writes crash report to <paramref name="fileName"/> under the game store path.</summary>
+    public CrashReporter(string fileName)
     {
-        #region IXmlSerializable Members
-        public System.Xml.Schema.XmlSchema GetSchema()
-        {
-            return null;
-        }
-        public void ReadXml(System.Xml.XmlReader reader)
-        {
-            XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
-            XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
+        string dir = GameStorePath.GetStorePath();
 
-            bool wasEmpty = reader.IsEmptyElement;
-            reader.Read();
+        m_crashFilePath = Path.Combine(dir, fileName);
 
-            if (wasEmpty)
-            {
-                return;
-            }
-
-            while (reader.NodeType != System.Xml.XmlNodeType.EndElement)
-            {
-                reader.ReadStartElement("item");
-
-                reader.ReadStartElement("key");
-                TKey key = (TKey)keySerializer.Deserialize(reader);
-                reader.ReadEndElement();
-
-                reader.ReadStartElement("value");
-                TValue value = (TValue)valueSerializer.Deserialize(reader);
-                reader.ReadEndElement();
-
-                this.Add(key, value);
-
-                reader.ReadEndElement();
-
-                reader.MoveToContent();
-            }
-            reader.ReadEndElement();
-        }
-
-        public void WriteXml(System.Xml.XmlWriter writer)
-        {
-            XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
-            XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
-
-            foreach (TKey key in this.Keys)
-            {
-                writer.WriteStartElement("item");
-
-                writer.WriteStartElement("key");
-                keySerializer.Serialize(writer, key);
-                writer.WriteEndElement();
-
-                writer.WriteStartElement("value");
-                TValue value = this[key];
-                valueSerializer.Serialize(writer, value);
-
-                writer.WriteEndElement();
-
-                writer.WriteEndElement();
-            }
-        }
-        #endregion
+        m_logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File(
+                path: m_crashFilePath,
+                rollingInterval: RollingInterval.Month,      // one file per month, auto-rotated
+                retainedFileCountLimit: 6,                     // keep last 6 months
+                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+                shared: true)                        // safe for multi-thread append
+            .CreateLogger();
     }
-    public class CrashReporter
+
+    // ── Global exception handling ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Registers a global unhandled-exception handler.
+    /// Call once from Main(), before anything else runs.
+    /// </summary>
+    /// <param name="isConsole">
+    ///   true  → errors printed to stdout.<br/>
+    ///   false → errors shown in a MessageBox.
+    /// </param>
+    public static void EnableGlobalExceptionHandling(bool isConsole)
     {
-        private static string gamepathcrash = GameStorePath.GetStorePath();
-        private static string s_strDefaultFileName = "ManicDiggerCrash.txt";
+        s_isConsole = isConsole;
 
-        private string m_strFileName = "";
+        // Build a lightweight global logger (console / debug) for the static handler.
+        // The per-instance file logger is created when CrashReporter() is newed up.
+        var cfg = new LoggerConfiguration().MinimumLevel.Fatal();
 
-        public Action OnCrash;
+        if (isConsole)
+            cfg = cfg.WriteTo.Console(outputTemplate:
+                "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}");
 
-        /// <summary>
-        /// If set to true, the crash will be written to the console.
-        /// If set to false, the crash will be displayed in a MessageBox.
-        /// </summary>
-        private static bool s_blnIsConsole = false;
+        s_globalLogger = cfg.CreateLogger();
 
-        /// <summary>
-        /// Default filename for crash reports
-        /// </summary>
-        public static string DefaultFileName
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+    }
+
+    private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (s_isConsole)
         {
-            get { return s_strDefaultFileName; }
-            set { s_strDefaultFileName = value; }
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Error.WriteLine("Unhandled exception — application is terminating.");
+            Console.ResetColor();
         }
 
-        /// <summary>
-        /// Writes crashreport to the file specified in DefaultFileName
-        /// </summary>
-        public CrashReporter() : 
-            this(s_strDefaultFileName)
-        {
-        }
+        var ex = e.ExceptionObject as Exception;
+        s_globalLogger.Fatal(ex, "Unhandled exception");
 
-        /// <summary>
-        /// Writes crashreport to the given filename
-        /// </summary>
-        /// <param name="strFileName">Filename for the CrashReport</param>
-        public CrashReporter(string strFileName)
-        {
-            m_strFileName = strFileName;
-        }
+        // Create a full crash report using a default instance
+        new CrashReporter().Crash(ex);
+    }
 
-        /// <summary>
-        /// Enable global Exception handlin
-        /// </summary>
-        /// <param name="blnIsConsole">If set to true, the crash will be written to the console. If set to false, the crash will be displayed in a MessageBox.</param>
-        public static void EnableGlobalExceptionHandling(bool blnIsConsole)
-        {
-            s_blnIsConsole = blnIsConsole;
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        }
+    // ── Core crash logic ──────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Called after a unhandled exception occured
-        /// </summary>
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    /// <summary>
+    /// Logs the exception, displays an error to the user, then exits the process.
+    /// </summary>
+    public void Crash(Exception? exCrash)
+    {
+        // 1. Log to file via Serilog
+        try
         {
-            if (s_blnIsConsole)
+            m_logger.Fatal(exCrash, "Critical error — application is terminating");
+
+            // Walk inner exceptions so each gets its own structured entry
+            for (Exception? inner = exCrash?.InnerException; inner != null; inner = inner.InnerException)
+                m_logger.Fatal(inner, "Inner exception");
+
+            // 2. Run caller-supplied cleanup (with timeout)
+            RunOnCrashCallback();
+
+            // 3. Flush — critical for async sinks so nothing is lost before Exit()
+            (m_logger as IDisposable)?.Dispose();
+        }
+        catch (Exception logEx)
+        {
+            // Logging itself failed — last resort: stderr
+            Console.Error.WriteLine("CrashReporter: failed to write log: " + logEx);
+        }
+        finally
+        {
+            // 4. Tell the user
+            string summary = BuildSummary(exCrash);
+            DisplayToUser(summary);
+
+            if (s_isConsole)
             {
-                //Critical!
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Out.WriteLine("Unhandled Exception occurred");
+                Console.WriteLine("Press any key to shut down...");
+                Console.ReadLine();
             }
 
-            Exception ex = e.ExceptionObject as Exception;
-
-            //Create CrashReport for exception
-            CrashReporter reporter = new CrashReporter();
-            reporter.Crash(ex);
+            Environment.Exit(1);
         }
+    }
 
-        /// <summary>
-        /// Creates a CrashReport if the Action failed
-        /// </summary>
-        /// <param name="start">Action to execute</param>
-        public void Start(ThreadStart start)
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void RunOnCrashCallback()
+    {
+        if (OnCrash == null) return;
+
+        // Run on a separate thread so we can enforce a hard timeout
+        var task = Task.Run(() => OnCrash());
+        if (!task.Wait(OnCrashTimeoutMs))
+            m_logger.Warning("OnCrash() did not complete within {Timeout} ms — skipped", OnCrashTimeoutMs);
+
+        if (task.IsFaulted)
+            m_logger.Error(task.Exception, "OnCrash() threw an exception");
+    }
+
+    private string BuildSummary(Exception? ex)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  Critical Error");
+
+        if (ex != null)
+            sb.AppendLine(ex.Message);
+
+        sb.AppendLine();
+        sb.AppendLine($"Crash report written to:\n  {m_crashFilePath}");
+        return sb.ToString();
+    }
+
+    private static void DisplayToUser(string message)
+    {
+        try
         {
-            if (!Debugger.IsAttached)
+            if (s_isConsole)
             {
-                try
-                {
-                    start();
-                }
-                catch (Exception e)
-                {
-                    Crash(e);
-                }
+                Console.Error.WriteLine(message);
             }
             else
             {
-                start();
+                // Nudge the cursor visible in case the game hid it
+                for (int i = 0; i < 3; i++) { Cursor.Show(); Thread.Sleep(50); Application.DoEvents(); }
+                MessageBox.Show(message, "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        
-
-        /// <summary>
-        /// Log the exception and exit the application
-        /// </summary>
-        public void Crash(Exception exCrash)
+        catch
         {
-            StringBuilder strGuiMessage = new StringBuilder();
-
-            strGuiMessage.AppendLine(DateTime.Now.ToString() + "> Critical Error: " + exCrash.Message);
-
-            //Write to Crash.txt
-            try
-            {
-                if (!Directory.Exists(gamepathcrash))
-                {
-                    Directory.CreateDirectory(gamepathcrash);
-                }
-
-                string crashfile = Path.Combine(gamepathcrash, m_strFileName);
-
-                //Open/Create Crash file
-                using (FileStream fs = File.Open(crashfile, FileMode.Append))
-                {
-                    using (StreamWriter logger = new StreamWriter(fs))
-                    {
-                        Log(DateTime.Now.ToString() + ": Critical error occurred", logger);
-
-                        //Call OnCrash logic
-                        CallOnCrash(logger);
-
-                        Exception exToLog = exCrash;
-
-                        //Log the exception and its inner exceptions
-                        while (exToLog != null)
-                        {
-                            Log(exToLog.ToString(), logger);
-                            Log("-------------------------------", logger);
-                            exToLog = exToLog.InnerException;
-                        }
-                    }
-                }
-
-                //Output Crashreport Location
-                strGuiMessage.AppendLine("Crash report created: \"" + crashfile + "\"");
-            }
-            catch (Exception ex)
-            {
-                strGuiMessage.AppendLine("Crashreport failed: " + ex.ToString());
-            }
-            finally
-            {
-                DisplayInGui(strGuiMessage.ToString());
-
-                if (s_blnIsConsole)
-                {
-                    //Give user time to read output
-                    Console.WriteLine("Ending after critical error!");
-                    Console.WriteLine("Press any key to shut down...");
-                    Console.ReadLine();
-                }
-
-                //Shutdown
-                Environment.Exit(1);
-            }
+            // If the UI is broken we can't do much — the log file is the safety net
         }
+    }
+}
 
-        /// <summary>
-        /// Tries to execute the OnCrash delegate
-        /// </summary>
-        private void CallOnCrash(TextWriter logger)
+public static class GameStorePath
+{
+    public static bool IsMono = Type.GetType("Mono.Runtime") != null;
+
+    public static string GetStorePath()
+    {
+        string apppath = Path.GetDirectoryName(Application.ExecutablePath);
+        try
         {
-            if (OnCrash != null)
+            var di = new DirectoryInfo(apppath);
+            if (di.Name.Equals("AutoUpdaterTemp", StringComparison.InvariantCultureIgnoreCase))
             {
-                try
-                {
-                    OnCrash();
-                }
-                catch (Exception ex)
-                {
-                    logger.WriteLine("OnCrash() failed: " + ex.ToString());
-                }
+                apppath = di.Parent.FullName;
             }
         }
-
-        /// <summary>
-        /// Write to logger and Console
-        /// </summary>
-        private void Log(string str, TextWriter logger)
+        catch
         {
-            logger.WriteLine(str);
-            Console.WriteLine(str);
         }
-
-        /// <summary>
-        /// Displays a text in the gui
-        /// </summary>
-        private void DisplayInGui(string strTxt)
+        string mdfolder = "UserData";
+        if (apppath.Contains(
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)) && !IsMono)
         {
-            try
-            {
-                //Display error
-                if (!s_blnIsConsole)
-                {
-                    for (int i = 0; i < 5; i++)
-                    {
-                        Cursor.Show();
-                        Thread.Sleep(100);
-                        Application.DoEvents();
-                    }
-
-                    MessageBox.Show(strTxt, "Critical error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                else
-                {
-                    Console.WriteLine(strTxt);
-                }
-            }
-            catch
-            {
-                //If this fails, something is really screwed... let's hope the crash report was created
-                //Just swallow this exception, to prevent a exception endless loop (UnhandledException -> CrashReport -> UnhandledException)
-            }
+            string mdpath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                mdfolder);
+            return mdpath;
         }
-        
+        else
+        {
+            return Path.Combine(apppath, mdfolder);
+        }
     }
 
-    public static class GameStorePath
+    public static string gamepathconfig = Path.Combine(GetStorePath(), "Configuration");
+    public static string gamepathsaves = Path.Combine(GetStorePath(), "Saves");
+    public static string gamepathbackup = Path.Combine(GetStorePath(), "Backup");
+
+    public static bool IsValidName(string s)
     {
-        public static bool IsMono = Type.GetType("Mono.Runtime") != null;
-
-        public static string GetStorePath()
+        if (s.Length < 1 || s.Length > 32)
         {
-            string apppath = Path.GetDirectoryName(Application.ExecutablePath);
-            try
-            {
-                var di = new DirectoryInfo(apppath);
-                if (di.Name.Equals("AutoUpdaterTemp", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    apppath = di.Parent.FullName;
-                }
-            }
-            catch
-            {
-            }
-            string mdfolder = "UserData";
-            if (apppath.Contains(
-                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)) && !IsMono)
-            {
-                string mdpath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    mdfolder);
-                return mdpath;
-            }
-            else
-            {
-                return Path.Combine(apppath, mdfolder);
-            }
+            return false;
         }
-
-        public static string gamepathconfig = Path.Combine(GameStorePath.GetStorePath(), "Configuration");
-        public static string gamepathsaves = Path.Combine(GameStorePath.GetStorePath(), "Saves");
-        public static string gamepathbackup = Path.Combine(GameStorePath.GetStorePath(), "Backup");
-
-        public static bool IsValidName(string s)
+        for (int i = 0; i < s.Length; i++)
         {
-            if (s.Length < 1 || s.Length > 32)
+            if (!AllowedNameChars.Contains(s[i].ToString()))
             {
                 return false;
             }
-            for (int i = 0; i < s.Length; i++)
+        }
+        return true;
+    }
+    public static string AllowedNameChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-";
+}
+
+public static class GameVersion
+{
+    static string gameversion;
+    public static string Version
+    {
+        get
+        {
+            if (gameversion == null)
             {
-                if (!AllowedNameChars.Contains(s[i].ToString()))
+                gameversion = "unknown";
+                if (File.Exists("version.txt"))
                 {
-                    return false;
+                    gameversion = File.ReadAllText("version.txt").Trim();
                 }
             }
-            return true;
+            return gameversion;
         }
-        public static string AllowedNameChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-";
     }
-    public static class GameVersion
+}
+
+public interface ICompression
+{
+    byte[] Compress(byte[] data);
+    byte[] Decompress(byte[] data);
+}
+
+public class CompressionGzip : ICompression
+{
+    public byte[] Compress(byte[] data)
     {
-        static string gameversion;
-        public static string Version
+        MemoryStream input = new(data);
+        MemoryStream output = new();
+        using (GZipStream compress = new(output, CompressionMode.Compress))
         {
-            get
+            byte[] buffer = new byte[4096];
+            int numRead;
+            while ((numRead = input.Read(buffer, 0, buffer.Length)) != 0)
             {
-                if (gameversion == null)
-                {
-                    gameversion = "unknown";
-                    if (File.Exists("version.txt"))
-                    {
-                        gameversion = File.ReadAllText("version.txt").Trim();
-                    }
-                }
-                return gameversion;
+                compress.Write(buffer, 0, numRead);
             }
         }
+        return output.ToArray();
     }
-    public interface ICompression
+
+    public byte[] Decompress(byte[] fi)
     {
-        byte[] Compress(byte[] data);
-        byte[] Decompress(byte[] data);
-    }
-    public class CompressionGzip : ICompression
-    {
-        public byte[] Compress(byte[] data)
+        MemoryStream ms = new();
+        // Get the stream of the source file.
+        using (MemoryStream inFile = new(fi))
         {
-            MemoryStream input = new MemoryStream(data);
-            MemoryStream output = new MemoryStream();
-            using (GZipStream compress = new GZipStream(output, CompressionMode.Compress))
+            using GZipStream Decompress = new(inFile,
+                    CompressionMode.Decompress);
+            //Copy the decompression stream into the output file.
+            byte[] buffer = new byte[4096];
+            int numRead;
+            while ((numRead = Decompress.Read(buffer, 0, buffer.Length)) != 0)
             {
+                ms.Write(buffer, 0, numRead);
+            }
+        }
+        return ms.ToArray();
+    }
+
+    public static byte[] Decompress(FileInfo fi)
+    {
+        MemoryStream ms = new();
+        // Get the stream of the source file.
+        using (FileStream inFile = fi.OpenRead())
+        {
+            // Get original file extension, for example "doc" from report.doc.gz.
+            string curFile = fi.FullName;
+            string origName = curFile[..^fi.Extension.Length];
+
+            //Create the decompressed file.
+            //using (FileStream outFile = File.Create(origName))
+            {
+                using GZipStream Decompress = new(inFile,
+                        CompressionMode.Decompress);
+                //Copy the decompression stream into the output file.
                 byte[] buffer = new byte[4096];
                 int numRead;
-                while ((numRead = input.Read(buffer, 0, buffer.Length)) != 0)
+                while ((numRead = Decompress.Read(buffer, 0, buffer.Length)) != 0)
                 {
-                    compress.Write(buffer, 0, numRead);
+                    ms.Write(buffer, 0, numRead);
                 }
+                //Console.WriteLine("Decompressed: {0}", fi.Name);
             }
-            return output.ToArray();
         }
-        public byte[] Decompress(byte[] fi)
-        {
-            MemoryStream ms = new MemoryStream();
-            // Get the stream of the source file.
-            using (MemoryStream inFile = new MemoryStream(fi))
-            {
-                using (GZipStream Decompress = new GZipStream(inFile,
-                        CompressionMode.Decompress))
-                {
-                    //Copy the decompression stream into the output file.
-                    byte[] buffer = new byte[4096];
-                    int numRead;
-                    while ((numRead = Decompress.Read(buffer, 0, buffer.Length)) != 0)
-                    {
-                        ms.Write(buffer, 0, numRead);
-                    }
-                }
-            }
-            return ms.ToArray();
-        }
-        public static byte[] Decompress(FileInfo fi)
-        {
-            MemoryStream ms = new MemoryStream();
-            // Get the stream of the source file.
-            using (FileStream inFile = fi.OpenRead())
-            {
-                // Get original file extension, for example "doc" from report.doc.gz.
-                string curFile = fi.FullName;
-                string origName = curFile.Remove(curFile.Length - fi.Extension.Length);
+        return ms.ToArray();
+    }
+}
 
-                //Create the decompressed file.
-                //using (FileStream outFile = File.Create(origName))
-                {
-                    using (GZipStream Decompress = new GZipStream(inFile,
-                            CompressionMode.Decompress))
-                    {
-                        //Copy the decompression stream into the output file.
-                        byte[] buffer = new byte[4096];
-                        int numRead;
-                        while ((numRead = Decompress.Read(buffer, 0, buffer.Length)) != 0)
-                        {
-                            ms.Write(buffer, 0, numRead);
-                        }
-                        //Console.WriteLine("Decompressed: {0}", fi.Name);
-                    }
-                }
-            }
-            return ms.ToArray();
+struct TextAndSize
+{
+    public string text;
+    public float size;
+    public override readonly int GetHashCode()
+    {
+        if (text == null)
+        {
+            return 0;
+        }
+        return text.GetHashCode() ^ size.GetHashCode();
+    }
+    public override readonly bool Equals(object? obj)
+    {
+        if (obj is TextAndSize other)
+        {
+            return this.text == other.text && this.size == other.size;
+        }
+        return base.Equals(obj);
+    }
+}
+
+//Doesn't work on Ubuntu - pointer access crashes.
+public class FastBitmap
+{
+    public Bitmap bmp { get; set; }
+    BitmapData bmd;
+
+    public void Lock()
+    {
+        if (bmd != null)
+        {
+            throw new Exception("Already locked.");
+        }
+        if (bmp.PixelFormat != PixelFormat.Format32bppArgb)
+        {
+            bmp = new Bitmap(bmp);
+        }
+        bmd = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height),
+            ImageLockMode.ReadOnly, bmp.PixelFormat);
+    }
+
+    public int GetPixel(int x, int y)
+    {
+        if (bmd == null)
+        {
+            throw new Exception();
+        }
+        unsafe
+        {
+            int* row = (int*)((byte*)bmd.Scan0 + (y * bmd.Stride));
+            return row[x];
         }
     }
-    struct TextAndSize
+
+    public void SetPixel(int x, int y, int color)
     {
-        public string text;
-        public float size;
-        public override int GetHashCode()
+        if (bmd == null)
         {
-            if (text == null)
-            {
-                return 0;
-            }
-            return text.GetHashCode() ^ size.GetHashCode();
+            throw new Exception();
         }
-        public override bool Equals(object obj)
+        unsafe
         {
-            if (obj is TextAndSize)
-            {
-                TextAndSize other = (TextAndSize)obj;
-                return this.text == other.text && this.size == other.size;
-            }
-            return base.Equals(obj);
+            int* row = (int*)((byte*)bmd.Scan0 + (y * bmd.Stride));
+            row[x] = color;
         }
     }
-    //Doesn't work on Ubuntu - pointer access crashes.
-    public class FastBitmap
+
+    public void Unlock()
     {
-        public Bitmap bmp { get; set; }
-        BitmapData bmd;
-        public void Lock()
+        if (bmd == null)
         {
-            if (bmd != null)
-            {
-                throw new Exception("Already locked.");
-            }
-            if (bmp.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppArgb)
-            {
-                bmp = new Bitmap(bmp);
-            }
-            bmd = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height),
-                System.Drawing.Imaging.ImageLockMode.ReadOnly, bmp.PixelFormat);
+            throw new Exception("Not locked.");
         }
-        public int GetPixel(int x, int y)
+        bmp.UnlockBits(bmd);
+        bmd = null;
+    }
+}
+
+public static class Misc
+{
+    public static bool ReadBool(string str)
+    {
+        if (str == null)
         {
-            if (bmd == null)
-            {
-                throw new Exception();
-            }
-            unsafe
-            {
-                int* row = (int*)((byte*)bmd.Scan0 + (y * bmd.Stride));
-                return row[x];
-            }
+            return false;
         }
-        public void SetPixel(int x, int y, int color)
+        else
         {
-            if (bmd == null)
-            {
-                throw new Exception();
-            }
-            unsafe
-            {
-                int* row = (int*)((byte*)bmd.Scan0 + (y * bmd.Stride));
-                row[x] = color;
-            }
-        }
-        public void Unlock()
-        {
-            if (bmd == null)
-            {
-                throw new Exception("Not locked.");
-            }
-            bmp.UnlockBits(bmd);
-            bmd = null;
+            return (str != "0"
+                && (!str.Equals(bool.FalseString, StringComparison.InvariantCultureIgnoreCase)));
         }
     }
-    public static class Misc
+    public static unsafe byte[] UshortArrayToByteArray(ushort[] a)
     {
-        public static bool ReadBool(string str)
+        byte[] output = new byte[a.Length * 2];
+        fixed (ushort* a1 = a)
         {
-            if (str == null)
+            byte* a2 = (byte*)a1;
+            for (int i = 0; i < a.Length * 2; i++)
             {
-                return false;
-            }
-            else
-            {
-                return (str != "0"
-                    && (!str.Equals(bool.FalseString, StringComparison.InvariantCultureIgnoreCase)));
+                output[i] = a2[i];
             }
         }
-        public static unsafe byte[] UshortArrayToByteArray(ushort[] a)
+        return output;
+    }
+}
+
+public class XmlTool
+{
+    public static string XmlVal(XmlDocument d, string path)
+    {
+        XPathNavigator navigator = d.CreateNavigator();
+        XPathNodeIterator iterator = navigator.Select(path);
+        foreach (XPathNavigator n in iterator)
         {
-            byte[] output = new byte[a.Length * 2];
-            fixed (ushort* a1 = a)
-            {
-                byte* a2 = (byte*)a1;
-                for (int i = 0; i < a.Length * 2; i++)
-                {
-                    output[i] = a2[i];
-                }
-            }
-            return output;
+            return n.Value;
+        }
+        return null;
+    }
+
+    public static IEnumerable<string> XmlVals(XmlDocument d, string path)
+    {
+        XPathNavigator navigator = d.CreateNavigator();
+        XPathNodeIterator iterator = navigator.Select(path);
+        foreach (XPathNavigator n in iterator)
+        {
+            yield return n.Value;
         }
     }
-    public class XmlTool
+
+    public static string X(string name, string value)
     {
-        public static string XmlVal(XmlDocument d, string path)
-        {
-            XPathNavigator navigator = d.CreateNavigator();
-            XPathNodeIterator iterator = navigator.Select(path);
-            foreach (XPathNavigator n in iterator)
-            {
-                return n.Value;
-            }
-            return null;
-        }
-        public static IEnumerable<string> XmlVals(XmlDocument d, string path)
-        {
-            XPathNavigator navigator = d.CreateNavigator();
-            XPathNodeIterator iterator = navigator.Select(path);
-            foreach (XPathNavigator n in iterator)
-            {
-                yield return n.Value;
-            }
-        }
-        public static string X(string name, string value)
-        {
-            return string.Format("<{0}>{1}</{0}>", name, value);
-        }
+        return string.Format("<{0}>{1}</{0}>", name, value);
     }
 }

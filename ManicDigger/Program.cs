@@ -1,129 +1,125 @@
 ﻿#region Using Statements
-using ManicDigger.ClientNative;
 using OpenTK.Graphics;
+using Serilog;
 using System.Diagnostics;
 #endregion
 
 public class ManicDiggerProgram
 {
-	[STAThread]
-	public static void Main(string[] args)
-	{
-		#if !DEBUG
-		//Catch unhandled exceptions
-		CrashReporter.DefaultFileName = "ManicDiggerClientCrash.txt";
-		CrashReporter.EnableGlobalExceptionHandling(false);
-		#endif
-
-		new ManicDiggerProgram(args);
-	}
-
-	public ManicDiggerProgram(string[] args)
-	{
-		dummyNetwork = new DummyNetwork();
-		dummyNetwork.Start(new MonitorObject(), new MonitorObject());
-
-		#if !DEBUG
-		crashreporter = new CrashReporter();
-		crashreporter.Start(delegate { Start(args); });
-		#else
-		Start(args);
-		#endif
-	}
-
-    private CrashReporter crashreporter;
-
-    private static void Log(string msg)
+    [STAThread]
+    public static void Main(string[] args)
     {
-        File.AppendAllText("debug.log", $"{DateTime.Now}: {msg}\n");
+        CrashReporter.DefaultFileName = "ManicDiggerClientCrash.txt";
+        CrashReporter.EnableGlobalExceptionHandling(isConsole: false);
+
+        _ = new ManicDiggerProgram(args);
     }
+
+    public ManicDiggerProgram(string[] args)
+    {
+        dummyNetwork = new DummyNetwork();
+        dummyNetwork.Start(new MonitorObject(), new MonitorObject());
+
+        Start(args);
+    }
+
+    // ── Fields ────────────────────────────────────────────────────────────────
+
+    private readonly DummyNetwork dummyNetwork;
+    private string savefilename;
+    public GameExit exit = new();
+    private GamePlatformNative platform;
+
+    // ── Start ─────────────────────────────────────────────────────────────────
 
     private void Start(string[] args)
     {
-        try
+        string appPath = Path.GetDirectoryName(Application.ExecutablePath)!;
+        if (!Debugger.IsAttached)
+            Environment.CurrentDirectory = appPath;
+
+        Log.Debug("Initialising GamePlatformNative");
+
+        GamePlatformNative platform = new()
         {
-            string appPath = Path.GetDirectoryName(Application.ExecutablePath);
-            if (!Debugger.IsAttached)
-            {
-                Environment.CurrentDirectory = appPath;
-            }
+            crashreporter = new CrashReporter(),
+            singlePlayerServerDummyNetwork = dummyNetwork
+        };
+        platform.SetExit(exit);
 
-            GamePlatformNative platform = new()
-            {
-                crashreporter = crashreporter,
-                singlePlayerServerDummyNetwork = dummyNetwork
-            };
-            platform.SetExit(exit);
-
-            this.platform = platform;
-            platform.StartSinglePlayerServer = (filename) => { savefilename = filename; new Thread(ServerThreadStart).Start(); };
-
-            Log("Creating GameWindowNative");
-            GraphicsMode mode = new(OpenTK.DisplayDevice.Default.BitsPerPixel, 24);
-            using GameWindowNative game = new(mode);
-            game.VSync = OpenTK.VSyncMode.Adaptive;
-            platform.window = game;
-            game.platform = platform;
-            MainMenu mainmenu = new();
-            mainmenu.Start(platform);
-            ReadArgs(mainmenu, args);
-            platform.Start();
-            game.Run();
-        }
-        catch (Exception ex)
+        this.platform = platform;
+        platform.StartSinglePlayerServer = (filename) =>
         {
-            Log($"Start EXCEPTION: {ex}");
-            File.AppendAllText("debug.log", ex.StackTrace + "\n");
-        }
+            savefilename = filename;
+            new Thread(ServerThreadStart) { IsBackground = true }.Start();
+        };
+
+        Log.Debug("Creating GameWindowNative");
+        GraphicsMode mode = new(OpenTK.DisplayDevice.Default.BitsPerPixel, 24);
+        using GameWindowNative game = new(mode);
+        game.VSync = OpenTK.VSyncMode.Adaptive;
+        platform.window = game;
+        game.platform = platform;
+
+        MainMenu mainmenu = new();
+        mainmenu.Start(platform);
+        ReadArgs(mainmenu, args);
+
+        platform.Start();
+        game.Run();
+
     }
 
     private static void ReadArgs(MainMenu mainmenu, string[] args)
-	{
-		if (args.Length > 0)
-		{
-			var connectdata = ConnectData.FromUri(new GamePlatformNative().ParseUri(args[0]));
-			mainmenu.StartGame(false, null, connectdata);
-		}
-	}
+    {
+        if (args.Length > 0)
+        {
+            var connectdata = ConnectData.FromUri(new GamePlatformNative().ParseUri(args[0]));
+            mainmenu.StartGame(false, null, connectdata);
+        }
+    }
 
-    private DummyNetwork dummyNetwork;
-    private string savefilename;
-	public GameExit exit = new();
-    private GamePlatformNative platform;
+    // ── Server thread ─────────────────────────────────────────────────────────
 
-	public void ServerThreadStart()
-	{
-		try
-		{
+    public void ServerThreadStart()
+    {
+        Log.Debug("Single-player server thread started");
+        try
+        {
             Server server = new()
             {
                 SaveFilenameOverride = savefilename,
                 exit = exit,
                 mainSockets = new NetServer[3]
             };
+
             DummyNetServer netServer = new();
             netServer.SetPlatform(new GamePlatformNative());
             netServer.SetNetwork(dummyNetwork);
             server.mainSockets[0] = netServer;
 
             for (; ; )
-			{
-				server.Process();
-				Thread.Sleep(1);
-				platform.singlePlayerServerLoaded = true;
-				if (exit != null && exit.GetExit()) { server.Stop(); break; }
-				if (platform.singlepLayerServerExit)
-				{
-					// Exit thread and reset shutdown variable
-					server.Exit();
-					platform.singlepLayerServerExit = false;
-				}
-			}
-			exit.SetExit(false);
-		}
-		catch (Exception e)
-		{
-			MessageBox.Show(e.ToString());
-		}
-	}
+            {
+                server.Process();
+                Thread.Sleep(1);
+                platform.singlePlayerServerLoaded = true;
+
+                if (exit?.GetExit() == true) { server.Stop(); break; }
+
+                if (platform.singlepLayerServerExit)
+                {
+                    server.Exit();
+                    platform.singlepLayerServerExit = false;
+                }
+            }
+
+            exit.SetExit(false);
+            Log.Debug("Single-player server thread stopped cleanly");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Server thread crashed");
+            MessageBox.Show(ex.ToString(), "Server Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
 }

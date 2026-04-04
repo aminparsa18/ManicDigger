@@ -1,31 +1,20 @@
 ﻿using ENet;
 using ManicDigger;
 using ManicDigger.ClientNative;
-using ManicDigger.Renderers;
-using OpenTK;
-using OpenTK.Audio;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Input;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Windows.Forms;
-using System.Xml.Serialization;
 
 public class GamePlatformNative : GamePlatform
 {
@@ -34,7 +23,7 @@ public class GamePlatformNative : GamePlatform
     {
         return (int)value;
     }
-    
+
     public override float MathSin(float a)
     {
         return (float)Math.Sin(a);
@@ -565,7 +554,7 @@ public class GamePlatformNative : GamePlatform
     {
         return GameVersion.Version;
     }
-        
+
     ICompression compression = new CompressionGzip();
     public override void GzipDecompress(byte[] compressed, int compressedLength, byte[] ret)
     {
@@ -1409,17 +1398,15 @@ public class GamePlatformNative : GamePlatform
         if (resolutions == null)
         {
             resolutions = new DisplayResolutionCi[1024];
-            foreach (var r in DisplayDevice.Default.AvailableResolutions)
+            foreach (var screen in System.Windows.Forms.Screen.AllScreens)
             {
-                if (r.Width < 800 || r.Height < 600 || r.BitsPerPixel < 16)
-                {
+                var r2 = new DisplayResolutionCi();
+                r2.Width = screen.Bounds.Width;
+                r2.Height = screen.Bounds.Height;
+                r2.BitsPerPixel = screen.BitsPerPixel;
+                r2.RefreshRate = 60; // Screen doesn't expose refresh rate
+                if (r2.Width < 800 || r2.Height < 600 || r2.BitsPerPixel < 16)
                     continue;
-                }
-                DisplayResolutionCi r2 = new DisplayResolutionCi();
-                r2.Width = r.Width;
-                r2.Height = r.Height;
-                r2.BitsPerPixel = r.BitsPerPixel;
-                r2.RefreshRate = r.RefreshRate;
                 resolutions[resolutionsCount++] = r2;
             }
         }
@@ -1439,17 +1426,19 @@ public class GamePlatformNative : GamePlatform
 
     public override void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate)
     {
-        DisplayDevice.Default.ChangeResolution(width, height, bitsPerPixel, refreshRate);
+        // OpenTK 4.x has no resolution changing built-in
+        // Resize the window to match instead
+        window.ClientSize = new OpenTK.Mathematics.Vector2i(width, height);
     }
 
     public override DisplayResolutionCi GetDisplayResolutionDefault()
     {
-        DisplayDevice d = DisplayDevice.Default;
-        DisplayResolutionCi r = new DisplayResolutionCi();
-        r.Width = d.Width;
-        r.Height = d.Height;
-        r.BitsPerPixel = d.BitsPerPixel;
-        r.RefreshRate = d.RefreshRate;
+        var screen = System.Windows.Forms.Screen.PrimaryScreen!;
+        var r = new DisplayResolutionCi();
+        r.Width = screen.Bounds.Width;
+        r.Height = screen.Bounds.Height;
+        r.BitsPerPixel = screen.BitsPerPixel;
+        r.RefreshRate = 60;
         return r;
     }
 
@@ -1818,7 +1807,7 @@ public class GamePlatformNative : GamePlatform
     }
 
     #endregion
-    
+
     #region Game
 
     bool singlePlayerServerAvailable = true;
@@ -2020,16 +2009,33 @@ public class GamePlatformNative : GamePlatform
         return window.IsFocused;
     }
 
-    void window_RenderFrame(FrameEventArgs e)
+    private static void Log(string msg)
+    {
+        File.AppendAllText("debug.log", $"{DateTime.Now}: {msg}\n");
+    }
+
+    public void window_RenderFrame(FrameEventArgs e)
     {
         UpdateMousePosition();
         foreach (NewFrameHandler h in newFrameHandlers)
         {
-            NewFrameEventArgs args = new NewFrameEventArgs();
-            args.SetDt((float)e.Time);
-            h.OnNewFrame(args);
+            try
+            {
+                NewFrameEventArgs args = new NewFrameEventArgs();
+                args.SetDt((float)e.Time);
+                h.OnNewFrame(args);
+
+                var err = GL.GetError();
+                if (err != OpenTK.Graphics.OpenGL.ErrorCode.NoError)
+                {
+                    Log($"GL Error: {err}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"Handler error: {ex.Message}\n{ex.StackTrace}");
+            }
         }
-        window.SwapBuffers();
     }
 
     void UpdateMousePosition()
@@ -2232,8 +2238,10 @@ public class AssetLoader
     public void LoadAssetsAsync(AssetList list, FloatRef progress)
     {
         List<Asset> assets = new List<Asset>();
+        File.AppendAllText("debug.log", $"{DateTime.Now}: AssetLoader searching paths:\n");
         foreach (string path in datapaths)
         {
+            File.AppendAllText("debug.log", $"{DateTime.Now}: Checking path: {Path.GetFullPath(path)} exists={Directory.Exists(path)}\n");
             try
             {
                 if (!Directory.Exists(path))
@@ -2256,8 +2264,9 @@ public class AssetLoader
                         a.md5 = Md5(a.data);
                         assets.Add(a);
                     }
-                    catch
+                    catch(Exception ex)
                     {
+                        int sss = 2;
                     }
                 }
             }
@@ -2265,13 +2274,16 @@ public class AssetLoader
             {
             }
         }
+        File.AppendAllText("debug.log", $"{DateTime.Now}: Assets loaded: {assets.Count}, setting progress to 1\n");
         progress.value = 1;
+        File.AppendAllText("debug.log", $"{DateTime.Now}: Progress set to: {progress.value}\n");
         list.count = assets.Count;
         list.items = new Asset[2048];
         for (int i = 0; i < assets.Count; i++)
         {
             list.items[i] = assets[i];
         }
+        File.AppendAllText("debug.log", $"{DateTime.Now}: Asset list fully populated\n");
     }
 
     MD5CryptoServiceProvider sha1 = new MD5CryptoServiceProvider();
@@ -2471,6 +2483,8 @@ public class TextureNative : Texture
 public class GameWindowNative : GameWindow
 {
     public GamePlatformNative platform;
+    public System.Action? OnLoadAction;
+
     public GameWindowNative()
         : base(
             new GameWindowSettings
@@ -2481,9 +2495,43 @@ public class GameWindowNative : GameWindow
             {
                 ClientSize = new OpenTK.Mathematics.Vector2i(1280, 720),
                 Title = "ManicDigger",
+                DepthBits = 24,
                 WindowState = OpenTK.Windowing.Common.WindowState.Normal,
+                // Force compatibility profile to allow legacy GL calls
+                Profile = ContextProfile.Compatability,
+                API = ContextAPI.OpenGL,
+                APIVersion = new Version(3, 2),
             })
     {
         VSync = VSyncMode.Off;
+    }
+
+    protected override void OnLoad()
+    {
+        base.OnLoad();
+        OnLoadAction?.Invoke();
+    }
+
+    private static void Log(string msg)
+    {
+        File.AppendAllText("debug.log", $"{DateTime.Now}: {msg}\n");
+    }
+
+    protected override void OnRenderFrame(FrameEventArgs e)
+    {
+        base.OnRenderFrame(e);
+        platform?.window_RenderFrame(e);
+        SwapBuffers();
+    }
+
+    protected override void OnUpdateFrame(FrameEventArgs e)
+    {
+        base.OnUpdateFrame(e);
+    }
+
+    protected override void OnResize(ResizeEventArgs e)
+    {
+        base.OnResize(e);
+        GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
     }
 }

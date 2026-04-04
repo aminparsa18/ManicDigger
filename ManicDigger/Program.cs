@@ -1,18 +1,7 @@
 ﻿#region Using Statements
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
-using System.Threading;
-using System.Windows.Forms;
-using System.Xml;
-using ManicDigger;
-using ManicDigger.Renderers;
-using System.Text;
-using System.Net.Sockets;
 using ManicDigger.ClientNative;
-using OpenTK.Graphics;
+using OpenTK.Windowing.Common;
+using System.Diagnostics;
 #endregion
 
 public class ManicDiggerProgram
@@ -44,35 +33,77 @@ public class ManicDiggerProgram
 
 	CrashReporter crashreporter;
 
-	private void Start(string[] args)
-	{
-		string appPath = Path.GetDirectoryName(Application.ExecutablePath);
-		if (!Debugger.IsAttached)
-		{
-			System.Environment.CurrentDirectory = appPath;
-		}
+    private static void Log(string msg)
+    {
+        File.AppendAllText("debug.log", $"{DateTime.Now}: {msg}\n");
+    }
 
-		MainMenu mainmenu = new MainMenu();
-		GamePlatformNative platform = new GamePlatformNative();
-		platform.SetExit(exit);
-		platform.crashreporter = crashreporter;
-		platform.singlePlayerServerDummyNetwork = dummyNetwork;
-		this.platform = platform;
-		platform.StartSinglePlayerServer = (filename) => { savefilename = filename; new Thread(ServerThreadStart).Start(); };
-		GraphicsMode mode = new GraphicsMode(OpenTK.DisplayDevice.Default.BitsPerPixel, 24);
-		using (GameWindowNative game = new GameWindowNative(mode))
-		{
-			game.VSync = OpenTK.VSyncMode.Adaptive;
-			platform.window = game;
-			game.platform = platform;
-			mainmenu.Start(platform);
-			ReadArgs(mainmenu, args);
-			platform.Start();
-			game.Run();
-		}
-	}
+    private void Start(string[] args)
+    {
+        Log("Start() called");
+        try
+        {
+            Log("Before ApplicationConfiguration");
+            global::System.Windows.Forms.Application.EnableVisualStyles();
+            global::System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+            global::System.Windows.Forms.Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            Log("After ApplicationConfiguration");
 
-	void ReadArgs(MainMenu mainmenu, string[] args)
+            string appPath = Path.GetDirectoryName(Application.ExecutablePath);
+            Log($"appPath: {appPath}");
+            if (!Debugger.IsAttached)
+            {
+                System.Environment.CurrentDirectory = appPath;
+            }
+
+            Log("Creating MainMenu and platform");
+            MainMenu mainmenu = new MainMenu();
+            GamePlatformNative platform = new GamePlatformNative();
+            platform.SetExit(exit);
+            platform.crashreporter = crashreporter;
+            platform.singlePlayerServerDummyNetwork = dummyNetwork;
+            this.platform = platform;
+            platform.StartSinglePlayerServer = (filename) => { savefilename = filename; new Thread(ServerThreadStart).Start(); };
+
+            Log("Creating GameWindowNative");
+            using GameWindowNative game = new();
+            game.VSync = VSyncMode.Adaptive;
+            platform.window = game;
+            game.platform = platform;
+
+            //game.OnLoadAction = () =>
+            //{
+            //    Log("OnLoad fired");
+            //    try
+            //    {
+                    Log("mainmenu.Start");
+                    mainmenu.Start(platform);
+                    Log("ReadArgs");
+                    ReadArgs(mainmenu, args);
+                    Log("platform.Start");
+                    platform.Start();
+                    Log("platform.Start done");
+                //}
+                //catch (Exception ex)
+                //{
+                //    Log($"OnLoad EXCEPTION: {ex}");
+                //    File.AppendAllText("debug.log", ex.StackTrace + "\n");
+                //    game.Close();
+                //}
+            //};
+
+            Log("game.Run()");
+            game.Run();
+            Log("game.Run() returned");
+        }
+        catch (Exception ex)
+        {
+            Log($"Start EXCEPTION: {ex}");
+            File.AppendAllText("debug.log", ex.StackTrace + "\n");
+        }
+    }
+
+    void ReadArgs(MainMenu mainmenu, string[] args)
 	{
 		if (args.Length > 0)
 		{

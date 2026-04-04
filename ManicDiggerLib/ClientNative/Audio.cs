@@ -130,7 +130,7 @@ namespace ManicDigger
 
                     int buffer = OpenTK.Audio.OpenAL.AL.GenBuffer();
 
-                    OpenTK.Audio.OpenAL.AL.BufferData(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Pcm.Length, sample.Rate);
+                    AL.BufferData<byte>(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Rate);
                     //audiofiles[filename]=buffer;
 
                     OpenTK.Audio.OpenAL.AL.DistanceModel(OpenTK.Audio.OpenAL.ALDistanceModel.InverseDistance);

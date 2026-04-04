@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.4.11605.240 stable
+VisualStudioVersion = 18.4.11605.240
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDigger", "ManicDigger\ManicDigger.csproj", "{650BC108-C744-4DA1-AEFD-CD8F011483B3}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MdMonsterEditor", "MdMonsterEditor\MdMonsterEditor.csproj", "{DE9E0B36-6171-4DA3-9495-0A82445B6D74}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptingApi", "ScriptingApi\ScriptingApi.csproj", "{A3582245-A1D1-4135-BA90-8EFD7830DA83}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsApp1", "WinFormsApp1\WinFormsApp1.csproj", "{A52BB43D-42AB-44F6-A39F-815C3C404DCE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +50,12 @@ Global
 		{A3582245-A1D1-4135-BA90-8EFD7830DA83}.FastBuild|Any CPU.Build.0 = FastBuild|Any CPU
 		{A3582245-A1D1-4135-BA90-8EFD7830DA83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3582245-A1D1-4135-BA90-8EFD7830DA83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A52BB43D-42AB-44F6-A39F-815C3C404DCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A52BB43D-42AB-44F6-A39F-815C3C404DCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A52BB43D-42AB-44F6-A39F-815C3C404DCE}.FastBuild|Any CPU.ActiveCfg = Release|Any CPU
+		{A52BB43D-42AB-44F6-A39F-815C3C404DCE}.FastBuild|Any CPU.Build.0 = Release|Any CPU
+		{A52BB43D-42AB-44F6-A39F-815C3C404DCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A52BB43D-42AB-44F6-A39F-815C3C404DCE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

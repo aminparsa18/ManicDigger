@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ManicDigger": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)"
+    }
+  }
+}

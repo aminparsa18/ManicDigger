@@ -3338,12 +3338,12 @@ public partial class Server : ICurrentTime, IDropItem
         }
     }
 
-    int[] sunlevels;
+    int[] sunlevels = [];
     public void SetSunLevels(int[] sunLevels)
     {
         this.sunlevels = sunLevels;
     }
-    float[] lightlevels;
+    float[] lightlevels = [];
     public void SetLightLevels(float[] lightLevels)
     {
         this.lightlevels = lightLevels;

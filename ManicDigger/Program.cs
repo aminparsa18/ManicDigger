@@ -31,7 +31,7 @@ public class ManicDiggerProgram
 		#endif
 	}
 
-	CrashReporter crashreporter;
+    private CrashReporter crashreporter;
 
     private static void Log(string msg)
     {
@@ -40,43 +40,35 @@ public class ManicDiggerProgram
 
     private void Start(string[] args)
     {
-        Log("Start() called");
         try
         {
-            Log("Before ApplicationConfiguration");
-            global::System.Windows.Forms.Application.EnableVisualStyles();
-            global::System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
-            global::System.Windows.Forms.Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Log("After ApplicationConfiguration");
-
             string appPath = Path.GetDirectoryName(Application.ExecutablePath);
-            Log($"appPath: {appPath}");
             if (!Debugger.IsAttached)
             {
-                System.Environment.CurrentDirectory = appPath;
+                Environment.CurrentDirectory = appPath;
             }
 
-            Log("Creating MainMenu and platform");
-            MainMenu mainmenu = new MainMenu();
-            GamePlatformNative platform = new GamePlatformNative();
+            GamePlatformNative platform = new()
+            {
+                crashreporter = crashreporter,
+                singlePlayerServerDummyNetwork = dummyNetwork
+            };
             platform.SetExit(exit);
-            platform.crashreporter = crashreporter;
-            platform.singlePlayerServerDummyNetwork = dummyNetwork;
+
             this.platform = platform;
             platform.StartSinglePlayerServer = (filename) => { savefilename = filename; new Thread(ServerThreadStart).Start(); };
 
             Log("Creating GameWindowNative");
-            GraphicsMode mode = new GraphicsMode(OpenTK.DisplayDevice.Default.BitsPerPixel, 24);
-            using (GameWindowNative game = new GameWindowNative(mode))
-            {
-                game.VSync = OpenTK.VSyncMode.Adaptive;
-                platform.window = game;
-                game.platform = platform;
-                mainmenu.Start(platform);
-                ReadArgs(mainmenu, args);
-                platform.Start();
-                game.Run();
-            }
+            GraphicsMode mode = new(OpenTK.DisplayDevice.Default.BitsPerPixel, 24);
+            using GameWindowNative game = new(mode);
+            game.VSync = OpenTK.VSyncMode.Adaptive;
+            platform.window = game;
+            game.platform = platform;
+            MainMenu mainmenu = new();
+            mainmenu.Start(platform);
+            ReadArgs(mainmenu, args);
+            platform.Start();
+            game.Run();
         }
         catch (Exception ex)
         {
@@ -85,35 +77,36 @@ public class ManicDiggerProgram
         }
     }
 
-    void ReadArgs(MainMenu mainmenu, string[] args)
+    private static void ReadArgs(MainMenu mainmenu, string[] args)
 	{
 		if (args.Length > 0)
 		{
-			ConnectData connectdata = new ConnectData();
-			connectdata = ConnectData.FromUri(new GamePlatformNative().ParseUri(args[0]));
-
+			var connectdata = ConnectData.FromUri(new GamePlatformNative().ParseUri(args[0]));
 			mainmenu.StartGame(false, null, connectdata);
 		}
 	}
 
-	DummyNetwork dummyNetwork;
-	string savefilename;
-	public GameExit exit = new GameExit();
-	GamePlatformNative platform;
+    private DummyNetwork dummyNetwork;
+    private string savefilename;
+	public GameExit exit = new();
+    private GamePlatformNative platform;
 
 	public void ServerThreadStart()
 	{
 		try
 		{
-			Server server = new Server();
-			server.SaveFilenameOverride = savefilename;
-			server.exit = exit;
-			DummyNetServer netServer = new DummyNetServer();
-			netServer.SetPlatform(new GamePlatformNative());
-			netServer.SetNetwork(dummyNetwork);
-			server.mainSockets = new NetServer[3];
-			server.mainSockets[0] = netServer;
-			for (; ; )
+            Server server = new()
+            {
+                SaveFilenameOverride = savefilename,
+                exit = exit,
+                mainSockets = new NetServer[3]
+            };
+            DummyNetServer netServer = new();
+            netServer.SetPlatform(new GamePlatformNative());
+            netServer.SetNetwork(dummyNetwork);
+            server.mainSockets[0] = netServer;
+
+            for (; ; )
 			{
 				server.Process();
 				Thread.Sleep(1);

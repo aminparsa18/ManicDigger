@@ -32,6 +32,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- Native DLLs still needed at runtime -->
+		<Content Include="..\Lib\OpenAL32.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		<Reference Include="csogg">
 		  <HintPath>..\Lib\csogg.dll</HintPath>
 		</Reference>

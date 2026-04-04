@@ -39,9 +39,6 @@
 		<Reference Include="csvorbis">
 		  <HintPath>..\Lib\csvorbis.dll</HintPath>
 		</Reference>
-		<Reference Include="LibNoise">
-			<HintPath>..\Lib\LibNoise.dll</HintPath>
-		</Reference>
 		<Reference Include="OpenTK">
 		  <HintPath>..\Lib\OpenTK.dll</HintPath>
 		</Reference>
@@ -54,6 +51,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\LibNoise\LibNoise.csproj" />
 		<ProjectReference Include="..\ScriptingApi\ScriptingApi.csproj" />
 	</ItemGroup>
 

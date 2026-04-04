@@ -1,6 +1,6 @@
 using ManicDigger;
 using ManicDigger.ClientNative;
-using OpenTK.Mathematics;
+using OpenTK;
 using ProtoBuf;
 using System.Diagnostics;
 using System.Security.Cryptography;

@@ -1,5 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL;
-using OpenTK.Windowing.Desktop;
+﻿using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace ManicDigger.ClientNative
 {
@@ -23,8 +23,8 @@ namespace ManicDigger.ClientNative
         // Returns a System.Drawing.Bitmap with the contents of the current framebuffer
         public Bitmap GrabScreenshot()
         {
-            int width = d_GameWindow.ClientSize.X;
-            int height = d_GameWindow.ClientSize.Y;
+            int width = d_GameWindow.Width;
+            int height = d_GameWindow.Height;
 
             Bitmap bmp = new Bitmap(width, height);
             System.Drawing.Imaging.BitmapData data =

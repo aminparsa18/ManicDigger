@@ -1,5 +1,6 @@
-﻿using OpenTK.Audio.OpenAL;
-using OpenTK.Mathematics;
+﻿using OpenTK;
+using OpenTK.Audio;
+using OpenTK.Audio.OpenAL;
 using System.Diagnostics;
 
 namespace ManicDigger
@@ -11,9 +12,8 @@ namespace ManicDigger
         {
             try
             {
-                ALDevice device = ALC.OpenDevice(null);
-                context = ALC.CreateContext(device, new ALContextAttributes());
-                ALC.MakeContextCurrent(context);
+                IList<string> x = AudioContext.AvailableDevices;//only with this line an exception can be catched.
+                context = new AudioContext();
             }
             catch (Exception e)
             {
@@ -31,7 +31,7 @@ namespace ManicDigger
                 Console.WriteLine(e);
             }
         }
-        ALContext context;
+        AudioContext context;
         // Loads a wave/riff audio file.
         public static byte[] LoadWave(Stream stream, out int channels, out int bits, out int rate)
         {
@@ -130,7 +130,8 @@ namespace ManicDigger
 
                     int buffer = OpenTK.Audio.OpenAL.AL.GenBuffer();
 
-                    AL.BufferData<byte>(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Rate);
+                    //AL.BufferData<byte>(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Rate);
+                    AL.BufferData(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Pcm.Length, sample.Rate);
                     //audiofiles[filename]=buffer;
 
                     OpenTK.Audio.OpenAL.AL.DistanceModel(OpenTK.Audio.OpenAL.ALDistanceModel.InverseDistance);

@@ -1,6 +1,6 @@
 ﻿#region Using Statements
 using ManicDigger.ClientNative;
-using OpenTK.Windowing.Common;
+using OpenTK.Graphics;
 using System.Diagnostics;
 #endregion
 
@@ -66,35 +66,17 @@ public class ManicDiggerProgram
             platform.StartSinglePlayerServer = (filename) => { savefilename = filename; new Thread(ServerThreadStart).Start(); };
 
             Log("Creating GameWindowNative");
-            using GameWindowNative game = new();
-            game.VSync = VSyncMode.Adaptive;
-            platform.window = game;
-            game.platform = platform;
-
-            //game.OnLoadAction = () =>
-            //{
-            //    Log("OnLoad fired");
-            //    try
-            //    {
-                    Log("mainmenu.Start");
-                    mainmenu.Start(platform);
-                    Log("ReadArgs");
-                    ReadArgs(mainmenu, args);
-                    Log("platform.Start");
-                    platform.Start();
-                    Log("platform.Start done");
-                //}
-                //catch (Exception ex)
-                //{
-                //    Log($"OnLoad EXCEPTION: {ex}");
-                //    File.AppendAllText("debug.log", ex.StackTrace + "\n");
-                //    game.Close();
-                //}
-            //};
-
-            Log("game.Run()");
-            game.Run();
-            Log("game.Run() returned");
+            GraphicsMode mode = new GraphicsMode(OpenTK.DisplayDevice.Default.BitsPerPixel, 24);
+            using (GameWindowNative game = new GameWindowNative(mode))
+            {
+                game.VSync = OpenTK.VSyncMode.Adaptive;
+                platform.window = game;
+                game.platform = platform;
+                mainmenu.Start(platform);
+                ReadArgs(mainmenu, args);
+                platform.Start();
+                game.Run();
+            }
         }
         catch (Exception ex)
         {

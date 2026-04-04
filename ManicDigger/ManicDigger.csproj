@@ -16,15 +16,13 @@
 
   <ItemGroup>
     <!-- Replace with NuGet packages where possible -->
-    <PackageReference Include="OpenTK" Version="4.9.4" />
     <!-- ENet: check for ENet.Managed on NuGet -->
-    <PackageReference Include="ENet-CSharp" Version="2.4.8" />
+	<PackageReference Include="ENet-CSharp" Version="2.4.8" />
     <!-- SQLite -->
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
     <!-- Jint JavaScript engine -->
-    <PackageReference Include="Jint" Version="4.7.1" />
+	<PackageReference Include="Jint" Version="4.7.1" />
     <!-- OGG/Vorbis audio -->
-    <PackageReference Include="NVorbis" Version="0.10.5" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +38,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ManicDiggerLib\ManicDiggerLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="OpenTK">
+      <HintPath>..\Lib\OpenTK.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

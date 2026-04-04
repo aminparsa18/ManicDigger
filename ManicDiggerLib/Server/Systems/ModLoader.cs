@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.CSharp;
-using System.CodeDom.Compiler;
-using System.IO;
-using ManicDigger.ClientNative;
+﻿using Acornima.Ast;
 using Jint;
+using ManicDigger.ClientNative;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using System.Reflection;
+using System.Runtime.Loader;
+using System.Text;
 
 namespace ManicDigger
 {
@@ -57,14 +57,31 @@ namespace ManicDigger
             server.modManager = new ModManager1();
             var m = server.modManager;
             m.Start(server);
-            var scritps = GetScriptSources(server);
-            CompileScripts(scritps, restart);
+            var scripts = GetScriptSources(server);
+            Console.WriteLine($"[ModLoader] GetScriptSources returned {scripts.Count} scripts:");
+            foreach (var k in scripts)
+                Console.WriteLine($"  '{k.Key}' ({k.Value.Length} chars) - is .js: {k.Key.EndsWith(".js")}");
+            CompileScripts(scripts, restart);
+            Console.WriteLine($"[ModLoader] After CompileScripts, mods.Count = {mods.Count}");
             Start(m, m.required);
         }
 
         Dictionary<string, string> GetScriptSources(Server server)
         {
-            string[] modpaths = new[] { Path.Combine(Path.Combine(Path.Combine(Path.Combine(Path.Combine("..", ".."), ".."), "ManicDiggerLib"), "Server"), "Mods"), "Mods" };
+            string assemblyDir = Path.GetDirectoryName(GetType().Assembly.Location)!;
+
+            string[] modpaths = new[] { Path.Combine(assemblyDir, "..", "..", "..", "..", "ManicDiggerLib", "Server", "Mods"),
+    Path.Combine(assemblyDir, "Mods") };
+
+            var cd = Directory.GetCurrentDirectory();
+            var loc = GetType().Assembly.Location;
+            Console.WriteLine($"[ModLoader] Working directory: {Directory.GetCurrentDirectory()}");
+            Console.WriteLine($"[ModLoader] Assembly location: {GetType().Assembly.Location}");
+
+            foreach (string modpath in modpaths)
+            {
+                Console.WriteLine($"[ModLoader] Checking modpath: {Path.GetFullPath(modpath)} - exists: {Directory.Exists(modpath)}");
+            }
 
             for (int i = 0; i < modpaths.Length; i++)
             {
@@ -119,142 +136,194 @@ namespace ManicDigger
         Dictionary<string, string> javascriptScripts = new Dictionary<string, string>();
         public void CompileScripts(Dictionary<string, string> scripts, bool restart)
         {
-            CSharpCodeProvider compiler = new CSharpCodeProvider(new Dictionary<String, String> { { "CompilerVersion", "v3.5" } });
-            var parms = new CompilerParameters();
-            parms.GenerateExecutable = false;
-            parms.CompilerOptions = "/unsafe";
+            Dictionary<string, string> csharpScripts = new();
 
-#if !DEBUG
-            parms.GenerateInMemory = true;
-#else
-            //Prepare for mod debugging
-            //IMPORTANT: Visual Studio breakpoints will not jump into a generatet .cs file
-            //Instead, call "System.Diagnostics.Debugger.Break()" to create a breakpoint in the mod-class
-
-            //Generate files to debug
-            parms.GenerateInMemory = false;
-            parms.IncludeDebugInformation = true;
-
-            //Use a local temp folder
-            DirectoryInfo dirTemp = new DirectoryInfo(Path.Combine(new FileInfo(GetType().Assembly.Location).DirectoryName, "ModDebugInfos"));
-
-            //Prepare temp directory
-            if (!dirTemp.Exists)
-            {
-                Directory.CreateDirectory(dirTemp.FullName);
-            }
-            else
-            {
-                try
-                {
-                    //Clear temp files
-                    foreach (FileInfo f in dirTemp.GetFiles())
-                    {
-                        f.Delete();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    //meh, maybe next time
-                }
-            }
-
-            //created locally, this allows the debugger to find the .pdb
-            parms.OutputAssembly = Path.Combine(new DirectoryInfo(new FileInfo(GetType().Assembly.Location).DirectoryName).FullName ,"Mods.dll");
-
-            //generatet .cs files are stored here
-            //they are rather important for this debug session, since the .pdb link to them
-            parms.TempFiles = new TempFileCollection(dirTemp.FullName, true);
-#endif
-
-            parms.ReferencedAssemblies.Add("System.dll");
-            parms.ReferencedAssemblies.Add("System.Drawing.dll");
-            parms.ReferencedAssemblies.Add("ScriptingApi.dll");
-            parms.ReferencedAssemblies.Add("LibNoise.dll");
-            parms.ReferencedAssemblies.Add("protobuf-net.dll");
-            parms.ReferencedAssemblies.Add("System.Xml.dll");
-
-            Dictionary<string, string> csharpScripts = new Dictionary<string, string>();
             foreach (var k in scripts)
             {
                 if (k.Key.EndsWith(".js"))
-                {
                     javascriptScripts[k.Key] = k.Value;
-                }
                 else
-                {
                     csharpScripts[k.Key] = k.Value;
-                }
             }
+
             if (restart)
+                return; // javascript only
+
+            // Build default metadata references from currently loaded assemblies
+            var references = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
+                .Select(a => MetadataReference.CreateFromFile(a.Location))
+                .Cast<MetadataReference>()
+                .ToList();
+
+            // Also add explicit assemblies your mods depend on
+            foreach (var asmName in new[] { "ScriptingApi.dll", "LibNoise.dll", "protobuf-net.dll" })
             {
-                // javascript only
+                string assemblyDir = Path.GetDirectoryName(GetType().Assembly.Location)!;
+                // First try next to the executing assembly
+                string localPath = Path.Combine(assemblyDir, asmName);
+                if (File.Exists(localPath))
+                {
+                    references.Add(MetadataReference.CreateFromFile(localPath));
+                    Console.WriteLine($"[ModLoader] Added reference: {localPath}");
+                    continue;
+                }
+
+                // Then try already-loaded assemblies in AppDomain
+                string nameWithoutExt = Path.GetFileNameWithoutExtension(asmName);
+                var loaded = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == nameWithoutExt);
+                if (loaded != null && !string.IsNullOrEmpty(loaded.Location))
+                {
+                    references.Add(MetadataReference.CreateFromFile(loaded.Location));
+                    Console.WriteLine($"[ModLoader] Added reference from AppDomain: {loaded.Location}");
+                    continue;
+                }
+
+                Console.WriteLine($"[ModLoader] WARNING: Could not find reference: {asmName}");
+            }
+
+            var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+
+            // --- Try compiling all scripts together first ---
+            bool allSucceeded = TryCompileScripts(
+                csharpScripts,
+                references,
+                parseOptions,
+                allowUnsafe: true,
+                assemblyName: "ManicDiggerMods",
+                out Assembly? allAssembly,
+                out IEnumerable<Diagnostic> allDiagnostics);
+
+            if (allSucceeded && allAssembly != null)
+            {
+                Use(allAssembly);
                 return;
             }
 
-            string[] csharpScriptsValues = new string[csharpScripts.Values.Count];
-            int i = 0;
+            Console.WriteLine("[ModLoader] Combined compilation failed, falling back to per-script compilation.");
+
+            // --- Fall back: compile each script individually ---
             foreach (var k in csharpScripts)
             {
-                csharpScriptsValues[i++] = k.Value;
-            }
+                bool ok = TryCompileScripts(
+                    new Dictionary<string, string> { { k.Key, k.Value } },
+                    references,
+                    parseOptions,
+                    allowUnsafe: true,
+                    assemblyName: "Mod_" + Path.GetFileNameWithoutExtension(k.Key),
+                    out Assembly? modAssembly,
+                    out IEnumerable<Diagnostic> diagnostics);
 
-            {
-                CompilerResults results = compiler.CompileAssemblyFromSource(parms, csharpScriptsValues);
-
-                if (results.Errors.Count == 0)
+                if (!ok)
                 {
-                    Use(results);
-                    return;
-                }
-            }
+                    var errors = string.Join("\n", diagnostics
+                        .Where(d => d.Severity == DiagnosticSeverity.Error)
+                        .Select(d => $"{d.Id} Line:{d.Location.GetLineSpan().StartLinePosition.Line + 1} {d.GetMessage()}"));
 
-            //Error. Load scripts separately.
+                    string errormsg = $"Can't load mod: {k.Key}\n{errors}";
+                    Console.WriteLine(errormsg);
 
-            foreach (var k in csharpScripts)
-            {
-                CompilerResults results = compiler.CompileAssemblyFromSource(parms, new string[] { k.Value });
-                if (results.Errors.Count != 0)
-                {
-                    try
-                    {
-                        string errors = "";
-                        foreach (CompilerError error in results.Errors)
-                        {
-                            //mono is treating warnings as errors.
-                            //if (error.IsWarning)
-                            {
-                                //continue;
-                            }
-                            errors += string.Format("{0} Line:{1} {2}", error.ErrorNumber, error.Line, error.ErrorText);
-                        }
-                        string errormsg = "Can't load mod: " + k.Key + "\n" + errors;
-                        try
-                        {
-                            System.Windows.Forms.MessageBox.Show(errormsg);
-                        }
-                        catch
-                        {
-                        }
-                        Console.WriteLine(errormsg);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
+                    try { System.Windows.Forms.MessageBox.Show(errormsg); } catch { }
                     continue;
                 }
-                Use(results);
+
+                if (modAssembly != null)
+                    Use(modAssembly);
             }
         }
 
-        void Use(CompilerResults results)
+
+        bool TryCompileScripts(
+    Dictionary<string, string> scripts,
+    List<MetadataReference> references,
+    CSharpParseOptions parseOptions,
+    bool allowUnsafe,
+    string assemblyName,
+    out Assembly? assembly,
+    out IEnumerable<Diagnostic> diagnostics)
         {
-            foreach (Type t in results.CompiledAssembly.GetTypes())
+            Console.WriteLine($"[Roslyn] Script count: {scripts.Count}");
+            foreach (var k in scripts)
             {
-                if (typeof(IMod).IsAssignableFrom(t))
+                Console.WriteLine($"[Roslyn] Script '{k.Key}': {k.Value.Length} chars");
+                Console.WriteLine($"[Roslyn] First 200 chars: {k.Value.Substring(0, Math.Min(200, k.Value.Length))}");
+            }
+
+            var syntaxTrees = scripts
+                .Select(k => CSharpSyntaxTree.ParseText(k.Value, parseOptions, path: k.Key, Encoding.UTF8))
+                .ToList();
+            Console.WriteLine($"[Roslyn] Syntax trees: {syntaxTrees.Count}");
+            foreach (var tree in syntaxTrees)
+            {
+                var root = tree.GetRoot();
+                Console.WriteLine($"[Roslyn] Tree '{tree.FilePath}': {root.DescendantNodes().Count()} nodes");
+            }
+
+            var compilationOptions = new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                allowUnsafe: allowUnsafe,
+                optimizationLevel: OptimizationLevel.Release);
+
+            var compilation = CSharpCompilation.Create(
+                assemblyName,
+                syntaxTrees,
+                references,
+                compilationOptions);
+
+            var ms = new MemoryStream();
+
+#if DEBUG
+            var pdbStream = new MemoryStream();
+            var emitOptions = new Microsoft.CodeAnalysis.Emit.EmitOptions(
+                debugInformationFormat: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
+            var result = compilation.Emit(ms, pdbStream, options: emitOptions);
+#else
+    var result = compilation.Emit(ms);
+#endif
+
+            // ADD THIS:
+            foreach (var diag in result.Diagnostics)
+            {
+                Console.WriteLine($"[Roslyn] {diag.Severity} {diag.Id}: {diag.GetMessage()} (line {diag.Location.GetLineSpan().StartLinePosition.Line + 1})");
+            }
+            Console.WriteLine($"[Roslyn] Emit success: {result.Success}, stream length: {ms.Length}");
+
+            diagnostics = result.Diagnostics.Where(d => d.Severity >= DiagnosticSeverity.Warning);
+
+            if (!result.Success)
+            {
+                assembly = null;
+                return false;
+            }
+
+            var loadContext = new AssemblyLoadContext(name: "ModLoader", isCollectible: true);
+            ms.Seek(0, SeekOrigin.Begin);
+
+#if DEBUG
+            pdbStream.Seek(0, SeekOrigin.Begin);
+            assembly = loadContext.LoadFromStream(ms, pdbStream);
+            pdbStream.Dispose();
+#else
+    assembly = loadContext.LoadFromStream(ms);
+#endif
+            ms.Dispose();
+            // ADD THIS:
+            var tt = assembly.GetTypes();
+            Console.WriteLine($"[Roslyn] Assembly name: {assembly.FullName}");
+            Console.WriteLine($"[Roslyn] Types: {assembly.GetTypes().Length}");
+
+            return true;
+        }
+
+        void Use(Assembly assembly)
+        {
+            var types = assembly.GetTypes().ToList();
+            foreach (Type t in assembly.GetTypes())
+            {
+                if (typeof(IMod).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
                 {
-                    mods[t.Name] = (IMod)results.CompiledAssembly.CreateInstance(t.FullName);
+                    mods[t.Name] = (IMod)Activator.CreateInstance(t)!;
                     Console.WriteLine("Loaded mod: {0}", t.Name);
                 }
             }
@@ -314,9 +383,9 @@ namespace ManicDigger
             {
                 return;
             }
-            if (modRequirements.ContainsKey(name))
+            if (modRequirements.TryGetValue(name, out string[]? value))
             {
-                foreach (string required_name in modRequirements[name])
+                foreach (string required_name in value)
                 {
                     if (!mods.ContainsKey(required_name))
                     {
@@ -332,6 +401,10 @@ namespace ManicDigger
                     }
                     StartMod(required_name, mods[required_name], m);
                 }
+            }
+            else
+            {
+                var ss = name;
             }
             mod.Start(m);
             loaded[name] = true;

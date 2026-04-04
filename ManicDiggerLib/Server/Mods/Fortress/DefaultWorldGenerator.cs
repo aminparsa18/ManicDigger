@@ -1,16 +1,15 @@
-﻿using System;
-using LibNoise;
+﻿using LibNoise;
 using LibNoise.Modifiers;
 
 namespace ManicDigger.Mods
 {
 	public class DefaultWorldGenerator : IMod
 	{
-		public void PreStart(ModManager m)
+		public void PreStart(IModManager m)
 		{
 			m.RequireMod("CoreBlocks");
 		}
-		public void Start(ModManager manager)
+		public void Start(IModManager manager)
 		{
 			m = manager;
 			m.RegisterWorldGenerator(GetChunk);
@@ -34,7 +33,7 @@ namespace ManicDigger.Mods
 			BLOCK_LAVA = m.GetBlockId ("Lava");
 		}
 
-		ModManager m;
+		IModManager m;
 
 		bool started = false;
 		public void GetChunk(int x, int y, int z, ushort[] chunk)
@@ -51,7 +50,7 @@ namespace ManicDigger.Mods
 			y *= ChunkSize;
 			z *= ChunkSize;
 			int chunksize = ChunkSize;
-			var noise = new LibNoise.FastNoise();
+			var noise = new FastNoise();
 			noise.Frequency = 0.01;
 
 			for (int xx = 0; xx < chunksize; xx++)
@@ -267,13 +266,13 @@ namespace ManicDigger.Mods
 		}
 		// Heightmap composition
 		FastNoise BiomeBase = new FastNoise();
-		ScaleBiasOutput BiomeSelect;
+        ScaleBiasOutput BiomeSelect;
 		RidgedMultifractal mountainTerrainBase = new RidgedMultifractal();
-		ScaleBiasOutput mountainTerrain;
+        ScaleBiasOutput mountainTerrain;
 		Billow baseFlatTerrain = new Billow();
-		ScaleBiasOutput flatTerrain;
+        ScaleBiasOutput flatTerrain;
 		Billow baseWater = new Billow();
-		ScaleBiasOutput water;
+        ScaleBiasOutput water;
 		FastNoise terrainType = new FastNoise();
 		FastNoise terrainType2 = new FastNoise();
 		Select waterTerrain;

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
+﻿using OpenTK;
 using OpenTK.Audio;
-using System.Threading;
+using OpenTK.Audio.OpenAL;
 using System.Diagnostics;
-using OpenTK;
 
 namespace ManicDigger
 {
@@ -134,7 +130,8 @@ namespace ManicDigger
 
                     int buffer = OpenTK.Audio.OpenAL.AL.GenBuffer();
 
-                    OpenTK.Audio.OpenAL.AL.BufferData(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Pcm.Length, sample.Rate);
+                    //AL.BufferData<byte>(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Rate);
+                    AL.BufferData(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Pcm.Length, sample.Rate);
                     //audiofiles[filename]=buffer;
 
                     OpenTK.Audio.OpenAL.AL.DistanceModel(OpenTK.Audio.OpenAL.ALDistanceModel.InverseDistance);

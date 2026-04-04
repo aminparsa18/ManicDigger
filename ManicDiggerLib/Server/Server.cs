@@ -1,24 +1,11 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
-using System.Xml;
 using ManicDigger;
+using ManicDigger.ClientNative;
 using OpenTK;
 using ProtoBuf;
-using System.Xml.Serialization;
-using System.Drawing;
-using System.Text.RegularExpressions;
-using System.Threading;
-using Jint.Delegates;
 using System.Diagnostics;
-using ManicDigger.ClientNative;
-
-
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 
 public class ClientException : Exception
 {
@@ -3351,12 +3338,12 @@ public partial class Server : ICurrentTime, IDropItem
         }
     }
 
-    int[] sunlevels;
+    int[] sunlevels = [];
     public void SetSunLevels(int[] sunLevels)
     {
         this.sunlevels = sunLevels;
     }
-    float[] lightlevels;
+    float[] lightlevels = [];
     public void SetLightLevels(float[] lightLevels)
     {
         this.lightlevels = lightLevels;

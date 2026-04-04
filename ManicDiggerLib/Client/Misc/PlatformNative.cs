@@ -1,25 +1,17 @@
-﻿using System.IO;
+﻿using ENet;
 using ManicDigger;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using OpenTK.Graphics.OpenGL;
-using System.Drawing;
-using System;
-using System.Text;
-using System.Net;
-using OpenTK.Input;
-using OpenTK;
-using System.Diagnostics;
-using ManicDigger.Renderers;
-using System.Globalization;
-using OpenTK.Audio;
 using ManicDigger.ClientNative;
-using System.Xml.Serialization;
-using System.Text.RegularExpressions;
-using System.Windows.Forms;
-using System.Threading;
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
+using System.Diagnostics;
+using System.Drawing.Imaging;
+using System.Globalization;
+using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 
 public class GamePlatformNative : GamePlatform
 {
@@ -28,7 +20,7 @@ public class GamePlatformNative : GamePlatform
     {
         return (int)value;
     }
-    
+
     public override float MathSin(float a)
     {
         return (float)Math.Sin(a);
@@ -58,9 +50,6 @@ public class GamePlatformNative : GamePlatform
     {
         return a % b;
     }
-
-
-
 
     public override int IntParse(string value)
     {
@@ -228,6 +217,7 @@ public class GamePlatformNative : GamePlatform
     {
         System.Windows.Forms.Clipboard.SetText(s);
     }
+
     ManicDigger.Renderers.TextRenderer r = new ManicDigger.Renderers.TextRenderer();
     Dictionary<TextAndSize, SizeF> textsizes = new Dictionary<TextAndSize, SizeF>();
     public SizeF TextSize(string text, float fontsize)
@@ -561,7 +551,7 @@ public class GamePlatformNative : GamePlatform
     {
         return GameVersion.Version;
     }
-        
+
     ICompression compression = new CompressionGzip();
     public override void GzipDecompress(byte[] compressed, int compressedLength, byte[] ret)
     {
@@ -1229,35 +1219,40 @@ public class GamePlatformNative : GamePlatform
     public override void EnetHostInitializeServer(EnetHost host, int port, int peerLimit)
     {
         EnetHostNative host_ = (EnetHostNative)host;
-        host_.host.InitializeServer(port, peerLimit);
+        host_.host.Create(port, peerLimit);
     }
 
     public override bool EnetHostService(EnetHost host, int timeout, EnetEventRef enetEvent)
     {
         EnetHostNative host_ = (EnetHostNative)host;
         ENet.Event e;
-        bool ret = host_.host.Service(timeout, out e);
+        int ret = host_.host.Service(timeout, out e);
         EnetEventNative ee = new EnetEventNative();
         ee.e = e;
         enetEvent.e = ee;
-        return ret;
+        return ret > 0;
     }
 
     public override bool EnetHostCheckEvents(EnetHost host, EnetEventRef event_)
     {
         EnetHostNative host_ = (EnetHostNative)host;
         ENet.Event e;
-        bool ret = host_.host.CheckEvents(out e);
+        int ret = host_.host.CheckEvents(out e);
         EnetEventNative ee = new EnetEventNative();
         ee.e = e;
         event_.e = ee;
-        return ret;
+        return ret > 0;
     }
 
     public override EnetPeer EnetHostConnect(EnetHost host, string hostName, int port, int data, int channelLimit)
     {
         EnetHostNative host_ = (EnetHostNative)host;
-        ENet.Peer peer = host_.host.Connect(hostName, port, data, channelLimit);
+
+        Address address = new Address();
+        address.SetHost(hostName);
+        address.Port = (ushort)port;
+
+        ENet.Peer peer = host_.host.Connect(address, channelLimit, (uint)data);
         EnetPeerNative peer_ = new EnetPeerNative();
         peer_.peer = peer;
         return peer_;
@@ -1268,7 +1263,11 @@ public class GamePlatformNative : GamePlatform
         try
         {
             EnetPeerNative peer_ = (EnetPeerNative)peer;
-            peer_.peer.Send(channelID, data, (ENet.PacketFlags)flags);
+
+            Packet packet = default(Packet);
+            packet.Create(data, dataLength, (PacketFlags)flags);
+
+            peer_.peer.Send(channelID, ref packet);
         }
         catch
         {
@@ -1282,7 +1281,7 @@ public class GamePlatformNative : GamePlatform
             throw new Exception();
         }
         EnetHostNative host_ = (EnetHostNative)host;
-        host_.host.Initialize(null, peerLimit, channelLimit, incomingBandwidth, outgoingBandwidth);
+        host_.host.Create(peerLimit, channelLimit, (uint)incomingBandwidth, (uint)outgoingBandwidth);
     }
     #endregion
 
@@ -1371,7 +1370,7 @@ public class GamePlatformNative : GamePlatform
         {
             gameexit.exit = true;
         }
-        window.Exit();
+        window.Close();
     }
 
     public override void SetTitle(string applicationname)
@@ -1386,13 +1385,9 @@ public class GamePlatformNative : GamePlatform
             string s = Enum.GetName(typeof(OpenTK.Input.Key), key);
             return s;
         }
-        //if (Enum.IsDefined(typeof(SpecialKey), key))
-        //{
-        //    string s = Enum.GetName(typeof(SpecialKey), key);
-        //    return s;
-        //}
         return key.ToString();
     }
+
     DisplayResolutionCi[] resolutions;
     int resolutionsCount;
     public override DisplayResolutionCi[] GetDisplayResolutions(IntRef retResolutionsCount)
@@ -1400,17 +1395,15 @@ public class GamePlatformNative : GamePlatform
         if (resolutions == null)
         {
             resolutions = new DisplayResolutionCi[1024];
-            foreach (var r in DisplayDevice.Default.AvailableResolutions)
+            foreach (var screen in System.Windows.Forms.Screen.AllScreens)
             {
-                if (r.Width < 800 || r.Height < 600 || r.BitsPerPixel < 16)
-                {
+                var r2 = new DisplayResolutionCi();
+                r2.Width = screen.Bounds.Width;
+                r2.Height = screen.Bounds.Height;
+                r2.BitsPerPixel = screen.BitsPerPixel;
+                r2.RefreshRate = 60; // Screen doesn't expose refresh rate
+                if (r2.Width < 800 || r2.Height < 600 || r2.BitsPerPixel < 16)
                     continue;
-                }
-                DisplayResolutionCi r2 = new DisplayResolutionCi();
-                r2.Width = r.Width;
-                r2.Height = r.Height;
-                r2.BitsPerPixel = r.BitsPerPixel;
-                r2.RefreshRate = r.RefreshRate;
                 resolutions[resolutionsCount++] = r2;
             }
         }
@@ -1435,12 +1428,12 @@ public class GamePlatformNative : GamePlatform
 
     public override DisplayResolutionCi GetDisplayResolutionDefault()
     {
-        DisplayDevice d = DisplayDevice.Default;
-        DisplayResolutionCi r = new DisplayResolutionCi();
-        r.Width = d.Width;
-        r.Height = d.Height;
-        r.BitsPerPixel = d.BitsPerPixel;
-        r.RefreshRate = d.RefreshRate;
+        var screen = System.Windows.Forms.Screen.PrimaryScreen!;
+        var r = new DisplayResolutionCi();
+        r.Width = screen.Bounds.Width;
+        r.Height = screen.Bounds.Height;
+        r.BitsPerPixel = screen.BitsPerPixel;
+        r.RefreshRate = 60;
         return r;
     }
 
@@ -1809,7 +1802,7 @@ public class GamePlatformNative : GamePlatform
     }
 
     #endregion
-    
+
     #region Game
 
     bool singlePlayerServerAvailable = true;
@@ -2011,6 +2004,11 @@ public class GamePlatformNative : GamePlatform
         return window.Focused;
     }
 
+    private static void Log(string msg)
+    {
+        File.AppendAllText("debug.log", $"{DateTime.Now}: {msg}\n");
+    }
+
     void window_RenderFrame(object sender, OpenTK.FrameEventArgs e)
     {
         UpdateMousePosition();
@@ -2139,6 +2137,7 @@ public class GamePlatformNative : GamePlatform
 
     void Mouse_Move(object sender, MouseMoveEventArgs e)
     {
+        Console.WriteLine($"[Mouse] X:{e.X} Y:{e.Y} DeltaX:{e.XDelta} DeltaY:{e.YDelta}");
         lastX = e.X;
         lastY = e.Y;
         if (TouchTest)
@@ -2179,6 +2178,7 @@ public class GamePlatformNative : GamePlatform
 
     void game_KeyDown(object sender, KeyboardKeyEventArgs e)
     {
+        var ss = ToGlKey(e.Key).ToString();
         foreach (KeyEventHandler h in keyEventHandlers)
         {
             KeyEventArgs args = new KeyEventArgs();
@@ -2401,12 +2401,15 @@ public class EnetPacketNative : EnetPacket
     internal ENet.Packet packet;
     public override int GetBytesCount()
     {
-        return packet.GetBytes().Length;
+        return packet.Length;
     }
 
     public override byte[] GetBytes()
     {
-        return packet.GetBytes();
+        // GetBytes() is gone, manually copy from native pointer
+        byte[] bytes = new byte[packet.Length];
+        System.Runtime.InteropServices.Marshal.Copy(packet.Data, bytes, 0, packet.Length);
+        return bytes;
     }
 
     public override void Dispose()
@@ -2420,17 +2423,18 @@ public class EnetPeerNative : EnetPeer
     public ENet.Peer peer;
     public override int UserData()
     {
-        return peer.UserData.ToInt32();
+        return peer.Data.ToInt32();
     }
 
     public override void SetUserData(int value)
     {
-        peer.UserData = new IntPtr(value);
+        peer.Data = new IntPtr(value);
     }
 
     public override IPEndPointCi GetRemoteAddress()
     {
-        return IPEndPointCiDefault.Create(peer.GetRemoteAddress().Address.ToString());
+        // GetRemoteAddress() -> separate IP and Port properties
+        return IPEndPointCiDefault.Create(peer.IP);
     }
 }
 
@@ -2443,7 +2447,6 @@ public class TextureNative : Texture
 {
     public int value;
 }
-
 
 public class GameWindowNative : OpenTK.GameWindow
 {

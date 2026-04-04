@@ -3,260 +3,229 @@ using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 using System.Diagnostics;
 
-namespace ManicDigger
+namespace ManicDigger;
+
+public class AudioOpenAl
 {
-    public class AudioOpenAl
+
+    public GameExit d_GameExit;
+    public AudioOpenAl()
     {
-        public GameExit d_GameExit;
-        public AudioOpenAl()
+        try
         {
-            try
-            {
-                IList<string> x = AudioContext.AvailableDevices;//only with this line an exception can be catched.
-                context = new AudioContext();
-            }
-            catch (Exception e)
-            {
-                string oalinst = "oalinst.exe";
-                if (File.Exists(oalinst))
-                {
-                    try
-                    {
-                        Process.Start(oalinst, "/s");
-                    }
-                    catch
-                    {
-                    }
-                }
-                Console.WriteLine(e);
-            }
+            IList<string> x = AudioContext.AvailableDevices;//only with this line an exception can be catched.
+            var context = new AudioContext();
         }
-        AudioContext context;
-        // Loads a wave/riff audio file.
-        public static byte[] LoadWave(Stream stream, out int channels, out int bits, out int rate)
+        catch (Exception e)
         {
-            if (stream == null)
-                throw new ArgumentNullException("stream");
-
-            using (BinaryReader reader = new BinaryReader(stream))
-            {
-                // RIFF header
-                string signature = new string(reader.ReadChars(4));
-                if (signature != "RIFF")
-                    throw new NotSupportedException("Specified stream is not a wave file.");
-
-                int riff_chunck_size = reader.ReadInt32();
-
-                string format = new string(reader.ReadChars(4));
-                if (format != "WAVE")
-                    throw new NotSupportedException("Specified stream is not a wave file.");
-
-                // WAVE header
-                string format_signature = new string(reader.ReadChars(4));
-                if (format_signature != "fmt ")
-                    throw new NotSupportedException("Specified wave file is not supported.");
-
-                int format_chunk_size = reader.ReadInt32();
-                int audio_format = reader.ReadInt16();
-                int num_channels = reader.ReadInt16();
-                int sample_rate = reader.ReadInt32();
-                int byte_rate = reader.ReadInt32();
-                int block_align = reader.ReadInt16();
-                int bits_per_sample = reader.ReadInt16();
-
-                string data_signature = new string(reader.ReadChars(4));
-                if (data_signature != "data")
-                    throw new NotSupportedException("Specified wave file is not supported.");
-
-                int data_chunk_size = reader.ReadInt32();
-
-                channels = num_channels;
-                bits = bits_per_sample;
-                rate = sample_rate;
-
-                return reader.ReadBytes((int)reader.BaseStream.Length);
-            }
-        }
-        public static OpenTK.Audio.OpenAL.ALFormat GetSoundFormat(int channels, int bits)
-        {
-            switch (channels)
-            {
-                case 1: return bits == 8 ? OpenTK.Audio.OpenAL.ALFormat.Mono8 : OpenTK.Audio.OpenAL.ALFormat.Mono16;
-                case 2: return bits == 8 ? OpenTK.Audio.OpenAL.ALFormat.Stereo8 : OpenTK.Audio.OpenAL.ALFormat.Stereo16;
-                default: throw new NotSupportedException("The specified sound format is not supported.");
-            }
-        }
-
-        public class AudioTask : AudioCi
-        {
-            public AudioTask(GameExit gameexit, AudioDataCs sample, AudioOpenAl audio)
-            {
-                this.gameexit = gameexit;
-                this.sample = sample;
-                this.audio = audio;
-            }
-            AudioOpenAl audio;
-            GameExit gameexit;
-            AudioDataCs sample;
-            public Vector3 position;
-            public void Play()
-            {
-                if (started)
-                {
-                    shouldplay = true;
-                    return;
-                }
-                started = true;
-                ThreadPool.QueueUserWorkItem(delegate { play(); });
-            }
-            //bool resume = true;
-            bool started = false;
-            void play()
+            string oalinst = "oalinst.exe";
+            if (File.Exists(oalinst))
             {
                 try
                 {
-                    DoPlay();
+                    Process.Start(oalinst, "/s");
                 }
-                catch (Exception e) { Console.WriteLine(e.ToString()); }
-            }
-            
-            private void DoPlay()
-            {
-                int source = OpenTK.Audio.OpenAL.AL.GenSource();
-                int state;
-                //using ()
+                catch
                 {
-                    //Trace.WriteLine("Testing WaveReader({0}).ReadToEnd()", filename);
+                }
+            }
+            Console.WriteLine(e);
+        }
+    }
+    // Loads a wave/riff audio file.
+    public static byte[] LoadWave(Stream stream, out int channels, out int bits, out int rate)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
 
-                    int buffer = OpenTK.Audio.OpenAL.AL.GenBuffer();
+        using BinaryReader reader = new(stream);
+        // RIFF header
+        string signature = new(reader.ReadChars(4));
+        if (signature != "RIFF")
+            throw new NotSupportedException("Specified stream is not a wave file.");
 
-                    //AL.BufferData<byte>(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Rate);
-                    AL.BufferData(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Pcm.Length, sample.Rate);
-                    //audiofiles[filename]=buffer;
+        int riff_chunck_size = reader.ReadInt32();
 
-                    OpenTK.Audio.OpenAL.AL.DistanceModel(OpenTK.Audio.OpenAL.ALDistanceModel.InverseDistance);
-                    OpenTK.Audio.OpenAL.AL.Source(source, OpenTK.Audio.OpenAL.ALSourcef.RolloffFactor, 0.3f);
-                    OpenTK.Audio.OpenAL.AL.Source(source, OpenTK.Audio.OpenAL.ALSourcef.ReferenceDistance, 1);
-                    OpenTK.Audio.OpenAL.AL.Source(source, OpenTK.Audio.OpenAL.ALSourcef.MaxDistance, (int)(64 * 1));
-                    OpenTK.Audio.OpenAL.AL.Source(source, OpenTK.Audio.OpenAL.ALSourcei.Buffer, buffer);
-                    OpenTK.Audio.OpenAL.AL.SourcePlay(source);
+        string format = new(reader.ReadChars(4));
+        if (format != "WAVE")
+            throw new NotSupportedException("Specified stream is not a wave file.");
 
-                    // Query the source to find out when it stops playing.
-                    for (; ; )
+        // WAVE header
+        string format_signature = new(reader.ReadChars(4));
+        if (format_signature != "fmt ")
+            throw new NotSupportedException("Specified wave file is not supported.");
+
+        int format_chunk_size = reader.ReadInt32();
+        int audio_format = reader.ReadInt16();
+        int num_channels = reader.ReadInt16();
+        int sample_rate = reader.ReadInt32();
+        int byte_rate = reader.ReadInt32();
+        int block_align = reader.ReadInt16();
+        int bits_per_sample = reader.ReadInt16();
+
+        string data_signature = new(reader.ReadChars(4));
+        if (data_signature != "data")
+            throw new NotSupportedException("Specified wave file is not supported.");
+
+        int data_chunk_size = reader.ReadInt32();
+
+        channels = num_channels;
+        bits = bits_per_sample;
+        rate = sample_rate;
+
+        return reader.ReadBytes((int)reader.BaseStream.Length);
+    }
+
+    public static ALFormat GetSoundFormat(int channels, int bits)
+    {
+        return channels switch
+        {
+            1 => bits == 8 ? ALFormat.Mono8 : ALFormat.Mono16,
+            2 => bits == 8 ? ALFormat.Stereo8 : ALFormat.Stereo16,
+            _ => throw new NotSupportedException("The specified sound format is not supported."),
+        };
+    }
+
+    public class AudioTask(GameExit gameexit, AudioDataCs sample, AudioOpenAl audio) : AudioCi
+    {
+        private GameExit gameexit = gameexit;
+        private AudioDataCs sample = sample;
+        public Vector3 position;
+
+        public void Play()
+        {
+            if (started)
+            {
+                shouldplay = true;
+                return;
+            }
+            started = true;
+            ThreadPool.QueueUserWorkItem(delegate { play(); });
+        }
+
+        private bool started = false;
+        private void play()
+        {
+            try
+            {
+                DoPlay();
+            }
+            catch (Exception e) { Console.WriteLine(e.ToString()); }
+        }
+
+        private void DoPlay()
+        {
+            int source = AL.GenSource();
+
+            int buffer = AL.GenBuffer();
+            AL.BufferData(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Pcm.Length, sample.Rate);
+            //audiofiles[filename]=buffer;
+
+            AL.DistanceModel(ALDistanceModel.InverseDistance);
+            AL.Source(source, ALSourcef.RolloffFactor, 0.3f);
+            AL.Source(source, ALSourcef.ReferenceDistance, 1);
+            AL.Source(source, ALSourcef.MaxDistance, 64 * 1);
+            AL.Source(source, ALSourcei.Buffer, buffer);
+            AL.SourcePlay(source);
+
+            // Query the source to find out when it stops playing.
+            for (; ; )
+            {
+                AL.GetSource(source, ALGetSourcei.SourceState, out int state);
+                if ((!loop) && (ALSourceState)state != ALSourceState.Playing)
+                {
+                    break;
+                }
+                if (stop)
+                {
+                    break;
+                }
+                if (gameexit.exit)
+                {
+                    break;
+                }
+                if (loop)
+                {
+                    if (state == (int)ALSourceState.Playing && (!shouldplay))
                     {
-                        OpenTK.Audio.OpenAL.AL.GetSource(source, OpenTK.Audio.OpenAL.ALGetSourcei.SourceState, out state);
-                        if ((!loop) && (OpenTK.Audio.OpenAL.ALSourceState)state != OpenTK.Audio.OpenAL.ALSourceState.Playing)
-                        {
-                            break;
-                        }
-                        if (stop)
-                        {
-                            break;
-                        }
-                        if (gameexit.exit)
-                        {
-                            break;
-                        }
-                        if (loop)
-                        {
-                            if (state == (int)OpenTK.Audio.OpenAL.ALSourceState.Playing && (!shouldplay))
-                            {
-                                OpenTK.Audio.OpenAL.AL.SourcePause(source);
-                            }
-                            if (state != (int)OpenTK.Audio.OpenAL.ALSourceState.Playing && (shouldplay))
-                            {
-                                if (restart)
-                                {
-                                    OpenTK.Audio.OpenAL.AL.SourceRewind(source);
-                                    restart = false;
-                                }
-                                OpenTK.Audio.OpenAL.AL.SourcePlay(source);
-                            }
-                        }
-                        
-                        OpenTK.Audio.OpenAL.AL.Source(source, OpenTK.Audio.OpenAL.ALSource3f.Position, position.X, position.Y, position.Z);
-         
-                        /*
-                        if (stop)
-                        {
-                            AL.SourcePause(source);
-                            resume = false;
-                        }
-                        if (resume)
-                        {
-                            AL.SourcePlay(source);
-                            resume = false;
-                        }
-                        */
-                        Thread.Sleep(1);
+                        AL.SourcePause(source);
                     }
-                    Finished = true;
-                    OpenTK.Audio.OpenAL.AL.SourceStop(source);
-                    OpenTK.Audio.OpenAL.AL.DeleteSource(source);
-                    OpenTK.Audio.OpenAL.AL.DeleteBuffer(buffer);
+                    if (state != (int)ALSourceState.Playing && (shouldplay))
+                    {
+                        if (restart)
+                        {
+                            AL.SourceRewind(source);
+                            restart = false;
+                        }
+                        AL.SourcePlay(source);
+                    }
                 }
-            }
-            public bool loop = false;
-            bool stop;
-            public void Stop()
-            {
-                stop = true;
-            }
-            public bool shouldplay;
-            public bool restart;
-            public void Restart()
-            {
-                restart = true;
-            }
 
-            internal void Pause()
-            {
-                shouldplay = false;
+                AL.Source(source, ALSource3f.Position, position.X, position.Y, position.Z);
+                Thread.Sleep(1);
             }
-
-
-            internal bool Finished;
+            Finished = true;
+            AL.SourceStop(source);
+            AL.DeleteSource(source);
+            AL.DeleteBuffer(buffer);
         }
 
-        public AudioDataCs GetSampleFromArray(byte[] data)
+        public bool loop = false;
+        private bool stop;
+        public void Stop()
         {
-            Stream stream = new MemoryStream(data);
-            if (stream.ReadByte() == 'R'
-                && stream.ReadByte() == 'I'
-                && stream.ReadByte() == 'F'
-                && stream.ReadByte() == 'F')
-            {
-                stream.Position = 0;
-                int channels, bits_per_sample, sample_rate;
-                byte[] sound_data = LoadWave(stream, out channels, out bits_per_sample, out sample_rate);
-                AudioDataCs sample = new AudioDataCs()
-                {
-                    Pcm = sound_data,
-                    BitsPerSample = bits_per_sample,
-                    Channels = channels,
-                    Rate = sample_rate,
-                };
-                return sample;
-            }
-            else
-            {
-                stream.Position = 0;
-                AudioDataCs sample = new OggDecoder().OggToWav(stream);
-                return sample;
-            }
+            stop = true;
         }
-        Vector3 lastlistener;
-        Vector3 lastorientation;
-        public AudioTask CreateAudio(AudioDataCs sample)
+        public bool shouldplay;
+        public bool restart;
+        public void Restart()
         {
-            return new AudioTask(d_GameExit, sample, this);
+            restart = true;
         }
-        public void UpdateListener(Vector3 position, Vector3 orientation)
+
+        internal void Pause()
         {
-            lastlistener = position;
-            OpenTK.Audio.OpenAL.AL.Listener(OpenTK.Audio.OpenAL.ALListener3f.Position, position.X, position.Y, position.Z);
-            Vector3 up = Vector3.UnitY;
-            OpenTK.Audio.OpenAL.AL.Listener(OpenTK.Audio.OpenAL.ALListenerfv.Orientation, ref orientation, ref up);
+            shouldplay = false;
         }
+
+        internal bool Finished;
+    }
+
+    public static AudioDataCs GetSampleFromArray(byte[] data)
+    {
+        Stream stream = new MemoryStream(data);
+        if (stream.ReadByte() == 'R'
+            && stream.ReadByte() == 'I'
+            && stream.ReadByte() == 'F'
+            && stream.ReadByte() == 'F')
+        {
+            stream.Position = 0;
+            byte[] sound_data = LoadWave(stream, out int channels, out int bits_per_sample, out int sample_rate);
+            AudioDataCs sample = new()
+            {
+                Pcm = sound_data,
+                BitsPerSample = bits_per_sample,
+                Channels = channels,
+                Rate = sample_rate,
+            };
+            return sample;
+        }
+        else
+        {
+            stream.Position = 0;
+            AudioDataCs sample = new OggDecoder().OggToWav(stream);
+            return sample;
+        }
+    }
+
+    public AudioTask CreateAudio(AudioDataCs sample)
+    {
+        return new AudioTask(d_GameExit, sample, this);
+    }
+
+    public void UpdateListener(Vector3 position, Vector3 orientation)
+    {
+        AL.Listener(ALListener3f.Position, position.X, position.Y, position.Z);
+        Vector3 up = Vector3.UnitY;
+        AL.Listener(ALListenerfv.Orientation, ref orientation, ref up);
     }
 }

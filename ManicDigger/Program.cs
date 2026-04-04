@@ -4,7 +4,7 @@ using Serilog;
 using System.Diagnostics;
 #endregion
 
-public class ManicDiggerProgram
+public class Program
 {
     [STAThread]
     public static void Main(string[] args)
@@ -12,10 +12,10 @@ public class ManicDiggerProgram
         CrashReporter.DefaultFileName = "ManicDiggerClientCrash.txt";
         CrashReporter.EnableGlobalExceptionHandling(isConsole: false);
 
-        _ = new ManicDiggerProgram(args);
+        _ = new Program(args);
     }
 
-    public ManicDiggerProgram(string[] args)
+    public Program(string[] args)
     {
         dummyNetwork = new DummyNetwork();
         dummyNetwork.Start(new MonitorObject(), new MonitorObject());

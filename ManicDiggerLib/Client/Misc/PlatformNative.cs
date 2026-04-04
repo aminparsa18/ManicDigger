@@ -981,7 +981,7 @@ public class GamePlatformNative : GamePlatform
     public override AudioData AudioDataCreate(byte[] data, int dataLength)
     {
         StartAudio();
-        return audio.GetSampleFromArray(data);
+        return AudioOpenAl.GetSampleFromArray(data);
     }
 
     public override bool AudioDataLoaded(AudioData data)

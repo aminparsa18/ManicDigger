@@ -11,9 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="protobuf-net">
-      <HintPath>..\Lib\protobuf-net.dll</HintPath>
-    </Reference>
+    <PackageReference Include="protobuf-net" Version="3.2.56" />
   </ItemGroup>
 
 </Project>

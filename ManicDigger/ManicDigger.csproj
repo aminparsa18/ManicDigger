@@ -29,10 +29,4 @@
     <ProjectReference Include="..\ManicDiggerLib\ManicDiggerLib.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="OpenTK">
-      <HintPath>..\Lib\OpenTK.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

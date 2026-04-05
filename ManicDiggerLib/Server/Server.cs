@@ -1652,7 +1652,7 @@ public partial class Server : ICurrentTime, IDropItem
                     }
                     Line3D pick = new()
                     {
-                        Start = new float[] { DeserializeFloat(packet.Shot.FromX), DeserializeFloat(packet.Shot.FromY), DeserializeFloat(packet.Shot.FromZ) },
+                        Start = new System.Numerics.Vector3(DeserializeFloat(packet.Shot.FromX), DeserializeFloat(packet.Shot.FromY), DeserializeFloat(packet.Shot.FromZ)),
                         End = new float[] { DeserializeFloat(packet.Shot.ToX), DeserializeFloat(packet.Shot.ToY), DeserializeFloat(packet.Shot.ToZ) }
                     };
 

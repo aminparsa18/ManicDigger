@@ -1,9 +1,11 @@
-﻿public class ScriptCharacterPhysics : EntityScript
+﻿using System.Numerics;
+
+public class ScriptCharacterPhysics : EntityScript
 {
     public ScriptCharacterPhysics()
     {
         movedz = 0;
-        curspeed = new Vector3Ref();
+        curspeed = new Vector3();
         jumpacceleration = 0;
         isplayeronground = false;
         acceleration = new Acceleration();
@@ -23,7 +25,7 @@
     internal Game game;
 
     internal float movedz;
-    internal Vector3Ref curspeed;
+    internal Vector3 curspeed;
     internal float jumpacceleration;
     internal bool isplayeronground;
     internal Acceleration acceleration;
@@ -58,10 +60,10 @@
             move.moveup = false;
             move.wantsjump = false;
         }
-        Update(game.player.position, move, dt, game.soundnow, Vector3Ref.Create(game.pushX, game.pushY, game.pushZ), game.entities[game.LocalPlayerId].drawModel.ModelHeight);
+        Update(game.player.position, move, dt, game.soundnow, Vector3.Create(game.pushX, game.pushY, game.pushZ), game.entities[game.LocalPlayerId].drawModel.ModelHeight);
     }
 
-    public void Update(EntityPosition_ stateplayerposition, Controls move, float dt, BoolRef soundnow, Vector3Ref push, float modelheight)
+    public void Update(EntityPosition_ stateplayerposition, Controls move, float dt, BoolRef soundnow, Vector3 push, float modelheight)
     {
         if (game.stopPlayerMove)
         {
@@ -100,12 +102,12 @@
         }
 
         soundnow.value = false;
-        Vector3Ref diff1ref = new();
+        Vector3 diff1ref = new();
         VectorTool.ToVectorInFixedSystem
             (move.movedx * movespeednow * dt,
             0,
             move.movedy * movespeednow * dt, stateplayerposition.rotx, stateplayerposition.roty, diff1ref);
-        Vector3Ref diff1 = new()
+        Vector3 diff1 = new()
         {
             X = diff1ref.X,
             Y = diff1ref.Y,
@@ -113,7 +115,7 @@
         };
         if (MiscCi.Vec3Length(push.X, push.Y, push.Z) > 0.01f)
         {
-            push.Normalize();
+            Vector3.Normalize(push);
             push.X *= 5;
             push.Y *= 5;
             push.Z *= 5;
@@ -166,7 +168,7 @@
             curspeed.Z += diff1.Z * acceleration.acceleration3 * dt;
             if (curspeed.Length() > movespeednow)
             {
-                curspeed.Normalize();
+                Vector3.Normalize(curspeed);
                 curspeed.X *= movespeednow;
                 curspeed.Y *= movespeednow;
                 curspeed.Z *= movespeednow;
@@ -176,13 +178,13 @@
         {
             if (MiscCi.Vec3Length(diff1.X, diff1.Y, diff1.Z) > 0)
             {
-                diff1.Normalize();
+                Vector3.Normalize(diff1);
             }
             curspeed.X = diff1.X * movespeednow;
             curspeed.Y = diff1.Y * movespeednow;
             curspeed.Z = diff1.Z * movespeednow;
         }
-        Vector3Ref newposition = Vector3Ref.Create(0, 0, 0);
+        Vector3 newposition = Vector3.Create(0, 0, 0);
         if (!(move.freemove))
         {
             newposition.X = stateplayerposition.x + curspeed.X;
@@ -217,12 +219,12 @@
             newposition.Z = stateplayerposition.z + (curspeed.Z) * dt;
         }
         newposition.Y += movedz * dt;
-        Vector3Ref previousposition = Vector3Ref.Create(stateplayerposition.x, stateplayerposition.y, stateplayerposition.z);
+        Vector3 previousposition = Vector3.Create(stateplayerposition.x, stateplayerposition.y, stateplayerposition.z);
         if (!move.noclip)
         {
             float[] v = WallSlide(
-                Vec3.FromValues(stateplayerposition.x, stateplayerposition.y, stateplayerposition.z),
-                Vec3.FromValues(newposition.X, newposition.Y, newposition.Z),
+                new Vector3(stateplayerposition.x, stateplayerposition.y, stateplayerposition.z),
+                new Vector3(newposition.X, newposition.Y, newposition.Z),
                 modelheight);
             stateplayerposition.x = v[0];
             stateplayerposition.y = v[1];
@@ -293,7 +295,7 @@
 
     private readonly float[] tmpPlayerPosition;		//Temporarily stores the player's position. Used in WallSlide()
     private readonly IntRef tmpBlockingBlockType;
-    public float[] WallSlide(float[] oldposition, float[] newposition, float modelheight)
+    public float[] WallSlide(Vector3 oldposition, Vector3 newposition, float modelheight)
     {
         bool high = false;
         if (modelheight >= 2) { high = true; }	//Set high to true if player model is bigger than standard height

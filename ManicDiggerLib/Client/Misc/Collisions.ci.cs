@@ -1,6 +1,8 @@
-﻿public class Line3D
+﻿using System.Numerics;
+
+public class Line3D
 {
-    internal float[] Start;
+    internal Vector3 Start;
     internal float[] End;
 }
 public class Box3D
@@ -9,8 +11,8 @@ public class Box3D
     {
         if (MinEdge == null)
         {
-            MinEdge = new float[3];
-            MaxEdge = new float[3];
+            MinEdge = Vector3.Zero;
+            MaxEdge = Vector3.Zero;
         }
         MinEdge[0] = x;
         MinEdge[1] = y;
@@ -19,8 +21,8 @@ public class Box3D
         MaxEdge[1] = y + size;
         MaxEdge[2] = z + size;
     }
-    internal float[] MinEdge;
-    internal float[] MaxEdge;
+    internal Vector3 MinEdge;
+    internal Vector3 MaxEdge;
     //public Vector3 MaxEdge { get { return new Vector3(MinEdge.X + size, MinEdge.Y + size, MinEdge.Z + size); } }
     //float size;
     public float LengthX() { return MaxEdge[0] - MinEdge[0]; }
@@ -33,8 +35,8 @@ public class Box3D
             (MinEdge[0] == 0 && MinEdge[1] == 0 && MinEdge[2] == 0
             && MaxEdge[0] == 0 && MaxEdge[1] == 0 && MaxEdge[2] == 0))
         {
-            MinEdge = Vec3.FromValues(x, y, z);
-            MaxEdge = Vec3.FromValues(x, y, z);
+            MinEdge = new Vector3(x, y, z);
+            MaxEdge = new Vector3(x, y, z);
         }
         MinEdge[0] = MathCi.MinFloat(MinEdge[0], x);
         MinEdge[1] = MathCi.MinFloat(MinEdge[1], y);
@@ -85,19 +87,15 @@ public class BlockPosSide
     {
         BlockPosSide p = new()
         {
-            blockPos = Vec3.FromValues(x, y, z)
+            blockPos = new Vector3(x, y, z)
         };
         return p;
     }
-    internal float[] blockPos;
-    internal float[] collisionPos;
+    internal Vector3 blockPos;
+    internal Vector3 collisionPos;
     public float[] Translated()
     {
-        float[] translated = new float[3];
-        translated[0] = blockPos[0];
-        translated[1] = blockPos[1];
-        translated[2] = blockPos[2];
-
+        float[] translated = [blockPos[0], blockPos[1], blockPos[2]];
         if (collisionPos == null)
         {
             return translated;
@@ -112,7 +110,8 @@ public class BlockPosSide
 
         return translated;
     }
-    public float[] Current()
+
+    public Vector3 Current()
     {
         return blockPos;
     }
@@ -260,23 +259,20 @@ public class BlockOctreeSearcher
             {
                 Box3D node2 = new()
                 {
-                    MinEdge = Vec3.CloneIt(node.MinEdge),
-                    MaxEdge = Vec3.CloneIt(node.MaxEdge)
+                    MinEdge = node.MinEdge,
+                    MaxEdge = node.MaxEdge
                 };
                 node2.MaxEdge[1] = node2.MinEdge[1] + getBlockHeight.GetBlockHeight(platform.FloatToInt(x),platform.FloatToInt(y),platform.FloatToInt(z));
 
                 BlockPosSide b = new();
-                float[] hit2 = new float[3];
+                Vector3 hit2 = Vector3.Zero;
 
-                float[] dir = new float[3];
-                dir[0] = line.End[0] - line.Start[0];
-                dir[1] = line.End[1] - line.Start[1];
-                dir[2] = line.End[2] - line.Start[2];
+                float[] dir = [line.End[0] - line.Start[0], line.End[1] - line.Start[1], line.End[2] - line.Start[2]];
                 bool ishit = Intersection.HitBoundingBox(node2.MinEdge, node2.MaxEdge, line.Start, dir, hit2);
                 if (ishit)
                 {
                     //hit2.pos = Vec3.FromValues(x, z, y);
-                    b.blockPos = Vec3.FromValues(platform.FloatToInt(x), platform.FloatToInt(z), platform.FloatToInt(y));
+                    b.blockPos = new Vector3(platform.FloatToInt(x), platform.FloatToInt(z), platform.FloatToInt(y));
                     b.collisionPos = hit2;
                     l[lCount++] = b;
                 }
@@ -327,7 +323,7 @@ public class Intersection
     private const int LEFT = 1;
     private const int MIDDLE = 2;
     private const int RIGHT = 0;
-    public static bool HitBoundingBox(float[] minB, float[] maxB, float[] origin, float[] dir, float[] coord)
+    public static bool HitBoundingBox(Vector3 minB, Vector3 maxB, Vector3 origin, float[] dir, Vector3 coord)
     {
         bool inside = true;
         byte[] quadrant = new byte[3];
@@ -394,7 +390,7 @@ public class Intersection
     }
 
     //http://www.3dkingdoms.com/weekly/weekly.php?a=3
-    private static bool GetIntersection(float fDst1, float fDst2, float[] P1, float[] P2, float[] Hit)
+    private static bool GetIntersection(float fDst1, float fDst2, Vector3 P1, float[] P2, float[] Hit)
     {
         // Hit = new Vector3();
         if ((fDst1 * fDst2) >= 0) return false;
@@ -405,7 +401,7 @@ public class Intersection
         Hit[2] = P1[2] + (P2[2] - P1[2]) * (-fDst1 / (fDst2 - fDst1));
         return true;
     }
-    private static bool InBox(float[] Hit, float[] B1, float[] B2, int Axis)
+    private static bool InBox(float[] Hit, Vector3 B1, Vector3 B2, int Axis)
     {
         if (Axis == 1 && Hit[2] > B1[2] && Hit[2] < B2[2] && Hit[1] > B1[1] && Hit[1] < B2[1]) return true;
         if (Axis == 2 && Hit[2] > B1[2] && Hit[2] < B2[2] && Hit[0] > B1[0] && Hit[0] < B2[0]) return true;
@@ -414,7 +410,7 @@ public class Intersection
     }
     // returns true if line (L1, L2) intersects with the box (B1, B2)
     // returns intersection point in Hit
-    public static bool CheckLineBox1(float[] B1, float[] B2, float[] L1, float[] L2, float[] Hit)
+    public static bool CheckLineBox1(Vector3 B1, Vector3 B2, Vector3 L1, float[] L2, float[] Hit)
     {
         // Hit = new Vector3();
         if (L2[0] < B1[0] && L1[0] < B1[0]) return false;
@@ -455,13 +451,10 @@ public class Intersection
     }
 
 
-    public static float[] CheckLineBoxExact(Line3D line, Box3D box)
+    public static Vector3? CheckLineBoxExact(Line3D line, Box3D box)
     {
-        float[] dir_ = new float[3];
-        dir_[0] = line.End[0] - line.Start[0];
-        dir_[1] = line.End[1] - line.Start[1];
-        dir_[2] = line.End[2] - line.Start[2];
-        float[] hit = new float[3];
+        float[] dir_ = [line.End[0] - line.Start[0], line.End[1] - line.Start[1], line.End[2] - line.Start[2]];
+        Vector3 hit = Vector3.Zero;
         if (!HitBoundingBox(box.MinEdge, box.MaxEdge, line.Start, dir_, hit))
         {
             return null;

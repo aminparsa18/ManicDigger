@@ -1,4 +1,6 @@
-﻿public class GameScreen : ClientMod
+﻿using System.Numerics;
+
+public class GameScreen : ClientMod
 {
     public GameScreen()
     {
@@ -1180,14 +1182,14 @@ public class Grenade_
 
 public class GetCameraMatrix : IGetCameraMatrix
 {
-    internal float[] lastmvmatrix;
-    internal float[] lastpmatrix;
-    public override float[] GetModelViewMatrix()
+    internal Matrix4x4 lastmvmatrix;
+    internal Matrix4x4 lastpmatrix;
+    public override Matrix4x4 GetModelViewMatrix()
     {
         return lastmvmatrix;
     }
 
-    public override float[] GetProjectionMatrix()
+    public override Matrix4x4 GetProjectionMatrix()
     {
         return lastpmatrix;
     }
@@ -1344,7 +1346,7 @@ public class MapUtilCi
         return x + y * sizex;
     }
 
-    public static void Pos(int index, int sizex, int sizey, Vector3Ref ret)
+    public static void Pos(int index, int sizex, int sizey, Vector3 ret)
     {
         int x = index % sizex;
         int y = (index / sizex) % sizey;
@@ -1678,11 +1680,11 @@ public class FreemoveLevelEnum
 public abstract class ClientMod
 {
     public virtual void Start(ClientModManager modmanager) { }
-    
+
     public virtual void OnReadOnlyMainThread(Game game, float dt) { }
     public virtual void OnReadOnlyBackgroundThread(Game game, float dt) { }
     public virtual void OnReadWriteMainThread(Game game, float dt) { }
-    
+
     public virtual bool OnClientCommand(Game game, ClientCommandArgs args) { return false; }
     public virtual void OnNewFrame(Game game, NewFrameEventArgs args) { }
     public virtual void OnNewFrameFixed(Game game, NewFrameEventArgs args) { }
@@ -1754,23 +1756,23 @@ public class StackMatrix4
 {
     public StackMatrix4()
     {
-        values = new float[max][];
+        values = new Matrix4x4[max];
         for (int i = 0; i < max; i++)
         {
-            values[i] = Mat4.Create();
+            values[i] = Matrix4x4.Identity;
         }
     }
-    private readonly float[][] values;
+    private readonly Matrix4x4[] values;
     private const int max = 1024;
     private int count_;
 
-    internal void Push(float[] p)
+    internal void Push(Matrix4x4 p)
     {
-        Mat4.Copy(values[count_], p);
+        values[count_] = p;
         count_++;
     }
 
-    internal float[] Peek()
+    internal Matrix4x4 Peek()
     {
         return values[count_ - 1];
     }
@@ -1780,9 +1782,9 @@ public class StackMatrix4
         return count_;
     }
 
-    internal float[] Pop()
+    internal Matrix4x4 Pop()
     {
-        float[] ret = values[count_ - 1];
+        Matrix4x4 ret = values[count_ - 1];
         count_--;
         return ret;
     }
@@ -1813,11 +1815,16 @@ public class Text_
             && this.fontstyle == t.fontstyle;
     }
 
-    public string GetText() { return text; } public void SetText(string value) { text = value; }
-    public float GetFontSize() { return fontsize; } public void SetFontSize(float value) { fontsize = value; }
-    public int GetColor() { return color; } public void SetColor(int value) { color = value; }
-    public string GetFontFamily() { return fontfamily; } public void SetFontFamily(string value) { fontfamily = value; }
-    public int GetFontStyle() { return fontstyle; } public void SetFontStyle(int value) { fontstyle = value; }
+    public string GetText() { return text; }
+    public void SetText(string value) { text = value; }
+    public float GetFontSize() { return fontsize; }
+    public void SetFontSize(float value) { fontsize = value; }
+    public int GetColor() { return color; }
+    public void SetColor(int value) { color = value; }
+    public string GetFontFamily() { return fontfamily; }
+    public void SetFontFamily(string value) { fontfamily = value; }
+    public int GetFontStyle() { return fontstyle; }
+    public void SetFontStyle(int value) { fontstyle = value; }
 }
 
 public class CachedTextTexture
@@ -2079,10 +2086,10 @@ public class Kamera
         tt = 0;
         MaximumAngle = 89;
         MinimumAngle = 0;
-        Center = new Vector3Ref();
+        Center = new Vector3();
     }
     private readonly float one;
-    public void GetPosition(GamePlatform platform, Vector3Ref ret)
+    public void GetPosition(GamePlatform platform, Vector3 ret)
     {
         float cx = platform.MathCos(tt * one / 2) * GetFlatDistance(platform) + Center.X;
         float cy = platform.MathSin(tt * one / 2) * GetFlatDistance(platform) + Center.Z;
@@ -2110,7 +2117,7 @@ public class Kamera
     {
         return platform.MathCos(Angle * Game.GetPi() / 180) * distance;
     }
-    internal Vector3Ref Center;
+    internal Vector3 Center;
     internal float tt;
     public float GetT()
     {
@@ -2180,7 +2187,7 @@ public class Kamera
         Angle = value;
     }
 
-    public void GetCenter(Vector3Ref ret)
+    public void GetCenter(Vector3 ret)
     {
         ret.X = Center.X;
         ret.Y = Center.Y;

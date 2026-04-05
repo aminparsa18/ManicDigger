@@ -1,4 +1,5 @@
-﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+﻿using System.Numerics;
+using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 public class Game
 {
@@ -27,8 +28,8 @@ public class Game
         sunlight_ = 15;
         mvMatrix = new StackMatrix4();
         pMatrix = new StackMatrix4();
-        mvMatrix.Push(Mat4.Create());
-        pMatrix.Push(Mat4.Create());
+        mvMatrix.Push(Matrix4x4.Identity);
+        pMatrix.Push(Matrix4x4.Identity);
         whitetexture = -1;
         cachedTextTexturesMax = 1024;
         cachedTextTextures = new CachedTextTexture[cachedTextTexturesMax];
@@ -64,7 +65,7 @@ public class Game
         basemovespeed = 5;
         movespeed = 5;
         RadiusWhenMoving = one * 3 / 10;
-        playervelocity = new Vector3Ref();
+        playervelocity = new Vector3();
         LocalPlayerId = -1;
         dialogs = new VisibleDialog[512];
         dialogsCount = 512;
@@ -113,11 +114,11 @@ public class Game
         enable_move = true;
         handTexture = -1;
         modelViewInverted = new float[16];
-        GLScaleTempVec3 = Vec3.Create();
-        GLRotateTempVec3 = Vec3.Create();
-        GLTranslateTempVec3 = Vec3.Create();
-        identityMatrix = Mat4.Identity_(Mat4.Create());
-        Set3dProjectionTempMat4 = Mat4.Create();
+        GLScaleTempVec3 = Vector3.Zero;
+        GLRotateTempVec3 = Vector3.Zero;
+        GLTranslateTempVec3 = Vector3.Zero;
+        identityMatrix = Matrix4x4.Identity;
+        Set3dProjectionTempMat4 = Matrix4x4.Identity;
         getAsset = new string[1024 * 2];
         PlayerStats = new Packet_ServerPlayerStats();
         mLightLevels = new float[16];
@@ -126,7 +127,7 @@ public class Game
             mLightLevels[i] = one * i / 15;
         }
         soundnow = new BoolRef();
-        camera = Mat4.Create();
+        camera = Matrix4x4.Identity;
         packetHandlers = new ClientPacketHandler[256];
         player = new Entity
         {
@@ -341,7 +342,7 @@ public class Game
     }
     private readonly TaskScheduler taskScheduler;
 
-    internal float[] camera;
+    internal Matrix4x4 camera;
     private float accumulator;
     internal void MainThreadOnRenderFrame(float deltaTime)
     {
@@ -734,7 +735,7 @@ public class Game
         platform.SetMatrixUniformModelView(mvMatrix.Peek());
     }
 
-    public void GLLoadMatrix(float[] m)
+    public void GLLoadMatrix(Matrix4x4 m)
     {
         if (currentMatrixModeProjection)
         {
@@ -772,10 +773,10 @@ public class Game
         }
     }
 
-    private readonly float[] GLScaleTempVec3;
+    private Vector3 GLScaleTempVec3;
     public void GLScale(float x, float y, float z)
     {
-        float[] m;
+        Matrix4x4 m;
         if (currentMatrixModeProjection)
         {
             m = pMatrix.Peek();
@@ -784,16 +785,16 @@ public class Game
         {
             m = mvMatrix.Peek();
         }
-        Vec3.Set(GLScaleTempVec3, x, y, z);
-        Mat4.Scale(m, m, GLScaleTempVec3);
+        GLScaleTempVec3 = new Vector3(x, y, z);
+        m *= Matrix4x4.CreateScale(GLScaleTempVec3);
     }
 
-    private readonly float[] GLRotateTempVec3;
+    private Vector3 GLRotateTempVec3;
     public void GLRotate(float angle, float x, float y, float z)
     {
         angle /= 360;
         angle *= 2 * GetPi();
-        float[] m;
+        Matrix4x4 m;
         if (currentMatrixModeProjection)
         {
             m = pMatrix.Peek();
@@ -802,14 +803,14 @@ public class Game
         {
             m = mvMatrix.Peek();
         }
-        Vec3.Set(GLRotateTempVec3, x, y, z);
-        Mat4.Rotate(m, m, angle, GLRotateTempVec3);
+        GLRotateTempVec3 =  new Vector3(x, y, z);
+        m *= Matrix4x4.CreateFromAxisAngle(GLRotateTempVec3, angle);
     }
 
-    private readonly float[] GLTranslateTempVec3;
+    private Vector3 GLTranslateTempVec3;
     public void GLTranslate(float x, float y, float z)
     {
-        float[] m;
+        Matrix4x4 m;
         if (currentMatrixModeProjection)
         {
             m = pMatrix.Peek();
@@ -818,8 +819,8 @@ public class Game
         {
             m = mvMatrix.Peek();
         }
-        Vec3.Set(GLTranslateTempVec3, x, y, z);
-        Mat4.Translate(m, m, GLTranslateTempVec3);
+        GLTranslateTempVec3 = new Vector3(x, y, z);
+        m *= Matrix4x4.CreateTranslation(GLTranslateTempVec3);
     }
 
     public void GLPushMatrix()
@@ -834,7 +835,7 @@ public class Game
         }
     }
 
-    private readonly float[] identityMatrix;
+    private readonly Matrix4x4 identityMatrix;
     public void GLLoadIdentity()
     {
         if (currentMatrixModeProjection)
@@ -859,8 +860,8 @@ public class Game
     {
         if (currentMatrixModeProjection)
         {
-            float[] m = pMatrix.Peek();
-            Mat4.Ortho(m, left, right, bottom, top, zNear, zFar);
+            Matrix4x4 m = pMatrix.Peek();
+            Matrix4x4 output = Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, zNear, zFar);
         }
         else
         {
@@ -1335,11 +1336,11 @@ public class Game
 
     internal GetCameraMatrix CameraMatrix;
 
-    private readonly float[] Set3dProjectionTempMat4;
+    private readonly Matrix4x4 Set3dProjectionTempMat4;
     public void Set3dProjection(float zfar, float fov)
     {
         float aspect_ratio = one * Width() / Height();
-        Mat4.Perspective(Set3dProjectionTempMat4, fov, aspect_ratio, znear, zfar);
+        Matrix4x4 output = Matrix4x4.CreatePerspectiveFieldOfView(fov, aspect_ratio, znear, zfar);
         CameraMatrix.lastpmatrix = Set3dProjectionTempMat4;
         GLMatrixModeProjection();
         GLLoadMatrix(Set3dProjectionTempMat4);
@@ -1437,7 +1438,7 @@ public class Game
     internal CameraType cameratype;
     internal bool ENABLE_TPP_VIEW;
 
-    internal Vector3Ref playerdestination;
+    internal Vector3 playerdestination;
     internal void SetCamera(CameraType type)
     {
         if (type == CameraType.Fpp)
@@ -1458,7 +1459,7 @@ public class Game
             overheadcamera = true;
             SetFreeMouse(true);
             ENABLE_TPP_VIEW = true;
-            playerdestination = Vector3Ref.Create(player.position.x, player.position.y, player.position.z);
+            playerdestination = Vector3.Create(player.position.x, player.position.y, player.position.z);
         }
     }
     internal float basemovespeed;
@@ -1506,7 +1507,7 @@ public class Game
         }
         return DeserializeFloat(blocktypes[item.BlockId].RecoilFloat);
     }
-    internal Vector3Ref playervelocity;
+    internal Vector3 playervelocity;
 
     internal float CurrentAimRadius()
     {
@@ -3626,7 +3627,7 @@ public class Game
             overheadcamera = true;
             SetFreeMouse(true);
             ENABLE_TPP_VIEW = true;
-            playerdestination = Vector3Ref.Create(player.position.x, player.position.y, player.position.z);
+            playerdestination = Vector3.Create(player.position.x, player.position.y, player.position.z);
         }
         else if (cameratype == CameraType.Overhead)
         {

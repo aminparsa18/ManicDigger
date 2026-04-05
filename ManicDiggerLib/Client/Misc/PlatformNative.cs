@@ -9,10 +9,12 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1022,13 +1024,13 @@ public class GamePlatformNative : GamePlatform
 
     public override void AudioSetPosition(AudioCi audio_, float x, float y, float z)
     {
-        ((AudioOpenAl.AudioTask)audio_).position = new Vector3(x, y, z);
+        ((AudioOpenAl.AudioTask)audio_).position = new OpenTK.Mathematics.Vector3(x, y, z);
     }
 
     public override void AudioUpdateListener(float posX, float posY, float posZ, float orientX, float orientY, float orientZ)
     {
         StartAudio();
-        AudioOpenAl.UpdateListener(new Vector3(posX, posY, posZ), new Vector3(orientX, orientY, orientZ));
+        AudioOpenAl.UpdateListener(new OpenTK.Mathematics.Vector3(posX, posY, posZ), new OpenTK.Mathematics.Vector3(orientX, orientY, orientZ));
     }
 
     #endregion
@@ -1600,16 +1602,28 @@ public class GamePlatformNative : GamePlatform
     {
     }
 
-    public override void SetMatrixUniformProjection(float[] pMatrix)
+    public override void SetMatrixUniformProjection(Matrix4x4 pMatrix)
     {
         GL.MatrixMode(MatrixMode.Projection);
-        GL.LoadMatrix(pMatrix);
+        var converted = ToOpenTK(pMatrix);
+        GL.LoadMatrix(ref converted);
     }
 
-    public override void SetMatrixUniformModelView(float[] mvMatrix)
+    public override void SetMatrixUniformModelView(Matrix4x4 mvMatrix)
     {
         GL.MatrixMode(MatrixMode.Modelview);
-        GL.LoadMatrix(mvMatrix);
+        var converted = ToOpenTK(mvMatrix);
+        GL.LoadMatrix(ref converted);
+    }
+
+    private static Matrix4 ToOpenTK(Matrix4x4 m)
+    {
+        return new Matrix4(
+            m.M11, m.M21, m.M31, m.M41,
+            m.M12, m.M22, m.M32, m.M42,
+            m.M13, m.M23, m.M33, m.M43,
+            m.M14, m.M24, m.M34, m.M44
+        );
     }
 
     public override void GlClearColorRgbaf(float r, float g, float b, float a)

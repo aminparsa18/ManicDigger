@@ -1,6 +1,8 @@
-﻿public class VectorTool
+﻿using System.Numerics;
+
+public class VectorTool
 {
-    public static void ToVectorInFixedSystem(float dx, float dy, float dz, float orientationx, float orientationy, Vector3Ref output)
+    public static void ToVectorInFixedSystem(float dx, float dy, float dz, float orientationx, float orientationy, Vector3 output)
     {
         //Don't calculate for nothing ...
         if (dx == 0 && dy == 0 && dz == 0)
@@ -29,62 +31,52 @@
 
 public class Unproject
 {
+    private Matrix4x4 finalMatrix;
+    private Vector4 inp;
+    private Vector4 out_;
+
     public Unproject()
     {
-        finalMatrix = Mat4.Create();
-        inp = new float[4];
-        out_ = new float[4];
+        finalMatrix = Matrix4x4.Identity;
+        inp = Vector4.Zero;
+        out_ = Vector4.Zero;
     }
-    private readonly float[] finalMatrix;
-    private readonly float[] inp;
-    private readonly float[] out_;
-    public bool UnProject(int winX, int winY, int winZ, float[] model, float[] proj, float[] view, float[] objPos)
+   
+    public bool UnProject(int winX, int winY, int winZ, Matrix4x4 model, Matrix4x4 proj, float[] view, float[] objPos)
     {
-        inp[0] = winX;
-        inp[1] = winY;
-        inp[2] = winZ;
-        inp[3] = 1;
+        inp.X = winX;
+        inp.Y = winY;
+        inp.Z = winZ;
+        inp.W = 1;
 
-        Mat4.Multiply(finalMatrix, proj, model);
-        Mat4.Invert(finalMatrix, finalMatrix);
+        Matrix4x4 finalMatrix = proj * model;
+        Matrix4x4.Invert(finalMatrix, out finalMatrix);
 
         // Map x and y from window coordinates
-        inp[0] = (inp[0] - view[0]) / view[2];
-        inp[1] = (inp[1] - view[1]) / view[3];
+        inp.X = (inp.X - view[0]) / view[2];
+        inp.Y = (inp.Y - view[1]) / view[3];
 
         // Map to range -1 to 1
-        inp[0] = inp[0] * 2 - 1;
-        inp[1] = inp[1] * 2 - 1;
-        inp[2] = inp[2] * 2 - 1;
+        inp.X = inp.X * 2 - 1;
+        inp.Y = inp.Y * 2 - 1;
+        inp.Z = inp.Z * 2 - 1;
 
-        MultMatrixVec(finalMatrix, inp, out_);
+        out_ = Vector4.Transform(inp, finalMatrix);
 
-        if (out_[3] == 0)
+        if (out_.W == 0)
         {
             return false;
         }
 
-        out_[0] /= out_[3];
-        out_[1] /= out_[3];
-        out_[2] /= out_[3];
+        out_.X /= out_.W;
+        out_.Y /= out_.W;
+        out_.Z /= out_.W;
 
-        objPos[0] = out_[0];
-        objPos[1] = out_[1];
-        objPos[2] = out_[2];
+        objPos[0] = out_.X;
+        objPos[1] = out_.Y;
+        objPos[2] = out_.Z;
 
         return true;
-    }
-
-    private static void MultMatrixVec(float[] matrix, float[] inp__, float[] out__)
-    {
-        for (int i = 0; i < 4; i = i + 1)
-        {
-            out__[i] =
-                inp__[0] * matrix[0 * 4 + i] +
-                inp__[1] * matrix[1 * 4 + i] +
-                inp__[2] * matrix[2 * 4 + i] +
-                inp__[3] * matrix[3 * 4 + i];
-        }
     }
 }
 
@@ -697,52 +689,6 @@ public class MathCi
             result = min;
         }
         return result;
-    }
-}
-
-public class Vector3Ref
-{
-    internal float X;
-    internal float Y;
-    internal float Z;
-
-    internal float Length()
-    {
-        return Platform.Sqrt(X * X + Y * Y + Z * Z);
-    }
-
-    internal void Normalize()
-    {
-        float length = Length();
-        X = X / length;
-        Y = Y / length;
-        Z = Z / length;
-    }
-
-    internal static Vector3Ref Create(float x, float y, float z)
-    {
-        Vector3Ref v = new()
-        {
-            X = x,
-            Y = y,
-            Z = z
-        };
-        return v;
-    }
-
-    public float GetX()
-    {
-        return X;
-    }
-
-    public float GetY()
-    {
-        return Y;
-    }
-
-    public float GetZ()
-    {
-        return Z;
     }
 }
 

@@ -1,4 +1,6 @@
-﻿public class ModDrawPlayers : ClientMod
+﻿using System.Numerics;
+
+public class ModDrawPlayers : ClientMod
 {
     public ModDrawPlayers()
     {
@@ -69,7 +71,7 @@
                 {
                     game.player.playerDrawInfo = new PlayerDrawInfo();
                 }
-                Vector3Ref playerspeed = Vector3Ref.Create(game.playervelocity.X / 60, game.playervelocity.Y / 60, game.playervelocity.Z / 60);
+                Vector3 playerspeed = Vector3.Create(game.playervelocity.X / 60, game.playervelocity.Y / 60, game.playervelocity.Z / 60);
                 float playerspeedf = playerspeed.Length() * (one * 15 / 10);
                 game.player.playerDrawInfo.moves = playerspeedf != 0;
                 playerspeed_ = playerspeedf;

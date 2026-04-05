@@ -1,4 +1,7 @@
-﻿public class ModPicking : ClientMod
+﻿using Jint.Native;
+using System.Numerics;
+
+public class ModPicking : ClientMod
 {
     public ModPicking()
     {
@@ -143,7 +146,7 @@
             if (game.Follow == null)
             {
                 //Only walk to destination when not following someone
-                game.playerdestination = Vector3Ref.Create(pick2[0].blockPos[0], pick2[0].blockPos[1] + 1, pick2[0].blockPos[2]);
+                game.playerdestination = Vector3.Create(pick2[0].blockPos[0], pick2[0].blockPos[1] + 1, pick2[0].blockPos[2]);
             }
         }
         bool pickdistanceok = (pick2count.value > 0); //&& (!ispistol);
@@ -179,7 +182,7 @@
             game.SelectedBlockPositionX = -1;
             game.SelectedBlockPositionY = -1;
             game.SelectedBlockPositionZ = -1;
-            pick0.blockPos = new float[3];
+            pick0.blockPos = Vector3.Zero;
             pick0.blockPos[0] = -1;
             pick0.blockPos[1] = -1;
             pick0.blockPos[2] = -1;
@@ -312,7 +315,7 @@
                     headbox.AddPoint(feetposX + r, feetposY + h + headsize, feetposZ - r);
                     headbox.AddPoint(feetposX + r, feetposY + h + headsize, feetposZ + r);
 
-                    float[] p;
+                    Vector3? p;
                     float localeyeposX = game.EyesPosX();
                     float localeyeposY = game.EyesPosY();
                     float localeyeposZ = game.EyesPosZ();
@@ -321,16 +324,16 @@
                     {
                         //do not allow to shoot through terrain
                         if (pick2count.value == 0 || (game.Dist(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2], localeyeposX, localeyeposY, localeyeposZ)
-                            > game.Dist(p[0], p[1], p[2], localeyeposX, localeyeposY, localeyeposZ)))
+                            > game.Dist(p.Value.X, p.Value.Y, p.Value.Z, localeyeposX, localeyeposY, localeyeposZ)))
                         {
                             if (!isgrenade)
                             {
                                 Entity entity = new();
                                 Sprite sprite = new()
                                 {
-                                    positionX = p[0],
-                                    positionY = p[1],
-                                    positionZ = p[2],
+                                    positionX = p.Value.X,
+                                    positionY = p.Value.Y,
+                                    positionZ = p.Value.Y,
                                     image = "blood.png"
                                 };
                                 entity.sprite = sprite;
@@ -348,16 +351,16 @@
                         {
                             //do not allow to shoot through terrain
                             if (pick2count.value == 0 || (game.Dist(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2], localeyeposX, localeyeposY, localeyeposZ)
-                                > game.Dist(p[0], p[1], p[2], localeyeposX, localeyeposY, localeyeposZ)))
+                                > game.Dist(p.Value.X, p.Value.Y, p.Value.Z, localeyeposX, localeyeposY, localeyeposZ)))
                             {
                                 if (!isgrenade)
                                 {
                                     Entity entity = new();
                                     Sprite sprite = new()
                                     {
-                                        positionX = p[0],
-                                        positionY = p[1],
-                                        positionZ = p[2],
+                                        positionX = p.Value.X,
+                                        positionY = p.Value.Y,
+                                        positionZ = p.Value.Z,
                                         image = "blood.png"
                                     };
                                     entity.sprite = sprite;
@@ -632,7 +635,8 @@
     internal Vector3IntRef fillstart;
     internal Vector3IntRef fillend;
 
-    internal void OnPick(Game game, int blockposX, int blockposY, int blockposZ, int blockposoldX, int blockposoldY, int blockposoldZ, float[] collisionPos, bool right)
+    internal void OnPick(Game game, int blockposX, int blockposY, int blockposZ, int blockposoldX, 
+        int blockposoldY, int blockposoldZ, Vector3 collisionPos, bool right)
     {
         float xfract = collisionPos[0] - game.MathFloor(collisionPos[0]);
         float zfract = collisionPos[2] - game.MathFloor(collisionPos[2]);
@@ -893,7 +897,7 @@
             bodybox.AddPoint(feetposX + r, feetposY + h, feetposZ - r);
             bodybox.AddPoint(feetposX + r, feetposY + h, feetposZ + r);
 
-            float[] p;
+            Vector3? p;
             float localeyeposX = game.EyesPosX();
             float localeyeposY = game.EyesPosY();
             float localeyeposZ = game.EyesPosZ();
@@ -902,7 +906,7 @@
             {
                 //do not allow to shoot through terrain
                 if (pick2count.value == 0 || (game.Dist(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2], localeyeposX, localeyeposY, localeyeposZ)
-                    > game.Dist(p[0], p[1], p[2], localeyeposX, localeyeposY, localeyeposZ)))
+                    > game.Dist(p.Value.X, p.Value.Y, p.Value.Z, localeyeposX, localeyeposY, localeyeposZ)))
                 {
                     game.SelectedEntityId = i;
                     if (game.cameratype == CameraType.Fpp || game.cameratype == CameraType.Tpp)
@@ -993,7 +997,7 @@
         raydirY /= raydirLength;
         raydirZ /= raydirLength;
 
-        retPick.Start = new float[3];
+        retPick.Start = Vector3.Zero;
         retPick.Start[0] = tempRayStartPoint[0];// +raydirX; //do not pick behind
         retPick.Start[1] = tempRayStartPoint[1];// +raydirY;
         retPick.Start[2] = tempRayStartPoint[2];// +raydirZ;

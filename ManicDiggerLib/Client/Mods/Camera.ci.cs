@@ -1,9 +1,11 @@
-﻿public class ModCamera : ClientMod
+﻿using System.Numerics;
+
+public class ModCamera : ClientMod
 {
     public ModCamera()
     {
-        OverheadCamera_cameraEye = new Vector3Ref();
-        upVec3 = Vec3.FromValues(0, 1, 0);
+        OverheadCamera_cameraEye = Vector3.Zero;
+        upVec3 = new Vector3(0, 1, 0);
     }
 
     public override void OnBeforeNewFrameDraw3d(Game game, float deltaTime)
@@ -18,31 +20,29 @@
         }
     }
 
-    internal Vector3Ref OverheadCamera_cameraEye;
-    internal float[] OverheadCamera(Game game)
+    internal Vector3 OverheadCamera_cameraEye;
+    internal Matrix4x4 OverheadCamera(Game game)
     {
         game.overheadcameraK.GetPosition(game.platform, OverheadCamera_cameraEye);
-        Vector3Ref cameraEye = OverheadCamera_cameraEye;
-        Vector3Ref cameraTarget = Vector3Ref.Create(game.overheadcameraK.Center.X, game.overheadcameraK.Center.Y + game.GetCharacterEyesHeight(), game.overheadcameraK.Center.Z);
+        Vector3 cameraEye = OverheadCamera_cameraEye;
+        Vector3 cameraTarget = Vector3.Create(game.overheadcameraK.Center.X, game.overheadcameraK.Center.Y + game.GetCharacterEyesHeight(), game.overheadcameraK.Center.Z);
         FloatRef currentOverheadcameradistance = FloatRef.Create(game.overheadcameradistance);
         LimitThirdPersonCameraToWalls(game, cameraEye, cameraTarget, currentOverheadcameradistance);
-        float[] ret = new float[16];
-        Mat4.LookAt(ret, Vec3.FromValues(cameraEye.X, cameraEye.Y, cameraEye.Z),
-            Vec3.FromValues(cameraTarget.X, cameraTarget.Y, cameraTarget.Z),
-            upVec3);
+        var ret = Matrix4x4.CreateLookAt(cameraEye, cameraTarget, upVec3);
+       
         game.CameraEyeX = cameraEye.X;
         game.CameraEyeY = cameraEye.Y;
         game.CameraEyeZ = cameraEye.Z;
         return ret;
     }
-    private readonly float[] upVec3;
+    private readonly Vector3 upVec3;
 
-    internal float[] FppCamera(Game game)
+    internal Matrix4x4 FppCamera(Game game)
     {
-        Vector3Ref forward = new();
+        Vector3 forward = new();
         VectorTool.ToVectorInFixedSystem(0, 0, 1, game.player.position.rotx, game.player.position.roty, forward);
-        Vector3Ref cameraEye = new();
-        Vector3Ref cameraTarget = new();
+        Vector3 cameraEye = new();
+        Vector3 cameraTarget = new();
         float playerEyeX = game.player.position.x;
         float playerEyeY = game.player.position.y + game.GetCharacterEyesHeight();
         float playerEyeZ = game.player.position.z;
@@ -66,21 +66,18 @@
             FloatRef currentTppcameradistance = FloatRef.Create(game.tppcameradistance);
             LimitThirdPersonCameraToWalls(game, cameraEye, cameraTarget, currentTppcameradistance);
         }
-        float[] ret = new float[16];
-        Mat4.LookAt(ret, Vec3.FromValues(cameraEye.X, cameraEye.Y, cameraEye.Z),
-            Vec3.FromValues(cameraTarget.X, cameraTarget.Y, cameraTarget.Z),
-            upVec3);
+        Matrix4x4 ret = Matrix4x4.CreateLookAt(cameraEye, cameraTarget, upVec3);
         game.CameraEyeX = cameraEye.X;
         game.CameraEyeY = cameraEye.Y;
         game.CameraEyeZ = cameraEye.Z;
         return ret;
     }
 
-    internal static void LimitThirdPersonCameraToWalls(Game game, Vector3Ref eye, Vector3Ref target, FloatRef curtppcameradistance)
+    internal static void LimitThirdPersonCameraToWalls(Game game, Vector3 eye, Vector3 target, FloatRef curtppcameradistance)
     {
         float one = 1;
-        Vector3Ref ray_start_point = target;
-        Vector3Ref raytarget = eye;
+        Vector3 ray_start_point = target;
+        Vector3 raytarget = eye;
 
         Line3D pick = new();
         float raydirX = (raytarget.X - ray_start_point.X);
@@ -94,7 +91,7 @@
         raydirX = raydirX * (game.tppcameradistance + 1);
         raydirY = raydirY * (game.tppcameradistance + 1);
         raydirZ = raydirZ * (game.tppcameradistance + 1);
-        pick.Start = Vec3.FromValues(ray_start_point.X, ray_start_point.Y, ray_start_point.Z);
+        pick.Start = new Vector3(ray_start_point.X, ray_start_point.Y, ray_start_point.Z);
         pick.End = new float[3];
         pick.End[0] = ray_start_point.X + raydirX;
         pick.End[1] = ray_start_point.Y + raydirY;

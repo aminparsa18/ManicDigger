@@ -1,4 +1,5 @@
-﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+﻿using System.Numerics;
+using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 public class MainMenu
 {
@@ -60,8 +61,8 @@ public class MainMenu
 
         filter = 0;
 
-        mvMatrix = Mat4.Create();
-        pMatrix = Mat4.Create();
+        mvMatrix = Matrix4x4.Identity;
+        pMatrix = Matrix4x4.Identity;
 
         currentlyPressedKeys = new bool[360];
         p.AddOnNewFrame(MainMenuNewFrameHandler.Create(this));
@@ -73,8 +74,8 @@ public class MainMenu
     private int viewportWidth;
     private int viewportHeight;
 
-    private float[] mvMatrix;
-    private float[] pMatrix;
+    private Matrix4x4 mvMatrix;
+    private Matrix4x4 pMatrix;
 
     private bool[] currentlyPressedKeys;
 
@@ -120,8 +121,7 @@ public class MainMenu
             //Mat4.Translate(mvMatrix, mvMatrix, Vec3.FromValues(0, 0, z));
         }
         {
-            Mat4.Identity_(pMatrix);
-            Mat4.Ortho(pMatrix, 0, p.GetCanvasWidth(), p.GetCanvasHeight(), 0, 0, 10);
+            Matrix4x4 pMatrix = Matrix4x4.CreateOrthographicOffCenter(0, p.GetCanvasWidth(), p.GetCanvasHeight(), 0, 0, 10);
         }
 
         screen.Render(dt);
@@ -264,16 +264,14 @@ public class MainMenu
     private Model cubeModel;
     public void Draw2dQuad(int textureid, float dx, float dy, float dw, float dh)
     {
-        Mat4.Identity_(mvMatrix);
-        Mat4.Translate(mvMatrix, mvMatrix, Vec3.FromValues(dx, dy, 0));
-        Mat4.Scale(mvMatrix, mvMatrix, Vec3.FromValues(dw, dh, 0));
-        Mat4.Scale(mvMatrix, mvMatrix, Vec3.FromValues(one / 2, one / 2, 0));
-        Mat4.Translate(mvMatrix, mvMatrix, Vec3.FromValues(one, one, 0));
+        mvMatrix = Matrix4x4.Identity;
+        mvMatrix = mvMatrix
+            * Matrix4x4.CreateTranslation(dx, dy, 0)
+            * Matrix4x4.CreateScale(dw, dh, 0)
+            * Matrix4x4.CreateScale(one / 2, one / 2, 0)
+            * Matrix4x4.CreateTranslation(one, one, 0);
         SetMatrixUniforms();
-        if (cubeModel == null)
-        {
-            cubeModel = p.CreateModel(QuadModelData.GetQuadModelData());
-        }
+        cubeModel ??= p.CreateModel(QuadModelData.GetQuadModelData());
         p.BindTexture2d(textureid);
         p.DrawModel(cubeModel);
     }

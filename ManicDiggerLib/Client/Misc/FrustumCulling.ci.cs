@@ -4,6 +4,8 @@
 //Unless otherwise noted, you may use any and all code examples provided herein in any way you want.
 //All other content, including but not limited to text and images, may not be reproduced without consent.
 //This file was last edited on Wednesday, 24-Jan-2001 13:24:38 PST"
+using System.Numerics;
+
 public class FrustumCulling
 {
     internal GamePlatform platform;
@@ -75,23 +77,21 @@ public class FrustumCulling
         float t;
 
         // Retrieve matrices from OpenGL
-        float[] matModelView = d_GetCameraMatrix.GetModelViewMatrix();
-        float[] matProjection = d_GetCameraMatrix.GetProjectionMatrix();
-        float[] matFrustum = Mat4.Create();
-        //Matrix4.Mult(ref matModelView, ref matProjection, out matFrustum);
-        Mat4.Multiply(matFrustum, matProjection, matModelView);
+        Matrix4x4 matModelView = d_GetCameraMatrix.GetModelViewMatrix();
+        Matrix4x4 matProjection = d_GetCameraMatrix.GetProjectionMatrix();
+        Matrix4x4 matFrustum = Matrix4x4.Multiply(matProjection, matModelView);
 
         //unsafe
         {
             //fixed (float* clip1 = &matFrustum)
             //float* clip1 = (float*)(&matFrustum);
-            float[] clip1 = matFrustum;
+            Matrix4x4 clip1 = matFrustum;
             {
                 // Extract the numbers for the RIGHT plane
-                frustum00 = clip1[3] - clip1[0];
-                frustum01 = clip1[7] - clip1[4];
-                frustum02 = clip1[11] - clip1[8];
-                frustum03 = clip1[15] - clip1[12];
+                frustum00 = clip1.M14 - clip1.M11;
+                frustum01 = clip1.M24 - clip1.M21;
+                frustum02 = clip1.M34 - clip1.M31;
+                frustum03 = clip1.M44 - clip1.M41;
 
                 // Normalize the result
                 t = platform.MathSqrt(frustum00 * frustum00 + frustum01 * frustum01 + frustum02 * frustum02);
@@ -101,10 +101,10 @@ public class FrustumCulling
                 frustum03 /= t;
 
                 // Extract the numbers for the LEFT plane
-                frustum10 = clip1[3] + clip1[0];
-                frustum11 = clip1[7] + clip1[4];
-                frustum12 = clip1[11] + clip1[8];
-                frustum13 = clip1[15] + clip1[12];
+                frustum10 = clip1.M14 + clip1.M11;
+                frustum11 = clip1.M24 + clip1.M21;
+                frustum12 = clip1.M34 + clip1.M31;
+                frustum13 = clip1.M44 + clip1.M41;
 
                 // Normalize the result
                 t = platform.MathSqrt(frustum10 * frustum10 + frustum11 * frustum11 + frustum12 * frustum12);
@@ -114,10 +114,10 @@ public class FrustumCulling
                 frustum13 /= t;
 
                 // Extract the BOTTOM plane
-                frustum20 = clip1[3] + clip1[1];
-                frustum21 = clip1[7] + clip1[5];
-                frustum22 = clip1[11] + clip1[9];
-                frustum23 = clip1[15] + clip1[13];
+                frustum20 = clip1.M14 + clip1.M12;
+                frustum21 = clip1.M24 + clip1.M22;
+                frustum22 = clip1.M34 + clip1.M32;
+                frustum23 = clip1.M44 + clip1.M42;
 
                 // Normalize the result
                 t = platform.MathSqrt(frustum20 * frustum20 + frustum21 * frustum21 + frustum22 * frustum22);
@@ -127,10 +127,10 @@ public class FrustumCulling
                 frustum23 /= t;
 
                 // Extract the TOP plane
-                frustum30 = clip1[3] - clip1[1];
-                frustum31 = clip1[7] - clip1[5];
-                frustum32 = clip1[11] - clip1[9];
-                frustum33 = clip1[15] - clip1[13];
+                frustum30 = clip1.M14 - clip1.M12;
+                frustum31 = clip1.M24 - clip1.M22;
+                frustum32 = clip1.M34 - clip1.M32;
+                frustum33 = clip1.M44 - clip1.M42;
 
                 // Normalize the result
                 t = platform.MathSqrt(frustum30 * frustum30 + frustum31 * frustum31 + frustum32 * frustum32);
@@ -140,10 +140,10 @@ public class FrustumCulling
                 frustum33 /= t;
 
                 // Extract the FAR plane
-                frustum40 = clip1[3] - clip1[2];
-                frustum41 = clip1[7] - clip1[6];
-                frustum42 = clip1[11] - clip1[10];
-                frustum43 = clip1[15] - clip1[14];
+                frustum40 = clip1.M14 - clip1.M13;
+                frustum41 = clip1.M24 - clip1.M23;
+                frustum42 = clip1.M34 - clip1.M33;
+                frustum43 = clip1.M44 - clip1.M43;
 
                 // Normalize the result
                 t = platform.MathSqrt(frustum40 * frustum40 + frustum41 * frustum41 + frustum42 * frustum42);
@@ -153,10 +153,10 @@ public class FrustumCulling
                 frustum43 /= t;
 
                 // Extract the NEAR plane
-                frustum50 = clip1[3] + clip1[2];
-                frustum51 = clip1[7] + clip1[6];
-                frustum52 = clip1[11] + clip1[10];
-                frustum53 = clip1[15] + clip1[14];
+                frustum40 = clip1.M14 + clip1.M13;
+                frustum41 = clip1.M24 + clip1.M23;
+                frustum42 = clip1.M34 + clip1.M33;
+                frustum43 = clip1.M44 + clip1.M43;
 
                 // Normalize the result
                 t = platform.MathSqrt(frustum50 * frustum50 + frustum51 * frustum51 + frustum52 * frustum52);
@@ -171,6 +171,6 @@ public class FrustumCulling
 
 public abstract class IGetCameraMatrix
 {
-    public abstract float[] GetModelViewMatrix();
-    public abstract float[] GetProjectionMatrix();
+    public abstract Matrix4x4 GetModelViewMatrix();
+    public abstract Matrix4x4 GetProjectionMatrix();
 }

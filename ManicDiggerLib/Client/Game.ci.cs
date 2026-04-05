@@ -115,7 +115,6 @@ public class Game
         handTexture = -1;
         modelViewInverted = new float[16];
         identityMatrix = Matrix4x4.Identity;
-        Set3dProjectionTempMat4 = Matrix4x4.Identity;
         getAsset = new string[1024 * 2];
         PlayerStats = new Packet_ServerPlayerStats();
         mLightLevels = new float[16];
@@ -401,7 +400,9 @@ public class Game
         GLMatrixModeModelView();
         GLLoadMatrix(camera);
         CameraMatrix.lastmvmatrix = camera;
-
+        var count = mvMatrix.Count();
+        var top = mvMatrix.Peek();
+        Console.WriteLine($"camera value: {camera}");
         d_FrustumCulling.CalcFrustumEquations();
 
         bool drawgame = guistate != GuiState.MapLoading;
@@ -724,11 +725,13 @@ public class Game
 
     public void SetMatrixUniformProjection()
     {
+        var top = pMatrix.Peek();
         platform.SetMatrixUniformProjection(pMatrix.Peek());
     }
 
     public void SetMatrixUniformModelView()
     {
+        var top = mvMatrix.Peek();
         platform.SetMatrixUniformModelView(mvMatrix.Peek());
     }
 
@@ -871,8 +874,14 @@ public class Game
         //GL.Disable(EnableCap.DepthTest);
         GLMatrixModeProjection();
         GLPushMatrix();
+        var count = pMatrix.Count();
+        var top = pMatrix.Peek();
         GLLoadIdentity();
+        count = pMatrix.Count();
+        top = pMatrix.Peek();
         GLOrtho(0, width, height, 0, 0, 1);
+        count = pMatrix.Count();
+        top = pMatrix.Peek();
         SetMatrixUniformProjection();
 
         GLMatrixModeModelView();
@@ -887,6 +896,10 @@ public class Game
         GLMatrixModeProjection();
         // Pop off the last matrix pushed on when in projection mode (Get rid of ortho mode)
         GLPopMatrix();
+
+        var count = pMatrix.Count();
+        var top = pMatrix.Peek();
+
         SetMatrixUniformProjection();
 
         // Go back to our model view matrix like normal
@@ -1333,16 +1346,31 @@ public class Game
 
     internal GetCameraMatrix CameraMatrix;
 
-    private readonly Matrix4x4 Set3dProjectionTempMat4;
     public void Set3dProjection(float zfar, float fov)
     {
         float aspect_ratio = one * Width() / Height();
-        Matrix4x4 output = Matrix4x4.CreatePerspectiveFieldOfView(fov, aspect_ratio, znear, zfar);
+        Matrix4x4 output = Perspective(fov, aspect_ratio, znear, zfar);
         CameraMatrix.lastpmatrix = output;
         GLMatrixModeProjection();
         GLLoadMatrix(output);
+        var count = pMatrix.Count();
+        var top = pMatrix.Peek();
         SetMatrixUniformProjection();
     }
+
+    private Matrix4x4 Perspective(float fovy, float aspect, float near, float far)
+    {
+        float f = 1f / MathF.Tan(fovy / 2);
+        float nf = 1f / (near - far);
+        return new Matrix4x4(
+            f / aspect, 0, 0, 0,
+            0, f, 0, 0,
+            0, 0, (far + near) * nf, -1,
+            0, 0, (2 * far * near) * nf, 0
+        );
+    }
+
+   
 
     internal bool ENABLE_ZFAR;
 

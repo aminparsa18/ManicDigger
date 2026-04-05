@@ -20,6 +20,28 @@ public class ModCamera : ClientMod
         }
     }
 
+    private Matrix4x4 LookAt(Vector3 eye, Vector3 center, Vector3 up)
+    {
+        if (Math.Abs(eye.X - center.X) < 0.000001f &&
+            Math.Abs(eye.Y - center.Y) < 0.000001f &&
+            Math.Abs(eye.Z - center.Z) < 0.000001f)
+            return Matrix4x4.Identity;
+
+        Vector3 z = Vector3.Normalize(eye - center);
+        Vector3 x = Vector3.Normalize(Vector3.Cross(up, z));
+        Vector3 y = Vector3.Normalize(Vector3.Cross(z, x));
+
+        return new Matrix4x4(
+            x.X, y.X, z.X, 0,
+            x.Y, y.Y, z.Y, 0,
+            x.Z, y.Z, z.Z, 0,
+            -(x.X * eye.X + x.Y * eye.Y + x.Z * eye.Z),
+            -(y.X * eye.X + y.Y * eye.Y + y.Z * eye.Z),
+            -(z.X * eye.X + z.Y * eye.Y + z.Z * eye.Z),
+            1
+        );
+    }
+
     internal Vector3 OverheadCamera_cameraEye;
     internal Matrix4x4 OverheadCamera(Game game)
     {
@@ -28,7 +50,7 @@ public class ModCamera : ClientMod
         Vector3 cameraTarget = Vector3.Create(game.overheadcameraK.Center.X, game.overheadcameraK.Center.Y + game.GetCharacterEyesHeight(), game.overheadcameraK.Center.Z);
         FloatRef currentOverheadcameradistance = FloatRef.Create(game.overheadcameradistance);
         LimitThirdPersonCameraToWalls(game, cameraEye, cameraTarget, currentOverheadcameradistance);
-        var ret = Matrix4x4.CreateLookAt(cameraEye, cameraTarget, upVec3);
+        var ret = LookAt(cameraEye, cameraTarget, upVec3);
        
         game.CameraEyeX = cameraEye.X;
         game.CameraEyeY = cameraEye.Y;
@@ -66,7 +88,7 @@ public class ModCamera : ClientMod
             FloatRef currentTppcameradistance = FloatRef.Create(game.tppcameradistance);
             LimitThirdPersonCameraToWalls(game, cameraEye, cameraTarget, currentTppcameradistance);
         }
-        Matrix4x4 ret = Matrix4x4.CreateLookAt(cameraEye, cameraTarget, upVec3);
+        Matrix4x4 ret = LookAt(cameraEye, cameraTarget, upVec3);
         game.CameraEyeX = cameraEye.X;
         game.CameraEyeY = cameraEye.Y;
         game.CameraEyeZ = cameraEye.Z;

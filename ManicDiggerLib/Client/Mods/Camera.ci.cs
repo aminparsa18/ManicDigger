@@ -62,7 +62,7 @@ public class ModCamera : ClientMod
     internal Matrix4x4 FppCamera(Game game)
     {
         Vector3 forward = new();
-        VectorTool.ToVectorInFixedSystem(0, 0, 1, game.player.position.rotx, game.player.position.roty, forward);
+        VectorTool.ToVectorInFixedSystem(0, 0, 1, game.player.position.rotx, game.player.position.roty, ref forward);
         Vector3 cameraEye = new();
         Vector3 cameraTarget = new();
         float playerEyeX = game.player.position.x;

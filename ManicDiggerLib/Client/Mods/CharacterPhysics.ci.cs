@@ -106,7 +106,7 @@ public class ScriptCharacterPhysics : EntityScript
         VectorTool.ToVectorInFixedSystem
             (move.movedx * movespeednow * dt,
             0,
-            move.movedy * movespeednow * dt, stateplayerposition.rotx, stateplayerposition.roty, diff1ref);
+            move.movedy * movespeednow * dt, stateplayerposition.rotx, stateplayerposition.roty, ref diff1ref);
         Vector3 diff1 = new()
         {
             X = diff1ref.X,

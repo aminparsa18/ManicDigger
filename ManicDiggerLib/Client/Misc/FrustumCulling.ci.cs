@@ -79,7 +79,7 @@ public class FrustumCulling
         // Retrieve matrices from OpenGL
         Matrix4x4 matModelView = d_GetCameraMatrix.GetModelViewMatrix();
         Matrix4x4 matProjection = d_GetCameraMatrix.GetProjectionMatrix();
-        Matrix4x4 matFrustum = Matrix4x4.Multiply(matProjection, matModelView);
+        Matrix4x4 matFrustum = Matrix4x4.Multiply(matModelView, matProjection);
 
         //unsafe
         {

@@ -1,4 +1,6 @@
-﻿public class ModDialog : ClientMod
+﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class ModDialog : ClientMod
 {
     public ModDialog()
     {
@@ -83,7 +85,7 @@
         }
         if (game.guistate == GuiState.Normal)
         {
-            if (args.GetKeyCode() == game.GetKey(GlKeys.Escape))
+            if (args.GetKeyCode() == game.GetKey(Keys.Escape))
             {
                 for (int i = 0; i < game.dialogsCount; i++)
                 {
@@ -106,7 +108,7 @@
         if (game.guistate == GuiState.ModalDialog)
         {
             // Close modal dialogs when pressing ESC key
-            if (args.GetKeyCode() == game.GetKey(GlKeys.Escape))
+            if (args.GetKeyCode() == game.GetKey(Keys.Escape))
             {
                 for (int i = 0; i < game.dialogsCount; i++)
                 {
@@ -121,7 +123,7 @@
                 args.SetHandled(true);
             }
             // Handle TAB key
-            if (args.GetKeyCode() == game.GetKey(GlKeys.Tab))
+            if (args.GetKeyCode() == game.GetKey(Keys.Tab))
             {
                 game.SendPacketClient(ClientPackets.DialogClick("Tab", new string[0], 0));
                 args.SetHandled(true);

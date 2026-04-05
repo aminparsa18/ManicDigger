@@ -1,4 +1,6 @@
-﻿public class ModGuiChat : ClientMod
+﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class ModGuiChat : ClientMod
 {
     public ModGuiChat()
     {
@@ -150,7 +152,7 @@
             return;
         }
         int eKey = args.GetKeyCode();
-        if (eKey == game.GetKey(GlKeys.Number7) && game.IsShiftPressed && game.GuiTyping == TypingState.None) // don't need to hit enter for typing commands starting with slash
+        if (eKey == game.GetKey(Keys.KeyPad7) && game.IsShiftPressed && game.GuiTyping == TypingState.None) // don't need to hit enter for typing commands starting with slash
         {
             game.GuiTyping = TypingState.Typing;
             game.IsTyping = true;
@@ -159,18 +161,18 @@
             args.SetHandled(true);
             return;
         }
-        if (eKey == game.GetKey(GlKeys.PageUp) && game.GuiTyping == TypingState.Typing)
+        if (eKey == game.GetKey(Keys.PageUp) && game.GuiTyping == TypingState.Typing)
         {
             ChatPageScroll++;
             args.SetHandled(true);
         }
-        if (eKey == game.GetKey(GlKeys.PageDown) && game.GuiTyping == TypingState.Typing)
+        if (eKey == game.GetKey(Keys.PageDown) && game.GuiTyping == TypingState.Typing)
         {
             ChatPageScroll--;
             args.SetHandled(true);
         }
         ChatPageScroll = MathCi.ClampInt(ChatPageScroll, 0, game.ChatLinesCount / ChatLinesMaxToDraw);
-        if (eKey == game.GetKey(GlKeys.Enter) || eKey == game.GetKey(GlKeys.KeypadEnter))
+        if (eKey == game.GetKey(Keys.Enter) || eKey == game.GetKey(Keys.KeyPadEnter))
         {
             if (game.GuiTyping == TypingState.Typing)
             {
@@ -198,7 +200,7 @@
         if (game.GuiTyping == TypingState.Typing)
         {
             int key = eKey;
-            if (key == game.GetKey(GlKeys.BackSpace))
+            if (key == game.GetKey(Keys.Backspace))
             {
                 if (StringTools.StringLength(game.platform, game.GuiTypingBuffer) > 0)
                 {
@@ -207,9 +209,9 @@
                 args.SetHandled(true);
                 return;
             }
-            if (game.keyboardStateRaw[game.GetKey(GlKeys.ControlLeft)] || game.keyboardStateRaw[game.GetKey(GlKeys.ControlRight)])
+            if (game.keyboardStateRaw[game.GetKey(Keys.LeftControl)] || game.keyboardStateRaw[game.GetKey(Keys.RightControl)])
             {
-                if (key == game.GetKey(GlKeys.V))
+                if (key == game.GetKey(Keys.V))
                 {
                     if (game.platform.ClipboardContainsText())
                     {
@@ -219,7 +221,7 @@
                     return;
                 }
             }
-            if (key == game.GetKey(GlKeys.Up))
+            if (key == game.GetKey(Keys.Up))
             {
                 game.typinglogpos--;
                 if (game.typinglogpos < 0) { game.typinglogpos = 0; }
@@ -229,7 +231,7 @@
                 }
                 args.SetHandled(true);
             }
-            if (key == game.GetKey(GlKeys.Down))
+            if (key == game.GetKey(Keys.Down))
             {
                 game.typinglogpos++;
                 if (game.typinglogpos > game.typinglogCount) { game.typinglogpos = game.typinglogCount; }
@@ -244,7 +246,7 @@
                 args.SetHandled(true);
             }
             //Handles player name autocomplete in chat
-            if (eKey == game.GetKey(GlKeys.Tab) && game.platform.StringTrim(game.GuiTypingBuffer) != "")
+            if (eKey == game.GetKey(Keys.Tab) && game.platform.StringTrim(game.GuiTypingBuffer) != "")
             {
                 IntRef partsLength = new();
                 string[] parts = game.platform.StringSplit(game.GuiTypingBuffer, " ", partsLength);

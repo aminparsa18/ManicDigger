@@ -1,5 +1,5 @@
-﻿using OpenTK;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
+using OpenTK.Windowing.Desktop;
 
 namespace ManicDigger.ClientNative;
 
@@ -7,24 +7,25 @@ public interface IScreenshot
 {
     void SaveScreenshot();
 }
+
 public class Screenshot : IScreenshot
 {
     public GameWindow d_GameWindow;
     public string SavePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
     public void SaveScreenshot()
     {
-        using (Bitmap bmp = GrabScreenshot())
-        {
-            string time = string.Format("{0:yyyy-MM-dd_HH-mm-ss}", DateTime.Now);
-            string filename = Path.Combine(SavePath, time + ".png");
-            bmp.Save(filename);
-        }
+        using Bitmap bmp = GrabScreenshot();
+        string time = string.Format("{0:yyyy-MM-dd_HH-mm-ss}", DateTime.Now);
+        string filename = Path.Combine(SavePath, time + ".png");
+        bmp.Save(filename);
     }
+
     // Returns a System.Drawing.Bitmap with the contents of the current framebuffer
     public Bitmap GrabScreenshot()
     {
-        int width = d_GameWindow.Width;
-        int height = d_GameWindow.Height;
+        int width = d_GameWindow.ClientSize.X;
+        int height = d_GameWindow.ClientSize.Y;
 
         Bitmap bmp = new(width, height);
         System.Drawing.Imaging.BitmapData data = bmp.LockBits(new Rectangle(0, 0, width, height),

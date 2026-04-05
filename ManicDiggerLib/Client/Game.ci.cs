@@ -1,4 +1,6 @@
-﻿public class Game
+﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class Game
 {
     public Game()
     {
@@ -83,7 +85,7 @@
         }
         entitiesCount = 512;
         PlayerPushDistance = 2;
-        const int KeysMax = 256;
+        const int KeysMax = 360;
         keyboardState = new bool[KeysMax];
         for (int i = 0; i < KeysMax; i++)
         {
@@ -2393,17 +2395,17 @@
 
     internal OptionsCi options;
 
-    internal int GetKey(int key)
+    internal int GetKey(Keys key)
     {
         if (options == null)
         {
-            return key;
+            return (int)key;
         }
-        if (options.Keys[key] != 0)
+        if (options.Keys[(int)key] != 0)
         {
-            return options.Keys[key];
+            return options.Keys[(int)key];
         }
-        return key;
+        return (int)key;
     }
 
     internal float MoveSpeedNow()
@@ -2421,7 +2423,7 @@
                 }
             }
         }
-        if (keyboardState[GetKey(GlKeys.ShiftLeft)])
+        if (keyboardState[GetKey(Keys.LeftShift)])
         {
             //enable_acceleration = false;
             movespeednow *= one * 2 / 10;
@@ -2458,16 +2460,16 @@
 
     internal void HandleMaterialKeys(int eKey)
     {
-        if (eKey == GetKey(GlKeys.Number1)) { ActiveMaterial = 0; }
-        if (eKey == GetKey(GlKeys.Number2)) { ActiveMaterial = 1; }
-        if (eKey == GetKey(GlKeys.Number3)) { ActiveMaterial = 2; }
-        if (eKey == GetKey(GlKeys.Number4)) { ActiveMaterial = 3; }
-        if (eKey == GetKey(GlKeys.Number5)) { ActiveMaterial = 4; }
-        if (eKey == GetKey(GlKeys.Number6)) { ActiveMaterial = 5; }
-        if (eKey == GetKey(GlKeys.Number7)) { ActiveMaterial = 6; }
-        if (eKey == GetKey(GlKeys.Number8)) { ActiveMaterial = 7; }
-        if (eKey == GetKey(GlKeys.Number9)) { ActiveMaterial = 8; }
-        if (eKey == GetKey(GlKeys.Number0)) { ActiveMaterial = 9; }
+        if (eKey == GetKey(Keys.KeyPad1)) { ActiveMaterial = 0; }
+        if (eKey == GetKey(Keys.KeyPad2)) { ActiveMaterial = 1; }
+        if (eKey == GetKey(Keys.KeyPad3)) { ActiveMaterial = 2; }
+        if (eKey == GetKey(Keys.KeyPad4)) { ActiveMaterial = 3; }
+        if (eKey == GetKey(Keys.KeyPad5)) { ActiveMaterial = 4; }
+        if (eKey == GetKey(Keys.KeyPad6)) { ActiveMaterial = 5; }
+        if (eKey == GetKey(Keys.KeyPad7)) { ActiveMaterial = 6; }
+        if (eKey == GetKey(Keys.KeyPad8)) { ActiveMaterial = 7; }
+        if (eKey == GetKey(Keys.KeyPad9)) { ActiveMaterial = 8; }
+        if (eKey == GetKey(Keys.KeyPad0)) { ActiveMaterial = 9; }
     }
 
     internal void UseVsync()
@@ -2495,7 +2497,7 @@
     internal void MouseWheelChanged(MouseWheelEventArgs e)
     {
         float eDeltaPrecise = e.GetDeltaPrecise();
-        if (keyboardState[GetKey(GlKeys.LShift)])
+        if (keyboardState[GetKey(Keys.LeftShift)])
         {
             if (cameratype == CameraType.Overhead)
             {
@@ -2641,7 +2643,7 @@
             }
         }
         keyboardState[eKey] = false;
-        if (eKey == GetKey(GlKeys.ShiftLeft) || eKey == GetKey(GlKeys.ShiftRight))
+        if (eKey == GetKey(Keys.LeftShift) || eKey == GetKey(Keys.RightShift))
         {
             IsShiftPressed = false;
         }
@@ -3357,7 +3359,7 @@
         }
         keyboardState[eKey] = true;
         InvalidVersionAllow();
-        if (eKey == GetKey(GlKeys.F6))
+        if (eKey == GetKey(Keys.F6))
         {
             float lagSeconds = one * (platform.TimeMillisecondsFromStart() - LastReceivedMilliseconds) / 1000;
             if ((lagSeconds >= DISCONNECTED_ICON_AFTER_SECONDS) || guistate == GuiState.MapLoading)
@@ -3365,7 +3367,7 @@
                 Reconnect();
             }
         }
-        if (eKey == GetKey(GlKeys.ShiftLeft) || eKey == GetKey(GlKeys.ShiftRight))
+        if (eKey == GetKey(Keys.LeftShift) || eKey == GetKey(Keys.RightShift))
         {
             IsShiftPressed = true;
         }
@@ -3373,7 +3375,7 @@
         {
             string strFreemoveNotAllowed = "You are not allowed to enable freemove.";
 
-            if (eKey == GetKey(GlKeys.F1))
+            if (eKey == GetKey(Keys.F1))
             {
                 if (!this.AllowFreemove)
                 {
@@ -3383,7 +3385,7 @@
                 movespeed = basemovespeed * 1;
                 Log("Move speed: 1x.");
             }
-            if (eKey == GetKey(GlKeys.F2))
+            if (eKey == GetKey(Keys.F2))
             {
                 if (!this.AllowFreemove)
                 {
@@ -3393,7 +3395,7 @@
                 movespeed = basemovespeed * 10;
                 Log(platform.StringFormat(language.MoveSpeed(), platform.IntToString(10)));
             }
-            if (eKey == GetKey(GlKeys.F3))
+            if (eKey == GetKey(Keys.F3))
             {
                 if (!this.AllowFreemove)
                 {
@@ -3418,7 +3420,7 @@
                     Log(language.MoveNormal());
                 }
             }
-            if (eKey == GetKey(GlKeys.I))
+            if (eKey == GetKey(Keys.I))
             {
                 drawblockinfo = !drawblockinfo;
             }
@@ -3429,11 +3431,11 @@
             {
                 performanceinfo.Set("height", platform.StringFormat("height:{0}", platform.IntToString(d_Heightmap.GetBlock(playerx, playery))));
             }
-            if (eKey == GetKey(GlKeys.F5))
+            if (eKey == GetKey(Keys.F5))
             {
                 CameraChange();
             }
-            if (eKey == GetKey(GlKeys.Plus) || eKey == GetKey(GlKeys.KeypadPlus))
+            if (eKey == GetKey(Keys.Equal) || eKey == GetKey(Keys.Equal))
             {
                 if (cameratype == CameraType.Overhead)
                 {
@@ -3444,7 +3446,7 @@
                     tppcameradistance -= 1;
                 }
             }
-            if (eKey == GetKey(GlKeys.Minus) || eKey == GetKey(GlKeys.KeypadMinus))
+            if (eKey == GetKey(Keys.Minus) || eKey == GetKey(Keys.KeyPadSubtract))
             {
                 if (cameratype == CameraType.Overhead)
                 {
@@ -3461,22 +3463,22 @@
             if (tppcameradistance < TPP_CAMERA_DISTANCE_MIN) { tppcameradistance = TPP_CAMERA_DISTANCE_MIN; }
             if (tppcameradistance > TPP_CAMERA_DISTANCE_MAX) { tppcameradistance = TPP_CAMERA_DISTANCE_MAX; }
 
-            if (eKey == GetKey(GlKeys.F6))
+            if (eKey == GetKey(Keys.F6))
             {
                 RedrawAllBlocks();
             }
-            if (eKey == GlKeys.F8)
+            if (eKey == (int)Keys.F8)
             {
                 ToggleVsync();
                 if (ENABLE_LAG == 0) { Log(language.FrameRateVsync()); }
                 if (ENABLE_LAG == 1) { Log(language.FrameRateUnlimited()); }
                 if (ENABLE_LAG == 2) { Log(language.FrameRateLagSimulation()); }
             }
-            if (eKey == GetKey(GlKeys.Tab))
+            if (eKey == GetKey(Keys.Tab))
             {
                 SendPacketClient(ClientPackets.SpecialKeyTabPlayerList());
             }
-            if (eKey == GetKey(GlKeys.E))
+            if (eKey == GetKey(Keys.E))
             {
                 if (currentAttackedBlock != null)
                 {
@@ -3516,15 +3518,15 @@
                     }
                 }
             }
-            if (eKey == GetKey(GlKeys.O))
+            if (eKey == GetKey(Keys.O))
             {
                 Respawn();
             }
-            if (eKey == GetKey(GlKeys.L))
+            if (eKey == GetKey(Keys.L))
             {
                 SendPacketClient(ClientPackets.SpecialKeySelectTeam());
             }
-            if (eKey == GetKey(GlKeys.P))
+            if (eKey == GetKey(Keys.P))
             {
                 SendPacketClient(ClientPackets.SpecialKeySetSpawn());
 
@@ -3536,13 +3538,13 @@
                 //player.playerposition.Y = player.playerposition.Y;
                 player.position.z = platform.FloatToInt(player.position.z) + one / 2;
             }
-            if (eKey == GetKey(GlKeys.F))
+            if (eKey == GetKey(Keys.F))
             {
                 ToggleFog();
                 Log(platform.StringFormat(language.FogDistance(), platform.IntToString(platform.FloatToInt(d_Config3d.viewdistance))));
                 OnResize();
             }
-            if (eKey == GetKey(GlKeys.B))
+            if (eKey == GetKey(Keys.B))
             {
                 ShowInventory();
                 return;
@@ -3551,8 +3553,8 @@
         }
         if (guistate == GuiState.Inventory)
         {
-            if (eKey == GetKey(GlKeys.B)
-                || eKey == GetKey(GlKeys.Escape))
+            if (eKey == GetKey(Keys.B)
+                || eKey == GetKey(Keys.Escape))
             {
                 GuiStateBackToGame();
             }
@@ -3561,21 +3563,21 @@
         if (guistate == GuiState.MapLoading)
         {
             //Return to main menu when ESC key is pressed while loading
-            if (eKey == GetKey(GlKeys.Escape))
+            if (eKey == GetKey(Keys.Escape))
             {
                 ExitToMainMenu_();
             }
         }
         if (guistate == GuiState.CraftingRecipes)
         {
-            if (eKey == GetKey(GlKeys.Escape))
+            if (eKey == GetKey(Keys.Escape))
             {
                 GuiStateBackToGame();
             }
         }
         if (guistate == GuiState.Normal)
         {
-            if (eKey == GetKey(GlKeys.Escape))
+            if (eKey == GetKey(Keys.Escape))
             {
                 EscapeMenuStart();
                 return;

@@ -1,4 +1,6 @@
-﻿public class ModFpsHistoryGraph : ClientMod
+﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class ModFpsHistoryGraph : ClientMod
 {
     public ModFpsHistoryGraph()
     {
@@ -86,7 +88,7 @@
 
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
-        if (args.GetKeyCode() == GlKeys.F7)
+        if (args.GetKeyCode() == (int)Keys.F7)
         {
             if (!drawfpsgraph)
             {

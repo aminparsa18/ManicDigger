@@ -23,7 +23,7 @@
             return;
         }
         int eKey = args.GetKeyCode();
-        if (eKey == game.GetKey(GlKeys.R))
+        if (eKey == game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R))
         {
             Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
             if (item != null && item.ItemClass == Packet_ItemClassEnum.Block

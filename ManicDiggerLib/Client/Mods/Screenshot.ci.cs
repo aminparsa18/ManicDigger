@@ -42,7 +42,7 @@
     
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
-        if (args.GetKeyCode() == game.GetKey(GlKeys.F12))
+        if (args.GetKeyCode() == game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.F12))
         {
             takeScreenshot = true;
             args.SetHandled(true);

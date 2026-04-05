@@ -1,4 +1,7 @@
-﻿public class ModGuiEscapeMenu : ClientMod
+﻿using OpenTK.Windowing.Common;
+using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class ModGuiEscapeMenu : ClientMod
 {
     public ModGuiEscapeMenu()
     {
@@ -612,39 +615,39 @@
         }
         Language language = game.language;
         int count = 0;
-        helps[count++] = KeyHelpCreate(language.KeyMoveFoward(), GlKeys.W);
-        helps[count++] = KeyHelpCreate(language.KeyMoveBack(), GlKeys.S);
-        helps[count++] = KeyHelpCreate(language.KeyMoveLeft(), GlKeys.A);
-        helps[count++] = KeyHelpCreate(language.KeyMoveRight(), GlKeys.D);
-        helps[count++] = KeyHelpCreate(language.KeyJump(), GlKeys.Space);
-        helps[count++] = KeyHelpCreate(language.KeyShowMaterialSelector(), GlKeys.B);
-        helps[count++] = KeyHelpCreate(language.KeySetSpawnPosition(), GlKeys.P);
-        helps[count++] = KeyHelpCreate(language.KeyRespawn(), GlKeys.O);
-        helps[count++] = KeyHelpCreate(language.KeyReloadWeapon(), GlKeys.R);
-        helps[count++] = KeyHelpCreate(language.KeyToggleFogDistance(), GlKeys.F);
-        helps[count++] = KeyHelpCreate(game.platform.StringFormat(language.KeyMoveSpeed(), "1"), GlKeys.F1);
-        helps[count++] = KeyHelpCreate(game.platform.StringFormat(language.KeyMoveSpeed(), "10"), GlKeys.F2);
-        helps[count++] = KeyHelpCreate(language.KeyFreeMove(), GlKeys.F3);
-        helps[count++] = KeyHelpCreate(language.KeyThirdPersonCamera(), GlKeys.F5);
-        helps[count++] = KeyHelpCreate(language.KeyTextEditor(), GlKeys.F9);
-        helps[count++] = KeyHelpCreate(language.KeyFullscreen(), GlKeys.F11);
-        helps[count++] = KeyHelpCreate(language.KeyScreenshot(), GlKeys.F12);
-        helps[count++] = KeyHelpCreate(language.KeyPlayersList(), GlKeys.Tab);
-        helps[count++] = KeyHelpCreate(language.KeyChat(), GlKeys.T);
-        helps[count++] = KeyHelpCreate(language.KeyTeamChat(), GlKeys.Y);
-        helps[count++] = KeyHelpCreate(language.KeyCraft(), GlKeys.C);
-        helps[count++] = KeyHelpCreate(language.KeyBlockInfo(), GlKeys.I);
-        helps[count++] = KeyHelpCreate(language.KeyUse(), GlKeys.E);
-        helps[count++] = KeyHelpCreate(language.KeyReverseMinecart(), GlKeys.Q);
+        helps[count++] = KeyHelpCreate(language.KeyMoveFoward(), Keys.W);
+        helps[count++] = KeyHelpCreate(language.KeyMoveBack(), Keys.S);
+        helps[count++] = KeyHelpCreate(language.KeyMoveLeft(), Keys.A);
+        helps[count++] = KeyHelpCreate(language.KeyMoveRight(), Keys.D);
+        helps[count++] = KeyHelpCreate(language.KeyJump(), Keys.Space);
+        helps[count++] = KeyHelpCreate(language.KeyShowMaterialSelector(), Keys.B);
+        helps[count++] = KeyHelpCreate(language.KeySetSpawnPosition(), Keys.P);
+        helps[count++] = KeyHelpCreate(language.KeyRespawn(), Keys.O);
+        helps[count++] = KeyHelpCreate(language.KeyReloadWeapon(), Keys.R);
+        helps[count++] = KeyHelpCreate(language.KeyToggleFogDistance(), Keys.F);
+        helps[count++] = KeyHelpCreate(game.platform.StringFormat(language.KeyMoveSpeed(), "1"), Keys.F1);
+        helps[count++] = KeyHelpCreate(game.platform.StringFormat(language.KeyMoveSpeed(), "10"), Keys.F2);
+        helps[count++] = KeyHelpCreate(language.KeyFreeMove(), Keys.F3);
+        helps[count++] = KeyHelpCreate(language.KeyThirdPersonCamera(), Keys.F5);
+        helps[count++] = KeyHelpCreate(language.KeyTextEditor(), Keys.F9);
+        helps[count++] = KeyHelpCreate(language.KeyFullscreen(), Keys.F11);
+        helps[count++] = KeyHelpCreate(language.KeyScreenshot(), Keys.F12);
+        helps[count++] = KeyHelpCreate(language.KeyPlayersList(), Keys.Tab);
+        helps[count++] = KeyHelpCreate(language.KeyChat(), Keys.T);
+        helps[count++] = KeyHelpCreate(language.KeyTeamChat(), Keys.Y);
+        helps[count++] = KeyHelpCreate(language.KeyCraft(), Keys.C);
+        helps[count++] = KeyHelpCreate(language.KeyBlockInfo(), Keys.I);
+        helps[count++] = KeyHelpCreate(language.KeyUse(), Keys.E);
+        helps[count++] = KeyHelpCreate(language.KeyReverseMinecart(), Keys.Q);
         return helps;
     }
 
-    private static KeyHelp KeyHelpCreate(string text, int defaultKey)
+    private static KeyHelp KeyHelpCreate(string text, Keys defaultKey)
     {
         KeyHelp h = new()
         {
             Text = text,
-            DefaultKey = defaultKey
+            DefaultKey = (int)defaultKey
         };
         return h;
     }
@@ -654,7 +657,7 @@
     public override void OnKeyDown(Game game_, KeyEventArgs args)
     {
         int eKey = args.GetKeyCode();
-        if (eKey == game.GetKey(GlKeys.Escape))
+        if (eKey == game.GetKey(Keys.Escape))
         {
             if (escapemenustate == EscapeMenuState.Graphics
                 || escapemenustate == EscapeMenuState.Keys
@@ -683,7 +686,7 @@
                 args.SetHandled(true);
             }
         }
-        if (eKey == game.GetKey(GlKeys.F11))
+        if (eKey == game.GetKey(Keys.F11))
         {
             if (game.platform.GetWindowState() == WindowState.Fullscreen)
             {

@@ -1,4 +1,6 @@
-﻿public class ModGuiInventory : ClientMod
+﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class ModGuiInventory : ClientMod
 {
     public ModGuiInventory()
     {
@@ -573,7 +575,7 @@
     {
         float delta = args.GetDeltaPrecise();
         if ((game_.guistate == GuiState.Normal || (game_.guistate == GuiState.Inventory && !IsMouseOverCells()))
-            && (!game_.keyboardState[game_.GetKey(GlKeys.LShift)]))
+            && (!game_.keyboardState[game_.GetKey(Keys.LeftShift)]))
         {
             game_.ActiveMaterial -= game_.platform.FloatToInt(delta);
             game_.ActiveMaterial = game_.ActiveMaterial % 10;

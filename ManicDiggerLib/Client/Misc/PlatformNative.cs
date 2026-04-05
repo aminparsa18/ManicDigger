@@ -1,9 +1,13 @@
 ﻿using ENet;
 using ManicDigger;
 using ManicDigger.ClientNative;
-using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Input;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Common.Input;
+using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Globalization;
@@ -12,6 +16,8 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+using Monitor = System.Threading.Monitor;
 
 public class GamePlatformNative : GamePlatform
 {
@@ -83,7 +89,6 @@ public class GamePlatformNative : GamePlatform
     {
         return value.ToString(CultureInfo.InvariantCulture);
     }
-
 
     public override string StringToLower(string p)
     {
@@ -973,9 +978,9 @@ public class GamePlatformNative : GamePlatform
     private void StartAudio()
     {
         audio ??= new AudioOpenAl
-            {
-                d_GameExit = gameexit
-            };
+        {
+            d_GameExit = gameexit
+        };
     }
 
     public override AudioData AudioDataCreate(byte[] data, int dataLength)
@@ -1331,32 +1336,32 @@ public class GamePlatformNative : GamePlatform
 
     public override int GetCanvasWidth()
     {
-        return window.Width;
+        return window.ClientSize.X;
     }
 
     public override int GetCanvasHeight()
     {
-        return window.Height;
+        return window.ClientSize.Y;
     }
 
     public void Start()
     {
-        window.KeyDown += new EventHandler<KeyboardKeyEventArgs>(GameKeyDown);
-        window.KeyUp += new EventHandler<KeyboardKeyEventArgs>(GameKeyUp);
-        window.KeyPress += new EventHandler<OpenTK.KeyPressEventArgs>(GameKeyPress);
-        window.MouseDown += new EventHandler<MouseButtonEventArgs>(Mouse_ButtonDown);
-        window.MouseUp += new EventHandler<MouseButtonEventArgs>(Mouse_ButtonUp);
-        window.MouseMove += new EventHandler<MouseMoveEventArgs>(Mouse_Move);
-        window.MouseWheel += new EventHandler<OpenTK.Input.MouseWheelEventArgs>(Mouse_WheelChanged);
-        window.RenderFrame += new EventHandler<FrameEventArgs>(WindowRenderFrame);
-        window.Closed += new EventHandler<EventArgs>(WindowClosed);
-        window.TargetRenderFrequency = 0;
+        window.KeyDown += GameKeyDown;
+        window.KeyUp += GameKeyUp;
+        window.TextInput += GameTextInput;
+        window.MouseDown += Mouse_ButtonDown;
+        window.MouseUp += Mouse_ButtonUp;
+        window.MouseMove += Mouse_Move;
+        window.MouseWheel += Mouse_WheelChanged;
+        window.RenderFrame += WindowRenderFrame;
+        window.Closing += WindowClosed;
         window.Title = "Manic Digger";
+
     }
 
-    private void WindowClosed(object? sender, EventArgs e)
+    private void WindowClosed(CancelEventArgs e)
     {
-        gameexit.exit = true;
+        gameexit.exit = e.Cancel;
     }
 
     public override void SetVSync(bool enabled)
@@ -1385,10 +1390,7 @@ public class GamePlatformNative : GamePlatform
 
     public override void WindowExit()
     {
-        if (gameexit != null)
-        {
-            gameexit.exit = true;
-        }
+        gameexit?.exit = true;
         window.Close();
     }
 
@@ -1399,10 +1401,9 @@ public class GamePlatformNative : GamePlatform
 
     public override string KeyName(int key)
     {
-        if (Enum.IsDefined(typeof(OpenTK.Input.Key), key))
+        if (Enum.IsDefined(typeof(Keys), key))
         {
-            string s = Enum.GetName(typeof(OpenTK.Input.Key), key);
-            return s;
+            return Enum.GetName(typeof(Keys), key)!;
         }
         return key.ToString();
     }
@@ -1434,17 +1435,17 @@ public class GamePlatformNative : GamePlatform
 
     public override WindowState GetWindowState()
     {
-        return (WindowState)window.WindowState;
+        return window.WindowState;
     }
 
     public override void SetWindowState(WindowState value)
     {
-        window.WindowState = (OpenTK.WindowState)value;
+        window.WindowState = value;
     }
 
     public override void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate)
     {
-        DisplayDevice.Default.ChangeResolution(width, height, bitsPerPixel, refreshRate);
+        window.Size = new Vector2i(width, height);
     }
 
     public override DisplayResolutionCi GetDisplayResolutionDefault()
@@ -1916,8 +1917,8 @@ public class GamePlatformNative : GamePlatform
 
     private bool mousePointerLocked;
     private bool mouseCursorVisible = true;
-    private MouseState current, previous;
-    private int lastX, lastY;
+    //private MouseState current, previous;
+    private float lastX, lastY;
 
     public override bool IsMousePointerLocked()
     {
@@ -1968,7 +1969,7 @@ public class GamePlatformNative : GamePlatform
         window.Cursor = MouseCursor.Default;
     }
 
-    public static int ToGlKey(OpenTK.Input.Key key)
+    public static int ToGlKey(Keys key)
     {
         return (int)key;
     }
@@ -1986,7 +1987,7 @@ public class GamePlatformNative : GamePlatform
                 //Cursor already hidden. Do nothing.
                 return;
             }
-            window.CursorVisible = false;
+            window.CursorState = CursorState.Grabbed;
             mouseCursorVisible = false;
         }
         else
@@ -1996,7 +1997,7 @@ public class GamePlatformNative : GamePlatform
                 //Cursor already visible. Do nothing.
                 return;
             }
-            window.CursorVisible = true;
+            window.CursorState = CursorState.Normal;
             mouseCursorVisible = true;
         }
     }
@@ -2015,7 +2016,7 @@ public class GamePlatformNative : GamePlatform
 
     public override bool Focused()
     {
-        return window.Focused;
+        return window.IsFocused;
     }
 
     private static void Log(string msg)
@@ -2023,7 +2024,7 @@ public class GamePlatformNative : GamePlatform
         File.AppendAllText("debug.log", $"{DateTime.Now}: {msg}\n");
     }
 
-    private void WindowRenderFrame(object? sender, FrameEventArgs e)
+    private void WindowRenderFrame(FrameEventArgs e)
     {
         UpdateMousePosition();
         foreach (NewFrameHandler h in newFrameHandlers)
@@ -2037,75 +2038,52 @@ public class GamePlatformNative : GamePlatform
 
     private void UpdateMousePosition()
     {
-        current = Mouse.GetState();
-        if (!window.Focused)
+        if (!window.IsFocused)
         {
             return;
         }
-        if (current != previous)
+
+        // Mouse state has changed
+        var mouse = window.MouseState;
+        float xdelta = mouse.Delta.X;
+        float ydelta = mouse.Delta.Y;
+
+        if (xdelta != 0 || ydelta != 0)
         {
-            // Mouse state has changed
-            int xdelta = current.X - previous.X;
-            int ydelta = current.Y - previous.Y;
             foreach (MouseEventHandler h in mouseEventHandlers)
             {
                 MouseEventArgs args = new();
-                args.SetX(lastX);
-                args.SetY(lastY);
-                args.SetMovementX(xdelta);
-                args.SetMovementY(ydelta);
+                args.SetX((int)mouse.Position.X);
+                args.SetY((int)mouse.Position.Y);
+                args.SetMovementX((int)xdelta);
+                args.SetMovementY((int)ydelta);
                 args.SetEmulated(true);
                 h.OnMouseMove(args);
             }
         }
-        previous = current;
-        if (mousePointerLocked)
-        {
-            /*
-             * Windows: OK
-             * Cursor hides properly
-             * Cursor is trapped inside window
-             * Centering works
-             *
-             * Linux: Needs workaround
-             * Cursor hides properly
-             * Cursor is trapped inside window
-             * Centering broken
-             *
-             * Mac OS X: OK
-             * Cursor hides properly (although visible when doing Skype screencast)
-             * Centering works
-             * Opening "mission control" by gesture does not free cursor
-             */
-
-            int centerx = window.Bounds.Left + (window.Bounds.Width / 2);
-            int centery = window.Bounds.Top + (window.Bounds.Height / 2);
-
-            // Setting cursor position this way works on Windows and Mac
-            Mouse.SetPosition(centerx, centery);
-        }
     }
 
-    private void Mouse_WheelChanged(object? sender, OpenTK.Input.MouseWheelEventArgs e)
+    private void Mouse_WheelChanged(OpenTK.Windowing.Common.MouseWheelEventArgs e)
     {
         foreach (MouseEventHandler h in mouseEventHandlers)
         {
             MouseWheelEventArgs args = new();
-            args.SetDelta(e.Delta);
-            args.SetDeltaPrecise(e.DeltaPrecise);
+            args.SetDelta((int)e.OffsetX);
+            args.SetDeltaPrecise(e.OffsetY);
             h.OnMouseWheel(args);
         }
     }
 
-    private void Mouse_ButtonDown(object? sender, MouseButtonEventArgs e)
+    private void Mouse_ButtonDown(MouseButtonEventArgs e)
     {
+        var pos = window.MousePosition;
         if (TouchTest)
         {
             foreach (TouchEventHandler h in touchEventHandlers)
             {
                 TouchEventArgs args = new();
-                args.SetX(e.X);
-                args.SetY(e.Y);
+                args.SetX((int)pos.X);
+                args.SetY((int)pos.Y);
                 args.SetId(0);
                 h.OnTouchStart(args);
             }
@@ -2115,23 +2093,24 @@ public class GamePlatformNative : GamePlatform
             foreach (MouseEventHandler h in mouseEventHandlers)
             {
                 MouseEventArgs args = new();
-                args.SetX(e.X);
-                args.SetY(e.Y);
+                args.SetX((int)pos.X);
+                args.SetY((int)pos.Y);
                 args.SetButton((int)e.Button);
                 h.OnMouseDown(args);
             }
         }
     }
 
-    private void Mouse_ButtonUp(object? sender, MouseButtonEventArgs e)
+    private void Mouse_ButtonUp(MouseButtonEventArgs e)
     {
+        var pos = window.MousePosition;
         if (TouchTest)
         {
             foreach (TouchEventHandler h in touchEventHandlers)
             {
                 TouchEventArgs args = new();
-                args.SetX(e.X);
-                args.SetY(e.Y);
+                args.SetX((int)pos.X);
+                args.SetY((int)pos.Y);
                 args.SetId(0);
                 h.OnTouchEnd(args);
             }
@@ -2141,56 +2120,68 @@ public class GamePlatformNative : GamePlatform
             foreach (MouseEventHandler h in mouseEventHandlers)
             {
                 MouseEventArgs args = new();
-                args.SetX(e.X);
-                args.SetY(e.Y);
+                args.SetX((int)pos.X);
+                args.SetY((int)pos.Y);
                 args.SetButton((int)e.Button);
                 h.OnMouseUp(args);
             }
         }
     }
 
-    private void Mouse_Move(object? sender, MouseMoveEventArgs e)
+    private void Mouse_Move(MouseMoveEventArgs e)
     {
-        Console.WriteLine($"[Mouse] X:{e.X} Y:{e.Y} DeltaX:{e.XDelta} DeltaY:{e.YDelta}");
-        lastX = e.X;
-        lastY = e.Y;
-        if (TouchTest)
+        try
         {
-            foreach (TouchEventHandler h in touchEventHandlers)
+            lastX = e.X;
+            lastY = e.Y;
+            Console.WriteLine($"Mouse_Move: {e.X}, {e.Y}, delta: {e.DeltaX}, {e.DeltaY}");
+
+            if (TouchTest)
             {
-                TouchEventArgs args = new();
-                args.SetX(e.X);
-                args.SetY(e.Y);
-                args.SetId(0);
-                h.OnTouchMove(args);
+                Console.WriteLine("TouchTest path");
+                foreach (TouchEventHandler h in touchEventHandlers)
+                {
+                    Console.WriteLine($"Touch handler: {h}");
+                    TouchEventArgs args = new();
+                    args.SetX((int)e.X);
+                    args.SetY((int)e.Y);
+                    args.SetId(0);
+                    h.OnTouchMove(args);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Mouse path");
+                foreach (MouseEventHandler h in mouseEventHandlers)
+                {
+                    Console.WriteLine($"Mouse handler: {h}");
+                    MouseEventArgs args = new();
+                    args.SetX((int)e.X);
+                    args.SetY((int)e.Y);
+                    args.SetMovementX((int)e.DeltaX);
+                    args.SetMovementY((int)e.DeltaY);
+                    args.SetEmulated(false);
+                    h.OnMouseMove(args);
+                }
             }
         }
-        else
+        catch (Exception ex)
         {
-            foreach (MouseEventHandler h in mouseEventHandlers)
-            {
-                MouseEventArgs args = new();
-                args.SetX(e.X);
-                args.SetY(e.Y);
-                args.SetMovementX(e.XDelta);
-                args.SetMovementY(e.YDelta);
-                args.SetEmulated(false);
-                h.OnMouseMove(args);
-            }
+            Console.WriteLine($"CRASH in Mouse_Move: {ex}");
         }
     }
 
-    private void GameKeyPress(object? sender, OpenTK.KeyPressEventArgs e)
+    private void GameTextInput(TextInputEventArgs e)
     {
         foreach (KeyEventHandler h in keyEventHandlers)
         {
             KeyPressEventArgs args = new();
-            args.SetKeyChar(e.KeyChar);
+            args.SetKeyChar((char)e.Unicode);  // e.Unicode is an int in v4
             h.OnKeyPress(args);
         }
     }
 
-    private void GameKeyDown(object? sender, KeyboardKeyEventArgs e)
+    private void GameKeyDown(KeyboardKeyEventArgs e)
     {
         foreach (KeyEventHandler h in keyEventHandlers)
         {
@@ -2203,7 +2194,7 @@ public class GamePlatformNative : GamePlatform
         }
     }
 
-    private void GameKeyUp(object? sender, KeyboardKeyEventArgs e)
+    private void GameKeyUp(KeyboardKeyEventArgs e)
     {
         foreach (KeyEventHandler h in keyEventHandlers)
         {
@@ -2470,10 +2461,21 @@ public class TextureNative : Texture
 public class GameWindowNative : GameWindow
 {
     public GamePlatformNative platform;
-    public GameWindowNative(OpenTK.Graphics.GraphicsMode mode)
-        : base(1280, 720, mode)
+    public GameWindowNative()
+        : base(
+            new GameWindowSettings
+            {
+
+                UpdateFrequency = 0 // unlimited,
+            },
+            new NativeWindowSettings
+            {
+                Size = new Vector2i(1280, 720),
+                Title = "",
+                WindowState = WindowState.Normal,
+                Profile = ContextProfile.Compatability,
+                APIVersion = new Version(3, 3),
+            })
     {
-        VSync = VSyncMode.Off;
-        WindowState = OpenTK.WindowState.Normal;
     }
 }

@@ -27,19 +27,13 @@
 		<PackageReference Include="ENet-CSharp" Version="2.4.8" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" />
 		<PackageReference Include="NVorbis" Version="0.10.5" />
-		<PackageReference Include="OpenTK" Version="3.3.3" />
+		<PackageReference Include="OpenTK" Version="4.9.4" />
+		<PackageReference Include="OpenTK.Audio.OpenAL" Version="4.9.4" />
 		<PackageReference Include="protobuf-net" Version="3.2.56" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
 		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
 		<PackageReference Include="Jint" Version="4.7.1" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<!-- Native DLLs still needed at runtime -->
-		<Content Include="..\Lib\OpenAL32.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -59,4 +53,7 @@
 		</Compile>
 	</ItemGroup>
 
+	<ItemGroup>
+		<RuntimeHostConfigurationOption Include="System.Runtime.InteropServices.NativeLibrary.AlwaysGenerateEvents" Value="true" />
+	</ItemGroup>
 </Project>

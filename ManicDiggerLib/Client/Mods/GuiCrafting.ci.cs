@@ -1,4 +1,6 @@
-﻿public class ModGuiCrafting : ClientMod
+﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class ModGuiCrafting : ClientMod
 {
     public ModGuiCrafting()
     {
@@ -152,7 +154,7 @@
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
         int eKey = args.GetKeyCode();
-        if (eKey == (game.GetKey(GlKeys.E)) && game.GuiTyping == TypingState.None)
+        if (eKey == (game.GetKey(Keys.E)) && game.GuiTyping == TypingState.None)
         {
             if (!(game.SelectedBlockPositionX == -1 && game.SelectedBlockPositionY == -1 && game.SelectedBlockPositionZ == -1))
             {

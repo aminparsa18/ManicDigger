@@ -1,4 +1,6 @@
-﻿public class MainMenu
+﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class MainMenu
 {
     public MainMenu()
     {
@@ -61,7 +63,7 @@
         mvMatrix = Mat4.Create();
         pMatrix = Mat4.Create();
 
-        currentlyPressedKeys = new bool[256];
+        currentlyPressedKeys = new bool[360];
         p.AddOnNewFrame(MainMenuNewFrameHandler.Create(this));
         p.AddOnKeyEvent(MainMenuKeyEventHandler.Create(this));
         p.AddOnMouseEvent(MainMenuMouseEventHandler.Create(this));
@@ -78,6 +80,7 @@
 
     public void HandleKeyDown(KeyEventArgs e)
     {
+        var test = e.GetKeyCode();
         currentlyPressedKeys[e.GetKeyCode()] = true;
         screen.OnKeyDown(e);
     }
@@ -680,9 +683,9 @@ public class Screen
 			}
             if (w.hasKeyboardFocus)
             {
-                if (e.GetKeyCode() == GlKeys.Tab || e.GetKeyCode() == GlKeys.Enter)
+                if (e.GetKeyCode() == (int)Keys.Tab || e.GetKeyCode() == (int)Keys.Enter)
                 {
-                    if (w.type == WidgetType.Button && e.GetKeyCode() == GlKeys.Enter)
+                    if (w.type == WidgetType.Button && e.GetKeyCode() == (int)Keys.Enter)
                     {
                         //Call OnButton when enter is pressed and widget is a button
                         OnButton(w);
@@ -703,7 +706,7 @@ public class Screen
                 {
                     int key = e.GetKeyCode();
                     // pasting text from clipboard
-                    if (e.GetCtrlPressed() && key == GlKeys.V)
+                    if (e.GetCtrlPressed() && key == (int)Keys.V)
                     {
                         if (menu.p.ClipboardContainsText())
                         {
@@ -712,7 +715,7 @@ public class Screen
                         return;
                     }
                     // deleting characters using backspace
-                    if (key == GlKeys.BackSpace)
+                    if (key == (int)Keys.Backspace)
                     {
                         if (menu.StringLength(w.text) > 0)
                         {
@@ -832,10 +835,7 @@ public class Screen
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w != null)
-            {
-                w.hover = pointInRect(e.GetX(), e.GetY(), w.x, w.y, w.sizex, w.sizey);
-            }
+            w?.hover = pointInRect(e.GetX(), e.GetY(), w.x, w.y, w.sizex, w.sizey);
         }
     }
 

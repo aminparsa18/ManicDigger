@@ -1,32 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <RootNamespace>ManicDigger</RootNamespace>
-    <AssemblyName>ManicDigger</AssemblyName>
-    <ApplicationIcon>md.ico</ApplicationIcon>
-    <PlatformTarget>x86</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <UseWindowsForms>true</UseWindowsForms>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<RootNamespace>ManicDigger</RootNamespace>
+		<AssemblyName>ManicDigger</AssemblyName>
+		<ApplicationIcon>md.ico</ApplicationIcon>
+		<PlatformTarget>x86</PlatformTarget>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <!-- SQLite -->
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
-    <!-- Jint JavaScript engine -->
-	<PackageReference Include="Jint" Version="4.7.1" />
-  </ItemGroup>
+	<ItemGroup>
+		<!-- SQLite -->
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
+		<!-- Jint JavaScript engine -->
+		<PackageReference Include="Jint" Version="4.7.1" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="md.ico" />
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="md.ico" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ManicDiggerLib\ManicDiggerLib.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\ManicDiggerLib\ManicDiggerLib.csproj" />
+	</ItemGroup>
 
 </Project>

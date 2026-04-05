@@ -1,4 +1,6 @@
-﻿public class ModCameraKeys : ClientMod
+﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class ModCameraKeys : ClientMod
 {
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {
@@ -11,9 +13,9 @@
         bool angledown = false;
         float overheadcameraanglemovearea = one * 5 / 100;
         float overheadcameraspeed = 3;
-        game.controls.wantsjump = game.guistate == GuiState.Normal && game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(GlKeys.Space)];
+        game.controls.wantsjump = game.guistate == GuiState.Normal && game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(Keys.Space)];
         game.controls.wantsjumphalf = false;
-        game.controls.shiftkeydown = game.guistate == GuiState.Normal && game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(GlKeys.ShiftLeft)];
+        game.controls.shiftkeydown = game.guistate == GuiState.Normal && game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(Keys.LeftShift)];
         game.controls.movedx = 0;
         game.controls.movedy = 0;
         game.controls.moveup = false;
@@ -33,10 +35,10 @@
                 if (game.overheadcamera)
                 {
                     CameraMove m = new();
-                    if (game.keyboardState[game.GetKey(GlKeys.A)]) { game.overheadcameraK.TurnRight(dt * overheadcameraspeed); }
-                    if (game.keyboardState[game.GetKey(GlKeys.D)]) { game.overheadcameraK.TurnLeft(dt * overheadcameraspeed); }
-                    if (game.keyboardState[game.GetKey(GlKeys.W)]) { angleup = true; }
-                    if (game.keyboardState[game.GetKey(GlKeys.S)]) { angledown = true; }
+                    if (game.keyboardState[game.GetKey(Keys.A)]) { game.overheadcameraK.TurnRight(dt * overheadcameraspeed); }
+                    if (game.keyboardState[game.GetKey(Keys.D)]) { game.overheadcameraK.TurnLeft(dt * overheadcameraspeed); }
+                    if (game.keyboardState[game.GetKey(Keys.W)]) { angleup = true; }
+                    if (game.keyboardState[game.GetKey(Keys.S)]) { angledown = true; }
                     game.overheadcameraK.Center.X = game.player.position.x;
                     game.overheadcameraK.Center.Y = game.player.position.y;
                     game.overheadcameraK.Center.Z = game.player.position.z;
@@ -64,11 +66,11 @@
                 }
                 else if (game.enable_move)
                 {
-                    if (game.keyboardState[game.GetKey(GlKeys.W)]) { game.controls.movedy += 1; }
-                    if (game.keyboardState[game.GetKey(GlKeys.S)]) { game.controls.movedy += -1; }
-                    if (game.keyboardState[game.GetKey(GlKeys.A)]) { game.controls.movedx += -1; game.localplayeranimationhint.leanleft = true; game.localstance = 1; }
+                    if (game.keyboardState[game.GetKey(Keys.W)]) { game.controls.movedy += 1; }
+                    if (game.keyboardState[game.GetKey(Keys.S)]) { game.controls.movedy += -1; }
+                    if (game.keyboardState[game.GetKey(Keys.A)]) { game.controls.movedx += -1; game.localplayeranimationhint.leanleft = true; game.localstance = 1; }
                     else { game.localplayeranimationhint.leanleft = false; }
-                    if (game.keyboardState[game.GetKey(GlKeys.D)]) { game.controls.movedx += 1; game.localplayeranimationhint.leanright = true; game.localstance = 2; }
+                    if (game.keyboardState[game.GetKey(Keys.D)]) { game.controls.movedx += 1; game.localplayeranimationhint.leanright = true; game.localstance = 2; }
                     else { game.localplayeranimationhint.leanright = false; }
                     if (!game.localplayeranimationhint.leanleft && !game.localplayeranimationhint.leanright) { game.localstance = 0; }
 
@@ -78,11 +80,11 @@
             }
             if (game.controls.freemove || game.SwimmingEyes())
             {
-                if (game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(GlKeys.Space)])
+                if (game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(Keys.Space)])
                 {
                     game.controls.moveup = true;
                 }
-                if (game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(GlKeys.ControlLeft)])
+                if (game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(Keys.LeftControl)])
                 {
                     game.controls.movedown = true;
                 }

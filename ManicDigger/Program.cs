@@ -1,5 +1,7 @@
 ﻿#region Using Statements
 using OpenTK.Graphics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using Serilog;
 using System.Diagnostics;
 #endregion
@@ -55,9 +57,7 @@ public class Program
         };
 
         Log.Debug("Creating GameWindowNative");
-        GraphicsMode mode = new(OpenTK.DisplayDevice.Default.BitsPerPixel, 24);
-        using GameWindowNative game = new(mode);
-        game.VSync = OpenTK.VSyncMode.Adaptive;
+        using GameWindowNative game = new();
         platform.window = game;
         game.platform = platform;
 
@@ -67,7 +67,6 @@ public class Program
 
         platform.Start();
         game.Run();
-
     }
 
     private static void ReadArgs(MainMenu mainmenu, string[] args)

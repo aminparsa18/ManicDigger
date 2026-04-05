@@ -1,4 +1,6 @@
-﻿public class ModRail : ClientMod
+﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class ModRail : ClientMod
 {
     public ModRail()
     {
@@ -51,8 +53,8 @@
         game.localplayeranimationhint.DrawFixY = railriding ? (-one * 7 / 10) : 0;
         game.localplayeranimationhint.DrawFixZ = 0;
 
-        bool turnright = game.keyboardState[game.GetKey(GlKeys.D)];
-        bool turnleft = game.keyboardState[game.GetKey(GlKeys.A)];
+        bool turnright = game.keyboardState[game.GetKey(Keys.D)];
+        bool turnleft = game.keyboardState[game.GetKey(Keys.A)];
         RailSound(game);
         if (railriding)
         {
@@ -103,11 +105,11 @@
                 }
             }
         }
-        if (game.keyboardState[game.GetKey(GlKeys.W)] && game.GuiTyping != TypingState.Typing)
+        if (game.keyboardState[game.GetKey(Keys.W)] && game.GuiTyping != TypingState.Typing)
         {
             currentvehiclespeed += 1 * dt;
         }
-        if (game.keyboardState[game.GetKey(GlKeys.S)] && game.GuiTyping != TypingState.Typing)
+        if (game.keyboardState[game.GetKey(Keys.S)] && game.GuiTyping != TypingState.Typing)
         {
             currentvehiclespeed -= 5 * dt;
         }
@@ -117,11 +119,11 @@
         }
         //todo fix
         //if (viewport.keypressed != null && viewport.keypressed.Key == GlKeys.Q)            
-        if (!wasqpressed && game.keyboardState[game.GetKey(GlKeys.Q)] && game.GuiTyping != TypingState.Typing)
+        if (!wasqpressed && game.keyboardState[game.GetKey(Keys.Q)] && game.GuiTyping != TypingState.Typing)
         {
             Reverse();
         }
-        if (!wasepressed && game.keyboardState[game.GetKey(GlKeys.E)] && !railriding && !game.controls.freemove && game.GuiTyping != TypingState.Typing)
+        if (!wasepressed && game.keyboardState[game.GetKey(Keys.E)] && !railriding && !game.controls.freemove && game.GuiTyping != TypingState.Typing)
         {
             currentrailblockX = game.platform.FloatToInt(game.player.position.x);
             currentrailblockY = game.platform.FloatToInt(game.player.position.z);
@@ -168,13 +170,13 @@
                 lastdirection = currentdirection;
             }
         }
-        else if (!wasepressed && game.keyboardState[game.GetKey(GlKeys.E)] && railriding && game.GuiTyping != TypingState.Typing)
+        else if (!wasepressed && game.keyboardState[game.GetKey(Keys.E)] && railriding && game.GuiTyping != TypingState.Typing)
         {
             ExitVehicle(game);
             game.player.position.y += one * 7 / 10;
         }
-        wasqpressed = game.keyboardState[game.GetKey(GlKeys.Q)] && game.GuiTyping != TypingState.Typing;
-        wasepressed = game.keyboardState[game.GetKey(GlKeys.E)] && game.GuiTyping != TypingState.Typing;
+        wasqpressed = game.keyboardState[game.GetKey(Keys.Q)] && game.GuiTyping != TypingState.Typing;
+        wasepressed = game.keyboardState[game.GetKey(Keys.E)] && game.GuiTyping != TypingState.Typing;
     }
 
     internal static VehicleDirection12 BestNewDirection(int dirVehicleDirection12Flags, bool turnleft, bool turnright, BoolRef retFound)

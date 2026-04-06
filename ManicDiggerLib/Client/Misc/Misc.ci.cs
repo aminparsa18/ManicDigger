@@ -670,51 +670,7 @@ public class MathCi
     }
 }
 
-public class Vector3Ref
-{
-    internal float X;
-    internal float Y;
-    internal float Z;
 
-    internal float Length()
-    {
-        return (float)MathHelper.Sqrt(X * X + Y * Y + Z * Z);
-    }
-
-    internal void Normalize()
-    {
-        float length = Length();
-        X = X / length;
-        Y = Y / length;
-        Z = Z / length;
-    }
-
-    internal static Vector3Ref Create(float x, float y, float z)
-    {
-        Vector3Ref v = new()
-        {
-            X = x,
-            Y = y,
-            Z = z
-        };
-        return v;
-    }
-
-    public float GetX()
-    {
-        return X;
-    }
-
-    public float GetY()
-    {
-        return Y;
-    }
-
-    public float GetZ()
-    {
-        return Z;
-    }
-}
 
 public class Vector3IntRef
 {

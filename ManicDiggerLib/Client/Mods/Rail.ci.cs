@@ -1,4 +1,5 @@
-﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+﻿using OpenTK.Mathematics;
+using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 public class ModRail : ClientMod
 {
@@ -60,7 +61,7 @@ public class ModRail : ClientMod
         {
             game.controls.freemove = true;
             game.enable_move = false;
-            Vector3Ref railPos = CurrentRailPos(game);
+            Vector3 railPos = CurrentRailPos(game);
             game.player.position.x = railPos.X;
             game.player.position.y = railPos.Y;
             game.player.position.z = railPos.Z;
@@ -250,7 +251,7 @@ public class ModRail : ClientMod
         return VehicleDirection12.DownLeftDown; // return null
     }
 
-    internal Vector3Ref CurrentRailPos(Game game)
+    internal Vector3 CurrentRailPos(Game game)
     {
         RailSlope slope = d_RailMapUtil.GetRailSlope(currentrailblockX,
             currentrailblockY, currentrailblockZ);
@@ -329,7 +330,7 @@ public class ModRail : ClientMod
                 break;
         }
         //+1 because player can't be inside rail block (picking wouldn't work)
-        return Vector3Ref.Create(aX + x_correction, aZ + railheight + 1 + z_correction, aY + y_correction);
+        return new Vector3(aX + x_correction, aZ + railheight + 1 + z_correction, aY + y_correction);
     }
 
     internal void Reverse()

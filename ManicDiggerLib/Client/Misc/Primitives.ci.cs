@@ -337,46 +337,16 @@ public class WireframeCube
         m.rgba = new byte[4 * 4 * 6];
         m.indices = new int[8 * 6];
 
-        DrawLineLoop(m,
-                Vector3Ref.Create(-1, -1, -1),
-                Vector3Ref.Create(-1, 1, -1),
-                Vector3Ref.Create(1, 1, -1),
-                Vector3Ref.Create(1, -1, -1)
-            );
-        DrawLineLoop(m,
-                Vector3Ref.Create(-1, -1, -1),
-                Vector3Ref.Create(1, -1, -1),
-                Vector3Ref.Create(1, -1, 1),
-                Vector3Ref.Create(-1, -1, 1)
-            );
-        DrawLineLoop(m,
-                Vector3Ref.Create(-1, -1, -1),
-                Vector3Ref.Create(-1, -1, 1),
-                Vector3Ref.Create(-1, 1, 1),
-                Vector3Ref.Create(-1, 1, -1)
-            );
-        DrawLineLoop(m,
-                Vector3Ref.Create(-1, -1, 1),
-                Vector3Ref.Create(1, -1, 1),
-                Vector3Ref.Create(1, 1, 1),
-                Vector3Ref.Create(-1, 1, 1)
-            );
-        DrawLineLoop(m,
-                Vector3Ref.Create(-1, 1, -1),
-                Vector3Ref.Create(-1, 1, 1),
-                Vector3Ref.Create(1, 1, 1),
-                Vector3Ref.Create(1, 1, -1)
-            );
-        DrawLineLoop(m,
-                Vector3Ref.Create(1, -1, -1),
-                Vector3Ref.Create(1, 1, -1),
-                Vector3Ref.Create(1, 1, 1),
-                Vector3Ref.Create(1, -1, 1)
-            );
+        DrawLineLoop(m, new Vector3(-1, -1, -1), new Vector3(-1, 1, -1), new Vector3(1, 1, -1), new Vector3(1, -1, -1));
+        DrawLineLoop(m, new Vector3(-1, -1, -1), new Vector3(1, -1, -1), new Vector3(1, -1, 1), new Vector3(-1, -1, 1));
+        DrawLineLoop(m, new Vector3(-1, -1, -1), new Vector3(-1, -1, 1), new Vector3(-1, 1, 1), new Vector3(-1, 1, -1));
+        DrawLineLoop(m, new Vector3(-1, -1, 1), new Vector3(1, -1, 1), new Vector3(1, 1, 1), new Vector3(-1, 1, 1));
+        DrawLineLoop(m, new Vector3(-1, 1, -1), new Vector3(-1, 1, 1), new Vector3(1, 1, 1), new Vector3(1, 1, -1));
+        DrawLineLoop(m, new Vector3(1, -1, -1), new Vector3(1, 1, -1), new Vector3(1, 1, 1), new Vector3(1, -1, 1));
 
         return m;
     }
-    private static void DrawLineLoop(ModelData m, Vector3Ref p0, Vector3Ref p1, Vector3Ref p2, Vector3Ref p3)
+    private static void DrawLineLoop(ModelData m, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
     {
         int startVertex = m.GetVerticesCount();
         AddVertex(m, p0.X, p0.Y, p0.Z, 0, 0, Game.ColorFromArgb(255, 255, 255, 255));

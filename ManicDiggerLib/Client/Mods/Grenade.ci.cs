@@ -1,4 +1,6 @@
-﻿public class ModGrenade : ClientMod
+﻿using OpenTK.Mathematics;
+
+public class ModGrenade : ClientMod
 {
     public ModGrenade()
     {
@@ -38,8 +40,8 @@
         float newposZ = grenadeSprite.positionZ + grenade.velocityZ * dt;
         grenade.velocityY += -projectilegravity * dt;
 
-        Vector3Ref velocity = Vector3Ref.Create(grenade.velocityX, grenade.velocityY, grenade.velocityZ);
-        Vector3Ref bouncePosition = GrenadeBounce(game, Vector3Ref.Create(oldposX, oldposY, oldposZ), Vector3Ref.Create(newposX, newposY, newposZ), velocity, dt);
+        Vector3 velocity = new Vector3(grenade.velocityX, grenade.velocityY, grenade.velocityZ);
+        Vector3 bouncePosition = GrenadeBounce(game, new Vector3(oldposX, oldposY, oldposZ), new Vector3(newposX, newposY, newposZ), velocity, dt);
         grenade.velocityX = velocity.X;
         grenade.velocityY = velocity.Y;
         grenade.velocityZ = velocity.Z;
@@ -50,9 +52,9 @@
     private readonly float projectilegravity;
     private readonly float bouncespeedmultiply;
     private readonly float walldistance;
-    internal Vector3Ref GrenadeBounce(Game game, Vector3Ref oldposition, Vector3Ref newposition, Vector3Ref velocity, float dt)
+    internal Vector3 GrenadeBounce(Game game, Vector3 oldposition, Vector3 newposition, Vector3 velocity, float dt)
     {
-        bool ismoving = velocity.Length() > 100 * dt;
+        bool ismoving = velocity.Length > 100 * dt;
         float modelheight = walldistance;
         oldposition.Y += walldistance;
         newposition.Y += walldistance;
@@ -210,6 +212,6 @@
         }
         //ok:
         playerpositionY -= walldistance;
-        return Vector3Ref.Create(playerpositionX, playerpositionY, playerpositionZ);
+        return new Vector3(playerpositionX, playerpositionY, playerpositionZ);
     }
 }

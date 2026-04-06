@@ -5,7 +5,7 @@ public class ScriptCharacterPhysics : EntityScript
     public ScriptCharacterPhysics()
     {
         movedz = 0;
-        curspeed = new Vector3Ref();
+        curspeed = new Vector3();
         jumpacceleration = 0;
         isplayeronground = false;
         acceleration = new Acceleration();
@@ -25,7 +25,7 @@ public class ScriptCharacterPhysics : EntityScript
     internal Game game;
 
     internal float movedz;
-    internal Vector3Ref curspeed;
+    internal Vector3 curspeed;
     internal float jumpacceleration;
     internal bool isplayeronground;
     internal Acceleration acceleration;
@@ -60,10 +60,10 @@ public class ScriptCharacterPhysics : EntityScript
             move.moveup = false;
             move.wantsjump = false;
         }
-        Update(game.player.position, move, dt, game.soundnow, Vector3Ref.Create(game.pushX, game.pushY, game.pushZ), game.entities[game.LocalPlayerId].drawModel.ModelHeight);
+        Update(game.player.position, move, dt, game.soundnow, new Vector3(game.pushX, game.pushY, game.pushZ), game.entities[game.LocalPlayerId].drawModel.ModelHeight);
     }
 
-    public void Update(EntityPosition_ stateplayerposition, Controls move, float dt, BoolRef soundnow, Vector3Ref push, float modelheight)
+    public void Update(EntityPosition_ stateplayerposition, Controls move, float dt, BoolRef soundnow, Vector3 push, float modelheight)
     {
         if (game.stopPlayerMove)
         {
@@ -102,20 +102,15 @@ public class ScriptCharacterPhysics : EntityScript
         }
 
         soundnow.value = false;
-        Vector3 diff1ref = new();
+        Vector3 diff1 = new();
         VectorTool.ToVectorInFixedSystem(
             move.movedx * movespeednow * dt,
             0,
-            move.movedy * movespeednow * dt, stateplayerposition.rotx, stateplayerposition.roty, ref diff1ref);
-        Vector3Ref diff1 = new()
-        {
-            X = diff1ref.X,
-            Y = diff1ref.Y,
-            Z = diff1ref.Z
-        };
+            move.movedy * movespeednow * dt, stateplayerposition.rotx, stateplayerposition.roty, ref diff1);
+
         if (MiscCi.Vec3Length(push.X, push.Y, push.Z) > 0.01f)
         {
-            push.Normalize();
+            Vector3.Normalize(in push, out push);
             push.X *= 5;
             push.Y *= 5;
             push.Z *= 5;
@@ -145,11 +140,11 @@ public class ScriptCharacterPhysics : EntityScript
         {
             if (!game.SwimmingBody())
             {
-                movedz += -constGravity;//gravity
+                movedz += -constGravity;
             }
             else
             {
-                movedz += -constGravity * constWaterGravityMultiplier; //more gravity because it's slippery.
+                movedz += -constGravity * constWaterGravityMultiplier;
             }
         }
         game.movedz = movedz;
@@ -166,9 +161,9 @@ public class ScriptCharacterPhysics : EntityScript
             curspeed.X += diff1.X * acceleration.acceleration3 * dt;
             curspeed.Y += diff1.Y * acceleration.acceleration3 * dt;
             curspeed.Z += diff1.Z * acceleration.acceleration3 * dt;
-            if (curspeed.Length() > movespeednow)
+            if (curspeed.Length > movespeednow)
             {
-                curspeed.Normalize();
+                Vector3.Normalize(in curspeed, out curspeed);
                 curspeed.X *= movespeednow;
                 curspeed.Y *= movespeednow;
                 curspeed.Z *= movespeednow;
@@ -178,13 +173,13 @@ public class ScriptCharacterPhysics : EntityScript
         {
             if (MiscCi.Vec3Length(diff1.X, diff1.Y, diff1.Z) > 0)
             {
-                diff1.Normalize();
+                Vector3.Normalize(in diff1, out diff1);
             }
             curspeed.X = diff1.X * movespeednow;
             curspeed.Y = diff1.Y * movespeednow;
             curspeed.Z = diff1.Z * movespeednow;
         }
-        Vector3Ref newposition = Vector3Ref.Create(0, 0, 0);
+        Vector3 newposition = Vector3.Zero;
         if (!(move.freemove))
         {
             newposition.X = stateplayerposition.x + curspeed.X;
@@ -194,7 +189,6 @@ public class ScriptCharacterPhysics : EntityScript
             {
                 newposition.Y = stateplayerposition.y;
             }
-            // Fast move when looking at the ground
             float diffx = newposition.X - stateplayerposition.x;
             float diffy = newposition.Y - stateplayerposition.y;
             float diffz = newposition.Z - stateplayerposition.z;
@@ -204,9 +198,9 @@ public class ScriptCharacterPhysics : EntityScript
                 diffx /= difflength;
                 diffy /= difflength;
                 diffz /= difflength;
-                diffx *= curspeed.Length();
-                diffy *= curspeed.Length();
-                diffz *= curspeed.Length();
+                diffx *= curspeed.Length;
+                diffy *= curspeed.Length;
+                diffz *= curspeed.Length;
             }
             newposition.X = stateplayerposition.x + diffx * dt;
             newposition.Y = stateplayerposition.y + diffy * dt;
@@ -214,21 +208,21 @@ public class ScriptCharacterPhysics : EntityScript
         }
         else
         {
-            newposition.X = stateplayerposition.x + (curspeed.X) * dt;
-            newposition.Y = stateplayerposition.y + (curspeed.Y) * dt;
-            newposition.Z = stateplayerposition.z + (curspeed.Z) * dt;
+            newposition.X = stateplayerposition.x + curspeed.X * dt;
+            newposition.Y = stateplayerposition.y + curspeed.Y * dt;
+            newposition.Z = stateplayerposition.z + curspeed.Z * dt;
         }
         newposition.Y += movedz * dt;
-        Vector3Ref previousposition = Vector3Ref.Create(stateplayerposition.x, stateplayerposition.y, stateplayerposition.z);
+        Vector3 previousposition = new Vector3(stateplayerposition.x, stateplayerposition.y, stateplayerposition.z);
         if (!move.noclip)
         {
             var v = WallSlide(
                 new Vector3(stateplayerposition.x, stateplayerposition.y, stateplayerposition.z),
-                new Vector3(newposition.X, newposition.Y, newposition.Z),
+                newposition,
                 modelheight);
-            stateplayerposition.x = v[0];
-            stateplayerposition.y = v[1];
-            stateplayerposition.z = v[2];
+            stateplayerposition.x = v.X;
+            stateplayerposition.y = v.Y;
+            stateplayerposition.z = v.Z;
         }
         else
         {
@@ -255,10 +249,7 @@ public class ScriptCharacterPhysics : EntityScript
                 jumpacceleration = jumpacceleration / 2;
             }
 
-            //if (!this.reachedceiling)
-            {
-                movedz += jumpacceleration * constJump;
-            }
+            movedz += jumpacceleration * constJump;
         }
         else
         {

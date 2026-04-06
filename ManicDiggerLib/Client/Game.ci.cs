@@ -65,7 +65,7 @@ public class Game
         basemovespeed = 5;
         movespeed = 5;
         RadiusWhenMoving = one * 3 / 10;
-        playervelocity = new Vector3Ref();
+        playervelocity = new Vector3();
         LocalPlayerId = -1;
         dialogs = new VisibleDialog[512];
         dialogsCount = 512;
@@ -1446,7 +1446,7 @@ public class Game
     internal CameraType cameratype;
     internal bool ENABLE_TPP_VIEW;
 
-    internal Vector3Ref playerdestination;
+    internal Vector3 playerdestination;
     internal void SetCamera(CameraType type)
     {
         if (type == CameraType.Fpp)
@@ -1467,7 +1467,7 @@ public class Game
             overheadcamera = true;
             SetFreeMouse(true);
             ENABLE_TPP_VIEW = true;
-            playerdestination = Vector3Ref.Create(player.position.x, player.position.y, player.position.z);
+            playerdestination = new Vector3(player.position.x, player.position.y, player.position.z);
         }
     }
     internal float basemovespeed;
@@ -1515,7 +1515,7 @@ public class Game
         }
         return DeserializeFloat(blocktypes[item.BlockId].RecoilFloat);
     }
-    internal Vector3Ref playervelocity;
+    internal Vector3 playervelocity;
 
     internal float CurrentAimRadius()
     {
@@ -1529,7 +1529,7 @@ public class Game
         {
             radius = (DeserializeFloat(blocktypes[item.BlockId].IronSightsAimRadiusFloat) / 800) * Width();
         }
-        return radius + RadiusWhenMoving * radius * (MathCi.MinFloat(playervelocity.Length() / movespeed, 1));
+        return radius + RadiusWhenMoving * radius * (MathCi.MinFloat(playervelocity.Length / movespeed, 1));
     }
 
     internal RandomCi rnd;
@@ -3635,7 +3635,7 @@ public class Game
             overheadcamera = true;
             SetFreeMouse(true);
             ENABLE_TPP_VIEW = true;
-            playerdestination = Vector3Ref.Create(player.position.x, player.position.y, player.position.z);
+            playerdestination = new Vector3(player.position.x, player.position.y, player.position.z);
         }
         else if (cameratype == CameraType.Overhead)
         {

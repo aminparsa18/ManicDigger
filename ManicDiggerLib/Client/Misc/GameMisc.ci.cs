@@ -1346,14 +1346,12 @@ public class MapUtilCi
         return x + y * sizex;
     }
 
-    public static void Pos(int index, int sizex, int sizey, Vector3Ref ret)
+    public static Vector3 Pos(int index, int sizex, int sizey)
     {
         int x = index % sizex;
         int y = (index / sizex) % sizey;
         int h = index / (sizex * sizey);
-        ret.X = x;
-        ret.Y = y;
-        ret.Z = h;
+        return new Vector3(x, y, h);
     }
 
     internal static void PosInt(int index, int sizex, int sizey, Vector3IntRef ret)
@@ -2086,7 +2084,7 @@ public class Kamera
         tt = 0;
         MaximumAngle = 89;
         MinimumAngle = 0;
-        Center = new Vector3Ref();
+        Center = new Vector3();
     }
     private readonly float one;
     public void GetPosition(GamePlatform platform, ref Vector3 ret)
@@ -2117,7 +2115,7 @@ public class Kamera
     {
         return platform.MathCos(Angle * Game.GetPi() / 180) * distance;
     }
-    internal Vector3Ref Center;
+    internal Vector3 Center;
     internal float tt;
     public float GetT()
     {
@@ -2187,11 +2185,9 @@ public class Kamera
         Angle = value;
     }
 
-    public void GetCenter(Vector3Ref ret)
+    public Vector3 GetCenter()
     {
-        ret.X = Center.X;
-        ret.Y = Center.Y;
-        ret.Z = Center.Z;
+        return new Vector3(Center.X, Center.Y, Center.Z);
     }
 
     public void TurnUp(float p)

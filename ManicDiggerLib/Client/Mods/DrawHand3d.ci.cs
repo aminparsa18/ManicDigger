@@ -1,4 +1,6 @@
-﻿public class ModDrawHand3d : ClientMod
+﻿using OpenTK.Mathematics;
+
+public class ModDrawHand3d : ClientMod
 {
     public ModDrawHand3d()
     {
@@ -425,10 +427,10 @@ public class BlockRendererTorch
         if (type == TorchType.Left) { bottomy = y - torchsizexy; }
         if (type == TorchType.Right) { bottomy = y + 1; }
 
-        Vector3Ref top00 = Vector3Ref.Create(topx, z + (one * 9 / 10), topy);
-        Vector3Ref top01 = Vector3Ref.Create(topx, z + (one * 9 / 10), topy + torchsizexy);
-        Vector3Ref top10 = Vector3Ref.Create(topx + torchsizexy, z + (one * 9 / 10), topy);
-        Vector3Ref top11 = Vector3Ref.Create(topx + torchsizexy, z + (one * 9 / 10), topy + torchsizexy);
+        Vector3 top00 = new Vector3(topx, z + (one * 9 / 10), topy);
+        Vector3 top01 = new Vector3(topx, z + (one * 9 / 10), topy + torchsizexy);
+        Vector3 top10 = new Vector3(topx + torchsizexy, z + (one * 9 / 10), topy);
+        Vector3 top11 = new Vector3(topx + torchsizexy, z + (one * 9 / 10), topy + torchsizexy);
 
         if (type == TorchType.Left)
         {
@@ -454,10 +456,10 @@ public class BlockRendererTorch
             top00.Y += -(one * 1 / 10);
         }
 
-        Vector3Ref bottom00 = Vector3Ref.Create(bottomx, z + 0, bottomy);
-        Vector3Ref bottom01 = Vector3Ref.Create(bottomx, z + 0, bottomy + torchsizexy);
-        Vector3Ref bottom10 = Vector3Ref.Create(bottomx + torchsizexy, z + 0, bottomy);
-        Vector3Ref bottom11 = Vector3Ref.Create(bottomx + torchsizexy, z + 0, bottomy + torchsizexy);
+        Vector3 bottom00 = new Vector3(bottomx, z + 0, bottomy);
+        Vector3 bottom01 = new Vector3(bottomx, z + 0, bottomy + torchsizexy);
+        Vector3 bottom10 = new Vector3(bottomx + torchsizexy, z + 0, bottomy);
+        Vector3 bottom11 = new Vector3(bottomx + torchsizexy, z + 0, bottomy + torchsizexy);
 
         //top
         {

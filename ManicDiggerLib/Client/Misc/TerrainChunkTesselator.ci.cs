@@ -16,6 +16,8 @@
 // This class is heavily inlined and unrolled for performance.
 // Special-shape (rare) blocks don't need as much performance.
 // </summary>
+using OpenTK.Mathematics;
+
 public class TerrainChunkTesselatorCi
 {
     //internal float texrecTop;
@@ -1288,10 +1290,10 @@ public class TerrainChunkTesselatorCi
         if (type == TorchTypeEnum.Left) { bottomy = y - torchsizexy; }
         if (type == TorchTypeEnum.Right) { bottomy = y + 1; }
 
-        Vector3Ref top00 = Vector3Ref.Create(topx, z + 0.9f, topy);
-        Vector3Ref top01 = Vector3Ref.Create(topx, z + 0.9f, topy + torchsizexy);
-        Vector3Ref top10 = Vector3Ref.Create(topx + torchsizexy, z + 0.9f, topy);
-        Vector3Ref top11 = Vector3Ref.Create(topx + torchsizexy, z + 0.9f, topy + torchsizexy);
+        Vector3 top00 = new Vector3(topx, z + 0.9f, topy);
+        Vector3 top01 = new Vector3(topx, z + 0.9f, topy + torchsizexy);
+        Vector3 top10 = new Vector3(topx + torchsizexy, z + 0.9f, topy);
+        Vector3 top11 = new Vector3(topx + torchsizexy, z + 0.9f, topy + torchsizexy);
 
         if (type == TorchTypeEnum.Left)
         {
@@ -1317,10 +1319,10 @@ public class TerrainChunkTesselatorCi
             top00.Y += -0.1f;
         }
 
-        Vector3Ref bottom00 = Vector3Ref.Create(bottomx, z + 0, bottomy);
-        Vector3Ref bottom01 = Vector3Ref.Create(bottomx, z + 0, bottomy + torchsizexy);
-        Vector3Ref bottom10 = Vector3Ref.Create(bottomx + torchsizexy, z + 0, bottomy);
-        Vector3Ref bottom11 = Vector3Ref.Create(bottomx + torchsizexy, z + 0, bottomy + torchsizexy);
+        Vector3 bottom00 = new Vector3(bottomx, z + 0, bottomy);
+        Vector3 bottom01 = new Vector3(bottomx, z + 0, bottomy + torchsizexy);
+        Vector3 bottom10 = new Vector3(bottomx + torchsizexy, z + 0, bottomy);
+        Vector3 bottom11 = new Vector3(bottomx + torchsizexy, z + 0, bottomy + torchsizexy);
 
         //top
         {

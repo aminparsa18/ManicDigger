@@ -143,7 +143,7 @@ public class ModPicking : ClientMod
             if (game.Follow == null)
             {
                 //Only walk to destination when not following someone
-                game.playerdestination = Vector3Ref.Create(pick2[0].blockPos[0], pick2[0].blockPos[1] + 1, pick2[0].blockPos[2]);
+                game.playerdestination = new Vector3(pick2[0].blockPos[0], pick2[0].blockPos[1] + 1, pick2[0].blockPos[2]);
             }
         }
         bool pickdistanceok = (pick2count.value > 0); //&& (!ispistol);

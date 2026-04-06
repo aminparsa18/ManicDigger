@@ -6,25 +6,25 @@ public class ModGuiInventory : ClientMod
     public ModGuiInventory()
     {
         //indexed by enum WearPlace
-        wearPlaceStart = new PointRef[5];
+        wearPlaceStart = new Point[5];
         {
             //new Point(282,85), //LeftHand,
-            wearPlaceStart[0] = PointRef.Create(34, 100); //RightHand,
-            wearPlaceStart[1] = PointRef.Create(74, 100); //MainArmor,
-            wearPlaceStart[2] = PointRef.Create(194, 100); //Boots,
-            wearPlaceStart[3] = PointRef.Create(114, 100); //Helmet,
-            wearPlaceStart[4] = PointRef.Create(154, 100); //Gauntlet,
+            wearPlaceStart[0] = new Point(34, 100);  //RightHand,
+            wearPlaceStart[1] = new Point(74, 100);  //MainArmor,
+            wearPlaceStart[2] = new Point(194, 100); //Boots,
+            wearPlaceStart[3] = new Point(114, 100); //Helmet,
+            wearPlaceStart[4] = new Point(154, 100); //Gauntlet,
         }
 
         //indexed by enum WearPlace
-        wearPlaceCells = new PointRef[5];
+        wearPlaceCells = new Point[5];
         {
             //new Point(2,4), //LeftHand,
-            wearPlaceCells[0] = PointRef.Create(1, 1); //RightHand,
-            wearPlaceCells[1] = PointRef.Create(1, 1); //MainArmor,
-            wearPlaceCells[2] = PointRef.Create(1, 1); //Boots,
-            wearPlaceCells[3] = PointRef.Create(1, 1); //Helmet,
-            wearPlaceCells[4] = PointRef.Create(1, 1); //Gauntlet,
+            wearPlaceCells[0] = new Point(1, 1); //RightHand,
+            wearPlaceCells[1] = new Point(1, 1); //MainArmor,
+            wearPlaceCells[2] = new Point(1, 1); //Boots,
+            wearPlaceCells[3] = new Point(1, 1); //Helmet,
+            wearPlaceCells[4] = new Point(1, 1); //Gauntlet,
         }
         CellCountInPageX = 12;
         CellCountInPageY = 7;
@@ -88,7 +88,7 @@ public class ModGuiInventory : ClientMod
         {
             return;
         }
-        PointRef scaledMouse = PointRef.Create(args.GetX(), args.GetY());
+        Point scaledMouse = new Point(args.GetX(), args.GetY());
 
         //material selector
         if (SelectedMaterialSelectorSlot(scaledMouse) != null)
@@ -114,7 +114,7 @@ public class ModGuiInventory : ClientMod
         }
 
         //main inventory
-        PointRef cellInPage = SelectedCell(scaledMouse);
+        Point? cellInPage = SelectedCell(scaledMouse);
         //grab from inventory
         if (cellInPage != null)
         {
@@ -123,8 +123,8 @@ public class ModGuiInventory : ClientMod
                 Packet_InventoryPosition p = new()
                 {
                     Type = Packet_InventoryPositionTypeEnum.MainArea,
-                    AreaX = cellInPage.X,
-                    AreaY = cellInPage.Y + ScrollLine
+                    AreaX = cellInPage.Value.X,
+                    AreaY = cellInPage.Value.Y + ScrollLine
                 };
                 controller.InventoryClick(p);
                 args.SetHandled(true);
@@ -136,8 +136,8 @@ public class ModGuiInventory : ClientMod
                     Packet_InventoryPosition p = new()
                     {
                         Type = Packet_InventoryPositionTypeEnum.MainArea,
-                        AreaX = cellInPage.X,
-                        AreaY = cellInPage.Y + ScrollLine
+                        AreaX = cellInPage.Value.X,
+                        AreaY = cellInPage.Value.Y + ScrollLine
                     };
                     controller.InventoryClick(p);
                 }
@@ -154,8 +154,8 @@ public class ModGuiInventory : ClientMod
                     Packet_InventoryPosition p = new()
                     {
                         Type = Packet_InventoryPositionTypeEnum.MainArea,
-                        AreaX = cellInPage.X,
-                        AreaY = cellInPage.Y + ScrollLine
+                        AreaX = cellInPage.Value.X,
+                        AreaY = cellInPage.Value.Y + ScrollLine
                     };
                     controller.InventoryClick(p);
                 }
@@ -253,7 +253,7 @@ public class ModGuiInventory : ClientMod
         ScrollingDownTimeMilliseconds = 0;
     }
 
-    private IntRef SelectedMaterialSelectorSlot(PointRef scaledMouse)
+    private IntRef SelectedMaterialSelectorSlot(Point scaledMouse)
     {
         if (scaledMouse.X >= MaterialSelectorStartX() && scaledMouse.Y >= MaterialSelectorStartY()
             && scaledMouse.X < MaterialSelectorStartX() + 10 * ActiveMaterialCellSize()
@@ -264,7 +264,7 @@ public class ModGuiInventory : ClientMod
         return null;
     }
 
-    private PointRef SelectedCell(PointRef scaledMouse)
+    private Point? SelectedCell(Point scaledMouse)
     {
         if (scaledMouse.X < CellsStartX() || scaledMouse.Y < CellsStartY()
             || scaledMouse.X > CellsStartX() + CellCountInPageX * CellDrawSize
@@ -272,7 +272,7 @@ public class ModGuiInventory : ClientMod
         {
             return null;
         }
-        PointRef cell = PointRef.Create((scaledMouse.X - CellsStartX()) / CellDrawSize,
+        Point cell = new((scaledMouse.X - CellsStartX()) / CellDrawSize,
             (scaledMouse.Y - CellsStartY()) / CellDrawSize);
         return cell;
     }
@@ -322,7 +322,7 @@ public class ModGuiInventory : ClientMod
             ScrollDown();
         }
 
-        PointRef scaledMouse = PointRef.Create(game.mouseCurrentX, game.mouseCurrentY);
+        Point scaledMouse = new(game.mouseCurrentX, game.mouseCurrentY);
 
         game.Draw2dBitmapFile("inventory.png", InventoryStartX(), InventoryStartY(), 1024, 1024);
 
@@ -347,19 +347,19 @@ public class ModGuiInventory : ClientMod
         //draw area selection
         if (game.d_Inventory.DragDropItem != null)
         {
-            PointRef selectedInPage = SelectedCell(scaledMouse);
+            Point? selectedInPage = SelectedCell(scaledMouse);
             if (selectedInPage != null)
             {
-                int x = (selectedInPage.X) * CellDrawSize + CellsStartX();
-                int y = (selectedInPage.Y) * CellDrawSize + CellsStartY();
+                int x = (selectedInPage.Value.X) * CellDrawSize + CellsStartX();
+                int y = (selectedInPage.Value.Y) * CellDrawSize + CellsStartY();
                 int sizex = dataItems.ItemSizeX(game.d_Inventory.DragDropItem);
                 int sizey = dataItems.ItemSizeY(game.d_Inventory.DragDropItem);
-                if (selectedInPage.X + sizex <= CellCountInPageX
-                    && selectedInPage.Y + sizey <= CellCountInPageY)
+                if (selectedInPage.Value.X + sizex <= CellCountInPageX
+                    && selectedInPage.Value.Y + sizey <= CellCountInPageY)
                 {
                     int c;
                     IntRef itemsAtAreaCount = new();
-                    PointRef[] itemsAtArea = inventoryUtil.ItemsAtArea(selectedInPage.X, selectedInPage.Y + ScrollLine, sizex, sizey, itemsAtAreaCount);
+                    Point?[] itemsAtArea = inventoryUtil.ItemsAtArea(selectedInPage.Value.X, selectedInPage.Value.Y + ScrollLine, sizex, sizey, itemsAtAreaCount);
                     if (itemsAtArea == null || itemsAtAreaCount.value > 1)
                     {
                         c = Game.ColorFromArgb(100, 255, 0, 0); // red
@@ -376,8 +376,8 @@ public class ModGuiInventory : ClientMod
             IntRef selectedWear = SelectedWearPlace(scaledMouse);
             if (selectedWear != null)
             {
-                PointRef p = PointRef.Create(wearPlaceStart[selectedWear.value].X + InventoryStartX(), wearPlaceStart[selectedWear.value].Y + InventoryStartY());
-                PointRef size = wearPlaceCells[selectedWear.value];
+                Point p = new Point(wearPlaceStart[selectedWear.value].X + InventoryStartX(), wearPlaceStart[selectedWear.value].Y + InventoryStartY());
+                Point size = wearPlaceCells[selectedWear.value];
 
                 int c;
                 Packet_Item itemsAtArea = inventoryUtil.ItemAtWearPlace(selectedWear.value, game.ActiveMaterial);
@@ -409,16 +409,16 @@ public class ModGuiInventory : ClientMod
         //info
         if (SelectedCell(scaledMouse) != null)
         {
-            PointRef selected = SelectedCell(scaledMouse);
-            selected.Y += ScrollLine;
-            PointRef itemAtCell = inventoryUtil.ItemAtCell(selected);
+            Point? selected = SelectedCell(scaledMouse);
+            selected = new Point(selected.Value.X, selected.Value.Y + ScrollLine);
+            Point? itemAtCell = inventoryUtil.ItemAtCell(selected);
             if (itemAtCell != null)
             {
-                Packet_Item item = GetItem(game.d_Inventory, itemAtCell.X, itemAtCell.Y);
+                Packet_Item item = GetItem(game.d_Inventory, itemAtCell.Value.X, itemAtCell.Value.Y);
                 if (item != null)
                 {
-                    int x = (selected.X) * CellDrawSize + CellsStartX();
-                    int y = (selected.Y) * CellDrawSize + CellsStartY();
+                    int x = (selected.Value.X) * CellDrawSize + CellsStartX();
+                    int y = (selected.Value.Y) * CellDrawSize + CellsStartY();
                     DrawItemInfo(scaledMouse.X, scaledMouse.Y, item);
                 }
             }
@@ -479,14 +479,14 @@ public class ModGuiInventory : ClientMod
             MaterialSelectorStartY(), ActiveMaterialCellSize() * 64 / 48, ActiveMaterialCellSize() * 64 / 48);
     }
 
-    private IntRef SelectedWearPlace(PointRef scaledMouse)
+    private IntRef SelectedWearPlace(Point scaledMouse)
     {
         for (int i = 0; i < wearPlaceStartLength; i++)
         {
-            PointRef p = wearPlaceStart[i];
+            Point p = wearPlaceStart[i];
             p.X += InventoryStartX();
             p.Y += InventoryStartY();
-            PointRef cells = wearPlaceCells[i];
+            Point cells = wearPlaceCells[i];
             if (scaledMouse.X >= p.X && scaledMouse.Y >= p.Y
                 && scaledMouse.X < p.X + cells.X * CellDrawSize
                 && scaledMouse.Y < p.Y + cells.Y * CellDrawSize)
@@ -499,9 +499,9 @@ public class ModGuiInventory : ClientMod
 
     private const int wearPlaceStartLength = 5;
     //indexed by enum WearPlace
-    private readonly PointRef[] wearPlaceStart;
+    private readonly Point[] wearPlaceStart;
     //indexed by enum WearPlace
-    private readonly PointRef[] wearPlaceCells;
+    private readonly Point[] wearPlaceCells;
 
     private void DrawItem(int screenposX, int screenposY, Packet_Item item, int drawsizeX, int drawsizeY)
     {

@@ -102,9 +102,9 @@ public class ModDrawTerrain : ClientMod
     private int centerAreaSize() { return game.platform.FloatToInt(game.d_Config3d.viewdistance * 0.5f); }
     private int mapAreaSizeZ() { return mapAreaSize(); }
 
-    private int mapsizexchunks() { return game.map.mapsizexchunks(); }
-    private int mapsizeychunks() { return game.map.mapsizeychunks(); }
-    private int mapsizezchunks() { return game.map.mapsizezchunks(); }
+    private int mapsizexchunks() { return game.map.Mapsizexchunks; }
+    private int mapsizeychunks() { return game.map.Mapsizeychunks; }
+    private int mapsizezchunks() { return game.map.Mapsizezchunks; }
 
     public override void OnReadOnlyBackgroundThread(Game game_, float dt)
     {

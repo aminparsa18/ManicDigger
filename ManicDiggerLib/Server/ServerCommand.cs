@@ -1317,7 +1317,7 @@ public partial class Server
                             BlockCount = maxStack
                         };
 
-                        if (util.ItemAtCell(PointRef.Create(xx, yy)) == null)
+                        if (util.ItemAtCell(new Point(xx, yy)) == null)
                         {
                             inventory.Items[new ProtoPoint(xx, yy)] = newItem;
                             goto nextblock;
@@ -1410,7 +1410,7 @@ public partial class Server
                 {
                     for (int yy = 0; yy < util.CellCountY; yy++)
                     {
-                        if (util.ItemAtCell(PointRef.Create(xx, yy)) == null)
+                        if (util.ItemAtCell(new Point(xx, yy)) == null)
                         {
                             Item newItem = new()
                             {

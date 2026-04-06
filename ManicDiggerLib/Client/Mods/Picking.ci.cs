@@ -967,7 +967,7 @@ public class ModPicking : ClientMod
             mouseY = game.mouseCurrentY;
         }
 
-        PointFloatRef aim = GetAim(game);
+        PointF aim = GetAim(game);
         if (ispistolshoot && (aim.X != 0 || aim.Y != 0))
         {
             mouseX += game.platform.FloatToInt(aim.X);
@@ -1000,11 +1000,11 @@ public class ModPicking : ClientMod
             tempRayStartPoint.Z + raydirZ * pickDistance1);
     }
 
-    internal static PointFloatRef GetAim(Game game)
+    internal static PointF GetAim(Game game)
     {
         if (game.CurrentAimRadius() <= 1)
         {
-            return PointFloatRef.Create(0, 0);
+            return new PointF(0, 0);
         }
         float half = 0.5f;
         float x;
@@ -1019,7 +1019,7 @@ public class ModPicking : ClientMod
                 break;
             }
         }
-        return PointFloatRef.Create(x, y);
+        return new PointF(x, y);
     }
 
     private static float CurrentPickDistance(Game game)

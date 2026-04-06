@@ -28,8 +28,8 @@ public class Game
         lastplacedblockZ = -1;
         mLightLevels = new float[16];
         sunlight_ = 15;
-        mvMatrix = new StackMatrix4();
-        pMatrix = new StackMatrix4();
+        mvMatrix = new();
+        pMatrix = new ();
         mvMatrix.Push(Matrix4.Identity);
         pMatrix.Push(Matrix4.Identity);
         whitetexture = -1;
@@ -393,7 +393,7 @@ public class Game
 
         SetAmbientLight(Terraincolor());
         platform.GlClearColorBufferAndDepthBuffer();
-        platform.BindTexture2d(d_TerrainTextures.terrainTexture());
+        platform.BindTexture2d(d_TerrainTextures.TerrainTexture);
 
         for (int i = 0; i < clientmodsCount; i++)
         {
@@ -541,7 +541,6 @@ public class Game
     private Model quadModel;
     private void Draw2dTextureSimple(int textureid, float x1, float y1, float width, float height, bool enabledepthtest)
     {
-        RectFRef rect = RectFRef.Create(0, 0, 1, 1);
         platform.GlDisableCullFace();
         platform.GlEnableTexture2d();
         platform.BindTexture2d(textureid);
@@ -573,7 +572,7 @@ public class Game
 
     private void Draw2dTextureInAtlas(int textureid, float x1, float y1, float width, float height, IntRef inAtlasId, int atlastextures, int color, bool enabledepthtest)
     {
-        RectFRef rect = RectFRef.Create(0, 0, 1, 1);
+        RectangleF rect = new(0, 0, 1, 1);
         if (inAtlasId != null)
         {
             TextureAtlasCi.TextureCoords2d(inAtlasId.value, atlastextures, rect);
@@ -586,7 +585,7 @@ public class Game
         {
             platform.GlDisableDepthTest();
         }
-        ModelData data = QuadModelData.GetQuadModelData2(rect.x, rect.y, rect.w, rect.h,
+        ModelData data = QuadModelData.GetQuadModelData2(rect.X, rect.Y, rect.Width, rect.Height,
             x1, y1, width, height, IntToByte(ColorR(color)), IntToByte(ColorG(color)), IntToByte(ColorB(color)), IntToByte(ColorA(color)));
         DrawModelData(data);
         if (!enabledepthtest)
@@ -599,7 +598,7 @@ public class Game
 
     public void Draw2dTexturePart(int textureid, float srcwidth, float srcheight, float dstx, float dsty, float dstwidth, float dstheight, int color, bool enabledepthtest)
     {
-        RectFRef rect = RectFRef.Create(0, 0, srcwidth, srcheight);
+        RectangleF rect = new(0, 0, srcwidth, srcheight);
         platform.GlDisableCullFace();
         platform.GlEnableTexture2d();
         platform.BindTexture2d(textureid);
@@ -608,7 +607,7 @@ public class Game
         {
             platform.GlDisableDepthTest();
         }
-        ModelData data = QuadModelData.GetQuadModelData2(rect.x, rect.y, rect.w, rect.h,
+        ModelData data = QuadModelData.GetQuadModelData2(rect.X, rect.Y, rect.Width, rect.Height,
             dstx, dsty, dstwidth, dstheight, IntToByte(ColorR(color)), IntToByte(ColorG(color)), IntToByte(ColorB(color)), IntToByte(ColorA(color)));
         DrawModelData(data);
         if (!enabledepthtest)
@@ -676,14 +675,14 @@ public class Game
             int textureId = textureid;
             int color = d.color;
 
-            RectFRef rect = RectFRef.Create(0, 0, 1, 1);
+            RectangleF rect = new(0, 0, 1, 1);
             if (inAtlasId != null)
             {
                 TextureAtlasCi.TextureCoords2d(inAtlasId.value, texturesPacked(), rect);
             }
 
             ModelData modelData =
-                QuadModelData.GetQuadModelData2(rect.x, rect.y, rect.w, rect.h,
+                QuadModelData.GetQuadModelData2(rect.X, rect.Y, rect.Width, rect.Height,
                 x1, y1, width, height, IntToByte(ColorR(color)), IntToByte(ColorG(color)), IntToByte(ColorB(color)), IntToByte(ColorA(color)));
             modelDatas[modelDatasCount++] = modelData;
         }
@@ -705,8 +704,8 @@ public class Game
     }
 
     internal bool currentMatrixModeProjection;
-    internal StackMatrix4 mvMatrix;
-    internal StackMatrix4 pMatrix;
+    internal Stack<Matrix4> mvMatrix;
+    internal Stack<Matrix4> pMatrix;
 
     public void GLMatrixModeModelView()
     {
@@ -784,14 +783,16 @@ public class Game
             m = pMatrix.Peek();
             Matrix4.CreateScale(x, y, z, out Matrix4 scale);
             m = scale * m;
-            pMatrix.ReplaceTop(m);
+            pMatrix.Pop();
+            pMatrix.Push(m);
         }
         else
         {
             m = mvMatrix.Peek();
             Matrix4.CreateScale(x, y, z, out Matrix4 scale);
             m = scale * m;
-            mvMatrix.ReplaceTop(m);
+            mvMatrix.Pop();
+            mvMatrix.Push(m);
         }
     }
 
@@ -804,13 +805,15 @@ public class Game
         {
             var m = pMatrix.Peek();
             m = rotation * m;
-            pMatrix.ReplaceTop(m);
+            pMatrix.Pop();
+            pMatrix.Push(m);
         }
         else
         {
             var m = mvMatrix.Peek();
             m = rotation * m;
-            mvMatrix.ReplaceTop(m);
+            mvMatrix.Pop();
+            mvMatrix.Push(m);
         }
     }
 
@@ -821,13 +824,15 @@ public class Game
         {
             var m = pMatrix.Peek();
             m = translation * m;
-            pMatrix.ReplaceTop(m);
+            pMatrix.Pop();
+            pMatrix.Push(m);
         }
         else
         {
             var m = mvMatrix.Peek();
             m = translation * m;
-            mvMatrix.ReplaceTop(m);
+            mvMatrix.Pop();
+            mvMatrix.Push(m);
         }
     }
 
@@ -869,7 +874,8 @@ public class Game
         if (currentMatrixModeProjection)
         {
             Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, zNear, zFar, out Matrix4 ortho);
-            pMatrix.ReplaceTop(ortho);
+            pMatrix.Pop();
+            pMatrix.Push(ortho);
         }
         else
         {

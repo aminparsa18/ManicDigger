@@ -1466,14 +1466,14 @@ public class TerrainChunkTesselatorCi
         {
             if (toreturnatlas1d[i].indicesCount > 0)
             {
-                ret[retCount.value++] = GetVerticesIndices(toreturnatlas1d[i], x, y, z, game.d_TerrainTextures.terrainTextures1d()[i % game.d_TerrainTextures.terrainTexturesPerAtlas()], false);
+                ret[retCount.value++] = GetVerticesIndices(toreturnatlas1d[i], x, y, z, game.d_TerrainTextures.TerrainTextures1d[i % game.d_TerrainTextures.TerrainTexturesPerAtlas], false);
             }
         }
         for (int i = 0; i < toreturnatlas1dLength; i++)
         {
             if (toreturnatlas1dtransparent[i].indicesCount > 0)
             {
-                ret[retCount.value++] = GetVerticesIndices(toreturnatlas1dtransparent[i], x, y, z, game.d_TerrainTextures.terrainTextures1d()[i % game.d_TerrainTextures.terrainTexturesPerAtlas()], true);
+                ret[retCount.value++] = GetVerticesIndices(toreturnatlas1dtransparent[i], x, y, z, game.d_TerrainTextures.TerrainTextures1d[i % game.d_TerrainTextures.TerrainTexturesPerAtlas], true);
             }
         }
 

@@ -58,46 +58,6 @@ public class Unproject
     }
 }
 
-public class RectFRef
-{
-    internal float x;
-    internal float y;
-    internal float w;
-    internal float h;
-
-    public static RectFRef Create(float x_, float y_, float w_, float h_)
-    {
-        RectFRef r = new()
-        {
-            x = x_,
-            y = y_,
-            w = w_,
-            h = h_
-        };
-        return r;
-    }
-
-    internal float Left()
-    {
-        return x;
-    }
-
-    internal float Bottom()
-    {
-        return y + h;
-    }
-
-    internal float Top()
-    {
-        return y;
-    }
-
-    internal float Right()
-    {
-        return x + w;
-    }
-}
-
 public class InterpolationCi
 {
     public static int InterpolateColor(GamePlatform platform, float progress, int[] colors, int colorsLength)

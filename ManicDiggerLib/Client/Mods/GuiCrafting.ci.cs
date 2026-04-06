@@ -99,14 +99,14 @@ public class ModGuiCrafting : ClientMod
             {
                 int xx = menustartx + 20 + ii * 130;
                 int yy = menustarty + i * 80;
-                game.Draw2dTexture(game.d_TerrainTextures.terrainTexture(), xx, yy, 32, 32, IntRef.Create(game.TextureIdForInventory[r.Ingredients[ii].Type]), Game.texturesPacked(), Game.ColorFromArgb(255, 255, 255, 255), false);
+                game.Draw2dTexture(game.d_TerrainTextures.TerrainTexture, xx, yy, 32, 32, IntRef.Create(game.TextureIdForInventory[r.Ingredients[ii].Type]), Game.texturesPacked(), Game.ColorFromArgb(255, 255, 255, 255), false);
                 game.Draw2dText1(game.platform.StringFormat2("{0} {1}", game.platform.IntToString(r.Ingredients[ii].Amount), game.blocktypes[r.Ingredients[ii].Type].Name), xx + 50, yy, 12,
                    IntRef.Create(i == craftingselectedrecipe ? Game.ColorFromArgb(255, 255, 0, 0) : Game.ColorFromArgb(255, 255, 255, 255)), false);
             }
             {
                 int xx = menustartx + 20 + 400;
                 int yy = menustarty + i * 80;
-                game.Draw2dTexture(game.d_TerrainTextures.terrainTexture(), xx, yy, 32, 32, IntRef.Create(game.TextureIdForInventory[r.Output.Type]), Game.texturesPacked(), Game.ColorFromArgb(255, 255, 255, 255), false);
+                game.Draw2dTexture(game.d_TerrainTextures.TerrainTexture, xx, yy, 32, 32, IntRef.Create(game.TextureIdForInventory[r.Output.Type]), Game.texturesPacked(), Game.ColorFromArgb(255, 255, 255, 255), false);
                 game.Draw2dText1(game.platform.StringFormat2("{0} {1}", game.platform.IntToString(r.Output.Amount), game.blocktypes[r.Output.Type].Name), xx + 50, yy, 12,
                   IntRef.Create(i == craftingselectedrecipe ? Game.ColorFromArgb(255, 255, 0, 0) : Game.ColorFromArgb(255, 255, 255, 255)), false);
             }

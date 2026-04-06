@@ -221,8 +221,7 @@ public class GameScreen : ClientMod
     }
     public string CharToString(int a)
     {
-        int[] arr = new int[1];
-        arr[0] = a;
+        int[] arr = [a];
         return game.platform.CharArrayToString(arr, 1);
     }
 
@@ -372,12 +371,6 @@ public class UpDown
     public const int None = 0;
     public const int Up = 1;
     public const int Down = 2;
-}
-
-internal class StringByteArray
-{
-    internal string name;
-    internal byte[] data;
 }
 
 public class RenderHintEnum
@@ -674,14 +667,6 @@ public class EntityDrawText
     internal string text;
 }
 
-public class Vector3Float
-{
-    internal int x;
-    internal int y;
-    internal int z;
-    internal float value;
-}
-
 public class VisibleDialog
 {
     internal string key;
@@ -837,72 +822,42 @@ public class DirectionUtils
     /// <returns></returns>
     public static TileExitDirection ResultExit(VehicleDirection12 direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case VehicleDirection12.HorizontalLeft:
-                return TileExitDirection.Left;
-            case VehicleDirection12.HorizontalRight:
-                return TileExitDirection.Right;
-            case VehicleDirection12.VerticalUp:
-                return TileExitDirection.Up;
-            case VehicleDirection12.VerticalDown:
-                return TileExitDirection.Down;
-
-            case VehicleDirection12.UpLeftUp:
-                return TileExitDirection.Up;
-            case VehicleDirection12.UpLeftLeft:
-                return TileExitDirection.Left;
-            case VehicleDirection12.UpRightUp:
-                return TileExitDirection.Up;
-            case VehicleDirection12.UpRightRight:
-                return TileExitDirection.Right;
-
-            case VehicleDirection12.DownLeftDown:
-                return TileExitDirection.Down;
-            case VehicleDirection12.DownLeftLeft:
-                return TileExitDirection.Left;
-            case VehicleDirection12.DownRightDown:
-                return TileExitDirection.Down;
-            case VehicleDirection12.DownRightRight:
-                return TileExitDirection.Right;
-            default:
-                return TileExitDirection.Down;
-        }
+            VehicleDirection12.HorizontalLeft => TileExitDirection.Left,
+            VehicleDirection12.HorizontalRight => TileExitDirection.Right,
+            VehicleDirection12.VerticalUp => TileExitDirection.Up,
+            VehicleDirection12.VerticalDown => TileExitDirection.Down,
+            VehicleDirection12.UpLeftUp => TileExitDirection.Up,
+            VehicleDirection12.UpLeftLeft => TileExitDirection.Left,
+            VehicleDirection12.UpRightUp => TileExitDirection.Up,
+            VehicleDirection12.UpRightRight => TileExitDirection.Right,
+            VehicleDirection12.DownLeftDown => TileExitDirection.Down,
+            VehicleDirection12.DownLeftLeft => TileExitDirection.Left,
+            VehicleDirection12.DownRightDown => TileExitDirection.Down,
+            VehicleDirection12.DownRightRight => TileExitDirection.Right,
+            _ => TileExitDirection.Down,
+        };
     }
 
     public static RailDirection ToRailDirection(VehicleDirection12 direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case VehicleDirection12.HorizontalLeft:
-                return RailDirection.Horizontal;
-            case VehicleDirection12.HorizontalRight:
-                return RailDirection.Horizontal;
-            case VehicleDirection12.VerticalUp:
-                return RailDirection.Vertical;
-            case VehicleDirection12.VerticalDown:
-                return RailDirection.Vertical;
-
-            case VehicleDirection12.UpLeftUp:
-                return RailDirection.UpLeft;
-            case VehicleDirection12.UpLeftLeft:
-                return RailDirection.UpLeft;
-            case VehicleDirection12.UpRightUp:
-                return RailDirection.UpRight;
-            case VehicleDirection12.UpRightRight:
-                return RailDirection.UpRight;
-
-            case VehicleDirection12.DownLeftDown:
-                return RailDirection.DownLeft;
-            case VehicleDirection12.DownLeftLeft:
-                return RailDirection.DownLeft;
-            case VehicleDirection12.DownRightDown:
-                return RailDirection.DownRight;
-            case VehicleDirection12.DownRightRight:
-                return RailDirection.DownRight;
-            default:
-                return RailDirection.DownLeft;
-        }
+            VehicleDirection12.HorizontalLeft => RailDirection.Horizontal,
+            VehicleDirection12.HorizontalRight => RailDirection.Horizontal,
+            VehicleDirection12.VerticalUp => RailDirection.Vertical,
+            VehicleDirection12.VerticalDown => RailDirection.Vertical,
+            VehicleDirection12.UpLeftUp => RailDirection.UpLeft,
+            VehicleDirection12.UpLeftLeft => RailDirection.UpLeft,
+            VehicleDirection12.UpRightUp => RailDirection.UpRight,
+            VehicleDirection12.UpRightRight => RailDirection.UpRight,
+            VehicleDirection12.DownLeftDown => RailDirection.DownLeft,
+            VehicleDirection12.DownLeftLeft => RailDirection.DownLeft,
+            VehicleDirection12.DownRightDown => RailDirection.DownRight,
+            VehicleDirection12.DownRightRight => RailDirection.DownRight,
+            _ => RailDirection.DownLeft,
+        };
     }
 
     public static int ToRailDirectionFlags(RailDirection direction)
@@ -928,89 +883,54 @@ public class DirectionUtils
 
     public static VehicleDirection12 Reverse(VehicleDirection12 direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case VehicleDirection12.HorizontalLeft:
-                return VehicleDirection12.HorizontalRight;
-            case VehicleDirection12.HorizontalRight:
-                return VehicleDirection12.HorizontalLeft;
-            case VehicleDirection12.VerticalUp:
-                return VehicleDirection12.VerticalDown;
-            case VehicleDirection12.VerticalDown:
-                return VehicleDirection12.VerticalUp;
-
-            case VehicleDirection12.UpLeftUp:
-                return VehicleDirection12.UpLeftLeft;
-            case VehicleDirection12.UpLeftLeft:
-                return VehicleDirection12.UpLeftUp;
-            case VehicleDirection12.UpRightUp:
-                return VehicleDirection12.UpRightRight;
-            case VehicleDirection12.UpRightRight:
-                return VehicleDirection12.UpRightUp;
-
-            case VehicleDirection12.DownLeftDown:
-                return VehicleDirection12.DownLeftLeft;
-            case VehicleDirection12.DownLeftLeft:
-                return VehicleDirection12.DownLeftDown;
-            case VehicleDirection12.DownRightDown:
-                return VehicleDirection12.DownRightRight;
-            case VehicleDirection12.DownRightRight:
-                return VehicleDirection12.DownRightDown;
-            default:
-                return VehicleDirection12.DownLeftDown;
-        }
+            VehicleDirection12.HorizontalLeft => VehicleDirection12.HorizontalRight,
+            VehicleDirection12.HorizontalRight => VehicleDirection12.HorizontalLeft,
+            VehicleDirection12.VerticalUp => VehicleDirection12.VerticalDown,
+            VehicleDirection12.VerticalDown => VehicleDirection12.VerticalUp,
+            VehicleDirection12.UpLeftUp => VehicleDirection12.UpLeftLeft,
+            VehicleDirection12.UpLeftLeft => VehicleDirection12.UpLeftUp,
+            VehicleDirection12.UpRightUp => VehicleDirection12.UpRightRight,
+            VehicleDirection12.UpRightRight => VehicleDirection12.UpRightUp,
+            VehicleDirection12.DownLeftDown => VehicleDirection12.DownLeftLeft,
+            VehicleDirection12.DownLeftLeft => VehicleDirection12.DownLeftDown,
+            VehicleDirection12.DownRightDown => VehicleDirection12.DownRightRight,
+            VehicleDirection12.DownRightRight => VehicleDirection12.DownRightDown,
+            _ => VehicleDirection12.DownLeftDown,
+        };
     }
 
     public static int ToVehicleDirection12Flags(VehicleDirection12 direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case VehicleDirection12.HorizontalLeft:
-                return VehicleDirection12Flags.HorizontalLeft;
-            case VehicleDirection12.HorizontalRight:
-                return VehicleDirection12Flags.HorizontalRight;
-            case VehicleDirection12.VerticalUp:
-                return VehicleDirection12Flags.VerticalUp;
-            case VehicleDirection12.VerticalDown:
-                return VehicleDirection12Flags.VerticalDown;
-
-            case VehicleDirection12.UpLeftUp:
-                return VehicleDirection12Flags.UpLeftUp;
-            case VehicleDirection12.UpLeftLeft:
-                return VehicleDirection12Flags.UpLeftLeft;
-            case VehicleDirection12.UpRightUp:
-                return VehicleDirection12Flags.UpRightUp;
-            case VehicleDirection12.UpRightRight:
-                return VehicleDirection12Flags.UpRightRight;
-
-            case VehicleDirection12.DownLeftDown:
-                return VehicleDirection12Flags.DownLeftDown;
-            case VehicleDirection12.DownLeftLeft:
-                return VehicleDirection12Flags.DownLeftLeft;
-            case VehicleDirection12.DownRightDown:
-                return VehicleDirection12Flags.DownRightDown;
-            case VehicleDirection12.DownRightRight:
-                return VehicleDirection12Flags.DownRightRight;
-            default:
-                return 0;
-        }
+            VehicleDirection12.HorizontalLeft => VehicleDirection12Flags.HorizontalLeft,
+            VehicleDirection12.HorizontalRight => VehicleDirection12Flags.HorizontalRight,
+            VehicleDirection12.VerticalUp => VehicleDirection12Flags.VerticalUp,
+            VehicleDirection12.VerticalDown => VehicleDirection12Flags.VerticalDown,
+            VehicleDirection12.UpLeftUp => VehicleDirection12Flags.UpLeftUp,
+            VehicleDirection12.UpLeftLeft => VehicleDirection12Flags.UpLeftLeft,
+            VehicleDirection12.UpRightUp => VehicleDirection12Flags.UpRightUp,
+            VehicleDirection12.UpRightRight => VehicleDirection12Flags.UpRightRight,
+            VehicleDirection12.DownLeftDown => VehicleDirection12Flags.DownLeftDown,
+            VehicleDirection12.DownLeftLeft => VehicleDirection12Flags.DownLeftLeft,
+            VehicleDirection12.DownRightDown => VehicleDirection12Flags.DownRightDown,
+            VehicleDirection12.DownRightRight => VehicleDirection12Flags.DownRightRight,
+            _ => 0,
+        };
     }
 
     public static TileEnterDirection ResultEnter(TileExitDirection direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case TileExitDirection.Up:
-                return TileEnterDirection.Down;
-            case TileExitDirection.Down:
-                return TileEnterDirection.Up;
-            case TileExitDirection.Left:
-                return TileEnterDirection.Right;
-            case TileExitDirection.Right:
-                return TileEnterDirection.Left;
-            default:
-                return TileEnterDirection.Down;
-        }
+            TileExitDirection.Up => TileEnterDirection.Down,
+            TileExitDirection.Down => TileEnterDirection.Up,
+            TileExitDirection.Left => TileEnterDirection.Right,
+            TileExitDirection.Right => TileEnterDirection.Left,
+            _ => TileEnterDirection.Down,
+        };
     }
     public static int RailDirectionFlagsCount(int railDirectionFlags)
     {
@@ -1306,10 +1226,10 @@ public class ITerrainTextures
 {
     internal Game game;
 
-    public int texturesPacked() { return Game.texturesPacked(); }
-    public int terrainTexture() { return game.terrainTexture; }
-    public int[] terrainTextures1d() { return game.terrainTextures1d; }
-    public int terrainTexturesPerAtlas() { return game.terrainTexturesPerAtlas; }
+    public int TexturesPacked => Game.texturesPacked();
+    public int TerrainTexture => game.terrainTexture;
+    public int[] TerrainTextures1d => game.terrainTextures1d;
+    public int TerrainTexturesPerAtlas => game.terrainTexturesPerAtlas;
 }
 
 public class Config3d
@@ -1741,56 +1661,13 @@ public class ClientCommandArgs
 
 public class TextureAtlasCi
 {
-    public static void TextureCoords2d(int textureId, int texturesPacked, RectFRef r)
+    public static void TextureCoords2d(int textureId, int texturesPacked, RectangleF r)
     {
         float one = 1;
-        r.y = (one / texturesPacked * (textureId / texturesPacked));
-        r.x = (one / texturesPacked * (textureId % texturesPacked));
-        r.w = one / texturesPacked;
-        r.h = one / texturesPacked;
-    }
-}
-
-public class StackMatrix4
-{
-    public StackMatrix4()
-    {
-        values = new Matrix4[max];
-        for (int i = 0; i < max; i++)
-        {
-            values[i] = Matrix4.Identity;
-        }
-    }
-    private readonly Matrix4[] values;
-    private const int max = 1024;
-    private int count_;
-
-    internal void Push(Matrix4 p)
-    {
-        values[count_] = p;
-        count_++;
-    }
-
-    internal Matrix4 Peek()
-    {
-        return values[count_ - 1];
-    }
-
-    internal int Count()
-    {
-        return count_;
-    }
-
-    internal Matrix4 Pop()
-    {
-        Matrix4 ret = values[count_ - 1];
-        count_--;
-        return ret;
-    }
-
-    internal void ReplaceTop(Matrix4 p)
-    {
-        values[count_ - 1] = p;
+        r.Y = (one / texturesPacked * (textureId / texturesPacked));
+        r.X = (one / texturesPacked * (textureId % texturesPacked));
+        r.Width = one / texturesPacked;
+        r.Height = one / texturesPacked;
     }
 }
 
@@ -2325,13 +2202,16 @@ public class GameData
         mBlockIdMinecart = -1;
         mBlockIdRailstart = -128; // 64 rail tiles
     }
+
     public void Start()
     {
         Initialize(GlobalVar.MAX_BLOCKTYPES);
     }
+
     public static void Update()
     {
     }
+
     private void Initialize(int count)
     {
         mWhenPlayerPlacesGetsConvertedTo = new int[count];
@@ -2633,15 +2513,15 @@ public class OptionsCi
 
 public class TextureAtlas
 {
-    public static RectFRef TextureCoords2d(int textureId, int texturesPacked)
+    public static RectangleF TextureCoords2d(int textureId, int texturesPacked)
     {
         float one = 1;
-        RectFRef r = new()
+        RectangleF r = new()
         {
-            y = (one / texturesPacked * (textureId / texturesPacked)),
-            x = (one / texturesPacked * (textureId % texturesPacked)),
-            w = one / texturesPacked,
-            h = one / texturesPacked
+            Y = (one / texturesPacked * (textureId / texturesPacked)),
+            X = (one / texturesPacked * (textureId % texturesPacked)),
+            Width = one / texturesPacked,
+            Height = one / texturesPacked
         };
         return r;
     }
@@ -2845,15 +2725,12 @@ public class Map
             return;
         }
 
-        Chunk c = chunks[MapUtilCi.Index3d(cx, cy, cz, mapsizexchunks(), mapsizeychunks())];
+        Chunk c = chunks[MapUtilCi.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
         if (c == null)
         {
             return;
         }
-        if (c.rendered == null)
-        {
-            c.rendered = new RenderedChunk();
-        }
+        c.rendered ??= new RenderedChunk();
         c.rendered.dirty = dirty;
         if (blockschanged)
         {
@@ -2861,9 +2738,9 @@ public class Map
         }
     }
 
-    public int mapsizexchunks() { return MapSizeX >> Game.chunksizebits; }
-    public int mapsizeychunks() { return MapSizeY >> Game.chunksizebits; }
-    public int mapsizezchunks() { return MapSizeZ >> Game.chunksizebits; }
+    public int Mapsizexchunks => MapSizeX >> Game.chunksizebits;
+    public int Mapsizeychunks => MapSizeY >> Game.chunksizebits;
+    public int Mapsizezchunks => MapSizeZ >> Game.chunksizebits;
 
     public void SetChunksAroundDirty(int cx, int cy, int cz)
     {
@@ -2938,7 +2815,7 @@ public class Map
         int cz = z / Game.chunksize;
         if (IsValidPos(x, y, z) && IsValidChunkPos(cx, cy, cz))
         {
-            Chunk c = chunks[MapUtilCi.Index3d(cx, cy, cz, mapsizexchunks(), mapsizeychunks())];
+            Chunk c = chunks[MapUtilCi.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
             if (c == null
                 || c.rendered == null
                 || c.rendered.light == null)
@@ -2972,7 +2849,7 @@ public class Map
 
     public bool IsChunkRendered(int cx, int cy, int cz)
     {
-        Chunk c = chunks[MapUtilCi.Index3d(cx, cy, cz, mapsizexchunks(), mapsizeychunks())];
+        Chunk c = chunks[MapUtilCi.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
         if (c == null)
         {
             return false;

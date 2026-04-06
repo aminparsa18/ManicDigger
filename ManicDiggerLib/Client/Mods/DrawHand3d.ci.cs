@@ -217,8 +217,8 @@ public class ModDrawHand3d : ClientMod
                 t_ += dt;
             }
         }
-        zzzposx = rot(t_);
-        zzzposz = rot2(t_);
+        zzzposx = Rot(t_);
+        zzzposz = Rot2(t_);
         if (attack != -1)
         {
             attack += dt * 7;
@@ -238,12 +238,12 @@ public class ModDrawHand3d : ClientMod
             {
                 if (build)
                 {
-                    buildt = rot(attack / 5);
+                    buildt = Rot(attack / 5);
                     attackt = 0;
                 }
                 else
                 {
-                    attackt = rot(attack / 5);
+                    attackt = Rot(attack / 5);
                     buildt = 0;
                 }
             }
@@ -265,11 +265,11 @@ public class ModDrawHand3d : ClientMod
     private float oldplayerposZ;
     private float zzzposz;
     private float t_;
-    private float rot(float t)
+    private float Rot(float t)
     {
         return game.platform.MathSin(t * 2 * speed) * range;
     }
-    private float rot2(float t)
+    private float Rot2(float t)
     {
         return game.platform.MathSin((t + Game.GetPi()) * speed) * range;
     }
@@ -279,12 +279,12 @@ public class ModDrawHand3d : ClientMod
         //if (drawtop)
         {
             int sidetexture = GetWeaponTextureId(TileSide.Top);
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, x + 0, z + 1, y + 0, texrec.Left(), texrec.Top(), c);
-            AddVertex(m, x + 0, z + 1, y + 1, texrec.Left(), texrec.Bottom(), c);
-            AddVertex(m, x + 1, z + 1, y + 0, texrec.Right(), texrec.Top(), c);
-            AddVertex(m, x + 1, z + 1, y + 1, texrec.Right(), texrec.Bottom(), c);
+            AddVertex(m, x + 0, z + 1, y + 0, texrec.Left, texrec.Top, c);
+            AddVertex(m, x + 0, z + 1, y + 1, texrec.Left, texrec.Bottom, c);
+            AddVertex(m, x + 1, z + 1, y + 0, texrec.Right, texrec.Top, c);
+            AddVertex(m, x + 1, z + 1, y + 1, texrec.Right, texrec.Bottom, c);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -296,12 +296,12 @@ public class ModDrawHand3d : ClientMod
         //if (drawbottom)
         {
             int sidetexture = GetWeaponTextureId(TileSide.Bottom);
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, x + 0, z, y + 0, texrec.Left(), texrec.Top(), c);
-            AddVertex(m, x + 0, z, y + 1, texrec.Left(), texrec.Bottom(), c);
-            AddVertex(m, x + 1, z, y + 0, texrec.Right(), texrec.Top(), c);
-            AddVertex(m, x + 1, z, y + 1, texrec.Right(), texrec.Bottom(), c);
+            AddVertex(m, x + 0, z, y + 0, texrec.Left, texrec.Top, c);
+            AddVertex(m, x + 0, z, y + 1, texrec.Left, texrec.Bottom, c);
+            AddVertex(m, x + 1, z, y + 0, texrec.Right, texrec.Top, c);
+            AddVertex(m, x + 1, z, y + 1, texrec.Right, texrec.Bottom, c);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -313,12 +313,12 @@ public class ModDrawHand3d : ClientMod
         //if (drawfront)
         {
             int sidetexture = GetWeaponTextureId(TileSide.Front);
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, x + 0, z + 0, y + 0, texrec.Left(), texrec.Bottom(), c);
-            AddVertex(m, x + 0, z + 0, y + 1, texrec.Right(), texrec.Bottom(), c);
-            AddVertex(m, x + 0, z + 1, y + 0, texrec.Left(), texrec.Top(), c);
-            AddVertex(m, x + 0, z + 1, y + 1, texrec.Right(), texrec.Top(), c);
+            AddVertex(m, x + 0, z + 0, y + 0, texrec.Left, texrec.Bottom, c);
+            AddVertex(m, x + 0, z + 0, y + 1, texrec.Right, texrec.Bottom, c);
+            AddVertex(m, x + 0, z + 1, y + 0, texrec.Left, texrec.Top, c);
+            AddVertex(m, x + 0, z + 1, y + 1, texrec.Right, texrec.Top, c);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -330,12 +330,12 @@ public class ModDrawHand3d : ClientMod
         //if (drawback)
         {//todo fix tcoords
             int sidetexture = GetWeaponTextureId(TileSide.Back);
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, x + 1, z + 0, y + 0, texrec.Left(), texrec.Bottom(), c);
-            AddVertex(m, x + 1, z + 0, y + 1, texrec.Right(), texrec.Bottom(), c);
-            AddVertex(m, x + 1, z + 1, y + 0, texrec.Left(), texrec.Top(), c);
-            AddVertex(m, x + 1, z + 1, y + 1, texrec.Right(), texrec.Top(), c);
+            AddVertex(m, x + 1, z + 0, y + 0, texrec.Left, texrec.Bottom, c);
+            AddVertex(m, x + 1, z + 0, y + 1, texrec.Right, texrec.Bottom, c);
+            AddVertex(m, x + 1, z + 1, y + 0, texrec.Left, texrec.Top, c);
+            AddVertex(m, x + 1, z + 1, y + 1, texrec.Right, texrec.Top, c);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -346,12 +346,12 @@ public class ModDrawHand3d : ClientMod
         //if (drawleft)
         {
             int sidetexture = GetWeaponTextureId(TileSide.Left);
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, x + 0, z + 0, y + 0, texrec.Left(), texrec.Bottom(), c);
-            AddVertex(m, x + 0, z + 1, y + 0, texrec.Left(), texrec.Top(), c);
-            AddVertex(m, x + 1, z + 0, y + 0, texrec.Right(), texrec.Bottom(), c);
-            AddVertex(m, x + 1, z + 1, y + 0, texrec.Right(), texrec.Top(), c);
+            AddVertex(m, x + 0, z + 0, y + 0, texrec.Left, texrec.Bottom, c);
+            AddVertex(m, x + 0, z + 1, y + 0, texrec.Left, texrec.Top, c);
+            AddVertex(m, x + 1, z + 0, y + 0, texrec.Right, texrec.Bottom, c);
+            AddVertex(m, x + 1, z + 1, y + 0, texrec.Right, texrec.Top, c);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -363,12 +363,12 @@ public class ModDrawHand3d : ClientMod
         //if (drawright)
         {//todo fix tcoords
             int sidetexture = GetWeaponTextureId(TileSide.Right);
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, x + 0, z + 0, y + 1, texrec.Left(), texrec.Bottom(), c);
-            AddVertex(m, x + 0, z + 1, y + 1, texrec.Left(), texrec.Top(), c);
-            AddVertex(m, x + 1, z + 0, y + 1, texrec.Right(), texrec.Bottom(), c);
-            AddVertex(m, x + 1, z + 1, y + 1, texrec.Right(), texrec.Top(), c);
+            AddVertex(m, x + 0, z + 0, y + 1, texrec.Left, texrec.Bottom, c);
+            AddVertex(m, x + 0, z + 1, y + 1, texrec.Left, texrec.Top, c);
+            AddVertex(m, x + 1, z + 0, y + 1, texrec.Right, texrec.Bottom, c);
+            AddVertex(m, x + 1, z + 1, y + 1, texrec.Right, texrec.Top, c);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -464,12 +464,12 @@ public class BlockRendererTorch
         //top
         {
             int sidetexture = TopTexture;
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, top00.X, top00.Y, top00.Z, texrec.Left(), texrec.Top(), curcolor);
-            AddVertex(m, top01.X, top01.Y, top01.Z, texrec.Left(), texrec.Bottom(), curcolor);
-            AddVertex(m, top10.X, top10.Y, top10.Z, texrec.Right(), texrec.Top(), curcolor);
-            AddVertex(m, top11.X, top11.Y, top11.Z, texrec.Right(), texrec.Bottom(), curcolor);
+            AddVertex(m, top00.X, top00.Y, top00.Z, texrec.Left, texrec.Top, curcolor);
+            AddVertex(m, top01.X, top01.Y, top01.Z, texrec.Left, texrec.Bottom, curcolor);
+            AddVertex(m, top10.X, top10.Y, top10.Z, texrec.Right, texrec.Top, curcolor);
+            AddVertex(m, top11.X, top11.Y, top11.Z, texrec.Right, texrec.Bottom, curcolor);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -481,12 +481,12 @@ public class BlockRendererTorch
         //bottom - same as top, but z is 1 less.
         {
             int sidetexture = SideTexture;
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, bottom00.X, bottom00.Y, bottom00.Z, texrec.Left(), texrec.Top(), curcolor);
-            AddVertex(m, bottom01.X, bottom01.Y, bottom01.Z, texrec.Left(), texrec.Bottom(), curcolor);
-            AddVertex(m, bottom10.X, bottom10.Y, bottom10.Z, texrec.Right(), texrec.Top(), curcolor);
-            AddVertex(m, bottom11.X, bottom11.Y, bottom11.Z, texrec.Right(), texrec.Bottom(), curcolor);
+            AddVertex(m, bottom00.X, bottom00.Y, bottom00.Z, texrec.Left, texrec.Top, curcolor);
+            AddVertex(m, bottom01.X, bottom01.Y, bottom01.Z, texrec.Left, texrec.Bottom, curcolor);
+            AddVertex(m, bottom10.X, bottom10.Y, bottom10.Z, texrec.Right, texrec.Top, curcolor);
+            AddVertex(m, bottom11.X, bottom11.Y, bottom11.Z, texrec.Right, texrec.Bottom, curcolor);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -498,12 +498,12 @@ public class BlockRendererTorch
         //front
         {
             int sidetexture = SideTexture;
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, bottom00.X, bottom00.Y, bottom00.Z, texrec.Left(), texrec.Bottom(), curcolor);
-            AddVertex(m, bottom01.X, bottom01.Y, bottom01.Z, texrec.Right(), texrec.Bottom(), curcolor);
-            AddVertex(m, top00.X, top00.Y, top00.Z, texrec.Left(), texrec.Top(), curcolor);
-            AddVertex(m, top01.X, top01.Y, top01.Z, texrec.Right(), texrec.Top(), curcolor);
+            AddVertex(m, bottom00.X, bottom00.Y, bottom00.Z, texrec.Left, texrec.Bottom, curcolor);
+            AddVertex(m, bottom01.X, bottom01.Y, bottom01.Z, texrec.Right, texrec.Bottom, curcolor);
+            AddVertex(m, top00.X, top00.Y, top00.Z, texrec.Left, texrec.Top, curcolor);
+            AddVertex(m, top01.X, top01.Y, top01.Z, texrec.Right, texrec.Top, curcolor);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -515,12 +515,12 @@ public class BlockRendererTorch
         //back - same as front, but x is 1 greater.
         {
             int sidetexture = SideTexture;
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, bottom10.X, bottom10.Y, bottom10.Z, texrec.Right(), texrec.Bottom(), curcolor);
-            AddVertex(m, bottom11.X, bottom11.Y, bottom11.Z, texrec.Left(), texrec.Bottom(), curcolor);
-            AddVertex(m, top10.X, top10.Y, top10.Z, texrec.Right(), texrec.Top(), curcolor);
-            AddVertex(m, top11.X, top11.Y, top11.Z, texrec.Left(), texrec.Top(), curcolor);
+            AddVertex(m, bottom10.X, bottom10.Y, bottom10.Z, texrec.Right, texrec.Bottom, curcolor);
+            AddVertex(m, bottom11.X, bottom11.Y, bottom11.Z, texrec.Left, texrec.Bottom, curcolor);
+            AddVertex(m, top10.X, top10.Y, top10.Z, texrec.Right, texrec.Top, curcolor);
+            AddVertex(m, top11.X, top11.Y, top11.Z, texrec.Left, texrec.Top, curcolor);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -531,12 +531,12 @@ public class BlockRendererTorch
 
         {
             int sidetexture = SideTexture;
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, bottom00.X, bottom00.Y, bottom00.Z, texrec.Right(), texrec.Bottom(), curcolor);
-            AddVertex(m, top00.X, top00.Y, top00.Z, texrec.Right(), texrec.Top(), curcolor);
-            AddVertex(m, bottom10.X, bottom10.Y, bottom10.Z, texrec.Left(), texrec.Bottom(), curcolor);
-            AddVertex(m, top10.X, top10.Y, top10.Z, texrec.Left(), texrec.Top(), curcolor);
+            AddVertex(m, bottom00.X, bottom00.Y, bottom00.Z, texrec.Right, texrec.Bottom, curcolor);
+            AddVertex(m, top00.X, top00.Y, top00.Z, texrec.Right, texrec.Top, curcolor);
+            AddVertex(m, bottom10.X, bottom10.Y, bottom10.Z, texrec.Left, texrec.Bottom, curcolor);
+            AddVertex(m, top10.X, top10.Y, top10.Z, texrec.Left, texrec.Top, curcolor);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 2);
@@ -548,12 +548,12 @@ public class BlockRendererTorch
         //right - same as left, but y is 1 greater.
         {
             int sidetexture = SideTexture;
-            RectFRef texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
+            RectangleF texrec = TextureAtlas.TextureCoords2d(sidetexture, Game.texturesPacked());
             int lastelement = m.GetVerticesCount();
-            AddVertex(m, bottom01.X, bottom01.Y, bottom01.Z, texrec.Left(), texrec.Bottom(), curcolor);
-            AddVertex(m, top01.X, top01.Y, top01.Z, texrec.Left(), texrec.Top(), curcolor);
-            AddVertex(m, bottom11.X, bottom11.Y, bottom11.Z, texrec.Right(), texrec.Bottom(), curcolor);
-            AddVertex(m, top11.X, top11.Y, top11.Z, texrec.Right(), texrec.Top(), curcolor);
+            AddVertex(m, bottom01.X, bottom01.Y, bottom01.Z, texrec.Left, texrec.Bottom, curcolor);
+            AddVertex(m, top01.X, top01.Y, top01.Z, texrec.Left, texrec.Top, curcolor);
+            AddVertex(m, bottom11.X, bottom11.Y, bottom11.Z, texrec.Right, texrec.Bottom, curcolor);
+            AddVertex(m, top11.X, top11.Y, top11.Z, texrec.Right, texrec.Top, curcolor);
             m.indices[m.indicesCount++] = (lastelement + 1);
             m.indices[m.indicesCount++] = (lastelement + 0);
             m.indices[m.indicesCount++] = (lastelement + 2);

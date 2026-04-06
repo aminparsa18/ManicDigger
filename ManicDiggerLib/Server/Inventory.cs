@@ -17,15 +17,15 @@ public class InventoryUtil
     internal int CellCountY;
 
     //returns null if area is invalid.
-    public PointRef[] ItemsAtArea(int pX, int pY, int sizeX, int sizeY, IntRef retCount)
+    public Point?[] ItemsAtArea(int pX, int pY, int sizeX, int sizeY, IntRef retCount)
     {
-        PointRef[] itemsAtArea = new PointRef[256];
+        Point?[] itemsAtArea = new Point?[256];
         int itemsAtAreaCount = 0;
         for (int xx = 0; xx < sizeX; xx++)
         {
             for (int yy = 0; yy < sizeY; yy++)
             {
-                PointRef cell = PointRef.Create(pX + xx, pY + yy);
+                Point cell = new Point(pX + xx, pY + yy);
                 if (!IsValidCell(cell))
                 {
                     return null;
@@ -39,8 +39,8 @@ public class InventoryUtil
                         {
                             continue;
                         }
-                        if (itemsAtArea[i].X == ItemAtCell(cell).X
-                            && itemsAtArea[i].Y == ItemAtCell(cell).Y)
+                        if (itemsAtArea[i].Value.X == ItemAtCell(cell).Value.X
+                            && itemsAtArea[i].Value.Y == ItemAtCell(cell).Value.Y)
                         {
                             contains = true;
                         }
@@ -56,30 +56,30 @@ public class InventoryUtil
         return itemsAtArea;
     }
 
-    public bool IsValidCell(PointRef p)
+    public bool IsValidCell(Point p)
     {
         return !(p.X < 0 || p.Y < 0 || p.X >= CellCountX || p.Y >= CellCountY);
     }
 
-    public IEnumerable<PointRef> ItemCells(PointRef p)
+    public IEnumerable<Point> ItemCells(Point p)
     {
         Item item = d_Inventory.Items[new ProtoPoint(p.X, p.Y)];
         for (int x = 0; x < d_Items.ItemSizeX(item); x++)
         {
             for (int y = 0; y < d_Items.ItemSizeY(item); y++)
             {
-                yield return PointRef.Create(p.X + x, p.Y + y);
+                yield return new Point(p.X + x, p.Y + y);
             }
         }
     }
 
-    public PointRef ItemAtCell(PointRef p)
+    public Point? ItemAtCell(Point p)
     {
         foreach (var k in d_Inventory.Items)
         {
-            foreach (var pp in ItemCells(PointRef.Create(k.Key.X, k.Key.Y)))
+            foreach (var pp in ItemCells(new Point(k.Key.X, k.Key.Y)))
             {
-                if (p.X == pp.X && p.Y == pp.Y) { return PointRef.Create(k.Key.X, k.Key.Y); }
+                if (p.X == pp.X && p.Y == pp.Y) { return new Point(k.Key.X, k.Key.Y); }
             }
         }
         return null;
@@ -163,10 +163,10 @@ public class InventoryUtil
                     for (int x = 0; x < CellCountX; x++)
                     {
                         IntRef pCount = new();
-                        PointRef[] p = ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), pCount);
+                        Point?[] p = ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), pCount);
                         if (p != null && pCount.value == 1)
                         {
-                            var stacked = d_Items.Stack(d_Inventory.Items[new ProtoPoint(p[0].X, p[0].Y)], item);
+                            var stacked = d_Items.Stack(d_Inventory.Items[new ProtoPoint(p[0].Value.X, p[0].Value.Y)], item);
                             if (stacked != null)
                             {
                                 d_Inventory.Items[new ProtoPoint(x, y)] = stacked;
@@ -181,7 +181,7 @@ public class InventoryUtil
                     for (int x = 0; x < CellCountX; x++)
                     {
                         IntRef pCount = new();
-                        PointRef[] p = ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), pCount);
+                        Point?[] p = ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), pCount);
                         if (p != null && pCount.value == 0)
                         {
                             d_Inventory.Items[new ProtoPoint(x, y)] = item;
@@ -315,7 +315,7 @@ public class InventoryServer : IInventoryController
             {
                 //make sure there is nothing blocking drop.
                 IntRef itemsAtAreaCount = new();
-                PointRef[] itemsAtArea = d_InventoryUtil.ItemsAtArea(pos.AreaX, pos.AreaY,
+                Point?[] itemsAtArea = d_InventoryUtil.ItemsAtArea(pos.AreaX, pos.AreaY,
                     d_Items.ItemSizeX(d_Inventory.DragDropItem), d_Items.ItemSizeY(d_Inventory.DragDropItem), itemsAtAreaCount);
                 if (itemsAtArea == null || itemsAtAreaCount.value > 1)
                 {
@@ -331,18 +331,18 @@ public class InventoryServer : IInventoryController
                 {
                     var swapWith = itemsAtArea[0];
                     //try to stack                        
-                    Item stackResult = d_Items.Stack(d_Inventory.Items[new ProtoPoint(swapWith.X, swapWith.Y)], d_Inventory.DragDropItem);
+                    Item stackResult = d_Items.Stack(d_Inventory.Items[new ProtoPoint(swapWith.Value.X, swapWith.Value.Y)], d_Inventory.DragDropItem);
                     if (stackResult != null)
                     {
-                        d_Inventory.Items[new ProtoPoint(swapWith.X, swapWith.Y)] = stackResult;
+                        d_Inventory.Items[new ProtoPoint(swapWith.Value.X, swapWith.Value.Y)] = stackResult;
                         d_Inventory.DragDropItem = null;
                     }
                     else
                     {
                         //try to swap
                         //swap (swapWith, dragdropitem)
-                        Item z = d_Inventory.Items[new ProtoPoint(swapWith.X, swapWith.Y)];
-                        d_Inventory.Items.Remove(new ProtoPoint(swapWith.X, swapWith.Y));
+                        Item z = d_Inventory.Items[new ProtoPoint(swapWith.Value.X, swapWith.Value.Y)];
+                        d_Inventory.Items.Remove(new ProtoPoint(swapWith.Value.X, swapWith.Value.Y));
                         d_Inventory.Items[new ProtoPoint(pos.AreaX, pos.AreaY)] = d_Inventory.DragDropItem;
                         d_Inventory.DragDropItem = z;
                     }
@@ -440,10 +440,10 @@ public class InventoryServer : IInventoryController
                 for (int y = 0; y < d_InventoryUtil.CellCountY; y++)
                 {
                     IntRef pCount = new();
-                    PointRef[] p = d_InventoryUtil.ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), pCount);
+                    Point?[] p = d_InventoryUtil.ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), pCount);
                     if (p != null && pCount.value == 1)
                     {
-                        var stacked = d_Items.Stack(d_Inventory.Items[new ProtoPoint(p[0].X, p[0].Y)], item);
+                        var stacked = d_Items.Stack(d_Inventory.Items[new ProtoPoint(p[0].Value.X, p[0].Value.Y)], item);
                         if (stacked != null)
                         {
                             d_Inventory.Items[new ProtoPoint(x, y)] = stacked;
@@ -459,7 +459,7 @@ public class InventoryServer : IInventoryController
                 for (int y = 0; y < d_InventoryUtil.CellCountY; y++)
                 {
                     IntRef pCount = new();
-                    PointRef[] p = d_InventoryUtil.ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), pCount);
+                    Point?[] p = d_InventoryUtil.ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), pCount);
                     if (p != null && pCount.value == 0)
                     {
                         d_Inventory.Items[new ProtoPoint(x, y)] = item;

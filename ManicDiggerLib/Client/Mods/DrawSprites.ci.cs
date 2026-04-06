@@ -46,7 +46,8 @@ public class ModDrawSprites : ClientMod
 
         Matrix4.CreateRotationX(Game.GetPi(), out Matrix4 rotX);
         m = rotX * m;
-        game.mvMatrix.ReplaceTop(m);
+        game.mvMatrix.Pop();
+        game.mvMatrix.Push(m);
 
         game.GLLoadMatrix(m);
     }

@@ -13,37 +13,34 @@
     internal int CellCountY;
 
 
-    internal PointRef[] ItemsAtArea(int pX, int pY, int sizeX, int sizeY, IntRef retCount)
+    internal Point?[] ItemsAtArea(int pX, int pY, int sizeX, int sizeY, IntRef retCount)
     {
-        PointRef[] itemsAtArea = new PointRef[256];
+        Point?[] itemsAtArea = new Point?[256];
         int itemsAtAreaCount = 0;
         for (int xx = 0; xx < sizeX; xx++)
         {
             for (int yy = 0; yy < sizeY; yy++)
             {
-                PointRef cell = PointRef.Create(pX + xx, pY + yy);
+                Point cell = new(pX + xx, pY + yy);
                 if (!IsValidCell(cell))
                 {
                     return null;
                 }
-                if (ItemAtCell(cell) != null)
+                Point? itemAtCell = ItemAtCell(cell);
+                if (itemAtCell != null)
                 {
                     bool contains = false;
                     for (int i = 0; i < itemsAtAreaCount; i++)
                     {
-                        if (itemsAtArea[i] == null)
-                        {
-                            continue;
-                        }
-                        if (itemsAtArea[i].X == ItemAtCell(cell).X
-                            && itemsAtArea[i].Y == ItemAtCell(cell).Y)
+                        if (itemsAtArea[i] == itemAtCell)
                         {
                             contains = true;
+                            break;
                         }
                     }
                     if (!contains)
                     {
-                        itemsAtArea[itemsAtAreaCount++] = ItemAtCell(cell);
+                        itemsAtArea[itemsAtAreaCount++] = itemAtCell;
                     }
                 }
             }
@@ -52,7 +49,7 @@
         return itemsAtArea;
     }
 
-    public bool IsValidCell(PointRef p)
+    public bool IsValidCell(Point p)
     {
         return !(p.X < 0 || p.Y < 0 || p.X >= CellCountX || p.Y >= CellCountY);
     }
@@ -71,7 +68,7 @@
         }
     }
 
-    internal PointRef ItemAtCell(PointRef p)
+    internal Point? ItemAtCell(Point? p)
     {
         for (int i = 0; i < d_Inventory.ItemsCount; i++)
         {
@@ -83,9 +80,9 @@
                 {
                     int px = k.X + x;
                     int py = k.Y + y;
-                    if (p.X == px && p.Y == py)
+                    if (p.Value.X == px && p.Value.Y == py)
                     {
-                        return PointRef.Create(k.X, k.Y);
+                        return new Point(k.X, k.Y);
                     }
                 }
             }
@@ -186,36 +183,6 @@ public class GameDataItemsClient
     public int[] TextureIdForInventory()
     {
         return game.TextureIdForInventory;
-    }
-}
-
-public class PointRef
-{
-    internal int X;
-    internal int Y;
-    public static PointRef Create(int x_, int y_)
-    {
-        PointRef p = new()
-        {
-            X = x_,
-            Y = y_
-        };
-        return p;
-    }
-}
-
-public class PointFloatRef
-{
-    internal float X;
-    internal float Y;
-    public static PointFloatRef Create(float x_, float y_)
-    {
-        PointFloatRef p = new()
-        {
-            X = x_,
-            Y = y_
-        };
-        return p;
     }
 }
 

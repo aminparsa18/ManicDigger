@@ -29,15 +29,13 @@
     {
         game.Draw2dTexture(game.WhiteTexture(), 0, 0, game.platform.GetCanvasWidth(), game.platform.GetCanvasHeight(), null, 0, Game.ColorFromArgb(255, 255, 255, 255), false);
         string screenshottext = "&0Screenshot";
-        IntRef textWidth = new();
-        IntRef textHeight = new();
-        game.platform.TextSize(screenshottext, 50, textWidth, textHeight);
+        game.platform.TextSize(screenshottext, 50, out int textWidth, out int textHeight);
         FontCi font = new()
         {
             family = "Arial",
             size = 50
         };
-        game.Draw2dText(screenshottext, font, game.xcenter(textWidth.value), game.ycenter(textHeight.value), null, false);
+        game.Draw2dText(screenshottext, font, game.xcenter(textWidth), game.ycenter(textHeight), null, false);
     }
     
     public override void OnKeyDown(Game game, KeyEventArgs args)

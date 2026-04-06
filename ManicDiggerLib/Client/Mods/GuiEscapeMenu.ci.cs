@@ -462,8 +462,7 @@ public class ModGuiEscapeMenu : ClientMod
 
     private string ResolutionString()
     {
-        IntRef resolutionsCount = new();
-        DisplayResolutionCi res = game.platform.GetDisplayResolutions(resolutionsCount)[game.options.Resolution];
+        DisplayResolutionCi res = game.platform.GetDisplayResolutions(out int resolutionsCount)[game.options.Resolution];
         return game.platform.StringFormat4("{0}x{1}, {2}, {3} Hz",
             game.platform.IntToString(res.Width),
             game.platform.IntToString(res.Height),
@@ -476,10 +475,9 @@ public class ModGuiEscapeMenu : ClientMod
         OptionsCi options = game.options;
         options.Resolution++;
 
-        IntRef resolutionsCount = new();
-        game.platform.GetDisplayResolutions(resolutionsCount);
+        game.platform.GetDisplayResolutions(out int resolutionsCount);
 
-        if (options.Resolution >= resolutionsCount.value)
+        if (options.Resolution >= resolutionsCount)
         {
             options.Resolution = 0;
         }
@@ -499,15 +497,14 @@ public class ModGuiEscapeMenu : ClientMod
     public void UseResolution()
     {
         OptionsCi options = game.options;
-        IntRef resolutionsCount = new();
-        DisplayResolutionCi[] resolutions = game.platform.GetDisplayResolutions(resolutionsCount);
+        DisplayResolutionCi[] resolutions = game.platform.GetDisplayResolutions(out int resolutionsCount);
 
         if (resolutions == null)
         {
             return;
         }
 
-        if (options.Resolution >= resolutionsCount.value)
+        if (options.Resolution >= resolutionsCount)
         {
             options.Resolution = 0;
         }
@@ -601,7 +598,7 @@ public class ModGuiEscapeMenu : ClientMod
         for (int i = 0; i < widgetsCount; i++)
         {
             Button w = widgets[i];
-            game.Draw2dText1(w.Text, w.x, w.y, w.fontsize, IntRef.Create(w.selected ? w.fontcolorselected : w.fontcolor), false);
+            game.Draw2dText1(w.Text, w.x, w.y, w.fontsize, w.selected ? w.fontcolorselected : w.fontcolor, false);
         }
     }
     private readonly Button[] widgets;

@@ -2187,10 +2187,8 @@ public partial class Server : ICurrentTime, IDropItem
         {
             return false;
         }
-        IntRef tableCount = new();
-        Vector3i[] table = d_CraftingTableTool.GetTable(cmd.X, cmd.Y, cmd.Z, tableCount);
-        IntRef ontableCount = new();
-        int[] ontable = d_CraftingTableTool.GetOnTable(table, tableCount.value, ontableCount);
+        Vector3i[] table = d_CraftingTableTool.GetTable(cmd.X, cmd.Y, cmd.Z, out int tableCount);
+        int[] ontable = d_CraftingTableTool.GetOnTable(table, tableCount, out int ontableCount);
         List<int> outputtoadd = new();
         //for (int i = 0; i < craftingrecipes.Count; i++)
         int i = cmd.RecipeId;
@@ -2212,7 +2210,7 @@ public partial class Server : ICurrentTime, IDropItem
                     for (int ii = 0; ii < ingredient.Amount; ii++)
                     {
                         //replace on table
-                        ReplaceOne(ontable, ontableCount.value, ingredient.Type, d_Data.BlockIdEmpty());
+                        ReplaceOne(ontable, ontableCount, ingredient.Type, d_Data.BlockIdEmpty());
                     }
                 }
                 //add output
@@ -2226,12 +2224,12 @@ public partial class Server : ICurrentTime, IDropItem
         }
         foreach (var v in outputtoadd)
         {
-            ReplaceOne(ontable, ontableCount.value, d_Data.BlockIdEmpty(), v);
+            ReplaceOne(ontable, ontableCount, d_Data.BlockIdEmpty(), v);
         }
         int zz = 0;
         if (execute)
         {
-            for (int k = 0; k < tableCount.value; k++)
+            for (int k = 0; k < tableCount; k++)
             {
                 Vector3i v = table[k];
                 SetBlockAndNotify(v.X, v.Y, v.Z + 1, ontable[zz]);
@@ -2241,10 +2239,10 @@ public partial class Server : ICurrentTime, IDropItem
         return true;
     }
 
-    private static int ontableFindAllCount(int[] ontable, IntRef ontableCount, int p)
+    private static int ontableFindAllCount(int[] ontable, int ontableCount, int p)
     {
         int count = 0;
-        for (int i = 0; i < ontableCount.value; i++)
+        for (int i = 0; i < ontableCount; i++)
         {
             if (ontable[i] == p)
             {

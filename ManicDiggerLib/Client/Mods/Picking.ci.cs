@@ -123,10 +123,9 @@ public class ModPicking : ClientMod
             game.lastironsightschangeMilliseconds = game.platform.TimeMillisecondsFromStart();
         }
 
-        IntRef pick2count = new();
         Line3D pick = new();
         GetPickingLine(game, pick, ispistolshoot);
-        BlockPosSide[] pick2 = game.Pick(game.s, pick, pick2count);
+        BlockPosSide[] pick2 = game.Pick(game.s, pick, out int pick2count);
 
         if (left)
         {
@@ -137,7 +136,7 @@ public class ModPicking : ClientMod
             game.handSetAttackBuild = true;
         }
 
-        if (game.overheadcamera && pick2count.value > 0 && left)
+        if (game.overheadcamera && pick2count > 0 && left)
         {
             //if not picked any object, and mouse button is pressed, then walk to destination.
             if (game.Follow == null)
@@ -146,7 +145,7 @@ public class ModPicking : ClientMod
                 game.playerdestination = new Vector3(pick2[0].blockPos[0], pick2[0].blockPos[1] + 1, pick2[0].blockPos[2]);
             }
         }
-        bool pickdistanceok = (pick2count.value > 0); //&& (!ispistol);
+        bool pickdistanceok = (pick2count > 0); //&& (!ispistol);
         if (pickdistanceok)
         {
             if (game.Dist(pick2[0].blockPos[0] + one / 2, pick2[0].blockPos[1] + one / 2, pick2[0].blockPos[2] + one / 2,
@@ -164,7 +163,7 @@ public class ModPicking : ClientMod
                   game.platform.FloatToInt(game.player.position.z),
                   game.platform.FloatToInt(game.player.position.y + (one / 2)));
         BlockPosSide pick0 = new();
-        if (pick2count.value > 0 &&
+        if (pick2count > 0 &&
             ((pickdistanceok && (playertileempty || (playertileemptyclose)))
             || game.overheadcamera)
             )
@@ -197,7 +196,7 @@ public class ModPicking : ClientMod
         }
         if (game.GetFreeMouse())
         {
-            if (pick2count.value > 0)
+            if (pick2count > 0)
             {
                 OnPick_(pick0);
             }
@@ -244,7 +243,7 @@ public class ModPicking : ClientMod
                 float toX = pick.End[0];
                 float toY = pick.End[1];
                 float toZ = pick.End[2];
-                if (pick2count.value > 0)
+                if (pick2count > 0)
                 {
                     toX = pick2[0].blockPos[0];
                     toY = pick2[0].blockPos[1];
@@ -320,7 +319,7 @@ public class ModPicking : ClientMod
                     if (p != null)
                     {
                         //do not allow to shoot through terrain
-                        if (pick2count.value == 0 || (game.Dist(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2], localeyeposX, localeyeposY, localeyeposZ)
+                        if (pick2count == 0 || (game.Dist(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2], localeyeposX, localeyeposY, localeyeposZ)
                             > game.Dist(p.Value.X, p.Value.Y, p.Value.Z, localeyeposX, localeyeposY, localeyeposZ)))
                         {
                             if (!isgrenade)
@@ -347,7 +346,7 @@ public class ModPicking : ClientMod
                         if (p != null)
                         {
                             //do not allow to shoot through terrain
-                            if (pick2count.value == 0 || (game.Dist(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2], localeyeposX, localeyeposY, localeyeposZ)
+                            if (pick2count == 0 || (game.Dist(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2], localeyeposX, localeyeposY, localeyeposZ)
                                 > game.Dist(p.Value.X, p.Value.Y, p.Value.Z, localeyeposX, localeyeposY, localeyeposZ)))
                             {
                                 if (!isgrenade)
@@ -457,7 +456,7 @@ public class ModPicking : ClientMod
                 PickingEnd(left, right, middle, ispistol);
                 return;
             }
-            if (pick2count.value > 0)
+            if (pick2count > 0)
             {
                 if (middle)
                 {
@@ -482,7 +481,7 @@ public class ModPicking : ClientMod
                         }
                         if (!gotoDone)
                         {
-                            IntRef freehand = game.d_InventoryUtil.FreeHand(game.ActiveMaterial);
+                            var freehand = game.d_InventoryUtil.FreeHand(game.ActiveMaterial) ?? -1;
                             //find this block in inventory.
                             for (int i = 0; i < game.d_Inventory.ItemsCount; i++)
                             {
@@ -499,7 +498,7 @@ public class ModPicking : ClientMod
                                     {
                                         game.WearItem(
                                             Game.InventoryPositionMainArea(k.X, k.Y),
-                                            Game.InventoryPositionMaterialSelector(freehand.value));
+                                            Game.InventoryPositionMaterialSelector(freehand));
                                         break;
                                     }
                                     //try to replace current slot
@@ -549,7 +548,7 @@ public class ModPicking : ClientMod
                         {
                             int blocktype;
                             if (left) { blocktype = game.map.GetBlock(newtileX, newtileZ, newtileY); }
-                            else { blocktype = ((game.BlockInHand() == null) ? 1 : game.BlockInHand().value); }
+                            else { blocktype = (game.BlockInHand() == null) ? 1 : game.BlockInHand() ?? -1; }
                             if (left && blocktype == game.d_Data.BlockIdAdminium())
                             {
                                 PickingEnd(left, right, middle, ispistol);
@@ -834,7 +833,7 @@ public class ModPicking : ClientMod
         return RailDirection.DownRight;
     }
 
-    private static void PickEntity(Game game, Line3D pick, BlockPosSide[] pick2, IntRef pick2count)
+    private static void PickEntity(Game game, Line3D pick, BlockPosSide[] pick2, int pick2count)
     {
         game.SelectedEntityId = -1;
         game.currentlyAttackedEntity = -1;
@@ -899,7 +898,7 @@ public class ModPicking : ClientMod
             if (p != null)
             {
                 //do not allow to shoot through terrain
-                if (pick2count.value == 0 || (game.Dist(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2], localeyeposX, localeyeposY, localeyeposZ)
+                if (pick2count == 0 || (game.Dist(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2], localeyeposX, localeyeposY, localeyeposZ)
                     > game.Dist(p.Value.X, p.Value.Y, p.Value.Z, localeyeposX, localeyeposY, localeyeposZ)))
                 {
                     game.SelectedEntityId = i;
@@ -1024,13 +1023,13 @@ public class ModPicking : ClientMod
     private static float CurrentPickDistance(Game game)
     {
         float pick_distance = game.PICK_DISTANCE;
-        IntRef inHand = game.BlockInHand();
+        var inHand = game.BlockInHand() ?? -1;
         if (inHand != null)
         {
-            if (game.blocktypes[inHand.value].PickDistanceWhenUsedFloat > 0)
+            if (game.blocktypes[inHand].PickDistanceWhenUsedFloat > 0)
             {
                 // This check ensures that players can select blocks when no value is given
-                pick_distance = game.DeserializeFloat(game.blocktypes[inHand.value].PickDistanceWhenUsedFloat);
+                pick_distance = game.DeserializeFloat(game.blocktypes[inHand].PickDistanceWhenUsedFloat);
             }
         }
         if (game.cameratype == CameraType.Tpp)

@@ -31,7 +31,7 @@ public class Game
         mLightLevels = new float[16];
         sunlight_ = 15;
         mvMatrix = new();
-        pMatrix = new ();
+        pMatrix = new();
         mvMatrix.Push(Matrix4.Identity);
         pMatrix.Push(Matrix4.Identity);
         whitetexture = -1;
@@ -41,7 +41,6 @@ public class Game
         {
             cachedTextTextures[i] = null;
         }
-        packetLen = new IntRef();
         ENABLE_DRAW2D = true;
         AllowFreemove = true;
         enableCameraControl = true;
@@ -447,7 +446,7 @@ public class Game
         return (block.DrawType == Packet_DrawTypeEnum.Ladder)
             || (block.WalkableType != Packet_WalkableTypeEnum.Solid && block.WalkableType != Packet_WalkableTypeEnum.Fluid);
     }
-    
+
     public int blockheight(int x, int y, int z_)
     {
         for (int z = z_; z >= 0; z--)
@@ -528,7 +527,7 @@ public class Game
     internal MeshBatcher d_Batcher;
     internal int sunlight_;
 
-    public void Draw2dTexture(int textureid, float x1, float y1, float width, float height, IntRef inAtlasId, int atlastextures, int color, bool enabledepthtest)
+    public void Draw2dTexture(int textureid, float x1, float y1, float width, float height, int? inAtlasId, int atlastextures, int color, bool enabledepthtest)
     {
         if (color == ColorFromArgb(255, 255, 255, 255) && inAtlasId == null)
         {
@@ -572,13 +571,10 @@ public class Game
         platform.GlEnableTexture2d();
     }
 
-    private void Draw2dTextureInAtlas(int textureid, float x1, float y1, float width, float height, IntRef inAtlasId, int atlastextures, int color, bool enabledepthtest)
+    private void Draw2dTextureInAtlas(int textureid, float x1, float y1, float width, float height, int? inAtlasId, int atlastextures, int color, bool enabledepthtest)
     {
         RectangleF rect = new(0, 0, 1, 1);
-        if (inAtlasId != null)
-        {
-            TextureAtlasCi.TextureCoords2d(inAtlasId.value, atlastextures, rect);
-        }
+        TextureAtlasCi.TextureCoords2d(inAtlasId ?? 0, atlastextures, rect);
         platform.GlDisableCullFace();
         platform.GlEnableTexture2d();
         platform.BindTexture2d(textureid);
@@ -673,14 +669,14 @@ public class Game
             float y1 = d.y1;
             float width = d.width;
             float height = d.height;
-            IntRef inAtlasId = d.inAtlasId;
+            int inAtlasId = d.inAtlasId;
             int textureId = textureid;
             int color = d.color;
 
             RectangleF rect = new(0, 0, 1, 1);
             if (inAtlasId != null)
             {
-                TextureAtlasCi.TextureCoords2d(inAtlasId.value, texturesPacked(), rect);
+                TextureAtlasCi.TextureCoords2d(inAtlasId, texturesPacked(), rect);
             }
 
             ModelData modelData =
@@ -988,23 +984,24 @@ public class Game
         }
         return null;
     }
-    
+
     public void UpdateTextRendererFont()
     {
         platform.SetTextRendererFont(Font);
     }
 
-    public void Draw2dText(string text, FontCi font, float x, float y, IntRef color, bool enabledepthtest)
+    public void Draw2dText(string text, FontCi font, float x, float y, int? color, bool enabledepthtest)
     {
-        if (text == null || platform.StringTrim(text) == "")
+        if (string.IsNullOrWhiteSpace(text))
         {
             return;
         }
-        color ??= IntRef.Create(ColorFromArgb(255, 255, 255, 255));
+
+        color ??= ColorFromArgb(255, 255, 255, 255);
         Text_ t = new()
         {
             text = text,
-            color = color.value,
+            color = color.Value,
             fontsize = font.size,
             fontfamily = font.family,
             fontstyle = font.style
@@ -1064,12 +1061,14 @@ public class Game
         }
     }
 
-    public static byte[] Serialize(Packet_Client packet, IntRef retLength)
+    public static byte[] Serialize(Packet_Client packet, out int retLength)
     {
         CitoMemoryStream ms = new();
         Packet_ClientSerializer.Serialize(ms, packet);
+
         byte[] data = ms.ToArray();
-        retLength.value = ms.Length();
+        retLength = ms.Length();
+
         return data;
     }
 
@@ -1089,11 +1088,11 @@ public class Game
 
     internal NetClient main;
 
-    private readonly IntRef packetLen;
+    private int packetLen;
     public void SendPacketClient(Packet_Client packetClient)
     {
-        byte[] packet = Serialize(packetClient, packetLen);
-        SendPacket(packet, packetLen.value);
+        byte[] packet = Serialize(packetClient, out packetLen);
+        SendPacket(packet, packetLen);
     }
 
     internal bool IsTeamchat;
@@ -1109,7 +1108,7 @@ public class Game
 
     internal void SendSetBlock(int x, int y, int z, int mode, int type, int materialslot)
     {
-        SendPacketClient(ClientPackets.SetBlock(x,y,z,mode,type, materialslot));
+        SendPacketClient(ClientPackets.SetBlock(x, y, z, mode, type, materialslot));
     }
     internal int ActiveMaterial;
 
@@ -1157,9 +1156,8 @@ public class Game
         if (game.platform.StringContains(s, "http://"))
         {
             containsLink = true;
-            IntRef r = new();
-            string[] temp = game.platform.StringSplit(s, " ", r);
-            for (int i = 0; i < r.value; i++)
+            string[] temp = game.platform.StringSplit(s, " ", out int r);
+            for (int i = 0; i < r; i++)
             {
                 if (game.platform.StringIndexOf(temp[i], "http://") != -1)
                 {
@@ -1172,9 +1170,8 @@ public class Game
         if (game.platform.StringContains(s, "https://"))
         {
             containsLink = true;
-            IntRef r = new();
-            string[] temp = game.platform.StringSplit(s, " ", r);
-            for (int i = 0; i < r.value; i++)
+            string[] temp = game.platform.StringSplit(s, " ", out int r);
+            for (int i = 0; i < r; i++)
             {
                 if (game.platform.StringIndexOf(temp[i], "https://") != -1)
                 {
@@ -1279,7 +1276,7 @@ public class Game
     internal string invalidVersionDrawMessage;
     internal Packet_Server invalidVersionPacketIdentification;
 
-    private readonly Dictionary<string,int> textures;
+    private readonly Dictionary<string, int> textures;
     internal int GetTexture(string p)
     {
         if (!textures.ContainsKey(p))
@@ -1497,13 +1494,15 @@ public class Game
         return pos;
     }
 
-    internal IntRef BlockInHand()
+    internal int? BlockInHand()
     {
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
+
         if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
         {
-            return IntRef.Create(item.BlockId);
+            return item.BlockId;
         }
+
         return null;
     }
 
@@ -1772,7 +1771,7 @@ public class Game
         }
         SendPacketClient(ClientPackets.Health(PlayerStats.CurrentHealth));
     }
-    
+
     public int GetPlayerEyesBlockX()
     {
         return platform.FloatToInt(MathFloor(player.position.x));
@@ -1797,7 +1796,7 @@ public class Game
             return platform.FloatToInt(a) - 1;
         }
     }
-    
+
     internal void UpdateColumnHeight(int x, int y)
     {
         //todo faster
@@ -2143,7 +2142,7 @@ public class Game
     }
 
     internal string Follow;
-    internal IntRef FollowId()
+    internal int? FollowId()
     {
         if (Follow == null)
         {
@@ -2162,7 +2161,7 @@ public class Game
             DrawName p = entities[i].drawName;
             if (p.Name == Follow)
             {
-                return IntRef.Create(i);
+                return i;
             }
         }
         return null;
@@ -2183,18 +2182,14 @@ public class Game
 
     internal int TextSizeWidth(string s, int size)
     {
-        IntRef width = new();
-        IntRef height = new();
-        platform.TextSize(s, size, width, height);
-        return width.value;
+        platform.TextSize(s, size, out int width, out _);
+        return width;
     }
 
     internal int TextSizeHeight(string s, int size)
     {
-        IntRef width = new();
-        IntRef height = new();
-        platform.TextSize(s, size, width, height);
-        return height.value;
+        platform.TextSize(s, size, out _, out int height);
+        return height;
     }
 
     private ModelData circleModelData;
@@ -2676,13 +2671,14 @@ public class Game
     }
     internal int[] materialSlots;
 
-    internal void Draw2dText1(string text, int x, int y, int fontsize, IntRef color, bool enabledepthtest)
+    internal void Draw2dText1(string text, int x, int y, int fontsize, int? color, bool enabledepthtest)
     {
         FontCi font = new()
         {
             family = "Arial",
             size = fontsize
         };
+
         Draw2dText(text, font, x, y, color, enabledepthtest);
     }
 
@@ -2778,7 +2774,7 @@ public class Game
             }
         }
     }
-    
+
     internal void Set3dProjection1(float zfar_)
     {
         Set3dProjection(zfar_, currentfov());
@@ -2821,7 +2817,7 @@ public class Game
         redirectTo = newServer;
         exitToMainMenu = true;
     }
-    
+
     internal Packet_ServerRedirect GetRedirect()
     {
         return redirectTo;
@@ -2843,8 +2839,8 @@ public class Game
         {
             return;
         }
-        IntRef ssCount = new();
-        string[] ss = platform.StringSplit(s_, " ", ssCount);
+
+        string[] ss = platform.StringSplit(s_, " ", out _);
         if (StringTools.StringStartsWith(platform, s_, "."))
         {
             //Client command starting with a "."
@@ -2973,9 +2969,8 @@ public class Game
                 else if (cmd == "serverinfo")
                 {
                     //Fetches server info from given adress
-                    IntRef splitCount = new();
-                    string[] split = platform.StringSplit(arguments, ":", splitCount);
-                    if (splitCount.value == 2)
+                    string[] split = platform.StringSplit(arguments, ":", out int splitCount);
+                    if (splitCount == 2)
                     {
                         QueryClient qClient = new();
                         qClient.SetPlatform(platform);
@@ -3051,7 +3046,7 @@ public class Game
             for (int i = 0; i < requiredMd5.ItemsCount; i++)
             {
                 string md5 = requiredMd5.Items[i];
-                
+
                 //check if file with that content is already in cache
                 if (platform.IsCached(md5))
                 {
@@ -3269,10 +3264,9 @@ public class Game
         int terrainTextures1dCount = 0;
         {
             terrainTexturesPerAtlas = Atlas1dheight() / (atlas2dWidth / atlas2dtiles());
-            IntRef atlasesidCount = new();
-            BitmapCi[] atlases1d = TextureAtlasConverter.Atlas2dInto1d(platform, atlas2d, atlas2dtiles(), Atlas1dheight(), atlasesidCount);
-            terrainTextures1d_ = new int[atlasesidCount.value];
-            for (int i = 0; i < atlasesidCount.value; i++)
+            BitmapCi[] atlases1d = TextureAtlasConverter.Atlas2dInto1d(platform, atlas2d, atlas2dtiles(), Atlas1dheight(), out int atlasesidCount);
+            terrainTextures1d_ = new int[atlasesidCount];
+            for (int i = 0; i < atlasesidCount; i++)
             {
                 BitmapCi bmp = atlases1d[i];
                 int texture = platform.LoadTextureFromBitmap(bmp);
@@ -3731,29 +3725,43 @@ public class Game
     private float lastplayerpositionY;
     private float lastplayerpositionZ;
 
-    public BlockPosSide[] Pick(BlockOctreeSearcher s_, Line3D line, IntRef retCount)
+    public BlockPosSide[] Pick(BlockOctreeSearcher s_, Line3D line, out int retCount)
     {
-        //pick terrain
         int minX = platform.FloatToInt(Math.Min(line.Start[0], line.End[0]));
         int minY = platform.FloatToInt(Math.Min(line.Start[1], line.End[1]));
         int minZ = platform.FloatToInt(Math.Min(line.Start[2], line.End[2]));
+
         if (minX < 0) { minX = 0; }
         if (minY < 0) { minY = 0; }
         if (minZ < 0) { minZ = 0; }
+
         int maxX = platform.FloatToInt(Math.Max(line.Start[0], line.End[0]));
         int maxY = platform.FloatToInt(Math.Max(line.Start[1], line.End[1]));
         int maxZ = platform.FloatToInt(Math.Max(line.Start[2], line.End[2]));
+
         if (maxX > map.MapSizeX) { maxX = map.MapSizeX; }
         if (maxY > map.MapSizeZ) { maxY = map.MapSizeZ; }
         if (maxZ > map.MapSizeY) { maxZ = map.MapSizeY; }
+
         int sizex = maxX - minX + 1;
         int sizey = maxY - minY + 1;
         int sizez = maxZ - minZ + 1;
-        int size = (int)BitOperations.RoundUpToPowerOf2((uint)Math.Max(sizex, Math.Max(sizey, sizez)));
+
+        int size = (int)BitOperations.RoundUpToPowerOf2(
+            (uint)Math.Max(sizex, Math.Max(sizey, sizez))
+        );
+
         s_.StartBox = Box3D.Create(minX, minY, minZ, size);
-        //s_.StartBox = Box3D.Create(0, 0, 0, BitTools.NextPowerOfTwo(MaxInt(MapSizeX, MaxInt(MapSizeY, MapSizeZ))));
-        BlockPosSide[] pick2 = s_.LineIntersection(IsBlockEmpty_.Create(this), GetBlockHeight_.Create(this), line, retCount);
-        PickSort(pick2, retCount.value, line.Start[0], line.Start[1], line.Start[2]);
+
+        BlockPosSide[] pick2 = s_.LineIntersection(
+            IsBlockEmpty_.Create(this),
+            GetBlockHeight_.Create(this),
+            line,
+            out retCount
+        );
+
+        PickSort(pick2, retCount, line.Start[0], line.Start[1], line.Start[2]);
+
         return pick2;
     }
 
@@ -4045,7 +4053,7 @@ public class Game
             platform.GLDeleteTexture(cachedTextTextures[i].texture.textureId);
         }
     }
-    
+
     public void StartTyping()
     {
         GuiTyping = TypingState.Typing;

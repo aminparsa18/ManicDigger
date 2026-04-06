@@ -411,7 +411,7 @@ public class ModNetworkProcess : ClientMod
                 }
                 break;
             case Packet_ServerIdEnum.Follow:
-                IntRef oldFollowId = game.FollowId();
+                var oldFollowId = game.FollowId();
                 game.Follow = packet.Follow.Client;
                 if (packet.Follow.Tpp != 0)
                 {

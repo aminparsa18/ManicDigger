@@ -114,20 +114,18 @@ public class ModDraw2dMisc : ClientMod
             family = "Arial",
             size = 14
         };
-        IntRef w = new();
-        IntRef h = new();
-        game.platform.TextSize(name, 14, w, h);
-        game.Draw2dText(name, font, game.xcenter(w.value), 40, null, false);
+        game.platform.TextSize(name, 14, out int w, out int h);
+        game.Draw2dText(name, font, game.xcenter(w), 40, null, false);
         if (useInfo)
         {
             name = game.platform.StringFormat(game.language.PressToUse(), "E");
-            game.platform.TextSize(name, 10, w, h);
+            game.platform.TextSize(name, 10, out w, out h);
             FontCi font2 = new()
             {
                 family = "Arial",
                 size = 10
             };
-            game.Draw2dText(name, font2, game.xcenter(w.value), 70, null, false);
+            game.Draw2dText(name, font2, game.xcenter(w), 70, null, false);
         }
     }
 
@@ -164,13 +162,14 @@ public class ModDraw2dMisc : ClientMod
                     size = 18
                 };
                 game.Draw2dText(s, font, game.Width() - game.TextSizeWidth(s, 18) - 50,
-                    game.Height() - game.TextSizeHeight(s, 18) - 50, loaded == 0 ? IntRef.Create(Game.ColorFromArgb(255, 255, 0, 0)) : IntRef.Create(Game.ColorFromArgb(255, 255, 255, 255)), false);
+                    game.Height() - game.TextSizeHeight(s, 18) - 50, loaded == 0 ? Game.ColorFromArgb(255, 255, 0, 0) 
+                    : Game.ColorFromArgb(255, 255, 255, 255), false);
                 if (loaded == 0)
                 {
                     font.size = 14;
                     string pressR = "Press R to reload";
                     game.Draw2dText(pressR, font, game.Width() - game.TextSizeWidth(pressR, 14) - 50,
-                        game.Height() - game.TextSizeHeight(s, 14) - 80, IntRef.Create(Game.ColorFromArgb(255, 255, 0, 0)), false);
+                        game.Height() - game.TextSizeHeight(s, 14) - 80, Game.ColorFromArgb(255, 255, 0, 0), false);
                 }
             }
         }

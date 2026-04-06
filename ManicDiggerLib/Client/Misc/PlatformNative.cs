@@ -97,19 +97,22 @@ public class GamePlatformNative : GamePlatform
         return p.ToLowerInvariant();
     }
 
-    public override int[] StringToCharArray(string s, IntRef length)
+    public override int[] StringToCharArray(string s, out int length)
     {
         if (s == null)
         {
-            length.value = 0;
+            length = 0;
             return [];
         }
-        length.value = s.Length;
+
+        length = s.Length;
+
         int[] charArray = new int[s.Length];
         for (int i = 0; i < s.Length; i++)
         {
             charArray[i] = s[i];
         }
+
         return charArray;
     }
 
@@ -123,10 +126,10 @@ public class GamePlatformNative : GamePlatform
         return s.ToString();
     }
 
-    public override string[] StringSplit(string value, string separator, IntRef returnLength)
+    public override string[] StringSplit(string value, string separator, out int returnLength)
     {
         string[] ret = value.Split([separator[0]]);
-        returnLength.value = ret.Length;
+        returnLength = ret.Length;
         return ret;
     }
 
@@ -165,10 +168,10 @@ public class GamePlatformNative : GamePlatform
         return string.Format(format, arg0, arg1, arg2, arg3);
     }
 
-    public override byte[] StringToUtf8ByteArray(string s, IntRef retLength)
+    public override byte[] StringToUtf8ByteArray(string s, out int retLength)
     {
         byte[] data = Encoding.UTF8.GetBytes(s);
-        retLength.value = data.Length;
+        retLength = data.Length;
         return data;
     }
 
@@ -238,11 +241,11 @@ public class GamePlatformNative : GamePlatform
         return size;
     }
 
-    public override void TextSize(string text, float fontSize, IntRef outWidth, IntRef outHeight)
+    public override void TextSize(string text, float fontSize, out int outWidth, out int outHeight)
     {
         SizeF size = TextSize(text, fontSize);
-        outWidth.value = (int)size.Width;
-        outHeight.value = (int)size.Height;
+        outWidth = (int)size.Width;
+        outHeight = (int)size.Height;
     }
 
     public override void Exit()
@@ -265,22 +268,22 @@ public class GamePlatformNative : GamePlatform
         return Path.Combine(part1, part2);
     }
 
-    public override string[] DirectoryGetFiles(string path, IntRef length)
+    public override string[] DirectoryGetFiles(string path, out int length)
     {
         if (!Directory.Exists(path))
         {
-            length.value = 0;
+            length = 0;
             return [];
         }
         string[] files = Directory.GetFiles(path);
-        length.value = files.Length;
+        length = files.Length;
         return files;
     }
 
-    public override string[] FileReadAllLines(string path, IntRef length)
+    public override string[] FileReadAllLines(string path, out int length)
     {
         string[] lines = File.ReadAllLines(path);
-        length.value = lines.Length;
+        length = lines.Length;
         return lines;
     }
 
@@ -584,7 +587,7 @@ public class GamePlatformNative : GamePlatform
             ret[i] = decompressed[i];
         }
     }
-    public override byte[] GzipCompress(byte[] data, int dataLength, IntRef retLength)
+    public override byte[] GzipCompress(byte[] data, int dataLength, out int retLength)
     {
         byte[] data_ = new byte[dataLength];
         for (int i = 0; i < dataLength; i++)
@@ -592,7 +595,7 @@ public class GamePlatformNative : GamePlatform
             data_[i] = data[i];
         }
         byte[] compressed = compression.Compress(data_);
-        retLength.value = compressed.Length;
+        retLength = compressed.Length;
         return compressed;
     }
     public bool ENABLE_CHATLOG = true;
@@ -643,7 +646,7 @@ public class GamePlatformNative : GamePlatform
         return arr.Length;
     }
 
-    public override string[] ReadAllLines(string p, IntRef retCount)
+    public override string[] ReadAllLines(string p, out int retCount)
     {
         List<string> lines = new();
         StringReader reader = new(p);
@@ -652,7 +655,7 @@ public class GamePlatformNative : GamePlatform
         {
             lines.Add(line);
         }
-        retCount.value = lines.Count;
+        retCount = lines.Count;
         return lines.ToArray();
     }
 
@@ -1406,7 +1409,7 @@ public class GamePlatformNative : GamePlatform
 
     private DisplayResolutionCi[] resolutions;
     private int resolutionsCount;
-    public override DisplayResolutionCi[] GetDisplayResolutions(IntRef retResolutionsCount)
+    public override DisplayResolutionCi[] GetDisplayResolutions(out int retResolutionsCount)
     {
         if (resolutions == null)
         {
@@ -1425,7 +1428,7 @@ public class GamePlatformNative : GamePlatform
                 resolutions[resolutionsCount++] = r2;
             }
         }
-        retResolutionsCount.value = resolutionsCount;
+        retResolutionsCount = resolutionsCount;
         return resolutions;
     }
 

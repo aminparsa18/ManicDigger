@@ -37,38 +37,28 @@
             return;
         }
 
-        IntRef serverNameWidth = new();
-        IntRef serverNameHeight = new();
-        platform.TextSize(game.ServerInfo.ServerName, 14, serverNameWidth, serverNameHeight);
-        game.Draw2dText(game.ServerInfo.ServerName, game.fontMapLoading, game.xcenter(serverNameWidth.value), Height / 2 - 150, null, false);
+        platform.TextSize(game.ServerInfo.ServerName, 14, out int serverNameWidth, out int serverNameHeight);
+        game.Draw2dText(game.ServerInfo.ServerName, game.fontMapLoading, game.xcenter(serverNameWidth), Height / 2 - 150, null, false);
 
         if (game.ServerInfo.ServerMotd != null)
         {
-            IntRef serverMotdWidth = new();
-            IntRef serverMotdHeight = new();
-            platform.TextSize(game.ServerInfo.ServerMotd, 14, serverMotdWidth, serverMotdHeight);
-            game.Draw2dText(game.ServerInfo.ServerMotd, game.fontMapLoading, game.xcenter(serverMotdWidth.value), Height / 2 - 100, null, false);
+            platform.TextSize(game.ServerInfo.ServerMotd, 14, out int serverMotdWidth, out int serverMotdHeight);
+            game.Draw2dText(game.ServerInfo.ServerMotd, game.fontMapLoading, game.xcenter(serverMotdWidth), Height / 2 - 100, null, false);
         }
 
-        IntRef connectingWidth = new();
-        IntRef connectingHeight = new();
-        platform.TextSize(connecting, 14, connectingWidth, connectingHeight);
-        game.Draw2dText(connecting, game.fontMapLoading, game.xcenter(connectingWidth.value), Height / 2 - 50, null, false);
+        platform.TextSize(connecting, 14, out int connectingWidth, out int connectingHeight);
+        game.Draw2dText(connecting, game.fontMapLoading, game.xcenter(connectingWidth), Height / 2 - 50, null, false);
 
         string progress = platform.StringFormat(game.language.ConnectingProgressPercent(), platform.IntToString(game.maploadingprogress.ProgressPercent));
         string progress1 = platform.StringFormat(game.language.ConnectingProgressKilobytes(), platform.IntToString(game.maploadingprogress.ProgressBytes / 1024));
 
         if (game.maploadingprogress.ProgressPercent > 0)
         {
-            IntRef progressWidth = new();
-            IntRef progressHeight = new();
-            platform.TextSize(progress, 14, progressWidth, progressHeight);
-            game.Draw2dText(progress, game.fontMapLoading, game.xcenter(progressWidth.value), Height / 2 - 20, null, false);
+            platform.TextSize(progress, 14, out int progressWidth, out int progressHeight);
+            game.Draw2dText(progress, game.fontMapLoading, game.xcenter(progressWidth), Height / 2 - 20, null, false);
 
-            IntRef progress1Width = new();
-            IntRef progress1Height = new();
-            platform.TextSize(progress1, 14, progress1Width, progress1Height);
-            game.Draw2dText(progress1, game.fontMapLoading, game.xcenter(progress1Width.value), Height / 2 + 10, null, false);
+            platform.TextSize(progress1, 14, out int progress1Width, out int progress1Height);
+            game.Draw2dText(progress1, game.fontMapLoading, game.xcenter(progress1Width), Height / 2 + 10, null, false);
 
             float progressratio = one * game.maploadingprogress.ProgressPercent / 100;
             int sizex = 400;

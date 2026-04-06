@@ -94,7 +94,7 @@ public class ModGuiInventory : ClientMod
         if (SelectedMaterialSelectorSlot(scaledMouse) != null)
         {
             //int oldActiveMaterial = ActiveMaterial.ActiveMaterial;
-            game.ActiveMaterial = SelectedMaterialSelectorSlot(scaledMouse).value;
+            game.ActiveMaterial = SelectedMaterialSelectorSlot(scaledMouse) ?? 0;
             //if (oldActiveMaterial == ActiveMaterial.ActiveMaterial)
             {
                 Packet_InventoryPosition p = new()
@@ -186,7 +186,7 @@ public class ModGuiInventory : ClientMod
             Packet_InventoryPosition p = new()
             {
                 Type = Packet_InventoryPositionTypeEnum.WearPlace,
-                WearPlace = (SelectedWearPlace(scaledMouse).value),
+                WearPlace = SelectedWearPlace(scaledMouse) ?? -1,
                 ActiveMaterial = game.ActiveMaterial
             };
             controller.InventoryClick(p);
@@ -253,13 +253,13 @@ public class ModGuiInventory : ClientMod
         ScrollingDownTimeMilliseconds = 0;
     }
 
-    private IntRef SelectedMaterialSelectorSlot(Point scaledMouse)
+    private int? SelectedMaterialSelectorSlot(Point scaledMouse)
     {
         if (scaledMouse.X >= MaterialSelectorStartX() && scaledMouse.Y >= MaterialSelectorStartY()
             && scaledMouse.X < MaterialSelectorStartX() + 10 * ActiveMaterialCellSize()
             && scaledMouse.Y < MaterialSelectorStartY() + 10 * ActiveMaterialCellSize())
         {
-            return IntRef.Create((scaledMouse.X - MaterialSelectorStartX()) / ActiveMaterialCellSize());
+            return (scaledMouse.X - MaterialSelectorStartX()) / ActiveMaterialCellSize();
         }
         return null;
     }
@@ -358,9 +358,8 @@ public class ModGuiInventory : ClientMod
                     && selectedInPage.Value.Y + sizey <= CellCountInPageY)
                 {
                     int c;
-                    IntRef itemsAtAreaCount = new();
-                    Point?[] itemsAtArea = inventoryUtil.ItemsAtArea(selectedInPage.Value.X, selectedInPage.Value.Y + ScrollLine, sizex, sizey, itemsAtAreaCount);
-                    if (itemsAtArea == null || itemsAtAreaCount.value > 1)
+                    Point?[] itemsAtArea = inventoryUtil.ItemsAtArea(selectedInPage.Value.X, selectedInPage.Value.Y + ScrollLine, sizex, sizey, out int itemsAtAreaCount);
+                    if (itemsAtArea == null || itemsAtAreaCount > 1)
                     {
                         c = Game.ColorFromArgb(100, 255, 0, 0); // red
                     }
@@ -373,15 +372,15 @@ public class ModGuiInventory : ClientMod
                         null, 0, c, false);
                 }
             }
-            IntRef selectedWear = SelectedWearPlace(scaledMouse);
+            var selectedWear = SelectedWearPlace(scaledMouse) ?? 0;
             if (selectedWear != null)
             {
-                Point p = new Point(wearPlaceStart[selectedWear.value].X + InventoryStartX(), wearPlaceStart[selectedWear.value].Y + InventoryStartY());
-                Point size = wearPlaceCells[selectedWear.value];
+                Point p = new Point(wearPlaceStart[selectedWear].X + InventoryStartX(), wearPlaceStart[selectedWear].Y + InventoryStartY());
+                Point size = wearPlaceCells[selectedWear];
 
                 int c;
-                Packet_Item itemsAtArea = inventoryUtil.ItemAtWearPlace(selectedWear.value, game.ActiveMaterial);
-                if (!GameDataItemsClient.CanWear(selectedWear.value, game.d_Inventory.DragDropItem))
+                Packet_Item itemsAtArea = inventoryUtil.ItemAtWearPlace(selectedWear, game.ActiveMaterial);
+                if (!GameDataItemsClient.CanWear(selectedWear, game.d_Inventory.DragDropItem))
                 {
                     c = Game.ColorFromArgb(100, 255, 0, 0); // red
                 }
@@ -425,7 +424,7 @@ public class ModGuiInventory : ClientMod
         }
         if (SelectedWearPlace(scaledMouse) != null)
         {
-            int selected = SelectedWearPlace(scaledMouse).value;
+            int selected = SelectedWearPlace(scaledMouse) ?? 0;
             Packet_Item itemAtWearPlace = inventoryUtil.ItemAtWearPlace(selected, game.ActiveMaterial);
             if (itemAtWearPlace != null)
             {
@@ -434,7 +433,7 @@ public class ModGuiInventory : ClientMod
         }
         if (SelectedMaterialSelectorSlot(scaledMouse) != null)
         {
-            int selected = SelectedMaterialSelectorSlot(scaledMouse).value;
+            int selected = SelectedMaterialSelectorSlot(scaledMouse) ?? 0;
             Packet_Item item = game.d_Inventory.RightHand[selected];
             if (item != null)
             {
@@ -479,7 +478,7 @@ public class ModGuiInventory : ClientMod
             MaterialSelectorStartY(), ActiveMaterialCellSize() * 64 / 48, ActiveMaterialCellSize() * 64 / 48);
     }
 
-    private IntRef SelectedWearPlace(Point scaledMouse)
+    private int? SelectedWearPlace(Point scaledMouse)
     {
         for (int i = 0; i < wearPlaceStartLength; i++)
         {
@@ -491,7 +490,7 @@ public class ModGuiInventory : ClientMod
                 && scaledMouse.X < p.X + cells.X * CellDrawSize
                 && scaledMouse.Y < p.Y + cells.Y * CellDrawSize)
             {
-                return IntRef.Create(i);
+                return i;
             }
         }
         return null;
@@ -523,7 +522,7 @@ public class ModGuiInventory : ClientMod
                 return;
             }
             game.Draw2dTexture(game.terrainTexture, screenposX, screenposY,
-                drawsizeX, drawsizeY, IntRef.Create(dataItems.TextureIdForInventory()[item.BlockId]), Game.texturesPacked(), Game.ColorFromArgb(255, 255, 255, 255), false);
+                drawsizeX, drawsizeY, dataItems.TextureIdForInventory()[item.BlockId], Game.texturesPacked(), Game.ColorFromArgb(255, 255, 255, 255), false);
             if (item.BlockCount > 1)
             {
                 FontCi font = new()
@@ -545,14 +544,12 @@ public class ModGuiInventory : ClientMod
     {
         int sizex = dataItems.ItemSizeX(item);
         int sizey = dataItems.ItemSizeY(item);
-        IntRef tw = new();
-        IntRef th = new();
         float one = 1;
-        game.platform.TextSize(dataItems.ItemInfo(item), 11 + one / 2, tw, th);
-        tw.value += 6;
-        th.value += 4;
-        int w = game.platform.FloatToInt(tw.value + CellDrawSize * sizex);
-        int h = game.platform.FloatToInt(th.value < CellDrawSize * sizey ? CellDrawSize * sizey + 4 : th.value);
+        game.platform.TextSize(dataItems.ItemInfo(item), 11 + one / 2, out int tw, out int th);
+        tw += 6;
+        th += 4;
+        int w = game.platform.FloatToInt(tw + CellDrawSize * sizex);
+        int h = game.platform.FloatToInt(th < CellDrawSize * sizey ? CellDrawSize * sizey + 4 : th);
         if (screenposX < w + 20) { screenposX = w + 20; }
         if (screenposY < h + 20) { screenposY = h + 20; }
         if (screenposX > game.Width() - (w + 20)) { screenposX = game.Width() - (w + 20); }
@@ -564,7 +561,7 @@ public class ModGuiInventory : ClientMod
             family = "Arial",
             size = 10
         };
-        game.Draw2dText(dataItems.ItemInfo(item), font, screenposX - tw.value + 4, screenposY - h + 2, null, false);
+        game.Draw2dText(dataItems.ItemInfo(item), font, screenposX - tw + 4, screenposY - h + 2, null, false);
         Packet_Item item2 = new()
         {
             BlockId = item.BlockId

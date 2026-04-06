@@ -198,17 +198,15 @@ public class MainMenu
 
         int texture = p.LoadTextureFromBitmap(textBitmap);
         
-        IntRef textWidth = new();
-        IntRef textHeight = new();
-        p.TextSize(text, fontSize, textWidth, textHeight);
+        p.TextSize(text, fontSize, out int textWidth, out int textHeight);
 
         textTexture.texture = texture;
         textTexture.texturewidth = p.FloatToInt(p.BitmapGetWidth(textBitmap));
         textTexture.textureheight = p.FloatToInt(p.BitmapGetHeight(textBitmap));
         textTexture.text = text;
         textTexture.size = fontSize;
-        textTexture.textwidth = textWidth.value;
-        textTexture.textheight = textHeight.value;
+        textTexture.textwidth = textWidth;
+        textTexture.textheight = textHeight;
 
         p.BitmapDelete(textBitmap);
         
@@ -533,19 +531,19 @@ public class MainMenu
         }
     }
 
-    internal string[] GetSavegames(IntRef length)
+    internal string[] GetSavegames(out int length)
     {
-        string[] files = p.DirectoryGetFiles(p.PathSavegames(), length);
-        string[] savegames = new string[length.value];
+        string[] files = p.DirectoryGetFiles(p.PathSavegames(), out length);
+        string[] savegames = new string[length];
         int count = 0;
-        for (int i = 0; i < length.value; i++)
+        for (int i = 0; i < length; i++)
         {
             if(StringEndsWith(files[i], ".mddbs"))
             {
                 savegames[count++] = files[i];
             }
         }
-        length.value = count;
+        length = count;
         return savegames;
     }
 
@@ -556,15 +554,13 @@ public class MainMenu
 
     public int StringLength(string a)
     {
-        IntRef length = new();
-        p.StringToCharArray(a, length);
-        return length.value;
+        p.StringToCharArray(a, out int length);
+        return length;
     }
 
     public string CharToString(int a)
     {
-        int[] arr = new int[1];
-        arr[0] = a;
+        int[] arr = [a];
         return p.CharArrayToString(arr, 1);
     }
 
@@ -872,7 +868,7 @@ public class Screen
                     }
                     else
                     {
-                        string[] strings = menu.p.StringSplit(w.text, "\n", new IntRef());
+                        string[] strings = menu.p.StringSplit(w.text, "\n", out _);
                         if (w.selected)
                         {
                             //Highlight text if selected

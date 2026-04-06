@@ -232,13 +232,11 @@ public class TableSerializer
 {
     public static void Deserialize(GamePlatform p, string data, TableBinding b)
     {
-        IntRef linesCount = new();
-        string[] lines = p.ReadAllLines(data, linesCount);
+        string[] lines = p.ReadAllLines(data, out int linesCount);
         string[] header = null;
-        IntRef headerLength = new();
         string current = "";
         int currentI = 0;
-        for (int i = 0; i < linesCount.value; i++)
+        for (int i = 0; i < linesCount; i++)
         {
             string s = p.StringTrim(lines[i]);
             if (s == "")
@@ -255,7 +253,7 @@ public class TableSerializer
                 current = p.StringReplace(s, "section=", "");
 
                 string sHeader = p.StringTrim(lines[i + 1]);
-                header = p.StringSplit(sHeader, "\t", headerLength);
+                header = p.StringSplit(sHeader, "\t", out _);
                 i++; // header
                 currentI = 0;
                 continue;
@@ -265,9 +263,8 @@ public class TableSerializer
                 {
                     continue;
                 }
-                IntRef ssLength = new();
-                string[] ss = p.StringSplit(s, "\t", ssLength);
-                for (int k = 0; k < ssLength.value; k++)
+                string[] ss = p.StringSplit(s, "\t", out int ssLength);
+                for (int k = 0; k < ssLength; k++)
                 {
                     b.Set(current, currentI, header[k], ss[k]);
                 }
@@ -310,7 +307,6 @@ public class AnimatedModelRenderer
     {
         one = 1;
         tempframes = new Keyframe[256];
-        tempframesCount = new IntRef();
         tempVec3 = new float[3];
     }
     private readonly float one;
@@ -440,14 +436,14 @@ public class AnimatedModelRenderer
 
     private void GetAnimation(Node node, float[] ret, int type)
     {
-        GetFrames(node.name, type, tempframes, tempframesCount);
-        int currentI = GetFrameCurrent(tempframes, tempframesCount.value);
+        GetFrames(node.name, type, tempframes, out int tempframesCount);
+        int currentI = GetFrameCurrent(tempframes, tempframesCount);
         if (currentI == -1)
         {
             GetDefaultFrame(node, type, ret);
             return;
         }
-        int nextI = (currentI + 1) % tempframesCount.value;
+        int nextI = (currentI + 1) % tempframesCount;
 
         Keyframe current = tempframes[currentI];
         Keyframe next = tempframes[nextI];
@@ -528,10 +524,12 @@ public class AnimatedModelRenderer
         return v0 + (v1 - v0) * t;
     }
 
-    private void GetFrames(string nodeName, int type, Keyframe[] frames, IntRef count)
+    private void GetFrames(string nodeName, int type, Keyframe[] frames, out int count)
     {
-        count.value = 0;
+        count = 0;
+
         string animName = m.animations[anim].name;
+
         for (int i = 0; i < m.keyframesCount; i++)
         {
             Keyframe k = m.keyframes[i];
@@ -551,12 +549,12 @@ public class AnimatedModelRenderer
             {
                 continue;
             }
-            frames[count.value++] = k;
+
+            frames[count++] = k;
         }
     }
 
     private readonly Keyframe[] tempframes;
-    private readonly IntRef tempframesCount;
     private int GetFrameCurrent(Keyframe[] frames, int framesCount)
     {
         string animName = m.animations[anim].name;

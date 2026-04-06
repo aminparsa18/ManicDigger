@@ -107,9 +107,8 @@
 
         if (savegames == null)
         {
-            IntRef savegamesCount_ = new();
-            savegames = menu.GetSavegames(savegamesCount_);
-            savegamesCount = savegamesCount_.value;
+            savegames = menu.GetSavegames(out int savegamesCount_);
+            savegamesCount = savegamesCount_;
         }
 
         for (int i = 0; i < 10; i++)

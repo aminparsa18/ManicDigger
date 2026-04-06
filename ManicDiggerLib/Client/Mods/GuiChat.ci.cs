@@ -248,16 +248,15 @@ public class ModGuiChat : ClientMod
             //Handles player name autocomplete in chat
             if (eKey == game.GetKey(Keys.Tab) && game.platform.StringTrim(game.GuiTypingBuffer) != "")
             {
-                IntRef partsLength = new();
-                string[] parts = game.platform.StringSplit(game.GuiTypingBuffer, " ", partsLength);
-                string completed = DoAutocomplete(parts[partsLength.value - 1]);
+                string[] parts = game.platform.StringSplit(game.GuiTypingBuffer, " ", out int partsLength);
+                string completed = DoAutocomplete(parts[partsLength - 1]);
                 if (completed == "")
                 {
                     //No completion available. Abort.
                     args.SetHandled(true);
                     return;
                 }
-                else if (partsLength.value == 1)
+                else if (partsLength == 1)
                 {
                     //Part is first word. Format as "<name>: "
                     game.GuiTypingBuffer = StringTools.StringAppend(game.platform, completed, ": ");
@@ -265,7 +264,7 @@ public class ModGuiChat : ClientMod
                 else
                 {
                     //Part is not first. Just complete "<name> "
-                    parts[partsLength.value - 1] = completed;
+                    parts[partsLength - 1] = completed;
                     game.GuiTypingBuffer = StringTools.StringAppend(game.platform, game.platform.StringJoin(parts, " "), " ");
                 }
                 args.SetHandled(true);

@@ -13,7 +13,7 @@
     internal int CellCountY;
 
 
-    internal Point?[] ItemsAtArea(int pX, int pY, int sizeX, int sizeY, IntRef retCount)
+    internal Point?[] ItemsAtArea(int pX, int pY, int sizeX, int sizeY, out int retCount)
     {
         Point?[] itemsAtArea = new Point?[256];
         int itemsAtAreaCount = 0;
@@ -24,6 +24,7 @@
                 Point cell = new(pX + xx, pY + yy);
                 if (!IsValidCell(cell))
                 {
+                    retCount = 0;
                     return null;
                 }
                 Point? itemAtCell = ItemAtCell(cell);
@@ -45,7 +46,7 @@
                 }
             }
         }
-        retCount.value = itemsAtAreaCount;
+        retCount = itemsAtAreaCount;
         return itemsAtArea;
     }
 
@@ -90,17 +91,19 @@
         return null;
     }
 
-    internal IntRef FreeHand(int ActiveMaterial_)
+    internal int? FreeHand(int activeMaterial)
     {
-        IntRef freehand = null;
-        if (d_Inventory.RightHand[ActiveMaterial_] == null) return IntRef.Create(ActiveMaterial_);
+        if (d_Inventory.RightHand[activeMaterial] == null)
+            return activeMaterial;
+
         for (int i = 0; i < 10; i++)
         {
             if (d_Inventory.RightHand[i] == null)
             {
-                return freehand;
+                return i;
             }
         }
+
         return null;
     }
 }

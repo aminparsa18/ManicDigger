@@ -419,19 +419,19 @@ public class ModDrawTerrain : ClientMod
             };
 
             VerticesIndicesToLoad[] a = null;
-            IntRef retCount = new();
+            int retCount = 0;
             if (!IsSolidChunk(currentChunk, (bufferedChunkSize) * (bufferedChunkSize) * (bufferedChunkSize)))
             {
                 CalculateShadows(x, y, z);
-                a = game.d_TerrainChunkTesselator.MakeChunk(x, y, z, currentChunk, currentChunkShadows, game.mLightLevels, retCount);
+                a = game.d_TerrainChunkTesselator.MakeChunk(x, y, z, currentChunk, currentChunkShadows, game.mLightLevels, out retCount);
             }
 
-            r.data = new VerticesIndicesToLoad[retCount.value];
-            for (int i = 0; i < retCount.value; i++)
+            r.data = new VerticesIndicesToLoad[retCount];
+            for (int i = 0; i < retCount; i++)
             {
                 r.data[i] = VerticesIndicesToLoadClone(a[i]);
             }
-            r.dataCount = retCount.value;
+            r.dataCount = retCount;
             redraw[redrawCount++] = r;
 #if !CITO
         }

@@ -135,13 +135,11 @@ public class ScreenMultiplayer : Screen
                 serversOnList[i] = null;
                 thumbResponses[i] = null;
             }
-            IntRef serversCount = new();
-            string[] servers = menu.p.StringSplit(serverListCsv.GetString(menu.p), "\n", serversCount);
-            for (int i = 0; i < serversCount.value; i++)
+            string[] servers = menu.p.StringSplit(serverListCsv.GetString(menu.p), "\n", out int serversCount);
+            for (int i = 0; i < serversCount; i++)
             {
-                IntRef ssCount = new();
-                string[] ss = menu.p.StringSplit(servers[i], "\t", ssCount);
-                if (ssCount.value < 10)
+                string[] ss = menu.p.StringSplit(servers[i], "\t", out int ssCount);
+                if (ssCount < 10)
                 {
                     continue;
                 }

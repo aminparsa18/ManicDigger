@@ -210,7 +210,7 @@ public class GameScreen : ClientMod
                 }
                 if (w.type == WidgetType.Label)
                 {
-                    game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, IntRef.Create(Game.ColorFromArgb(255, 0, 0, 0)), false);
+                    game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, Game.ColorFromArgb(255, 0, 0, 0), false);
                 }
                 if (w.description != null)
                 {
@@ -299,10 +299,9 @@ public class LoginClientCi
                 shouldLogin = false;
                 string requestString = platform.StringFormat4("username={0}&password={1}&server={2}&token={3}"
                     , LoginUser, LoginPassword, LoginPublicServerKey, LoginToken);
-                IntRef byteArrayLength = new();
-                byte[] byteArray = platform.StringToUtf8ByteArray(requestString, byteArrayLength);
+                byte[] byteArray = platform.StringToUtf8ByteArray(requestString, out int byteArrayLength);
                 loginResponse = new HttpResponseCi();
-                platform.WebClientUploadDataAsync(loginUrl, byteArray, byteArrayLength.value, loginResponse);
+                platform.WebClientUploadDataAsync(loginUrl, byteArray, byteArrayLength, loginResponse);
             }
             if (loginResponse != null && loginResponse.done)
             {
@@ -317,9 +316,8 @@ public class LoginClientCi
                 {
                     loginResult.value = LoginResult.Failed;
                 }
-                IntRef linesCount = new();
-                string[] lines = platform.ReadAllLines(responseString, linesCount);
-                if (linesCount.value >= 3)
+                string[] lines = platform.ReadAllLines(responseString, out int linesCount);
+                if (linesCount >= 3)
                 {
                     resultLoginData.AuthCode = lines[0];
                     resultLoginData.ServerAddress = lines[1];
@@ -1143,7 +1141,7 @@ public class Draw2dData
     internal float y1;
     internal float width;
     internal float height;
-    internal IntRef inAtlasId;
+    internal int inAtlasId;
     internal int color;
 }
 
@@ -1374,7 +1372,7 @@ public abstract class ClientModManager
     public abstract bool IsFreemoveAllowed();
     public abstract void EnableCameraControl(bool enable);
     public abstract int WhiteTexture();
-    public abstract void Draw2dTexture(int textureid, float x1, float y1, float width, float height, IntRef inAtlasId, int color);
+    public abstract void Draw2dTexture(int textureid, float x1, float y1, float width, float height, int inAtlasId, int color);
     public abstract void Draw2dTextures(Draw2dData[] todraw, int todrawLength, int textureId);
     public abstract void Draw2dText(string text, float x, float y, float fontsize);
     public abstract void OrthoMode();
@@ -1534,7 +1532,7 @@ public class ClientModManager1 : ClientModManager
         return game.WhiteTexture();
     }
 
-    public override void Draw2dTexture(int textureid, float x1, float y1, float width, float height, IntRef inAtlasId, int color)
+    public override void Draw2dTexture(int textureid, float x1, float y1, float width, float height, int inAtlasId, int color)
     {
         int a = Game.ColorA(color);
         int r = Game.ColorR(color);
@@ -1542,7 +1540,7 @@ public class ClientModManager1 : ClientModManager
         int b = Game.ColorB(color);
         game.Draw2dTexture(textureid, game.platform.FloatToInt(x1), game.platform.FloatToInt(y1),
             game.platform.FloatToInt(width), game.platform.FloatToInt(height),
-            inAtlasId, 0, Game.ColorFromArgb(a, r, g, b), false);
+             inAtlasId, 0, Game.ColorFromArgb(a, r, g, b), false);
     }
 
     public override void Draw2dTextures(Draw2dData[] todraw, int todrawLength, int textureId)
@@ -1739,25 +1737,22 @@ public class TextColorRenderer
 
     internal BitmapCi CreateTextTexture(Text_ t)
     {
-        IntRef partsCount = new();
-        TextPart[] parts = DecodeColors(t.text, t.color, partsCount);
+        TextPart[] parts = DecodeColors(t.text, t.color, out int partsCount);
 
         float totalwidth = 0;
         float totalheight = 0;
-        int[] sizesX = new int[partsCount.value];
-        int[] sizesY = new int[partsCount.value];
+        int[] sizesX = new int[partsCount];
+        int[] sizesY = new int[partsCount];
 
-        for (int i = 0; i < partsCount.value; i++)
+        for (int i = 0; i < partsCount; i++)
         {
-            IntRef outWidth = new();
-            IntRef outHeight = new();
-            platform.TextSize(parts[i].text, t.fontsize, outWidth, outHeight);
+            platform.TextSize(parts[i].text, t.fontsize, out int outWidth, out int outHeight);
 
-            sizesX[i] = outWidth.value;
-            sizesY[i] = outHeight.value;
+            sizesX[i] = outWidth;
+            sizesY[i] = outHeight;
 
-            totalwidth += outWidth.value;
-            totalheight = Math.Max(totalheight, outHeight.value);
+            totalwidth += outWidth;
+            totalheight = Math.Max(totalheight, outHeight);
         }
 
         int size2X = NextPowerOfTwo(platform.FloatToInt(totalwidth) + 1);
@@ -1766,7 +1761,7 @@ public class TextColorRenderer
         int[] bmp2Pixels = new int[size2X * size2Y];
 
         float currentwidth = 0;
-        for (int i = 0; i < partsCount.value; i++)
+        for (int i = 0; i < partsCount; i++)
         {
             int sizeiX = sizesX[i];
             int sizeiY = sizesY[i];
@@ -1806,31 +1801,28 @@ public class TextColorRenderer
         return bmp2;
     }
 
-    public TextPart[] DecodeColors(string s, int defaultcolor, IntRef retLength)
+    public TextPart[] DecodeColors(string s, int defaultcolor, out int retLength)
     {
         TextPart[] parts = new TextPart[256];
         int partsCount = 0;
+
         int currentcolor = defaultcolor;
         int[] currenttext = new int[256];
         int currenttextLength = 0;
-        IntRef sLength = new();
-        int[] sChars = platform.StringToCharArray(s, sLength);
-        for (int i = 0; i < sLength.value; i++)
+
+        int[] sChars = platform.StringToCharArray(s, out int sLength);
+
+        for (int i = 0; i < sLength; i++)
         {
-            // If a & is found, try to parse a color code
             if (sChars[i] == '&')
             {
-                //check if there's a character after it
-                if (i + 1 < sLength.value)
+                if (i + 1 < sLength)
                 {
-                    //try to parse the color code
                     int color = HexToInt(sChars[i + 1]);
                     if (color != -1)
                     {
-                        //Color has been parsed successfully
                         if (currenttextLength != 0)
                         {
-                            //Add content so far to return value
                             TextPart part = new()
                             {
                                 text = platform.CharArrayToString(currenttext, currenttextLength),
@@ -1838,35 +1830,27 @@ public class TextColorRenderer
                             };
                             parts[partsCount++] = part;
                         }
-                        //Update current color and reset stored text
-                        for (int k = 0; k < currenttextLength; k++)
-                        {
-                            currenttext[k] = 0;
-                        }
+
                         currenttextLength = 0;
                         currentcolor = GetColor(color);
-                        //Increment i to prevent the code from being read again
                         i++;
                     }
                     else
                     {
-                        //no valid color code found. display as normal character
                         currenttext[currenttextLength++] = sChars[i];
                     }
                 }
                 else
                 {
-                    //if not, just display it as normal character
                     currenttext[currenttextLength++] = sChars[i];
                 }
             }
             else
             {
-                //Nothing special. Just add the current character
-                currenttext[currenttextLength++] = s[i];
+                currenttext[currenttextLength++] = sChars[i];
             }
         }
-        //Add any leftover text parts in current color
+
         if (currenttextLength != 0)
         {
             TextPart part = new()
@@ -1876,7 +1860,8 @@ public class TextColorRenderer
             };
             parts[partsCount++] = part;
         }
-        retLength.value = partsCount;
+
+        retLength = partsCount;
         return parts;
     }
 

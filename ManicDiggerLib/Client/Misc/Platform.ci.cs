@@ -21,7 +21,7 @@ public abstract class GamePlatform
     public abstract string StringFormat2(string format, string arg0, string arg1);
     public abstract string StringFormat3(string format, string arg0, string arg1, string arg2);
     public abstract string StringFormat4(string format, string arg0, string arg1, string arg2, string arg3);
-    public abstract int[] StringToCharArray(string s, IntRef length);
+    public abstract int[] StringToCharArray(string s, out int length);
     public abstract string CharArrayToString(int[] charArray, int length);
     public abstract bool StringEmpty(string data);
     public abstract bool StringContains(string a, string b);
@@ -31,20 +31,20 @@ public abstract class GamePlatform
     public abstract string StringTrim(string value);
     public abstract string StringToLower(string p);
     public abstract string StringFromUtf8ByteArray(byte[] value, int valueLength);
-    public abstract byte[] StringToUtf8ByteArray(string s, IntRef retLength);
-    public abstract string[] StringSplit(string value, string separator, IntRef returnLength);
+    public abstract byte[] StringToUtf8ByteArray(string s, out int retLength);
+    public abstract string[] StringSplit(string value, string separator, out int returnLength);
     public abstract string StringJoin(string[] value, string separator);
 
     // Misc
     public abstract string Timestamp();
     public abstract void ClipboardSetText(string s);
-    public abstract void TextSize(string text, float fontSize, IntRef outWidth, IntRef outHeight);
+    public abstract void TextSize(string text, float fontSize, out int outWidth, out int outHeight);
     public abstract void Exit();
     public abstract bool ExitAvailable();
     public abstract string PathSavegames();
     public abstract string PathCombine(string part1, string part2);
-    public abstract string[] DirectoryGetFiles(string path, IntRef length);
-    public abstract string[] FileReadAllLines(string path, IntRef length);
+    public abstract string[] DirectoryGetFiles(string path, out int length);
+    public abstract string[] FileReadAllLines(string path, out int length);
     public abstract void WebClientDownloadDataAsync(string url, HttpResponseCi response);
     public abstract void ThumbnailDownloadAsync(string ip, int port, ThumbnailResponseCi response);
     public abstract string FileName(string fullpath);
@@ -84,14 +84,14 @@ public abstract class GamePlatform
     public abstract int ByteArrayLength(byte[] arr);
     public abstract BitmapCi BitmapCreateFromPng(byte[] data, int dataLength);
     public abstract void BitmapGetPixelsArgb(BitmapCi bitmap, int[] bmpPixels);
-    public abstract string[] ReadAllLines(string p, IntRef retCount);
+    public abstract string[] ReadAllLines(string p, out int retCount);
     public abstract bool ClipboardContainsText();
     public abstract string ClipboardGetText();
     public abstract void SetTitle(string applicationname);
     public abstract bool Focused();
     public abstract void AddOnCrash(OnCrashHandler handler);
     public abstract string KeyName(int key);
-    public abstract DisplayResolutionCi[] GetDisplayResolutions(IntRef resolutionsCount);
+    public abstract DisplayResolutionCi[] GetDisplayResolutions(out int resolutionsCount);
     public abstract WindowState GetWindowState();
     public abstract void SetWindowState(WindowState value);
     public abstract void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate);
@@ -112,7 +112,7 @@ public abstract class GamePlatform
     public abstract bool MultithreadingAvailable();
     public abstract void QueueUserWorkItem(Action action);
     public abstract void LoadAssetsAsyc(AssetList list, FloatRef progress);
-    public abstract byte[] GzipCompress(byte[] data, int dataLength, IntRef retLength);
+    public abstract byte[] GzipCompress(byte[] data, int dataLength, out int retLength);
     public abstract bool IsDebuggerAttached();
     public abstract bool IsSmallScreen();
     public abstract void OpenLinkInBrowser(string url);
@@ -532,21 +532,6 @@ public enum TextBaseline
     Top,
     Middle,
     Bottom
-}
-
-public class IntRef
-{
-    public static IntRef Create(int value_)
-    {
-        IntRef intref = new()
-        {
-            value = value_
-        };
-        return intref;
-    }
-    internal int value;
-    public int GetValue() { return value; }
-    public void SetValue(int value_) { value = value_; }
 }
 
 public abstract class AudioData

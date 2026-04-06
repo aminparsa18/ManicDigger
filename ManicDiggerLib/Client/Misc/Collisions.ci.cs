@@ -244,7 +244,7 @@ public class BlockOctreeSearcher
     private readonly Intersection intersection;
     private readonly BlockPosSide[] l;
     private int lCount;
-    public BlockPosSide[] LineIntersection(DelegateIsBlockEmpty isEmpty, DelegateGetBlockHeight getBlockHeight, Line3D line, IntRef retCount)
+    public BlockPosSide[] LineIntersection(DelegateIsBlockEmpty isEmpty, DelegateGetBlockHeight getBlockHeight, Line3D line, out int retCount)
     {
         lCount = 0;
         currentLine = line;
@@ -285,7 +285,7 @@ public class BlockOctreeSearcher
         {
             ll[i] = l[i];
         }
-        retCount.value = lCount;
+        retCount = lCount;
         return ll;
     }
 }

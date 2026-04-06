@@ -128,7 +128,7 @@ public class ScreenGame : Screen
                 //Get auth hash for new server
                 LoginClientCi lic = new();
                 LoginData lidata = new();
-                string token = platform.StringSplit(qresult.PublicHash, "=", new IntRef())[1];
+                string token = platform.StringSplit(qresult.PublicHash, "=", out _)[1];
                 lic.Login(platform, connectData.Username, "", token, platform.GetPreferences().GetString("Password", ""), new LoginResultRef(), lidata);
                 while (lic.loginResult.value == LoginResult.Connecting)
                 {

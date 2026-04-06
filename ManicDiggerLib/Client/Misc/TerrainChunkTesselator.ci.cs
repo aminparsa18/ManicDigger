@@ -1458,22 +1458,22 @@ public class TerrainChunkTesselatorCi
         return v;
     }
 
-    public VerticesIndicesToLoad[] GetFinalVerticesIndices(int x, int y, int z, IntRef retCount)
+    public VerticesIndicesToLoad[] GetFinalVerticesIndices(int x, int y, int z, out int retCount)
     {
         VerticesIndicesToLoad[] ret = new VerticesIndicesToLoad[toreturnatlas1dLength + toreturnatlas1dLength];
-        retCount.value = 0;
+        retCount = 0;
         for (int i = 0; i < toreturnatlas1dLength; i++)
         {
             if (toreturnatlas1d[i].indicesCount > 0)
             {
-                ret[retCount.value++] = GetVerticesIndices(toreturnatlas1d[i], x, y, z, game.d_TerrainTextures.TerrainTextures1d[i % game.d_TerrainTextures.TerrainTexturesPerAtlas], false);
+                ret[retCount++] = GetVerticesIndices(toreturnatlas1d[i], x, y, z, game.d_TerrainTextures.TerrainTextures1d[i % game.d_TerrainTextures.TerrainTexturesPerAtlas], false);
             }
         }
         for (int i = 0; i < toreturnatlas1dLength; i++)
         {
             if (toreturnatlas1dtransparent[i].indicesCount > 0)
             {
-                ret[retCount.value++] = GetVerticesIndices(toreturnatlas1dtransparent[i], x, y, z, game.d_TerrainTextures.TerrainTextures1d[i % game.d_TerrainTextures.TerrainTexturesPerAtlas], true);
+                ret[retCount++] = GetVerticesIndices(toreturnatlas1dtransparent[i], x, y, z, game.d_TerrainTextures.TerrainTextures1d[i % game.d_TerrainTextures.TerrainTexturesPerAtlas], true);
             }
         }
 
@@ -1481,7 +1481,7 @@ public class TerrainChunkTesselatorCi
     }
 
     public VerticesIndicesToLoad[] MakeChunk(int x, int y, int z,
-    int[] chunk18, byte[] shadows18, float[] lightlevels_, IntRef retCount)
+    int[] chunk18, byte[] shadows18, float[] lightlevels_, out int retCount)
     {
         this.currentChunk18 = chunk18;
         this.currentChunkShadows18 = shadows18;
@@ -1503,11 +1503,11 @@ public class TerrainChunkTesselatorCi
             isFluid[i] = b.DrawType == Packet_DrawTypeEnum.Fluid;
         }
 
-        if (x < 0 || y < 0 || z < 0) { retCount.value = 0; return new VerticesIndicesToLoad[0]; }
+        if (x < 0 || y < 0 || z < 0) { retCount = 0; return new VerticesIndicesToLoad[0]; }
         if (!started) { game.platform.ThrowException("not started"); }
         if (x >= mapsizex / chunksize
             || y >= mapsizey / chunksize
-            || z >= mapsizez / chunksize) { retCount.value = 0; return new VerticesIndicesToLoad[0]; }
+            || z >= mapsizez / chunksize) { retCount = 0; return new VerticesIndicesToLoad[0]; }
 
         for (int i = 0; i < toreturnatlas1dLength; i++)
         {
@@ -1520,7 +1520,7 @@ public class TerrainChunkTesselatorCi
         CalculateVisibleFaces(currentChunk18);
         CalculateTilingCount(currentChunk18, x * chunksize, y * chunksize, z * chunksize);
         BuildBlockPolygons(x, y, z);
-        VerticesIndicesToLoad[] ret = GetFinalVerticesIndices(x, y, z, retCount);
+        VerticesIndicesToLoad[] ret = GetFinalVerticesIndices(x, y, z, out retCount);
         return ret;
     }
 

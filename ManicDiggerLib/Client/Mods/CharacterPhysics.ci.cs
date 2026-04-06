@@ -14,7 +14,6 @@ public class ScriptCharacterPhysics : EntityScript
         movespeednow = 0;
 
         tmpPlayerPosition = Vector3.Zero;
-        tmpBlockingBlockType = new IntRef();
 
         constGravity = 0.3f;
         constWaterGravityMultiplier = 3;
@@ -53,7 +52,7 @@ public class ScriptCharacterPhysics : EntityScript
         jumpstartaccelerationhalf = 9 * constGravity;
         acceleration.SetDefault();
         game.soundnow = new BoolRef();
-        if (game.FollowId() != null && game.FollowId().value == game.LocalPlayerId)
+        if (game.FollowId() != null && game.FollowId() == game.LocalPlayerId)
         {
             move.movedx = 0;
             move.movedy = 0;
@@ -285,7 +284,6 @@ public class ScriptCharacterPhysics : EntityScript
     }
 
     private Vector3 tmpPlayerPosition;		//Temporarily stores the player's position. Used in WallSlide()
-    private readonly IntRef tmpBlockingBlockType;
     public Vector3 WallSlide(Vector3 oldposition, Vector3 newposition, float modelheight)
     {
         bool high = false;
@@ -301,10 +299,8 @@ public class ScriptCharacterPhysics : EntityScript
         tmpPlayerPosition.Y = oldposition.Y;
         tmpPlayerPosition.Z = oldposition.Z;
 
-        tmpBlockingBlockType.value = 0;
-
         // X
-        if (IsEmptySpaceForPlayer(high, newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z, tmpBlockingBlockType))
+        if (IsEmptySpaceForPlayer(high, newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z, out int tmpBlockingBlockType))
         {
             tmpPlayerPosition.X = newposition.X;
         }
@@ -312,20 +308,20 @@ public class ScriptCharacterPhysics : EntityScript
         {
             // For autojump
             game.reachedwall = true;
-            if (IsEmptyPoint(newposition.X, tmpPlayerPosition.Y + 0.5f, tmpPlayerPosition.Z, null))
+            if (IsEmptyPoint(newposition.X, tmpPlayerPosition.Y + 0.5f, tmpPlayerPosition.Z, out _))
             {
                 game.reachedwall_1blockhigh = true;
-                if (game.blocktypes[tmpBlockingBlockType.value].DrawType == Packet_DrawTypeEnum.HalfHeight) { game.reachedHalfBlock = true; }
+                if (game.blocktypes[tmpBlockingBlockType].DrawType == Packet_DrawTypeEnum.HalfHeight) { game.reachedHalfBlock = true; }
                 if (StandingOnHalfBlock(newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z)) { game.reachedHalfBlock = true; }
             }
         }
         // Y
-        if (IsEmptySpaceForPlayer(high, tmpPlayerPosition.X, newposition.Y, tmpPlayerPosition.Z, tmpBlockingBlockType))
+        if (IsEmptySpaceForPlayer(high, tmpPlayerPosition.X, newposition.Y, tmpPlayerPosition.Z, out tmpBlockingBlockType))
         {
             tmpPlayerPosition.Y = newposition.Y;
         }
         // Z
-        if (IsEmptySpaceForPlayer(high, tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z, tmpBlockingBlockType))
+        if (IsEmptySpaceForPlayer(high, tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z, out tmpBlockingBlockType))
         {
             tmpPlayerPosition.Z = newposition.Z;
         }
@@ -333,10 +329,10 @@ public class ScriptCharacterPhysics : EntityScript
         {
             // For autojump
             game.reachedwall = true;
-            if (IsEmptyPoint(tmpPlayerPosition.X, tmpPlayerPosition.Y + 0.5f, newposition.Z, null))
+            if (IsEmptyPoint(tmpPlayerPosition.X, tmpPlayerPosition.Y + 0.5f, newposition.Z, out _))
             {
                 game.reachedwall_1blockhigh = true;
-                if (game.blocktypes[tmpBlockingBlockType.value].DrawType == Packet_DrawTypeEnum.HalfHeight) { game.reachedHalfBlock = true; }
+                if (game.blocktypes[tmpBlockingBlockType].DrawType == Packet_DrawTypeEnum.HalfHeight) { game.reachedHalfBlock = true; }
                 if (StandingOnHalfBlock(tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z)) { game.reachedHalfBlock = true; }
             }
         }
@@ -355,15 +351,15 @@ public class ScriptCharacterPhysics : EntityScript
         return game.blocktypes[under].DrawType == Packet_DrawTypeEnum.HalfHeight;
     }
 
-    private bool IsEmptySpaceForPlayer(bool high, float x, float y, float z, IntRef blockingBlockType)
+    private bool IsEmptySpaceForPlayer(bool high, float x, float y, float z, out int blockingBlockType)
     {
-        return IsEmptyPoint(x, y, z, blockingBlockType)
-            && IsEmptyPoint(x, y + 1, z, blockingBlockType)
-            && (!high || IsEmptyPoint(x, y + 2, z, blockingBlockType));
+        return IsEmptyPoint(x, y, z, out blockingBlockType)
+            && IsEmptyPoint(x, y + 1, z, out blockingBlockType)
+            && (!high || IsEmptyPoint(x, y + 2, z, out blockingBlockType));
     }
 
     // Checks if there are no solid blocks in walldistance area around the point
-    private bool IsEmptyPoint(float x, float y, float z, IntRef blockingBlocktype)
+    private bool IsEmptyPoint(float x, float y, float z, out int blockingBlocktype)
     {
         // Test 3x3x3 blocks around the point
         for (int xx = 0; xx < 3; xx++)
@@ -387,16 +383,14 @@ public class ScriptCharacterPhysics : EntityScript
                         // Check if the block is too close
                         if (BoxPointDistance(minX, minY, minZ, maxX, maxY, maxZ, x, y, z) < game.constWallDistance)
                         {
-                            if (blockingBlocktype != null)
-                            {
-                                blockingBlocktype.value = game.map.GetBlock(FloatToInt(x + xx - 1), FloatToInt(z + zz - 1), FloatToInt(y + yy - 1));
-                            }
+                            blockingBlocktype = game.map.GetBlock(FloatToInt(x + xx - 1), FloatToInt(z + zz - 1), FloatToInt(y + yy - 1));
                             return false;
                         }
                     }
                 }
             }
         }
+        blockingBlocktype = 0;
         return true;
     }
 

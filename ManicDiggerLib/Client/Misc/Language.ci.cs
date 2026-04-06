@@ -150,24 +150,21 @@
 
     public void LoadTranslations()
     {
-        IntRef fileCount = IntRef.Create(0);
-        string[] fileList = platform.DirectoryGetFiles(platform.PathCombine("data", "localization"), fileCount);
+        string[] fileList = platform.DirectoryGetFiles(platform.PathCombine("data", "localization"), out int fileCount);
         //Iterate over all files in the directory
-        for (int i = 0; i < fileCount.value; i++)
+        for (int i = 0; i < fileCount; i++)
         {
-            IntRef lineCount = IntRef.Create(0);
-            string[] lineList = platform.FileReadAllLines(fileList[i], lineCount);
+            string[] lineList = platform.FileReadAllLines(fileList[i], out int lineCount);
             //Iterate over each line in these files
-            for (int j = 1; j < lineCount.value; j++)
+            for (int j = 1; j < lineCount; j++)
             {
                 if (platform.StringEmpty(lineList[j]))
                 {
                     //Skip line if empty
                     continue;
                 }
-                IntRef splitCount = IntRef.Create(0);
-                string[] splitList = platform.StringSplit(lineList[j], "=", splitCount);
-                if (splitCount.value >= 2)
+                string[] splitList = platform.StringSplit(lineList[j], "=", out int splitCount);
+                if (splitCount >= 2)
                 {
                     Add(lineList[0], splitList[0], splitList[1]);
                 }

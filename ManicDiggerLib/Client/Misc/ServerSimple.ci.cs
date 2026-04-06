@@ -168,8 +168,7 @@ public class ServerSimple
         }
 
         byte[] chunkBytes = MiscCi.UshortArrayToByteArray(chunk, 32 * 32 * 32);
-        IntRef compressedLength = new();
-        byte[] chunkCompressed = platform.GzipCompress(chunkBytes, 32 * 32 * 32 * 2, compressedLength);
+        byte[] chunkCompressed = platform.GzipCompress(chunkBytes, 32 * 32 * 32 * 2, out int compressedLength);
 
 
         QueueMainThreadAction(CreateSendPacketAction(this, clientId, ServerPackets.ChunkPart(chunkCompressed)));
@@ -406,10 +405,9 @@ public class ServerSimple
 
     public void SendPacket(int client, Packet_Server packet)
     {
-        IntRef length = new();
-        byte[] data = ServerPackets.Serialize(packet, length);
+        byte[] data = ServerPackets.Serialize(packet, out int length);
         INetOutgoingMessage msg = new();
-        msg.Write(data, length.value);
+        msg.Write(data, length);
         clients[client].Connection.SendMessage(msg, MyNetDeliveryMethod.ReliableOrdered, 0);
     }
     internal Packet_BlockType[] blockTypes;

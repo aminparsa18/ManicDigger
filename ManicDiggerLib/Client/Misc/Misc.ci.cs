@@ -83,27 +83,25 @@ public class StringTools
 {
     public static string StringAppend(GamePlatform p, string a, string b)
     {
-        IntRef aLength = new();
-        int[] aChars = p.StringToCharArray(a, aLength);
-        IntRef bLength = new();
-        int[] bChars = p.StringToCharArray(b, bLength);
+        int[] aChars = p.StringToCharArray(a, out int aLength);
 
-        int[] cChars = new int[aLength.value + bLength.value];
-        for (int i = 0; i < aLength.value; i++)
+        int[] bChars = p.StringToCharArray(b, out int bLength);
+
+        int[] cChars = new int[aLength + bLength];
+        for (int i = 0; i < aLength; i++)
         {
             cChars[i] = aChars[i];
         }
-        for (int i = 0; i < bLength.value; i++)
+        for (int i = 0; i < bLength; i++)
         {
-            cChars[i + aLength.value] = bChars[i];
+            cChars[i + aLength] = bChars[i];
         }
-        return p.CharArrayToString(cChars, aLength.value + bLength.value);
+        return p.CharArrayToString(cChars, aLength + bLength);
     }
 
     public static string StringSubstring(GamePlatform p, string a, int start, int count)
     {
-        IntRef aLength = new();
-        int[] aChars = p.StringToCharArray(a, aLength);
+        int[] aChars = p.StringToCharArray(a, out int aLength);
 
         int[] bChars = new int[count];
         for (int i = 0; i < count; i++)
@@ -120,9 +118,8 @@ public class StringTools
 
     public static int StringLength(GamePlatform p, string a)
     {
-        IntRef aLength = new();
-        int[] aChars = p.StringToCharArray(a, aLength);
-        return aLength.value;
+        _ = p.StringToCharArray(a, out int aLength);
+        return aLength;
     }
 
     public static bool StringStartsWith(GamePlatform p, string s, string b)
@@ -364,7 +361,7 @@ public class BitmapData_
 public class TextureAtlasConverter
 {
     //tiles = 16 means 16 x 16 atlas
-    public static BitmapCi[] Atlas2dInto1d(GamePlatform p, BitmapCi atlas2d_, int tiles, int atlassizezlimit, IntRef retCount)
+    public static BitmapCi[] Atlas2dInto1d(GamePlatform p, BitmapCi atlas2d_, int tiles, int atlassizezlimit, out int retCount)
     {
         BitmapData_ orig = BitmapData_.CreateFromBitmap(p, atlas2d_);
 
@@ -399,7 +396,7 @@ public class TextureAtlasConverter
             }
         }
         atlases[atlasesCount++] = atlas1d.ToBitmap(p);
-        retCount.value = atlasescount;
+        retCount = atlasescount;
         return atlases;
     }
 }
@@ -447,9 +444,8 @@ public class GameVersionHelper
 
     private static bool IsVersionDate(GamePlatform platform, string version)
     {
-        IntRef versionCharsCount = new();
-        int[] versionChars = platform.StringToCharArray(version, versionCharsCount);
-        if (versionCharsCount.value >= 10)
+        int[] versionChars = platform.StringToCharArray(version, out int versionCharsCount);
+        if (versionCharsCount >= 10)
         {
             if (versionChars[4] == 45 && versionChars[7] == 45) // '-'
             {

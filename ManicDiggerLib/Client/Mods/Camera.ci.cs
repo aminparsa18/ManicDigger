@@ -96,12 +96,11 @@ public class ModCamera : ClientMod
         pick.End = new Vector3(ray_start_point.X + raydirX, ray_start_point.Y + raydirY, ray_start_point.Z + raydirZ);
 
         // pick terrain
-        IntRef pick2Count = new();
-        BlockPosSide[] pick2 = game.Pick(game.s, pick, pick2Count);
+        BlockPosSide[] pick2 = game.Pick(game.s, pick, out int pick2Count);
 
-        if (pick2Count.value > 0)
+        if (pick2Count > 0)
         {
-            BlockPosSide pick2nearest = game.Nearest(pick2, pick2Count.value, ray_start_point.X, ray_start_point.Y, ray_start_point.Z);
+            BlockPosSide pick2nearest = game.Nearest(pick2, pick2Count, ray_start_point.X, ray_start_point.Y, ray_start_point.Z);
 
             float pickX = pick2nearest.blockPos[0] - target.X;
             float pickY = pick2nearest.blockPos[1] - target.Y;

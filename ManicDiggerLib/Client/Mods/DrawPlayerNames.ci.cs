@@ -67,7 +67,7 @@
                         family = "Arial",
                         size = 14
                     };
-                    game.Draw2dText(name, font, -game.TextSizeWidth(name, 14) / 2, 0, IntRef.Create(Game.ColorFromArgb(255, 255, 255, 255)), true);
+                    game.Draw2dText(name, font, -game.TextSizeWidth(name, 14) / 2, 0, Game.ColorFromArgb(255, 255, 255, 255), true);
                     //                        GL.Translate(0, 1, 0);
                     game.GLPopMatrix();
                 }

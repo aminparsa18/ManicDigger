@@ -106,8 +106,7 @@ public class ModFpsHistoryGraph : ClientMod
     {
         if (args.command == "fps")
         {
-            IntRef argumentsLength = new();
-            string[] arguments = m.GetPlatform().StringSplit(args.arguments, " ", argumentsLength);
+            string[] arguments = m.GetPlatform().StringSplit(args.arguments, " ", out _);
             if (m.GetPlatform().StringTrim(args.arguments) == "")
             {
                 drawfpstext = true;
@@ -187,15 +186,15 @@ public class ModFpsHistoryGraph : ClientMod
             todraw[i].y1 = posy - time;
             todraw[i].width = 1;
             todraw[i].height = time;
-            todraw[i].inAtlasId = null;
+            todraw[i].inAtlasId = -1;
             todraw[i].color = c;
         }
         m.Draw2dTextures(todraw, MaxCount, m.WhiteTexture());
 
-        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight, MaxCount, 1, null, linecolor);
-        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight * (one * 60 / 75), MaxCount, 1, null, linecolor);
-        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight * (one * 60 / 30), MaxCount, 1, null, linecolor);
-        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight * (one * 60 / 150), MaxCount, 1, null, linecolor);
+        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight, MaxCount, 1, -1, linecolor);
+        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight * (one * 60 / 75), MaxCount, 1, -1, linecolor);
+        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight * (one * 60 / 30), MaxCount, 1, -1, linecolor);
+        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight * (one * 60 / 150), MaxCount, 1, -1, linecolor);
         m.Draw2dText("60", posx, posy - historyheight * (one * 60 / 60), 6);
         m.Draw2dText("75", posx, posy - historyheight * (one * 60 / 75), 6);
         m.Draw2dText("30", posx, posy - historyheight * (one * 60 / 30), 6);

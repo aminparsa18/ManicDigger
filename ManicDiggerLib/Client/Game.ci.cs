@@ -126,7 +126,6 @@ public class Game
         {
             mLightLevels[i] = one * i / 15;
         }
-        soundnow = new BoolRef();
         camera = Matrix4.Identity;
         packetHandlers = new ClientPacketHandler[256];
         player = new Entity
@@ -3668,7 +3667,7 @@ public class Game
 
     public const int ChatFontSize = 11;
 
-    internal BoolRef soundnow;
+    internal bool soundnow;
 
     internal Controls controls;
     internal float pushX;

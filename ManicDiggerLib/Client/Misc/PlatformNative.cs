@@ -1038,7 +1038,7 @@ public class GamePlatformNative : GamePlatform
         return true;
     }
 
-    public override void TcpConnect(string ip, int port, BoolRef connected)
+    public override void TcpConnect(string ip, int port, bool connected)
     {
         this.connected = connected;
         sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
@@ -1047,8 +1047,9 @@ public class GamePlatformNative : GamePlatform
         };
         sock.BeginConnect(ip, port, OnConnect, sock);
     }
+
     private Socket sock;
-    private BoolRef connected;
+    private bool connected;
     private Connection c;
     private void OnConnect(IAsyncResult result)
     {
@@ -1060,7 +1061,7 @@ public class GamePlatformNative : GamePlatform
             c.Send(tosend.ToArray());
             tosend.Clear();
         }
-        connected.value = true;
+        connected = true;
     }
 
     private void c_ReceivedData(object sender, MessageEventArgs e)

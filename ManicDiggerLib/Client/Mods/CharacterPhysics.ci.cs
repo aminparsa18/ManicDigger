@@ -51,7 +51,7 @@ public class ScriptCharacterPhysics : EntityScript
         jumpstartacceleration = 13.333f * constGravity; // default
         jumpstartaccelerationhalf = 9 * constGravity;
         acceleration.SetDefault();
-        game.soundnow = new BoolRef();
+        game.soundnow = new bool();
         if (game.FollowId() != null && game.FollowId() == game.LocalPlayerId)
         {
             move.movedx = 0;
@@ -59,10 +59,10 @@ public class ScriptCharacterPhysics : EntityScript
             move.moveup = false;
             move.wantsjump = false;
         }
-        Update(game.player.position, move, dt, game.soundnow, new Vector3(game.pushX, game.pushY, game.pushZ), game.entities[game.LocalPlayerId].drawModel.ModelHeight);
+        Update(game.player.position, move, dt, out game.soundnow, new Vector3(game.pushX, game.pushY, game.pushZ), game.entities[game.LocalPlayerId].drawModel.ModelHeight);
     }
 
-    public void Update(EntityPosition_ stateplayerposition, Controls move, float dt, BoolRef soundnow, Vector3 push, float modelheight)
+    public void Update(EntityPosition_ stateplayerposition, Controls move, float dt, out bool soundnow, Vector3 push, float modelheight)
     {
         if (game.stopPlayerMove)
         {
@@ -100,14 +100,14 @@ public class ScriptCharacterPhysics : EntityScript
             }
         }
 
-        soundnow.value = false;
+        soundnow = false;
         Vector3 diff1 = new();
         VectorTool.ToVectorInFixedSystem(
             move.movedx * movespeednow * dt,
             0,
             move.movedy * movespeednow * dt, stateplayerposition.rotx, stateplayerposition.roty, ref diff1);
 
-        if (MiscCi.Vec3Length(push.X, push.Y, push.Z) > 0.01f)
+        if (push.Length > 0.01f)
         {
             Vector3.Normalize(in push, out push);
             push.X *= 5;
@@ -170,7 +170,7 @@ public class ScriptCharacterPhysics : EntityScript
         }
         else
         {
-            if (MiscCi.Vec3Length(diff1.X, diff1.Y, diff1.Z) > 0)
+            if (diff1.Length > 0)
             {
                 Vector3.Normalize(in diff1, out diff1);
             }
@@ -191,7 +191,7 @@ public class ScriptCharacterPhysics : EntityScript
             float diffx = newposition.X - stateplayerposition.x;
             float diffy = newposition.Y - stateplayerposition.y;
             float diffz = newposition.Z - stateplayerposition.z;
-            float difflength = MiscCi.Vec3Length(diffx, diffy, diffz);
+            float difflength = new Vector3(diffx, diffy, diffz).Length;
             if (difflength > 0)
             {
                 diffx /= difflength;
@@ -239,7 +239,7 @@ public class ScriptCharacterPhysics : EntityScript
             if ((move.wantsjump || move.wantsjumphalf) && (((jumpacceleration == 0 && isplayeronground) || game.SwimmingBody()) && loaded) && (!game.SwimmingEyes()))
             {
                 jumpacceleration = move.wantsjumphalf ? jumpstartaccelerationhalf : jumpstartacceleration;
-                soundnow.value = true;
+                soundnow = true;
             }
 
             if (jumpacceleration > 0)

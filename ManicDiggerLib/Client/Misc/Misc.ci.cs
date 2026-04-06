@@ -101,7 +101,7 @@ public class StringTools
 
     public static string StringSubstring(GamePlatform p, string a, int start, int count)
     {
-        int[] aChars = p.StringToCharArray(a, out int aLength);
+        int[] aChars = p.StringToCharArray(a, out _);
 
         int[] bChars = new int[count];
         for (int i = 0; i < count; i++)
@@ -154,11 +154,6 @@ public class MiscCi
             output[i * 2 + 1] = Game.IntToByte((input[i] >> 8) & 255);
         }
         return output;
-    }
-
-    public static float Vec3Length(float x, float y, float z)
-    {
-        return (float)MathHelper.Sqrt(x * x + y * y + z * z);
     }
 }
 
@@ -485,11 +480,4 @@ public class GameVersionHelper
     {
         return year * 10000 + month * 100 + day;
     }
-}
-
-public class BoolRef
-{
-    internal bool value;
-    public bool GetValue() { return value; }
-    public void SetValue(bool value_) { value = value_; }
 }

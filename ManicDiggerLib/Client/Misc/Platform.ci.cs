@@ -138,7 +138,7 @@ public abstract class GamePlatform
     
     // Tcp
     public abstract bool TcpAvailable();
-    public abstract void TcpConnect(string ip, int port, BoolRef connected);
+    public abstract void TcpConnect(string ip, int port, bool connected);
     public abstract void TcpSend(byte[] data, int length);
     public abstract int TcpReceive(byte[] data, int dataLength);
 

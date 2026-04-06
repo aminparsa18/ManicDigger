@@ -90,9 +90,8 @@ public class ModRail : ClientMod
                 }
 
                 newenter.EnterDirection = DirectionUtils.ResultEnter(DirectionUtils.ResultExit(currentdirection));
-                BoolRef newdirFound = new();
-                VehicleDirection12 newdir = BestNewDirection(PossibleRails(game, newenter), turnleft, turnright, newdirFound);
-                if (!newdirFound.value)
+                VehicleDirection12 newdir = BestNewDirection(PossibleRails(game, newenter), turnleft, turnright, out bool newdirFound);
+                if (!newdirFound)
                 {
                     //end of rail
                     currentdirection = DirectionUtils.Reverse(currentdirection);
@@ -180,7 +179,7 @@ public class ModRail : ClientMod
         wasepressed = game.keyboardState[game.GetKey(Keys.E)] && game.GuiTyping != TypingState.Typing;
     }
 
-    internal static VehicleDirection12 BestNewDirection(int dirVehicleDirection12Flags, bool turnleft, bool turnright, BoolRef retFound)
+    internal static VehicleDirection12 BestNewDirection(int dirVehicleDirection12Flags, bool turnleft, bool turnright, out bool retFound)
     {
         // 0-- x
         // |
@@ -189,7 +188,7 @@ public class ModRail : ClientMod
         // y is down, x is right
         // Naming: first the 2 connected directions followed by the preferred exit direction
 
-        retFound.value = true;
+        retFound = true;
         if (turnright)
         {
             // steering right
@@ -247,7 +246,7 @@ public class ModRail : ClientMod
         if ((dirVehicleDirection12Flags & VehicleDirection12Flags.UpRightRight) != 0) { return VehicleDirection12.UpRightRight; }
         if ((dirVehicleDirection12Flags & VehicleDirection12Flags.UpRightUp) != 0) { return VehicleDirection12.UpRightUp; }
 
-        retFound.value = false;
+        retFound = false;
         return VehicleDirection12.DownLeftDown; // return null
     }
 

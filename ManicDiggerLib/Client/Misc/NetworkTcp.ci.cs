@@ -4,7 +4,7 @@
     {
         incoming = new QueueByte();
         data = new byte[dataLength];
-        connected = new BoolRef();
+        connected = new bool();
     }
     internal GamePlatform platform;
     public override void Start()
@@ -12,7 +12,7 @@
         tosend = new();
     }
 
-    private readonly BoolRef connected;
+    private bool connected;
 
     public override NetConnection Connect(string ip, int port)
     {
@@ -27,7 +27,7 @@
     private const int dataLength = 1024;
     public override NetIncomingMessage ReadMessage()
     {
-        if (connected.value)
+        if (connected)
         {
             while (tosend.Count() > 0)
             {
@@ -121,7 +121,7 @@
     public override void SendMessage(INetOutgoingMessage message, MyNetDeliveryMethod method)
     {
         INetOutgoingMessage msg = message;
-        if (!connected.value)
+        if (!connected)
         {
             tosend.Enqueue(msg);
             return;

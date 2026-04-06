@@ -12,7 +12,7 @@
     {
         if (game.FollowId() == null)
         {
-            if (game.soundnow.value)
+            if (game.soundnow)
             {
                 UpdateWalkSound(game, -1);
             }

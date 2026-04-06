@@ -61,8 +61,8 @@ public class MainMenu
 
         filter = 0;
 
-        mvMatrix = Mat4.Create();
-        pMatrix = Mat4.Create();
+        mvMatrix = Matrix4.Identity;
+        pMatrix = Matrix4.Identity;
 
         currentlyPressedKeys = new bool[360];
         p.AddOnNewFrame(MainMenuNewFrameHandler.Create(this));
@@ -74,8 +74,8 @@ public class MainMenu
     private int viewportWidth;
     private int viewportHeight;
 
-    private float[] mvMatrix;
-    private float[] pMatrix;
+    private Matrix4 mvMatrix;
+    private Matrix4 pMatrix;
 
     private bool[] currentlyPressedKeys;
 
@@ -115,15 +115,8 @@ public class MainMenu
         p.GlClearColorBufferAndDepthBuffer();
         p.GlDisableDepthTest();
         p.GlDisableCullFace();
-        {
-            //Mat4.Perspective(pMatrix, 45, one * viewportWidth / viewportHeight, one / 100, one * 1000);
-            //Mat4.Identity_(mvMatrix);
-            //Mat4.Translate(mvMatrix, mvMatrix, Vec3.FromValues(0, 0, z));
-        }
-        {
-            Mat4.Identity_(pMatrix);
-            Mat4.Ortho(pMatrix, 0, p.GetCanvasWidth(), p.GetCanvasHeight(), 0, 0, 10);
-        }
+
+        Matrix4.CreateOrthographicOffCenter(0, p.GetCanvasWidth(), p.GetCanvasHeight(), 0, 0, 10, out pMatrix);
 
         screen.Render(dt);
     }
@@ -265,11 +258,15 @@ public class MainMenu
     private Model cubeModel;
     public void Draw2dQuad(int textureid, float dx, float dy, float dw, float dh)
     {
-        Mat4.Identity_(mvMatrix);
-        Mat4.Translate(mvMatrix, mvMatrix, new Vector3(dx, dy, 0));
-        Mat4.Scale(mvMatrix, mvMatrix, new Vector3(dw, dh, 0));
-        Mat4.Scale(mvMatrix, mvMatrix, new Vector3(one / 2, one / 2, 0));
-        Mat4.Translate(mvMatrix, mvMatrix, new Vector3(one, one, 0));
+        mvMatrix = Matrix4.Identity;
+        Matrix4.CreateTranslation(dx, dy, 0, out Matrix4 t1);
+        mvMatrix = t1 * mvMatrix;
+        Matrix4.CreateScale(dw, dh, 0, out Matrix4 s1);
+        mvMatrix = s1 * mvMatrix;
+        Matrix4.CreateScale(0.5f, 0.5f, 0, out Matrix4 s2);
+        mvMatrix = s2 * mvMatrix;
+        Matrix4.CreateTranslation(1, 1, 0, out Matrix4 t2);
+        mvMatrix = t2 * mvMatrix;
         SetMatrixUniforms();
         cubeModel ??= p.CreateModel(QuadModelData.GetQuadModelData());
         p.BindTexture2d(textureid);
@@ -278,8 +275,8 @@ public class MainMenu
 
     private void SetMatrixUniforms()
     {
-        p.SetMatrixUniformProjection(pMatrix);
-        p.SetMatrixUniformModelView(mvMatrix);
+        p.SetMatrixUniformProjection(ref pMatrix);
+        p.SetMatrixUniformModelView(ref mvMatrix);
     }
 
     private float xRot;

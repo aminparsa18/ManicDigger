@@ -1,4 +1,6 @@
-﻿public class ModDrawSprites : ClientMod
+﻿using OpenTK.Mathematics;
+
+public class ModDrawSprites : ClientMod
 {
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
@@ -26,38 +28,25 @@
             game.GLPopMatrix();
         }
     }
-    
+
     public static void Billboard(Game game)
     {
-        float[] m = game.mvMatrix.Peek();
+        Matrix4 m = game.mvMatrix.Peek();
         // http://stackoverflow.com/a/5487981
         // | d 0 0 T.x |
         // | 0 d 0 T.y |
         // | 0 0 d T.z |
         // | 0 0 0   1 |
-        float d = game.platform.MathSqrt(m[0] * m[0] + m[1] * m[1] + m[2] * m[2]);
+        float d = game.platform.MathSqrt(m.Row0.X * m.Row0.X + m.Row0.Y * m.Row0.Y + m.Row0.Z * m.Row0.Z);
 
-        m[0] = d;
-        m[1] = 0;
-        m[2] = 0;
-        m[3] = 0;
+        m.Row0 = new Vector4(d, 0, 0, 0);
+        m.Row1 = new Vector4(0, d, 0, 0);
+        m.Row2 = new Vector4(0, 0, d, 0);
+        m.Row3 = new Vector4(m.Row3.X, m.Row3.Y, m.Row3.Z, 1);
 
-        m[4] = 0;
-        m[5] = d;
-        m[6] = 0;
-        m[7] = 0;
-
-        m[8] = 0;
-        m[9] = 0;
-        m[10] = d;
-        m[11] = 0;
-
-        m[12] = m[12];
-        m[13] = m[13];
-        m[14] = m[14];
-        m[15] = 1;
-
-        Mat4.RotateX(m, m, Game.GetPi());
+        Matrix4.CreateRotationX(Game.GetPi(), out Matrix4 rotX);
+        m = rotX * m;
+        game.mvMatrix.ReplaceTop(m);
 
         game.GLLoadMatrix(m);
     }

@@ -5,9 +5,7 @@ public class ModPicking : ClientMod
     public ModPicking()
     {
         unproject = new Unproject();
-        tempViewport = new float[4];
-        tempRay = new float[4];
-        tempRayStartPoint = new float[4];
+        tempViewport = new int[4];
         fillarea = new DictionaryVector3Float();
     }
 
@@ -953,9 +951,7 @@ public class ModPicking : ClientMod
     }
 
     private readonly Unproject unproject;
-    private readonly float[] tempViewport;
-    private readonly float[] tempRay;
-    private readonly float[] tempRayStartPoint;
+    private readonly int[] tempViewport;
     public void GetPickingLine(Game game, Line3D retPick, bool ispistolshoot)
     {
         int mouseX;
@@ -984,28 +980,25 @@ public class ModPicking : ClientMod
         tempViewport[2] = game.Width();
         tempViewport[3] = game.Height();
 
-        unproject.UnProject(mouseX, game.Height() - mouseY, 1, game.mvMatrix.Peek(), game.pMatrix.Peek(), tempViewport, tempRay);
-        unproject.UnProject(mouseX, game.Height() - mouseY, 0, game.mvMatrix.Peek(), game.pMatrix.Peek(), tempViewport, tempRayStartPoint);
+        unproject.UnProject(mouseX, game.Height() - mouseY, 1, game.mvMatrix.Peek(), game.pMatrix.Peek(), tempViewport, out Vector3 tempRay);
+        unproject.UnProject(mouseX, game.Height() - mouseY, 0, game.mvMatrix.Peek(), game.pMatrix.Peek(), tempViewport, out Vector3 tempRayStartPoint);
 
-        float raydirX = (tempRay[0] - tempRayStartPoint[0]);
-        float raydirY = (tempRay[1] - tempRayStartPoint[1]);
-        float raydirZ = (tempRay[2] - tempRayStartPoint[2]);
+        float raydirX = (tempRay.X - tempRayStartPoint.X);
+        float raydirY = (tempRay.Y - tempRayStartPoint.Y);
+        float raydirZ = (tempRay.Z - tempRayStartPoint.Z);
         float raydirLength = game.Length(raydirX, raydirY, raydirZ);
         raydirX /= raydirLength;
         raydirY /= raydirLength;
         raydirZ /= raydirLength;
 
-        retPick.Start = Vector3.Zero;
-        retPick.Start[0] = tempRayStartPoint[0];// +raydirX; //do not pick behind
-        retPick.Start[1] = tempRayStartPoint[1];// +raydirY;
-        retPick.Start[2] = tempRayStartPoint[2];// +raydirZ;
+        retPick.Start = new Vector3(tempRayStartPoint.X, tempRayStartPoint.Y, tempRayStartPoint.Z);
 
         float pickDistance1 = CurrentPickDistance(game) * ((ispistolshoot) ? 100 : 1);
         pickDistance1 += 1;
-        retPick.End = Vector3.Zero;
-        retPick.End[0] = tempRayStartPoint[0] + raydirX * pickDistance1;
-        retPick.End[1] = tempRayStartPoint[1] + raydirY * pickDistance1;
-        retPick.End[2] = tempRayStartPoint[2] + raydirZ * pickDistance1;
+        retPick.End = new Vector3(
+            tempRayStartPoint.X + raydirX * pickDistance1,
+            tempRayStartPoint.Y + raydirY * pickDistance1,
+            tempRayStartPoint.Z + raydirZ * pickDistance1);
     }
 
     internal static PointFloatRef GetAim(Game game)

@@ -1,4 +1,6 @@
-﻿public class GameScreen : ClientMod
+﻿using OpenTK.Mathematics;
+
+public class GameScreen : ClientMod
 {
     public GameScreen()
     {
@@ -1180,14 +1182,14 @@ public class Grenade_
 
 public class GetCameraMatrix : IGetCameraMatrix
 {
-    internal float[] lastmvmatrix;
-    internal float[] lastpmatrix;
-    public override float[] GetModelViewMatrix()
+    internal Matrix4 lastmvmatrix;
+    internal Matrix4 lastpmatrix;
+    public override Matrix4 GetModelViewMatrix()
     {
         return lastmvmatrix;
     }
 
-    public override float[] GetProjectionMatrix()
+    public override Matrix4 GetProjectionMatrix()
     {
         return lastpmatrix;
     }
@@ -1754,23 +1756,23 @@ public class StackMatrix4
 {
     public StackMatrix4()
     {
-        values = new float[max][];
+        values = new Matrix4[max];
         for (int i = 0; i < max; i++)
         {
-            values[i] = Mat4.Create();
+            values[i] = Matrix4.Identity;
         }
     }
-    private readonly float[][] values;
+    private readonly Matrix4[] values;
     private const int max = 1024;
     private int count_;
 
-    internal void Push(float[] p)
+    internal void Push(Matrix4 p)
     {
-        Mat4.Copy(values[count_], p);
+        values[count_] = p;
         count_++;
     }
 
-    internal float[] Peek()
+    internal Matrix4 Peek()
     {
         return values[count_ - 1];
     }
@@ -1780,11 +1782,16 @@ public class StackMatrix4
         return count_;
     }
 
-    internal float[] Pop()
+    internal Matrix4 Pop()
     {
-        float[] ret = values[count_ - 1];
+        Matrix4 ret = values[count_ - 1];
         count_--;
         return ret;
+    }
+
+    internal void ReplaceTop(Matrix4 p)
+    {
+        values[count_ - 1] = p;
     }
 }
 
@@ -2082,7 +2089,7 @@ public class Kamera
         Center = new Vector3Ref();
     }
     private readonly float one;
-    public void GetPosition(GamePlatform platform, Vector3Ref ret)
+    public void GetPosition(GamePlatform platform, ref Vector3 ret)
     {
         float cx = platform.MathCos(tt * one / 2) * GetFlatDistance(platform) + Center.X;
         float cy = platform.MathSin(tt * one / 2) * GetFlatDistance(platform) + Center.Z;

@@ -1600,16 +1600,16 @@ public class GamePlatformNative : GamePlatform
     {
     }
 
-    public override void SetMatrixUniformProjection(float[] pMatrix)
+    public override void SetMatrixUniformProjection(ref Matrix4 pMatrix)
     {
         GL.MatrixMode(MatrixMode.Projection);
-        GL.LoadMatrix(pMatrix);
+        GL.LoadMatrix(ref pMatrix);
     }
 
-    public override void SetMatrixUniformModelView(float[] mvMatrix)
+    public override void SetMatrixUniformModelView(ref Matrix4 mvMatrix)
     {
         GL.MatrixMode(MatrixMode.Modelview);
-        GL.LoadMatrix(mvMatrix);
+        GL.LoadMatrix(ref mvMatrix);
     }
 
     public override void GlClearColorRgbaf(float r, float g, float b, float a)

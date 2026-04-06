@@ -28,8 +28,8 @@ public class Game
         sunlight_ = 15;
         mvMatrix = new StackMatrix4();
         pMatrix = new StackMatrix4();
-        mvMatrix.Push(Mat4.Create());
-        pMatrix.Push(Mat4.Create());
+        mvMatrix.Push(Matrix4.Identity);
+        pMatrix.Push(Matrix4.Identity);
         whitetexture = -1;
         cachedTextTexturesMax = 1024;
         cachedTextTextures = new CachedTextTexture[cachedTextTexturesMax];
@@ -115,10 +115,8 @@ public class Game
         handTexture = -1;
         modelViewInverted = new float[16];
         GLScaleTempVec3 = Vector3.Zero;
-        GLRotateTempVec3 = Vector3.Zero;
-        GLTranslateTempVec3 = Vector3.Zero;
-        identityMatrix = Mat4.Identity_(Mat4.Create());
-        Set3dProjectionTempMat4 = Mat4.Create();
+        identityMatrix = Matrix4.Identity;
+        Set3dProjectionTempMat4 = Matrix4.Identity;
         getAsset = new string[1024 * 2];
         PlayerStats = new Packet_ServerPlayerStats();
         mLightLevels = new float[16];
@@ -127,7 +125,7 @@ public class Game
             mLightLevels[i] = one * i / 15;
         }
         soundnow = new BoolRef();
-        camera = Mat4.Create();
+        camera = Matrix4.Identity;
         packetHandlers = new ClientPacketHandler[256];
         player = new Entity
         {
@@ -342,7 +340,7 @@ public class Game
     }
     private readonly TaskScheduler taskScheduler;
 
-    internal float[] camera;
+    internal Matrix4 camera;
     private float accumulator;
     internal void MainThreadOnRenderFrame(float deltaTime)
     {
@@ -721,21 +719,25 @@ public class Game
 
     public void SetMatrixUniforms()
     {
-        platform.SetMatrixUniformProjection(pMatrix.Peek());
-        platform.SetMatrixUniformModelView(mvMatrix.Peek());
+        var p = pMatrix.Peek();
+        var mv = mvMatrix.Peek();
+        platform.SetMatrixUniformProjection(ref p);
+        platform.SetMatrixUniformModelView(ref mv);
     }
 
     public void SetMatrixUniformProjection()
     {
-        platform.SetMatrixUniformProjection(pMatrix.Peek());
+        var p = pMatrix.Peek();
+        platform.SetMatrixUniformProjection(ref p);
     }
 
     public void SetMatrixUniformModelView()
     {
-        platform.SetMatrixUniformModelView(mvMatrix.Peek());
+        var mv = mvMatrix.Peek();
+        platform.SetMatrixUniformModelView(ref mv);
     }
 
-    public void GLLoadMatrix(float[] m)
+    public void GLLoadMatrix(Matrix4 m)
     {
         if (currentMatrixModeProjection)
         {
@@ -776,51 +778,57 @@ public class Game
     private Vector3 GLScaleTempVec3;
     public void GLScale(float x, float y, float z)
     {
-        float[] m;
+        Matrix4 m;
         if (currentMatrixModeProjection)
         {
             m = pMatrix.Peek();
+            Matrix4.CreateScale(x, y, z, out Matrix4 scale);
+            m = scale * m;
+            pMatrix.ReplaceTop(m);
         }
         else
         {
             m = mvMatrix.Peek();
+            Matrix4.CreateScale(x, y, z, out Matrix4 scale);
+            m = scale * m;
+            mvMatrix.ReplaceTop(m);
         }
-        GLScaleTempVec3 = new Vector3(x, y, z);
-        Mat4.Scale(m, m, GLScaleTempVec3);
     }
 
-    private Vector3 GLRotateTempVec3;
     public void GLRotate(float angle, float x, float y, float z)
     {
         angle /= 360;
         angle *= 2 * GetPi();
-        float[] m;
+        Matrix4.CreateFromAxisAngle(new Vector3(x, y, z), angle, out Matrix4 rotation);
         if (currentMatrixModeProjection)
         {
-            m = pMatrix.Peek();
+            var m = pMatrix.Peek();
+            m = rotation * m;
+            pMatrix.ReplaceTop(m);
         }
         else
         {
-            m = mvMatrix.Peek();
+            var m = mvMatrix.Peek();
+            m = rotation * m;
+            mvMatrix.ReplaceTop(m);
         }
-        GLRotateTempVec3 = new Vector3(x, y, z);
-        Mat4.Rotate(m, m, angle, GLRotateTempVec3);
     }
 
-    private Vector3 GLTranslateTempVec3;
     public void GLTranslate(float x, float y, float z)
     {
-        float[] m;
+        Matrix4.CreateTranslation(x, y, z, out Matrix4 translation);
         if (currentMatrixModeProjection)
         {
-            m = pMatrix.Peek();
+            var m = pMatrix.Peek();
+            m = translation * m;
+            pMatrix.ReplaceTop(m);
         }
         else
         {
-            m = mvMatrix.Peek();
+            var m = mvMatrix.Peek();
+            m = translation * m;
+            mvMatrix.ReplaceTop(m);
         }
-        GLTranslateTempVec3 = new Vector3(x, y, z);
-        Mat4.Translate(m, m, GLTranslateTempVec3);
     }
 
     public void GLPushMatrix()
@@ -835,7 +843,7 @@ public class Game
         }
     }
 
-    private readonly float[] identityMatrix;
+    private Matrix4 identityMatrix;
     public void GLLoadIdentity()
     {
         if (currentMatrixModeProjection)
@@ -860,8 +868,8 @@ public class Game
     {
         if (currentMatrixModeProjection)
         {
-            float[] m = pMatrix.Peek();
-            Mat4.Ortho(m, left, right, bottom, top, zNear, zFar);
+            Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, zNear, zFar, out Matrix4 ortho);
+            pMatrix.ReplaceTop(ortho);
         }
         else
         {
@@ -1336,14 +1344,14 @@ public class Game
 
     internal GetCameraMatrix CameraMatrix;
 
-    private readonly float[] Set3dProjectionTempMat4;
+    private readonly Matrix4 Set3dProjectionTempMat4;
     public void Set3dProjection(float zfar, float fov)
     {
-        float aspect_ratio = one * Width() / Height();
-        Mat4.Perspective(Set3dProjectionTempMat4, fov, aspect_ratio, znear, zfar);
-        CameraMatrix.lastpmatrix = Set3dProjectionTempMat4;
+        float aspect_ratio = 1f * Width() / Height();
+        Matrix4.CreatePerspectiveFieldOfView(fov, aspect_ratio, znear, zfar, out Matrix4 projection);
+        CameraMatrix.lastpmatrix = projection;
         GLMatrixModeProjection();
-        GLLoadMatrix(Set3dProjectionTempMat4);
+        GLLoadMatrix(projection);
         SetMatrixUniformProjection();
     }
     internal bool ENABLE_ZFAR;

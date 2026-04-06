@@ -102,11 +102,11 @@ public class ScriptCharacterPhysics : EntityScript
         }
 
         soundnow.value = false;
-        Vector3Ref diff1ref = new();
-        VectorTool.ToVectorInFixedSystem
-            (move.movedx * movespeednow * dt,
+        Vector3 diff1ref = new();
+        VectorTool.ToVectorInFixedSystem(
+            move.movedx * movespeednow * dt,
             0,
-            move.movedy * movespeednow * dt, stateplayerposition.rotx, stateplayerposition.roty, diff1ref);
+            move.movedy * movespeednow * dt, stateplayerposition.rotx, stateplayerposition.roty, ref diff1ref);
         Vector3Ref diff1 = new()
         {
             X = diff1ref.X,

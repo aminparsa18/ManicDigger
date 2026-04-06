@@ -1,4 +1,5 @@
-﻿using OpenTK.Windowing.Common;
+﻿using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
 
 public abstract class GamePlatform
 {
@@ -189,8 +190,8 @@ public abstract class GamePlatform
     public abstract Model CreateModel(ModelData modelData);
     public abstract void DrawModel(Model model);
     public abstract void InitShaders();
-    public abstract void SetMatrixUniformProjection(float[] pMatrix);
-    public abstract void SetMatrixUniformModelView(float[] mvMatrix);
+    public abstract void SetMatrixUniformProjection(ref Matrix4 pMatrix);
+    public abstract void SetMatrixUniformModelView(ref Matrix4 mvMatrix);
     public abstract void DrawModels(Model[] model, int count);
     public abstract void DrawModelData(ModelData data);
     public abstract void DeleteModel(Model model);

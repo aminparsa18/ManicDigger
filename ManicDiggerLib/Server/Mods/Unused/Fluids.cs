@@ -10,19 +10,13 @@
  * file into Manic Digger\Mods\Fortress
  * ******************************************************** */
 
+using OpenTK.Mathematics;
+
 namespace ManicDigger.Mods;
 
 public class Fluids : IMod
 {
     private readonly Random random = new();
-
-    private struct Vector3i(int x, int y, int z)
-    {
-        public int x = x;
-        public int y = y;
-        public int z = z;
-        public bool searched = false;
-    }
 
     private readonly Dictionary<int, Vector3i> activeFluids = [];
     private int Water, Lava;
@@ -231,19 +225,19 @@ public class Fluids : IMod
         foreach (int key in keys)
         {
             Vector3i p = activeFluids [key];
-            if (Update(p.x, p.y, p.z) == false)
+            if (Update(p.X, p.Y, p.Z) == false)
             {
                 Vector3i b1, b2;
                 //this fluid does not move anymore
                 //search for lowest freespace
-                if (!LowestFreeSpace(p.x, p.y, p.z, p.z))
+                if (!LowestFreeSpace(p.X, p.Y, p.Z, p.Z))
                 {
                     //nothing left to do here
                     activeFluids.Remove(key);
                     continue;
                 }
                 b1 = foundBlock;
-                if (!HighestFluidBlock(p.x, p.y, p.z, b1.z + 1))
+                if (!HighestFluidBlock(p.X, p.Y, p.Z, b1.Z + 1))
                 {
                     //nothing left to do here
                     activeFluids.Remove(key);
@@ -251,10 +245,10 @@ public class Fluids : IMod
                 }
                 b2 = foundBlock;
 
-                m.SetBlock(b1.x, b1.y, b1.z, searchMedium);
-                m.SetBlock(b2.x, b2.y, b2.z, 0);
-                CheckNeighbors(b2.x, b2.y, b2.z);
-                AddActiveFluid(b1.x, b1.y, b1.z);
+                m.SetBlock(b1.X, b1.Y, b1.Z, searchMedium);
+                m.SetBlock(b2.X, b2.Y, b2.Z, 0);
+                CheckNeighbors(b2.X, b2.Y, b2.Z);
+                AddActiveFluid(b1.X, b1.Y, b1.Z);
             }
         }
     }
@@ -339,7 +333,7 @@ public class Fluids : IMod
                         zz += preferedSearchDirection;
                     zz -= preferedSearchDirection;
                 }
-                if ((!found) || (((zz - foundBlock.z) * preferedSearchDirection) > 0))
+                if ((!found) || (((zz - foundBlock.Z) * preferedSearchDirection) > 0))
                 {
                     foundBlock = new Vector3i(x, y, zz);
                     found = true;

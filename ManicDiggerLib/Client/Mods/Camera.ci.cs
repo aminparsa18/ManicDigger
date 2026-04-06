@@ -3,7 +3,7 @@ public class ModCamera : ClientMod
 {
     public ModCamera()
     {
-        OverheadCamera_cameraEye = new Vector3Ref();
+        OverheadCamera_cameraEye = new Vector3();
         upVec3 = new Vector3(0, 1, 0);
     }
 
@@ -19,18 +19,18 @@ public class ModCamera : ClientMod
         }
     }
 
-    internal Vector3Ref OverheadCamera_cameraEye;
-    internal float[] OverheadCamera(Game game)
+    internal Vector3 OverheadCamera_cameraEye;
+    internal Matrix4 OverheadCamera(Game game)
     {
-        game.overheadcameraK.GetPosition(game.platform, OverheadCamera_cameraEye);
-        Vector3Ref cameraEye = OverheadCamera_cameraEye;
-        Vector3Ref cameraTarget = Vector3Ref.Create(game.overheadcameraK.Center.X, game.overheadcameraK.Center.Y + game.GetCharacterEyesHeight(), game.overheadcameraK.Center.Z);
+        game.overheadcameraK.GetPosition(game.platform, ref OverheadCamera_cameraEye);
+        Vector3 cameraEye = OverheadCamera_cameraEye;
+        Vector3 cameraTarget = new(
+            game.overheadcameraK.Center.X,
+            game.overheadcameraK.Center.Y + game.GetCharacterEyesHeight(),
+            game.overheadcameraK.Center.Z);
         FloatRef currentOverheadcameradistance = FloatRef.Create(game.overheadcameradistance);
-        LimitThirdPersonCameraToWalls(game, cameraEye, cameraTarget, currentOverheadcameradistance);
-        float[] ret = new float[16];
-        Mat4.LookAt(ret, new Vector3(cameraEye.X, cameraEye.Y, cameraEye.Z),
-             new Vector3(cameraTarget.X, cameraTarget.Y, cameraTarget.Z),
-            upVec3);
+        LimitThirdPersonCameraToWalls(game, ref cameraEye, ref cameraTarget, currentOverheadcameradistance);
+        Matrix4 ret = Matrix4.LookAt(cameraEye, cameraTarget, upVec3);
         game.CameraEyeX = cameraEye.X;
         game.CameraEyeY = cameraEye.Y;
         game.CameraEyeZ = cameraEye.Z;
@@ -38,12 +38,12 @@ public class ModCamera : ClientMod
     }
     private readonly Vector3 upVec3;
 
-    internal float[] FppCamera(Game game)
+    internal Matrix4 FppCamera(Game game)
     {
-        Vector3Ref forward = new();
-        VectorTool.ToVectorInFixedSystem(0, 0, 1, game.player.position.rotx, game.player.position.roty, forward);
-        Vector3Ref cameraEye = new();
-        Vector3Ref cameraTarget = new();
+        Vector3 forward = new();
+        VectorTool.ToVectorInFixedSystem(0, 0, 1, game.player.position.rotx, game.player.position.roty, ref forward);
+        Vector3 cameraEye = new();
+        Vector3 cameraTarget = new();
         float playerEyeX = game.player.position.x;
         float playerEyeY = game.player.position.y + game.GetCharacterEyesHeight();
         float playerEyeZ = game.player.position.z;
@@ -65,23 +65,20 @@ public class ModCamera : ClientMod
             cameraTarget.Y = playerEyeY;
             cameraTarget.Z = playerEyeZ;
             FloatRef currentTppcameradistance = FloatRef.Create(game.tppcameradistance);
-            LimitThirdPersonCameraToWalls(game, cameraEye, cameraTarget, currentTppcameradistance);
+            LimitThirdPersonCameraToWalls(game, ref cameraEye, ref cameraTarget, currentTppcameradistance);
         }
-        float[] ret = new float[16];
-        Mat4.LookAt(ret, new Vector3(cameraEye.X, cameraEye.Y, cameraEye.Z),
-            new Vector3(cameraTarget.X, cameraTarget.Y, cameraTarget.Z),
-            upVec3);
+        Matrix4 ret = Matrix4.LookAt(cameraEye, cameraTarget, upVec3);
         game.CameraEyeX = cameraEye.X;
         game.CameraEyeY = cameraEye.Y;
         game.CameraEyeZ = cameraEye.Z;
         return ret;
     }
 
-    internal static void LimitThirdPersonCameraToWalls(Game game, Vector3Ref eye, Vector3Ref target, FloatRef curtppcameradistance)
+    internal static void LimitThirdPersonCameraToWalls(Game game, ref Vector3 eye, ref Vector3 target, FloatRef curtppcameradistance)
     {
         float one = 1;
-        Vector3Ref ray_start_point = target;
-        Vector3Ref raytarget = eye;
+        Vector3 ray_start_point = target;
+        Vector3 raytarget = eye;
 
         Line3D pick = new();
         float raydirX = (raytarget.X - ray_start_point.X);
@@ -98,14 +95,13 @@ public class ModCamera : ClientMod
         pick.Start = new Vector3(ray_start_point.X, ray_start_point.Y, ray_start_point.Z);
         pick.End = new Vector3(ray_start_point.X + raydirX, ray_start_point.Y + raydirY, ray_start_point.Z + raydirZ);
 
-        //pick terrain
+        // pick terrain
         IntRef pick2Count = new();
         BlockPosSide[] pick2 = game.Pick(game.s, pick, pick2Count);
 
         if (pick2Count.value > 0)
         {
             BlockPosSide pick2nearest = game.Nearest(pick2, pick2Count.value, ray_start_point.X, ray_start_point.Y, ray_start_point.Z);
-            //pick2.Sort((a, b) => { return (FloatArrayToVector3(a.blockPos) - ray_start_point).Length.CompareTo((FloatArrayToVector3(b.blockPos) - ray_start_point).Length); });
 
             float pickX = pick2nearest.blockPos[0] - target.X;
             float pickY = pick2nearest.blockPos[1] - target.Y;
@@ -115,9 +111,6 @@ public class ModCamera : ClientMod
             if (curtppcameradistance.value < one * 3 / 10) { curtppcameradistance.value = one * 3 / 10; }
         }
 
-        float cameraDirectionX = target.X - eye.X;
-        float cameraDirectionY = target.Y - eye.Y;
-        float cameraDirectionZ = target.Z - eye.Z;
         float raydirLength = game.Length(raydirX, raydirY, raydirZ);
         raydirX /= raydirLength;
         raydirY /= raydirLength;

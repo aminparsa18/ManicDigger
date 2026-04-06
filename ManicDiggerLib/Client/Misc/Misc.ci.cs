@@ -2,91 +2,59 @@
 
 public class VectorTool
 {
-    public static void ToVectorInFixedSystem(float dx, float dy, float dz, float orientationx, float orientationy, Vector3Ref output)
+    public static void ToVectorInFixedSystem(float dx, float dy, float dz, float orientationx, float orientationy, ref Vector3 output)
     {
-        //Don't calculate for nothing ...
         if (dx == 0 && dy == 0 && dz == 0)
         {
-            output.X = 0;
-            output.Y = 0;
-            output.Z = 0;
+            output = Vector3.Zero;
             return;
         }
 
-        //Convert to Radian : 360° = 2PI
-        float xRot = orientationx;//Math.toRadians(orientation.X);
-        float yRot = orientationy;//Math.toRadians(orientation.Y);
+        float xRot = orientationx;
+        float yRot = orientationy;
 
-        //Calculate the formula
-        float x = (dx * (float)MathHelper.Cos(yRot) + dy * (float)MathHelper.Sin(xRot) * (float)MathHelper.Sin(yRot) - dz * (float)MathHelper.Cos(xRot) * (float)MathHelper.Sin(yRot));
-        float y = (dy * (float)MathHelper.Cos(xRot) + dz * (float)MathHelper.Sin(xRot));
-        float z = (dx * (float)MathHelper.Sin(yRot) - dy * (float)MathHelper.Sin(xRot) * (float)MathHelper.Cos(yRot) + dz * (float)MathHelper.Cos(xRot) * (float)MathHelper.Cos(yRot));
-
-        //Return the vector expressed in the global axis system
-        output.X = x;
-        output.Y = y;
-        output.Z = z;
+        output.X = (dx * MathF.Cos(yRot) + dy * MathF.Sin(xRot) * MathF.Sin(yRot) - dz * MathF.Cos(xRot) * MathF.Sin(yRot));
+        output.Y = (dy * MathF.Cos(xRot) + dz * MathF.Sin(xRot));
+        output.Z = (dx * MathF.Sin(yRot) - dy * MathF.Sin(xRot) * MathF.Cos(yRot) + dz * MathF.Cos(xRot) * MathF.Cos(yRot));
     }
 }
 
 public class Unproject
 {
-    public Unproject()
+    public bool UnProject(int winX, int winY, int winZ, Matrix4 model, Matrix4 proj, int[] view, out Vector3 objPos)
     {
-        finalMatrix = Mat4.Create();
-        inp = new float[4];
-        out_ = new float[4];
-    }
-    private readonly float[] finalMatrix;
-    private readonly float[] inp;
-    private readonly float[] out_;
-    public bool UnProject(int winX, int winY, int winZ, float[] model, float[] proj, float[] view, float[] objPos)
-    {
-        inp[0] = winX;
-        inp[1] = winY;
-        inp[2] = winZ;
-        inp[3] = 1;
+        objPos = Vector3.Zero;
 
-        Mat4.Multiply(finalMatrix, proj, model);
-        Mat4.Invert(finalMatrix, finalMatrix);
+        Matrix4.Mult(in proj, in model, out Matrix4 finalMatrix);
+        finalMatrix.Invert();
+
+        Vector4 inp;
+        inp.X = winX;
+        inp.Y = winY;
+        inp.Z = winZ;
+        inp.W = 1;
 
         // Map x and y from window coordinates
-        inp[0] = (inp[0] - view[0]) / view[2];
-        inp[1] = (inp[1] - view[1]) / view[3];
+        inp.X = (inp.X - view[0]) / view[2];
+        inp.Y = (inp.Y - view[1]) / view[3];
 
         // Map to range -1 to 1
-        inp[0] = inp[0] * 2 - 1;
-        inp[1] = inp[1] * 2 - 1;
-        inp[2] = inp[2] * 2 - 1;
+        inp.X = inp.X * 2 - 1;
+        inp.Y = inp.Y * 2 - 1;
+        inp.Z = inp.Z * 2 - 1;
 
-        MultMatrixVec(finalMatrix, inp, out_);
+        Vector4.TransformRow(in inp, in finalMatrix, out Vector4 out_);
 
-        if (out_[3] == 0)
+        if (out_.W == 0)
         {
             return false;
         }
 
-        out_[0] /= out_[3];
-        out_[1] /= out_[3];
-        out_[2] /= out_[3];
-
-        objPos[0] = out_[0];
-        objPos[1] = out_[1];
-        objPos[2] = out_[2];
+        objPos.X = out_.X / out_.W;
+        objPos.Y = out_.Y / out_.W;
+        objPos.Z = out_.Z / out_.W;
 
         return true;
-    }
-
-    private static void MultMatrixVec(float[] matrix, float[] inp__, float[] out__)
-    {
-        for (int i = 0; i < 4; i = i + 1)
-        {
-            out__[i] =
-                inp__[0] * matrix[0 * 4 + i] +
-                inp__[1] * matrix[1 * 4 + i] +
-                inp__[2] * matrix[2 * 4 + i] +
-                inp__[3] * matrix[3 * 4 + i];
-        }
     }
 }
 

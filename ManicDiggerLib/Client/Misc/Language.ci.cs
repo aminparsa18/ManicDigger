@@ -158,13 +158,13 @@
             //Iterate over each line in these files
             for (int j = 1; j < lineCount; j++)
             {
-                if (platform.StringEmpty(lineList[j]))
+                if (string.IsNullOrEmpty(lineList[j]))
                 {
                     //Skip line if empty
                     continue;
                 }
-                string[] splitList = platform.StringSplit(lineList[j], "=", out int splitCount);
-                if (splitCount >= 2)
+                string[] splitList = lineList[j].Split('=');
+                if (splitList.Length >= 2)
                 {
                     Add(lineList[0], splitList[0], splitList[1]);
                 }

@@ -246,17 +246,17 @@ public class ModGuiChat : ClientMod
                 args.SetHandled(true);
             }
             //Handles player name autocomplete in chat
-            if (eKey == game.GetKey(Keys.Tab) && game.platform.StringTrim(game.GuiTypingBuffer) != "")
+            if (eKey == game.GetKey(Keys.Tab) && game.GuiTypingBuffer.Trim() != "")
             {
-                string[] parts = game.platform.StringSplit(game.GuiTypingBuffer, " ", out int partsLength);
-                string completed = DoAutocomplete(parts[partsLength - 1]);
+                string[] parts = game.GuiTypingBuffer.Split(" ");
+                string completed = DoAutocomplete(parts[parts.Length - 1]);
                 if (completed == "")
                 {
                     //No completion available. Abort.
                     args.SetHandled(true);
                     return;
                 }
-                else if (partsLength == 1)
+                else if (parts.Length == 1)
                 {
                     //Part is first word. Format as "<name>: "
                     game.GuiTypingBuffer = StringTools.StringAppend(game.platform, completed, ": ");
@@ -264,8 +264,8 @@ public class ModGuiChat : ClientMod
                 else
                 {
                     //Part is not first. Just complete "<name> "
-                    parts[partsLength - 1] = completed;
-                    game.GuiTypingBuffer = StringTools.StringAppend(game.platform, game.platform.StringJoin(parts, " "), " ");
+                    parts[parts.Length - 1] = completed;
+                    game.GuiTypingBuffer = StringTools.StringAppend(game.platform, string.Join(" ", parts), " ");
                 }
                 args.SetHandled(true);
                 return;
@@ -313,7 +313,7 @@ public class ModGuiChat : ClientMod
 
     public string DoAutocomplete(string text)
     {
-        if (!game.platform.StringEmpty(text))
+        if (!string.IsNullOrEmpty(text))
         {
             for (int i = 0; i < game.entitiesCount; i++)
             {
@@ -323,7 +323,7 @@ public class ModGuiChat : ClientMod
                 if (!entity.drawName.ClientAutoComplete) { continue; }
                 DrawName p = entity.drawName;
                 //Use substring here because player names are internally in format &xNAME (so we need to cut first 2 characters)
-                if (game.platform.StringStartsWithIgnoreCase(StringTools.StringSubstringToEnd(game.platform, p.Name, 2), text))
+                if (StringTools.StringSubstringToEnd(game.platform, p.Name, 2).StartsWith(text, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return StringTools.StringSubstringToEnd(game.platform, p.Name, 2);
                 }

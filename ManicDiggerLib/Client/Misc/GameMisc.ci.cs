@@ -1,5 +1,6 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
+using System.Text;
 
 public class GameScreen : ClientMod
 {
@@ -222,7 +223,7 @@ public class GameScreen : ClientMod
     public string CharToString(int a)
     {
         int[] arr = [a];
-        return game.platform.CharArrayToString(arr, 1);
+        return StringTools.CharArrayToString(arr, 1);
     }
 
     public string CharRepeat(int c, int length)
@@ -232,7 +233,7 @@ public class GameScreen : ClientMod
         {
             charArray[i] = c;
         }
-        return game.platform.CharArrayToString(charArray, length);
+        return StringTools.CharArrayToString(charArray, length);
     }
     internal int screenx;
     internal int screeny;
@@ -288,7 +289,7 @@ public class LoginClientCi
         }
         if (loginUrlResponse != null && loginUrlResponse.done)
         {
-            loginUrl = platform.StringFromUtf8ByteArray(loginUrlResponse.value, loginUrlResponse.valueLength);
+            loginUrl = Encoding.UTF8.GetString(loginUrlResponse.value, 0, loginUrlResponse.valueLength);
             loginUrlResponse = null;
         }
 
@@ -299,15 +300,15 @@ public class LoginClientCi
                 shouldLogin = false;
                 string requestString = string.Format("username={0}&password={1}&server={2}&token={3}"
                     , LoginUser, LoginPassword, LoginPublicServerKey, LoginToken);
-                byte[] byteArray = platform.StringToUtf8ByteArray(requestString, out int byteArrayLength);
+                byte[] byteArray = Encoding.UTF8.GetBytes(requestString);
                 loginResponse = new HttpResponseCi();
-                platform.WebClientUploadDataAsync(loginUrl, byteArray, byteArrayLength, loginResponse);
+                platform.WebClientUploadDataAsync(loginUrl, byteArray, byteArray.Length, loginResponse);
             }
             if (loginResponse != null && loginResponse.done)
             {
-                string responseString = platform.StringFromUtf8ByteArray(loginResponse.value, loginResponse.valueLength);
-                resultLoginData.PasswordCorrect = !(platform.StringContains(responseString, "Wrong username") || platform.StringContains(responseString, "Incorrect username"));
-                resultLoginData.ServerCorrect = !platform.StringContains(responseString, "server");
+                string responseString = Encoding.UTF8.GetString(loginResponse.value, 0, loginResponse.valueLength);
+                resultLoginData.PasswordCorrect = !(responseString.Contains("Wrong username") || responseString.Contains("Incorrect username"));
+                resultLoginData.ServerCorrect = !responseString.Contains("server");
                 if (resultLoginData.PasswordCorrect)
                 {
                     loginResult.value = LoginResult.Ok;
@@ -1563,11 +1564,11 @@ public class FreemoveLevelEnum
 public abstract class ClientMod
 {
     public virtual void Start(ClientModManager modmanager) { }
-    
+
     public virtual void OnReadOnlyMainThread(Game game, float dt) { }
     public virtual void OnReadOnlyBackgroundThread(Game game, float dt) { }
     public virtual void OnReadWriteMainThread(Game game, float dt) { }
-    
+
     public virtual bool OnClientCommand(Game game, ClientCommandArgs args) { return false; }
     public virtual void OnNewFrame(Game game, NewFrameEventArgs args) { }
     public virtual void OnNewFrameFixed(Game game, NewFrameEventArgs args) { }
@@ -1660,11 +1661,16 @@ public class Text_
             && this.fontstyle == t.fontstyle;
     }
 
-    public string GetText() { return text; } public void SetText(string value) { text = value; }
-    public float GetFontSize() { return fontsize; } public void SetFontSize(float value) { fontsize = value; }
-    public int GetColor() { return color; } public void SetColor(int value) { color = value; }
-    public string GetFontFamily() { return fontfamily; } public void SetFontFamily(string value) { fontfamily = value; }
-    public int GetFontStyle() { return fontstyle; } public void SetFontStyle(int value) { fontstyle = value; }
+    public string GetText() { return text; }
+    public void SetText(string value) { text = value; }
+    public float GetFontSize() { return fontsize; }
+    public void SetFontSize(float value) { fontsize = value; }
+    public int GetColor() { return color; }
+    public void SetColor(int value) { color = value; }
+    public string GetFontFamily() { return fontfamily; }
+    public void SetFontFamily(string value) { fontfamily = value; }
+    public int GetFontStyle() { return fontstyle; }
+    public void SetFontStyle(int value) { fontstyle = value; }
 }
 
 public class CachedTextTexture
@@ -1790,7 +1796,7 @@ public class TextColorRenderer
                         {
                             TextPart part = new()
                             {
-                                text = platform.CharArrayToString(currenttext, currenttextLength),
+                                text = StringTools.CharArrayToString(currenttext, currenttextLength),
                                 color = currentcolor
                             };
                             parts[partsCount++] = part;
@@ -1820,7 +1826,7 @@ public class TextColorRenderer
         {
             TextPart part = new()
             {
-                text = platform.CharArrayToString(currenttext, currenttextLength),
+                text = StringTools.CharArrayToString(currenttext, currenttextLength),
                 color = currentcolor
             };
             parts[partsCount++] = part;

@@ -64,7 +64,7 @@ public class ModDialog : ClientMod
                 }
                 // Only typeable characters are handled by KeyPress (for special characters use KeyDown)
                 string valid = "abcdefghijklmnopqrstuvwxyz1234567890\t ";
-                if (game.platform.StringContains(valid, game.CharToString(w.ClickKey)))
+                if (valid.Contains(game.CharToString(w.ClickKey)))
                 {
                     if (args.GetKeyChar() == w.ClickKey)
                     {
@@ -241,11 +241,11 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
             b.text = a.Text;
             if (b.text != null)
             {
-                b.text = game.platform.StringReplace(b.text, "!SERVER_IP!", game.ServerInfo.connectdata.Ip);
+                b.text = b.text.Replace("!SERVER_IP!", game.ServerInfo.connectdata.Ip);
             }
             if (b.text != null)
             {
-                b.text = game.platform.StringReplace(b.text, "!SERVER_PORT!", game.ServerInfo.connectdata.Port.ToString());
+                b.text = b.text.Replace("!SERVER_PORT!", game.ServerInfo.connectdata.Port.ToString());
             }
             b.color = a.Color;
             if (a.Font != null)

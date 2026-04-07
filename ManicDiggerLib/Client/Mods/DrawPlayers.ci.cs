@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+using System.Text;
 
 public class ModDrawPlayers : ClientMod
 {
@@ -88,7 +89,7 @@ public class ModDrawPlayers : ClientMod
                     int dataLength = game.GetFileLength(p_.drawModel.Model_);
                     if (data != null)
                     {
-                        string dataString = game.platform.StringFromUtf8ByteArray(data, dataLength);
+                        string dataString = Encoding.UTF8.GetString(data,0, dataLength);
                         AnimatedModel model = AnimatedModelSerializer.Deserialize(game.platform, dataString);
                         p_.drawModel.renderer.Start(game, model);
                     }

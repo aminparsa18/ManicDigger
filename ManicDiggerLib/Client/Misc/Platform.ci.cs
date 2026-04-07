@@ -3,21 +3,7 @@ using OpenTK.Windowing.Common;
 
 public abstract class GamePlatform
 {
-    // Primitive
-    public abstract int[] StringToCharArray(string s, out int length);
-    public abstract string CharArrayToString(int[] charArray, int length);
-    public abstract bool StringEmpty(string data);
-    public abstract bool StringContains(string a, string b);
-    public abstract string StringReplace(string s, string from, string to);
-    public abstract bool StringStartsWithIgnoreCase(string a, string b);
-    public abstract int StringIndexOf(string s, string p);
-    public abstract string StringTrim(string value);
-    public abstract string StringToLower(string p);
-    public abstract string StringFromUtf8ByteArray(byte[] value, int valueLength);
-    public abstract byte[] StringToUtf8ByteArray(string s, out int retLength);
-    public abstract string[] StringSplit(string value, string separator, out int returnLength);
-    public abstract string StringJoin(string[] value, string separator);
-
+   
     // Misc
     public abstract string Timestamp();
     public abstract void ClipboardSetText(string s);

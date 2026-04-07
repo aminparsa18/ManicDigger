@@ -106,8 +106,8 @@ public class ModFpsHistoryGraph : ClientMod
     {
         if (args.command == "fps")
         {
-            string[] arguments = m.GetPlatform().StringSplit(args.arguments, " ", out _);
-            if (m.GetPlatform().StringTrim(args.arguments) == "")
+            string[] arguments = args.arguments.Split(" ");
+            if (args.arguments.Trim() == "")
             {
                 drawfpstext = true;
             }

@@ -93,7 +93,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
             {
                 old.drawName.Name = entity.DrawName_.Name;
             }
-            if (!game.platform.StringStartsWithIgnoreCase(old.drawName.Name, "&"))
+            if (!old.drawName.Name.StartsWith("&", StringComparison.InvariantCultureIgnoreCase))
             {
                 old.drawName.Name = string.Format("&f{0}", old.drawName.Name);
             }

@@ -93,7 +93,7 @@
         for (int k = 0; k < game.assets.count; k++)
         {
             string s = game.assets.items[k].name;
-            string sound = game.platform.StringReplace(s, ".ogg", "");
+            string sound = s.Replace(".ogg", "");
             if (s == sound)
             {
                 continue;

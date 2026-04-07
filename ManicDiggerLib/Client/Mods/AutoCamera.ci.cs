@@ -23,8 +23,8 @@
     {
         if (args.command == "cam")
         {
-            string[] arguments = p.StringSplit(args.arguments, " ", out int argumentsLength);
-            if (p.StringTrim(args.arguments) == "")
+            string[] arguments = args.arguments.Split(" ");
+            if (args.arguments.Trim() == "")
             {
                 m.DisplayNotification("&6AutoCamera help.");
                 m.DisplayNotification("&6.cam p&f - add a point to path");
@@ -66,7 +66,7 @@
                 float totalRecTime = -1;
                 if (arguments[0] == "rec")
                 {
-                    if (argumentsLength >= 3)
+                    if (arguments.Length >= 3)
                     {
                         // video time
                         totalRecTime = float.Parse(arguments[2]);
@@ -74,7 +74,7 @@
                     avi = m.AviWriterCreate();
                     avi.Open(string.Format("{0}.avi", p.Timestamp()), framerate, m.GetWindowWidth(), m.GetWindowHeight());
                 }
-                if (argumentsLength >= 2)
+                if (arguments.Length >= 2)
                 {
                     // play time
                     float totalTime = float.Parse(arguments[1]);
@@ -135,8 +135,8 @@
             }
             if (arguments[0] == "load")
             {
-                string[] points = p.StringSplit(arguments[1], ",", out int pointsLength);
-                int n = (pointsLength - 1) / 6;
+                string[] points = arguments[1].Split(",");
+                int n = (points.Length - 1) / 6;
                 cameraPointsCount = 0;
                 for (int i = 0; i < n; i++)
                 {

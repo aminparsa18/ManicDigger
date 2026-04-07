@@ -24,22 +24,22 @@ public class TableSerializer
 
         for (int i = 0; i < linesCount; i++)
         {
-            string line = p.StringTrim(lines[i]);
+            string line = lines[i].Trim();
 
             if (line == "") { continue; }
-            if (p.StringStartsWithIgnoreCase(line, "//")) { continue; }
-            if (p.StringStartsWithIgnoreCase(line, "#")) { continue; }
+            if (line.StartsWith("//", StringComparison.InvariantCultureIgnoreCase)) { continue; }
+            if (line.StartsWith("#", StringComparison.InvariantCultureIgnoreCase)) { continue; }
 
-            if (p.StringStartsWithIgnoreCase(line, SectionPrefix))
+            if (line.StartsWith(SectionPrefix, StringComparison.InvariantCultureIgnoreCase))
             {
-                section = p.StringReplace(line, SectionPrefix, "");
+                section = line.Replace(SectionPrefix, "");
 
                 if (i + 1 >= linesCount)
                 {
                     throw new FormatException($"Section '{section}' has no header row.");
                 }
 
-                header = p.StringSplit(p.StringTrim(lines[++i]), TabSeparator, out _);
+                header = lines[++i].Trim().Split(TabSeparator);
                 rowIndex = 0;
                 continue;
             }
@@ -49,15 +49,15 @@ public class TableSerializer
                 throw new FormatException($"Data row found before any section declaration: '{line}'");
             }
 
-            string[] columns = p.StringSplit(line, TabSeparator, out int columnCount);
+            string[] columns = line.Split(TabSeparator);
 
-            if (columnCount > header.Length)
+            if (columns.Length > header.Length)
             {
                 throw new FormatException(
-                    $"Row {rowIndex} in section '{section}' has {columnCount} columns but header has {header.Length}.");
+                    $"Row {rowIndex} in section '{section}' has {columns.Length} columns but header has {header.Length}.");
             }
 
-            for (int k = 0; k < columnCount; k++)
+            for (int k = 0; k < columns.Length; k++)
             {
                 binding.Set(section, rowIndex, header[k], columns[k]);
             }

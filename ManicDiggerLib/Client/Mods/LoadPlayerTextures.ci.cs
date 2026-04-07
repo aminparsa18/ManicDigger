@@ -1,4 +1,6 @@
-﻿public class ModLoadPlayerTextures : ClientMod
+﻿using System.Text;
+
+public class ModLoadPlayerTextures : ClientMod
 {
     public override void OnNewFrame(Game game, NewFrameEventArgs args)
     {
@@ -26,7 +28,7 @@
         {
             if (skinserverResponse.done)
             {
-                skinserver = game.platform.StringFromUtf8ByteArray(skinserverResponse.value, skinserverResponse.valueLength);
+                skinserver = Encoding.UTF8.GetString(skinserverResponse.value, 0, skinserverResponse.valueLength);
             }
             else if (skinserverResponse.error)
             {

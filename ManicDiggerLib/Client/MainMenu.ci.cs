@@ -1,5 +1,6 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
+using System.Text;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 public class MainMenu
@@ -227,7 +228,7 @@ public class MainMenu
 
     internal byte[] GetFile(string name)
     {
-        string pLowercase = p.StringToLower(name);
+        string pLowercase = name.ToLowerInvariant();
         for (int i = 0; i < assets.count; i++)
         {
             if (assets.items[i].name == pLowercase)
@@ -240,7 +241,7 @@ public class MainMenu
 
     internal int GetFileLength(string name)
     {
-        string pLowercase = p.StringToLower(name);
+        string pLowercase = name.ToLowerInvariant();
         for (int i = 0; i < assets.count; i++)
         {
             if (assets.items[i].name == pLowercase)
@@ -555,7 +556,7 @@ public class MainMenu
     public string CharToString(int a)
     {
         int[] arr = [a];
-        return p.CharArrayToString(arr, 1);
+        return StringTools.CharArrayToString(arr, 1);
     }
 
     public string CharRepeat(int c, int length)
@@ -565,7 +566,7 @@ public class MainMenu
         {
             charArray[i] = c;
         }
-        return p.CharArrayToString(charArray, length);
+        return StringTools.CharArrayToString(charArray, length);
     }
     
     internal static void StartNewWorld()
@@ -862,7 +863,7 @@ public class Screen
                     }
                     else
                     {
-                        string[] strings = menu.p.StringSplit(w.text, "\n", out _);
+                        string[] strings = w.text.Split('\n');
                         if (w.selected)
                         {
                             //Highlight text if selected
@@ -935,9 +936,9 @@ public class HttpResponseCi
     internal byte[] value;
     internal int valueLength;
 
-    internal string GetString(GamePlatform platform)
+    internal string GetString()
     {
-        return platform.StringFromUtf8ByteArray(value, valueLength);
+       return Encoding.UTF8.GetString(value, 0, valueLength);
     }
 
     internal bool error;

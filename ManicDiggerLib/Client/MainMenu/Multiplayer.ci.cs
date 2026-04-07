@@ -124,7 +124,7 @@ public class ScreenMultiplayer : Screen
         if (serverListAddress.done)
         {
             serverListAddress.done = false;
-            menu.p.WebClientDownloadDataAsync(serverListAddress.GetString(menu.p), serverListCsv);
+            menu.p.WebClientDownloadDataAsync(serverListAddress.GetString(), serverListCsv);
         }
         if (serverListCsv.done)
         {
@@ -135,11 +135,11 @@ public class ScreenMultiplayer : Screen
                 serversOnList[i] = null;
                 thumbResponses[i] = null;
             }
-            string[] servers = menu.p.StringSplit(serverListCsv.GetString(menu.p), "\n", out int serversCount);
-            for (int i = 0; i < serversCount; i++)
+            string[] servers = serverListCsv.GetString().Split("\n");
+            for (int i = 0; i < servers.Length; i++)
             {
-                string[] ss = menu.p.StringSplit(servers[i], "\t", out int ssCount);
-                if (ssCount < 10)
+                string[] ss = servers[i].Split("\t");
+                if (ss.Length < 10)
                 {
                     continue;
                 }

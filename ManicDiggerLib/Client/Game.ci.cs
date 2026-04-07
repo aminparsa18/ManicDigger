@@ -1139,7 +1139,7 @@ public class Game
     public void AddChatline(string s)
     {
         Game game = this;
-        if (game.platform.StringEmpty(s))
+        if (string.IsNullOrEmpty(s))
         {
             return;
         }
@@ -1147,13 +1147,13 @@ public class Game
         bool containsLink = false;
         string linkTarget = "";
         //Normal HTTP links
-        if (game.platform.StringContains(s, "http://"))
+        if (s.Contains("http://"))
         {
             containsLink = true;
-            string[] temp = game.platform.StringSplit(s, " ", out int r);
-            for (int i = 0; i < r; i++)
+            string[] temp = s.Split(' ');
+            for (int i = 0; i < temp.Length; i++)
             {
-                if (game.platform.StringIndexOf(temp[i], "http://") != -1)
+                if (temp[i].Contains("http://", StringComparison.InvariantCultureIgnoreCase))
                 {
                     linkTarget = temp[i];
                     break;
@@ -1161,13 +1161,13 @@ public class Game
             }
         }
         //Secure HTTPS links
-        if (game.platform.StringContains(s, "https://"))
+        if (s.Contains("https://"))
         {
             containsLink = true;
-            string[] temp = game.platform.StringSplit(s, " ", out int r);
-            for (int i = 0; i < r; i++)
+            string[] temp = s.Split(' ');
+            for (int i = 0; i < temp.Length; i++)
             {
-                if (game.platform.StringIndexOf(temp[i], "https://") != -1)
+                if (temp[i].Contains("https://", StringComparison.InvariantCultureIgnoreCase))
                 {
                     linkTarget = temp[i];
                     break;
@@ -1391,7 +1391,7 @@ public class Game
         {
             return false;
         }
-        return platform.StringContains(name, "Water"); // todo
+        return name.Contains("Water"); // todo
     }
 
     internal int mouseCurrentX;
@@ -1624,7 +1624,7 @@ public class Game
         {
             return;
         }
-        string file_ = platform.StringReplace(file, ".wav", ".ogg");
+        string file_ = file.Replace(".wav", ".ogg");
 
         if (GetFileLength(file_) == 0)
         {
@@ -1653,7 +1653,7 @@ public class Game
             return;
         }
 
-        string file_ = platform.StringReplace(file, ".wav", ".ogg");
+        string file_ = file.Replace(".wav", ".ogg");
 
         if (GetFileLength(file_) == 0)
         {
@@ -2366,7 +2366,7 @@ public class Game
         {
             return false;
         }
-        return platform.StringContains(name, "Lava"); // todo
+        return name.Contains("Lava"); // todo
     }
 
     internal int Terraincolor()
@@ -2700,7 +2700,7 @@ public class Game
     public string CharToString(int c)
     {
         int[] arr = [c];
-        return platform.CharArrayToString(arr, 1);
+        return StringTools.CharArrayToString(arr, 1);
     }
 
     internal Speculative[] speculative;
@@ -2833,22 +2833,22 @@ public class Game
             return;
         }
 
-        string[] ss = platform.StringSplit(s_, " ", out _);
+        string[] ss = s_.Split(' ');
         if (StringTools.StringStartsWith(platform, s_, "."))
         {
             //Client command starting with a "."
             string strFreemoveNotAllowed = language.FreemoveNotAllowed();
             string cmd = StringTools.StringSubstringToEnd(platform, ss[0], 1);
             string arguments;
-            if (platform.StringIndexOf(s_, " ") == -1)
+            if (!s_.Contains(" ", StringComparison.InvariantCultureIgnoreCase))
             {
                 arguments = "";
             }
             else
             {
-                arguments = StringTools.StringSubstringToEnd(platform, s_, platform.StringIndexOf(s_, " "));
+                arguments = StringTools.StringSubstringToEnd(platform, s_, s_.IndexOf(" ", StringComparison.InvariantCultureIgnoreCase));
             }
-            arguments = platform.StringTrim(arguments);
+            arguments = arguments.Trim();
 
             // Command requiring no arguments
             if (cmd == "clients")
@@ -2962,8 +2962,8 @@ public class Game
                 else if (cmd == "serverinfo")
                 {
                     //Fetches server info from given adress
-                    string[] split = platform.StringSplit(arguments, ":", out int splitCount);
-                    if (splitCount == 2)
+                    string[] split = arguments.Split(':');
+                    if (split.Length == 2)
                     {
                         QueryClient qClient = new();
                         qClient.SetPlatform(platform);
@@ -3015,7 +3015,7 @@ public class Game
     }
     public bool BoolCommandArgument(string arguments)
     {
-        arguments = platform.StringTrim(arguments);
+        arguments = arguments.Trim();
         return (arguments == "" || arguments == "1" || arguments == "on" || arguments == "yes");
     }
     internal string[] typinglog;
@@ -3146,7 +3146,7 @@ public class Game
 
     public void SetFile(string name, string md5, byte[] downloaded, int downloadedLength)
     {
-        string nameLowercase = platform.StringToLower(name);
+        string nameLowercase = name.ToLowerInvariant();
 
         // Update mouse cursor if changed
         if (nameLowercase == "mousecursor.png")
@@ -3211,7 +3211,7 @@ public class Game
 
     internal byte[] GetFile(string p)
     {
-        string pLowercase = platform.StringToLower(p);
+        string pLowercase = p.ToLowerInvariant();
         for (int i = 0; i < assets.count; i++)
         {
             if (assets.items[i].name == pLowercase)
@@ -3224,7 +3224,7 @@ public class Game
 
     internal int GetFileLength(string p)
     {
-        string pLowercase = platform.StringToLower(p);
+        string pLowercase = p.ToLowerInvariant();
         for (int i = 0; i < assets.count; i++)
         {
             if (assets.items[i].name == pLowercase)

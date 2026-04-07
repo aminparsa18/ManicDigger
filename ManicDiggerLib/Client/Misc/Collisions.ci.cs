@@ -10,11 +10,6 @@ public abstract class PredicateBox3D
 {
     public abstract bool Hit(Box3 o);
 }
-public class ListBox3d
-{
-    internal Box3[] arr;
-    internal int count;
-}
 
 public class TileSide
 {
@@ -43,16 +38,7 @@ public class BlockPosSide
     internal Vector3 collisionPos;
     public float[] Translated()
     {
-        float[] translated = new float[3];
-        translated[0] = blockPos[0];
-        translated[1] = blockPos[1];
-        translated[2] = blockPos[2];
-
-        if (collisionPos == null)
-        {
-            return translated;
-        }
-
+        float[] translated = [blockPos[0], blockPos[1], blockPos[2]];
         if (collisionPos[0] == blockPos[0] ) { translated[0] = translated[0] - 1; }
         if (collisionPos[1] == blockPos[1] ) { translated[1] = translated[1] - 1; }
         if (collisionPos[2] == blockPos[2] ) { translated[2] = translated[2] - 1; }
@@ -71,114 +57,54 @@ public class BlockPosSide
 public class BlockOctreeSearcher
 {
     internal GamePlatform platform;
+    internal Box3 StartBox;
+
     public BlockOctreeSearcher()
     {
         intersection = new Intersection();
-        pool = new Box3[10000];
-        for (int i = 0; i < 10000; i++)
-        {
-            pool[i] = new Box3();
-        }
-        listpool = new ListBox3d[50];
-        for (int i = 0; i < 50; i++)
-        {
-            listpool[i] = new ListBox3d
-            {
-                arr = new Box3[1000]
-            };
-        }
         l = new BlockPosSide[1024];
         lCount = 0;
         currentHit = Vector3.Zero;
     }
-    internal Box3 StartBox;
-    private ListBox3d Search(PredicateBox3D query)
+
+    private List<Box3> Search(PredicateBox3D query)
     {
-        pool_i = 0;
-        listpool_i = 0;
         if (StartBox.Size.X == 0 && StartBox.Size.Y == 0 && StartBox.Size.Z == 0)
-        {
-            return new ListBox3d();
-        }
+            return [];
+
         return SearchPrivate(query, StartBox);
     }
-    private ListBox3d SearchPrivate(PredicateBox3D query, Box3 box)
+
+    private static List<Box3> SearchPrivate(PredicateBox3D query, Box3 box)
     {
         if (box.Size.X == 1)
+            return [box];
+
+        var result = new List<Box3>();
+        foreach (Box3 child in Children(box))
         {
-            ListBox3d l1 = newListBox3d();
-            l1.count = 1;
-            l1.arr[0] = box;
-            return l1;
-        }
-        ListBox3d l = newListBox3d();
-        l.count = 0;
-        ListBox3d children = Children(box);
-        for (int k = 0; k < children.count; k++)
-        {
-            Box3 child = children.arr[k];
             if (query.Hit(child))
-            {
-                ListBox3d l2 = SearchPrivate(query, child);
-                for (int i = 0; i < l2.count; i++)
-                {
-                    Box3 n = l2.arr[i];
-                    l.arr[l.count++] = n;
-                }
-                recycleListBox3d(l2);
-            }
+                result.AddRange(SearchPrivate(query, child));
         }
-        recycleListBox3d(children);
-        return l;
+        return result;
     }
-    private readonly Box3[] pool;
-    private int pool_i;
-    private readonly ListBox3d[] listpool;
-    private int listpool_i;
-    private Box3 newBox3d()
+
+    private static IEnumerable<Box3> Children(Box3 box)
     {
-        return pool[pool_i++];
-    }
-    private void recycleBox3d(Box3 l)
-    {
-        pool_i--;
-        pool[pool_i] = l;
-    }
-    private ListBox3d newListBox3d()
-    {
-        ListBox3d l = listpool[listpool_i++];
-        l.count = 0;
-        return l;
-    }
-    private void recycleListBox3d(ListBox3d l)
-    {
-        listpool_i--;
-        listpool[listpool_i] = l;
-    }
-    private ListBox3d Children(Box3 box)
-    {
-        ListBox3d l = newListBox3d();
-        l.count = 8;
-        Box3[] c = l.arr;
-        for (int i = 0; i < 8; i++)
-        {
-            c[i] = newBox3d();
-        }
         float x = box.Min[0];
         float y = box.Min[1];
         float z = box.Min[2];
         float size = box.Size.X / 2;
-        Vector3 s = new Vector3(size, size, size);
+        Vector3 s = new(size, size, size);
 
-        c[0] = new Box3(new Vector3(x, y, z), new Vector3(x, y, z) + s);
-        c[1] = new Box3(new Vector3(x + size, y, z), new Vector3(x + size, y, z) + s);
-        c[2] = new Box3(new Vector3(x, y, z + size), new Vector3(x, y, z + size) + s);
-        c[3] = new Box3(new Vector3(x + size, y, z + size), new Vector3(x + size, y, z + size) + s);
-        c[4] = new Box3(new Vector3(x, y + size, z), new Vector3(x, y + size, z) + s);
-        c[5] = new Box3(new Vector3(x + size, y + size, z), new Vector3(x + size, y + size, z) + s);
-        c[6] = new Box3(new Vector3(x, y + size, z + size), new Vector3(x, y + size, z + size) + s);
-        c[7] = new Box3(new Vector3(x + size, y + size, z + size), new Vector3(x + size, y + size, z + size) + s);
-        return l;
+        yield return new Box3(new Vector3(x, y, z), new Vector3(x, y, z) + s);
+        yield return new Box3(new Vector3(x + size, y, z), new Vector3(x + size, y, z) + s);
+        yield return new Box3(new Vector3(x, y, z + size), new Vector3(x, y, z + size) + s);
+        yield return new Box3(new Vector3(x + size, y, z + size), new Vector3(x + size, y, z + size) + s);
+        yield return new Box3(new Vector3(x, y + size, z), new Vector3(x, y + size, z) + s);
+        yield return new Box3(new Vector3(x + size, y + size, z), new Vector3(x + size, y + size, z) + s);
+        yield return new Box3(new Vector3(x, y + size, z + size), new Vector3(x, y + size, z + size) + s);
+        yield return new Box3(new Vector3(x + size, y + size, z + size), new Vector3(x + size, y + size, z + size) + s);
     }
 
     public bool BoxHit(Box3 box)
@@ -199,10 +125,10 @@ public class BlockOctreeSearcher
         currentHit[0] = 0;
         currentHit[1] = 0;
         currentHit[2] = 0;
-        ListBox3d l1 = Search(PredicateBox3DHit.Create(this));
-        for (int i = 0; i < l1.count; i++)
+        var l1 = Search(PredicateBox3DHit.Create(this));
+        for (int i = 0; i < l1.Count; i++)
         {
-            Box3 node = l1.arr[i];
+            Box3 node = l1[i];
             var hit = currentHit;
             float x = node.Min[0];
             float y = node.Min[2];

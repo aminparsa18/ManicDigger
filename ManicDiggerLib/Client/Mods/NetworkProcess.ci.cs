@@ -415,7 +415,7 @@ public class ModNetworkProcess : ClientMod
                 if (packet.Follow.Tpp != 0)
                 {
                     game.SetCamera(CameraType.Overhead);
-                    game.player.position.rotx = Game.GetPi();
+                    game.player.position.rotx = MathF.PI;
                     game.GuiStateBackToGame();
                 }
                 else

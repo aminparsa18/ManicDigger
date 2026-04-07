@@ -9,7 +9,7 @@ public class ModDrawHand3d : ClientMod
         buildt = 0;
         range = one * 7 / 100;
         speed = 5;
-        animperiod = Game.GetPi() / (speed / 2);
+        animperiod = MathF.PI / (speed / 2);
         zzzposz = 0;
         t_ = 0;
         zzzx = -27;
@@ -222,7 +222,7 @@ public class ModDrawHand3d : ClientMod
         if (attack != -1)
         {
             attack += dt * 7;
-            if (attack > Game.GetPi() / 2)
+            if (attack > MathF.PI / 2)
             {
                 attack = -1;
                 if (build)
@@ -271,7 +271,7 @@ public class ModDrawHand3d : ClientMod
     }
     private float Rot2(float t)
     {
-        return MathF.Sin((t + Game.GetPi()) * speed) * range;
+        return MathF.Sin((t + MathF.PI) * speed) * range;
     }
     private void DrawCube(ModelData m, int x, int y, int z, int c)
     {

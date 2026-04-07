@@ -62,7 +62,7 @@ public class Game
         AllowedFontsCount = 1;
         AllowedFonts = new string[AllowedFontsCount];
         AllowedFonts[0] = "Verdana";
-        fov = GetPi() / 3;
+        fov = MathF.PI / 3;
         cameratype = CameraType.Fpp;
         ENABLE_TPP_VIEW = false;
         basemovespeed = 5;
@@ -460,12 +460,6 @@ public class Game
     public static int ColorG(int color) => (color >> 8) & 0xFF;
     public static int ColorB(int color) => color & 0xFF;
 
-    public static float GetPi()
-    {
-        float a = 3141592;
-        return a / 1000000;
-    }
-
     //Indexed by block id and TileSide.
     internal int[][] TextureId;
     internal int[] TextureIdForInventory;
@@ -763,7 +757,7 @@ public class Game
     public void GLRotate(float angle, float x, float y, float z)
     {
         angle /= 360;
-        angle *= 2 * GetPi();
+        angle *= 2 * MathF.PI;
         Matrix4.CreateFromAxisAngle(new Vector3(x, y, z), angle, out Matrix4 rotation);
         if (currentMatrixModeProjection)
         {
@@ -2081,8 +2075,8 @@ public class Game
                     player.position.roty += mouseSmoothingVelX * rotationspeed * 1f / 75;
                     player.position.rotx += mouseSmoothingVelY * rotationspeed * 1f / 75;
                     player.position.rotx = Math.Clamp(player.position.rotx,
-                        GetPi() / 2 + (one * 15 / 1000),
-                        (GetPi() / 2 + GetPi() - (one * 15 / 1000)));
+                        MathF.PI / 2 + (one * 15 / 1000),
+                        (MathF.PI / 2 + MathF.PI - (one * 15 / 1000)));
                 }
 
                 player.position.rotx += touchOrientationDy * constRotationSpeed * (one / 75);
@@ -2182,7 +2176,7 @@ public class Game
         }
         for (int i = 0; i < n; i++)
         {
-            angle = (i * 2 * GetPi() / n);
+            angle = (i * 2 * MathF.PI / n);
             circleModelData.xyz[i * 3 + 0] = x + (MathF.Cos(angle) * radius);
             circleModelData.xyz[i * 3 + 1] = y + (MathF.Sin(angle) * radius);
             circleModelData.xyz[i * 3 + 2] = 0;
@@ -2903,7 +2897,7 @@ public class Game
                     }
                     else
                     {
-                        float fov_ = (2 * GetPi() * (one * arg / 360));
+                        float fov_ = (2 * MathF.PI * (one * arg / 360));
                         this.fov = fov_;
                         OnResize();
                     }
@@ -4041,12 +4035,12 @@ public class Game
     internal static float Angle256ToRad(int value)
     {
         float one_ = 1;
-        return ((one_ * value) / 255) * GetPi() * 2;
+        return ((one_ * value) / 255) * MathF.PI * 2;
     }
 
     internal static float RadToAngle256(float value)
     {
-        return (value / (2 * GetPi())) * 255;
+        return (value / (2 * MathF.PI)) * 255;
     }
 
     internal float CameraEyeX;

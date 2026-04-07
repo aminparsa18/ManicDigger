@@ -35,7 +35,7 @@
                     game.GLTranslate(posX, posY, posZ);
 
                     game.GLRotate(180, 1, 0, 0);
-                    game.GLRotate(e.position.roty * 360 / (2 * Game.GetPi()), 0, 1, 0);
+                    game.GLRotate(e.position.roty * 360 / (2 * MathF.PI), 0, 1, 0);
                     float scale = game.one * 5 / 1000;
                     game.GLScale(scale, scale, scale);
 

@@ -44,7 +44,7 @@ public class ModDrawSprites : ClientMod
         m.Row2 = new Vector4(0, 0, d, 0);
         m.Row3 = new Vector4(m.Row3.X, m.Row3.Y, m.Row3.Z, 1);
 
-        Matrix4.CreateRotationX(Game.GetPi(), out Matrix4 rotX);
+        Matrix4.CreateRotationX(MathF.PI, out Matrix4 rotX);
         m = rotX * m;
         game.mvMatrix.Pop();
         game.mvMatrix.Push(m);

@@ -100,11 +100,11 @@ public class ModSkySphereAnimated : ClientMod
         for (int y = 0; y < rings; y++)
         {
             float yFloat = y;
-            float phiFloat = (yFloat / (rings - 1)) * Game.GetPi();
+            float phiFloat = (yFloat / (rings - 1)) * MathF.PI;
             for (int x = 0; x < segments; x++)
             {
                 float xFloat = x;
-                float theta = (xFloat / (segments - 1)) * 2 * Game.GetPi();
+                float theta = (xFloat / (segments - 1)) * 2 * MathF.PI;
                 float vx = radius * MathF.Sin(phiFloat) * MathF.Cos(theta);
                 float vy = height * MathF.Cos(phiFloat);
                 float vz = radius * MathF.Sin(phiFloat) * MathF.Sin(theta);

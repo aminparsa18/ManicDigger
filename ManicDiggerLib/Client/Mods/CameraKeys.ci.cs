@@ -60,8 +60,8 @@ public class ModCameraKeys : ClientMod
                         float qY = game.playerdestination.Y - game.player.position.y;
                         float qZ = game.playerdestination.Z - game.player.position.z;
                         float angle = game.VectorAngleGet(qX, qY, qZ);
-                        game.player.position.roty = Game.GetPi() / 2 + angle;
-                        game.player.position.rotx = Game.GetPi();
+                        game.player.position.roty = MathF.PI / 2 + angle;
+                        game.player.position.rotx = MathF.PI;
                     }
                 }
                 else if (game.enable_move)

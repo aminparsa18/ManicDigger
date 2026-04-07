@@ -104,45 +104,67 @@ public class NetworkInterpolation : INetworkInterpolation
     }
 }
 
+/// <summary>
+/// Provides shortest-path angle interpolation for both 256-step and 360-degree representations.
+/// </summary>
 public class AngleInterpolation
 {
-    public static int InterpolateAngle256(GamePlatform platform, int a, int b, float progress)
+    private const int CircleHalf256 = 128;
+    private const int CircleFull256 = 256;
+    private const int CircleHalf360 = 180;
+    private const int CircleFull360 = 360;
+
+    // Used to bias angles into a positive range before modulo.
+    // Chosen as short.MaxValue (32767) — large enough to avoid negative results.
+    private const int BiasValue = short.MaxValue;
+
+    /// <summary>
+    /// Interpolates between two angles in 256-step (byte) space via the shortest arc.
+    /// </summary>
+    /// <param name="a">Start angle (0–255).</param>
+    /// <param name="b">End angle (0–255).</param>
+    /// <param name="progress">Interpolation factor (0.0 = a, 1.0 = b).</param>
+    /// <returns>Interpolated angle normalized to 0–255.</returns>
+    public static int InterpolateAngle256(int a, int b, float progress)
     {
         if (progress != 0 && b != a)
         {
             int diff = NormalizeAngle256(b - a);
             if (diff >= CircleHalf256)
-            {
                 diff -= CircleFull256;
-            }
             a += (int)(progress * diff);
         }
         return NormalizeAngle256(a);
     }
-    private const int CircleHalf256 = 128;
-    private const int CircleFull256 = 256;
-    private static int NormalizeAngle256(int v)
-    {
-        return (v + shortMaxValue / 2) % 256;
-    }
-    public static float InterpolateAngle360(GamePlatform platform, float a, float b, float progress)
+
+    /// <summary>
+    /// Interpolates between two angles in degrees via the shortest arc.
+    /// </summary>
+    /// <param name="a">Start angle in degrees.</param>
+    /// <param name="b">End angle in degrees.</param>
+    /// <param name="progress">Interpolation factor (0.0 = a, 1.0 = b).</param>
+    /// <returns>Interpolated angle normalized to 0–360.</returns>
+    public static float InterpolateAngle360(float a, float b, float progress)
     {
         if (progress != 0 && b != a)
         {
-            float diff = NormalizeAngle360(platform, b - a);
+            float diff = NormalizeAngle360(b - a);
             if (diff >= CircleHalf360)
-            {
                 diff -= CircleFull360;
-            }
-            a += (progress * diff);
+            a += progress * diff;
         }
-        return NormalizeAngle360(platform, a);
+        return NormalizeAngle360(a);
     }
-    private const int CircleHalf360 = 180;
-    private const int CircleFull360 = 360;
-    private const int shortMaxValue = 32767;
-    private static float NormalizeAngle360(GamePlatform platform, float v)
+
+    /// <summary>Normalizes an angle to the range 0–255.</summary>
+    private static int NormalizeAngle256(int v)
     {
-        return (v + ((shortMaxValue / 2) / 360) * 360 % 360);
+        return (v + BiasValue / 2) % CircleFull256;
+    }
+
+    /// <summary>Normalizes an angle to the range 0–360.</summary>
+    private static float NormalizeAngle360(float v)
+    {
+        return (v + (BiasValue / 2 / CircleFull360) * CircleFull360) % CircleFull360;
     }
 }

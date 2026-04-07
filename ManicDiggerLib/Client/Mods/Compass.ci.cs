@@ -47,7 +47,7 @@
         float size = 175;
         float posX = game.Width() - 100;
         float posY = 100;
-        float playerorientation = -((game.player.position.roty / (2 * Game.GetPi())) * 360);
+        float playerorientation = -((game.player.position.roty / (2 * MathF.PI)) * 360);
 
         compassvertex += (playerorientation - compassangle) / 50;
         compassvertex *= (one * 9 / 10);

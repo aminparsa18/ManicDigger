@@ -45,7 +45,7 @@ public class ModDrawMinecarts : ClientMod
         float currot = Vehiclerotation(dir);
         float lastrot = Vehiclerotation(lastdir);
         //double rot = lastrot + (currot - lastrot) * progress;
-        float rot = AngleInterpolation.InterpolateAngle360(game.platform, lastrot, currot, progress);
+        float rot = AngleInterpolation.InterpolateAngle360(lastrot, currot, progress);
         game.GLRotate(-rot - 90, 0, 1, 0);
         RectangleF[] cc = CuboidRenderer.CuboidNet(8, 8, 8, 0, 0);
         CuboidRenderer.CuboidNetNormalize(cc, 32, 16);

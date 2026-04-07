@@ -480,19 +480,11 @@ public class PlayerInterpolate : IInterpolation
             positionZ = aa.positionZ + (bb.positionZ - aa.positionZ) * progress,
             //cc.heading = Game.IntToByte(AngleInterpolation.InterpolateAngle256(platform, aa.heading, bb.heading, progress));
             //cc.pitch = Game.IntToByte(AngleInterpolation.InterpolateAngle256(platform, aa.pitch, bb.pitch, progress));
-            rotx = DegToRad(AngleInterpolation.InterpolateAngle360(platform, RadToDeg(aa.rotx), RadToDeg(bb.rotx), progress)),
-            roty = DegToRad(AngleInterpolation.InterpolateAngle360(platform, RadToDeg(aa.roty), RadToDeg(bb.roty), progress)),
-            rotz = DegToRad(AngleInterpolation.InterpolateAngle360(platform, RadToDeg(aa.rotz), RadToDeg(bb.rotz), progress))
+            rotx = float.DegreesToRadians(AngleInterpolation.InterpolateAngle360(float.RadiansToDegrees(aa.rotx), float.RadiansToDegrees(bb.rotx), progress)),
+            roty = float.DegreesToRadians(AngleInterpolation.InterpolateAngle360(float.RadiansToDegrees(aa.roty), float.RadiansToDegrees(bb.roty), progress)),
+            rotz = float.DegreesToRadians(AngleInterpolation.InterpolateAngle360(float.RadiansToDegrees(aa.rotz), float.RadiansToDegrees(bb.rotz), progress))
         };
         return cc;
-    }
-    public static float RadToDeg(float rad)
-    {
-        return (rad / (2 * Game.GetPi())) * 360;
-    }
-    public static float DegToRad(float deg)
-    {
-        return (deg / 360) * 2 * Game.GetPi();
     }
 }
 
@@ -1943,11 +1935,11 @@ public class Kamera
     internal float MinimumDistance;
     private float GetCameraHeightFromCenter(GamePlatform platform)
     {
-        return MathF.Sin(Angle * Game.GetPi() / 180) * distance;
+        return MathF.Sin(Angle * MathF.PI / 180) * distance;
     }
     private float GetFlatDistance(GamePlatform platform)
     {
-        return MathF.Cos(Angle * Game.GetPi() / 180) * distance;
+        return MathF.Cos(Angle * MathF.PI / 180) * distance;
     }
     internal Vector3 Center;
     internal float tt;

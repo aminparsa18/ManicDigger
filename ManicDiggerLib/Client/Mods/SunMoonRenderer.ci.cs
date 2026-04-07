@@ -19,7 +19,7 @@
     public void SetHour(int value)
     {
         hour = value;
-        t = (hour - 6) / (one * 24) * 2 * Game.GetPi();
+        t = (hour - 6) / (one * 24) * 2 * MathF.PI;
     }
     private float t;
     private int suntexture;
@@ -67,8 +67,8 @@
 
     private void UpdateSunMoonPosition(Game game, float dt)
     {
-        t += dt * 2 * Game.GetPi() / day_length_in_seconds;
-        game.isNight = (t + 2 * Game.GetPi()) % (2 * Game.GetPi()) > Game.GetPi();
+        t += dt * 2 * MathF.PI / day_length_in_seconds;
+        game.isNight = (t + 2 * MathF.PI) % (2 * MathF.PI) > MathF.PI;
         game.sunPositionX = MathF.Cos(t) * 20;
         game.sunPositionY = MathF.Sin(t) * 20;
         game.sunPositionZ = MathF.Sin(t) * 20;

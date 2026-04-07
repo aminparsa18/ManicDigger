@@ -558,11 +558,6 @@ public class GamePlatformNative : GamePlatform
         return ret;
     }
 
-    public override RandomCi RandomCreate()
-    {
-        return new RandomNative();
-    }
-
     public override string PathStorage()
     {
         return GameStorePath.GetStorePath();
@@ -2277,25 +2272,6 @@ public class AssetLoader
         }
 
         return result.ToString();
-    }
-}
-
-public class RandomNative : RandomCi
-{
-    public Random rnd = new();
-    public override float NextFloat()
-    {
-        return (float)rnd.NextDouble();
-    }
-
-    public override int Next()
-    {
-        return rnd.Next();
-    }
-
-    public override int MaxNext(int range)
-    {
-        return rnd.Next(range);
     }
 }
 

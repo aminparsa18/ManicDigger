@@ -48,15 +48,15 @@ public class MainMenu
 
         overlap = 200;
         minspeed = 20;
-        rnd = p.RandomCreate();
+        rnd = new Random();
 
         xRot = 0;
         xInv = false;
-        xSpeed = minspeed + rnd.MaxNext(5);
+        xSpeed = minspeed + rnd.Next(5);
 
         yRot = 0;
         yInv = false;
-        ySpeed = minspeed + rnd.MaxNext(5);
+        ySpeed = minspeed + rnd.Next(5);
 
         z = -5;
 
@@ -286,7 +286,7 @@ public class MainMenu
 
     private int overlap;
     private int minspeed;
-    private RandomCi rnd;
+    private Random rnd;
 
     private float z;
 
@@ -306,7 +306,7 @@ public class MainMenu
             if (xRot <= -overlap)
             {
                 xInv = false;
-                xSpeed = minspeed + rnd.MaxNext(5);
+                xSpeed = minspeed + rnd.Next(5);
             }
             xRot -= xSpeed * dt;
         }
@@ -315,7 +315,7 @@ public class MainMenu
             if (xRot >= overlap)
             {
                 xInv = true;
-                xSpeed = minspeed + rnd.MaxNext(5);
+                xSpeed = minspeed + rnd.Next(5);
             }
             xRot += xSpeed * dt;
         }
@@ -324,7 +324,7 @@ public class MainMenu
             if (yRot <= -overlap)
             {
                 yInv = false;
-                ySpeed = minspeed + rnd.MaxNext(5);
+                ySpeed = minspeed + rnd.Next(5);
             }
             yRot -= ySpeed * dt;
         }
@@ -333,7 +333,7 @@ public class MainMenu
             if (yRot >= overlap)
             {
                 yInv = true;
-                ySpeed = minspeed + rnd.MaxNext(5);
+                ySpeed = minspeed + rnd.Next(5);
             }
             yRot += ySpeed * dt;
         }

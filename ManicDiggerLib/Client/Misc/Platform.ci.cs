@@ -72,7 +72,6 @@ public abstract class GamePlatform
     public abstract BitmapCi GrabScreenshot();
     public abstract AviWriterCi AviWriterCreate();
     public abstract UriCi ParseUri(string uri);
-    public abstract RandomCi RandomCreate();
     public abstract string PathStorage();
     public abstract void SetVSync(bool enabled);
     public abstract string GetGameVersion();
@@ -233,13 +232,6 @@ public class AssetList
 public class OnCrashHandler
 {
     public virtual void OnCrash() { }
-}
-
-public abstract class RandomCi
-{
-    public abstract float NextFloat();
-    public abstract int Next();
-    public abstract int MaxNext(int range);
 }
 
 public class Preferences

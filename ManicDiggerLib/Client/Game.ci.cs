@@ -233,7 +233,7 @@ public class Game
         d_Inventory = inventory;
         platform.AddOnCrash(OnCrashHandlerLeave.Create(this));
 
-        rnd = platform.RandomCreate();
+        rnd = new Random();
 
         clientmods = new ClientMod[128];
         clientmodsCount = 0;
@@ -1533,7 +1533,7 @@ public class Game
         return radius + RadiusWhenMoving * radius * (Math.Min(playervelocity.Length / movespeed, 1));
     }
 
-    internal RandomCi rnd;
+    internal Random rnd;
 
     internal GameData d_Data;
 
@@ -1974,7 +1974,7 @@ public class Game
 
     public float NextFloat(float min, float max)
     {
-        return rnd.NextFloat() * (max - min) + min;
+        return rnd.Next() * (max - min) + min;
     }
 
     public byte HeadingByte(float orientationX, float orientationY, float orientationZ)

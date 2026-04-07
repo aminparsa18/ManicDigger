@@ -208,7 +208,7 @@ public class ModPicking : ClientMod
         {
             if (left && game.d_Inventory.RightHand[game.ActiveMaterial] == null)
             {
-                game.SendPacketClient(ClientPackets.MonsterHit(game.platform.FloatToInt(2 + game.rnd.NextFloat() * 4)));
+                game.SendPacketClient(ClientPackets.MonsterHit(game.platform.FloatToInt(2 + game.rnd.Next() * 4)));
             }
             if (left && !fastclicking)
             {
@@ -445,8 +445,8 @@ public class ModPicking : ClientMod
                 }
 
                 //recoil
-                game.player.position.rotx -= game.rnd.NextFloat() * game.CurrentRecoil();
-                game.player.position.roty += game.rnd.NextFloat() * game.CurrentRecoil() * 2 - game.CurrentRecoil();
+                game.player.position.rotx -= game.rnd.Next() * game.CurrentRecoil();
+                game.player.position.roty += game.rnd.Next() * game.CurrentRecoil() * 2 - game.CurrentRecoil();
 
                 PickingEnd(left, right, middle, ispistol);
                 return;
@@ -1009,8 +1009,8 @@ public class ModPicking : ClientMod
         float y;
         for (; ; )
         {
-            x = (game.rnd.NextFloat() - half) * game.CurrentAimRadius() * 2;
-            y = (game.rnd.NextFloat() - half) * game.CurrentAimRadius() * 2;
+            x = (game.rnd.Next() - half) * game.CurrentAimRadius() * 2;
+            y = (game.rnd.Next() - half) * game.CurrentAimRadius() * 2;
             float dist1 = game.platform.MathSqrt(x * x + y * y);
             if (dist1 <= game.CurrentAimRadius())
             {

@@ -66,13 +66,38 @@ public class ModCameraKeys : ClientMod
                 }
                 else if (game.enable_move)
                 {
-                    if (game.keyboardState[game.GetKey(Keys.W)]) { game.controls.movedy += 1; }
-                    if (game.keyboardState[game.GetKey(Keys.S)]) { game.controls.movedy += -1; }
-                    if (game.keyboardState[game.GetKey(Keys.A)]) { game.controls.movedx += -1; game.localplayeranimationhint.leanleft = true; game.localstance = 1; }
-                    else { game.localplayeranimationhint.leanleft = false; }
-                    if (game.keyboardState[game.GetKey(Keys.D)]) { game.controls.movedx += 1; game.localplayeranimationhint.leanright = true; game.localstance = 2; }
-                    else { game.localplayeranimationhint.leanright = false; }
-                    if (!game.localplayeranimationhint.leanleft && !game.localplayeranimationhint.leanright) { game.localstance = 0; }
+                    if (game.keyboardState[game.GetKey(Keys.W)]) 
+                    {
+                        game.controls.movedy += 1; 
+                    }
+                    if (game.keyboardState[game.GetKey(Keys.S)]) 
+                    {
+                        game.controls.movedy += -1; 
+                    }
+                    if (game.keyboardState[game.GetKey(Keys.A)]) 
+                    {
+                        game.controls.movedx += -1; 
+                        game.localplayeranimationhint.LeanLeft = true; 
+                        game.localstance = 1; 
+                    }
+                    else
+                    { 
+                        game.localplayeranimationhint.LeanLeft = false;
+                    }
+                    if (game.keyboardState[game.GetKey(Keys.D)]) 
+                    {
+                        game.controls.movedx += 1;
+                        game.localplayeranimationhint.LeanRight = true;
+                        game.localstance = 2; 
+                    }
+                    else 
+                    { 
+                        game.localplayeranimationhint.LeanRight = false;
+                    }
+                    if (!game.localplayeranimationhint.LeanLeft && !game.localplayeranimationhint.LeanRight) 
+                    { 
+                        game.localstance = 0; 
+                    }
 
                     game.controls.movedx += game.touchMoveDx;
                     game.controls.movedy += game.touchMoveDy;

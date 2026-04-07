@@ -74,7 +74,6 @@ public class Game
         dialogsCount = 512;
         blockHealth = new();
         playertexturedefault = -1;
-        a = new AnimationState();
         constRotationSpeed = one * 180 / 20;
         modmanager = new ClientModManager1();
         particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
@@ -112,7 +111,6 @@ public class Game
         typinglog = new string[1024 * 16];
         typinglogCount = 0;
         NewBlockTypes = new Packet_BlockType[GlobalVar.MAX_BLOCKTYPES];
-        localplayeranim = new AnimationState();
         localplayeranimationhint = new AnimationHint();
         enable_move = true;
         handTexture = -1;
@@ -1937,7 +1935,6 @@ public class Game
     internal int playertexturedefault;
     public const string playertexturedefaultfilename = "mineplayer.png";
     internal bool ENABLE_DRAW_TEST_CHARACTER;
-    internal AnimationState a;
     internal ModSkySphereStatic skysphere;
     internal int reloadblock;
     internal int reloadstartMilliseconds;
@@ -3339,7 +3336,7 @@ public class Game
         return strA == strB;
     }
 
-    internal AnimationState localplayeranim;
+   // internal AnimationState localplayeranim;
     internal AnimationHint localplayeranimationhint;
 
     internal bool enable_move;

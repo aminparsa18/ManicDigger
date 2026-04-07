@@ -447,10 +447,8 @@ public class PlayerDrawInfo
 {
     public PlayerDrawInfo()
     {
-        anim = new AnimationState();
-        AnimationHint_ = new AnimationHint();
     }
-    internal AnimationState anim;
+
     internal NetworkInterpolation interpolation;
     internal float lastnetworkposX;
     internal float lastnetworkposY;
@@ -465,7 +463,6 @@ public class PlayerDrawInfo
     internal float velocityY;
     internal float velocityZ;
     internal bool moves;
-    internal AnimationHint AnimationHint_;
 }
 
 public class PlayerInterpolate : IInterpolation
@@ -1005,7 +1002,6 @@ public class Player
 {
     public Player()
     {
-        AnimationHint_ = new AnimationHint();
         Model_ = "player.txt";
         EyeHeight = DefaultEyeHeight();
         ModelHeight = DefaultModelHeight();
@@ -1018,7 +1014,6 @@ public class Player
     internal byte Heading;
     internal byte Pitch;
     internal string Name;
-    internal AnimationHint AnimationHint_;
     internal PlayerType Type;
     internal int MonsterType;
     internal int Health;

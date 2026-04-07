@@ -228,7 +228,9 @@ public class ModGuiEscapeMenu : ClientMod
         }
         if (b == graphicsReturnToOptionsMenu)
         {
-            UseFullscreen(); UseResolution(); SetEscapeMenuState(EscapeMenuState.Options);
+            UseFullscreen(); 
+            UseResolution(); 
+            SetEscapeMenuState(EscapeMenuState.Options);
         }
     }
 

@@ -58,11 +58,10 @@ public class ModDrawPlayers : ClientMod
             {
                 p_.playerDrawInfo = new PlayerDrawInfo();
             }
-            p_.playerDrawInfo.anim.light = shadow;
+            //p_.playerDrawInfo.anim.light = shadow;
             float FeetPosX = p_.position.x;
             float FeetPosY = p_.position.y;
             float FeetPosZ = p_.position.z;
-            AnimationHint animHint = game.entities[i].playerDrawInfo.AnimationHint_;
 
             float playerspeed_;
             if (i == game.LocalPlayerId)

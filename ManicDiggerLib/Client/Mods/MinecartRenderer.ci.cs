@@ -50,7 +50,7 @@ public class ModDrawMinecarts : ClientMod
         RectangleF[] cc = CuboidRenderer.CuboidNet(8, 8, 8, 0, 0);
         CuboidRenderer.CuboidNetNormalize(cc, 32, 16);
         game.platform.BindTexture2d(minecarttexture);
-        CuboidRenderer.DrawCuboid(game, -(one * 5 / 10), -(one * 3 / 10), -(one * 5 / 10), 1, 1, 1, cc, 1);
+        CuboidRenderer.DrawCuboidWorld(game, -(one * 5 / 10), -(one * 3 / 10), -(one * 5 / 10), 1, 1, 1, cc, 1);
         game.GLPopMatrix();
     }
 

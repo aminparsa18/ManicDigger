@@ -165,7 +165,7 @@ public class AnimatedModelRenderer
 
             // Size — the actual cuboid dimensions, convert from model units
             Vector3 size = GetAnimation(n, KeyframeType.Size) / ModelUnitScale;
-            CuboidRenderer.DrawCuboid2(game,
+            CuboidRenderer.DrawCuboidModel(game,
                 -size.X / 2, -size.Y / 2, -size.Z / 2,
                 size.X, size.Y, size.Z,
                 r, light);

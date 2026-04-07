@@ -968,17 +968,17 @@ public class ClientInventoryController : IInventoryController
 
     private Game g;
 
-    public override void InventoryClick(Packet_InventoryPosition pos)
+    public void InventoryClick(Packet_InventoryPosition pos)
     {
         g.InventoryClick(pos);
     }
 
-    public override void WearItem(Packet_InventoryPosition from, Packet_InventoryPosition to)
+    public void WearItem(Packet_InventoryPosition from, Packet_InventoryPosition to)
     {
         g.WearItem(from, to);
     }
 
-    public override void MoveToInventory(Packet_InventoryPosition from)
+    public void MoveToInventory(Packet_InventoryPosition from)
     {
         g.MoveToInventory(from);
     }

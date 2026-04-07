@@ -1,0 +1,174 @@
+﻿
+/// <summary>
+/// Provides client-side metadata and operations for inventory items, including
+/// display names, grid sizes, stacking rules, and wear eligibility.
+/// </summary>
+public class InventoryUtils
+{
+    // -------------------------------------------------------------------------
+    // Fields
+    // -------------------------------------------------------------------------
+
+    /// <summary>Reference to the core game instance (language, platform, block types).</summary>
+    private readonly Game _game;
+
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Initialises a new <see cref="InventoryUtils"/> bound to the given game.
+    /// </summary>
+    /// <param name="game">The active <see cref="Game"/> instance. Must not be <c>null</c>.</param>
+    /// <exception cref="ArgumentNullException">
+    ///     Thrown if <paramref name="game"/> is <c>null</c>.
+    /// </exception>
+    public InventoryUtils(Game game)
+    {
+        _game = game ?? throw new ArgumentNullException(nameof(game));
+    }
+
+    // -------------------------------------------------------------------------
+    // Public API
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns the localised display name for the given item.
+    /// </summary>
+    /// <param name="item">The item to describe. Must not be <c>null</c>.</param>
+    /// <returns>A localised human-readable name string.</returns>
+    /// <exception cref="NotSupportedException">
+    ///     Thrown if the item's <see cref="Packet_ItemClassEnum"/> is not yet handled.
+    /// </exception>
+    public string ItemInfo(Packet_Item item)
+    {
+        if (item == null) throw new ArgumentNullException(nameof(item));
+
+        if (item.ItemClass == Packet_ItemClassEnum.Block)
+        {
+            string key = StringTools.StringAppend(_game.platform, "Block_", _game.blocktypes[item.BlockId].Name);
+            return _game.language.Get(key);
+        }
+
+        throw new NotSupportedException($"ItemInfo is not implemented for ItemClass '{item.ItemClass}'.");
+    }
+
+    /// <summary>
+    /// Returns the width (in grid cells) of the given item's inventory footprint.
+    /// </summary>
+    /// <param name="item">The item to measure. Must not be <c>null</c>.</param>
+    /// <returns>The item's column span (always ≥ 1).</returns>
+    /// <exception cref="NotSupportedException">
+    ///     Thrown if the item's <see cref="Packet_ItemClassEnum"/> is not yet handled.
+    /// </exception>
+    public int ItemSizeX(Packet_Item item)
+    {
+        if (item == null) throw new ArgumentNullException(nameof(item));
+
+        return item.ItemClass switch
+        {
+            Packet_ItemClassEnum.Block => 1,
+            _ => throw new NotSupportedException($"ItemSizeX not implemented for ItemClass '{item.ItemClass}'.")
+        };
+    }
+
+    /// <summary>
+    /// Returns the height (in grid cells) of the given item's inventory footprint.
+    /// </summary>
+    /// <param name="item">The item to measure. Must not be <c>null</c>.</param>
+    /// <returns>The item's row span (always ≥ 1).</returns>
+    /// <exception cref="NotSupportedException">
+    ///     Thrown if the item's <see cref="Packet_ItemClassEnum"/> is not yet handled.
+    /// </exception>
+    public static int ItemSizeY(Packet_Item item)
+    {
+        if (item == null) throw new ArgumentNullException(nameof(item));
+
+        return item.ItemClass switch
+        {
+            Packet_ItemClassEnum.Block => 1,
+            _ => throw new NotSupportedException($"ItemSizeY not implemented for ItemClass '{item.ItemClass}'.")
+        };
+    }
+
+    /// <summary>
+    /// Attempts to stack two items together, returning a new combined item on success.
+    /// Both items must be of the same class and block type.
+    /// </summary>
+    /// <param name="itemA">The first item. Must not be <c>null</c>.</param>
+    /// <param name="itemB">The second item to merge into <paramref name="itemA"/>.</param>
+    /// <returns>
+    ///     A new <see cref="Packet_Item"/> with combined count if stacking is valid;
+    ///     <c>null</c> if the items cannot be stacked.
+    /// </returns>
+    /// <remarks>
+    ///     TODO: Enforce a per-item-type stack size limit once balancing is finalised.
+    /// </remarks>
+    public static Packet_Item? Stack(Packet_Item itemA, Packet_Item itemB)
+    {
+        if (itemA == null || itemB == null)
+            return null;
+
+        if (itemA.ItemClass == Packet_ItemClassEnum.Block
+            && itemB.ItemClass == Packet_ItemClassEnum.Block
+            && itemA.BlockId == itemB.BlockId)
+        {
+            return new Packet_Item
+            {
+                ItemClass = itemA.ItemClass,
+                BlockId = itemA.BlockId,
+                BlockCount = itemA.BlockCount + itemB.BlockCount,
+            };
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Determines whether a given item is eligible to be placed in the specified wear slot.
+    /// </summary>
+    /// <param name="wearPlace">The target <see cref="WearPlace"/> slot.</param>
+    /// <param name="item">
+    ///     The item to test. Pass <c>null</c> to always get <c>true</c>
+    ///     (an empty item can always "be placed" in any slot — it clears it).
+    /// </param>
+    /// <returns>
+    ///     <c>true</c> if the item can be equipped in <paramref name="wearPlace"/>;
+    ///     <c>false</c> otherwise.
+    /// </returns>
+    public static bool CanWear(WearPlace wearPlace, Packet_Item? item)
+    {
+        if (item == null)
+            return true;
+
+        return wearPlace switch
+        {
+            WearPlace.RightHand => item.ItemClass == Packet_ItemClassEnum.Block,
+            WearPlace.MainArmor => false,
+            WearPlace.Boots => false,
+            WearPlace.Helmet => false,
+            WearPlace.Gauntlet => false,
+            _ => false,
+        };
+    }
+
+    /// <summary>
+    /// Returns the texture/sprite path used to render the given item in the inventory UI.
+    /// </summary>
+    /// <param name="item">The item whose graphic is requested.</param>
+    /// <returns>
+    ///     A string path to the item's graphic asset, or <c>null</c> if no custom
+    ///     graphic is defined (the caller should fall back to a default block texture).
+    /// </returns>
+    /// <remarks>
+    ///     TODO: Implement per-item-class graphic resolution.
+    ///     Currently returns <c>null</c> for all items, causing callers to use the default.
+    /// </remarks>
+    public static string? ItemGraphics(Packet_Item item) => null;
+
+    /// <summary>
+    /// Returns the array of texture IDs used to render inventory UI elements.
+    /// </summary>
+    /// <returns>An integer array of texture atlas IDs owned by the game instance.</returns>
+    public int[] TextureIdForInventory() => _game.TextureIdForInventory;
+}

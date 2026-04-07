@@ -90,13 +90,12 @@ public class InventoryUtil
     {
         return wearPlace switch
         {
-            //case WearPlace.LeftHand: return d_Inventory.LeftHand[activeMaterial];
-            WearPlace_.RightHand => d_Inventory.RightHand[activeMaterial],
-            WearPlace_.MainArmor => d_Inventory.MainArmor,
-            WearPlace_.Boots => d_Inventory.Boots,
-            WearPlace_.Helmet => d_Inventory.Helmet,
-            WearPlace_.Gauntlet => d_Inventory.Gauntlet,
-            _ => throw new Exception(),
+            (int)WearPlace.RightHand => d_Inventory.RightHand[activeMaterial],
+            (int)WearPlace.MainArmor => d_Inventory.MainArmor,
+            (int)WearPlace.Boots => d_Inventory.Boots,
+            (int)WearPlace.Helmet => d_Inventory.Helmet,
+            (int)WearPlace.Gauntlet => d_Inventory.Gauntlet,
+            _ => null,
         };
     }
 
@@ -105,11 +104,11 @@ public class InventoryUtil
         switch (wearPlace)
         {
             //case WearPlace.LeftHand: d_Inventory.LeftHand[activeMaterial] = item; break;
-            case WearPlace_.RightHand: d_Inventory.RightHand[activeMaterial] = item; break;
-            case WearPlace_.MainArmor: d_Inventory.MainArmor = item; break;
-            case WearPlace_.Boots: d_Inventory.Boots = item; break;
-            case WearPlace_.Helmet: d_Inventory.Helmet = item; break;
-            case WearPlace_.Gauntlet: d_Inventory.Gauntlet = item; break;
+            case (int)WearPlace.RightHand: d_Inventory.RightHand[activeMaterial] = item; break;
+            case (int)WearPlace.MainArmor: d_Inventory.MainArmor = item; break;
+            case (int)WearPlace.Boots: d_Inventory.Boots = item; break;
+            case (int)WearPlace.Helmet: d_Inventory.Helmet = item; break;
+            case (int)WearPlace.Gauntlet: d_Inventory.Gauntlet = item; break;
             default: throw new Exception();
         }
     }
@@ -271,7 +270,7 @@ public interface IGameDataItems
     /// returns null if can't stack.
     /// </summary>
     Item Stack(Item itemA, Item itemB);
-    bool CanWear(int selectedWear, Item item);
+    bool CanWear(WearPlace selectedWear, Item item);
     string ItemGraphics(Item item);
 }
 
@@ -288,7 +287,7 @@ public class InventoryServer : IInventoryController
     public Inventory? d_Inventory;
     public InventoryUtil? d_InventoryUtil;
 
-    public override void InventoryClick(Packet_InventoryPosition pos)
+    public void InventoryClick(Packet_InventoryPosition pos)
     {
         if (pos.Type == Packet_InventoryPositionTypeEnum.MainArea)
         {
@@ -314,7 +313,7 @@ public class InventoryServer : IInventoryController
             {
                 //make sure there is nothing blocking drop.
                 Point?[] itemsAtArea = d_InventoryUtil.ItemsAtArea(pos.AreaX, pos.AreaY,
-                    d_Items.ItemSizeX(d_Inventory.DragDropItem), d_Items.ItemSizeY(d_Inventory.DragDropItem),out int itemsAtAreaCount);
+                    d_Items.ItemSizeX(d_Inventory.DragDropItem), d_Items.ItemSizeY(d_Inventory.DragDropItem), out int itemsAtAreaCount);
                 if (itemsAtArea == null || itemsAtAreaCount > 1)
                 {
                     //invalid area
@@ -368,7 +367,7 @@ public class InventoryServer : IInventoryController
             }
             else if (d_Inventory.DragDropItem != null && d_Inventory.RightHand[pos.MaterialId] == null)
             {
-                if (d_Items.CanWear(WearPlace_.RightHand, d_Inventory.DragDropItem))
+                if (d_Items.CanWear(WearPlace.RightHand, d_Inventory.DragDropItem))
                 {
                     d_Inventory.RightHand[pos.MaterialId] = d_Inventory.DragDropItem;
                     d_Inventory.DragDropItem = null;
@@ -376,7 +375,7 @@ public class InventoryServer : IInventoryController
             }
             else if (d_Inventory.DragDropItem != null && d_Inventory.RightHand[pos.MaterialId] != null)
             {
-                if (d_Items.CanWear(WearPlace_.RightHand, d_Inventory.DragDropItem))
+                if (d_Items.CanWear(WearPlace.RightHand, d_Inventory.DragDropItem))
                 {
                     Item oldHand = d_Inventory.RightHand[pos.MaterialId];
                     d_Inventory.RightHand[pos.MaterialId] = d_Inventory.DragDropItem;
@@ -389,7 +388,7 @@ public class InventoryServer : IInventoryController
         {
             //just swap.
             Item wear = d_InventoryUtil.ItemAtWearPlace(pos.WearPlace, pos.ActiveMaterial);
-            if (d_Items.CanWear(pos.WearPlace, d_Inventory.DragDropItem))
+            if (d_Items.CanWear((WearPlace)pos.WearPlace, d_Inventory.DragDropItem))
             {
                 d_InventoryUtil.SetItemAtWearPlace(pos.WearPlace, pos.ActiveMaterial, d_Inventory.DragDropItem);
                 d_Inventory.DragDropItem = wear;
@@ -406,7 +405,7 @@ public class InventoryServer : IInventoryController
     {
     }
 
-    public override void WearItem(Packet_InventoryPosition from, Packet_InventoryPosition to)
+    public void WearItem(Packet_InventoryPosition from, Packet_InventoryPosition to)
     {
         //todo
         ProtoPoint originPoint = new(from.AreaX, from.AreaY);
@@ -414,14 +413,14 @@ public class InventoryServer : IInventoryController
             && to.Type == Packet_InventoryPositionTypeEnum.MaterialSelector
             && d_Inventory.RightHand[to.MaterialId] == null
             && d_Inventory.Items.ContainsKey(originPoint)
-            && d_Items.CanWear(WearPlace_.RightHand, d_Inventory.Items[originPoint]))
+            && d_Items.CanWear(WearPlace.RightHand, d_Inventory.Items[originPoint]))
         {
             d_Inventory.RightHand[to.MaterialId] = d_Inventory.Items[originPoint];
             d_Inventory.Items.Remove(originPoint);
         }
     }
 
-    public override void MoveToInventory(Packet_InventoryPosition from)
+    public void MoveToInventory(Packet_InventoryPosition from)
     {
         //todo
         if (from.Type == Packet_InventoryPositionTypeEnum.MaterialSelector)
@@ -509,18 +508,18 @@ public class GameDataItemsBlocks : IGameDataItems
         }
     }
 
-    public bool CanWear(int selectedWear, Item item)
+    public bool CanWear(WearPlace selectedWear, Item item)
     {
         if (item == null) { return true; }
         if (item == null) { return true; }
         return selectedWear switch
         {
             //case WearPlace.LeftHand: return false;
-            WearPlace_.RightHand => item.ItemClass == ItemClass.Block,
-            WearPlace_.MainArmor => false,
-            WearPlace_.Boots => false,
-            WearPlace_.Helmet => false,
-            WearPlace_.Gauntlet => false,
+            WearPlace.RightHand => item.ItemClass == ItemClass.Block,
+            WearPlace.MainArmor => false,
+            WearPlace.Boots => false,
+            WearPlace.Helmet => false,
+            WearPlace.Gauntlet => false,
             _ => throw new Exception(),
         };
     }

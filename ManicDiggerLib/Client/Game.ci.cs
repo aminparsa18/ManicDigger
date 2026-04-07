@@ -215,20 +215,12 @@ public class Game
         d_TerrainChunkTesselator = terrainchunktesselator;
         terrainchunktesselator.game = this;
 
-        Packet_Inventory inventory = new()
-        {
-            RightHand = new Packet_Item[10]
-        };
-        GameDataItemsClient dataItems = new()
-        {
-            game = this
-        };
-        InventoryUtilClient inventoryUtil = new();
+        Packet_Inventory inventory = new() { RightHand = new Packet_Item[10] };
+        InventoryUtils dataItems = new(this);
+        InventoryUtilClient inventoryUtil = new(inventory, dataItems);
+
         d_Inventory = inventory;
         d_InventoryUtil = inventoryUtil;
-        inventoryUtil.d_Inventory = inventory;
-        inventoryUtil.d_Items = dataItems;
-        d_Inventory = inventory;
         platform.AddOnCrash(OnCrashHandlerLeave.Create(this));
 
         rnd = new Random();
@@ -2686,7 +2678,7 @@ public class Game
     internal void UseInventory(Packet_Inventory packet_Inventory)
     {
         d_Inventory = packet_Inventory;
-        d_InventoryUtil.d_Inventory = packet_Inventory;
+        d_InventoryUtil.UpdateInventory(packet_Inventory);
     }
 
     internal void KeyPress(int eKeyChar)

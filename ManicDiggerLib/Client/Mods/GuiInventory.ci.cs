@@ -34,7 +34,7 @@ public class ModGuiInventory : ClientMod
     }
 
     internal Game game;
-    internal GameDataItemsClient dataItems;
+    internal InventoryUtils dataItems;
     internal InventoryUtilClient inventoryUtil;
     internal IInventoryController controller;
 
@@ -145,7 +145,7 @@ public class ModGuiInventory : ClientMod
                     Packet_InventoryPosition p = new()
                     {
                         Type = Packet_InventoryPositionTypeEnum.WearPlace,
-                        WearPlace = WearPlace_.RightHand,
+                        WearPlace = (int)WearPlace.RightHand,
                         ActiveMaterial = game.ActiveMaterial
                     };
                     controller.InventoryClick(p);
@@ -295,10 +295,7 @@ public class ModGuiInventory : ClientMod
         game = game_;
         if (dataItems == null)
         {
-            dataItems = new GameDataItemsClient
-            {
-                game = game_
-            };
+            dataItems = new InventoryUtils(game_);
             controller = ClientInventoryController.Create(game_);
             inventoryUtil = game.d_InventoryUtil;
         }
@@ -353,20 +350,15 @@ public class ModGuiInventory : ClientMod
                 int x = (selectedInPage.Value.X) * CellDrawSize + CellsStartX();
                 int y = (selectedInPage.Value.Y) * CellDrawSize + CellsStartY();
                 int sizex = dataItems.ItemSizeX(game.d_Inventory.DragDropItem);
-                int sizey = dataItems.ItemSizeY(game.d_Inventory.DragDropItem);
+                int sizey = InventoryUtils.ItemSizeY(game.d_Inventory.DragDropItem);
                 if (selectedInPage.Value.X + sizex <= CellCountInPageX
                     && selectedInPage.Value.Y + sizey <= CellCountInPageY)
                 {
                     int c;
-                    Point?[] itemsAtArea = inventoryUtil.ItemsAtArea(selectedInPage.Value.X, selectedInPage.Value.Y + ScrollLine, sizex, sizey, out int itemsAtAreaCount);
-                    if (itemsAtArea == null || itemsAtAreaCount > 1)
-                    {
-                        c = Game.ColorFromArgb(100, 255, 0, 0); // red
-                    }
-                    else //0 or 1
-                    {
-                        c = Game.ColorFromArgb(100, 0, 255, 0); // green
-                    }
+                    var itemsAtArea = inventoryUtil.ItemsAtArea(selectedInPage.Value.X, selectedInPage.Value.Y + ScrollLine, sizex, sizey);
+                    c = (itemsAtArea == null || itemsAtArea.Count > 1)
+                        ? Game.ColorFromArgb(100, 255, 0, 0)  // red  — out of bounds or blocked
+                        : Game.ColorFromArgb(100, 0, 255, 0); // green — empty or single item (can stack)
                     game.Draw2dTexture(game.WhiteTexture(), x, y,
                         CellDrawSize * sizex, CellDrawSize * sizey,
                         null, 0, c, false);
@@ -379,8 +371,8 @@ public class ModGuiInventory : ClientMod
                 Point size = wearPlaceCells[selectedWear];
 
                 int c;
-                Packet_Item itemsAtArea = inventoryUtil.ItemAtWearPlace(selectedWear, game.ActiveMaterial);
-                if (!GameDataItemsClient.CanWear(selectedWear, game.d_Inventory.DragDropItem))
+                Packet_Item itemsAtArea = inventoryUtil.ItemAtWearPlace((WearPlace)selectedWear, game.ActiveMaterial);
+                if (!InventoryUtils.CanWear((WearPlace)selectedWear, game.d_Inventory.DragDropItem))
                 {
                     c = Game.ColorFromArgb(100, 255, 0, 0); // red
                 }
@@ -399,18 +391,18 @@ public class ModGuiInventory : ClientMod
 
         //wear
         //DrawItem(Offset(wearPlaceStart[(int)WearPlace.LeftHand], InventoryStart), inventory.LeftHand[ActiveMaterial.ActiveMaterial], null);
-        DrawItem(wearPlaceStart[WearPlace_.RightHand].X + InventoryStartX(), wearPlaceStart[WearPlace_.RightHand].Y + InventoryStartY(), game.d_Inventory.RightHand[game.ActiveMaterial], 0, 0);
-        DrawItem(wearPlaceStart[WearPlace_.MainArmor].X + InventoryStartX(), wearPlaceStart[WearPlace_.MainArmor].Y + InventoryStartY(), game.d_Inventory.MainArmor, 0, 0);
-        DrawItem(wearPlaceStart[WearPlace_.Boots].X + InventoryStartX(), wearPlaceStart[WearPlace_.Boots].Y + InventoryStartY(), game.d_Inventory.Boots, 0, 0);
-        DrawItem(wearPlaceStart[WearPlace_.Helmet].X + InventoryStartX(), wearPlaceStart[WearPlace_.Helmet].Y + InventoryStartY(), game.d_Inventory.Helmet, 0, 0);
-        DrawItem(wearPlaceStart[WearPlace_.Gauntlet].X + InventoryStartX(), wearPlaceStart[WearPlace_.Gauntlet].Y + InventoryStartY(), game.d_Inventory.Gauntlet, 0, 0);
+        DrawItem(wearPlaceStart[(int)WearPlace.RightHand].X + InventoryStartX(), wearPlaceStart[(int)WearPlace.RightHand].Y + InventoryStartY(), game.d_Inventory.RightHand[game.ActiveMaterial], 0, 0);
+        DrawItem(wearPlaceStart[(int)WearPlace.MainArmor].X + InventoryStartX(), wearPlaceStart[(int)WearPlace.MainArmor].Y + InventoryStartY(), game.d_Inventory.MainArmor, 0, 0);
+        DrawItem(wearPlaceStart[(int)WearPlace.Boots].X + InventoryStartX(), wearPlaceStart[(int)WearPlace.Boots].Y + InventoryStartY(), game.d_Inventory.Boots, 0, 0);
+        DrawItem(wearPlaceStart[(int)WearPlace.Helmet].X + InventoryStartX(), wearPlaceStart[(int)WearPlace.Helmet].Y + InventoryStartY(), game.d_Inventory.Helmet, 0, 0);
+        DrawItem(wearPlaceStart[(int)WearPlace.Gauntlet].X + InventoryStartX(), wearPlaceStart[(int)WearPlace.Gauntlet].Y + InventoryStartY(), game.d_Inventory.Gauntlet, 0, 0);
 
         //info
         if (SelectedCell(scaledMouse) != null)
         {
             Point? selected = SelectedCell(scaledMouse);
             selected = new Point(selected.Value.X, selected.Value.Y + ScrollLine);
-            Point? itemAtCell = inventoryUtil.ItemAtCell(selected);
+            Point? itemAtCell = inventoryUtil.ItemAtCell(selected ?? Point.Empty);
             if (itemAtCell != null)
             {
                 Packet_Item item = GetItem(game.d_Inventory, itemAtCell.Value.X, itemAtCell.Value.Y);
@@ -425,7 +417,7 @@ public class ModGuiInventory : ClientMod
         if (SelectedWearPlace(scaledMouse) != null)
         {
             int selected = SelectedWearPlace(scaledMouse) ?? 0;
-            Packet_Item itemAtWearPlace = inventoryUtil.ItemAtWearPlace(selected, game.ActiveMaterial);
+            Packet_Item itemAtWearPlace = inventoryUtil.ItemAtWearPlace((WearPlace)selected, game.ActiveMaterial);
             if (itemAtWearPlace != null)
             {
                 DrawItemInfo(scaledMouse.X, scaledMouse.Y, itemAtWearPlace);
@@ -509,7 +501,7 @@ public class ModGuiInventory : ClientMod
             return;
         }
         int sizex = dataItems.ItemSizeX(item);
-        int sizey = dataItems.ItemSizeY(item);
+        int sizey = InventoryUtils.ItemSizeY(item);
         if (drawsizeX == 0 || drawsizeX == -1)
         {
             drawsizeX = CellDrawSize * sizex;
@@ -535,7 +527,7 @@ public class ModGuiInventory : ClientMod
         }
         else
         {
-            game.Draw2dBitmapFile(GameDataItemsClient.ItemGraphics(item), screenposX, screenposY,
+            game.Draw2dBitmapFile(InventoryUtils.ItemGraphics(item), screenposX, screenposY,
                 drawsizeX, drawsizeY);
         }
     }
@@ -543,7 +535,7 @@ public class ModGuiInventory : ClientMod
     public void DrawItemInfo(int screenposX, int screenposY, Packet_Item item)
     {
         int sizex = dataItems.ItemSizeX(item);
-        int sizey = dataItems.ItemSizeY(item);
+        int sizey = InventoryUtils.ItemSizeY(item);
         float one = 1;
         game.platform.TextSize(dataItems.ItemInfo(item), 11 + one / 2, out int tw, out int th);
         tw += 6;

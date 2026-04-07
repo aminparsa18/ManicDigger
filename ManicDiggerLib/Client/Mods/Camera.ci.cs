@@ -94,7 +94,7 @@ public class ModCamera : ClientMod
         pick.End = new Vector3(ray_start_point.X + raydirX, ray_start_point.Y + raydirY, ray_start_point.Z + raydirZ);
 
         // pick terrain
-        BlockPosSide[] pick2 = game.Pick(game.s, pick, out int pick2Count);
+        ArraySegment<BlockPosSide> pick2 = game.Pick(game.s, pick, out int pick2Count);
 
         if (pick2Count > 0)
         {

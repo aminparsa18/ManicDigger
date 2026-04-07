@@ -125,7 +125,7 @@ public class ModPicking : ClientMod
 
         Line3D pick = new();
         GetPickingLine(game, pick, ispistolshoot);
-        BlockPosSide[] pick2 = game.Pick(game.s, pick, out int pick2count);
+        ArraySegment<BlockPosSide> pick2 = game.Pick(game.s, pick, out int pick2count);
 
         if (left)
         {
@@ -820,7 +820,7 @@ public class ModPicking : ClientMod
         return RailDirection.DownRight;
     }
 
-    private static void PickEntity(Game game, Line3D pick, BlockPosSide[] pick2, int pick2count)
+    private static void PickEntity(Game game, Line3D pick, ArraySegment<BlockPosSide> pick2, int pick2count)
     {
         game.SelectedEntityId = -1;
         game.currentlyAttackedEntity = -1;

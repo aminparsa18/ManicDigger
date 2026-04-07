@@ -4,6 +4,7 @@ public class Line3D
 {
     internal Vector3 Start;
     internal Vector3 End;
+    internal Vector3 Direction => End - Start;
 }
 
 public abstract class PredicateBox3D
@@ -61,7 +62,6 @@ public class BlockOctreeSearcher
 
     public BlockOctreeSearcher()
     {
-        intersection = new Intersection();
         l = new BlockPosSide[1024];
         lCount = 0;
         currentHit = Vector3.Zero;
@@ -115,10 +115,9 @@ public class BlockOctreeSearcher
 
     private Line3D currentLine;
     private Vector3 currentHit;
-    private readonly Intersection intersection;
     private readonly BlockPosSide[] l;
     private int lCount;
-    public BlockPosSide[] LineIntersection(DelegateIsBlockEmpty isEmpty, DelegateGetBlockHeight getBlockHeight, Line3D line, out int retCount)
+    public ArraySegment<BlockPosSide> LineIntersection(IsBlockEmptyDelegate isEmpty, GetBlockHeightDelegate getBlockHeight, Line3D line, out int retCount)
     {
         lCount = 0;
         currentLine = line;
@@ -129,37 +128,31 @@ public class BlockOctreeSearcher
         for (int i = 0; i < l1.Count; i++)
         {
             Box3 node = l1[i];
-            var hit = currentHit;
             float x = node.Min[0];
             float y = node.Min[2];
             float z = node.Min[1];
-            if (!isEmpty.IsBlockEmpty(platform.FloatToInt(x),platform.FloatToInt(y),platform.FloatToInt( z)))
+            if (!isEmpty(platform.FloatToInt(x),platform.FloatToInt(y),platform.FloatToInt( z)))
             {
                 Box3 node2 = new(node.Min, new Vector3(
                     node.Max.X,
-                    node.Min.Y + getBlockHeight.GetBlockHeight(platform.FloatToInt(x), platform.FloatToInt(y), platform.FloatToInt(z)),
+                    node.Min.Y + getBlockHeight(platform.FloatToInt(x), platform.FloatToInt(y), platform.FloatToInt(z)),
                     node.Max.Z
                 ));
 
-                BlockPosSide b = new();
-                float[] dir = [line.End[0] - line.Start[0], line.End[1] - line.Start[1], line.End[2] - line.Start[2]];
-                bool ishit = Intersection.HitBoundingBox(node2.Min, node2.Max, line.Start, dir, out Vector3 hit2);
+                bool ishit = Intersection.HitBoundingBox(node2.Min, node2.Max, line.Start, line.Direction, out Vector3 hit2);
                 if (ishit)
                 {
-                    //hit2.pos = Vec3.FromValues(x, z, y);
-                    b.blockPos = new Vector3(platform.FloatToInt(x), platform.FloatToInt(z), platform.FloatToInt(y));
-                    b.collisionPos = hit2;
-                    l[lCount++] = b;
+                    l[lCount++] = new BlockPosSide
+                    {
+                        blockPos = new Vector3(platform.FloatToInt(x), platform.FloatToInt(z), platform.FloatToInt(y)),
+                        collisionPos = hit2
+                    };
                 }
             }
         }
-        BlockPosSide[] ll = new BlockPosSide[lCount];
-        for (int i = 0; i < lCount; i++)
-        {
-            ll[i] = l[i];
-        }
+
         retCount = lCount;
-        return ll;
+        return new ArraySegment<BlockPosSide>(l, 0, lCount);
     }
 }
 
@@ -179,14 +172,9 @@ public class PredicateBox3DHit : PredicateBox3D
         return s.BoxHit(o);
     }
 }
-public abstract class DelegateIsBlockEmpty
-{
-    public abstract bool IsBlockEmpty(int x, int y, int z);
-}
-public abstract class DelegateGetBlockHeight
-{
-    public abstract float GetBlockHeight(int x, int y, int z);
-}
+
+public delegate bool IsBlockEmptyDelegate(int x, int y, int z);
+public delegate float GetBlockHeightDelegate(int x, int y, int z);
 
 public class Intersection
 {
@@ -198,7 +186,7 @@ public class Intersection
     private const int LEFT = 1;
     private const int MIDDLE = 2;
     private const int RIGHT = 0;
-    public static bool HitBoundingBox(Vector3 minB, Vector3 maxB, Vector3 origin, float[] dir, out Vector3 coord)
+    public static bool HitBoundingBox(Vector3 minB, Vector3 maxB, Vector3 origin, Vector3 dir, out Vector3 coord)
     {
         bool inside = true;
         byte[] quadrant = new byte[3];
@@ -324,11 +312,9 @@ public class Intersection
         return CheckLineBox1(box.Min, box.Max, line.Start, line.End, out hit);
     }
 
-
     public static Vector3? CheckLineBoxExact(Line3D line, Box3 box)
     {
-        float[] dir_ = [line.End[0] - line.Start[0], line.End[1] - line.Start[1], line.End[2] - line.Start[2]];
-        if (!HitBoundingBox(box.Min, box.Max, line.Start, dir_, out Vector3 hit))
+        if (!HitBoundingBox(box.Min, box.Max, line.Start, line.Direction, out Vector3 hit))
         {
             return null;
         }

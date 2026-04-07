@@ -2605,7 +2605,7 @@ public class Game
         //GL.Fog(FogParameter.FogEnd, fogstart + fogsize);
     }
 
-    internal BlockPosSide Nearest(BlockPosSide[] pick2, int pick2Count, float x, float y, float z)
+    internal BlockPosSide Nearest(ArraySegment<BlockPosSide> pick2, int pick2Count, float x, float y, float z)
     {
         float minDist = 1000 * 1000;
         BlockPosSide nearest = null;
@@ -3724,7 +3724,7 @@ public class Game
     private float lastplayerpositionY;
     private float lastplayerpositionZ;
 
-    public BlockPosSide[] Pick(BlockOctreeSearcher s_, Line3D line, out int retCount)
+    public ArraySegment<BlockPosSide> Pick(BlockOctreeSearcher s_, Line3D line, out int retCount)
     {
         int minX = platform.FloatToInt(Math.Min(line.Start[0], line.End[0]));
         int minY = platform.FloatToInt(Math.Min(line.Start[1], line.End[1]));
@@ -3752,9 +3752,9 @@ public class Game
 
         s_.StartBox = new Box3(new Vector3(minX, minY, minZ), new Vector3(minX + size, minY + size, minZ + size));
 
-        BlockPosSide[] pick2 = s_.LineIntersection(
-            IsBlockEmpty_.Create(this),
-            GetBlockHeight_.Create(this),
+        var pick2 = s_.LineIntersection(
+            IsTileEmptyForPhysics,
+            Getblockheight,
             line,
             out retCount
         );
@@ -3766,7 +3766,7 @@ public class Game
 
     private readonly float[] modelViewInverted;
 
-    private void PickSort(BlockPosSide[] pick, int pickCount, float x, float y, float z)
+    private void PickSort(ArraySegment<BlockPosSide> pick, int pickCount, float x, float y, float z)
     {
         bool changed;
         do

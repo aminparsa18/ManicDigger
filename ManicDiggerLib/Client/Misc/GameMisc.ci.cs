@@ -429,40 +429,6 @@ public class TimerCi
     }
 }
 
-public class GetBlockHeight_ : DelegateGetBlockHeight
-{
-    public static GetBlockHeight_ Create(Game w_)
-    {
-        GetBlockHeight_ g = new()
-        {
-            w = w_
-        };
-        return g;
-    }
-    internal Game w;
-    public override float GetBlockHeight(int x, int y, int z)
-    {
-        return w.Getblockheight(x, y, z);
-    }
-}
-
-public class IsBlockEmpty_ : DelegateIsBlockEmpty
-{
-    public static IsBlockEmpty_ Create(Game w_)
-    {
-        IsBlockEmpty_ g = new()
-        {
-            w = w_
-        };
-        return g;
-    }
-    private Game w;
-    public override bool IsBlockEmpty(int x, int y, int z)
-    {
-        return w.IsTileEmptyForPhysics(x, y, z);
-    }
-}
-
 public class Sprite
 {
     public Sprite()

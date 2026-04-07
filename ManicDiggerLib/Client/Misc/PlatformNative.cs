@@ -1579,7 +1579,7 @@ public class GamePlatformNative : GamePlatform
 
     private int[] lists = new int[1024];
 
-    public override void DrawModels(Model[] model, int count)
+    public override void DrawModels(List<Model> model, int count)
     {
         if (lists.Length < count)
         {

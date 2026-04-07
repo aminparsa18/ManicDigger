@@ -4009,7 +4009,7 @@ public class Game
         platform.DrawModel(model);
     }
 
-    public void DrawModels(Model[] model, int count)
+    public void DrawModels(List<Model> model, int count)
     {
         SetMatrixUniformModelView();
         platform.DrawModels(model, count);

@@ -1,261 +1,254 @@
-﻿public class MeshBatcher
+﻿/// <summary>
+/// Manages a pool of renderable 3D models, batching draw calls by texture
+/// and separating solid from transparent geometry for correct render ordering.
+/// </summary>
+/// <remarks>
+/// Models are stored in a fixed-size slot array. Freed slots are tracked in a
+/// <see cref="Stack{T}"/> free-list so new additions reuse slots before growing
+/// the active count. Call <see cref="Add"/> to register a model and
+/// <see cref="Remove"/> to release it. Call <see cref="Draw"/> once per frame.
+/// </remarks>
+public class MeshBatcher
 {
+    /// <summary>Maximum number of model slots in the pool.</summary>
+    private const int ModelsMax = 1024 * 16;
+
+    /// <summary>Maximum number of distinct textures that can be batched.</summary>
+    private const int MaxTextures = 10;
+
+    /// <summary>Core game reference used for platform calls and draw dispatch.</summary>
+    internal Game game;
+
+    /// <summary>Frustum culler used to skip models outside the camera's view.</summary>
+    internal FrustumCulling d_FrustumCulling;
+
+    /// <summary>
+    /// When <c>true</c>, <see cref="Draw"/> will bind each texture before issuing
+    /// draw calls. Set to <c>false</c> when the caller manages texture binding externally.
+    /// </summary>
+    private bool BindTexture;
+
+    /// <summary>Flat array of all model slots. Index == model ID.</summary>
+    private readonly ListInfo[] _models;
+
+    /// <summary>One-past-the-last used slot index; grows on <see cref="Add"/> when free-list is empty.</summary>
+    private int _modelsCount;
+
+    /// <summary>
+    /// Free-list of previously released slot indices available for reuse.
+    /// Using <see cref="Stack{T}"/> replaces the hand-rolled parallel array + counter.
+    /// </summary>
+    private readonly Stack<int> _freeSlots;
+
+    /// <summary>
+    /// Tracks OpenGL texture handles. Using <see cref="List{T}"/> replaces the
+    /// manual grow-and-copy resize pattern and the separate length counter.
+    /// </summary>
+    private readonly List<int> _glTextures;
+
+    private List<Model>[] tocallSolid;
+    private List<Model>[] tocallTransparent;
+
+    /// <summary>
+    /// Initialises a new <see cref="MeshBatcher"/> with pre-allocated model slots.
+    /// </summary>
     public MeshBatcher()
     {
-        int modelsMax = 1024 * 16;
-        models = new ListInfo[modelsMax];
-        for (int i = 0; i < modelsMax; i++)
+        _models = new ListInfo[ModelsMax];
+        for (int i = 0; i < ModelsMax; i++)
+            _models[i] = new ListInfo();
+
+        _modelsCount = 0;
+        _freeSlots = new Stack<int>();
+        _glTextures = new List<int>(MaxTextures);
+        tocallSolid = new List<Model>[MaxTextures];
+        tocallTransparent = new List<Model>[MaxTextures];
+        for (int i = 0; i < MaxTextures; i++)
         {
-            models[i] = new ListInfo();
+            tocallSolid[i] = new List<Model>();
+            tocallTransparent[i] = new List<Model>();
         }
-        modelsCount = 0;
         BindTexture = true;
-        glTextures = new int[10];
-        glTexturesLength = 10;
-        empty = new int[modelsMax];
-        emptyCount = 0;
     }
 
-    internal Game game;
-    internal FrustumCulling d_FrustumCulling;
-    internal bool BindTexture;
-    private readonly ListInfo[] models;
-    private int modelsCount;
-
-    private readonly int[] empty;
-    private int emptyCount;
-
-
+    /// <summary>
+    /// Registers a model in the batch and returns its assigned slot ID.
+    /// The ID is stable until <see cref="Remove"/> is called with it.
+    /// </summary>
+    /// <param name="modelData">The geometry data used to create the GPU model.</param>
+    /// <param name="transparent">
+    ///     <c>true</c> if this model should be rendered in the transparent pass
+    ///     (after all solid geometry); <c>false</c> for the solid pass.
+    /// </param>
+    /// <param name="texture">Logical texture index (mapped via <c>GetTextureId</c>).</param>
+    /// <param name="centerX">World-space X centre of the model's bounding sphere.</param>
+    /// <param name="centerY">World-space Y centre of the model's bounding sphere.</param>
+    /// <param name="centerZ">World-space Z centre of the model's bounding sphere.</param>
+    /// <param name="radius">Radius of the model's bounding sphere, used for frustum culling.</param>
+    /// <returns>The slot ID representing this model. Pass it to <see cref="Remove"/> later.</returns>
     public int Add(ModelData modelData, bool transparent, int texture, float centerX, float centerY, float centerZ, float radius)
     {
-        int id;
-        if (emptyCount > 0)
-        {
-            id = empty[emptyCount - 1];
-            emptyCount--;
-        }
-        else
-        {
-            id = modelsCount;
-            modelsCount++;
-        }
+        int id = _freeSlots.Count > 0
+            ? _freeSlots.Pop()
+            : _modelsCount++;
 
         Model model = game.platform.CreateModel(modelData);
 
-        ListInfo li = models[id];
-        li.indicescount = modelData.GetIndicesCount();
-        li.centerX = centerX;
-        li.centerY = centerY;
-        li.centerZ = centerZ;
-        li.radius = radius;
-        li.transparent = transparent;
-        li.empty = false;
-        li.texture = GetTextureId(texture);
-        li.model = model;
+        ListInfo slot = _models[id];
+        slot.indicescount = modelData.GetIndicesCount();
+        slot.centerX = centerX;
+        slot.centerY = centerY;
+        slot.centerZ = centerZ;
+        slot.radius = radius;
+        slot.transparent = transparent;
+        slot.empty = false;
+        slot.texture = GetTextureId(texture);
+        slot.model = model;
+        slot.render = true;
 
         return id;
     }
 
+    /// <summary>
+    /// Releases the model at the given slot ID, freeing its GPU resources
+    /// and returning the slot to the free-list for reuse.
+    /// </summary>
+    /// <param name="id">The slot ID previously returned by <see cref="Add"/>.</param>
     public void Remove(int id)
     {
-        game.platform.DeleteModel(models[id].model);
-        models[id].empty = true;
-        empty[emptyCount++] = id;
+        game.platform.DeleteModel(_models[id].model);
+        _models[id].empty = true;
+        _freeSlots.Push(id);
     }
 
+    /// <summary>
+    /// Renders all registered models for the current frame.
+    /// Solid models are drawn first (to populate the depth buffer), followed by
+    /// transparent models (with back-face culling disabled) to ensure correct blending.
+    /// </summary>
+    /// <param name="playerPositionX">Player world-space X, passed to culling logic.</param>
+    /// <param name="playerPositionY">Player world-space Y, passed to culling logic.</param>
+    /// <param name="playerPositionZ">Player world-space Z, passed to culling logic.</param>
     public void Draw(float playerPositionX, float playerPositionY, float playerPositionZ)
     {
-#if !CITO
-        unchecked {
-#endif
-        UpdateCulling();
+
         SortListsByTexture();
 
-        //Need to first render all solid lists (to fill z-buffer), then transparent.
-        for (int i = 0; i < texturesCount; i++)
+        // --- Solid pass: fills the depth buffer before any transparency is drawn.
+        for (int i = 0; i < MaxTextures; i++)
         {
-            if (tocallSolid[i].Count == 0) { continue; }
+            if (tocallSolid[i].Count == 0) continue;
+
             if (BindTexture)
-            {
-                game.platform.BindTexture2d(glTextures[i]);
-            }
-            game.DrawModels(tocallSolid[i].Lists, tocallSolid[i].Count);
+                game.platform.BindTexture2d(_glTextures[i]);
+
+            game.DrawModels(tocallSolid[i], tocallSolid[i].Count);
         }
-        game.platform.GlDisableCullFace(); // for water.
-        for (int i = 0; i < texturesCount; i++)
+
+        // --- Transparent pass: back-face culling disabled so water surfaces etc. render correctly.
+        game.platform.GlDisableCullFace();
+        for (int i = 0; i < MaxTextures; i++)
         {
-            if (tocallTransparent[i].Count == 0) { continue; }
+            if (tocallTransparent[i].Count == 0) continue;
+
             if (BindTexture)
-            {
-                game.platform.BindTexture2d(glTextures[i]);
-            }
-            game.DrawModels(tocallTransparent[i].Lists, tocallTransparent[i].Count);
+                game.platform.BindTexture2d(_glTextures[i]);
+
+            game.DrawModels(tocallTransparent[i], tocallTransparent[i].Count);
         }
         game.platform.GlEnableCullFace();
-#if !CITO
-        }
-#endif
     }
 
-    // Finds an index in glTextures array.
+    /// <summary>
+    /// Returns the index of <paramref name="glTexture"/> in the texture slot list,
+    /// registering it in a new slot if not already present.
+    /// The list grows automatically if all current slots are occupied.
+    /// </summary>
+    /// <param name="glTexture">The OpenGL texture handle to look up or register.</param>
+    /// <returns>The index of <paramref name="glTexture"/> in <c>_glTextures</c>.</returns>
     private int GetTextureId(int glTexture)
     {
-        int id = ArrayIndexOf(glTextures, glTexturesLength, glTexture);
+        // Already registered — return existing slot.
+        int id = _glTextures.IndexOf(glTexture);
+        if (id != -1)
+            return id;
+
+        // Find an empty slot (value 0 == unoccupied).
+        id = _glTextures.IndexOf(0);
         if (id != -1)
         {
+            _glTextures[id] = glTexture;
             return id;
         }
-        id = ArrayIndexOf(glTextures, glTexturesLength, 0);
-        if (id != -1)
-        {
-            glTextures[id] = glTexture;
-            return id;
-        }
-        int increase = 10;
-        //Array.Resize(ref glTextures, glTextures.Length + increase);
-        int[] glTextures2 = new int[glTexturesLength + increase];
-        for (int i = 0; i < glTexturesLength; i++)
-        {
-            glTextures2[i] = glTextures[i];
-        }
-        glTextures = glTextures2;
-        glTexturesLength = glTexturesLength + increase;
 
-        glTextures[glTexturesLength - increase] = glTexture;
-        return glTexturesLength - increase;
+        // No free slot — append a new one.
+        _glTextures.Add(glTexture);
+        return _glTextures.Count - 1;
     }
 
-    private static int ArrayIndexOf(int[] glTextures, int length, int glTexture)
-    {
-        for (int i = 0; i < length; i++)
-        {
-            if (glTextures[i] == glTexture)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
-
+    /// <summary>
+    /// Clears and repopulates the per-texture solid and transparent draw lists
+    /// by iterating active, visible model slots and bucketing them by texture index.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="tocallSolid"/> and <see cref="tocallTransparent"/> are initialised
+    /// once in the constructor. Each call resets all counts then re-buckets models,
+    /// growing per-texture lists automatically via <see cref="List{T}"/>.
+    /// </remarks>
     private void SortListsByTexture()
     {
-        if (tocallSolid == null)
+        // Reset counts for this frame.
+        for (int i = 0; i < MaxTextures; i++)
         {
-            tocallSolid = new ToCall[texturesCount];
-            tocallTransparent = new ToCall[texturesCount];
-            for (int i = 0; i < texturesCount; i++)
-            {
-                tocallSolid[i] = new ToCall();
-                tocallTransparent[i] = new ToCall();
-            }
-            for (int i = 0; i < texturesCount; i++)
-            {
-                int max = 256;
-                tocallSolid[i].Lists = new Model[max];
-                tocallSolid[i].Max = max;
-                tocallTransparent[i].Lists = new Model[max];
-                tocallTransparent[i].Max = max;
-            }
+            tocallSolid[i].Clear();
+            tocallTransparent[i].Clear();
         }
-        for (int i = 0; i < texturesCount; i++)
+
+        // Bucket each active, visible model into the correct texture + pass list.
+        for (int i = 0; i < _modelsCount; i++)
         {
-            tocallSolid[i].Count = 0;
-            tocallTransparent[i].Count = 0;
-        }
-        for (int i = 0; i < modelsCount; i++)
-        {
-            ListInfo li = models[i];
-            if (!li.render)
-            {
+            ListInfo li = _models[i];
+
+            if (li.empty || !li.render)
                 continue;
-            }
-            if (li.empty)
-            {
-                continue;
-            }
-            ToCall tocall;
-            if (!li.transparent)
-            {
-                tocall = tocallSolid[li.texture];
-            }
-            else
-            {
-                tocall = tocallTransparent[li.texture];
-            }
-            if (tocall.Count >= tocall.Max)
-            {
-                Model[] old = tocall.Lists;
-                Model[] new_ = new Model[tocall.Max * 2];
-                for (int k = 0; k < tocall.Max; k++)
-                {
-                    new_[k] = old[k];
-                }
-                tocall.Lists = new_;
-                tocall.Max = tocall.Max * 2;
-            }
-            tocall.Lists[tocall.Count++] = models[i].model;
+
+            List<Model> bucket = li.transparent
+                ? tocallTransparent[li.texture]
+                : tocallSolid[li.texture];
+
+            bucket.Add(li.model);
         }
     }
 
-    // Maps from inner texture id to real opengl texture id.
-    private int[] glTextures;
-    private int glTexturesLength;
-    private ToCall[] tocallSolid;
-    private ToCall[] tocallTransparent;
-    // todo dynamic
-    public const int texturesCount = 10;
-
-    // Not really needed because display lists perform (at least on some computers)
-    // their own frustum culling automatically.
-    private void UpdateCulling()
-    {
-        int licount = modelsCount;
-        for (int i = 0; i < licount; i++)
-        {
-            ListInfo li = models[i];
-            float centerX = li.centerX;
-            float centerY = li.centerY;
-            float centerZ = li.centerZ;
-            li.render = d_FrustumCulling.SphereInFrustum(centerX, centerY, centerZ, li.radius);
-        }
-    }
-
+    /// <summary>
+    /// Returns the total number of triangles currently active in the batch.
+    /// Each triangle is represented by 3 indices.
+    /// </summary>
+    /// <returns>The sum of all active model index counts divided by 3.</returns>
     public int TotalTriangleCount()
     {
         int sum = 0;
-        int count = modelsCount;
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < _modelsCount; i++)
         {
-            if (!models[i].empty)
-            {
-                ListInfo li = models[i];
-                if (li.render)
-                {
-                    sum += li.indicescount;
-                }
-            }
+            ListInfo li = _models[i];
+            if (!li.empty)
+                sum += li.indicescount;
         }
         return sum / 3;
     }
 
+    /// <summary>
+    /// Removes all active models from the batch, releasing their GPU resources
+    /// and resetting the free-list.
+    /// </summary>
     public void Clear()
     {
-        int count = modelsCount;
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < _modelsCount; i++)
         {
-            if (!models[i].empty)
-            {
+            if (!_models[i].empty)
                 Remove(i);
-            }
         }
     }
-}
-
-public class ToCall
-{
-    internal Model[] Lists;
-    internal int Count;
-    internal int Max;
 }
 
 public class ListInfo

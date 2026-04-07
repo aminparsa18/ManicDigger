@@ -27,9 +27,9 @@
 
         float scale = menu.GetScale();
 
-        if (menu.assetsLoadProgress.value != 1)
+        if (menu.assetsLoadProgress != 1)
         {
-            string s = menu.p.StringFormat(menu.lang.Get("MainMenu_AssetsLoadProgress"), menu.p.FloatToString(menu.p.FloatToInt(menu.assetsLoadProgress.value * 100)));
+            string s = menu.p.StringFormat(menu.lang.Get("MainMenu_AssetsLoadProgress"), menu.p.FloatToString(menu.p.FloatToInt(menu.assetsLoadProgress * 100)));
             menu.DrawText(s, 20 * scale, windowX / 2, windowY / 2, TextAlign.Center, TextBaseline.Middle);
             return;
         }
@@ -82,7 +82,7 @@
         string ip = menu.p.QueryStringValue("ip");
         string port = menu.p.QueryStringValue("port");
         int portInt = 25565;
-        if (port != null && menu.p.FloatTryParse(port, new FloatRef()))
+        if (port != null && menu.p.FloatTryParse(port, out _))
         {
             portInt = menu.p.IntParse(port);
         }

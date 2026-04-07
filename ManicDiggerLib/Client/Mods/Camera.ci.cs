@@ -28,8 +28,7 @@ public class ModCamera : ClientMod
             game.overheadcameraK.Center.X,
             game.overheadcameraK.Center.Y + game.GetCharacterEyesHeight(),
             game.overheadcameraK.Center.Z);
-        FloatRef currentOverheadcameradistance = FloatRef.Create(game.overheadcameradistance);
-        LimitThirdPersonCameraToWalls(game, ref cameraEye, ref cameraTarget, currentOverheadcameradistance);
+        game.overheadcameradistance = LimitThirdPersonCameraToWalls(game, ref cameraEye, ref cameraTarget, game.overheadcameradistance);
         Matrix4 ret = Matrix4.LookAt(cameraEye, cameraTarget, upVec3);
         game.CameraEyeX = cameraEye.X;
         game.CameraEyeY = cameraEye.Y;
@@ -64,8 +63,7 @@ public class ModCamera : ClientMod
             cameraTarget.X = playerEyeX;
             cameraTarget.Y = playerEyeY;
             cameraTarget.Z = playerEyeZ;
-            FloatRef currentTppcameradistance = FloatRef.Create(game.tppcameradistance);
-            LimitThirdPersonCameraToWalls(game, ref cameraEye, ref cameraTarget, currentTppcameradistance);
+            game.tppcameradistance = LimitThirdPersonCameraToWalls(game, ref cameraEye, ref cameraTarget, game.tppcameradistance);
         }
         Matrix4 ret = Matrix4.LookAt(cameraEye, cameraTarget, upVec3);
         game.CameraEyeX = cameraEye.X;
@@ -74,7 +72,7 @@ public class ModCamera : ClientMod
         return ret;
     }
 
-    internal static void LimitThirdPersonCameraToWalls(Game game, ref Vector3 eye, ref Vector3 target, FloatRef curtppcameradistance)
+    internal static float LimitThirdPersonCameraToWalls(Game game, ref Vector3 eye, ref Vector3 target, float curtppcameradistance)
     {
         float one = 1;
         Vector3 ray_start_point = target;
@@ -106,16 +104,17 @@ public class ModCamera : ClientMod
             float pickY = pick2nearest.blockPos[1] - target.Y;
             float pickZ = pick2nearest.blockPos[2] - target.Z;
             float pickdistance = game.Length(pickX, pickY, pickZ);
-            curtppcameradistance.value = Math.Min(pickdistance - 1, curtppcameradistance.value);
-            if (curtppcameradistance.value < one * 3 / 10) { curtppcameradistance.value = one * 3 / 10; }
+            curtppcameradistance = Math.Min(pickdistance - 1, curtppcameradistance);
+            if (curtppcameradistance < one * 3 / 10) { curtppcameradistance = one * 3 / 10; }
         }
 
         float raydirLength = game.Length(raydirX, raydirY, raydirZ);
         raydirX /= raydirLength;
         raydirY /= raydirLength;
         raydirZ /= raydirLength;
-        eye.X = target.X + raydirX * curtppcameradistance.value;
-        eye.Y = target.Y + raydirY * curtppcameradistance.value;
-        eye.Z = target.Z + raydirZ * curtppcameradistance.value;
+        eye.X = target.X + raydirX * curtppcameradistance;
+        eye.Y = target.Y + raydirY * curtppcameradistance;
+        eye.Z = target.Z + raydirZ * curtppcameradistance;
+        return curtppcameradistance;
     }
 }

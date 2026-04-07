@@ -149,7 +149,7 @@ public class Game
     }
 
     internal AssetList assets;
-    internal FloatRef assetsLoadProgress;
+    internal float assetsLoadProgress;
     internal TextColorRenderer textColorRenderer;
     internal AudioControl audio;
 
@@ -1625,7 +1625,7 @@ public class Game
         {
             return;
         }
-        if (assetsLoadProgress.value != 1)
+        if (assetsLoadProgress != 1)
         {
             return;
         }
@@ -1653,7 +1653,7 @@ public class Game
         {
             return;
         }
-        if (assetsLoadProgress.value != 1)
+        if (assetsLoadProgress != 1)
         {
             return;
         }

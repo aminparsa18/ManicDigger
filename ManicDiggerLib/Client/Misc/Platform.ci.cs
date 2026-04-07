@@ -16,7 +16,7 @@ public abstract class GamePlatform
     public abstract float FloatParse(string value);
     public abstract string IntToString(int value);
     public abstract string FloatToString(float value);
-    public abstract bool FloatTryParse(string s, FloatRef ret);
+    public abstract bool FloatTryParse(string s, out float ret);
     public abstract string StringFormat(string format, string arg0);
     public abstract string StringFormat2(string format, string arg0, string arg1);
     public abstract string StringFormat3(string format, string arg0, string arg1, string arg2);
@@ -110,7 +110,7 @@ public abstract class GamePlatform
     public abstract void ExitMousePointerLock();
     public abstract bool MultithreadingAvailable();
     public abstract void QueueUserWorkItem(Action action);
-    public abstract void LoadAssetsAsyc(AssetList list, FloatRef progress);
+    public abstract void LoadAssetsAsyc(AssetList list, out float progress);
     public abstract byte[] GzipCompress(byte[] data, int dataLength, out int retLength);
     public abstract bool IsDebuggerAttached();
     public abstract bool IsSmallScreen();
@@ -287,10 +287,9 @@ public class Preferences
         {
             return default_;
         }
-        FloatRef ret = new();
-        if (platform.FloatTryParse(GetString(key, null), ret))
+        if (platform.FloatTryParse(GetString(key, null), out float ret))
         {
-            return platform.FloatToInt(ret.value);
+            return platform.FloatToInt(ret);
         }
         return default_;
     }
@@ -372,22 +371,6 @@ public abstract class EnetPacket
 
 public class MonitorObject
 {
-}
-
-public class FloatRef
-{
-    public static FloatRef Create(float value_)
-    {
-        FloatRef f = new()
-        {
-            value = value_
-        };
-        return f;
-    }
-    internal float value;
-
-    public float GetValue() { return value; }
-    public void SetValue(float value_) { value = value_; }
 }
 
 public class KeyEventArgs

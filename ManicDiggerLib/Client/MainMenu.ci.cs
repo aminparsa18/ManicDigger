@@ -16,7 +16,6 @@ public class MainMenu
         };
         loginClient = new LoginClientCi();
         assets = new AssetList();
-        assetsLoadProgress = new FloatRef();
     }
 
     internal GamePlatform p;
@@ -25,7 +24,7 @@ public class MainMenu
     internal float one;
 
     internal AssetList assets;
-    internal FloatRef assetsLoadProgress;
+    internal float assetsLoadProgress;
     internal TextColorRenderer textColorRenderer;
 
     public void Start(GamePlatform p_)
@@ -44,7 +43,7 @@ public class MainMenu
         {
             platform = p_
         };
-        p_.LoadAssetsAsyc(assets, assetsLoadProgress);
+        p_.LoadAssetsAsyc(assets, out assetsLoadProgress);
 
         overlap = 200;
         minspeed = 20;

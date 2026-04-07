@@ -135,9 +135,8 @@
     {
         if (w == buttonConnect)
         {
-            FloatRef ret = new();
             if (!Game.StringEquals(textboxIp.text, "")
-                && menu.p.FloatTryParse(textboxPort.text, ret))
+                && menu.p.FloatTryParse(textboxPort.text, out _))
             {
                 menu.StartLogin(null, textboxIp.text, menu.p.IntParse(textboxPort.text));
             }

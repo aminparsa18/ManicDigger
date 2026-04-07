@@ -69,15 +69,16 @@ public class GamePlatformNative : GamePlatform
         return float.Parse(value);
     }
 
-    public override bool FloatTryParse(string s, FloatRef ret)
+    public override bool FloatTryParse(string s, out float ret)
     {
         if (float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out float f))
         {
-            ret.value = f;
+            ret = f;
             return true;
         }
         else
         {
+            ret = 0;
             return false;
         }
     }
@@ -859,10 +860,10 @@ public class GamePlatformNative : GamePlatform
     }
 
     private AssetLoader assetloader;
-    public override void LoadAssetsAsyc(AssetList list, FloatRef progress)
+    public override void LoadAssetsAsyc(AssetList list, out float progress)
     {
         assetloader ??= new AssetLoader(datapaths);
-        assetloader.LoadAssetsAsync(list, progress);
+        assetloader.LoadAssetsAsync(list, out progress);
     }
 
     public override bool IsSmallScreen()
@@ -2208,7 +2209,7 @@ public class AssetLoader
         this.datapaths = datapaths_;
     }
     private readonly string[] datapaths;
-    public void LoadAssetsAsync(AssetList list, FloatRef progress)
+    public void LoadAssetsAsync(AssetList list, out float progress)
     {
         List<Asset> assets = new();
         foreach (string path in datapaths)
@@ -2246,7 +2247,7 @@ public class AssetLoader
             {
             }
         }
-        progress.value = 1;
+        progress = 1;
         list.count = assets.Count;
         list.items = new Asset[2048];
         for (int i = 0; i < assets.Count; i++)

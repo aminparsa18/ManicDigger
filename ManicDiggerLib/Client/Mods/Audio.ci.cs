@@ -11,7 +11,7 @@
 
     public override void OnNewFrame(Game game, NewFrameEventArgs args)
     {
-        if (game.assetsLoadProgress.value != 1)
+        if (game.assetsLoadProgress != 1)
         {
             return;
         }

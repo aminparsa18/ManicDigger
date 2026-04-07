@@ -457,18 +457,15 @@ public class GameVersionHelper
         {
             return max;
         }
-        FloatRef year = new();
-        FloatRef month = new();
-        FloatRef day = new();
-        if (platform.FloatTryParse(StringTools.StringSubstring(platform, version, 0, 4), year))
+        if (platform.FloatTryParse(StringTools.StringSubstring(platform, version, 0, 4), out float year))
         {
-            if (platform.FloatTryParse(StringTools.StringSubstring(platform, version, 5, 2), month))
+            if (platform.FloatTryParse(StringTools.StringSubstring(platform, version, 5, 2), out float month))
             {
-                if (platform.FloatTryParse(StringTools.StringSubstring(platform, version, 8, 2), day))
+                if (platform.FloatTryParse(StringTools.StringSubstring(platform, version, 8, 2), out float day))
                 {
-                    int year_ = platform.FloatToInt(year.value);
-                    int month_ = platform.FloatToInt(month.value);
-                    int day_ = platform.FloatToInt(day.value);
+                    int year_ = platform.FloatToInt(year);
+                    int month_ = platform.FloatToInt(month);
+                    int day_ = platform.FloatToInt(day);
                     return year_ * 10000 + month_ * 100 + day_;
                 }
             }

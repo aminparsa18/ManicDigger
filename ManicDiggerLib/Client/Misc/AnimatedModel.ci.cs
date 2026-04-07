@@ -216,9 +216,8 @@ public class AnimatedModelBinding : TableBinding
 
     private float FloatParse(string s)
     {
-        FloatRef ret = new();
-        p.FloatTryParse(s, ret);
-        return ret.value;
+        p.FloatTryParse(s, out float ret);
+        return ret;
     }
 }
 

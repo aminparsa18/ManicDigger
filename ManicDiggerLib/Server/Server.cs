@@ -2999,9 +2999,8 @@ public partial class Server : ICurrentTime, IDropItem
 
     private void LoadAssets()
     {
-        FloatRef progress = new();
-        assetLoader.LoadAssetsAsync(assets, progress);
-        while (progress.value < 1)
+        assetLoader.LoadAssetsAsync(assets, out float progress);
+        while (progress < 1)
         {
             Thread.Sleep(1);
         }

@@ -92,7 +92,7 @@ public class ModSkySphereAnimated : ClientMod
             };
             data.SetVerticesCount(segments * rings);
             data.SetIndicesCount(segments * rings * 6);
-            data.setIndices(SphereModelData.CalculateElements(radius, height, segments, rings));
+            data.setIndices(CalculateElements(radius, height, segments, rings));
         }
         
         // Load data into a vertex buffer or a display list afterwards.
@@ -170,6 +170,42 @@ public class ModSkySphereAnimated : ClientMod
         }
         //data.setMode(DrawModeEnum.Triangles);
         return data;
+    }
+
+    /// <summary>
+    /// Generates the triangle index buffer for a UV-sphere with the given tessellation.
+    /// Each quad cell in the ring/segment grid is split into two triangles.
+    /// </summary>
+    /// <param name="radius">Unused. Kept for call-site compatibility.</param>
+    /// <param name="height">Unused. Kept for call-site compatibility.</param>
+    /// <param name="segments">Number of subdivisions around the equator.</param>
+    /// <param name="rings">Number of subdivisions from pole to pole.</param>
+    /// <returns>An index array suitable for use with a triangle list draw call.</returns>
+    private static int[] CalculateElements(float radius, float height, int segments, int rings)
+    {
+        int[] indices = new int[segments * rings * 6];
+        int i = 0;
+
+        for (int y = 0; y < rings - 1; y++)
+        {
+            for (int x = 0; x < segments - 1; x++)
+            {
+                int bottomLeft = (y + 0) * segments + x;
+                int topLeft = (y + 1) * segments + x;
+                int topRight = (y + 1) * segments + x + 1;
+                int bottomRight = (y + 0) * segments + x + 1;
+
+                indices[i++] = bottomLeft;
+                indices[i++] = topLeft;
+                indices[i++] = topRight;
+
+                indices[i++] = topRight;
+                indices[i++] = bottomRight;
+                indices[i++] = bottomLeft;
+            }
+        }
+
+        return indices;
     }
 
     private static int Texture2d(GamePlatform platform, int[] pixelsArgb, float x, float y)

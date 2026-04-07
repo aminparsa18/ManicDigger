@@ -303,6 +303,7 @@ public class Game
             maxTextureSize_ = 1024;
         }
         maxTextureSize = maxTextureSize_;
+        taskScheduler.Initialise(this);
         MapLoadingStart();
         platform.GlClearColorRgbaf(0, 0, 0, 1);
         if (d_Config3d.ENABLE_BACKFACECULLING)
@@ -576,7 +577,7 @@ public class Game
         {
             platform.GlDisableDepthTest();
         }
-        ModelData data = QuadModelData.GetQuadModelData2(rect.X, rect.Y, rect.Width, rect.Height,
+        ModelData data = QuadModelData.GetColoredQuadModelData(rect.X, rect.Y, rect.Width, rect.Height,
             x1, y1, width, height, IntToByte(ColorR(color)), IntToByte(ColorG(color)), IntToByte(ColorB(color)), IntToByte(ColorA(color)));
         DrawModelData(data);
         if (!enabledepthtest)
@@ -598,7 +599,7 @@ public class Game
         {
             platform.GlDisableDepthTest();
         }
-        ModelData data = QuadModelData.GetQuadModelData2(rect.X, rect.Y, rect.Width, rect.Height,
+        ModelData data = QuadModelData.GetColoredQuadModelData(rect.X, rect.Y, rect.Width, rect.Height,
             dstx, dsty, dstwidth, dstheight, IntToByte(ColorR(color)), IntToByte(ColorG(color)), IntToByte(ColorB(color)), IntToByte(ColorA(color)));
         DrawModelData(data);
         if (!enabledepthtest)
@@ -673,7 +674,7 @@ public class Game
             }
 
             ModelData modelData =
-                QuadModelData.GetQuadModelData2(rect.X, rect.Y, rect.Width, rect.Height,
+                QuadModelData.GetColoredQuadModelData(rect.X, rect.Y, rect.Width, rect.Height,
                 x1, y1, width, height, IntToByte(ColorR(color)), IntToByte(ColorG(color)), IntToByte(ColorB(color)), IntToByte(ColorA(color)));
             modelDatas[modelDatasCount++] = modelData;
         }

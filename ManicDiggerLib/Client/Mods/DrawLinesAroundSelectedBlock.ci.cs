@@ -60,7 +60,7 @@ public class DrawWireframeCube
 
         if (wireframeCube == null)
         {
-            ModelData data = WireframeCube.Get();
+            ModelData data = WireframeCube.GetWireframeCubeModelData();
             wireframeCube = game.platform.CreateModel(data);
         }
         game.GLPushMatrix();

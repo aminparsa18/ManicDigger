@@ -1,4 +1,4 @@
-﻿public class ModReloadAmmo : ClientMod
+﻿public class ModReloadAmmo : ModBase
 {
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {

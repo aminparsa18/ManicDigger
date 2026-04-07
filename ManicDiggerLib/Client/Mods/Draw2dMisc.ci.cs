@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-public class ModDraw2dMisc : ClientMod
+public class ModDraw2dMisc : ModBase
 {
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {

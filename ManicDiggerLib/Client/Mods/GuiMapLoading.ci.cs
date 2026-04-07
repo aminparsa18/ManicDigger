@@ -1,4 +1,4 @@
-﻿public class ModGuiMapLoading : ClientMod
+﻿public class ModGuiMapLoading : ModBase
 {
     private int Width;
     private int Height;

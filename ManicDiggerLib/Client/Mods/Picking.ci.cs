@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-public class ModPicking : ClientMod
+public class ModPicking : ModBase
 {
     public ModPicking()
     {

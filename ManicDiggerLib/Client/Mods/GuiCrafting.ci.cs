@@ -1,7 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
-public class ModGuiCrafting : ClientMod
+public class ModGuiCrafting : ModBase
 {
     public ModGuiCrafting()
     {

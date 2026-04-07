@@ -1,7 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
-public class ModRail : ClientMod
+public class ModRail : ModBase
 {
     public ModRail()
     {

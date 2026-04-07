@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-public class ModLoadPlayerTextures : ClientMod
+public class ModLoadPlayerTextures : ModBase
 {
     public override void OnNewFrame(Game game, NewFrameEventArgs args)
     {

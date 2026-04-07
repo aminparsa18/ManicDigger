@@ -1,4 +1,4 @@
-﻿public class ModFallDamageToPlayer : ClientMod
+﻿public class ModFallDamageToPlayer : ModBase
 {
     public ModFallDamageToPlayer()
     {

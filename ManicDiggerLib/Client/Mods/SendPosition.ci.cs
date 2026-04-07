@@ -1,4 +1,4 @@
-﻿public class ModSendPosition : ClientMod
+﻿public class ModSendPosition : ModBase
 {
     public override void OnNewFrame(Game game, NewFrameEventArgs args)
     {

@@ -1,4 +1,4 @@
-﻿public class ModDrawArea : ClientMod
+﻿public class ModDrawArea : ModBase
 {
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {

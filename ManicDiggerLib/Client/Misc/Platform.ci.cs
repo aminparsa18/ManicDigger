@@ -5,7 +5,6 @@ public abstract class GamePlatform
 {
    
     // Misc
-    public abstract string Timestamp();
     public abstract void TextSize(string text, float fontSize, out int outWidth, out int outHeight);
     public abstract void Exit();
     public abstract bool ExitAvailable();
@@ -19,7 +18,6 @@ public abstract class GamePlatform
     public abstract void AddOnTouchEvent(TouchEventHandler handler);
     public abstract int GetCanvasWidth();
     public abstract int GetCanvasHeight();
-    public abstract string GetLanguageIso6391();
     public abstract int TimeMillisecondsFromStart();
     public abstract void ThrowException(string message);
     public abstract BitmapCi BitmapCreate(int width, int height);

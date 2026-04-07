@@ -1,7 +1,7 @@
 ﻿using OpenTK.Windowing.Common;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
-public class ModGuiInventory : ClientMod
+public class ModGuiInventory : ModBase
 {
     public ModGuiInventory()
     {

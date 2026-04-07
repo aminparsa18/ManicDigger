@@ -8,10 +8,9 @@ public class AnimatedModelSerializer
     /// Deserializes an <see cref="AnimatedModel"/> from a tab-separated
     /// section-format string.
     /// </summary>
-    /// <param name="p">Platform utilities for string and float parsing.</param>
     /// <param name="data">The raw text content to deserialize.</param>
     /// <returns>A fully populated <see cref="AnimatedModel"/>.</returns>
-    public static AnimatedModel Deserialize(GamePlatform p, string data)
+    public static AnimatedModel Deserialize(string data)
     {
         AnimatedModel model = new()
         {
@@ -21,10 +20,9 @@ public class AnimatedModelSerializer
         };
         AnimatedModelBinding b = new()
         {
-            p = p,
             m = model
         };
-        TableSerializer.Deserialize(p, data, b);
+        TableSerializer.Deserialize(data, b);
         return model;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-public class ModDrawTerrain : ClientMod
+public class ModDrawTerrain : ModBase
 {
     public ModDrawTerrain()
     {
@@ -626,7 +626,7 @@ public class TerrainRendererRedraw
     internal int dataCount;
 }
 
-public class ModUnloadRendererChunks : ClientMod
+public class ModUnloadRendererChunks : ModBase
 {
     public ModUnloadRendererChunks()
     {

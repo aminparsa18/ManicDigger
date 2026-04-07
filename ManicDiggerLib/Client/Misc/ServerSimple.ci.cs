@@ -451,7 +451,7 @@ public class ServerSimple
     }
 }
 
-public class ModServerSimple : ClientMod
+public class ModServerSimple : ModBase
 {
     internal ServerSimple server;
     public override void OnReadOnlyBackgroundThread(Game game, float dt)

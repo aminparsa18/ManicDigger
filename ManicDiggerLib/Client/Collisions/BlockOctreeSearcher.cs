@@ -5,8 +5,6 @@
 /// </summary>
 public class BlockOctreeSearcher
 {
-    /// <summary>Platform utilities for float/int conversion.</summary>
-    internal GamePlatform platform;
 
     /// <summary>
     /// The root bounding box of the octree search space.
@@ -118,8 +116,6 @@ public class BlockOctreeSearcher
     /// <returns>
     /// A segment of the internal hit buffer containing all intersected blocks.
     /// </returns>
-    private int lCount;
-    private readonly BlockPosSide[] l;
     public ArraySegment<BlockPosSide> LineIntersection(IsBlockEmptyDelegate isEmpty, GetBlockHeightDelegate getBlockHeight, Line3D line, out int retCount)
     {
         hits.Clear();

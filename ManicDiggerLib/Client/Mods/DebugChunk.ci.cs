@@ -1,4 +1,4 @@
-﻿public class ModDebugChunk : ClientMod
+﻿public class ModDebugChunk : ModBase
 {
     public ModDebugChunk()
     {

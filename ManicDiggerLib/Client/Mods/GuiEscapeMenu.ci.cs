@@ -1,7 +1,7 @@
 ﻿using OpenTK.Windowing.Common;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
-public class ModGuiEscapeMenu : ClientMod
+public class ModGuiEscapeMenu : ModBase
 {
     public ModGuiEscapeMenu()
     {

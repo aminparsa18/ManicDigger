@@ -1,4 +1,4 @@
-﻿public class ModDrawPlayerNames : ClientMod
+﻿public class ModDrawPlayerNames : ModBase
 {
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {

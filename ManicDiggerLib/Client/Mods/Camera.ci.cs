@@ -1,5 +1,5 @@
 ﻿using OpenTK.Mathematics;
-public class ModCamera : ClientMod
+public class ModCamera : ModBase
 {
     public ModCamera()
     {

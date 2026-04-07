@@ -1,4 +1,4 @@
-﻿public class ModExpire : ClientMod
+﻿public class ModExpire : ModBase
 {
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {

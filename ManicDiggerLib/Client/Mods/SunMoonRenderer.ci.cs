@@ -1,4 +1,4 @@
-﻿public class SunMoonRenderer : ClientMod
+﻿public class SunMoonRenderer : ModBase
 {
     public SunMoonRenderer()
     {
@@ -28,7 +28,6 @@
     internal float day_length_in_seconds;
     public override void OnNewFrameDraw3d(Game game, float dt)
     {
-        GamePlatform platform = game.platform;
         game.GLMatrixModeModelView();
         if (suntexture == -1)
         {

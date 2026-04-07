@@ -1,4 +1,4 @@
-﻿public class ModNetworkEntity : ClientMod
+﻿public class ModNetworkEntity : ModBase
 {
     public ModNetworkEntity()
     {

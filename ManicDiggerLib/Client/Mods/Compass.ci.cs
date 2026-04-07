@@ -1,4 +1,4 @@
-﻿public class ModCompass : ClientMod
+﻿public class ModCompass : ModBase
 {
     public ModCompass()
     {

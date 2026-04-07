@@ -2,14 +2,14 @@
 //But instead of pixel shader it uses vertex colors.
 using OpenTK.Mathematics;
 
-public class ModSkySphereAnimated : ClientMod
+public class ModSkySphereAnimated : ModBase
 {
     public ModSkySphereAnimated()
     {
         stars = new ModSkySphereStatic();
     }
     private ModelData skymodel;
-    private readonly ClientMod stars;
+    private readonly ModBase stars;
 
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {

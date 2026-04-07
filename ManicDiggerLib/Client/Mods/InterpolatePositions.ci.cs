@@ -1,4 +1,4 @@
-﻿public class ModInterpolatePositions : ClientMod
+﻿public class ModInterpolatePositions : ModBase
 {
     public override void OnNewFrame(Game game, NewFrameEventArgs args)
     {

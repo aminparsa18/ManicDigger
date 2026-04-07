@@ -1,6 +1,6 @@
 ﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
-public class ModCameraKeys : ClientMod
+public class ModCameraKeys : ModBase
 {
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {

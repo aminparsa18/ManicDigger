@@ -1,4 +1,6 @@
-﻿public class Language
+﻿using System.Globalization;
+
+public class Language
 {
     public Language()
     {
@@ -10,7 +12,6 @@
         loadedLanguages = new string[loadedLanguagesMax];
     }
 
-    internal GamePlatform platform;
     internal string OverrideLanguage;
     internal string[] loadedLanguages;
     internal int loadedLanguagesMax;
@@ -509,9 +510,9 @@
         {
             currentLanguage = OverrideLanguage;  //Use specific language if defined
         }
-        else if (platform != null)
+        else
         {
-            currentLanguage = platform.GetLanguageIso6391();  //Else use system language if defined
+            currentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;  //Else use system language if defined
         }
         for (int i = 0; i < stringsCount; i++)
         {
@@ -547,19 +548,16 @@
         {
             currentLanguage = OverrideLanguage;  //Use specific language if defined
         }
-        else if (platform != null)
+        else
         {
-            currentLanguage = platform.GetLanguageIso6391();  //Else use system language if defined
+            currentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;  //Else use system language if defined
         }
         return currentLanguage;
     }
     
     public void NextLanguage()
     {
-        if (OverrideLanguage == null)
-        {
-            OverrideLanguage = "en";
-        }
+        OverrideLanguage ??= "en";
         //Get index of currently selected language
         int languageIndex = -1;
         for (int i = 0; i < loadedLanguagesMax; i++)

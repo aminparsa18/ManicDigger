@@ -33,10 +33,7 @@ public class MainMenu
         this.p = p_;
 
         //Initialize translations
-        lang = new Language
-        {
-            platform = p
-        };
+        lang = new();
         lang.LoadTranslations();
         p.SetTitle(lang.GameName());
 

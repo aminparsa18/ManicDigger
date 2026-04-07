@@ -1,4 +1,4 @@
-﻿public class ModScreenshot : ClientMod
+﻿public class ModScreenshot : ModBase
 {
     public ModScreenshot()
     {

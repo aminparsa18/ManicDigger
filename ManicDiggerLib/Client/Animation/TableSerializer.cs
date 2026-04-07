@@ -15,7 +15,7 @@ public class TableSerializer
     /// Thrown when a section header is missing or a row has more
     /// columns than the header.
     /// </exception>
-    public static void Deserialize(GamePlatform p, string data, ITableBinding binding)
+    public static void Deserialize(string data, ITableBinding binding)
     {
         string[] lines = data.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         string[] header = null;

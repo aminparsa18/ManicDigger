@@ -10,7 +10,6 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Imaging;
-using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
@@ -23,7 +22,6 @@ using Vector3 = OpenTK.Mathematics.Vector3;
 
 public class GamePlatformNative : GamePlatform
 {
-
     #region Misc
     public GamePlatformNative()
     {
@@ -35,12 +33,6 @@ public class GamePlatformNative : GamePlatform
 
     public bool TouchTest = false;
     private readonly string[] datapaths;
-
-    public override string Timestamp()
-    {
-        string time = string.Format("{0:yyyy-MM-dd_HH-mm-ss}", DateTime.Now);
-        return time;
-    }
 
     private readonly ManicDigger.Renderers.TextRenderer r = new();
     private readonly Dictionary<TextAndSize, SizeF> textsizes = new();
@@ -156,11 +148,6 @@ public class GamePlatformNative : GamePlatform
     {
         FileInfo info = new(fullpath);
         return info.Name.Replace(info.Extension, "");
-    }
-
-    public override string GetLanguageIso6391()
-    {
-        return CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
     }
 
     private readonly Stopwatch start = new();

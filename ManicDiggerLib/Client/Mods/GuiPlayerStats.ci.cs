@@ -1,4 +1,4 @@
-﻿public class ModGuiPlayerStats : ClientMod
+﻿public class ModGuiPlayerStats : ModBase
 {
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {

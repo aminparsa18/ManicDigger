@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-public class ModGrenade : ClientMod
+public class ModGrenade : ModBase
 {
     public ModGrenade()
     {

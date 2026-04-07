@@ -4,9 +4,6 @@
 /// </summary>
 public class AnimatedModelBinding : ITableBinding
 {
-    /// <summary>Platform utilities for string and float conversion.</summary>
-    internal GamePlatform p;
-
     /// <summary>The model being populated or read.</summary>
     internal AnimatedModel m;
 

@@ -1,4 +1,4 @@
-﻿public class ModDrawHand2d : ClientMod
+﻿public class ModDrawHand2d : ModBase
 {
     internal string lasthandimage;
     public override void OnNewFrameDraw3d(Game game, float deltaTime)

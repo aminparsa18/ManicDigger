@@ -104,10 +104,9 @@ public static class CuboidRenderer
     /// <summary>
     /// Creates an empty <see cref="ModelData"/> buffer sized for one cuboid (6 faces × 4 vertices).
     /// </summary>
-    /// <param name="game">The game instance used to convert light to a packed color.</param>
     /// <param name="light">Light intensity in the range 0-1.</param>
     /// <param name="color">The packed ARGB color encoding the light intensity.</param>
-    private static ModelData CreateCuboidBuffer(Game game, float light, out int color)
+    private static ModelData CreateCuboidBuffer(float light, out int color)
     {
         int light255 = (int)light * 255;
         color = Game.ColorFromArgb(255, light255, light255, light255);
@@ -127,7 +126,7 @@ public static class CuboidRenderer
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {
-        ModelData data = CreateCuboidBuffer(game, light, out int color);
+        ModelData data = CreateCuboidBuffer(light, out int color);
         RectangleF rect;
 
         // Front (min X)
@@ -184,7 +183,7 @@ public static class CuboidRenderer
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {
-        ModelData data = CreateCuboidBuffer(game, light, out int color);
+        ModelData data = CreateCuboidBuffer(light, out int color);
         RectangleF rect;
 
         // Right (min X)

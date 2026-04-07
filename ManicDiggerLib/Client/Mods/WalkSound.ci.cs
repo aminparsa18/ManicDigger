@@ -1,4 +1,4 @@
-﻿public class ModWalkSound : ClientMod
+﻿public class ModWalkSound : ModBase
 {
     public ModWalkSound()
     {

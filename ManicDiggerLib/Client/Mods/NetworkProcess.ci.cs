@@ -1,6 +1,6 @@
 ﻿namespace ManicDigger.Mods;
 
-public class ModNetworkProcess : ClientMod
+public class ModNetworkProcess : ModBase
 {
     public ModNetworkProcess()
     {

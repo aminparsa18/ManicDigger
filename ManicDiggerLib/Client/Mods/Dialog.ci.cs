@@ -1,6 +1,6 @@
 ﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
-public class ModDialog : ClientMod
+public class ModDialog : ModBase
 {
     public ModDialog()
     {

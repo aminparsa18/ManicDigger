@@ -74,7 +74,6 @@ public partial class Server : ICurrentTime, IDropItem
 
         //Load translations
         gameplatform = new GamePlatformNative();
-        language.platform = gameplatform;
         language.LoadTranslations();
     }
 

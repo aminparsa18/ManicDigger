@@ -1,4 +1,4 @@
-﻿public class ModDrawLinesAroundSelectedBlock : ClientMod
+﻿public class ModDrawLinesAroundSelectedBlock : ModBase
 {
     public ModDrawLinesAroundSelectedBlock()
     {

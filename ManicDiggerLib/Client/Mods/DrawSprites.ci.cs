@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-public class ModDrawSprites : ClientMod
+public class ModDrawSprites : ModBase
 {
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {

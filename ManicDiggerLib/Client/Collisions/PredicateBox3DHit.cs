@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+
 /// <summary>
 /// A <see cref="PredicateBox3D"/> that tests boxes against the current line
 /// in a <see cref="BlockOctreeSearcher"/> using <see cref="BlockOctreeSearcher.BoxHit"/>.

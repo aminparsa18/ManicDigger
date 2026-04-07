@@ -1,4 +1,4 @@
-﻿public class ModSendActiveMaterial : ClientMod
+﻿public class ModSendActiveMaterial : ModBase
 {
     internal int PreviousActiveMaterialBlock;
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)

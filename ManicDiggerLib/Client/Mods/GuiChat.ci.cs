@@ -1,6 +1,6 @@
 ﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
-public class ModGuiChat : ClientMod
+public class ModGuiChat : ModBase
 {
     public ModGuiChat()
     {

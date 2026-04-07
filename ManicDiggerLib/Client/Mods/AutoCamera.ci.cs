@@ -1,9 +1,8 @@
-﻿public class ModAutoCamera : ClientMod
+﻿public class ModAutoCamera : ModBase
 {
     public override void Start(ClientModManager modmanager)
     {
         m = modmanager;
-        p = modmanager.GetPlatform();
         one = 1;
         cameraPoints = new CameraPoint[256];
         cameraPointsCount = 0;
@@ -12,7 +11,6 @@
         orientation = new float[3];
     }
     private ClientModManager m;
-    private GamePlatform p;
 
     private float one;
     private CameraPoint[] cameraPoints;
@@ -72,7 +70,7 @@
                         totalRecTime = float.Parse(arguments[2]);
                     }
                     avi = m.AviWriterCreate();
-                    avi.Open(string.Format("{0}.avi", p.Timestamp()), framerate, m.GetWindowWidth(), m.GetWindowHeight());
+                    avi.Open(string.Format("{0}.avi", string.Format("{0:yyyy-MM-dd_HH-mm-ss}", DateTime.Now)), framerate, m.GetWindowWidth(), m.GetWindowHeight());
                 }
                 if (arguments.Length >= 2)
                 {

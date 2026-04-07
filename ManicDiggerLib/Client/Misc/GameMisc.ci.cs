@@ -2,7 +2,7 @@
 using OpenTK.Windowing.Common;
 using System.Text;
 
-public class GameScreen : ClientMod
+public class GameScreen : ModBase
 {
     public GameScreen()
     {
@@ -1553,37 +1553,7 @@ public class FreemoveLevelEnum
     public const int Noclip = 2;
 }
 
-public abstract class ClientMod
-{
-    public virtual void Start(ClientModManager modmanager) { }
-
-    public virtual void OnReadOnlyMainThread(Game game, float dt) { }
-    public virtual void OnReadOnlyBackgroundThread(Game game, float dt) { }
-    public virtual void OnReadWriteMainThread(Game game, float dt) { }
-
-    public virtual bool OnClientCommand(Game game, ClientCommandArgs args) { return false; }
-    public virtual void OnNewFrame(Game game, NewFrameEventArgs args) { }
-    public virtual void OnNewFrameFixed(Game game, NewFrameEventArgs args) { }
-    public virtual void OnNewFrameDraw2d(Game game, float deltaTime) { }
-    public virtual void OnBeforeNewFrameDraw3d(Game game, float deltaTime) { }
-    public virtual void OnNewFrameDraw3d(Game game, float deltaTime) { }
-    public virtual void OnNewFrameReadOnlyMainThread(Game game, float deltaTime) { }
-    public virtual void OnKeyDown(Game game, KeyEventArgs args) { }
-    public virtual void OnKeyPress(Game game, KeyPressEventArgs args) { }
-    public virtual void OnKeyUp(Game game, KeyEventArgs args) { }
-    public virtual void OnMouseUp(Game game, MouseEventArgs args) { }
-    public virtual void OnMouseDown(Game game, MouseEventArgs args) { }
-    public virtual void OnMouseMove(Game game, MouseEventArgs args) { }
-    public virtual void OnMouseWheelChanged(Game game, MouseWheelEventArgs args) { }
-    public virtual void OnTouchStart(Game game, TouchEventArgs e) { }
-    public virtual void OnTouchMove(Game game, TouchEventArgs e) { }
-    public virtual void OnTouchEnd(Game game, TouchEventArgs e) { }
-    public virtual void OnUseEntity(Game game, OnUseEntityArgs e) { }
-    public virtual void OnHitEntity(Game game, OnUseEntityArgs e) { }
-    public virtual void Dispose(Game game) { }
-}
-
-public class ModDrawMain : ClientMod
+public class ModDrawMain : ModBase
 {
     public override void OnReadOnlyMainThread(Game game, float dt)
     {
@@ -1591,7 +1561,7 @@ public class ModDrawMain : ClientMod
     }
 }
 
-public class ModUpdateMain : ClientMod
+public class ModUpdateMain : ModBase
 {
     // Should use ReadWrite to be correct but that would be too slow
     public override void OnReadOnlyMainThread(Game game, float dt)

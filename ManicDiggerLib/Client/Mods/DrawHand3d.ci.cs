@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-public class ModDrawHand3d : ClientMod
+public class ModDrawHand3d : ModBase
 {
     public ModDrawHand3d()
     {

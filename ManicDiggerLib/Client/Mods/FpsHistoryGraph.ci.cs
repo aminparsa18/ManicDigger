@@ -1,6 +1,6 @@
 ﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
-public class ModFpsHistoryGraph : ClientMod
+public class ModFpsHistoryGraph : ModBase
 {
     public ModFpsHistoryGraph()
     {

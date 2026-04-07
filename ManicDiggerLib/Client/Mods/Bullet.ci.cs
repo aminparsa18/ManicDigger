@@ -1,4 +1,4 @@
-﻿public class ModBullet : ClientMod
+﻿public class ModBullet : ModBase
 {
     public override void OnNewFrameDraw3d(Game game, float dt)
     {

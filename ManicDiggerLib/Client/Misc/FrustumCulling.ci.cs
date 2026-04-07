@@ -15,9 +15,6 @@ public class FrustumCulling
     private const int Far = 4;
     private const int Near = 5;
 
-    /// <summary>Platform utilities for math operations such as square root.</summary>
-    internal GamePlatform platform;
-
     /// <summary>Provides the current modelview and projection matrices from the camera.</summary>
     internal ICameraMatrixProvider d_GetCameraMatrix;
 

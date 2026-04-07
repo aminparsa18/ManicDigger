@@ -157,7 +157,6 @@ public class Game
         {
             platform = platform
         };
-        language.platform = platform;
         language.LoadTranslations();
         GameData gamedata = new();
         gamedata.Start();
@@ -181,7 +180,6 @@ public class Game
         FrustumCulling frustumculling = new()
         {
             d_GetCameraMatrix = this.CameraMatrix,
-            platform = platform
         };
         d_FrustumCulling = frustumculling;
 
@@ -225,7 +223,7 @@ public class Game
 
         rnd = new Random();
 
-        clientmods = new ClientMod[128];
+        clientmods = new ModBase[128];
         clientmodsCount = 0;
         modmanager.game = this;
         AddMod(new ModDrawMain());
@@ -287,10 +285,7 @@ public class Game
         AddMod(new ModScreenshot());
         AddMod(new ModAudio());
 
-        s = new BlockOctreeSearcher
-        {
-            platform = platform
-        };
+        s = new();
 
         //Prevent loding screen from immediately displaying lag symbol
         LastReceivedMilliseconds = platform.TimeMillisecondsFromStart();
@@ -319,7 +314,7 @@ public class Game
         platform.GlShadeModelSmooth();
     }
 
-    public void AddMod(ClientMod mod)
+    public void AddMod(ModBase mod)
     {
         clientmods[clientmodsCount++] = mod;
         mod.Start(modmanager);
@@ -1599,7 +1594,7 @@ public class Game
             return;
         }
 
-        Sound_ s = new()
+        Sound s = new()
         {
             name = file_,
             x = x,
@@ -1630,7 +1625,7 @@ public class Game
 
         if (play)
         {
-            Sound_ s = null;
+            Sound s = null;
             bool alreadyPlaying = false;
             for (int i = 0; i < audio.soundsCount; i++)
             {
@@ -1643,7 +1638,7 @@ public class Game
             }
             if (!alreadyPlaying)
             {
-                s = new Sound_
+                s = new Sound
                 {
                     name = file_,
                     loop = true
@@ -1917,7 +1912,7 @@ public class Game
     }
     internal FrustumCulling d_FrustumCulling;
     internal ClientModManager1 modmanager;
-    internal ClientMod[] clientmods;
+    internal ModBase[] clientmods;
     internal int clientmodsCount;
     internal bool SkySphereNight;
     internal ModDrawParticleEffectBlockBreak particleEffectBlockBreak;

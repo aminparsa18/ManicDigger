@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-public class ModDrawTestModel : ClientMod
+public class ModDrawTestModel : ModBase
 {
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
@@ -24,7 +24,7 @@ public class ModDrawTestModel : ClientMod
             byte[] data = game.GetFile("player.txt");
             int dataLength = game.GetFileLength("player.txt");
             string dataString = Encoding.UTF8.GetString(data, 0, dataLength);
-            AnimatedModel model = AnimatedModelSerializer.Deserialize(game.platform, dataString);
+            AnimatedModel model = AnimatedModelSerializer.Deserialize(dataString);
             testmodel.Start(game, model);
         }
         game.GLPushMatrix();

@@ -1,4 +1,4 @@
-﻿public class ModPush : ClientMod
+﻿public class ModPush : ModBase
 {
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {

@@ -9,7 +9,7 @@
     internal float progress;
 }
 
-public class ModDrawMinecarts : ClientMod
+public class ModDrawMinecarts : ModBase
 {
     public ModDrawMinecarts()
     {

@@ -1,4 +1,4 @@
-﻿public class ModSkySphereStatic : ClientMod
+﻿public class ModSkySphereStatic : ModBase
 {
     public ModSkySphereStatic()
     {

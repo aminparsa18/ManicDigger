@@ -1,76 +1,74 @@
 ﻿using System.Security.Cryptography;
-using System.Text;
 
+/// <summary>
+/// Represents a named game asset (texture, sound, etc.) loaded from disk or received from a server.
+/// </summary>
+public class Asset
+{
+    /// <summary>Lowercase filename, e.g. "grass.png".</summary>
+    public string name;
+
+    /// <summary>MD5 hex string of <see cref="data"/>, used for caching and deduplication.</summary>
+    public string md5;
+
+    /// <summary>Raw file bytes.</summary>
+    public byte[] data;
+
+    /// <summary>Valid byte count in <see cref="data"/>.</summary>
+    public int dataLength;
+}
+
+/// <summary>
+/// Scans one or more directories and loads all files as <see cref="Asset"/> instances.
+/// Each asset is fingerprinted with an MD5 hash for server-side deduplication and caching.
+/// </summary>
 public class AssetLoader
 {
-    public AssetLoader(string[] datapaths_)
-    {
-        this.datapaths = datapaths_;
-    }
     private readonly string[] datapaths;
-    public void LoadAssetsAsync(AssetList list, out float progress)
+    private readonly MD5 md5 = MD5.Create();
+
+    public AssetLoader(string[] datapaths)
+    {
+        this.datapaths = datapaths;
+    }
+
+    public List<Asset> LoadAssetsAsync(out float progress)
     {
         List<Asset> assets = new();
+
         foreach (string path in datapaths)
         {
-            try
+            if (!Directory.Exists(path))
+                continue;
+
+            foreach (string file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
             {
-                if (!Directory.Exists(path))
+                try
                 {
-                    continue;
+                    FileInfo f = new(file);
+                    if (f.Name.Equals("thumbs.db", StringComparison.InvariantCultureIgnoreCase))
+                        continue;
+
+                    byte[] data = File.ReadAllBytes(file);
+                    assets.Add(new Asset
+                    {
+                        data = data,
+                        dataLength = data.Length,
+                        name = f.Name.ToLowerInvariant(),
+                        md5 = ComputeMd5(data)
+                    });
                 }
-                foreach (string s in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
+                catch
                 {
-                    try
-                    {
-                        FileInfo f = new(s);
-                        if (f.Name.Equals("thumbs.db", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            continue;
-                        }
-                        Asset a = new()
-                        {
-                            data = File.ReadAllBytes(s)
-                        };
-                        a.dataLength = a.data.Length;
-                        a.name = f.Name.ToLowerInvariant();
-                        a.md5 = Md5(a.data);
-                        assets.Add(a);
-                    }
-                    catch
-                    {
-                    }
+                    // Skip unreadable files.
                 }
-            }
-            catch
-            {
             }
         }
+
         progress = 1;
-        list.count = assets.Count;
-        list.items = new Asset[2048];
-        for (int i = 0; i < assets.Count; i++)
-        {
-            list.items[i] = assets[i];
-        }
+        return assets;
     }
 
-    private readonly MD5 sha1 = MD5.Create();
-    private string Md5(byte[] data)
-    {
-        string hash = ToHex(sha1.ComputeHash(data), false);
-        return hash;
-    }
-
-    public static string ToHex(byte[] bytes, bool upperCase)
-    {
-        StringBuilder result = new(bytes.Length * 2);
-
-        for (int i = 0; i < bytes.Length; i++)
-        {
-            result.Append(bytes[i].ToString(upperCase ? "X2" : "x2"));
-        }
-
-        return result.ToString();
-    }
+    private string ComputeMd5(byte[] data) =>
+        Convert.ToHexString(md5.ComputeHash(data)).ToLowerInvariant();
 }

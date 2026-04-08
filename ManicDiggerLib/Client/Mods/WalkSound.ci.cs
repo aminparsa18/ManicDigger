@@ -9,7 +9,7 @@ public class ModWalkSound : ModBase
     private float walkSoundTimer;
     private int lastWalkSound;
 
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
         if (game.FollowId() != null) return;
 
@@ -17,7 +17,7 @@ public class ModWalkSound : ModBase
             UpdateWalkSound(game, StepSoundDuration / 2);
 
         if (game.isplayeronground && (game.controls.movedx != 0 || game.controls.movedy != 0))
-            UpdateWalkSound(game, args.GetDt());
+            UpdateWalkSound(game, args);
     }
 
     internal void UpdateWalkSound(Game game, float dt)

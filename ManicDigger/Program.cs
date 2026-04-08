@@ -1,10 +1,5 @@
-﻿#region Using Statements
-using OpenTK.Graphics;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using Serilog;
+﻿using Serilog;
 using System.Diagnostics;
-#endregion
 
 public class Program
 {
@@ -13,7 +8,6 @@ public class Program
     {
         CrashReporter.DefaultFileName = "ManicDiggerClientCrash.txt";
         CrashReporter.EnableGlobalExceptionHandling(isConsole: false);
-
         _ = new Program(args);
     }
 
@@ -21,89 +15,92 @@ public class Program
     {
         dummyNetwork = new DummyNetwork();
         dummyNetwork.Start(new MonitorObject(), new MonitorObject());
-
         Start(args);
     }
 
-    // ── Fields ────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Fields
+    // -------------------------------------------------------------------------
 
     private readonly DummyNetwork dummyNetwork;
     private string savefilename;
     public GameExit exit = new();
     private GamePlatformNative platform;
 
-    // ── Start ─────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Startup
+    // -------------------------------------------------------------------------
 
     private void Start(string[] args)
     {
-        string appPath = Path.GetDirectoryName(Application.ExecutablePath)!;
         if (!Debugger.IsAttached)
-            Environment.CurrentDirectory = appPath;
+            Environment.CurrentDirectory = Path.GetDirectoryName(Application.ExecutablePath)!;
 
         Log.Debug("Initialising GamePlatformNative");
 
-        GamePlatformNative platform = new()
+        platform = new GamePlatformNative
         {
             crashreporter = new CrashReporter(),
             singlePlayerServerDummyNetwork = dummyNetwork
         };
         platform.SetExit(exit);
-
-        this.platform = platform;
-        platform.StartSinglePlayerServer = (filename) =>
+        platform.StartSinglePlayerServer = filename =>
         {
             savefilename = filename;
             new Thread(ServerThreadStart) { IsBackground = true }.Start();
         };
 
         Log.Debug("Creating GameWindowNative");
-        using GameWindowNative game = new();
-        platform.window = game;
-        game.platform = platform;
+        using GameWindowNative window = new();
+        platform.window = window;
+        window.platform = platform;
 
         MainMenu mainmenu = new();
         mainmenu.Start(platform);
         ReadArgs(mainmenu, args);
 
         platform.Start();
-        game.Run();
+        window.Run();
     }
 
     private static void ReadArgs(MainMenu mainmenu, string[] args)
     {
         if (args.Length > 0)
-        {
-            var connectdata = ConnectData.FromUri(new(args[0]));
-            mainmenu.StartGame(false, null, connectdata);
-        }
+            mainmenu.StartGame(false, null, ConnectData.FromUri(new Uri(args[0])));
     }
 
-    // ── Server thread ─────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // Single-player server thread
+    // -------------------------------------------------------------------------
 
     public void ServerThreadStart()
     {
         Log.Debug("Single-player server thread started");
         try
         {
+            DummyNetServer netServer = new();
+            netServer.SetPlatform(new GamePlatformNative());
+            netServer.SetNetwork(dummyNetwork);
+
             Server server = new()
             {
                 SaveFilenameOverride = savefilename,
                 exit = exit,
                 mainSockets = new NetServer[3]
             };
-
-            DummyNetServer netServer = new();
-            netServer.SetPlatform(new GamePlatformNative());
-            netServer.SetNetwork(dummyNetwork);
             server.mainSockets[0] = netServer;
 
-            for (; ; )
+            while (true)
             {
                 server.Process();
                 Thread.Sleep(1);
                 platform.singlePlayerServerLoaded = true;
 
-                if (exit?.GetExit() == true) { server.Stop(); break; }
+                if (exit?.GetExit() == true)
+                {
+                    server.Stop();
+                    break;
+                }
 
                 if (platform.singlepLayerServerExit)
                 {

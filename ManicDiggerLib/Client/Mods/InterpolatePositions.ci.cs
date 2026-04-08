@@ -6,9 +6,9 @@ public class ModInterpolatePositions : ModBase
     private const int ExtrapolationTimeMs = 300;
     private const int MinDelayMs = 100;
 
-    public override void OnNewFrame(Game game, NewFrameEventArgs args)
+    public override void OnNewFrame(Game game, float args)
     {
-        InterpolatePositions(game, args.GetDt());
+        InterpolatePositions(game, args);
     }
 
     internal static void InterpolatePositions(Game game, float dt)

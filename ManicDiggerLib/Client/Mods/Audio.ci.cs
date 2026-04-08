@@ -6,7 +6,7 @@ public class ModAudio : ModBase
     private readonly Dictionary<string, AudioData> audioData = new();
     private bool wasLoaded;
 
-    public override void OnNewFrame(Game game, NewFrameEventArgs args)
+    public override void OnNewFrame(Game game, float args)
     {
         if (game.assetsLoadProgress != 1)
             return;
@@ -86,9 +86,9 @@ public class ModAudio : ModBase
     /// <summary>Preloads all .ogg assets found in the asset list.</summary>
     private void Preload(Game game)
     {
-        for (int k = 0; k < game.assets.count; k++)
+        for (int k = 0; k < game.assets.Count; k++)
         {
-            string name = game.assets.items[k].name;
+            string name = game.assets[k].name;
             if (!name.EndsWith(".ogg")) 
                 continue;
             GetAudioData(game, name);

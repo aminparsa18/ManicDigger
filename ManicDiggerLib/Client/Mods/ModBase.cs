@@ -21,10 +21,10 @@ public abstract class ModBase
     public virtual bool OnClientCommand(Game game, ClientCommandArgs args) => false;
 
     /// <summary>Called at the start of each frame.</summary>
-    public virtual void OnNewFrame(Game game, NewFrameEventArgs args) { }
+    public virtual void OnNewFrame(Game game, float args) { }
 
     /// <summary>Called each fixed-timestep frame update.</summary>
-    public virtual void OnNewFrameFixed(Game game, NewFrameEventArgs args) { }
+    public virtual void OnNewFrameFixed(Game game, float args) { }
 
     /// <summary>Called during the 2D draw pass of each frame.</summary>
     public virtual void OnNewFrameDraw2d(Game game, float deltaTime) { }

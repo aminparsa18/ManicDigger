@@ -6,9 +6,9 @@
 
     private bool HasAsset(string md5, string name)
     {
-        for (int i = 0; i < assets.count; i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            Asset a = assets.items[i];
+            Asset a = assets[i];
             // Check both MD5 and name as there might be files with same content.
             if (a.md5 == md5 && a.name == name)
                 return true;
@@ -19,10 +19,10 @@
     internal byte[] GetAssetFile(string p)
     {
         string pLower = p.ToLowerInvariant();
-        for (int i = 0; i < assets.count; i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            if (assets.items[i].name == pLower)
-                return assets.items[i].data;
+            if (assets[i].name == pLower)
+                return assets[i].data;
         }
         return null;
     }
@@ -30,10 +30,10 @@
     internal int GetAssetFileLength(string p)
     {
         string pLower = p.ToLowerInvariant();
-        for (int i = 0; i < assets.count; i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            if (assets.items[i].name == pLower)
-                return assets.items[i].dataLength;
+            if (assets[i].name == pLower)
+                return assets[i].dataLength;
         }
         return 0;
     }
@@ -71,22 +71,21 @@
             md5 = md5
         };
 
-        for (int i = 0; i < assets.count; i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            if (assets.items[i] == null)
+            if (assets[i] == null)
                 continue;
 
-            if (assets.items[i].name == nameLower)
+            if (assets[i].name == nameLower)
             {
                 if (options.UseServerTextures)
-                    assets.items[i] = newAsset;
+                    assets[i] = newAsset;
 
                 CacheAsset(newAsset);
                 return;
             }
         }
-
-        assets.items[assets.count++] = newAsset;
+        assets.Add(newAsset);
         CacheAsset(newAsset);
     }
 }

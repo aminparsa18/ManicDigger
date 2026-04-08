@@ -15,7 +15,7 @@ public class LoginData
 public class LoginClientCi
 {
     internal LoginResultRef loginResult;
-    public void Login(GamePlatform platform, string user, string password, string publicServerKey, string token, LoginResultRef result, LoginData resultLoginData_)
+    public void Login(IGamePlatform platform, string user, string password, string publicServerKey, string token, LoginResultRef result, LoginData resultLoginData_)
     {
         loginResult = result;
         resultLoginData = resultLoginData_;
@@ -37,7 +37,7 @@ public class LoginClientCi
     private HttpResponseCi loginUrlResponse;
     private HttpResponseCi loginResponse;
     private LoginData resultLoginData;
-    public void Update(GamePlatform platform)
+    public void Update(IGamePlatform platform)
     {
         if (loginResult == null)
         {
@@ -228,7 +228,7 @@ public class PlayerDrawInfo
 
 public class PlayerInterpolate : IInterpolation
 {
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
     public override InterpolatedObject Interpolate(InterpolatedObject a, InterpolatedObject b, float progress)
     {
         PlayerInterpolationState aa = platform.CastToPlayerInterpolationState(a);
@@ -993,7 +993,7 @@ public abstract class ClientModManager
     public abstract float GetLocalOrientationZ();
     public abstract void DisplayNotification(string message);
     public abstract void SendChatMessage(string message);
-    public abstract GamePlatform GetPlatform();
+    public abstract IGamePlatform GetPlatform();
     public abstract void ShowGui(int level);
     public abstract void SetFreemove(int level);
     public abstract int GetFreemove();
@@ -1075,7 +1075,7 @@ public class ClientModManager1 : ClientModManager
         game.SendChat(message);
     }
 
-    public override GamePlatform GetPlatform()
+    public override IGamePlatform GetPlatform()
     {
         return game.platform;
     }
@@ -1335,7 +1335,7 @@ public class TextPart
 
 public class TextColorRenderer
 {
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
 
     internal Bitmap CreateTextTexture(Text_ t)
     {
@@ -1551,7 +1551,7 @@ public class Kamera
         Center = new Vector3();
     }
     private readonly float one;
-    public void GetPosition(GamePlatform platform, ref Vector3 ret)
+    public void GetPosition(IGamePlatform platform, ref Vector3 ret)
     {
         float cx = MathF.Cos(tt * one / 2) * GetFlatDistance(platform) + Center.X;
         float cy = MathF.Sin(tt * one / 2) * GetFlatDistance(platform) + Center.Z;
@@ -1571,11 +1571,11 @@ public class Kamera
     }
     internal float Angle;
     internal float MinimumDistance;
-    private float GetCameraHeightFromCenter(GamePlatform platform)
+    private float GetCameraHeightFromCenter(IGamePlatform platform)
     {
         return MathF.Sin(Angle * MathF.PI / 180) * distance;
     }
-    private float GetFlatDistance(GamePlatform platform)
+    private float GetFlatDistance(IGamePlatform platform)
     {
         return MathF.Cos(Angle * MathF.PI / 180) * distance;
     }
@@ -1959,7 +1959,7 @@ public class GameData
         return id >= BlockIdRailstart() && id < BlockIdRailstart() + 64;
     }
 
-    public void UseBlockTypes(GamePlatform platform, Packet_BlockType[] blocktypes, int count)
+    public void UseBlockTypes(IGamePlatform platform, Packet_BlockType[] blocktypes, int count)
     {
         for (int i = 0; i < count; i++)
         {
@@ -1970,7 +1970,7 @@ public class GameData
         }
     }
 
-    public void UseBlockType(GamePlatform platform, int id, Packet_BlockType b)
+    public void UseBlockType(IGamePlatform platform, int id, Packet_BlockType b)
     {
         if (b.Name == null)//!b.IsValid)
         {

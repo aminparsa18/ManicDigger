@@ -47,9 +47,9 @@
         c.SendMessage(message, method, 0);
     }
 
-    private GamePlatform p;
+    private IGamePlatform p;
 
-    internal void SetPlatform(GamePlatform platform)
+    internal void SetPlatform(IGamePlatform platform)
     {
         p = platform;
     }
@@ -58,7 +58,7 @@
 public class WebSocketClientConnection : NetConnection
 {
     internal string address;
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
 
     public override IPEndPointCi RemoteEndPoint()
     {

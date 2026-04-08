@@ -36,7 +36,7 @@ public partial class Game
     // Fields — rendering / textures
     // -------------------------------------------------------------------------
 
-    internal AssetList assets;
+    internal List<Asset> assets;
     internal float assetsLoadProgress;
     internal TextColorRenderer textColorRenderer;
 
@@ -292,7 +292,7 @@ public partial class Game
     internal ModBase[] clientmods;
     internal int clientmodsCount;
 
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
     internal Language language;
     internal ClientModManager1 modmanager;
     internal FrustumCulling d_FrustumCulling;

@@ -6,7 +6,7 @@ public class ModClearInactivePlayersDrawInfo : ModBase
     private const int MaxPlayers = 64;
     private const float InactiveThresholdSeconds = 2f;
 
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
         int now = game.platform.TimeMillisecondsFromStart();
 

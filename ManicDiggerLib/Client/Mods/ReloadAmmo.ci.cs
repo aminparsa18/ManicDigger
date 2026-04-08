@@ -3,7 +3,7 @@
 /// </summary>
 public class ModReloadAmmo : ModBase
 {
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
         if (game.reloadstartMilliseconds == 0) return;
 
@@ -20,7 +20,7 @@ public class ModReloadAmmo : ModBase
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
         if (game.guistate != GuiState.Normal || game.GuiTyping != TypingState.None) return;
-        if (args.GetKeyCode() != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R)) return;
+        if (args.KeyChar != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R)) return;
 
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
         if (item == null || item.ItemClass != Packet_ItemClassEnum.Block) return;

@@ -125,10 +125,10 @@ public class AnimatedModelBinding : ITableBinding
         names[3] = "global"; counts[3] = 1;
     }
 
-    /// <summary>Parses a string to int via float intermediary, as required by <see cref="GamePlatform"/>.</summary>
+    /// <summary>Parses a string to int via float intermediary, as required by <see cref="IGamePlatform"/>.</summary>
     private int IntParse(string s) => (int)(FloatParse(s));
 
-    /// <summary>Parses a string to float using <see cref="GamePlatform"/>, returning 0 on failure.</summary>
+    /// <summary>Parses a string to float using <see cref="IGamePlatform"/>, returning 0 on failure.</summary>
     private static float FloatParse(string s)
     {
         _ = float.TryParse(s, out float ret);

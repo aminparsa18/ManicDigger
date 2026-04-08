@@ -15,7 +15,7 @@
 
     public override void Render(float dt)
     {
-        GamePlatform p = menu.p;
+        IGamePlatform p = menu.p;
 
         float scale = menu.GetScale();
 

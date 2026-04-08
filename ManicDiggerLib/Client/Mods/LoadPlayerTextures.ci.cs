@@ -21,7 +21,7 @@ public class ModLoadPlayerTextures : ModBase
     internal HttpResponseCi _skinServerResponse;
 
     /// <inheritdoc/>
-    public override void OnNewFrame(Game game, NewFrameEventArgs args)
+    public override void OnNewFrame(Game game, float args)
     {
         if (game.guistate == GuiState.MapLoading) { return; }
 

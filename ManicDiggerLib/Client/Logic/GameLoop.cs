@@ -67,11 +67,8 @@
 
     internal void FrameTick(float dt)
     {
-        NewFrameEventArgs args_ = new();
-        args_.SetDt(dt);
-
         for (int i = 0; i < clientmodsCount; i++)
-            clientmods[i].OnNewFrameFixed(this, args_);
+            clientmods[i].OnNewFrameFixed(this, dt);
 
         for (int i = 0; i < entitiesCount; i++)
         {
@@ -107,10 +104,8 @@
         SetAmbientLight(ColorFromArgb(255, 255, 255, 255));
         Draw2d(dt);
 
-        NewFrameEventArgs args_ = new();
-        args_.SetDt(dt);
         for (int i = 0; i < clientmodsCount; i++)
-            clientmods[i].OnNewFrame(this, args_);
+            clientmods[i].OnNewFrame(this, dt);
 
         mouseleftclick = mouserightclick = false;
         mouseleftdeclick = mouserightdeclick = false;

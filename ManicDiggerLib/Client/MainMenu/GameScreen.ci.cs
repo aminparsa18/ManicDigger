@@ -8,7 +8,7 @@ public class ScreenGame : Screen
     }
     private readonly Game game;
 
-    public void Start(GamePlatform platform_, bool singleplayer_, string singleplayerSavePath_, ConnectData connectData_)
+    public void Start(IGamePlatform platform_, bool singleplayer_, string singleplayerSavePath_, ConnectData connectData_)
     {
         platform = platform_;
         singleplayer = singleplayer_;
@@ -27,7 +27,7 @@ public class ScreenGame : Screen
     private ServerSimple serverSimple;
     private ModServerSimple serverSimpleMod;
 
-    private void Connect(GamePlatform platform)
+    private void Connect(IGamePlatform platform)
     {
         if (singleplayer)
         {
@@ -95,7 +95,7 @@ public class ScreenGame : Screen
         }
     }
 
-    private GamePlatform platform;
+    private IGamePlatform platform;
     private ConnectData connectData;
     private bool singleplayer;
     private string singleplayerSavePath;
@@ -163,17 +163,17 @@ public class ScreenGame : Screen
 
     public override void OnKeyDown(KeyEventArgs e)
     {
-        game.KeyDown(e.GetKeyCode());
+        game.KeyDown(e);
     }
 
     public override void OnKeyUp(KeyEventArgs e)
     {
-        game.KeyUp(e.GetKeyCode());
+        game.KeyUp(e);
     }
 
     public override void OnKeyPress(KeyPressEventArgs e)
     {
-        game.KeyPress(e.GetKeyChar());
+        game.KeyPress(e);
     }
 
     public override void OnMouseDown(MouseEventArgs e)

@@ -5,7 +5,7 @@ public class ModSendPosition : ModBase
 {
     private const int SendIntervalMs = 100;
 
-    public override void OnNewFrame(Game game, NewFrameEventArgs args)
+    public override void OnNewFrame(Game game, float args)
     {
         if (!game.spawned) return;
         if (game.platform.TimeMillisecondsFromStart() - game.lastpositionsentMilliseconds <= SendIntervalMs) return;

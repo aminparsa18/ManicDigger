@@ -151,25 +151,25 @@ public class ModGuiChat : ModBase
             //Don't open chat when not in normal game
             return;
         }
-        int eKey = args.GetKeyCode();
+        int eKey = args.KeyChar;
         if (eKey == game.GetKey(Keys.KeyPad7) && game.IsShiftPressed && game.GuiTyping == TypingState.None) // don't need to hit enter for typing commands starting with slash
         {
             game.GuiTyping = TypingState.Typing;
             game.IsTyping = true;
             game.GuiTypingBuffer = "";
             game.IsTeamchat = false;
-            args.SetHandled(true);
+            args.Handled=(true);
             return;
         }
         if (eKey == game.GetKey(Keys.PageUp) && game.GuiTyping == TypingState.Typing)
         {
             ChatPageScroll++;
-            args.SetHandled(true);
+            args.Handled=(true);
         }
         if (eKey == game.GetKey(Keys.PageDown) && game.GuiTyping == TypingState.Typing)
         {
             ChatPageScroll--;
-            args.SetHandled(true);
+            args.Handled=(true);
         }
         ChatPageScroll = Math.Clamp(ChatPageScroll, 0, game.ChatLinesCount / ChatLinesMaxToDraw);
         if (eKey == game.GetKey(Keys.Enter) || eKey == game.GetKey(Keys.KeyPadEnter))
@@ -194,7 +194,7 @@ public class ModGuiChat : ModBase
             {
                 game.platform.ConsoleWriteLine("Keyboard_KeyDown ready");
             }
-            args.SetHandled(true);
+            args.Handled=(true);
             return;
         }
         if (game.GuiTyping == TypingState.Typing)
@@ -206,7 +206,7 @@ public class ModGuiChat : ModBase
                 {
                     game.GuiTypingBuffer = game.GuiTypingBuffer[..^1];
                 }
-                args.SetHandled(true);
+                args.Handled=(true);
                 return;
             }
             if (game.keyboardStateRaw[game.GetKey(Keys.LeftControl)] || game.keyboardStateRaw[game.GetKey(Keys.RightControl)])
@@ -217,7 +217,7 @@ public class ModGuiChat : ModBase
                     {
                         game.GuiTypingBuffer = string.Concat(game.GuiTypingBuffer, Clipboard.GetText());
                     }
-                    args.SetHandled(true);
+                    args.Handled=(true);
                     return;
                 }
             }
@@ -229,7 +229,7 @@ public class ModGuiChat : ModBase
                 {
                     game.GuiTypingBuffer = game.typinglog[game.typinglogpos];
                 }
-                args.SetHandled(true);
+                args.Handled=(true);
             }
             if (key == game.GetKey(Keys.Down))
             {
@@ -243,7 +243,7 @@ public class ModGuiChat : ModBase
                 {
                     game.GuiTypingBuffer = "";
                 }
-                args.SetHandled(true);
+                args.Handled=(true);
             }
             //Handles player name autocomplete in chat
             if (eKey == game.GetKey(Keys.Tab) && game.GuiTypingBuffer.Trim() != "")
@@ -253,7 +253,7 @@ public class ModGuiChat : ModBase
                 if (completed == "")
                 {
                     //No completion available. Abort.
-                    args.SetHandled(true);
+                    args.Handled=(true);
                     return;
                 }
                 else if (parts.Length == 1)
@@ -267,10 +267,10 @@ public class ModGuiChat : ModBase
                     parts[parts.Length - 1] = completed;
                     game.GuiTypingBuffer = string.Concat(string.Join(" ", parts), " ");
                 }
-                args.SetHandled(true);
+                args.Handled=(true);
                 return;
             }
-            args.SetHandled(true);
+            args.Handled=(true);
             return;
         }
     }
@@ -282,7 +282,7 @@ public class ModGuiChat : ModBase
             //Don't open chat when not in normal game
             return;
         }
-        int eKeyChar = args.GetKeyChar();
+        int eKeyChar = args.KeyChar;
         int chart = 116;
         int charT = 84;
         int chary = 121;

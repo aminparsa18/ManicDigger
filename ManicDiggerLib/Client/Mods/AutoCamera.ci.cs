@@ -132,14 +132,14 @@ public class ModAutoCamera : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame(Game game, NewFrameEventArgs args)
+    public override void OnNewFrame(Game game, float args)
     {
         if (_playingTime == -1)
         {
             return;
         }
 
-        float dt = args.GetDt();
+        float dt = args;
         _playingTime += dt;
 
         UpdateAvi(dt);

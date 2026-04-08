@@ -8,7 +8,7 @@ public class ModFallDamageToPlayer : ModBase
     private bool fallSoundPlaying;
     private int lastFallDamageTimeMilliseconds;
 
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
         if (game.guistate == GuiState.MapLoading) return;
 
@@ -19,7 +19,7 @@ public class ModFallDamageToPlayer : ModBase
         }
 
         if (game.FollowId() == null)
-            UpdateFallDamageToPlayer(game, args.GetDt());
+            UpdateFallDamageToPlayer(game, args);
     }
 
     internal void UpdateFallDamageToPlayer(Game game, float dt)

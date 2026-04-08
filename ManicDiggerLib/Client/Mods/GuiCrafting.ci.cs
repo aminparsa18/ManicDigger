@@ -45,7 +45,7 @@ public class ModGuiCrafting : ModBase
             DrawCraftingRecipes(game);
     }
 
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
         if (game.guistate == GuiState.CraftingRecipes)
             CraftingMouse(game);
@@ -53,7 +53,7 @@ public class ModGuiCrafting : ModBase
 
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
-        if (args.GetKeyCode() != game.GetKey(Keys.E) || game.GuiTyping != TypingState.None) return;
+        if (args.KeyChar != game.GetKey(Keys.E) || game.GuiTyping != TypingState.None) return;
         if (game.SelectedBlockPositionX == -1 && game.SelectedBlockPositionY == -1 && game.SelectedBlockPositionZ == -1) return;
 
         int posX = game.SelectedBlockPositionX;
@@ -65,7 +65,7 @@ public class ModGuiCrafting : ModBase
         Vector3i[] table = d_CraftingTableTool.GetTable(posX, posY, posZ, out int tableCount);
         int[] onTable = d_CraftingTableTool.GetOnTable(table, tableCount, out int onTableCount);
         CraftingRecipesStart(game, d_CraftingRecipes, d_CraftingRecipesCount, onTable, onTableCount, posX, posY, posZ);
-        args.SetHandled(true);
+        args.Handled=(true);
     }
 
     internal void DrawCraftingRecipes(Game game)

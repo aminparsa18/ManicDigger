@@ -139,7 +139,7 @@
             menu.ConnectToGame(loginResultData, loginUsername.text);
         }
 
-        GamePlatform p = menu.p;
+        IGamePlatform p = menu.p;
         float scale = menu.GetScale();
 
         menu.DrawBackground();

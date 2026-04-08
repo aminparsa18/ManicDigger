@@ -6,7 +6,7 @@
         position = new ClientPacketHandlerEntityPosition();
         despawn = new ClientPacketHandlerEntityDespawn();
     }
-    public override void OnNewFrame(Game game, NewFrameEventArgs args)
+    public override void OnNewFrame(Game game, float args)
     {
         game.packetHandlers[Packet_ServerIdEnum.EntitySpawn] = spawn;
         game.packetHandlers[Packet_ServerIdEnum.EntityPosition] = position;

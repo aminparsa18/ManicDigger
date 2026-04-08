@@ -81,7 +81,7 @@
             menu.p.SetPreferences(preferences);
         }
 
-        GamePlatform p = menu.p;
+        IGamePlatform p = menu.p;
         float scale = menu.GetScale();
         menu.DrawBackground();
 

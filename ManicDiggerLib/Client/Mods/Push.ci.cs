@@ -6,7 +6,7 @@
 /// </summary>
 public class ModPush : ModBase
 {
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
         game.pushX = 0;
         game.pushY = 0;

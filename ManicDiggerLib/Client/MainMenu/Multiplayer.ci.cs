@@ -160,7 +160,7 @@ public class ScreenMultiplayer : Screen
             }
         }
 
-        GamePlatform p = menu.p;
+        IGamePlatform p = menu.p;
 
         float scale = menu.GetScale();
 

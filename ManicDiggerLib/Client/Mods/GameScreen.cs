@@ -74,7 +74,7 @@ public class GameScreen : ModBase
             MenuWidget w = widgets[i];
             if (w == null || w.type != WidgetType.Textbox || !w.editing) { continue; }
 
-            int key = e.GetKeyChar();
+            int key = e.KeyChar;
 
             if (key == 8) // backspace
             {

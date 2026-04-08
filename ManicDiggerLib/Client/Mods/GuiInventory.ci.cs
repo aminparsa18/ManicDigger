@@ -118,7 +118,7 @@ public class ModGuiInventory : ModBase
         if (game.guistate != GuiState.Inventory) { return; }
 
         // Key codes 49–57 = '1'–'9', 48 = '0' → material slots 0–9.
-        int keyChar = args.GetKeyChar();
+        int keyChar = args.KeyChar;
         if (keyChar >= 49 && keyChar <= 57) { game.ActiveMaterial = keyChar - 49; }
         if (keyChar == 48) { game.ActiveMaterial = 9; }
     }

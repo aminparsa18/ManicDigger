@@ -203,59 +203,53 @@ public partial class Game
     // Keyboard events
     // -------------------------------------------------------------------------
 
-    internal void KeyUp(int eKey)
+    internal void KeyUp(KeyEventArgs eKey)
     {
-        keyboardStateRaw[eKey] = false;
+        keyboardStateRaw[eKey.KeyChar] = false;
 
         for (int i = 0; i < clientmodsCount; i++)
         {
-            KeyEventArgs args_ = new();
-            args_.SetKeyCode(eKey);
-            clientmods[i].OnKeyUp(this, args_);
-            if (args_.GetHandled()) return;
+            clientmods[i].OnKeyUp(this, eKey);
+            if (eKey.Handled) return;
         }
 
-        keyboardState[eKey] = false;
+        keyboardState[eKey.KeyChar] = false;
 
-        if (eKey == GetKey(Keys.LeftShift) || eKey == GetKey(Keys.RightShift))
+        if (eKey.KeyChar == GetKey(Keys.LeftShift) || eKey.KeyChar == GetKey(Keys.RightShift))
             IsShiftPressed = false;
     }
 
-    internal void KeyPress(int eKeyChar)
+    internal void KeyPress(KeyPressEventArgs eKeyChar)
     {
         for (int i = 0; i < clientmodsCount; i++)
         {
             if (clientmods[i] == null) continue;
-            KeyPressEventArgs args_ = new();
-            args_.SetKeyChar(eKeyChar);
-            clientmods[i].OnKeyPress(this, args_);
-            if (args_.GetHandled()) return;
+            clientmods[i].OnKeyPress(this, eKeyChar);
+            if (eKeyChar.Handled) return;
         }
     }
 
-    internal void KeyDown(int eKey)
+    internal void KeyDown(KeyEventArgs eKey)
     {
-        keyboardStateRaw[eKey] = true;
+        keyboardStateRaw[eKey.KeyChar] = true;
 
         if (guistate != GuiState.MapLoading)
         {
             for (int i = 0; i < clientmodsCount; i++)
             {
-                KeyEventArgs args_ = new();
-                args_.SetKeyCode(eKey);
-                clientmods[i].OnKeyDown(this, args_);
-                if (args_.GetHandled()) return;
+                clientmods[i].OnKeyDown(this, eKey);
+                if (eKey.Handled) return;
             }
         }
 
-        keyboardState[eKey] = true;
+        keyboardState[eKey.KeyChar] = true;
         InvalidVersionAllow();
 
-        if (eKey == GetKey(Keys.LeftShift) || eKey == GetKey(Keys.RightShift))
+        if (eKey.KeyChar == GetKey(Keys.LeftShift) || eKey.KeyChar == GetKey(Keys.RightShift))
             IsShiftPressed = true;
 
         // F6 outside of Normal state: reconnect if lagging or map loading.
-        if (eKey == GetKey(Keys.F6))
+        if (eKey.KeyChar == GetKey(Keys.F6))
         {
             float lagSeconds = one * (platform.TimeMillisecondsFromStart() - LastReceivedMilliseconds) / 1000;
             if (lagSeconds >= DISCONNECTED_ICON_AFTER_SECONDS || guistate == GuiState.MapLoading)
@@ -263,30 +257,30 @@ public partial class Game
         }
 
         if (guistate == GuiState.Normal)
-            KeyDownNormal(eKey);
+            KeyDownNormal(eKey.KeyChar);
 
         if (guistate == GuiState.Inventory)
         {
-            if (eKey == GetKey(Keys.B) || eKey == GetKey(Keys.Escape))
+            if (eKey.KeyChar == GetKey(Keys.B) || eKey.KeyChar == GetKey(Keys.Escape))
                 GuiStateBackToGame();
             return;
         }
 
         if (guistate == GuiState.MapLoading)
         {
-            if (eKey == GetKey(Keys.Escape))
+            if (eKey.KeyChar == GetKey(Keys.Escape))
                 ExitToMainMenu_();
         }
 
         if (guistate == GuiState.CraftingRecipes)
         {
-            if (eKey == GetKey(Keys.Escape))
+            if (eKey.KeyChar == GetKey(Keys.Escape))
                 GuiStateBackToGame();
         }
 
         if (guistate == GuiState.Normal)
         {
-            if (eKey == GetKey(Keys.Escape))
+            if (eKey.KeyChar == GetKey(Keys.Escape))
             {
                 EscapeMenuStart();
                 return;

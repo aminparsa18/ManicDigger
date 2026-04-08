@@ -9,9 +9,9 @@ public class ModGrenade : ModBase
     private const float BounceSpeedMultiply = 0.5f;
     private const float WallDistance = 0.3f;
 
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
-        float dt = args.GetDt();
+        float dt = args;
         for (int i = 0; i < game.entitiesCount; i++)
         {
             Entity entity = game.entities[i];

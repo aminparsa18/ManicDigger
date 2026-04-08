@@ -11,12 +11,12 @@ public class ModBlockDamageToPlayer : ModBase
         blockDamageTimer = TimerCi.Create(BlockDamageToPlayerEvery, BlockDamageToPlayerEvery * 2);
     }
 
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
         if (game.guistate == GuiState.MapLoading || game.FollowId() != null)
             return;
 
-        UpdateBlockDamageToPlayer(game, args.GetDt());
+        UpdateBlockDamageToPlayer(game, args);
     }
 
     internal void UpdateBlockDamageToPlayer(Game game, float dt)

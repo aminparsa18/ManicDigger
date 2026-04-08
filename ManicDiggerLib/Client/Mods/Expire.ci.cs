@@ -5,9 +5,9 @@
 /// </summary>
 public class ModExpire : ModBase
 {
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
-        float dt = args.GetDt();
+        float dt = args;
         for (int i = 0; i < game.entitiesCount; i++)
         {
             Entity entity = game.entities[i];

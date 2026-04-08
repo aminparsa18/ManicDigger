@@ -6,7 +6,7 @@
         data = new byte[dataLength];
         connected = new bool();
     }
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
     public override void Start()
     {
         tosend = new();
@@ -125,7 +125,7 @@
         DoSendPacket(msg);
     }
 
-    public void SetPlatform(GamePlatform platform_)
+    public void SetPlatform(IGamePlatform platform_)
     {
         platform = platform_;
     }

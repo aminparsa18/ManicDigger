@@ -27,9 +27,9 @@ public class ModFpsHistoryGraph : ModBase
             todraw[i] = new Draw2dData();
     }
 
-    public override void OnNewFrame(Game game, NewFrameEventArgs args)
+    public override void OnNewFrame(Game game, float args)
     {
-        float dt = args.GetDt();
+        float dt = args;
         UpdateGraph(dt);
         UpdateTitleFps(dt);
         Draw();
@@ -37,7 +37,7 @@ public class ModFpsHistoryGraph : ModBase
 
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
-        if (args.GetKeyCode() == (int)Keys.F7)
+        if (args.KeyChar == (int)Keys.F7)
         {
             drawFpsText = !drawFpsGraph;
             drawFpsGraph = !drawFpsGraph;
@@ -69,7 +69,7 @@ public class ModFpsHistoryGraph : ModBase
     /// <summary>Updates the FPS counter and performance info string once per second.</summary>
     private void UpdateTitleFps(float dt)
     {
-        GamePlatform p = m.GetPlatform();
+        IGamePlatform p = m.GetPlatform();
         fpsCount++;
         longestFrameDt = Math.Max(longestFrameDt, dt);
 

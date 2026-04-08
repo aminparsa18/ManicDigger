@@ -1,6 +1,6 @@
 ﻿public class ClientPackets
 {
-    public static Packet_Client CreateLoginPacket(GamePlatform platform, string username, string verificationKey)
+    public static Packet_Client CreateLoginPacket(IGamePlatform platform, string username, string verificationKey)
     {
         Packet_ClientIdentification p = new();
         {
@@ -16,7 +16,7 @@
         return pp;
     }
 
-    public static Packet_Client CreateLoginPacket_(GamePlatform platform, string username, string verificationKey, string serverPassword)
+    public static Packet_Client CreateLoginPacket_(IGamePlatform platform, string username, string verificationKey, string serverPassword)
     {
         Packet_ClientIdentification p = new();
         {

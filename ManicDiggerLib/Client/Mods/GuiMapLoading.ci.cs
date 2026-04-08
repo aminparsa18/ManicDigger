@@ -19,7 +19,7 @@ public class ModGuiMapLoading : ModBase
     {
         if (game.guistate != GuiState.MapLoading) return;
 
-        GamePlatform platform = game.platform;
+        IGamePlatform platform = game.platform;
         int width = platform.GetCanvasWidth();
         int height = platform.GetCanvasHeight();
         int centerY = height / 2;
@@ -46,7 +46,7 @@ public class ModGuiMapLoading : ModBase
             DrawProgress(game, platform, width, height, centerY);
     }
 
-    private static string GetConnectionStatus(Game game, GamePlatform platform)
+    private static string GetConnectionStatus(Game game, IGamePlatform platform)
     {
         if (game.maploadingprogress.ProgressStatus != null)
             return game.maploadingprogress.ProgressStatus;
@@ -55,7 +55,7 @@ public class ModGuiMapLoading : ModBase
         return game.language.Connecting();
     }
 
-    private void DrawProgress(Game game, GamePlatform platform, int width, int height, int centerY)
+    private void DrawProgress(Game game, IGamePlatform platform, int width, int height, int centerY)
     {
         string progress = string.Format(game.language.ConnectingProgressPercent(), game.maploadingprogress.ProgressPercent.ToString());
         string progress1 = string.Format(game.language.ConnectingProgressKilobytes(), (game.maploadingprogress.ProgressBytes / 1024).ToString());

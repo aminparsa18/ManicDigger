@@ -84,7 +84,7 @@ public partial class Server : ICurrentTime, IDropItem
     internal int systemsCount;
     internal ServerPlatform serverPlatform;
 
-    private readonly GamePlatform gameplatform;
+    private readonly IGamePlatform gameplatform;
     public GameExit exit;
     public ServerMap d_Map;
     public GameData d_Data;
@@ -2933,9 +2933,9 @@ public partial class Server : ICurrentTime, IDropItem
         Packet_StringList p = new();
         List<string> list = new();
 
-        for (int i = 0; i < assets.count; i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            list.Add(assets.items[i].md5);
+            list.Add(assets[i].md5);
         }
 
         p.SetItems(list.ToArray(), list.Count, list.Count);
@@ -2947,9 +2947,9 @@ public partial class Server : ICurrentTime, IDropItem
         Packet_StringList p = new();
         List<string> list = new();
 
-        for (int i = 0; i < assets.count; i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            list.Add(assets.items[i].name);
+            list.Add(assets[i].name);
         }
 
         p.SetItems(list.ToArray(), list.Count, list.Count);
@@ -2957,7 +2957,7 @@ public partial class Server : ICurrentTime, IDropItem
     }
 
     private AssetLoader assetLoader;
-    private readonly AssetList assets = new();
+    private List<Asset> assets = new();
 
     private readonly int BlobPartLength = 1024 * 1;
     private void SendBlobs(int clientid, Packet_StringList list)
@@ -2966,9 +2966,9 @@ public partial class Server : ICurrentTime, IDropItem
         LoadAssets();
 
         List<Asset> tosend = new();
-        for (int i = 0; i < assets.count; i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            Asset f = assets.items[i];
+            Asset f = assets[i];
             for (int k = 0; k < list.ItemsCount; k++)
             {
                 if (f.md5 == list.Items[k])
@@ -2999,7 +2999,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     private void LoadAssets()
     {
-        assetLoader.LoadAssetsAsync(assets, out float progress);
+        assets = assetLoader.LoadAssetsAsync(out float progress);
         while (progress < 1)
         {
             Thread.Sleep(1);

@@ -16,19 +16,19 @@ public class MainMenu
             menu = this
         };
         loginClient = new LoginClientCi();
-        assets = new AssetList();
+        assets = new();
     }
 
-    internal GamePlatform p;
+    internal IGamePlatform p;
     internal Language lang;
 
     internal float one;
 
-    internal AssetList assets;
+    internal List<Asset> assets;
     internal float assetsLoadProgress;
     internal TextColorRenderer textColorRenderer;
 
-    public void Start(GamePlatform p_)
+    public void Start(IGamePlatform p_)
     {
         this.p = p_;
 
@@ -41,7 +41,7 @@ public class MainMenu
         {
             platform = p_
         };
-        p_.LoadAssetsAsyc(assets, out assetsLoadProgress);
+        assets = p_.LoadAssetsAsyc(out assetsLoadProgress);
 
         overlap = 200;
         minspeed = 20;
@@ -63,8 +63,8 @@ public class MainMenu
         pMatrix = Matrix4.Identity;
 
         currentlyPressedKeys = new bool[360];
-        p.AddOnNewFrame(MainMenuNewFrameHandler.Create(this));
-        p.AddOnKeyEvent(MainMenuKeyEventHandler.Create(this));
+        p.AddOnNewFrame(dt => OnNewFrame(dt));
+        p.AddOnKeyEvent(HandleKeyDown, HandleKeyUp, HandleKeyPress);
         p.AddOnMouseEvent(MainMenuMouseEventHandler.Create(this));
         p.AddOnTouchEvent(MainMenuTouchEventHandler.Create(this));
     }
@@ -79,20 +79,19 @@ public class MainMenu
 
     public void HandleKeyDown(KeyEventArgs e)
     {
-        var test = e.GetKeyCode();
-        currentlyPressedKeys[e.GetKeyCode()] = true;
+        currentlyPressedKeys[e.KeyChar] = true;
         screen.OnKeyDown(e);
     }
 
     public void HandleKeyUp(KeyEventArgs e)
     {
-        currentlyPressedKeys[e.GetKeyCode()] = false;
+        currentlyPressedKeys[e.KeyChar] = false;
         screen.OnKeyUp(e);
     }
 
     public void HandleKeyPress(KeyPressEventArgs e)
     {
-        if (e.GetKeyChar() == 70 || e.GetKeyChar() == 102) // 'F', 'f'
+        if (e.KeyChar == 70 || e.KeyChar == 102) // 'F', 'f'
         {
             filter += 1;
             if (filter == 3)
@@ -100,7 +99,7 @@ public class MainMenu
                 filter = 0;
             }
         }
-        if (e.GetKeyChar() == 96) // '`'
+        if (e.KeyChar == 96) // '`'
         {
             screen.OnBackPressed();
         }
@@ -227,11 +226,11 @@ public class MainMenu
     internal byte[] GetFile(string name)
     {
         string pLowercase = name.ToLowerInvariant();
-        for (int i = 0; i < assets.count; i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            if (assets.items[i].name == pLowercase)
+            if (assets[i].name == pLowercase)
             {
-                return assets.items[i].data;
+                return assets[i].data;
             }
         }
         return null;
@@ -240,11 +239,11 @@ public class MainMenu
     internal int GetFileLength(string name)
     {
         string pLowercase = name.ToLowerInvariant();
-        for (int i = 0; i < assets.count; i++)
+        for (int i = 0; i < assets.Count; i++)
         {
-            if (assets.items[i].name == pLowercase)
+            if (assets[i].name == pLowercase)
             {
-                return assets.items[i].dataLength;
+                return assets[i].dataLength;
             }
         }
         return 0;
@@ -337,7 +336,7 @@ public class MainMenu
         }
     }
 
-    public void OnNewFrame(NewFrameEventArgs args)
+    public void OnNewFrame(float args)
     {
         if (!initialized)
         {
@@ -349,8 +348,8 @@ public class MainMenu
         }
         viewportWidth = p.GetCanvasWidth();
         viewportHeight = p.GetCanvasHeight();
-        DrawScene(args.GetDt());
-        Animate(args.GetDt());
+        DrawScene(args);
+        Animate(args);
         loginClient.Update(p);
     }
 
@@ -640,9 +639,9 @@ public class Screen
 			}
             if (w.hasKeyboardFocus)
             {
-                if (e.GetKeyCode() == (int)Keys.Tab || e.GetKeyCode() == (int)Keys.Enter)
+                if (e.KeyChar == (int)Keys.Tab || e.KeyChar == (int)Keys.Enter)
                 {
-                    if (w.type == WidgetType.Button && e.GetKeyCode() == (int)Keys.Enter)
+                    if (w.type == WidgetType.Button && e.KeyChar == (int)Keys.Enter)
                     {
                         //Call OnButton when enter is pressed and widget is a button
                         OnButton(w);
@@ -661,9 +660,9 @@ public class Screen
             {
                 if (w.editing)
                 {
-                    int key = e.GetKeyCode();
+                    int key = e.KeyChar;
                     // pasting text from clipboard
-                    if (e.GetCtrlPressed() && key == (int)Keys.V)
+                    if (e.CtrlPressed && key == (int)Keys.V)
                     {
                         if (Clipboard.ContainsText())
                         {
@@ -696,9 +695,9 @@ public class Screen
                 {
                     if (w.editing)
                     {
-                        if (menu.p.IsValidTypingChar(e.GetKeyChar()))
+                        if (menu.p.IsValidTypingChar(e.KeyChar))
                         {
-                            w.text = string.Concat(w.text, (char)e.GetKeyChar());
+                            w.text = string.Concat(w.text, (char)e.KeyChar);
                         }
                     }
                 }
@@ -1116,49 +1115,6 @@ public class DrawModeEnum
 {
     public const int Triangles = 0;
     public const int Lines = 1;
-}
-
-public class MainMenuNewFrameHandler : NewFrameHandler
-{
-    public static MainMenuNewFrameHandler Create(MainMenu l)
-    {
-        MainMenuNewFrameHandler h = new()
-        {
-            l = l
-        };
-        return h;
-    }
-    private MainMenu l;
-    public override void OnNewFrame(NewFrameEventArgs args)
-    {
-        l.OnNewFrame(args);
-    }
-}
-
-public class MainMenuKeyEventHandler : KeyEventHandler
-{
-    public static MainMenuKeyEventHandler Create(MainMenu l)
-    {
-        MainMenuKeyEventHandler h = new()
-        {
-            l = l
-        };
-        return h;
-    }
-    private MainMenu l;
-    public override void OnKeyDown(KeyEventArgs e)
-    {
-        l.HandleKeyDown(e);
-    }
-    public override void OnKeyUp(KeyEventArgs e)
-    {
-        l.HandleKeyUp(e);
-    }
-
-    public override void OnKeyPress(KeyPressEventArgs e)
-    {
-        l.HandleKeyPress(e);
-    }
 }
 
 public class MainMenuMouseEventHandler : MouseEventHandler

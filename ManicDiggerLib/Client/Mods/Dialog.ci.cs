@@ -47,7 +47,7 @@ public class ModDialog : ModBase
                 if (w == null) continue;
 
                 // Only typeable characters are handled here; special characters use KeyDown
-                if (TypableChars.Contains((char)w.ClickKey) && args.GetKeyChar() == w.ClickKey)
+                if (TypableChars.Contains((char)w.ClickKey) && args.KeyChar == w.ClickKey)
                 {
                     game.SendPacketClient(ClientPackets.DialogClick(w.Id, Empty, 0));
                     return;
@@ -60,7 +60,7 @@ public class ModDialog : ModBase
     {
         ForEachDialog(game, d => d.screen.OnKeyDown(game, args));
 
-        bool isEsc = args.GetKeyCode() == game.GetKey(Keys.Escape);
+        bool isEsc = args.KeyChar == (int)Keys.Escape;
 
         if (game.guistate == GuiState.Normal && isEsc)
         {
@@ -75,7 +75,7 @@ public class ModDialog : ModBase
                 }
             }
             game.ShowEscapeMenu();
-            args.SetHandled(true);
+            args.Handled=(true);
             return;
         }
 
@@ -91,12 +91,12 @@ public class ModDialog : ModBase
                 }
                 game.SendPacketClient(ClientPackets.DialogClick("Esc", Empty, 0));
                 game.GuiStateBackToGame();
-                args.SetHandled(true);
+                args.Handled=(true);
             }
-            else if (args.GetKeyCode() == game.GetKey(Keys.Tab))
+            else if (args.KeyChar == game.GetKey(Keys.Tab))
             {
                 game.SendPacketClient(ClientPackets.DialogClick("Tab", Empty, 0));
-                args.SetHandled(true);
+                args.Handled=(true);
             }
         }
     }

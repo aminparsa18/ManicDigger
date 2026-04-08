@@ -395,12 +395,12 @@ public partial class Game
         while (changed);
     }
 
-    public GamePlatform GetPlatform()
+    public IGamePlatform GetPlatform()
     {
         return platform;
     }
 
-    public void SetPlatform(GamePlatform value)
+    public void SetPlatform(IGamePlatform value)
     {
         platform = value;
     }

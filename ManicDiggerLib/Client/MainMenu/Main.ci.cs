@@ -116,12 +116,12 @@
     public override void OnKeyDown(KeyEventArgs e)
     {
         // debug
-        if (e.GetKeyCode() == (int)Keys.F5)
+        if (e.KeyChar == (int)Keys.F5)
         {
             menu.p.SinglePlayerServerDisable();
             menu.StartGame(true, Path.Combine(menu.p.PathSavegames(), "Default.mdss"), null);
         }
-        if (e.GetKeyCode() == (int)Keys.F6)
+        if (e.KeyChar == (int)Keys.F6)
         {
             menu.StartGame(true, Path.Combine(menu.p.PathSavegames(), "Default.mddbs"), null);
         }

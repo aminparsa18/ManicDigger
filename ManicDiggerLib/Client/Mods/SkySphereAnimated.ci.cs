@@ -65,7 +65,7 @@ public class ModSkySphereAnimated : ModBase
     }
 
     public static ModelData GetSphereModelData2(ModelData data,
-        GamePlatform platform,
+        IGamePlatform platform,
         float radius, float height, int segments, int rings,
         int[] skyPixels, int[] glowPixels,
         float sunX, float sunY, float sunZ)
@@ -166,7 +166,7 @@ public class ModSkySphereAnimated : ModBase
         return indices;
     }
 
-    private static int Texture2d(GamePlatform platform, int[] pixelsArgb, float x, float y)
+    private static int Texture2d(IGamePlatform platform, int[] pixelsArgb, float x, float y)
     {
         int px = PositiveMod((int)(x * (TextureSize - 1)), TextureSize - 1);
         int py = PositiveMod((int)(y * (TextureSize - 1)), TextureSize - 1);

@@ -5,7 +5,7 @@
         event_ = new EnetEventRef();
         messages = new();
     }
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
 
     public override void Start()
     {
@@ -103,7 +103,7 @@
 
 public class EnetNetConnection : NetConnection
 {
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
     internal EnetPeer peer;
     public override IPEndPointCi RemoteEndPoint()
     {
@@ -128,7 +128,7 @@ public class EnetNetConnection : NetConnection
 
 public class EnetNetClient : NetClient
 {
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
     public override void Start()
     {
         host = platform.EnetCreateHost();
@@ -219,7 +219,7 @@ public class EnetNetClient : NetClient
         DoSendPacket(msg);
     }
 
-    public void SetPlatform(GamePlatform platform_)
+    public void SetPlatform(IGamePlatform platform_)
     {
         platform = platform_;
     }

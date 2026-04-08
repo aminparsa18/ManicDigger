@@ -3,7 +3,7 @@
     internal QueryResult result;
     internal bool queryPerformed;
     internal bool querySuccess;
-    internal GamePlatform p;
+    internal IGamePlatform p;
     internal string serverMessage;
     
     public QueryClient()
@@ -117,7 +117,7 @@
         serverMessage = "Timeout while querying server!";
     }
     
-    public void SetPlatform(GamePlatform p_)
+    public void SetPlatform(IGamePlatform p_)
     {
         p = p_;
     }

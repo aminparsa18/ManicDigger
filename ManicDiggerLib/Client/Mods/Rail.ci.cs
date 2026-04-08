@@ -78,10 +78,10 @@ public class ModRail : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
         d_RailMapUtil ??= new RailMapUtil { game = game };
-        RailOnNewFrame(game, args.GetDt());
+        RailOnNewFrame(game, args);
     }
 
     /// <summary>

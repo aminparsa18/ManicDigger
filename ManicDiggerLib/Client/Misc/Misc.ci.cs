@@ -1,6 +1,6 @@
 ﻿public class InterpolationCi
 {
-    public static int InterpolateColor(GamePlatform platform, float progress, int[] colors, int colorsLength)
+    public static int InterpolateColor(IGamePlatform platform, float progress, int[] colors, int colorsLength)
     {
         float one = 1;
         int colora = (int)((colorsLength - 1) * progress);
@@ -130,7 +130,7 @@ public class Ping_
         timeout = value;
     }
 
-    public bool Send(GamePlatform platform)
+    public bool Send(IGamePlatform platform)
     {
         if (!ready)
         {
@@ -141,7 +141,7 @@ public class Ping_
         return true;
     }
 
-    public bool Receive(GamePlatform platform)
+    public bool Receive(IGamePlatform platform)
     {
         if (ready)
         {
@@ -152,7 +152,7 @@ public class Ping_
         return true;
     }
 
-    public bool Timeout(GamePlatform platform)
+    public bool Timeout(IGamePlatform platform)
     {
         if ((platform.TimeMillisecondsFromStart() - timeSendMilliseconds) / 1000 > this.timeout)
         {
@@ -203,7 +203,7 @@ public class BitmapData_
         };
         return b;
     }
-    public static BitmapData_ CreateFromBitmap(GamePlatform p, Bitmap atlas2d_)
+    public static BitmapData_ CreateFromBitmap(IGamePlatform p, Bitmap atlas2d_)
     {
         BitmapData_ b = new()
         {
@@ -228,7 +228,7 @@ public class BitmapData_
         return argb[x + y * width];
     }
 
-    public Bitmap ToBitmap(GamePlatform p)
+    public Bitmap ToBitmap(IGamePlatform p)
     {
         Bitmap bmp = new(width, height);
         p.BitmapSetPixelsArgb(bmp, argb);
@@ -239,7 +239,7 @@ public class BitmapData_
 public class TextureAtlasConverter
 {
     //tiles = 16 means 16 x 16 atlas
-    public static Bitmap[] Atlas2dInto1d(GamePlatform p, Bitmap atlas2d_, int tiles, int atlassizezlimit, out int retCount)
+    public static Bitmap[] Atlas2dInto1d(IGamePlatform p, Bitmap atlas2d_, int tiles, int atlassizezlimit, out int retCount)
     {
         BitmapData_ orig = BitmapData_.CreateFromBitmap(p, atlas2d_);
 
@@ -307,7 +307,7 @@ public class VecCito3i
 
 public class GameVersionHelper
 {
-    public static bool ServerVersionAtLeast(GamePlatform platform, string serverGameVersion, int year, int month, int day)
+    public static bool ServerVersionAtLeast(IGamePlatform platform, string serverGameVersion, int year, int month, int day)
     {
         if (serverGameVersion == null)
         {
@@ -320,7 +320,7 @@ public class GameVersionHelper
         return true;
     }
 
-    private static bool IsVersionDate(GamePlatform platform, string version)
+    private static bool IsVersionDate(IGamePlatform platform, string version)
     {
         if (version.Length >= 10)
         {
@@ -332,7 +332,7 @@ public class GameVersionHelper
         return false;
     }
 
-    private static int VersionToInt(GamePlatform platform, string version)
+    private static int VersionToInt(IGamePlatform platform, string version)
     {
         int max = 1000 * 1000 * 1000;
         if (!IsVersionDate(platform, version))

@@ -46,7 +46,7 @@ public class ModGuiTextEditor : GameScreen
 
     public override void OnKeyDown(Game game_, KeyEventArgs e)
     {
-        int key = e.GetKeyCode();
+        int key = e.KeyChar;
 
         if (key == game.GetKey(Keys.F9))
         {
@@ -63,11 +63,7 @@ public class ModGuiTextEditor : GameScreen
             case (int)Keys.Right: cursorColumn++; break;
             case (int)Keys.Up: cursorLine--; break;
             case (int)Keys.Down: cursorLine++; break;
-            case (int)Keys.Backspace:
-                cursorColumn--;
-                key = (int)Keys.Delete;
-                e.SetKeyCode(key);
-                break;
+            case (int)Keys.Backspace:cursorColumn--;break;
         }
 
         cursorColumn = Math.Clamp(cursorColumn, 0, Math.Min(MaxColumns - 1, LineLength(buffer[cursorLine])));
@@ -81,21 +77,21 @@ public class ModGuiTextEditor : GameScreen
             buffer[cursorLine][MaxColumns - 1] = 0;
         }
 
-        e.SetHandled(true);
+        e.Handled = true;
     }
 
     public override void OnKeyPress(Game game_, KeyPressEventArgs e)
     {
         if (!visible) return;
-        if (e.GetKeyChar() == 8) return; // backspace handled in OnKeyDown
+        if (e.KeyChar == 8) return; // backspace handled in OnKeyDown
 
         // Shift characters right to make room
         for (int i = MaxColumns - 1; i > cursorColumn; i--)
             buffer[cursorLine][i] = buffer[cursorLine][i - 1];
 
-        buffer[cursorLine][cursorColumn] = e.GetKeyChar();
+        buffer[cursorLine][cursorColumn] = e.KeyChar;
         cursorColumn++;
-        e.SetHandled(true);
+        e.Handled = true;
     }
 
     private static string LineToString(int[] line) =>

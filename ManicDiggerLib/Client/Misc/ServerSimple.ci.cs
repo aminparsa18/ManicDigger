@@ -49,8 +49,8 @@ public class ServerSimple
     private readonly float one;
     private NetServer server;
     private string saveFilename;
-    internal GamePlatform platform;
-    public void Start(NetServer server_, string saveFilename_, GamePlatform platform_)
+    internal IGamePlatform platform;
+    public void Start(NetServer server_, string saveFilename_, IGamePlatform platform_)
     {
         server = server_;
         saveFilename = saveFilename_;

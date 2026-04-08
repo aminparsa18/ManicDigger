@@ -1,6 +1,6 @@
 ﻿public class DummyNetClient : NetClient
 {
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
     internal DummyNetwork network;
     public override NetConnection Connect(string ip, int port)
     {
@@ -42,14 +42,14 @@
         network = network_;
     }
 
-    public void SetPlatform(GamePlatform gamePlatform)
+    public void SetPlatform(IGamePlatform gamePlatform)
     {
         platform = gamePlatform;
     }
 }
 public class DummyNetConnection : NetConnection
 {
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
     internal DummyNetwork network;
     public override void SendMessage(INetOutgoingMessage msg, MyNetDeliveryMethod method, int sequenceChannel)
     {
@@ -86,7 +86,7 @@ public class DummyNetServer : NetServer
     {
         connectedClient = new DummyNetConnection();
     }
-    internal GamePlatform platform;
+    internal IGamePlatform platform;
     internal DummyNetwork network;
     public override void Start()
     {
@@ -134,7 +134,7 @@ public class DummyNetServer : NetServer
         network = dummyNetwork;
     }
 
-    public void SetPlatform(GamePlatform gamePlatform)
+    public void SetPlatform(IGamePlatform gamePlatform)
     {
         platform = gamePlatform;
     }

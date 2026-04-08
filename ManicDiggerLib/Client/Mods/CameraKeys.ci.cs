@@ -8,11 +8,11 @@ public class ModCameraKeys : ModBase
 {
     private const float OverheadCameraSpeed = 3f;
 
-    public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
+    public override void OnNewFrameFixed(Game game, float args)
     {
         if (game.guistate == GuiState.MapLoading) return;
 
-        float dt = args.GetDt();
+        float dt = args;
         bool isNormal = game.guistate == GuiState.Normal;
         bool isTyping = game.GuiTyping != TypingState.None;
 

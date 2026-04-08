@@ -655,7 +655,7 @@ public class ModGuiEscapeMenu : ModBase
     private int keyselectid;
     public override void OnKeyDown(Game game_, KeyEventArgs args)
     {
-        int eKey = args.GetKeyCode();
+        int eKey = args.KeyChar;
         if (eKey == game.GetKey(Keys.Escape))
         {
             if (escapemenustate == EscapeMenuState.Graphics
@@ -674,7 +674,7 @@ public class ModGuiEscapeMenu : ModBase
                 SetEscapeMenuState(EscapeMenuState.Main);
                 game.GuiStateBackToGame();
             }
-            args.SetHandled(true);
+            args.Handled=(true);
         }
         if (escapemenustate == EscapeMenuState.Keys)
         {
@@ -682,7 +682,7 @@ public class ModGuiEscapeMenu : ModBase
             {
                 game.options.Keys[keyhelps()[keyselectid].DefaultKey] = eKey;
                 keyselectid = -1;
-                args.SetHandled(true);
+                args.Handled=(true);
             }
         }
         if (eKey == game.GetKey(Keys.F11))
@@ -699,7 +699,7 @@ public class ModGuiEscapeMenu : ModBase
                 UseResolution();
                 SaveOptions();
             }
-            args.SetHandled(true);
+            args.Handled=(true);
         }
     }
     public void LoadOptions()

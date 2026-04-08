@@ -1,13 +1,12 @@
-﻿using ManicDigger.Mods;
+﻿using ManicDigger;
+using ManicDigger.Mods;
+using Microsoft.CodeAnalysis.Operations;
 
 public partial class Game
 {
-    
-
     public void Start()
     {
         InitSubsystems();
-        InitMods();
         InitRenderer();
     }
 
@@ -22,31 +21,32 @@ public partial class Game
 
         GameData gamedata = new();
         gamedata.Start();
-        d_Data = gamedata;
-        d_DataMonsters = new GameDataMonsters();
 
         Config3d config3d = new();
         config3d.viewdistance = platform.IsFastSystem() ? 128 : 32;
-        d_Config3d = config3d;
 
         ITerrainTextures terrainTextures = new() { game = this };
-        d_TerrainTextures = terrainTextures;
         d_TextureAtlasConverter = new TextureAtlasConverter();
+        d_TerrainTextures = terrainTextures;
 
         FrustumCulling frustumculling = new() { d_GetCameraMatrix = CameraMatrix };
         d_FrustumCulling = frustumculling;
 
         TerrainChunkTesselatorCi terrainchunktesselator = new();
-        terrainchunktesselator.game = this;
         d_TerrainChunkTesselator = terrainchunktesselator;
-
         d_Batcher = new MeshBatcher
         {
             d_FrustumCulling = frustumculling,
             game = this
         };
+        d_FrustumCulling = frustumculling;
+        d_Data = gamedata;
+        d_DataMonsters = new GameDataMonsters();
+        d_Config3d = config3d;
 
         particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
+        d_Data = gamedata;
+        d_TerrainTextures = terrainTextures;
 
         map.Reset(256, 256, 128);
 
@@ -55,6 +55,8 @@ public partial class Game
 
         d_Heightmap = new InfiniteMapChunked2d { d_Map = this };
         d_Heightmap.Restart();
+        d_TerrainChunkTesselator = terrainchunktesselator;
+        terrainchunktesselator.game = this;
 
         Packet_Inventory inventory = new() { RightHand = new Packet_Item[10] };
         InventoryUtils dataItems = new(this);
@@ -64,6 +66,9 @@ public partial class Game
         platform.AddOnCrash(OnCrashHandlerLeave.Create(this));
 
         rnd = new Random();
+
+        InitMods();
+
         s = new();
 
         // Prevent loading screen from immediately displaying lag symbol.
@@ -83,10 +88,11 @@ public partial class Game
         clientmodsCount = 0;
         modmanager.game = this;
 
-        // Core update loop
+        // Core loop
         AddMod(new ModDrawMain());
         AddMod(new ModUpdateMain());
         AddMod(new ModNetworkProcess());
+        AddMod(new ModNetworkEntity());
         AddMod(new ModUnloadRendererChunks());
 
         // Camera
@@ -94,44 +100,47 @@ public partial class Game
         AddMod(new ModCameraKeys());
         AddMod(new ModCamera());
 
-        // Player
+        // Player logic
+        AddMod(new ModFallDamageToPlayer());
+        AddMod(new ModBlockDamageToPlayer());
         AddMod(new ModLoadPlayerTextures());
         AddMod(new ModSendPosition());
         AddMod(new ModInterpolatePositions());
-        AddMod(new ModFallDamageToPlayer());
-        AddMod(new ModBlockDamageToPlayer());
         AddMod(new ModPush());
-
-        // Inventory / crafting
-        AddMod(new ModSendActiveMaterial());
-        AddMod(new ModGuiInventory());
-        AddMod(new ModGuiCrafting());
-        AddMod(new ModReloadAmmo());
 
         // Gameplay mechanics
         AddMod(new ModRail());
+        AddMod(new ModCompass());
         AddMod(new ModGrenade());
         AddMod(new ModBullet());
         AddMod(new ModExpire());
         AddMod(new ModPicking());
-        AddMod(new ModNetworkEntity());
-        AddMod(new ModCompass());
 
-        // World rendering
-        AddMod(new ModDrawTerrain());
-        AddMod(new ModDrawArea());
-        AddMod(new ModDrawLinesAroundSelectedBlock());
-        AddMod(new ModDebugChunk());
-        AddMod(new ModDrawSprites());
-        AddMod(new ModDrawMinecarts());
-        AddMod(new ModDrawParticleEffectBlockBreak());
+        // Inventory / ammo
+        AddMod(new ModReloadAmmo());
+        AddMod(new ModSendActiveMaterial());
+        AddMod(new ModGuiCrafting());
+        AddMod(new ModGuiInventory());
 
-        // Sky / environment
+        // Audio
+        AddMod(new ModWalkSound());
+        AddMod(new ModAudio());
+
+        // Sky / environment (before terrain)
         if (platform.IsFastSystem())
             AddMod(new ModSkySphereAnimated());
         else
             AddMod(new ModSkySphereStatic());
         AddMod(d_SunMoonRenderer);
+
+        // World rendering
+        AddMod(new ModDrawTerrain());
+        AddMod(new ModDrawArea());
+        AddMod(new ModDrawSprites());
+        AddMod(new ModDrawMinecarts());
+        AddMod(new ModDrawLinesAroundSelectedBlock());
+        AddMod(new ModDebugChunk());
+        AddMod(new ModDrawParticleEffectBlockBreak());
 
         // Entity / player rendering
         AddMod(new ModDrawPlayers());
@@ -146,20 +155,15 @@ public partial class Game
         AddMod(new ModDraw2dMisc());
         AddMod(new ModFpsHistoryGraph());
 
-        // GUI dialogs
+        // GUI (topmost, rendered last)
         AddMod(new ModDialog());
         AddMod(new ModGuiTouchButtons());
         AddMod(new ModGuiEscapeMenu());
         AddMod(new ModGuiMapLoading());
         AddMod(new ModGuiPlayerStats());
         AddMod(new ModGuiChat());
-
-        // Misc
-        AddMod(new ModWalkSound());
-        AddMod(new ModAudio());
         AddMod(new ModScreenshot());
     }
-
     private void InitRenderer()
     {
         platform.GlClearColorRgbaf(0, 0, 0, 1);

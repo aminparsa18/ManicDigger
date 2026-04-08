@@ -293,7 +293,7 @@ public partial class Game
 
     private float accumulator;
     private readonly float[] modelViewInverted;
-    private readonly TaskScheduler taskScheduler;
+    private TaskScheduler taskScheduler;
 
     internal List<Action> commitActions;
 
@@ -304,7 +304,6 @@ public partial class Game
     public Game()
     {
         one = 1;
-        taskScheduler = new TaskScheduler();
         modelViewInverted = new float[16];
 
         InitCore();
@@ -327,19 +326,18 @@ public partial class Game
 
     private void InitCore()
     {
-        clientmods = new ModBase[128];
-        clientmodsCount = 0;
         performanceinfo = new();
         language = new Language();
         modmanager = new ClientModManager1();
         particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
-        commitActions = new List<Action>();
-        identityMatrix = Matrix4.Identity;
-        Set3dProjectionTempMat4 = Matrix4.Identity;
-        getAsset = new string[1024 * 2];
         ServerInfo = new ServerInformation();
         options = new OptionsCi();
+        getAsset = new string[1024 * 2];
+        identityMatrix = Matrix4.Identity;
+        Set3dProjectionTempMat4 = Matrix4.Identity;
         PlayerStats = new Packet_ServerPlayerStats();
+        taskScheduler = new TaskScheduler();
+        commitActions = new List<Action>();
     }
 
     private void InitMap()

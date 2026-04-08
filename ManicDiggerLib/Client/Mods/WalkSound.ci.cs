@@ -1,78 +1,55 @@
-﻿public class ModWalkSound : ModBase
+﻿/// <summary>
+/// Plays footstep sounds based on the block under the player and movement state.
+/// </summary>
+public class ModWalkSound : ModBase
 {
-    public ModWalkSound()
-    {
-        one = 1;
-        walksoundtimer = 0;
-        lastwalksound = 0;
-        stepsoundduration = one * 4 / 10;
-    }
-    private readonly float one;
+    private const float StepSoundDuration = 0.4f;
+    private const float RandomSoundChance = 40;
+
+    private float walkSoundTimer;
+    private int lastWalkSound;
+
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {
-        if (game.FollowId() == null)
-        {
-            if (game.soundnow)
-            {
-                UpdateWalkSound(game, -1);
-            }
-            if (game.isplayeronground && game.controls.movedx != 0 || game.controls.movedy != 0)
-            {
-                UpdateWalkSound(game, args.GetDt());
-            }
-        }
+        if (game.FollowId() != null) return;
+
+        if (game.soundnow)
+            UpdateWalkSound(game, StepSoundDuration / 2);
+
+        if (game.isplayeronground && (game.controls.movedx != 0 || game.controls.movedy != 0))
+            UpdateWalkSound(game, args.GetDt());
     }
+
     internal void UpdateWalkSound(Game game, float dt)
     {
-        if (dt == -1)
-        {
-            dt = stepsoundduration / 2;
-        }
-        walksoundtimer += dt;
-        string[] soundwalk = soundwalkcurrent(game);
-        if (GetSoundCount(soundwalk) == 0)
-        {
-            return;
-        }
-        if (walksoundtimer >= stepsoundduration)
-        {
-            walksoundtimer = 0;
-            lastwalksound++;
-            if (lastwalksound >= GetSoundCount(soundwalk))
-            {
-                lastwalksound = 0;
-            }
-            if ((game.rnd.Next() % 100) < 40)
-            {
-                lastwalksound = game.rnd.Next() % (GetSoundCount(soundwalk));
-            }
-            game.AudioPlay(soundwalk[lastwalksound]);
-        }
-    }
-    internal float walksoundtimer;
-    internal int lastwalksound;
-    internal float stepsoundduration;
+        walkSoundTimer += dt;
 
-    internal static string[] soundwalkcurrent(Game game)
+        string[] sounds = CurrentWalkSounds(game);
+        int soundCount = GetSoundCount(sounds);
+        if (soundCount == 0) return;
+
+        if (walkSoundTimer < StepSoundDuration) return;
+
+        walkSoundTimer = 0;
+        lastWalkSound = (lastWalkSound + 1) % soundCount;
+
+        if (game.rnd.Next() % 100 < RandomSoundChance)
+            lastWalkSound = game.rnd.Next() % soundCount;
+
+        game.AudioPlay(sounds[lastWalkSound]);
+    }
+
+    internal static string[] CurrentWalkSounds(Game game)
     {
         int b = game.BlockUnderPlayer();
-        if (b != -1)
-        {
-            return game.d_Data.WalkSound()[b];
-        }
-        return game.d_Data.WalkSound()[0];
+        return game.d_Data.WalkSound()[b != -1 ? b : 0];
     }
 
-    internal static int GetSoundCount(string[] soundwalk)
+    internal static int GetSoundCount(string[] sounds)
     {
         int count = 0;
         for (int i = 0; i < GameData.SoundCount; i++)
-        {
-            if (soundwalk[i] != null)
-            {
-                count++;
-            }
-        }
+            if (sounds[i] != null) count++;
         return count;
     }
 }

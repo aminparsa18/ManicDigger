@@ -1,12 +1,14 @@
 ﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
+/// <summary>
+/// Handles rendering and input for in-game dialogs (normal and modal).
+/// </summary>
 public class ModDialog : ModBase
 {
-    public ModDialog()
-    {
-        packetHandler = new ClientPacketHandlerDialog();
-    }
-    private readonly ClientPacketHandler packetHandler;
+    private static readonly string[] Empty = [];
+    private const string TypableChars = "abcdefghijklmnopqrstuvwxyz1234567890\t ";
+
+    private readonly ClientPacketHandler packetHandler = new ClientPacketHandlerDialog();
 
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {
@@ -18,59 +20,37 @@ public class ModDialog : ModBase
     {
         for (int i = 0; i < game.dialogsCount; i++)
         {
-            if (game.dialogs[i] == null)
-            {
-                continue;
-            }
             VisibleDialog d = game.dialogs[i];
-            int x = game.Width() / 2 - d.value.Width / 2;
-            int y = game.Height() / 2 - d.value.Height_ / 2;
-            d.screen.screenx = x;
-            d.screen.screeny = y;
+            if (d == null) continue;
+
+            d.screen.screenx = game.Width() / 2 - d.value.Width / 2;
+            d.screen.screeny = game.Height() / 2 - d.value.Height_ / 2;
             d.screen.DrawWidgets();
         }
     }
 
     public override void OnKeyPress(Game game, KeyPressEventArgs args)
     {
-        if (game.guistate != GuiState.ModalDialog
-            && game.guistate != GuiState.Normal)
-        {
-            return;
-        }
-        if (game.IsTyping)
-        {
-            // Do not handle key presses when chat is opened
-            return;
-        }
-        for (int i = 0; i < game.dialogsCount; i++)
-        {
-            if (game.dialogs[i] == null) { continue; }
-            game.dialogs[i].screen.OnKeyPress(game, args);
-        }
+        if (game.guistate != GuiState.ModalDialog && game.guistate != GuiState.Normal) return;
+        if (game.IsTyping) return;
+
+        ForEachDialog(game, d => d.screen.OnKeyPress(game, args));
+
         for (int k = 0; k < game.dialogsCount; k++)
         {
-            if (game.dialogs[k] == null)
-            {
-                continue;
-            }
             VisibleDialog d = game.dialogs[k];
+            if (d == null) continue;
+
             for (int i = 0; i < d.value.WidgetsCount; i++)
             {
                 Packet_Widget w = d.value.Widgets[i];
-                if (w == null)
+                if (w == null) continue;
+
+                // Only typeable characters are handled here; special characters use KeyDown
+                if (TypableChars.Contains(game.CharToString(w.ClickKey)) && args.GetKeyChar() == w.ClickKey)
                 {
-                    continue;
-                }
-                // Only typeable characters are handled by KeyPress (for special characters use KeyDown)
-                string valid = "abcdefghijklmnopqrstuvwxyz1234567890\t ";
-                if (valid.Contains(game.CharToString(w.ClickKey)))
-                {
-                    if (args.GetKeyChar() == w.ClickKey)
-                    {
-                        game.SendPacketClient(ClientPackets.DialogClick(w.Id, new string[0], 0));
-                        return;
-                    }
+                    game.SendPacketClient(ClientPackets.DialogClick(w.Id, Empty, 0));
+                    return;
                 }
             }
         }
@@ -78,83 +58,65 @@ public class ModDialog : ModBase
 
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
-        for (int i = 0; i < game.dialogsCount; i++)
+        ForEachDialog(game, d => d.screen.OnKeyDown(game, args));
+
+        bool isEsc = args.GetKeyCode() == game.GetKey(Keys.Escape);
+
+        if (game.guistate == GuiState.Normal && isEsc)
         {
-            if (game.dialogs[i] == null) { continue; }
-            game.dialogs[i].screen.OnKeyDown(game, args);
-        }
-        if (game.guistate == GuiState.Normal)
-        {
-            if (args.GetKeyCode() == game.GetKey(Keys.Escape))
+            for (int i = 0; i < game.dialogsCount; i++)
             {
-                for (int i = 0; i < game.dialogsCount; i++)
+                VisibleDialog d = game.dialogs[i];
+                if (d == null) continue;
+                if (d.value.IsModal != 0)
                 {
-                    if (game.dialogs[i] == null)
-                    {
-                        continue;
-                    }
-                    VisibleDialog d = game.dialogs[i];
-                    if (d.value.IsModal != 0)
-                    {
-                        game.dialogs[i] = null;
-                        return;
-                    }
+                    game.dialogs[i] = null;
+                    return;
                 }
-                game.ShowEscapeMenu();
-                args.SetHandled(true);
-                return;
             }
+            game.ShowEscapeMenu();
+            args.SetHandled(true);
+            return;
         }
+
         if (game.guistate == GuiState.ModalDialog)
         {
-            // Close modal dialogs when pressing ESC key
-            if (args.GetKeyCode() == game.GetKey(Keys.Escape))
+            if (isEsc)
             {
+                // Close all modal dialogs
                 for (int i = 0; i < game.dialogsCount; i++)
                 {
-                    if (game.dialogs[i] == null) { continue; }
-                    if (game.dialogs[i].value.IsModal != 0)
-                    {
+                    if (game.dialogs[i]?.value.IsModal != 0)
                         game.dialogs[i] = null;
-                    }
                 }
-                game.SendPacketClient(ClientPackets.DialogClick("Esc", new string[0], 0));
+                game.SendPacketClient(ClientPackets.DialogClick("Esc", Empty, 0));
                 game.GuiStateBackToGame();
                 args.SetHandled(true);
             }
-            // Handle TAB key
-            if (args.GetKeyCode() == game.GetKey(Keys.Tab))
+            else if (args.GetKeyCode() == game.GetKey(Keys.Tab))
             {
-                game.SendPacketClient(ClientPackets.DialogClick("Tab", new string[0], 0));
+                game.SendPacketClient(ClientPackets.DialogClick("Tab", Empty, 0));
                 args.SetHandled(true);
             }
-            return;
-        }
-    }
-    public override void OnKeyUp(Game game, KeyEventArgs args)
-    {
-        for (int i = 0; i < game.dialogsCount; i++)
-        {
-            if (game.dialogs[i] == null) { continue; }
-            game.dialogs[i].screen.OnKeyUp(game, args);
         }
     }
 
-    public override void OnMouseDown(Game game, MouseEventArgs args)
-    {
-        for (int i = 0; i < game.dialogsCount; i++)
-        {
-            if (game.dialogs[i] == null) { continue; }
-            game.dialogs[i].screen.OnMouseDown(game, args);
-        }
-    }
+    public override void OnKeyUp(Game game, KeyEventArgs args) =>
+        ForEachDialog(game, d => d.screen.OnKeyUp(game, args));
 
-    public override void OnMouseUp(Game game, MouseEventArgs args)
+    public override void OnMouseDown(Game game, MouseEventArgs args) =>
+        ForEachDialog(game, d => d.screen.OnMouseDown(game, args));
+
+    public override void OnMouseUp(Game game, MouseEventArgs args) =>
+        ForEachDialog(game, d => d.screen.OnMouseUp(game, args));
+
+    /// <summary>Iterates all non-null dialogs and applies an action to each.</summary>
+    private static void ForEachDialog(Game game, Action<VisibleDialog> action)
     {
         for (int i = 0; i < game.dialogsCount; i++)
         {
-            if (game.dialogs[i] == null) { continue; }
-            game.dialogs[i].screen.OnMouseUp(game, args);
+            if (game.dialogs[i] != null)
+                action(game.dialogs[i]);
         }
     }
 }

@@ -182,15 +182,15 @@ public class ModDraw2dMisc : ModBase
         {
             float heading = one * game.HeadingByte(game.player.position.rotx, game.player.position.roty, game.player.position.rotz);
             float pitch = one * game.PitchByte(game.player.position.rotx, game.player.position.roty, game.player.position.rotz);
-            string postext = string.Format("X: {0}", game.MathFloor(game.player.position.x).ToString());
+            string postext = string.Format("X: {0}", MathF.Floor(game.player.position.x).ToString());
             postext = string.Concat(postext, ",\tY: ");
-            postext = string.Concat(postext, game.MathFloor(game.player.position.z).ToString());
+            postext = string.Concat(postext, MathF.Floor(game.player.position.z).ToString());
             postext = string.Concat(postext, ",\tZ: ");
-            postext = string.Concat(postext, game.MathFloor(game.player.position.y).ToString());
+            postext = string.Concat(postext, MathF.Floor(game.player.position.y).ToString());
             postext = string.Concat(postext, "\nHeading: ");
-            postext = string.Concat(postext, game.MathFloor(heading).ToString());
+            postext = string.Concat(postext, MathF.Floor(heading).ToString());
             postext = string.Concat(postext, "\nPitch: ");
-            postext = string.Concat(postext, game.MathFloor(pitch).ToString());
+            postext = string.Concat(postext, MathF.Floor(pitch).ToString());
             FontCi font = new()
             {
                 family = "Arial",

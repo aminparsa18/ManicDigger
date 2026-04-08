@@ -1,15 +1,17 @@
-﻿public class ModSendActiveMaterial : ModBase
+﻿/// <summary>
+/// Notifies the server when the player's active material slot changes.
+/// </summary>
+public class ModSendActiveMaterial : ModBase
 {
-    internal int PreviousActiveMaterialBlock;
+    private int previousActiveMaterialBlock;
+
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {
-        Packet_Item activeitem = game.d_Inventory.RightHand[game.ActiveMaterial];
-        int activeblock = 0;
-        if (activeitem != null) { activeblock = activeitem.BlockId; }
-        if (activeblock != PreviousActiveMaterialBlock)
-        {
+        int activeBlock = game.d_Inventory.RightHand[game.ActiveMaterial]?.BlockId ?? 0;
+
+        if (activeBlock != previousActiveMaterialBlock)
             game.SendPacketClient(ClientPackets.ActiveMaterialSlot(game.ActiveMaterial));
-        }
-        PreviousActiveMaterialBlock = activeblock;
+
+        previousActiveMaterialBlock = activeBlock;
     }
 }

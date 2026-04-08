@@ -22,10 +22,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
     public override void Handle(Game game, Packet_Server packet)
     {
         Entity entity = game.entities[packet.EntitySpawn.Id];
-        if (entity == null)
-        {
-            entity = new Entity();
-        }
+        entity ??= new Entity();
         ToClientEntity(game, packet.EntitySpawn.Entity_, entity, packet.EntitySpawn.Id != game.LocalPlayerId);
         game.entities[packet.EntitySpawn.Id] = entity;
         if (packet.EntitySpawn.Id == game.LocalPlayerId)

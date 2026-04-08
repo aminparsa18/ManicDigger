@@ -623,8 +623,8 @@ public class ModPicking : ModBase
 
     internal void OnPick(Game game, int blockposX, int blockposY, int blockposZ, int blockposoldX, int blockposoldY, int blockposoldZ, Vector3 collisionPos, bool right)
     {
-        float xfract = collisionPos[0] - game.MathFloor(collisionPos[0]);
-        float zfract = collisionPos[2] - game.MathFloor(collisionPos[2]);
+        float xfract = collisionPos[0] - MathF.Floor(collisionPos[0]);
+        float zfract = collisionPos[2] - MathF.Floor(collisionPos[2]);
         int activematerial = game.MaterialSlots_(game.ActiveMaterial);
         int railstart = game.d_Data.BlockIdRailstart();
         if (activematerial == railstart + RailDirectionFlags.TwoHorizontalVertical

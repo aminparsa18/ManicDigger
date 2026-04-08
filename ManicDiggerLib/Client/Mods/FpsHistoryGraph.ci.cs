@@ -1,37 +1,31 @@
-﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
-
+﻿/// <summary>
+/// Displays an FPS counter and frame-time history graph. Toggle with F7 or the "fps" command.
+/// </summary>
 public class ModFpsHistoryGraph : ModBase
 {
-    public ModFpsHistoryGraph()
-    {
-        one = 1;
-        drawfpstext = false;
-        drawfpsgraph = false;
-        dtHistory = new float[MaxCount];
-        for (int i = 0; i < MaxCount; i++)
-        {
-            dtHistory[i] = 0;
-        }
-        todraw = new Draw2dData[MaxCount];
-        for (int i = 0; i < MaxCount; i++)
-        {
-            todraw[i] = new Draw2dData();
-        }
-    }
+    private const int MaxCount = 300;
+    private const int ChatFontSize = 11;
+    private const int GraphHeight = 80;
+    private const int GraphPosX = 25;
+    private const int PerLine = 2;
 
-    private readonly float one;
-    private int lasttitleupdateMilliseconds;
-    private int fpscount;
-    private string fpstext;
-    private float longestframedt;
+    private ClientModManager m;
+    private readonly float[] dtHistory = new float[MaxCount];
+    private readonly Draw2dData[] todraw = new Draw2dData[MaxCount];
+
+    private int lasttitleUpdateMilliseconds;
+    private int fpsCount;
+    private string fpsText;
+    private float longestFrameDt;
+    private bool drawFpsText;
+    private bool drawFpsGraph;
 
     public override void Start(ClientModManager modmanager)
     {
         m = modmanager;
+        for (int i = 0; i < MaxCount; i++)
+            todraw[i] = new Draw2dData();
     }
-    private readonly float[] dtHistory;
-    private const int MaxCount = 300;
-    private ClientModManager m;
 
     public override void OnNewFrame(Game game, NewFrameEventArgs args)
     {
@@ -41,165 +35,117 @@ public class ModFpsHistoryGraph : ModBase
         Draw();
     }
 
-    private void UpdateTitleFps(float dt)
-    {
-        GamePlatform p = m.GetPlatform();
-        fpscount++;
-        longestframedt = Math.Max(longestframedt, dt);
-        float elapsed = one * (p.TimeMillisecondsFromStart() - lasttitleupdateMilliseconds) / 1000;
-        if (elapsed >= 1)
-        {
-            string fpstext1 = "";
-            lasttitleupdateMilliseconds = p.TimeMillisecondsFromStart();
-            fpstext1 = string.Concat( fpstext1, string.Format("FPS: {0}", ((int)((one * fpscount) / elapsed)).ToString()));
-            fpstext1 = string.Concat(fpstext1, string.Format(" (min: {0})", ((int)(one / longestframedt)).ToString()));
-            longestframedt = 0;
-            fpscount = 0;
-            m.GetPerformanceInfo()["fps"] = fpstext1;
-
-            string s = "";
-            string[] l = new string[64];
-            int lCount = 0;
-            foreach (string value in m.GetPerformanceInfo().Values)
-            {
-                l[lCount++] = value;
-            }
-
-            int perline = 2;
-            for (int i = 0; i < lCount; i++)
-            {
-                s = string.Concat(s, l[i]);
-                if ((i % perline == 0) && (i != lCount - 1))
-                {
-                    s = string.Concat(s, ", ");
-                }
-                if (i % perline != 0)
-                {
-                    s = string.Concat(s, "\n");
-                }
-            }
-            fpstext = s;
-        }
-    }
-
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
         if (args.GetKeyCode() == (int)Keys.F7)
         {
-            if (!drawfpsgraph)
-            {
-                drawfpstext = true;
-                drawfpsgraph = true;
-            }
-            else
-            {
-                drawfpstext = false;
-                drawfpsgraph = false;
-            }
+            drawFpsText = !drawFpsGraph;
+            drawFpsGraph = !drawFpsGraph;
         }
     }
-
-    private bool drawfpstext;
-    private bool drawfpsgraph;
 
     public override bool OnClientCommand(Game game, ClientCommandArgs args)
     {
-        if (args.command == "fps")
+        if (args.command != "fps") return false;
+
+        string arg = args.arguments.Trim();
+        (drawFpsText, drawFpsGraph) = arg switch
         {
-            string[] arguments = args.arguments.Split(" ");
-            if (args.arguments.Trim() == "")
-            {
-                drawfpstext = true;
-            }
-            else if (arguments[0] == "1")
-            {
-                drawfpstext = true;
-                drawfpsgraph = false;
-            }
-            else if (arguments[0] == "2")
-            {
-                drawfpstext = true;
-                drawfpsgraph = true;
-            }
-            else
-            {
-                drawfpstext = false;
-                drawfpsgraph = false;
-            }
-            return true;
-        }
-        return false;
+            "" => (true, false),
+            "1" => (true, false),
+            "2" => (true, true),
+            _ => (false, false)
+        };
+        return true;
     }
 
+    /// <summary>Shifts frame-time history left and appends the latest dt.</summary>
     private void UpdateGraph(float dt)
     {
-        for (int i = 0; i < MaxCount - 1; i++)
-        {
-            dtHistory[i] = dtHistory[i + 1];
-        }
+        Array.Copy(dtHistory, 1, dtHistory, 0, MaxCount - 1);
         dtHistory[MaxCount - 1] = dt;
+    }
+
+    /// <summary>Updates the FPS counter and performance info string once per second.</summary>
+    private void UpdateTitleFps(float dt)
+    {
+        GamePlatform p = m.GetPlatform();
+        fpsCount++;
+        longestFrameDt = Math.Max(longestFrameDt, dt);
+
+        int now = p.TimeMillisecondsFromStart();
+        float elapsed = (now - lasttitleUpdateMilliseconds) / 1000f;
+        if (elapsed < 1f) return;
+
+        lasttitleUpdateMilliseconds = now;
+
+        int fps = (int)(fpsCount / elapsed);
+        int minFps = (int)(1f / longestFrameDt);
+        longestFrameDt = 0;
+        fpsCount = 0;
+
+        m.GetPerformanceInfo()["fps"] = $"FPS: {fps} (min: {minFps})";
+
+        var sb = new System.Text.StringBuilder();
+        int idx = 0;
+        foreach (string value in m.GetPerformanceInfo().Values)
+        {
+            sb.Append(value);
+            if (idx % PerLine == 0 && idx != m.GetPerformanceInfo().Count - 1)
+                sb.Append(", ");
+            else if (idx % PerLine != 0)
+                sb.Append('\n');
+            idx++;
+        }
+        fpsText = sb.ToString();
     }
 
     private void Draw()
     {
-        if (drawfpsgraph || drawfpstext)
-        {
-            m.OrthoMode();
-            if (drawfpsgraph)
-            {
-                DrawGraph();
-            }
-            if (drawfpstext)
-            {
-                m.Draw2dText(fpstext, 20, 20, ChatFontSize);
-            }
-            m.PerspectiveMode();
-        }
+        if (!drawFpsGraph && !drawFpsText) return;
+
+        m.OrthoMode();
+        if (drawFpsGraph) DrawGraph();
+        if (drawFpsText) m.Draw2dText(fpsText, 20, 20, ChatFontSize);
+        m.PerspectiveMode();
     }
 
-    private readonly Draw2dData[] todraw;
     private void DrawGraph()
     {
-        float maxtime = 0;
-        for (int i = 0; i < MaxCount; i++)
-        {
-            float v = dtHistory[i];
-            if (v > maxtime)
-            {
-                maxtime = v;
-            }
-        }
-        int historyheight = 80;
-        int posx = 25;
-        int posy = m.GetWindowHeight() - historyheight - 20;
-        int[] colors = new int[2];
-        colors[0] = Game.ColorFromArgb(255, 0, 0, 0);
-        colors[1] = Game.ColorFromArgb(255, 255, 0, 0);
-        int linecolor = Game.ColorFromArgb(255, 255, 255, 255);
+        int posx = GraphPosX;
+        int posy = m.GetWindowHeight() - GraphHeight - 20;
+
+        int[] colors =
+        [
+            Game.ColorFromArgb(255, 0,   0, 0),
+            Game.ColorFromArgb(255, 255, 0, 0)
+        ];
+        int lineColor = Game.ColorFromArgb(255, 255, 255, 255);
 
         for (int i = 0; i < MaxCount; i++)
         {
-            float time = dtHistory[i];
-            time = (time * 60) * historyheight;
-            int c = InterpolationCi.InterpolateColor(m.GetPlatform(), (one * i) / MaxCount, colors, 2);
+            float barHeight = dtHistory[i] * 60 * GraphHeight;
+            int color = InterpolationCi.InterpolateColor(m.GetPlatform(), (float)i / MaxCount, colors, 2);
             todraw[i].x1 = posx + i;
-            todraw[i].y1 = posy - time;
+            todraw[i].y1 = posy - barHeight;
             todraw[i].width = 1;
-            todraw[i].height = time;
+            todraw[i].height = barHeight;
             todraw[i].inAtlasId = -1;
-            todraw[i].color = c;
+            todraw[i].color = color;
         }
         m.Draw2dTextures(todraw, MaxCount, m.WhiteTexture());
 
-        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight, MaxCount, 1, -1, linecolor);
-        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight * (one * 60 / 75), MaxCount, 1, -1, linecolor);
-        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight * (one * 60 / 30), MaxCount, 1, -1, linecolor);
-        m.Draw2dTexture(m.WhiteTexture(), posx, posy - historyheight * (one * 60 / 150), MaxCount, 1, -1, linecolor);
-        m.Draw2dText("60", posx, posy - historyheight * (one * 60 / 60), 6);
-        m.Draw2dText("75", posx, posy - historyheight * (one * 60 / 75), 6);
-        m.Draw2dText("30", posx, posy - historyheight * (one * 60 / 30), 6);
-        m.Draw2dText("150", posx, posy - historyheight * (one * 60 / 150), 6);
+        // Reference FPS lines
+        DrawFpsLine(posy, 60, lineColor);
+        DrawFpsLine(posy, 75, lineColor);
+        DrawFpsLine(posy, 30, lineColor);
+        DrawFpsLine(posy, 150, lineColor);
     }
 
-    private const int ChatFontSize = 11;
+    private void DrawFpsLine(int posy, int fps, int color)
+    {
+        float y = posy - GraphHeight * (60f / fps);
+        m.Draw2dTexture(m.WhiteTexture(), GraphPosX, y, MaxCount, 1, -1, color);
+        m.Draw2dText(fps.ToString(), GraphPosX, y, 6);
+    }
 }

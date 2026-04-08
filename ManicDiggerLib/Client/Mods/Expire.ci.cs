@@ -1,81 +1,76 @@
-﻿public class ModExpire : ModBase
+﻿/// <summary>
+/// Removes entities when their lifetime expires, triggering grenade explosions where applicable.
+/// </summary>
+public class ModExpire : ModBase
 {
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {
+        float dt = args.GetDt();
         for (int i = 0; i < game.entitiesCount; i++)
         {
             Entity entity = game.entities[i];
-            if (entity == null) { continue; }
-            if (entity.expires == null) { continue; }
-            entity.expires.timeLeft -= args.GetDt();
-            if (entity.expires.timeLeft <= 0)
-            {
-                if (entity.grenade != null)
-                {
-                    GrenadeExplosion(game, i);
-                }
-                game.entities[i] = null;
-            }
+            if (entity?.expires == null) continue;
+
+            entity.expires.timeLeft -= dt;
+            if (entity.expires.timeLeft > 0) continue;
+
+            if (entity.grenade != null)
+                GrenadeExplosion(game, i);
+
+            game.entities[i] = null;
         }
     }
 
     private static void GrenadeExplosion(Game game, int grenadeEntityId)
     {
-        float LocalPlayerPositionX = game.player.position.x;
-        float LocalPlayerPositionY = game.player.position.y;
-        float LocalPlayerPositionZ = game.player.position.z;
-
         Entity grenadeEntity = game.entities[grenadeEntityId];
-        Sprite grenadeSprite = grenadeEntity.sprite;
+        Sprite sprite = grenadeEntity.sprite;
         Grenade_ grenade = grenadeEntity.grenade;
+        var blockType = game.blocktypes[grenade.block];
 
-        game.AudioPlayAt("grenadeexplosion.ogg", grenadeSprite.positionX, grenadeSprite.positionY, grenadeSprite.positionZ);
+        float posX = sprite.positionX;
+        float posY = sprite.positionY;
+        float posZ = sprite.positionZ;
 
+        game.AudioPlayAt("grenadeexplosion.ogg", posX, posY, posZ);
+
+        // Spawn explosion animation sprite
+        game.EntityAddLocal(new Entity
         {
-            Entity entity = new();
-
-            Sprite spritenew = new()
+            sprite = new Sprite
             {
                 image = "ani5.png",
-                positionX = grenadeSprite.positionX,
-                positionY = grenadeSprite.positionY + 1,
-                positionZ = grenadeSprite.positionZ,
+                positionX = posX,
+                positionY = posY + 1,
+                positionZ = posZ,
                 size = 200,
                 animationcount = 4
-            };
+            },
+            expires = Expires.Create(1)
+        });
 
-            entity.sprite = spritenew;
-            entity.expires = Expires.Create(1);
-            game.EntityAddLocal(entity);
-        }
+        // Spawn explosion push entity
+        float explosionTime = game.DeserializeFloat(blockType.ExplosionTimeFloat);
+        float explosionRange = game.DeserializeFloat(blockType.ExplosionRangeFloat);
 
+        game.EntityAddLocal(new Entity
         {
-            Packet_ServerExplosion explosion = new()
+            push = new Packet_ServerExplosion
             {
-                XFloat = game.SerializeFloat(grenadeSprite.positionX),
-                YFloat = game.SerializeFloat(grenadeSprite.positionZ),
-                ZFloat = game.SerializeFloat(grenadeSprite.positionY),
-                RangeFloat = game.blocktypes[grenade.block].ExplosionRangeFloat,
+                XFloat = game.SerializeFloat(posX),
+                YFloat = game.SerializeFloat(posZ),
+                ZFloat = game.SerializeFloat(posY),
+                RangeFloat = blockType.ExplosionRangeFloat,
                 IsRelativeToPlayerPosition = 0,
-                TimeFloat = game.blocktypes[grenade.block].ExplosionTimeFloat
-            };
+                TimeFloat = blockType.ExplosionTimeFloat
+            },
+            expires = new Expires { timeLeft = explosionTime }
+        });
 
-            Entity entity = new()
-            {
-                push = explosion,
-                expires = new Expires
-                {
-                    timeLeft = game.DeserializeFloat(game.blocktypes[grenade.block].ExplosionTimeFloat)
-                }
-            };
-            game.EntityAddLocal(entity);
-        }
-
-        float dist = game.Dist(LocalPlayerPositionX, LocalPlayerPositionY, LocalPlayerPositionZ, grenadeSprite.positionX, grenadeSprite.positionY, grenadeSprite.positionZ);
-        float dmg = (1 - dist / game.DeserializeFloat(game.blocktypes[grenade.block].ExplosionRangeFloat)) * game.DeserializeFloat(game.blocktypes[grenade.block].DamageBodyFloat);
+        // Apply damage to local player based on distance
+        float dist = game.Dist(game.player.position.x, game.player.position.y, game.player.position.z, posX, posY, posZ);
+        float dmg = (1f - dist / explosionRange) * game.DeserializeFloat(blockType.DamageBodyFloat);
         if (dmg > 0)
-        {
-            game.ApplyDamageToPlayer((int)(dmg), Packet_DeathReasonEnum.Explosion, grenade.sourcePlayer);
-        }
+            game.ApplyDamageToPlayer((int)dmg, Packet_DeathReasonEnum.Explosion, grenade.sourcePlayer);
     }
 }

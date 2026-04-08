@@ -1,94 +1,92 @@
-﻿public class ModGuiMapLoading : ModBase
+﻿/// <summary>
+/// Renders the map loading screen including background, server info, connection status, and progress bar.
+/// </summary>
+public class ModGuiMapLoading : ModBase
 {
-    private int Width;
-    private int Height;
-    private int backgroundW;
-    private int backgroundH;
+    private const int BackgroundTileSize = 512;
+    private const int ProgressBarWidth = 400;
+    private const int ProgressBarHeight = 40;
+    private const int FontSize = 14;
+
+    private static readonly int[] ProgressBarColors =
+    [
+        Game.ColorFromArgb(255, 255, 0,   0),  // red
+        Game.ColorFromArgb(255, 255, 255, 0),  // yellow
+        Game.ColorFromArgb(255, 0,   255, 0),  // green
+    ];
 
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {
-        if (game.guistate != GuiState.MapLoading)
-        {
-            return;
-        }
+        if (game.guistate != GuiState.MapLoading) return;
 
         GamePlatform platform = game.platform;
-        float one = 1;
+        int width = platform.GetCanvasWidth();
+        int height = platform.GetCanvasHeight();
+        int centerY = height / 2;
 
-        Width = platform.GetCanvasWidth();
-        Height = platform.GetCanvasHeight();
-        DrawBackground(game);
-
-        string connecting = game.language.Connecting();
-        if (game.issingleplayer && (!platform.SinglePlayerServerLoaded()))
-        {
-            connecting = "Starting game...";
-        }
-        if (game.maploadingprogress.ProgressStatus != null)
-        {
-            connecting = game.maploadingprogress.ProgressStatus;
-        }
+        DrawBackground(game, width, height);
 
         if (game.invalidVersionDrawMessage != null)
         {
-            game.Draw2dText(game.invalidVersionDrawMessage, game.fontMapLoading, game.xcenter(game.TextSizeWidth(game.invalidVersionDrawMessage, 14)), Height / 2 - 50, null, false);
-            string connect = "Click to connect";
-            game.Draw2dText(connect, game.fontMapLoading, game.xcenter(game.TextSizeWidth(connect, 14)), Height / 2 + 50, null, false);
+            DrawCentered(game, game.invalidVersionDrawMessage, centerY - 50);
+            DrawCentered(game, "Click to connect", centerY + 50);
             return;
         }
 
-        platform.TextSize(game.ServerInfo.ServerName, 14, out int serverNameWidth, out int serverNameHeight);
-        game.Draw2dText(game.ServerInfo.ServerName, game.fontMapLoading, game.xcenter(serverNameWidth), Height / 2 - 150, null, false);
+        string status = GetConnectionStatus(game, platform);
+
+        DrawCentered(game, game.ServerInfo.ServerName, centerY - 150);
 
         if (game.ServerInfo.ServerMotd != null)
-        {
-            platform.TextSize(game.ServerInfo.ServerMotd, 14, out int serverMotdWidth, out int serverMotdHeight);
-            game.Draw2dText(game.ServerInfo.ServerMotd, game.fontMapLoading, game.xcenter(serverMotdWidth), Height / 2 - 100, null, false);
-        }
+            DrawCentered(game, game.ServerInfo.ServerMotd, centerY - 100);
 
-        platform.TextSize(connecting, 14, out int connectingWidth, out int connectingHeight);
-        game.Draw2dText(connecting, game.fontMapLoading, game.xcenter(connectingWidth), Height / 2 - 50, null, false);
+        DrawCentered(game, status, centerY - 50);
 
+        if (game.maploadingprogress.ProgressPercent > 0)
+            DrawProgress(game, platform, width, height, centerY);
+    }
+
+    private static string GetConnectionStatus(Game game, GamePlatform platform)
+    {
+        if (game.maploadingprogress.ProgressStatus != null)
+            return game.maploadingprogress.ProgressStatus;
+        if (game.issingleplayer && !platform.SinglePlayerServerLoaded())
+            return "Starting game...";
+        return game.language.Connecting();
+    }
+
+    private void DrawProgress(Game game, GamePlatform platform, int width, int height, int centerY)
+    {
         string progress = string.Format(game.language.ConnectingProgressPercent(), game.maploadingprogress.ProgressPercent.ToString());
         string progress1 = string.Format(game.language.ConnectingProgressKilobytes(), (game.maploadingprogress.ProgressBytes / 1024).ToString());
 
-        if (game.maploadingprogress.ProgressPercent > 0)
-        {
-            platform.TextSize(progress, 14, out int progressWidth, out int progressHeight);
-            game.Draw2dText(progress, game.fontMapLoading, game.xcenter(progressWidth), Height / 2 - 20, null, false);
+        DrawCentered(game, progress, centerY - 20);
+        DrawCentered(game, progress1, centerY + 10);
 
-            platform.TextSize(progress1, 14, out int progress1Width, out int progress1Height);
-            game.Draw2dText(progress1, game.fontMapLoading, game.xcenter(progress1Width), Height / 2 + 10, null, false);
+        float ratio = game.maploadingprogress.ProgressPercent / 100f;
+        int barX = game.xcenter(ProgressBarWidth);
+        int barY = centerY + 70;
+        int color = InterpolationCi.InterpolateColor(platform, ratio, ProgressBarColors, ProgressBarColors.Length);
 
-            float progressratio = one * game.maploadingprogress.ProgressPercent / 100;
-            int sizex = 400;
-            int sizey = 40;
-            game.Draw2dTexture(game.WhiteTexture(), game.xcenter(sizex), Height / 2 + 70, sizex, sizey, null, 0, Game.ColorFromArgb(255, 0, 0, 0), false);
-            int red = Game.ColorFromArgb(255, 255, 0, 0);
-            int yellow = Game.ColorFromArgb(255, 255, 255, 0);
-            int green = Game.ColorFromArgb(255, 0, 255, 0);
-            int[] colors = new int[3];
-            colors[0] = red;
-            colors[1] = yellow;
-            colors[2] = green;
-            int c = InterpolationCi.InterpolateColor(platform, progressratio, colors, 3);
-            game.Draw2dTexture(game.WhiteTexture(), game.xcenter(sizex), Height / 2 + 70, progressratio * sizex, sizey, null, 0, c, false);
-        }
+        game.Draw2dTexture(game.WhiteTexture(), barX, barY, ProgressBarWidth, ProgressBarHeight, null, 0, Game.ColorFromArgb(255, 0, 0, 0), false);
+        game.Draw2dTexture(game.WhiteTexture(), barX, barY, ratio * ProgressBarWidth, ProgressBarHeight, null, 0, color, false);
     }
 
-    private void DrawBackground(Game game)
+    private void DrawCentered(Game game, string text, int y)
     {
-        backgroundW = 512;
-        backgroundH = 512;
-        //Background tiling
-        int countX = (int)(Width / backgroundW) + 1;
-        int countY = (int)(Height / backgroundH) + 1;
+        game.platform.TextSize(text, FontSize, out int textWidth, out _);
+        game.Draw2dText(text, game.fontMapLoading, game.xcenter(textWidth), y, null, false);
+    }
+
+    private static void DrawBackground(Game game, int width, int height)
+    {
+        int countX = width / BackgroundTileSize + 1;
+        int countY = height / BackgroundTileSize + 1;
+        int tex = game.GetTexture("background.png");
+        int white = Game.ColorFromArgb(255, 255, 255, 255);
+
         for (int x = 0; x < countX; x++)
-        {
             for (int y = 0; y < countY; y++)
-            {
-                game.Draw2dTexture(game.GetTexture("background.png"), x * backgroundW, y * backgroundH, backgroundW, backgroundH, null, 0, Game.ColorFromArgb(255, 255, 255, 255), false);
-            }
-        }
+                game.Draw2dTexture(tex, x * BackgroundTileSize, y * BackgroundTileSize, BackgroundTileSize, BackgroundTileSize, null, 0, white, false);
     }
 }

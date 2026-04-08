@@ -1,27 +1,22 @@
-﻿public class ModClearInactivePlayersDrawInfo : ModBase
+﻿/// <summary>
+/// Clears draw info for players who have not sent a network update in over 2 seconds.
+/// </summary>
+public class ModClearInactivePlayersDrawInfo : ModBase
 {
-    private const int maxplayers = 64;
+    private const int MaxPlayers = 64;
+    private const float InactiveThresholdSeconds = 2f;
+
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {
-        float one = 1;
         int now = game.platform.TimeMillisecondsFromStart();
-        for (int i = 0; i < maxplayers; i++)
+
+        for (int i = 0; i < MaxPlayers; i++)
         {
-            if (game.entities[i] == null)
-            {
-                continue;
-            }
-            if (game.entities[i].playerDrawInfo == null)
-            {
-                continue;
-            }
-            if (game.entities[i].networkPosition == null)
-            {
-                continue;
-            }
-            int kKey = i;
             Entity p = game.entities[i];
-            if ((one * (now - p.networkPosition.LastUpdateMilliseconds) / 1000) > 2)
+            if (p?.playerDrawInfo == null || p.networkPosition == null) continue;
+
+            float secondsSinceUpdate = (now - p.networkPosition.LastUpdateMilliseconds) / 1000f;
+            if (secondsSinceUpdate > InactiveThresholdSeconds)
             {
                 p.playerDrawInfo = null;
                 p.networkPosition.PositionLoaded = false;

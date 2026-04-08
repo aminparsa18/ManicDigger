@@ -1,31 +1,32 @@
-﻿public class ModDebugChunk : ModBase
+﻿/// <summary>
+/// Debug mod that toggles a wireframe outline around the chunk the player is currently in.
+/// Toggle with the "chunk" client command.
+/// </summary>
+public class ModDebugChunk : ModBase
 {
-    public ModDebugChunk()
-    {
-        draw = false;
-        lines = new DrawWireframeCube();
-    }
-
     private bool draw;
-    private readonly DrawWireframeCube lines;
+    private readonly DrawWireframeCube lines = new();
 
     public override bool OnClientCommand(Game game, ClientCommandArgs args)
     {
-        if (args.command == "chunk")
-        {
-            draw = !draw;
-            return true;
-        }
-        return false;
+        if (args.command != "chunk") return false;
+        draw = !draw;
+        return true;
     }
 
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
-        if (draw)
-        {
-            lines.DrawWireframeCube_(game, (int)(game.player.position.x / Game.chunksize) * Game.chunksize + 8,
-                (int)(game.player.position.y / Game.chunksize) * Game.chunksize + Game.chunksize / 2,
-                (int)(game.player.position.z / Game.chunksize) * Game.chunksize + Game.chunksize / 2, Game.chunksize, Game.chunksize, Game.chunksize);
-        }
+        if (!draw) return;
+
+        int cs = Game.chunksize;
+        int cx = (int)(game.player.position.x / cs) * cs;
+        int cy = (int)(game.player.position.y / cs) * cs;
+        int cz = (int)(game.player.position.z / cs) * cs;
+
+        lines.DrawWireframeCube_(game,
+            cx + cs / 2,
+            cy + cs / 2,
+            cz + cs / 2,
+            cs, cs, cs);
     }
 }

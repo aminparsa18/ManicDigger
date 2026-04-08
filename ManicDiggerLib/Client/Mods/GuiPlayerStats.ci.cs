@@ -1,49 +1,37 @@
-﻿public class ModGuiPlayerStats : ModBase
+﻿/// <summary>
+/// Renders the player's health and oxygen bars on the HUD.
+/// </summary>
+public class ModGuiPlayerStats : ModBase
 {
+    private const int BarWidth = 220;
+    private const int BarHeight = 32;
+    private const int CenterOffset = 20;
+
+    private static readonly int White = Game.ColorFromArgb(255, 255, 255, 255);
+    private static readonly int Red = Game.ColorFromArgb(255, 255, 0, 0);
+    private static readonly int Blue = Game.ColorFromArgb(255, 0, 0, 255);
+
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {
-        healthPosX = game.Width() / 2 - baseSizeX - centerOffset;
-        healthPosY = game.Height() - 122;
-        oxygenPosX = game.Width() / 2 + centerOffset;
-        oxygenPosY = game.Height() - 122;
+        if (game.guistate == GuiState.MapLoading || game.PlayerStats == null) return;
 
-        if (game.guistate != GuiState.MapLoading)
-        {
-            DrawPlayerHealth(game);
-            DrawPlayerOxygen(game);
-        }
+        int barY = game.Height() - 122;
+        int healthX = game.Width() / 2 - BarWidth - CenterOffset;
+        int oxygenX = game.Width() / 2 + CenterOffset;
+
+        DrawBar(game, healthX, barY, (float)game.PlayerStats.CurrentHealth / game.PlayerStats.MaxHealth, Red);
+
+        if (game.PlayerStats.CurrentOxygen < game.PlayerStats.MaxOxygen)
+            DrawBar(game, oxygenX, barY, (float)game.PlayerStats.CurrentOxygen / game.PlayerStats.MaxOxygen, Blue);
     }
 
-    //Sizes of Health/Oxygen bar
-    private const int baseSizeX = 220;
-    private const int baseSizeY = 32;
-    private const int centerOffset = 20;
-
-    private int healthPosX;
-    private int healthPosY;
-    private int oxygenPosX;
-    private int oxygenPosY;
-
-    public void DrawPlayerHealth(Game game)
+    /// <summary>Draws a background + filled progress bar at the given position.</summary>
+    private static void DrawBar(Game game, int x, int y, float progress, int color)
     {
-        if (game.PlayerStats != null)
-        {
-            float progress = game.one * game.PlayerStats.CurrentHealth / game.PlayerStats.MaxHealth;
-            game.Draw2dTexture(game.GetTexture("ui_bar_background.png"), healthPosX, healthPosY, baseSizeX, baseSizeY, null, 0, Game.ColorFromArgb(255, 255, 255, 255), false);
-            game.Draw2dTexturePart(game.GetTexture("ui_bar_inner.png"), progress, 1, healthPosX, healthPosY, (progress) * baseSizeX, baseSizeY, Game.ColorFromArgb(255, 255, 0, 0), false);
-        }
-    }
+        int bgTex = game.GetTexture("ui_bar_background.png");
+        int barTex = game.GetTexture("ui_bar_inner.png");
 
-    public void DrawPlayerOxygen(Game game)
-    {
-        if (game.PlayerStats != null)
-        {
-            if (game.PlayerStats.CurrentOxygen < game.PlayerStats.MaxOxygen)
-            {
-                float progress = game.one * game.PlayerStats.CurrentOxygen / game.PlayerStats.MaxOxygen;
-                game.Draw2dTexture(game.GetTexture("ui_bar_background.png"), oxygenPosX, oxygenPosY, baseSizeX, baseSizeY, null, 0, Game.ColorFromArgb(255, 255, 255, 255), false);
-                game.Draw2dTexturePart(game.GetTexture("ui_bar_inner.png"), progress, 1, oxygenPosX, oxygenPosY, (progress) * baseSizeX, baseSizeY, Game.ColorFromArgb(255, 0, 0, 255), false);
-            }
-        }
+        game.Draw2dTexture(bgTex, x, y, BarWidth, BarHeight, null, 0, White, false);
+        game.Draw2dTexturePart(barTex, progress, 1, x, y, progress * BarWidth, BarHeight, color, false);
     }
 }

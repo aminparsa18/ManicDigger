@@ -89,7 +89,8 @@ public class ModAudio : ModBase
         for (int k = 0; k < game.assets.count; k++)
         {
             string name = game.assets.items[k].name;
-            if (!name.EndsWith(".ogg")) continue;
+            if (!name.EndsWith(".ogg")) 
+                continue;
             GetAudioData(game, name);
         }
     }

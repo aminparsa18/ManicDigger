@@ -1,43 +1,35 @@
-﻿public class ModBullet : ModBase
+﻿/// <summary>
+/// Moves bullet entities along their trajectory each 3D frame and removes them on arrival.
+/// </summary>
+public class ModBullet : ModBase
 {
     public override void OnNewFrameDraw3d(Game game, float dt)
     {
         for (int i = 0; i < game.entitiesCount; i++)
         {
             Entity entity = game.entities[i];
-            if (entity == null) { continue; }
-            if (entity.bullet == null) { continue; }
+            if (entity?.bullet == null) continue;
 
             Bullet_ b = entity.bullet;
-            if (b.progress < 1)
-            {
-                b.progress = 1;
-            }
+            b.progress = MathF.Max(b.progress, 1f);
 
             float dirX = b.toX - b.fromX;
             float dirY = b.toY - b.fromY;
             float dirZ = b.toZ - b.fromZ;
             float length = game.Dist(0, 0, 0, dirX, dirY, dirZ);
+
             dirX /= length;
             dirY /= length;
             dirZ /= length;
 
-            float posX = b.fromX;
-            float posY = b.fromY;
-            float posZ = b.fromZ;
-            posX += dirX * (b.progress + b.speed * dt);
-            posY += dirY * (b.progress + b.speed * dt);
-            posZ += dirZ * (b.progress + b.speed * dt);
             b.progress += b.speed * dt;
 
-            entity.sprite.positionX = posX;
-            entity.sprite.positionY = posY;
-            entity.sprite.positionZ = posZ;
+            entity.sprite.positionX = b.fromX + dirX * b.progress;
+            entity.sprite.positionY = b.fromY + dirY * b.progress;
+            entity.sprite.positionZ = b.fromZ + dirZ * b.progress;
 
             if (b.progress > length)
-            {
                 game.entities[i] = null;
-            }
         }
     }
 }

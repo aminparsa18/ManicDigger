@@ -1,119 +1,125 @@
 ﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
+/// <summary>
+/// Handles keyboard input for player movement and camera control each fixed frame.
+/// </summary>
 public class ModCameraKeys : ModBase
 {
+    private const float OverheadCameraSpeed = 3f;
+
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {
-        float one = 1;
+        if (game.guistate == GuiState.MapLoading) return;
+
         float dt = args.GetDt();
+        bool isNormal = game.guistate == GuiState.Normal;
+        bool isTyping = game.GuiTyping != TypingState.None;
 
-        if (game.guistate == GuiState.MapLoading) { return; }
+        UpdateJumpAndShift(game, isNormal, isTyping);
 
-        bool angleup = false;
-        bool angledown = false;
-        float overheadcameraanglemovearea = one * 5 / 100;
-        float overheadcameraspeed = 3;
-        game.controls.wantsjump = game.guistate == GuiState.Normal && game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(Keys.Space)];
-        game.controls.wantsjumphalf = false;
-        game.controls.shiftkeydown = game.guistate == GuiState.Normal && game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(Keys.LeftShift)];
         game.controls.movedx = 0;
         game.controls.movedy = 0;
         game.controls.moveup = false;
         game.controls.movedown = false;
-        if (game.guistate == GuiState.Normal)
-        {
-            if (game.GuiTyping == TypingState.None)
-            {
-                if (game.reachedwall_1blockhigh && (game.AutoJumpEnabled || (!game.platform.IsMousePointerLocked())))
-                {
-                    game.controls.wantsjump = true;
-                }
-                if (game.reachedHalfBlock)
-                {
-                    game.controls.wantsjumphalf = true;
-                }
-                if (game.overheadcamera)
-                {
-                    CameraMove m = new();
-                    if (game.keyboardState[game.GetKey(Keys.A)]) { game.overheadcameraK.TurnRight(dt * overheadcameraspeed); }
-                    if (game.keyboardState[game.GetKey(Keys.D)]) { game.overheadcameraK.TurnLeft(dt * overheadcameraspeed); }
-                    if (game.keyboardState[game.GetKey(Keys.W)]) { angleup = true; }
-                    if (game.keyboardState[game.GetKey(Keys.S)]) { angledown = true; }
-                    game.overheadcameraK.Center.X = game.player.position.x;
-                    game.overheadcameraK.Center.Y = game.player.position.y;
-                    game.overheadcameraK.Center.Z = game.player.position.z;
-                    m.Distance = game.overheadcameradistance;
-                    m.AngleUp = angleup;
-                    m.AngleDown = angledown;
-                    game.overheadcameraK.Move(m, dt);
-                    float toDest = game.Dist(game.player.position.x, game.player.position.y, game.player.position.z,
-                    game.playerdestination.X + one / 2, game.playerdestination.Y - one / 2, game.playerdestination.Z + one / 2);
-                    if (toDest >= 1)
-                    {
-                        game.controls.movedy += 1;
-                        if (game.reachedwall)
-                        {
-                            game.controls.wantsjump = true;
-                        }
-                        //player orientation
-                        float qX = game.playerdestination.X - game.player.position.x;
-                        float qY = game.playerdestination.Y - game.player.position.y;
-                        float qZ = game.playerdestination.Z - game.player.position.z;
-                        float angle = game.VectorAngleGet(qX, qY, qZ);
-                        game.player.position.roty = MathF.PI / 2 + angle;
-                        game.player.position.rotx = MathF.PI;
-                    }
-                }
-                else if (game.enable_move)
-                {
-                    if (game.keyboardState[game.GetKey(Keys.W)]) 
-                    {
-                        game.controls.movedy += 1; 
-                    }
-                    if (game.keyboardState[game.GetKey(Keys.S)]) 
-                    {
-                        game.controls.movedy += -1; 
-                    }
-                    if (game.keyboardState[game.GetKey(Keys.A)]) 
-                    {
-                        game.controls.movedx += -1; 
-                        game.localplayeranimationhint.LeanLeft = true; 
-                        game.localstance = 1; 
-                    }
-                    else
-                    { 
-                        game.localplayeranimationhint.LeanLeft = false;
-                    }
-                    if (game.keyboardState[game.GetKey(Keys.D)]) 
-                    {
-                        game.controls.movedx += 1;
-                        game.localplayeranimationhint.LeanRight = true;
-                        game.localstance = 2; 
-                    }
-                    else 
-                    { 
-                        game.localplayeranimationhint.LeanRight = false;
-                    }
-                    if (!game.localplayeranimationhint.LeanLeft && !game.localplayeranimationhint.LeanRight) 
-                    { 
-                        game.localstance = 0; 
-                    }
 
-                    game.controls.movedx += game.touchMoveDx;
-                    game.controls.movedy += game.touchMoveDy;
-                }
-            }
-            if (game.controls.freemove || game.SwimmingEyes())
+        if (isNormal)
+        {
+            if (!isTyping)
             {
-                if (game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(Keys.Space)])
-                {
-                    game.controls.moveup = true;
-                }
-                if (game.GuiTyping == TypingState.None && game.keyboardState[game.GetKey(Keys.LeftControl)])
-                {
-                    game.controls.movedown = true;
-                }
+                UpdateAutoJump(game);
+
+                if (game.overheadcamera)
+                    UpdateOverheadCamera(game, dt);
+                else if (game.enable_move)
+                    UpdateMovementKeys(game);
             }
+
+            UpdateVerticalFreemove(game, isTyping);
         }
+    }
+
+    /// <summary>Updates jump and shift control flags based on keyboard state.</summary>
+    private static void UpdateJumpAndShift(Game game, bool isNormal, bool isTyping)
+    {
+        bool canAct = isNormal && !isTyping;
+        game.controls.wantsjump = canAct && game.keyboardState[game.GetKey(Keys.Space)];
+        game.controls.wantsjumphalf = false;
+        game.controls.shiftkeydown = canAct && game.keyboardState[game.GetKey(Keys.LeftShift)];
+    }
+
+    /// <summary>Triggers auto-jump when the player walks into a climbable wall or half-block.</summary>
+    private static void UpdateAutoJump(Game game)
+    {
+        if (game.reachedwall_1blockhigh && (game.AutoJumpEnabled || !game.platform.IsMousePointerLocked()))
+            game.controls.wantsjump = true;
+
+        if (game.reachedHalfBlock)
+            game.controls.wantsjumphalf = true;
+    }
+
+    /// <summary>Handles overhead (RTS-style) camera rotation, angle, and click-to-move.</summary>
+    private static void UpdateOverheadCamera(Game game, float dt)
+    {
+        if (game.keyboardState[game.GetKey(Keys.A)]) game.overheadcameraK.TurnRight(dt * OverheadCameraSpeed);
+        if (game.keyboardState[game.GetKey(Keys.D)]) game.overheadcameraK.TurnLeft(dt * OverheadCameraSpeed);
+
+        game.overheadcameraK.Center.X = game.player.position.x;
+        game.overheadcameraK.Center.Y = game.player.position.y;
+        game.overheadcameraK.Center.Z = game.player.position.z;
+
+        CameraMove m = new()
+        {
+            Distance = game.overheadcameradistance,
+            AngleUp = game.keyboardState[game.GetKey(Keys.W)],
+            AngleDown = game.keyboardState[game.GetKey(Keys.S)],
+        };
+        game.overheadcameraK.Move(m, dt);
+
+        // Click-to-move: steer player toward destination
+        float toDest = game.Dist(
+            game.player.position.x, game.player.position.y, game.player.position.z,
+            game.playerdestination.X + 0.5f, game.playerdestination.Y - 0.5f, game.playerdestination.Z + 0.5f);
+
+        if (toDest >= 1)
+        {
+            game.controls.movedy += 1;
+            if (game.reachedwall) game.controls.wantsjump = true;
+
+            float qX = game.playerdestination.X - game.player.position.x;
+            float qY = game.playerdestination.Y - game.player.position.y;
+            float qZ = game.playerdestination.Z - game.player.position.z;
+            game.player.position.roty = MathF.PI / 2 + game.VectorAngleGet(qX, qY, qZ);
+            game.player.position.rotx = MathF.PI;
+        }
+    }
+
+    /// <summary>Handles WASD movement and leaning animation hints in first/third person.</summary>
+    private static void UpdateMovementKeys(Game game)
+    {
+        if (game.keyboardState[game.GetKey(Keys.W)]) game.controls.movedy += 1;
+        if (game.keyboardState[game.GetKey(Keys.S)]) game.controls.movedy -= 1;
+
+        bool leanLeft = game.keyboardState[game.GetKey(Keys.A)];
+        bool leanRight = game.keyboardState[game.GetKey(Keys.D)];
+
+        if (leanLeft) { game.controls.movedx -= 1; game.localstance = 1; }
+        if (leanRight) { game.controls.movedx += 1; game.localstance = 2; }
+        if (!leanLeft && !leanRight) game.localstance = 0;
+
+        game.localplayeranimationhint.LeanLeft = leanLeft;
+        game.localplayeranimationhint.LeanRight = leanRight;
+
+        game.controls.movedx += game.touchMoveDx;
+        game.controls.movedy += game.touchMoveDy;
+    }
+
+    /// <summary>Handles vertical movement in freemove mode or while swimming.</summary>
+    private static void UpdateVerticalFreemove(Game game, bool isTyping)
+    {
+        if (!game.controls.freemove && !game.SwimmingEyes()) return;
+        if (isTyping) return;
+
+        if (game.keyboardState[game.GetKey(Keys.Space)]) game.controls.moveup = true;
+        if (game.keyboardState[game.GetKey(Keys.LeftControl)]) game.controls.movedown = true;
     }
 }

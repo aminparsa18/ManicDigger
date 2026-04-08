@@ -1,95 +1,100 @@
-﻿public class ModInterpolatePositions : ModBase
+﻿/// <summary>
+/// Interpolates network entity positions each frame for smooth remote player movement.
+/// </summary>
+public class ModInterpolatePositions : ModBase
 {
+    private const int ExtrapolationTimeMs = 300;
+    private const int MinDelayMs = 100;
+
     public override void OnNewFrame(Game game, NewFrameEventArgs args)
     {
         InterpolatePositions(game, args.GetDt());
     }
+
     internal static void InterpolatePositions(Game game, float dt)
     {
         for (int i = 0; i < game.entitiesCount; i++)
         {
             Entity e = game.entities[i];
-            if (e == null) { continue; }
-            if (e.networkPosition == null) { continue; }
-            if (i == game.LocalPlayerId) { continue; }
-            if (!e.networkPosition.PositionLoaded) { continue; }
+            if (e?.networkPosition == null) continue;
+            if (i == game.LocalPlayerId) continue;
+            if (!e.networkPosition.PositionLoaded) continue;
 
-            if (e.playerDrawInfo == null)
-            {
-                e.playerDrawInfo = new PlayerDrawInfo();
-            }
-            if(e.playerDrawInfo.interpolation==null)
-            {
-                NetworkInterpolation n = new();
-                PlayerInterpolate playerInterpolate = new()
-                {
-                    platform = game.platform
-                };
-                n.req = playerInterpolate;
-                n.DELAYMILLISECONDS = 500;
-                n.EXTRAPOLATE = false;
-                n.EXTRAPOLATION_TIMEMILLISECONDS = 300;
-                e.playerDrawInfo.interpolation = n;
-            }
-            e.playerDrawInfo.interpolation.DELAYMILLISECONDS = Math.Max(100, game.ServerInfo.ServerPing.RoundtripTimeTotalMilliseconds());
-            Entity p = e;
+            e.playerDrawInfo ??= new PlayerDrawInfo();
+            EnsureInterpolation(game, e);
 
-            PlayerDrawInfo info = p.playerDrawInfo;
-            float networkposX = p.networkPosition.x;
-            float networkposY = p.networkPosition.y;
-            float networkposZ = p.networkPosition.z;
-            if ((!Game.Vec3Equal(networkposX, networkposY, networkposZ,
-                            info.lastnetworkposX, info.lastnetworkposY, info.lastnetworkposZ))
-                || p.networkPosition.rotx != info.lastnetworkrotx
-                || p.networkPosition.roty != info.lastnetworkroty
-                || p.networkPosition.rotz != info.lastnetworkrotz)
-            {
-                PlayerInterpolationState state = new()
-                {
-                    positionX = networkposX,
-                    positionY = networkposY,
-                    positionZ = networkposZ,
-                    rotx = p.networkPosition.rotx,
-                    roty = p.networkPosition.roty,
-                    rotz = p.networkPosition.rotz
-                };
-                info.interpolation.AddNetworkPacket(state, game.totaltimeMilliseconds);
-            }
-            PlayerInterpolationState curstate = game.platform.CastToPlayerInterpolationState(info.interpolation.InterpolatedState(game.totaltimeMilliseconds));
-            if (curstate == null)
-            {
-                curstate = new PlayerInterpolationState();
-            }
-            //do not interpolate player position if player is controlled by game world
-            if (Game.EnablePlayerUpdatePositionContainsKey(i) && !Game.EnablePlayerUpdatePosition(i))
-            {
-                curstate.positionX = p.networkPosition.x;
-                curstate.positionY = p.networkPosition.y;
-                curstate.positionZ = p.networkPosition.z;
-            }
-            float curposX = curstate.positionX;
-            float curposY = curstate.positionY;
-            float curposZ = curstate.positionZ;
-            info.velocityX = curposX - info.lastcurposX;
-            info.velocityY = curposY - info.lastcurposY;
-            info.velocityZ = curposZ - info.lastcurposZ;
-            info.moves = (!Game.Vec3Equal(curposX, curposY, curposZ, info.lastcurposX, info.lastcurposY, info.lastcurposZ));
-            info.lastcurposX = curposX;
-            info.lastcurposY = curposY;
-            info.lastcurposZ = curposZ;
-            info.lastnetworkposX = networkposX;
-            info.lastnetworkposY = networkposY;
-            info.lastnetworkposZ = networkposZ;
-            info.lastnetworkrotx = p.networkPosition.rotx;
-            info.lastnetworkroty = p.networkPosition.roty;
-            info.lastnetworkrotz = p.networkPosition.rotz;
+            e.playerDrawInfo.interpolation.DELAYMILLISECONDS =
+                Math.Max(MinDelayMs, game.ServerInfo.ServerPing.RoundtripTimeTotalMilliseconds());
 
-            p.position.x = curposX;
-            p.position.y = curposY;
-            p.position.z = curposZ;
-            p.position.rotx = curstate.rotx;
-            p.position.roty = curstate.roty;
-            p.position.rotz = curstate.rotz;
+            UpdateInterpolation(game, i, e);
         }
+    }
+
+    /// <summary>Initializes the network interpolation state for an entity if not already set up.</summary>
+    private static void EnsureInterpolation(Game game, Entity e)
+    {
+        if (e.playerDrawInfo.interpolation != null) return;
+
+        e.playerDrawInfo.interpolation = new NetworkInterpolation
+        {
+            req = new PlayerInterpolate { platform = game.platform },
+            DELAYMILLISECONDS = 500,
+            EXTRAPOLATE = false,
+            EXTRAPOLATION_TIMEMILLISECONDS = ExtrapolationTimeMs
+        };
+    }
+
+    private static void UpdateInterpolation(Game game, int entityId, Entity e)
+    {
+        PlayerDrawInfo info = e.playerDrawInfo;
+        EntityPosition_ net = e.networkPosition;
+
+        float netX = net.x, netY = net.y, netZ = net.z;
+
+        // Feed a new state packet when network position or rotation has changed
+        bool posChanged = !Game.Vec3Equal(netX, netY, netZ, info.lastnetworkposX, info.lastnetworkposY, info.lastnetworkposZ);
+        bool rotChanged = net.rotx != info.lastnetworkrotx || net.roty != info.lastnetworkroty || net.rotz != info.lastnetworkrotz;
+
+        if (posChanged || rotChanged)
+        {
+            info.interpolation.AddNetworkPacket(new PlayerInterpolationState
+            {
+                positionX = netX,
+                positionY = netY,
+                positionZ = netZ,
+                rotx = net.rotx,
+                roty = net.roty,
+                rotz = net.rotz
+            }, game.totaltimeMilliseconds);
+        }
+
+        PlayerInterpolationState cur =
+            game.platform.CastToPlayerInterpolationState(info.interpolation.InterpolatedState(game.totaltimeMilliseconds))
+            ?? new PlayerInterpolationState();
+
+        // Bypass interpolation if the game world is controlling this entity's position
+        if (Game.EnablePlayerUpdatePositionContainsKey(entityId) && !Game.EnablePlayerUpdatePosition(entityId))
+        {
+            cur.positionX = net.x;
+            cur.positionY = net.y;
+            cur.positionZ = net.z;
+        }
+
+        info.velocityX = cur.positionX - info.lastcurposX;
+        info.velocityY = cur.positionY - info.lastcurposY;
+        info.velocityZ = cur.positionZ - info.lastcurposZ;
+        info.moves = !Game.Vec3Equal(cur.positionX, cur.positionY, cur.positionZ, info.lastcurposX, info.lastcurposY, info.lastcurposZ);
+        info.lastcurposX = cur.positionX;
+        info.lastcurposY = cur.positionY;
+        info.lastcurposZ = cur.positionZ;
+        info.lastnetworkposX = netX; info.lastnetworkposY = netY; info.lastnetworkposZ = netZ;
+        info.lastnetworkrotx = net.rotx; info.lastnetworkroty = net.roty; info.lastnetworkrotz = net.rotz;
+
+        e.position.x = cur.positionX;
+        e.position.y = cur.positionY;
+        e.position.z = cur.positionZ;
+        e.position.rotx = cur.rotx;
+        e.position.roty = cur.roty;
+        e.position.rotz = cur.rotz;
     }
 }

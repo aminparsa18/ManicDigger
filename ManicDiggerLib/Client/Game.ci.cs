@@ -1730,27 +1730,15 @@ public class Game
 
     public int GetPlayerEyesBlockX()
     {
-        return (int)(MathFloor(player.position.x));
+        return (int)(MathF.Floor(player.position.x));
     }
     public int GetPlayerEyesBlockY()
     {
-        return (int)(MathFloor(player.position.z));
+        return (int)(MathF.Floor(player.position.z));
     }
     public int GetPlayerEyesBlockZ()
     {
-        return (int)(MathFloor(player.position.y + entities[LocalPlayerId].drawModel.eyeHeight));
-    }
-
-    public int MathFloor(float a)
-    {
-        if (a >= 0)
-        {
-            return (int)(a);
-        }
-        else
-        {
-            return (int)(a) - 1;
-        }
+        return (int)(MathF.Floor(player.position.y + entities[LocalPlayerId].drawModel.eyeHeight));
     }
 
     internal void UpdateColumnHeight(int x, int y)
@@ -2284,9 +2272,9 @@ public class Game
 
     private int GetCameraBlock()
     {
-        int bx = MathFloor(CameraEyeX);
-        int by = MathFloor(CameraEyeZ);
-        int bz = MathFloor(CameraEyeY);
+        int bx = (int)MathF.Floor(CameraEyeX);
+        int by = (int)MathF.Floor(CameraEyeZ);
+        int bz = (int)MathF.Floor(CameraEyeY);
 
         if (!map.IsValidPos(bx, by, bz))
         {
@@ -2301,9 +2289,9 @@ public class Game
         float pY = player.position.y;
         float pZ = player.position.z;
         pY += entities[LocalPlayerId].drawModel.eyeHeight;
-        int bx = MathFloor(pX);
-        int by = MathFloor(pZ);
-        int bz = MathFloor(pY);
+        int bx = (int)MathF.Floor(pX);
+        int by = (int)MathF.Floor(pZ);
+        int bz = (int)MathF.Floor(pY);
 
         if (!map.IsValidPos(bx, by, bz))
         {

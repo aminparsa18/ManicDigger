@@ -1,217 +1,141 @@
 ﻿using OpenTK.Mathematics;
 
+/// <summary>
+/// Updates grenade physics including gravity, movement, and collision bounce each fixed frame.
+/// </summary>
 public class ModGrenade : ModBase
 {
-    public ModGrenade()
-    {
-        one = 1;
-        projectilegravity = 20;
-        bouncespeedmultiply = one * 5 / 10;
-        walldistance = one * 3 / 10;
-    }
-    private readonly float one;
+    private const float ProjectileGravity = 20f;
+    private const float BounceSpeedMultiply = 0.5f;
+    private const float WallDistance = 0.3f;
 
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {
+        float dt = args.GetDt();
         for (int i = 0; i < game.entitiesCount; i++)
         {
             Entity entity = game.entities[i];
-            if (entity == null) { continue; }
-            if (entity.grenade == null) { continue; }
-            UpdateGrenade(game, i, args.GetDt());
+            if (entity?.grenade == null) continue;
+            UpdateGrenade(game, i, dt);
         }
     }
 
     internal void UpdateGrenade(Game game, int grenadeEntityId, float dt)
     {
-        float LocalPlayerPositionX = game.player.position.x;
-        float LocalPlayerPositionY = game.player.position.y;
-        float LocalPlayerPositionZ = game.player.position.z;
-
         Entity grenadeEntity = game.entities[grenadeEntityId];
         Sprite grenadeSprite = grenadeEntity.sprite;
         Grenade_ grenade = grenadeEntity.grenade;
 
-        float oldposX = grenadeEntity.sprite.positionX;
-        float oldposY = grenadeSprite.positionY;
-        float oldposZ = grenadeSprite.positionZ;
-        float newposX = grenadeSprite.positionX + grenade.velocityX * dt;
-        float newposY = grenadeSprite.positionY + grenade.velocityY * dt;
-        float newposZ = grenadeSprite.positionZ + grenade.velocityZ * dt;
-        grenade.velocityY += -projectilegravity * dt;
+        Vector3 oldPos = new(grenadeSprite.positionX, grenadeSprite.positionY, grenadeSprite.positionZ);
+        Vector3 newPos = oldPos + new Vector3(grenade.velocityX, grenade.velocityY, grenade.velocityZ) * dt;
+        grenade.velocityY -= ProjectileGravity * dt;
 
-        Vector3 velocity = new Vector3(grenade.velocityX, grenade.velocityY, grenade.velocityZ);
-        Vector3 bouncePosition = GrenadeBounce(game, new Vector3(oldposX, oldposY, oldposZ), new Vector3(newposX, newposY, newposZ), velocity, dt);
+        Vector3 velocity = new(grenade.velocityX, grenade.velocityY, grenade.velocityZ);
+        Vector3 finalPos = GrenadeBounce(game, oldPos, newPos, ref velocity, dt);
+
         grenade.velocityX = velocity.X;
         grenade.velocityY = velocity.Y;
         grenade.velocityZ = velocity.Z;
-        grenadeSprite.positionX = bouncePosition.X;
-        grenadeSprite.positionY = bouncePosition.Y;
-        grenadeSprite.positionZ = bouncePosition.Z;
+        grenadeSprite.positionX = finalPos.X;
+        grenadeSprite.positionY = finalPos.Y;
+        grenadeSprite.positionZ = finalPos.Z;
     }
-    private readonly float projectilegravity;
-    private readonly float bouncespeedmultiply;
-    private readonly float walldistance;
-    internal Vector3 GrenadeBounce(Game game, Vector3 oldposition, Vector3 newposition, Vector3 velocity, float dt)
-    {
-        bool ismoving = velocity.Length > 100 * dt;
-        float modelheight = walldistance;
-        oldposition.Y += walldistance;
-        newposition.Y += walldistance;
 
-        //Math.Floor() is needed because casting negative values to integer is not floor.
-        Vector3i oldpositioni = new Vector3i(game.MathFloor(oldposition.X),
-           game.MathFloor(oldposition.Z),
-          game.MathFloor(oldposition.Y));
-        float playerpositionX = newposition.X;
-        float playerpositionY = newposition.Y;
-        float playerpositionZ = newposition.Z;
-        //left
-        {
-            float qnewpositionX = newposition.X;
-            float qnewpositionY = newposition.Y;
-            float qnewpositionZ = newposition.Z + walldistance;
-            bool newempty = game.IsTileEmptyForPhysics(game.MathFloor(qnewpositionX), game.MathFloor(qnewpositionZ), game.MathFloor(qnewpositionY))
-            && game.IsTileEmptyForPhysics(game.MathFloor(qnewpositionX), game.MathFloor(qnewpositionZ), game.MathFloor(qnewpositionY) + 1);
-            if (newposition.Z - oldposition.Z > 0)
-            {
-                if (!newempty)
-                {
-                    velocity.Z = -velocity.Z;
-                    velocity.X *= bouncespeedmultiply;
-                    velocity.Y *= bouncespeedmultiply;
-                    velocity.Z *= bouncespeedmultiply;
-                    if (ismoving)
-                    {
-                        game.AudioPlayAt("grenadebounce.ogg", newposition.X, newposition.Y, newposition.Z);
-                    }
-                    //playerposition.Z = oldposition.Z - newposition.Z;
-                }
-            }
-        }
-        //front
-        {
-            float qnewpositionX = newposition.X + walldistance;
-            float qnewpositionY = newposition.Y;
-            float qnewpositionZ = newposition.Z;
-            bool newempty = game.IsTileEmptyForPhysics(game.MathFloor(qnewpositionX), game.MathFloor(qnewpositionZ), game.MathFloor(qnewpositionY))
-            && game.IsTileEmptyForPhysics(game.MathFloor(qnewpositionX), game.MathFloor(qnewpositionZ), game.MathFloor(qnewpositionY) + 1);
-            if (newposition.X - oldposition.X > 0)
-            {
-                if (!newempty)
-                {
-                    velocity.X = -velocity.X;
-                    velocity.X *= bouncespeedmultiply;
-                    velocity.Y *= bouncespeedmultiply;
-                    velocity.Z *= bouncespeedmultiply;
-                    if (ismoving)
-                    {
-                        game.AudioPlayAt("grenadebounce.ogg", newposition.X, newposition.Y, newposition.Z);
-                    }
-                    //playerposition.X = oldposition.X - newposition.X;
-                }
-            }
-        }
-        //top
-        {
-            float qnewpositionX = newposition.X;
-            float qnewpositionY = newposition.Y - walldistance;
-            float qnewpositionZ = newposition.Z;
-            int x = game.MathFloor(qnewpositionX);
-            int y = game.MathFloor(qnewpositionZ);
-            int z = game.MathFloor(qnewpositionY);
-            float a_ = walldistance;
-            bool newfull = (!game.IsTileEmptyForPhysics(x, y, z))
-                || (qnewpositionX - game.MathFloor(qnewpositionX) <= a_ && (!game.IsTileEmptyForPhysics(x - 1, y, z)) && (game.IsTileEmptyForPhysics(x - 1, y, z + 1)))
-                || (qnewpositionX - game.MathFloor(qnewpositionX) >= (1 - a_) && (!game.IsTileEmptyForPhysics(x + 1, y, z)) && (game.IsTileEmptyForPhysics(x + 1, y, z + 1)))
-                || (qnewpositionZ - game.MathFloor(qnewpositionZ) <= a_ && (!game.IsTileEmptyForPhysics(x, y - 1, z)) && (game.IsTileEmptyForPhysics(x, y - 1, z + 1)))
-                || (qnewpositionZ - game.MathFloor(qnewpositionZ) >= (1 - a_) && (!game.IsTileEmptyForPhysics(x, y + 1, z)) && (game.IsTileEmptyForPhysics(x, y + 1, z + 1)));
-            if (newposition.Y - oldposition.Y < 0)
-            {
-                if (newfull)
-                {
-                    velocity.Y = -velocity.Y;
-                    velocity.X *= bouncespeedmultiply;
-                    velocity.Y *= bouncespeedmultiply;
-                    velocity.Z *= bouncespeedmultiply;
-                    if (ismoving)
-                    {
-                        game.AudioPlayAt("grenadebounce.ogg", newposition.X, newposition.Y, newposition.Z);
-                    }
-                    //playerposition.Y = oldposition.Y - newposition.Y;
-                }
-            }
-        }
-        //right
-        {
-            float qnewpositionX = newposition.X;
-            float qnewpositionY = newposition.Y;
-            float qnewpositionZ = newposition.Z - walldistance;
-            bool newempty = game.IsTileEmptyForPhysics(game.MathFloor(qnewpositionX), game.MathFloor(qnewpositionZ), game.MathFloor(qnewpositionY))
-            && game.IsTileEmptyForPhysics(game.MathFloor(qnewpositionX), game.MathFloor(qnewpositionZ), game.MathFloor(qnewpositionY) + 1);
-            if (newposition.Z - oldposition.Z < 0)
-            {
-                if (!newempty)
-                {
-                    velocity.Z = -velocity.Z;
-                    velocity.X *= bouncespeedmultiply;
-                    velocity.Y *= bouncespeedmultiply;
-                    velocity.Z *= bouncespeedmultiply;
-                    if (ismoving)
-                    {
-                        game.AudioPlayAt("grenadebounce.ogg", newposition.X, newposition.Y, newposition.Z);
-                    }
-                    //playerposition.Z = oldposition.Z - newposition.Z;
-                }
-            }
-        }
-        //back
-        {
-            float qnewpositionX = newposition.X - walldistance;
-            float qnewpositionY = newposition.Y;
-            float qnewpositionZ = newposition.Z;
-            bool newempty = game.IsTileEmptyForPhysics(game.MathFloor(qnewpositionX), game.MathFloor(qnewpositionZ), game.MathFloor(qnewpositionY))
-            && game.IsTileEmptyForPhysics(game.MathFloor(qnewpositionX), game.MathFloor(qnewpositionZ), game.MathFloor(qnewpositionY) + 1);
-            if (newposition.X - oldposition.X < 0)
-            {
-                if (!newempty)
-                {
-                    velocity.X = -velocity.X;
-                    velocity.X *= bouncespeedmultiply;
-                    velocity.Y *= bouncespeedmultiply;
-                    velocity.Z *= bouncespeedmultiply;
-                    if (ismoving)
-                    {
-                        game.AudioPlayAt("grenadebounce.ogg", newposition.X, newposition.Y, newposition.Z);
-                    }
-                    //playerposition.X = oldposition.X - newposition.X;
-                }
-            }
-        }
-        //bottom
-        {
-            float qnewpositionX = newposition.X;
-            float qnewpositionY = newposition.Y + modelheight;
-            float qnewpositionZ = newposition.Z;
-            bool newempty = game.IsTileEmptyForPhysics(game.MathFloor(qnewpositionX), game.MathFloor(qnewpositionZ), game.MathFloor(qnewpositionY));
-            if (newposition.Y - oldposition.Y > 0)
-            {
-                if (!newempty)
-                {
-                    velocity.Y = -velocity.Y;
-                    velocity.X *= bouncespeedmultiply;
-                    velocity.Y *= bouncespeedmultiply;
-                    velocity.Z *= bouncespeedmultiply;
-                    if (ismoving)
-                    {
-                        game.AudioPlayAt("grenadebounce.ogg", newposition.X, newposition.Y, newposition.Z);
-                    }
-                    //playerposition.Y = oldposition.Y - newposition.Y;
-                }
-            }
-        }
-        //ok:
-        playerpositionY -= walldistance;
-        return new Vector3(playerpositionX, playerpositionY, playerpositionZ);
+    internal Vector3 GrenadeBounce(Game game, Vector3 oldPos, Vector3 newPos, ref Vector3 velocity, float dt)
+    {
+        bool isMoving = velocity.Length > 100 * dt;
+
+        oldPos.Y += WallDistance;
+        newPos.Y += WallDistance;
+
+        Vector3 pos = newPos;
+
+        // Left (+Z)
+        if (newPos.Z > oldPos.Z)
+            TryBounceAxis(game, newPos, new Vector3(0, 0, WallDistance), ref velocity, ref pos, isMoving, axis: 2);
+
+        // Right (-Z)
+        if (newPos.Z < oldPos.Z)
+            TryBounceAxis(game, newPos, new Vector3(0, 0, -WallDistance), ref velocity, ref pos, isMoving, axis: 2);
+
+        // Front (+X)
+        if (newPos.X > oldPos.X)
+            TryBounceAxis(game, newPos, new Vector3(WallDistance, 0, 0), ref velocity, ref pos, isMoving, axis: 0);
+
+        // Back (-X)
+        if (newPos.X < oldPos.X)
+            TryBounceAxis(game, newPos, new Vector3(-WallDistance, 0, 0), ref velocity, ref pos, isMoving, axis: 0);
+
+        // Bottom (falling down)
+        if (newPos.Y < oldPos.Y)
+            TryBounceFloor(game, newPos, oldPos, ref velocity, ref pos, isMoving);
+
+        // Top (moving up)
+        if (newPos.Y > oldPos.Y)
+            TryBounceCeiling(game, newPos, ref velocity, ref pos, isMoving);
+
+        pos.Y -= WallDistance;
+        return pos;
+    }
+
+    /// <summary>Checks and applies a bounce for X or Z axis wall collisions.</summary>
+    private static void TryBounceAxis(Game game, Vector3 newPos, Vector3 offset, ref Vector3 velocity, ref Vector3 pos, bool isMoving, int axis)
+    {
+        Vector3 probe = newPos + offset;
+        int px = (int)MathF.Floor(probe.X);
+        int py = (int)MathF.Floor(probe.Z);
+        int pz = (int)MathF.Floor(probe.Y);
+
+        bool empty = game.IsTileEmptyForPhysics(px, py, pz)
+                  && game.IsTileEmptyForPhysics(px, py, pz + 1);
+        if (empty) return;
+
+        velocity[axis] = -velocity[axis];
+        ApplyBounce(game, ref velocity, newPos, isMoving);
+    }
+
+    /// <summary>Checks and applies a bounce when the grenade hits a floor (moving down).</summary>
+    private static void TryBounceFloor(Game game, Vector3 newPos, Vector3 oldPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
+    {
+        float a = WallDistance;
+        Vector3 probe = new(newPos.X, newPos.Y - WallDistance, newPos.Z);
+        int x = (int)MathF.Floor(probe.X);
+        int y = (int)MathF.Floor(probe.Z);
+        int z = (int)MathF.Floor(probe.Y);
+
+        float fracX = probe.X - x;
+        float fracZ = probe.Z - y;
+
+        bool full = !game.IsTileEmptyForPhysics(x, y, z)
+            || (fracX <= a && !game.IsTileEmptyForPhysics(x - 1, y, z) && game.IsTileEmptyForPhysics(x - 1, y, z + 1))
+            || (fracX >= 1 - a && !game.IsTileEmptyForPhysics(x + 1, y, z) && game.IsTileEmptyForPhysics(x + 1, y, z + 1))
+            || (fracZ <= a && !game.IsTileEmptyForPhysics(x, y - 1, z) && game.IsTileEmptyForPhysics(x, y - 1, z + 1))
+            || (fracZ >= 1 - a && !game.IsTileEmptyForPhysics(x, y + 1, z) && game.IsTileEmptyForPhysics(x, y + 1, z + 1));
+
+        if (!full) return;
+        velocity.Y = -velocity.Y;
+        ApplyBounce(game, ref velocity, newPos, isMoving);
+    }
+
+    /// <summary>Checks and applies a bounce when the grenade hits a ceiling (moving up).</summary>
+    private void TryBounceCeiling(Game game, Vector3 newPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
+    {
+        Vector3 probe = new(newPos.X, newPos.Y + WallDistance, newPos.Z);
+        bool empty = game.IsTileEmptyForPhysics(
+            (int)MathF.Floor(probe.X),
+            (int)MathF.Floor(probe.Z),
+            (int)MathF.Floor(probe.Y));
+
+        if (empty) return;
+        velocity.Y = -velocity.Y;
+        ApplyBounce(game, ref velocity, newPos, isMoving);
+    }
+
+    /// <summary>Applies bounce speed damping and plays bounce sound if the grenade is moving.</summary>
+    private static void ApplyBounce(Game game, ref Vector3 velocity, Vector3 pos, bool isMoving)
+    {
+        velocity *= BounceSpeedMultiply;
+        if (isMoving)
+            game.AudioPlayAt("grenadebounce.ogg", pos.X, pos.Y, pos.Z);
     }
 }

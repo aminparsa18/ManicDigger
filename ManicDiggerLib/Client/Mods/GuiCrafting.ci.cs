@@ -1,197 +1,171 @@
 ﻿using OpenTK.Mathematics;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
+/// <summary>
+/// Handles the crafting table UI — drawing available recipes, mouse selection, and sending craft packets.
+/// </summary>
 public class ModGuiCrafting : ModBase
 {
+    private const int RecipeRowHeight = 80;
+    private const int MenuWidth = 600;
+    private const int OutputColumnOffset = 400;
+    private const int FontSize = 12;
+
+    private readonly PacketHandlerCraftingRecipes handler;
+
+    private int[] currentRecipes;
+    private int currentRecipesCount;
+    private int craftingTablePosX, craftingTablePosY, craftingTablePosZ;
+    private Packet_CraftingRecipe[] craftingRecipes2;
+    private int craftingRecipes2Count;
+    private int[] craftingBlocks;
+    private int craftingBlocksCount;
+    private int craftingSelectedRecipe;
+
+    internal Packet_CraftingRecipe[] d_CraftingRecipes;
+    internal int d_CraftingRecipesCount;
+    internal CraftingTableTool d_CraftingTableTool;
+
     public ModGuiCrafting()
     {
-        handler = new PacketHandlerCraftingRecipes
-        {
-            mod = this
-        };
+        handler = new PacketHandlerCraftingRecipes { mod = this };
     }
-    private readonly PacketHandlerCraftingRecipes handler;
+
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {
-        if (d_CraftingTableTool == null)
+        d_CraftingTableTool ??= new CraftingTableTool
         {
-            d_CraftingTableTool = new CraftingTableTool
-            {
-                d_Map = MapStorage2.Create(game),
-                d_Data = game.d_Data
-            };
-        }
+            d_Map = MapStorage2.Create(game),
+            d_Data = game.d_Data
+        };
+
         game.packetHandlers[Packet_ServerIdEnum.CraftingRecipes] = handler;
-        if (game.guistate != GuiState.CraftingRecipes)
-        {
-            return;
-        }
-        DrawCraftingRecipes(game);
+
+        if (game.guistate == GuiState.CraftingRecipes)
+            DrawCraftingRecipes(game);
     }
 
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {
-        if (game.guistate != GuiState.CraftingRecipes)
-        {
-            return;
-        }
-        CraftingMouse(game);
-    }
-
-    internal Packet_CraftingRecipe[] d_CraftingRecipes;
-    internal int d_CraftingRecipesCount;
-
-    internal int[] currentRecipes;
-    internal int currentRecipesCount;
-
-    internal int craftingTableposx;
-    internal int craftingTableposy;
-    internal int craftingTableposz;
-    internal Packet_CraftingRecipe[] craftingrecipes2;
-    internal int craftingrecipes2Count;
-    internal int[] craftingblocks;
-    internal int craftingblocksCount;
-    internal int craftingselectedrecipe;
-    internal CraftingTableTool d_CraftingTableTool;
-
-    internal void DrawCraftingRecipes(Game game)
-    {
-        currentRecipes = new int[1024];
-        currentRecipesCount = 0;
-        for (int i = 0; i < craftingrecipes2Count; i++)
-        {
-            Packet_CraftingRecipe r = craftingrecipes2[i];
-            if (r == null)
-            {
-                continue;
-            }
-            bool next = false;
-            //can apply recipe?
-            for (int k = 0; k < r.IngredientsCount; k++)
-            {
-                Packet_Ingredient ingredient = r.Ingredients[k];
-                if (ingredient == null)
-                {
-                    continue;
-                }
-                if (craftingblocksFindAllCount(craftingblocks, craftingblocksCount, ingredient.Type) < ingredient.Amount)
-                {
-                    next = true;
-                    break;
-                }
-            }
-            if (!next)
-            {
-                currentRecipes[currentRecipesCount++] = i;
-            }
-        }
-        int menustartx = game.xcenter(600);
-        int menustarty = game.ycenter(currentRecipesCount * 80);
-        if (currentRecipesCount == 0)
-        {
-            game.Draw2dText1(game.language.NoMaterialsForCrafting(), game.xcenter(200), game.ycenter(20), 12, null, false);
-            return;
-        }
-        for (int i = 0; i < currentRecipesCount; i++)
-        {
-            Packet_CraftingRecipe r = craftingrecipes2[currentRecipes[i]];
-            for (int ii = 0; ii < r.IngredientsCount; ii++)
-            {
-                int xx = menustartx + 20 + ii * 130;
-                int yy = menustarty + i * 80;
-                game.Draw2dTexture(game.d_TerrainTextures.TerrainTexture, xx, yy, 32, 32, game.TextureIdForInventory[r.Ingredients[ii].Type], Game.texturesPacked(), Game.ColorFromArgb(255, 255, 255, 255), false);
-                game.Draw2dText1(string.Format("{0} {1}", r.Ingredients[ii].Amount.ToString(), game.blocktypes[r.Ingredients[ii].Type].Name), xx + 50, yy, 12,
-                   i == craftingselectedrecipe ? Game.ColorFromArgb(255, 255, 0, 0) : Game.ColorFromArgb(255, 255, 255, 255), false);
-            }
-            {
-                int xx = menustartx + 20 + 400;
-                int yy = menustarty + i * 80;
-                game.Draw2dTexture(game.d_TerrainTextures.TerrainTexture, xx, yy, 32, 32, game.TextureIdForInventory[r.Output.Type], Game.texturesPacked(), Game.ColorFromArgb(255, 255, 255, 255), false);
-                game.Draw2dText1(string.Format("{0} {1}", r.Output.Amount.ToString(), game.blocktypes[r.Output.Type].Name), xx + 50, yy, 12,
-                  i == craftingselectedrecipe ? Game.ColorFromArgb(255, 255, 0, 0) : Game.ColorFromArgb(255, 255, 255, 255), false);
-            }
-        }
-    }
-
-    private static int craftingblocksFindAllCount(int[] craftingblocks_, int craftingblocksCount_, int p)
-    {
-        int count = 0;
-        for (int i = 0; i < craftingblocksCount_; i++)
-        {
-            if (craftingblocks_[i] == p)
-            {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    internal void CraftingMouse(Game game)
-    {
-        if (currentRecipes == null)
-        {
-            return;
-        }
-        int menustartx = game.xcenter(600);
-        int menustarty = game.ycenter(currentRecipesCount * 80);
-        if (game.mouseCurrentY >= menustarty && game.mouseCurrentY < menustarty + currentRecipesCount * 80)
-        {
-            craftingselectedrecipe = (game.mouseCurrentY - menustarty) / 80;
-        }
-        else
-        {
-            //craftingselectedrecipe = -1;
-        }
-        if (game.mouseleftclick)
-        {
-            if (currentRecipesCount != 0)
-            {
-                CraftingRecipeSelected(game, craftingTableposx, craftingTableposy, craftingTableposz, currentRecipes[craftingselectedrecipe]);
-            }
-            game.mouseleftclick = false;
-            game.GuiStateBackToGame();
-        }
+        if (game.guistate == GuiState.CraftingRecipes)
+            CraftingMouse(game);
     }
 
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
-        int eKey = args.GetKeyCode();
-        if (eKey == (game.GetKey(Keys.E)) && game.GuiTyping == TypingState.None)
+        if (args.GetKeyCode() != game.GetKey(Keys.E) || game.GuiTyping != TypingState.None) return;
+        if (game.SelectedBlockPositionX == -1 && game.SelectedBlockPositionY == -1 && game.SelectedBlockPositionZ == -1) return;
+
+        int posX = game.SelectedBlockPositionX;
+        int posY = game.SelectedBlockPositionZ;
+        int posZ = game.SelectedBlockPositionY;
+
+        if (game.map.GetBlock(posX, posY, posZ) != game.d_Data.BlockIdCraftingTable()) return;
+
+        Vector3i[] table = d_CraftingTableTool.GetTable(posX, posY, posZ, out int tableCount);
+        int[] onTable = d_CraftingTableTool.GetOnTable(table, tableCount, out int onTableCount);
+        CraftingRecipesStart(game, d_CraftingRecipes, d_CraftingRecipesCount, onTable, onTableCount, posX, posY, posZ);
+        args.SetHandled(true);
+    }
+
+    internal void DrawCraftingRecipes(Game game)
+    {
+        // Filter recipes the player has materials for
+        currentRecipes = new int[1024];
+        currentRecipesCount = 0;
+
+        for (int i = 0; i < craftingRecipes2Count; i++)
         {
-            if (!(game.SelectedBlockPositionX == -1 && game.SelectedBlockPositionY == -1 && game.SelectedBlockPositionZ == -1))
+            Packet_CraftingRecipe r = craftingRecipes2[i];
+            if (r == null) continue;
+
+            bool canCraft = true;
+            for (int k = 0; k < r.IngredientsCount; k++)
             {
-                int posx = game.SelectedBlockPositionX;
-                int posy = game.SelectedBlockPositionZ;
-                int posz = game.SelectedBlockPositionY;
-                if (game.map.GetBlock(posx, posy, posz) == game.d_Data.BlockIdCraftingTable())
+                Packet_Ingredient ing = r.Ingredients[k];
+                if (ing == null) continue;
+                if (CountBlock(craftingBlocks, craftingBlocksCount, ing.Type) < ing.Amount)
                 {
-                    //draw crafting recipes list.
-                    Vector3i[] table = d_CraftingTableTool.GetTable(posx, posy, posz, out int tableCount);
-                    int[] onTable = d_CraftingTableTool.GetOnTable(table, tableCount, out int onTableCount);
-                    CraftingRecipesStart(game, d_CraftingRecipes, d_CraftingRecipesCount, onTable, onTableCount, posx, posy, posz);
-                    args.SetHandled(true);
+                    canCraft = false;
+                    break;
                 }
             }
+            if (canCraft)
+                currentRecipes[currentRecipesCount++] = i;
+        }
+
+        if (currentRecipesCount == 0)
+        {
+            game.Draw2dText1(game.language.NoMaterialsForCrafting(), game.xcenter(200), game.ycenter(20), FontSize, null, false);
+            return;
+        }
+
+        int menuX = game.xcenter(MenuWidth);
+        int menuY = game.ycenter(currentRecipesCount * RecipeRowHeight);
+
+        for (int i = 0; i < currentRecipesCount; i++)
+        {
+            Packet_CraftingRecipe r = craftingRecipes2[currentRecipes[i]];
+            int rowY = menuY + i * RecipeRowHeight;
+            int color = i == craftingSelectedRecipe
+                ? Game.ColorFromArgb(255, 255, 0, 0)
+                : Game.ColorFromArgb(255, 255, 255, 255);
+            int white = Game.ColorFromArgb(255, 255, 255, 255);
+
+            for (int ii = 0; ii < r.IngredientsCount; ii++)
+            {
+                Packet_Ingredient ing = r.Ingredients[ii];
+                int colX = menuX + 20 + ii * 130;
+                game.Draw2dTexture(game.d_TerrainTextures.TerrainTexture, colX, rowY, 32, 32, game.TextureIdForInventory[ing.Type], Game.texturesPacked(), white, false);
+                game.Draw2dText1($"{ing.Amount} {game.blocktypes[ing.Type].Name}", colX + 50, rowY, FontSize, color, false);
+            }
+
+            int outX = menuX + 20 + OutputColumnOffset;
+            game.Draw2dTexture(game.d_TerrainTextures.TerrainTexture, outX, rowY, 32, 32, game.TextureIdForInventory[r.Output.Type], Game.texturesPacked(), white, false);
+            game.Draw2dText1($"{r.Output.Amount} {game.blocktypes[r.Output.Type].Name}", outX + 50, rowY, FontSize, color, false);
         }
     }
 
-    internal void CraftingRecipesStart(Game game, Packet_CraftingRecipe[] recipes, int recipesCount, int[] blocks, int blocksCount, int posx, int posy, int posz)
+    internal void CraftingMouse(Game game)
     {
-        craftingrecipes2 = recipes;
-        craftingrecipes2Count = recipesCount;
-        craftingblocks = blocks;
-        craftingblocksCount = blocksCount;
-        craftingTableposx = posx;
-        craftingTableposy = posy;
-        craftingTableposz = posz;
+        if (currentRecipes == null) return;
+
+        int menuX = game.xcenter(MenuWidth);
+        int menuY = game.ycenter(currentRecipesCount * RecipeRowHeight);
+
+        if (game.mouseCurrentY >= menuY && game.mouseCurrentY < menuY + currentRecipesCount * RecipeRowHeight)
+            craftingSelectedRecipe = (game.mouseCurrentY - menuY) / RecipeRowHeight;
+
+        if (!game.mouseleftclick) return;
+
+        if (currentRecipesCount != 0)
+            game.SendPacketClient(ClientPackets.Craft(craftingTablePosX, craftingTablePosY, craftingTablePosZ, currentRecipes[craftingSelectedRecipe]));
+
+        game.mouseleftclick = false;
+        game.GuiStateBackToGame();
+    }
+
+    internal void CraftingRecipesStart(Game game, Packet_CraftingRecipe[] recipes, int recipesCount, int[] blocks, int blocksCount, int posX, int posY, int posZ)
+    {
+        craftingRecipes2 = recipes;
+        craftingRecipes2Count = recipesCount;
+        craftingBlocks = blocks;
+        craftingBlocksCount = blocksCount;
+        craftingTablePosX = posX;
+        craftingTablePosY = posY;
+        craftingTablePosZ = posZ;
         game.guistate = GuiState.CraftingRecipes;
         game.menustate = new MenuState();
         game.SetFreeMouse(true);
     }
 
-    internal static void CraftingRecipeSelected(Game game, int x, int y, int z, int recipe)
+    /// <summary>Counts how many times a block type appears in the crafting block list.</summary>
+    private static int CountBlock(int[] blocks, int count, int type)
     {
-        game.SendPacketClient(ClientPackets.Craft(x, y, z, recipe));
+        int total = 0;
+        for (int i = 0; i < count; i++)
+            if (blocks[i] == type) total++;
+        return total;
     }
 }
 

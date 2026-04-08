@@ -1,15 +1,22 @@
-﻿public class ModSendPosition : ModBase
+﻿/// <summary>
+/// Sends the local player's position and orientation to the server at most every 100ms.
+/// </summary>
+public class ModSendPosition : ModBase
 {
+    private const int SendIntervalMs = 100;
+
     public override void OnNewFrame(Game game, NewFrameEventArgs args)
     {
-        if (game.spawned && ((game.platform.TimeMillisecondsFromStart() - game.lastpositionsentMilliseconds) > 100))
-        {
-            game.lastpositionsentMilliseconds = game.platform.TimeMillisecondsFromStart();
+        if (!game.spawned) return;
+        if (game.platform.TimeMillisecondsFromStart() - game.lastpositionsentMilliseconds <= SendIntervalMs) return;
 
-            game.SendPacketClient(ClientPackets.PositionAndOrientation(game, game.LocalPlayerId,
-                game.player.position.x, game.player.position.y, game.player.position.z,
-                game.player.position.rotx, game.player.position.roty, game.player.position.rotz,
-                game.localstance));
-        }
+        game.lastpositionsentMilliseconds = game.platform.TimeMillisecondsFromStart();
+
+        var pos = game.player.position;
+        game.SendPacketClient(ClientPackets.PositionAndOrientation(
+            game, game.LocalPlayerId,
+            pos.x, pos.y, pos.z,
+            pos.rotx, pos.roty, pos.rotz,
+            game.localstance));
     }
 }

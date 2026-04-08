@@ -113,7 +113,9 @@ public class AudioOpenAl
             {
                 DoPlay();
             }
-            catch (Exception e) { Console.WriteLine(e.ToString()); }
+            catch (Exception e) { 
+                Console.WriteLine(e.ToString()); 
+            }
         }
 
         private void DoPlay()

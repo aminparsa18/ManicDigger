@@ -1,54 +1,42 @@
-﻿public class ModDrawText : ModBase
+﻿/// <summary>
+/// Renders floating 3D text labels attached to entities, facing the player when nearby.
+/// </summary>
+public class ModDrawText : ModBase
 {
+    private const float TextScale = 0.005f;
+    private const float TextDrawDistance = 20f;
+
+    private static readonly FontCi Font = new() { family = "Arial", size = 14 };
+
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
         for (int i = 0; i < game.entitiesCount; i++)
         {
             Entity e = game.entities[i];
-            if (e == null)
-            {
-                continue;
-            }
-            if (e.drawText == null)
-            {
-                continue;
-            }
-            if (e.networkPosition != null && (!e.networkPosition.PositionLoaded))
-            {
-                continue;
-            }
-            int kKey = i;
-            EntityDrawText p = game.entities[i].drawText;
-            float posX = - MathF.Sin(e.position.roty) * p.dx + e.position.x;
+            if (e?.drawText == null) continue;
+            if (e.networkPosition != null && !e.networkPosition.PositionLoaded) continue;
+
+            EntityDrawText p = e.drawText;
+            float posX = -MathF.Sin(e.position.roty) * p.dx + e.position.x;
             float posY = p.dy + e.position.y;
             float posZ = MathF.Cos(e.position.roty) * p.dz + e.position.z;
-            //todo if picking
-            if ((game.Dist(game.player.position.x, game.player.position.y, game.player.position.z, posX, posY, posZ) < 20)
-                || game.keyboardState[Game.KeyAltLeft] || game.keyboardState[Game.KeyAltRight])
-            {
-                string text = p.text;
-                {
 
-                    float shadow = (game.one * game.GetLight((int)(posX), (int)(posZ), (int)(posY))) / Game.maxlight;
+            bool nearEnough = game.Dist(game.player.position.x, game.player.position.y, game.player.position.z, posX, posY, posZ) < TextDrawDistance;
+            bool altHeld = game.keyboardState[Game.KeyAltLeft] || game.keyboardState[Game.KeyAltRight];
+            if (!nearEnough && !altHeld) continue;
 
-                    game.GLPushMatrix();
-                    game.GLTranslate(posX, posY, posZ);
-
-                    game.GLRotate(180, 1, 0, 0);
-                    game.GLRotate(e.position.roty * 360 / (2 * MathF.PI), 0, 1, 0);
-                    float scale = game.one * 5 / 1000;
-                    game.GLScale(scale, scale, scale);
-
-                    FontCi font = new()
-                    {
-                        family = "Arial",
-                        size = 14
-                    };
-                    game.Draw2dText(text, font, -game.TextSizeWidth(text, 14) / 2, 0, Game.ColorFromArgb(255, 255, 255, 255), true);
-
-                    game.GLPopMatrix();
-                }
-            }
+            DrawText(game, e, p, posX, posY, posZ);
         }
+    }
+
+    private static void DrawText(Game game, Entity e, EntityDrawText p, float posX, float posY, float posZ)
+    {
+        game.GLPushMatrix();
+        game.GLTranslate(posX, posY, posZ);
+        game.GLRotate(180, 1, 0, 0);
+        game.GLRotate(float.RadiansToDegrees(e.position.roty), 0, 1, 0);
+        game.GLScale(TextScale, TextScale, TextScale);
+        game.Draw2dText(p.text, Font, -game.TextSizeWidth(p.text, 14) / 2, 0, Game.ColorFromArgb(255, 255, 255, 255), true);
+        game.GLPopMatrix();
     }
 }

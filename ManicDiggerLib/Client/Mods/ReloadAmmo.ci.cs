@@ -1,41 +1,37 @@
-﻿public class ModReloadAmmo : ModBase
+﻿/// <summary>
+/// Handles weapon reload timing and the R key reload trigger.
+/// </summary>
+public class ModReloadAmmo : ModBase
 {
     public override void OnNewFrameFixed(Game game, NewFrameEventArgs args)
     {
-        if (game.reloadstartMilliseconds != 0
-            && (game.one * (game.platform.TimeMillisecondsFromStart() - game.reloadstartMilliseconds) / 1000)
-            > game.DeserializeFloat(game.blocktypes[game.reloadblock].ReloadDelayFloat))
-        {
-            {
-                int loaded = game.TotalAmmo[game.reloadblock];
-                loaded = Math.Min(game.blocktypes[game.reloadblock].AmmoMagazine, loaded);
-                game.LoadedAmmo[game.reloadblock] = loaded;
-                game.reloadstartMilliseconds = 0;
-                game.reloadblock = -1;
-            }
-        }
+        if (game.reloadstartMilliseconds == 0) return;
+
+        float elapsed = (game.platform.TimeMillisecondsFromStart() - game.reloadstartMilliseconds) / 1000f;
+        float reloadDelay = game.DeserializeFloat(game.blocktypes[game.reloadblock].ReloadDelayFloat);
+        if (elapsed <= reloadDelay) return;
+
+        int blockId = game.reloadblock;
+        game.LoadedAmmo[blockId] = Math.Min(game.blocktypes[blockId].AmmoMagazine, game.TotalAmmo[blockId]);
+        game.reloadstartMilliseconds = 0;
+        game.reloadblock = -1;
     }
+
     public override void OnKeyDown(Game game, KeyEventArgs args)
     {
-        if (!(game.guistate == GuiState.Normal && game.GuiTyping == TypingState.None))
-        {
-            //Do nothing when in dialog or chat
-            return;
-        }
-        int eKey = args.GetKeyCode();
-        if (eKey == game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R))
-        {
-            Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
-            if (item != null && item.ItemClass == Packet_ItemClassEnum.Block
-                && game.blocktypes[item.BlockId].IsPistol
-                && game.reloadstartMilliseconds == 0)
-            {
-                int sound = game.rnd.Next() % game.blocktypes[item.BlockId].Sounds.ReloadCount;
-                game.AudioPlay(string.Concat(game.blocktypes[item.BlockId].Sounds.Reload[sound], ".ogg"));
-                game.reloadstartMilliseconds = game.platform.TimeMillisecondsFromStart();
-                game.reloadblock = item.BlockId;
-                game.SendPacketClient(ClientPackets.Reload());
-            }
-        }
+        if (game.guistate != GuiState.Normal || game.GuiTyping != TypingState.None) return;
+        if (args.GetKeyCode() != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R)) return;
+
+        Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
+        if (item == null || item.ItemClass != Packet_ItemClassEnum.Block) return;
+        if (!game.blocktypes[item.BlockId].IsPistol) return;
+        if (game.reloadstartMilliseconds != 0) return;
+
+        var sounds = game.blocktypes[item.BlockId].Sounds;
+        int sound = game.rnd.Next() % sounds.ReloadCount;
+        game.AudioPlay(sounds.Reload[sound] + ".ogg");
+        game.reloadstartMilliseconds = game.platform.TimeMillisecondsFromStart();
+        game.reloadblock = item.BlockId;
+        game.SendPacketClient(ClientPackets.Reload());
     }
 }

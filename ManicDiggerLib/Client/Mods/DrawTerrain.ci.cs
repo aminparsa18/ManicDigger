@@ -92,12 +92,10 @@ public class ModDrawTerrain : ModBase
     internal float invertedChunkSize;
     internal float getInvertedChunkSize() { return invertedChunkSize; }
 
-#if !CITO
     internal int invertChunk(int num)
     {
         return (int)(num * invertedChunkSize);
     }
-#endif
     private int mapAreaSize() { return (int)(game.d_Config3d.viewdistance) * 2; }
     private int centerAreaSize() { return (int)(game.d_Config3d.viewdistance * 0.5f); }
     private int mapAreaSizeZ() { return mapAreaSize(); }

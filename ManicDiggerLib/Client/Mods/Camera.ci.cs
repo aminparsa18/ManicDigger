@@ -1,120 +1,100 @@
 ﻿using OpenTK.Mathematics;
+
+/// <summary>
+/// Handles first-person, third-person, and overhead camera positioning each frame.
+/// </summary>
 public class ModCamera : ModBase
 {
-    public ModCamera()
-    {
-        OverheadCamera_cameraEye = new Vector3();
-        upVec3 = new Vector3(0, 1, 0);
-    }
+    private static readonly Vector3 Up = Vector3.UnitY;
+    private Vector3 overheadCameraEye;
 
     public override void OnBeforeNewFrameDraw3d(Game game, float deltaTime)
     {
-        if (game.overheadcamera)
-        {
-            game.camera = OverheadCamera(game);
-        }
-        else
-        {
-            game.camera = FppCamera(game);
-        }
+        game.camera = game.overheadcamera ? OverheadCamera(game) : FppCamera(game);
     }
 
-    internal Vector3 OverheadCamera_cameraEye;
     internal Matrix4 OverheadCamera(Game game)
     {
-        game.overheadcameraK.GetPosition(game.platform, ref OverheadCamera_cameraEye);
-        Vector3 cameraEye = OverheadCamera_cameraEye;
-        Vector3 cameraTarget = new(
+        game.overheadcameraK.GetPosition(game.platform, ref overheadCameraEye);
+        Vector3 eye = overheadCameraEye;
+        Vector3 target = new(
             game.overheadcameraK.Center.X,
             game.overheadcameraK.Center.Y + game.GetCharacterEyesHeight(),
             game.overheadcameraK.Center.Z);
-        game.overheadcameradistance = LimitThirdPersonCameraToWalls(game, ref cameraEye, ref cameraTarget, game.overheadcameradistance);
-        Matrix4 ret = Matrix4.LookAt(cameraEye, cameraTarget, upVec3);
-        game.CameraEyeX = cameraEye.X;
-        game.CameraEyeY = cameraEye.Y;
-        game.CameraEyeZ = cameraEye.Z;
-        return ret;
-    }
-    private readonly Vector3 upVec3;
 
-    internal Matrix4 FppCamera(Game game)
+        game.overheadcameradistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, game.overheadcameradistance);
+        SetCameraEye(game, eye);
+        return Matrix4.LookAt(eye, target, Up);
+    }
+
+    internal static Matrix4 FppCamera(Game game)
     {
         Vector3 forward = new();
         VectorTool.ToVectorInFixedSystem(0, 0, 1, game.player.position.rotx, game.player.position.roty, ref forward);
-        Vector3 cameraEye = new();
-        Vector3 cameraTarget = new();
-        float playerEyeX = game.player.position.x;
-        float playerEyeY = game.player.position.y + game.GetCharacterEyesHeight();
-        float playerEyeZ = game.player.position.z;
+
+        float eyeX = game.player.position.x;
+        float eyeY = game.player.position.y + game.GetCharacterEyesHeight();
+        float eyeZ = game.player.position.z;
+
+        Vector3 eye, target;
+
         if (!game.ENABLE_TPP_VIEW)
         {
-            cameraEye.X = playerEyeX;
-            cameraEye.Y = playerEyeY;
-            cameraEye.Z = playerEyeZ;
-            cameraTarget.X = playerEyeX + forward.X;
-            cameraTarget.Y = playerEyeY + forward.Y;
-            cameraTarget.Z = playerEyeZ + forward.Z;
+            eye = new Vector3(eyeX, eyeY, eyeZ);
+            target = new Vector3(eyeX + forward.X, eyeY + forward.Y, eyeZ + forward.Z);
         }
         else
         {
-            cameraEye.X = playerEyeX + forward.X * -game.tppcameradistance;
-            cameraEye.Y = playerEyeY + forward.Y * -game.tppcameradistance;
-            cameraEye.Z = playerEyeZ + forward.Z * -game.tppcameradistance;
-            cameraTarget.X = playerEyeX;
-            cameraTarget.Y = playerEyeY;
-            cameraTarget.Z = playerEyeZ;
-            game.tppcameradistance = LimitThirdPersonCameraToWalls(game, ref cameraEye, ref cameraTarget, game.tppcameradistance);
+            eye = new Vector3(eyeX + forward.X * -game.tppcameradistance,
+                                 eyeY + forward.Y * -game.tppcameradistance,
+                                 eyeZ + forward.Z * -game.tppcameradistance);
+            target = new Vector3(eyeX, eyeY, eyeZ);
+            game.tppcameradistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, game.tppcameradistance);
         }
-        Matrix4 ret = Matrix4.LookAt(cameraEye, cameraTarget, upVec3);
-        game.CameraEyeX = cameraEye.X;
-        game.CameraEyeY = cameraEye.Y;
-        game.CameraEyeZ = cameraEye.Z;
-        return ret;
+
+        SetCameraEye(game, eye);
+        return Matrix4.LookAt(eye, target, Up);
     }
 
-    internal static float LimitThirdPersonCameraToWalls(Game game, ref Vector3 eye, ref Vector3 target, float curtppcameradistance)
+    /// <summary>
+    /// Casts a ray from the camera target toward the eye and pulls the camera
+    /// in if terrain blocks the view, with a minimum distance of 0.3 units.
+    /// </summary>
+    internal static float LimitThirdPersonCameraToWalls(Game game, ref Vector3 eye, ref Vector3 target, float distance)
     {
-        float one = 1;
-        Vector3 ray_start_point = target;
-        Vector3 raytarget = eye;
+        const float MinDistance = 0.3f;
 
-        Line3D pick = new();
-        float raydirX = (raytarget.X - ray_start_point.X);
-        float raydirY = (raytarget.Y - ray_start_point.Y);
-        float raydirZ = (raytarget.Z - ray_start_point.Z);
+        Vector3 dir = eye - target;
+        float dirLength = game.Length(dir.X, dir.Y, dir.Z);
+        dir /= dirLength;
 
-        float raydirLength1 = game.Length(raydirX, raydirY, raydirZ);
-        raydirX /= raydirLength1;
-        raydirY /= raydirLength1;
-        raydirZ /= raydirLength1;
-        raydirX = raydirX * (game.tppcameradistance + 1);
-        raydirY = raydirY * (game.tppcameradistance + 1);
-        raydirZ = raydirZ * (game.tppcameradistance + 1);
-        pick.Start = new Vector3(ray_start_point.X, ray_start_point.Y, ray_start_point.Z);
-        pick.End = new Vector3(ray_start_point.X + raydirX, ray_start_point.Y + raydirY, ray_start_point.Z + raydirZ);
-
-        // pick terrain
-        ArraySegment<BlockPosSide> pick2 = game.Pick(game.s, pick, out int pick2Count);
-
-        if (pick2Count > 0)
+        Vector3 rayEnd = target + dir * (game.tppcameradistance + 1);
+        Line3D pick = new()
         {
-            BlockPosSide pick2nearest = game.Nearest(pick2, pick2Count, ray_start_point.X, ray_start_point.Y, ray_start_point.Z);
+            Start = target,
+            End = rayEnd
+        };
 
-            float pickX = pick2nearest.blockPos[0] - target.X;
-            float pickY = pick2nearest.blockPos[1] - target.Y;
-            float pickZ = pick2nearest.blockPos[2] - target.Z;
-            float pickdistance = game.Length(pickX, pickY, pickZ);
-            curtppcameradistance = Math.Min(pickdistance - 1, curtppcameradistance);
-            if (curtppcameradistance < one * 3 / 10) { curtppcameradistance = one * 3 / 10; }
+        ArraySegment<BlockPosSide> hits = game.Pick(game.s, pick, out int hitCount);
+        if (hitCount > 0)
+        {
+            BlockPosSide nearest = game.Nearest(hits, hitCount, target.X, target.Y, target.Z);
+            float pickX = nearest.blockPos[0] - target.X;
+            float pickY = nearest.blockPos[1] - target.Y;
+            float pickZ = nearest.blockPos[2] - target.Z;
+            float pickDistance = game.Length(pickX, pickY, pickZ);
+            distance = Math.Max(MinDistance, Math.Min(pickDistance - 1, distance));
         }
 
-        float raydirLength = game.Length(raydirX, raydirY, raydirZ);
-        raydirX /= raydirLength;
-        raydirY /= raydirLength;
-        raydirZ /= raydirLength;
-        eye.X = target.X + raydirX * curtppcameradistance;
-        eye.Y = target.Y + raydirY * curtppcameradistance;
-        eye.Z = target.Z + raydirZ * curtppcameradistance;
-        return curtppcameradistance;
+        eye = target + dir * distance;
+        return distance;
+    }
+
+    /// <summary>Writes the eye position back to the game for other systems to use.</summary>
+    private static void SetCameraEye(Game game, Vector3 eye)
+    {
+        game.CameraEyeX = eye.X;
+        game.CameraEyeY = eye.Y;
+        game.CameraEyeZ = eye.Z;
     }
 }

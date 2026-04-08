@@ -29,7 +29,7 @@ public class ModReloadAmmo : ModBase
 
         var sounds = game.blocktypes[item.BlockId].Sounds;
         int sound = game.rnd.Next() % sounds.ReloadCount;
-        game.AudioPlay(sounds.Reload[sound] + ".ogg");
+        game.PlayAudio(sounds.Reload[sound] + ".ogg");
         game.reloadstartMilliseconds = game.platform.TimeMillisecondsFromStart();
         game.reloadblock = item.BlockId;
         game.SendPacketClient(ClientPackets.Reload());

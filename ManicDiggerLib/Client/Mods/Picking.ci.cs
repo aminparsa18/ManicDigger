@@ -119,7 +119,7 @@ public class ModPicking : ModBase
             game.grenadecookingstartMilliseconds = game.platform.TimeMillisecondsFromStart();
             if (isPistol && isGrenade && game.blocktypes[item.BlockId].Sounds.ShootCount > 0)
             {
-                game.AudioPlay(string.Format("{0}.ogg", game.blocktypes[item.BlockId].Sounds.Shoot[0]));
+                game.PlayAudio(string.Format("{0}.ogg", game.blocktypes[item.BlockId].Sounds.Shoot[0]));
             }
         }
 
@@ -240,7 +240,7 @@ public class ModPicking : ModBase
         {
             if (!(game.LoadedAmmo[item.BlockId] > 0) || !(game.TotalAmmo[item.BlockId] > 0))
             {
-                game.AudioPlay("Dry Fire Gun-SoundBible.com-2053652037.ogg");
+                game.PlayAudio("Dry Fire Gun-SoundBible.com-2053652037.ogg");
                 PickingEnd(left, right, middle, isPistol);
                 return;
             }
@@ -295,7 +295,7 @@ public class ModPicking : ModBase
                 }
 
                 string[] sound = left ? game.d_Data.BreakSound()[blocktype] : game.d_Data.BuildSound()[blocktype];
-                if (sound != null) { game.AudioPlay(sound[0]); } // TODO: sound cycle
+                if (sound != null) { game.PlayAudio(sound[0]); } // TODO: sound cycle
             }
 
             if (!right)
@@ -403,7 +403,7 @@ public class ModPicking : ModBase
         }
 
         string[] sound = game.d_Data.CloneSound()[cloneSource];
-        if (sound != null) { game.AudioPlay(sound[0]); } // TODO: sound cycle
+        if (sound != null) { game.PlayAudio(sound[0]); } // TODO: sound cycle
     }
 
     /// <summary>
@@ -450,7 +450,7 @@ public class ModPicking : ModBase
         if (game.blocktypes[item.BlockId].Sounds.ShootEndCount > 0)
         {
             game.pistolcycle = game.rnd.Next() % game.blocktypes[item.BlockId].Sounds.ShootEndCount;
-            game.AudioPlay(string.Format("{0}.ogg", game.blocktypes[item.BlockId].Sounds.ShootEnd[game.pistolcycle]));
+            game.PlayAudio(string.Format("{0}.ogg", game.blocktypes[item.BlockId].Sounds.ShootEnd[game.pistolcycle]));
         }
 
         // Apply recoil.

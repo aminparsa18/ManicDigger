@@ -1,92 +1,11 @@
 ﻿using OpenTK.Mathematics;
-using OpenTK.Windowing.Common;
 using System.Numerics;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
 public partial class Game
 {
-    // Main game loop
-    public void OnRenderFrame(float deltaTime)
-    {
-        taskScheduler.Update(this, deltaTime);
-    }
     
-    internal void MainThreadOnRenderFrame(float deltaTime)
-    {
-        UpdateResize();
-
-        if (guistate == GuiState.MapLoading)
-        {
-            platform.GlClearColorRgbaf(0, 0, 0, 1);
-        }
-        else
-        {
-            platform.GlClearColorRgbaf(one * clearcolorR / 255, one * clearcolorG / 255, one * clearcolorB / 255, one * clearcolorA / 255);
-        }
-
-        mouseSmoothingAccum += deltaTime;
-        float constMouseDt = 1f / 300;
-        while (mouseSmoothingAccum > constMouseDt)
-        {
-            mouseSmoothingAccum -= constMouseDt;
-            UpdateMouseViewportControl(constMouseDt);
-        }
-
-        //Sleep is required in Mono for running the terrain background thread.
-        platform.ApplicationDoEvents();
-
-        accumulator += deltaTime;
-        if (accumulator > 1)
-        {
-            accumulator = 1;
-        }
-        float dt = one / 75;
-
-        while (accumulator >= dt)
-        {
-            FrameTick(dt);
-            accumulator -= dt;
-        }
-
-        if (guistate == GuiState.MapLoading)
-        {
-            GotoDraw2d(deltaTime);
-            return;
-        }
-
-        if (ENABLE_LAG == 2)
-        {
-            platform.ThreadSpinWait(20 * 1000 * 1000);
-        }
-
-        SetAmbientLight(Terraincolor());
-        platform.GlClearColorBufferAndDepthBuffer();
-        platform.BindTexture2d(d_TerrainTextures.TerrainTexture);
-
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnBeforeNewFrameDraw3d(this, deltaTime);
-        }
-        GLMatrixModeModelView();
-        GLLoadMatrix(camera);
-        CameraMatrix.LastModelViewMatrix = camera;
-
-        d_FrustumCulling.CalcFrustumEquations();
-
-        bool drawgame = guistate != GuiState.MapLoading;
-        if (drawgame)
-        {
-            platform.GlEnableDepthTest();
-            for (int i = 0; i < clientmodsCount; i++)
-            {
-                if (clientmods[i] == null) { continue; }
-                clientmods[i].OnNewFrameDraw3d(this, deltaTime);
-            }
-        }
-        GotoDraw2d(deltaTime);
-    }
     
     public static bool IsRail(Packet_BlockType block)
     {
@@ -98,7 +17,6 @@ public partial class Game
         return (block.DrawType == Packet_DrawTypeEnum.Ladder)
             || (block.WalkableType != Packet_WalkableTypeEnum.Solid && block.WalkableType != Packet_WalkableTypeEnum.Fluid);
     }
-
 
     internal float FloorFloat(float a)
     {
@@ -112,168 +30,13 @@ public partial class Game
         }
     }
 
-    public static byte[] Serialize(Packet_Client packet, out int retLength)
-    {
-        CitoMemoryStream ms = new();
-        Packet_ClientSerializer.Serialize(ms, packet);
-
-        byte[] data = ms.ToArray();
-        retLength = ms.Length();
-
-        return data;
-    }
-
-    public void SendPacket(byte[] packet, int packetLength)
-    {
-        //try
-        //{
-        INetOutgoingMessage msg = new();
-        msg.Write(packet, packetLength);
-        main.SendMessage(msg, MyNetDeliveryMethod.ReliableOrdered);
-        //}
-        //catch
-        //{
-        //    game.p.ConsoleWriteLine("SendPacket error");
-        //}
-    }
-
-    internal NetClient main;
-
-    private int packetLen;
-    public void SendPacketClient(Packet_Client packetClient)
-    {
-        byte[] packet = Serialize(packetClient, out packetLen);
-        SendPacket(packet, packetLen);
-    }
-
-    internal bool IsTeamchat;
-    internal void SendChat(string s)
-    {
-        SendPacketClient(ClientPackets.Chat(s, IsTeamchat ? 1 : 0));
-    }
-
-    internal void SendPingReply()
-    {
-        SendPacketClient(ClientPackets.PingReply());
-    }
-
-    internal void SendSetBlock(int x, int y, int z, int mode, int type, int materialslot)
-    {
-        SendPacketClient(ClientPackets.SetBlock(x, y, z, mode, type, materialslot));
-    }
-    internal int ActiveMaterial;
-
-    internal void SendFillArea(int startx, int starty, int startz, int endx, int endy, int endz, int blockType)
-    {
-        SendPacketClient(ClientPackets.FillArea(startx, starty, startz, endx, endy, endz, blockType, ActiveMaterial));
-    }
-
-    internal void InventoryClick(Packet_InventoryPosition pos)
-    {
-        SendPacketClient(ClientPackets.InventoryClick(pos));
-    }
-
-    internal void WearItem(Packet_InventoryPosition from, Packet_InventoryPosition to)
-    {
-        SendPacketClient(ClientPackets.WearItem(from, to));
-    }
-
-    internal void MoveToInventory(Packet_InventoryPosition from)
-    {
-        SendPacketClient(ClientPackets.MoveToInventory(from));
-    }
+   
 
     internal int ChatLinesCount;
     internal string GuiTypingBuffer;
     internal bool IsTyping;
 
-    public void AddChatline(string s)
-    {
-        Game game = this;
-        if (string.IsNullOrEmpty(s))
-        {
-            return;
-        }
-        //Check for links in chatline
-        bool containsLink = false;
-        string linkTarget = "";
-        //Normal HTTP links
-        if (s.Contains("http://"))
-        {
-            containsLink = true;
-            string[] temp = s.Split(' ');
-            for (int i = 0; i < temp.Length; i++)
-            {
-                if (temp[i].Contains("http://", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    linkTarget = temp[i];
-                    break;
-                }
-            }
-        }
-        //Secure HTTPS links
-        if (s.Contains("https://"))
-        {
-            containsLink = true;
-            string[] temp = s.Split(' ');
-            for (int i = 0; i < temp.Length; i++)
-            {
-                if (temp[i].Contains("https://", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    linkTarget = temp[i];
-                    break;
-                }
-            }
-        }
-        int now = game.platform.TimeMillisecondsFromStart();
-        //Display message in multiple lines if it's longer than one line
-        if (s.Length > ChatLineLength)
-        {
-            for (int i = 0; i <= s.Length / ChatLineLength; i++)
-            {
-                int displayLength = ChatLineLength;
-                if (s.Length - (i * ChatLineLength) < ChatLineLength)
-                {
-                    displayLength = s.Length - (i * ChatLineLength);
-                }
-                string chunk = s.Substring(i * ChatLineLength, displayLength);
-                if (containsLink)
-                    ChatLinesAdd(Chatline.CreateClickable(chunk, now, linkTarget));
-                else
-                    ChatLinesAdd(Chatline.Create(chunk, now));
-            }
-        }
-        else
-        {
-            if (containsLink)
-                ChatLinesAdd(Chatline.CreateClickable(s, now, linkTarget));
-            else
-                ChatLinesAdd(Chatline.Create(s, now));
-        }
-    }
-
-    private void ChatLinesAdd(Chatline chatline)
-    {
-        if (ChatLinesCount >= ChatLinesMax)
-        {
-            Chatline[] lines2 = new Chatline[ChatLinesMax * 2];
-            for (int i = 0; i < ChatLinesMax; i++)
-            {
-                lines2[i] = ChatLines[i];
-            }
-            ChatLines = lines2;
-            ChatLinesMax *= 2;
-        }
-        ChatLines[ChatLinesCount++] = chatline;
-    }
-
     internal bool stopPlayerMove;
-
-    internal void Respawn()
-    {
-        SendPacketClient(ClientPackets.SpecialKeyRespawn());
-        stopPlayerMove = true;
-    }
 
     public static bool IsTransparentForLight(Packet_BlockType b)
     {
@@ -405,29 +168,7 @@ public partial class Game
     }
 
     internal Vector3 playerdestination;
-    internal void SetCamera(CameraType type)
-    {
-        if (type == CameraType.Fpp)
-        {
-            cameratype = CameraType.Fpp;
-            SetFreeMouse(false);
-            ENABLE_TPP_VIEW = false;
-            overheadcamera = false;
-        }
-        else if (type == CameraType.Tpp)
-        {
-            cameratype = CameraType.Tpp;
-            ENABLE_TPP_VIEW = true;
-        }
-        else
-        {
-            cameratype = CameraType.Overhead;
-            overheadcamera = true;
-            SetFreeMouse(true);
-            ENABLE_TPP_VIEW = true;
-            playerdestination = new Vector3(player.position.x, player.position.y, player.position.z);
-        }
-    }
+
 
     internal static Packet_InventoryPosition InventoryPositionMaterialSelector(int materialId)
     {
@@ -559,104 +300,7 @@ public partial class Game
     public float EyesPosY() { return player.position.y + GetCharacterEyesHeight(); }
     public float EyesPosZ() { return player.position.z; }
 
-    public void AudioPlay(string file)
-    {
-        if (!AudioEnabled)
-        {
-            return;
-        }
-        AudioPlayAt(file, EyesPosX(), EyesPosY(), EyesPosZ());
-    }
-
-    public void AudioPlayAt(string file, float x, float y, float z)
-    {
-        if (file == null)
-        {
-            return;
-        }
-        if (!AudioEnabled)
-        {
-            return;
-        }
-        if (assetsLoadProgress != 1)
-        {
-            return;
-        }
-        string file_ = file.Replace(".wav", ".ogg");
-
-        if (GetAssetFileLength(file_) == 0)
-        {
-            platform.ConsoleWriteLine(string.Format("File not found: {0}", file));
-            return;
-        }
-
-        Sound s = new()
-        {
-            name = file_,
-            x = x,
-            y = y,
-            z = z
-        };
-        audio.Add(s);
-    }
-
-    public void AudioPlayLoop(string file, bool play, bool restart)
-    {
-        if ((!AudioEnabled) && play)
-        {
-            return;
-        }
-        if (assetsLoadProgress != 1)
-        {
-            return;
-        }
-
-        string file_ = file.Replace(".wav", ".ogg");
-
-        if (GetAssetFileLength(file_) == 0)
-        {
-            platform.ConsoleWriteLine(string.Format("File not found: {0}", file));
-            return;
-        }
-
-        if (play)
-        {
-            Sound s = null;
-            bool alreadyPlaying = false;
-            for (int i = 0; i < audio.soundsCount; i++)
-            {
-                if (audio.sounds[i] == null) { continue; }
-                if (audio.sounds[i].name == file_)
-                {
-                    alreadyPlaying = true;
-                    s = audio.sounds[i];
-                }
-            }
-            if (!alreadyPlaying)
-            {
-                s = new Sound
-                {
-                    name = file_,
-                    loop = true
-                };
-                audio.Add(s);
-            }
-            s.x = EyesPosX();
-            s.y = EyesPosY();
-            s.z = EyesPosZ();
-        }
-        else
-        {
-            for (int i = 0; i < audio.soundsCount; i++)
-            {
-                if (audio.sounds[i] == null) { continue; }
-                if (audio.sounds[i].name == file_)
-                {
-                    audio.sounds[i].stop = true;
-                }
-            }
-        }
-    }
+   
 
     public int MaterialSlots_(int i)
     {
@@ -712,14 +356,14 @@ public partial class Game
         if (PlayerStats.CurrentHealth <= 0)
         {
             PlayerStats.CurrentHealth = 0;
-            AudioPlay("death.wav");
+            PlayAudio("death.wav");
             SendPacketClient(ClientPackets.Death(damageSource, sourceId));
 
             //Respawn(); //Death is not respawn ;)
         }
         else
         {
-            AudioPlay(rnd.Next() % 2 == 0 ? "grunt1.wav" : "grunt2.wav");
+            PlayAudio(rnd.Next() % 2 == 0 ? "grunt1.wav" : "grunt2.wav");
         }
         SendPacketClient(ClientPackets.Health(PlayerStats.CurrentHealth));
     }
@@ -868,10 +512,7 @@ public partial class Game
 
  
 
-    internal void SendLeave(int reason)
-    {
-        SendPacketClient(ClientPackets.Leave(reason));
-    }
+
 
     public int SerializeFloat(float p)
     {
@@ -897,17 +538,7 @@ public partial class Game
         return (byte)(int)(xx / (2 * MathF.PI) * 256);
     }
 
-    public void PlaySoundAt(string name, float x, float y, float z)
-    {
-        if (x == 0 && y == 0 && z == 0)
-        {
-            AudioPlay(name);
-        }
-        else
-        {
-            AudioPlayAt(name, x, z, y);
-        }
-    }
+
 
     internal void InvokeMapLoadingProgress(int progressPercent, int progressBytes, string status)
     {
@@ -1161,30 +792,6 @@ public partial class Game
         return IsWater(GetPlayerEyesBlock());
     }
 
-    internal bool WaterSwimmingCamera()
-    {
-        if (GetCameraBlock() == -1) { return true; }
-        return IsWater(GetCameraBlock());
-    }
-
-    internal bool LavaSwimmingCamera()
-    {
-        return IsLava(GetCameraBlock());
-    }
-
-    private int GetCameraBlock()
-    {
-        int bx = (int)MathF.Floor(CameraEyeX);
-        int by = (int)MathF.Floor(CameraEyeZ);
-        int bz = (int)MathF.Floor(CameraEyeY);
-
-        if (!map.IsValidPos(bx, by, bz))
-        {
-            return 0;
-        }
-        return map.GetBlockValid(bx, by, bz);
-    }
-
     internal int GetPlayerEyesBlock()
     {
         float pX = player.position.x;
@@ -1305,19 +912,6 @@ public partial class Game
         return MathF.Sqrt(x * x + y * y + z * z);
     }
 
-    internal void HandleMaterialKeys(int eKey)
-    {
-        if (eKey == GetKey(Keys.KeyPad1)) { ActiveMaterial = 0; }
-        if (eKey == GetKey(Keys.KeyPad2)) { ActiveMaterial = 1; }
-        if (eKey == GetKey(Keys.KeyPad3)) { ActiveMaterial = 2; }
-        if (eKey == GetKey(Keys.KeyPad4)) { ActiveMaterial = 3; }
-        if (eKey == GetKey(Keys.KeyPad5)) { ActiveMaterial = 4; }
-        if (eKey == GetKey(Keys.KeyPad6)) { ActiveMaterial = 5; }
-        if (eKey == GetKey(Keys.KeyPad7)) { ActiveMaterial = 6; }
-        if (eKey == GetKey(Keys.KeyPad8)) { ActiveMaterial = 7; }
-        if (eKey == GetKey(Keys.KeyPad9)) { ActiveMaterial = 8; }
-        if (eKey == GetKey(Keys.KeyPad0)) { ActiveMaterial = 9; }
-    }
 
     internal void UseVsync()
     {
@@ -1337,19 +931,7 @@ public partial class Game
         SetFreeMouse(false);
     }
 
-    internal void Connect(string serverAddress, int port, string username, string auth)
-    {
-        main.Start();
-        main.Connect(serverAddress, port);
-        SendPacketClient(ClientPackets.CreateLoginPacket(platform, username, auth));
-    }
-
-    internal void Connect_(string serverAddress, int port, string username, string auth, string serverPassword)
-    {
-        main.Start();
-        main.Connect(serverAddress, port);
-        SendPacketClient(ClientPackets.CreateLoginPacket_(platform, username, auth, serverPassword));
-    }
+    
 
     internal bool shadowssimple;
     internal bool shouldRedrawAllBlocks;
@@ -1358,10 +940,6 @@ public partial class Game
         shouldRedrawAllBlocks = true;
     }
 
-    //public const int clearcolorR = 171;
-    //public const int clearcolorG = 202;
-    //public const int clearcolorB = 228;
-    //public const int clearcolorA = 255;
     public const int clearcolorR = 0;
     public const int clearcolorG = 0;
     public const int clearcolorB = 0;
@@ -1442,7 +1020,6 @@ public partial class Game
             platform.ConsoleWriteLine(string.Format(language.CannotWriteChatLog(), this.ServerInfo.ServerName));
         }
     }
-    
 
     internal void MapLoaded()
     {
@@ -1455,17 +1032,11 @@ public partial class Game
         playerPositionSpawnZ = player.position.z;
     }
 
-   
-
     internal void UseInventory(Packet_Inventory packet_Inventory)
     {
         d_Inventory = packet_Inventory;
         d_InventoryUtil.UpdateInventory(packet_Inventory);
     }
-
-    
-
-   
 
     internal void SendSetBlockAndUpdateSpeculative(int material, int x, int y, int z, int mode)
     {
@@ -1538,27 +1109,7 @@ public partial class Game
         Set3dProjection1(zfar());
     }
 
-    internal void SendGameResolution()
-    {
-        SendPacketClient(ClientPackets.GameResolution(Width(), Height()));
-    }
-
     private bool sendResize;
-    internal void OnResize()
-    {
-        platform.GlViewport(0, 0, Width(), Height());
-        this.Set3dProjection2();
-        //Notify server of size change
-        if (sendResize)
-        {
-            SendGameResolution();
-        }
-    }
-
-    internal void Reconnect()
-    {
-        reconnect = true;
-    }
 
     internal Packet_ServerRedirect redirectTo;
     internal void ExitAndSwitchServer(Packet_ServerRedirect newServer)
@@ -1584,198 +1135,6 @@ public partial class Game
         }
         redirectTo = null;
         exitToMainMenu = true;
-    }
-
-    internal void ClientCommand(string s_)
-    {
-        if (s_ == "")
-        {
-            return;
-        }
-
-        string[] ss = s_.Split(' ');
-        if (s_.StartsWith("."))
-        {
-            string strFreemoveNotAllowed = language.FreemoveNotAllowed();
-            string cmd = ss[0][1..];
-            string arguments;
-            if (!s_.Contains(" ", StringComparison.InvariantCultureIgnoreCase))
-            {
-                arguments = "";
-            }
-            else
-            {
-                arguments = s_[s_.IndexOf(" ", StringComparison.InvariantCultureIgnoreCase)..];
-            }
-            arguments = arguments.Trim();
-
-            // Command requiring no arguments
-            if (cmd == "clients")
-            {
-                Log("Clients:");
-                for (int i = 0; i < entitiesCount; i++)
-                {
-                    Entity entity = entities[i];
-                    if (entity == null) { continue; }
-                    if (entity.drawName == null) { continue; }
-                    if (!entity.drawName.ClientAutoComplete) { continue; }
-                    Log(string.Format("{0} {1}", i.ToString(), entities[i].drawName.Name));
-                }
-            }
-            else if (cmd == "reconnect")
-            {
-                Reconnect();
-            }
-            else if (cmd == "m")
-            {
-                mouseSmoothing = !mouseSmoothing;
-                if (mouseSmoothing) { Log("Mouse smoothing enabled."); }
-                else { Log("Mouse smoothing disabled."); }
-            }
-            // Commands requiring boolean arguments
-            else if (cmd == "pos")
-            {
-                ENABLE_DRAWPOSITION = BoolCommandArgument(arguments);
-            }
-            else if (cmd == "noclip")
-            {
-                controls.noclip = BoolCommandArgument(arguments);
-            }
-            else if (cmd == "freemove")
-            {
-                if (this.AllowFreemove)
-                {
-                    controls.freemove = BoolCommandArgument(arguments);
-                }
-                else
-                {
-                    Log(strFreemoveNotAllowed);
-                    return;
-                }
-            }
-            else if (cmd == "gui")
-            {
-                ENABLE_DRAW2D = BoolCommandArgument(arguments);
-            }
-            // Commands requiring numeric arguments
-            else if (arguments != "")
-            {
-                if (cmd == "fog")
-                {
-                    int foglevel;
-                    foglevel = int.Parse(arguments);
-                    {
-                        int foglevel2 = foglevel;
-                        if (foglevel2 > 1024)
-                        {
-                            foglevel2 = 1024;
-                        }
-                        if (foglevel2 % 2 == 0)
-                        {
-                            foglevel2--;
-                        }
-                        d_Config3d.viewdistance = foglevel2;
-                    }
-                    OnResize();
-                }
-                else if (cmd == "fov")
-                {
-                    int arg = int.Parse(arguments);
-                    int minfov = 1;
-                    int maxfov = 179;
-                    if (!issingleplayer)
-                    {
-                        minfov = 60;
-                    }
-                    if (arg < minfov || arg > maxfov)
-                    {
-                        Log(string.Format("Valid field of view: {0}-{1}", minfov.ToString(), maxfov.ToString()));
-                    }
-                    else
-                    {
-                        float fov_ = (2 * MathF.PI * (one * arg / 360));
-                        this.fov = fov_;
-                        OnResize();
-                    }
-                }
-                else if (cmd == "movespeed")
-                {
-                    if (this.AllowFreemove)
-                    {
-                        if (float.Parse(arguments) <= 500)
-                        {
-                            movespeed = basemovespeed * float.Parse(arguments);
-                            AddChatline(string.Format("Movespeed: {0}x", arguments));
-                        }
-                        else
-                        {
-                            AddChatline("Entered movespeed to high! max. 500x");
-                        }
-                    }
-                    else
-                    {
-                        Log(strFreemoveNotAllowed);
-                        return;
-                    }
-                }
-                else if (cmd == "serverinfo")
-                {
-                    //Fetches server info from given adress
-                    string[] split = arguments.Split(':');
-                    if (split.Length == 2)
-                    {
-                        QueryClient qClient = new();
-                        qClient.SetPlatform(platform);
-                        qClient.PerformQuery(split[0], int.Parse(split[1]));
-                        if (qClient.querySuccess)
-                        {
-                            //Received result
-                            QueryResult r = qClient.GetResult();
-                            AddChatline(r.GameMode);
-                            AddChatline(r.MapSizeX.ToString());
-                            AddChatline(r.MapSizeY.ToString());
-                            AddChatline(r.MapSizeZ.ToString());
-                            AddChatline(r.MaxPlayers.ToString());
-                            AddChatline(r.MOTD);
-                            AddChatline(r.Name);
-                            AddChatline(r.PlayerCount.ToString());
-                            AddChatline(r.PlayerList);
-                            AddChatline(r.Port.ToString());
-                            AddChatline(r.PublicHash);
-                            AddChatline(r.ServerVersion);
-                        }
-                        AddChatline(qClient.GetServerMessage());
-                    }
-                }
-            }
-            else
-            {
-                //Send client command to server if none matches
-                string chatline = GuiTypingBuffer[..Math.Min(GuiTypingBuffer.Length, 256)];
-                SendChat(chatline);
-            }
-            //Process clientside mod commands anyway
-            for (int i = 0; i < clientmodsCount; i++)
-            {
-                ClientCommandArgs args = new()
-                {
-                    arguments = arguments,
-                    command = cmd
-                };
-                clientmods[i].OnClientCommand(this, args);
-            }
-        }
-        else
-        {
-            //Regular chat message or server command. Send to server
-            string chatline = GuiTypingBuffer[..Math.Min(GuiTypingBuffer.Length, 4096)];
-            SendChat(chatline);
-        }
-    }
-    public bool BoolCommandArgument(string arguments)
-    {
-        arguments = arguments.Trim();
-        return (arguments == "" || arguments == "1" || arguments == "on" || arguments == "yes");
     }
 
     internal void ProcessServerIdentification(Packet_Server packet)
@@ -1857,8 +1216,6 @@ public partial class Game
         ChatLog("[GAME] Map initialized");
     }
 
-    
-
     internal void InvalidVersionAllow()
     {
         if (invalidVersionDrawMessage != null)
@@ -1868,21 +1225,6 @@ public partial class Game
             invalidVersionPacketIdentification = null;
         }
     }
-
-    public static bool StringEquals(string strA, string strB)
-    {
-        if (strA == null && strB == null)
-        {
-            return true;
-        }
-        if (strA == null || strB == null)
-        {
-            return false;
-        }
-        return strA == strB;
-    }
-
-   
 
     internal bool escapeMenuRestart;
     public void EscapeMenuStart()
@@ -1905,78 +1247,6 @@ public partial class Game
         guistate = GuiState.Inventory;
         menustate = new MenuState();
         SetFreeMouse(true);
-    }
-
-    public void CameraChange()
-    {
-        if (Follow != null)
-        {
-            //Prevents switching camera mode when following
-            return;
-        }
-        if (cameratype == CameraType.Fpp)
-        {
-            cameratype = CameraType.Tpp;
-            ENABLE_TPP_VIEW = true;
-        }
-        else if (cameratype == CameraType.Tpp)
-        {
-            cameratype = CameraType.Overhead;
-            overheadcamera = true;
-            SetFreeMouse(true);
-            ENABLE_TPP_VIEW = true;
-            playerdestination = new Vector3(player.position.x, player.position.y, player.position.z);
-        }
-        else if (cameratype == CameraType.Overhead)
-        {
-            cameratype = CameraType.Fpp;
-            SetFreeMouse(false);
-            ENABLE_TPP_VIEW = false;
-            overheadcamera = false;
-        }
-        else
-        {
-            platform.ThrowException("");
-        }
-    }
-
-   
-
-    internal void FrameTick(float dt)
-    {
-        NewFrameEventArgs args_ = new();
-        args_.SetDt(dt);
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            clientmods[i].OnNewFrameFixed(this, args_);
-        }
-        for (int i = 0; i < entitiesCount; i++)
-        {
-            Entity e = entities[i];
-            if (e == null) { continue; }
-            for (int k = 0; k < e.scriptsCount; k++)
-            {
-                e.scripts[k].OnNewFrameFixed(this, i, dt);
-            }
-        }
-        RevertSpeculative(dt);
-
-        if (guistate == GuiState.MapLoading) { return; }
-
-        float orientationX = MathF.Sin(player.position.roty);
-        float orientationY = 0;
-        float orientationZ = -MathF.Cos(player.position.roty);
-        platform.AudioUpdateListener(EyesPosX(), EyesPosY(), EyesPosZ(), orientationX, orientationY, orientationZ);
-
-        playervelocity.X = player.position.x - lastplayerpositionX;
-        playervelocity.Y = player.position.y - lastplayerpositionY;
-        playervelocity.Z = player.position.z - lastplayerpositionZ;
-        playervelocity.X *= 75;
-        playervelocity.Y *= 75;
-        playervelocity.Z *= 75;
-        lastplayerpositionX = player.position.x;
-        lastplayerpositionY = player.position.y;
-        lastplayerpositionZ = player.position.z;
     }
 
     public void Update(float dt)
@@ -2051,7 +1321,6 @@ public partial class Game
         }
         while (changed);
     }
-
    
 
     public GamePlatform GetPlatform()
@@ -2072,57 +1341,10 @@ public partial class Game
         }
     }
 
-    internal void Connect__()
-    {
-        if (connectdata.ServerPassword == null || connectdata.ServerPassword == "")
-        {
-            Connect(connectdata.Ip, connectdata.Port, connectdata.Username, connectdata.Auth);
-        }
-        else
-        {
-            Connect_(connectdata.Ip, connectdata.Port, connectdata.Username, connectdata.Auth, connectdata.ServerPassword);
-        }
-        MapLoadingStart();
-    }
-
-   
-    private void UpdateResize()
-    {
-        if (lastWidth != platform.GetCanvasWidth()
-            || lastHeight != platform.GetCanvasHeight())
-        {
-            lastWidth = platform.GetCanvasWidth();
-            lastHeight = platform.GetCanvasHeight();
-            OnResize();
-        }
-    }
+    
 
     private bool startedconnecting;
-    internal void GotoDraw2d(float dt)
-    {
-        SetAmbientLight(ColorFromArgb(255, 255, 255, 255));
-        Draw2d(dt);
-
-        NewFrameEventArgs args_ = new();
-        args_.SetDt(dt);
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            clientmods[i].OnNewFrame(this, args_);
-        }
-
-        mouseleftclick = mouserightclick = false;
-        mouseleftdeclick = mouserightdeclick = false;
-        if ((!issingleplayer)
-            || (issingleplayer && platform.SinglePlayerServerLoaded())
-            || (!platform.SinglePlayerServerAvailable()))
-        {
-            if (!startedconnecting)
-            {
-                startedconnecting = true;
-                Connect__();
-            }
-        }
-    }
+  
 
     public float Scale()
     {
@@ -2137,7 +1359,6 @@ public partial class Game
             return one;
         }
     }
-
   
     public void QueueActionCommit(Action action)
     {
@@ -2186,20 +1407,6 @@ public partial class Game
             platform.GLDeleteTexture(cachedTextTextures[i].texture.textureId);
         }
     }
-
-    public void StartTyping()
-    {
-        GuiTyping = TypingState.Typing;
-        IsTyping = true;
-        GuiTypingBuffer = "";
-        IsTeamchat = false;
-    }
-
-    public void StopTyping()
-    {
-        GuiTyping = TypingState.None;
-    }
-
    
     internal static float Angle256ToRad(int value)
     {
@@ -2211,6 +1418,4 @@ public partial class Game
     {
         return (value / (2 * MathF.PI)) * 255;
     }
-
-   
 }

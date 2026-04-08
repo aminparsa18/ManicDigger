@@ -441,4 +441,18 @@ public partial class Game
             SendPacketClient(ClientPackets.UseEntity(currentlyAttackedEntity));
         }
     }
+
+    internal void HandleMaterialKeys(int eKey)
+    {
+        if (eKey == GetKey(Keys.KeyPad1)) { ActiveMaterial = 0; }
+        if (eKey == GetKey(Keys.KeyPad2)) { ActiveMaterial = 1; }
+        if (eKey == GetKey(Keys.KeyPad3)) { ActiveMaterial = 2; }
+        if (eKey == GetKey(Keys.KeyPad4)) { ActiveMaterial = 3; }
+        if (eKey == GetKey(Keys.KeyPad5)) { ActiveMaterial = 4; }
+        if (eKey == GetKey(Keys.KeyPad6)) { ActiveMaterial = 5; }
+        if (eKey == GetKey(Keys.KeyPad7)) { ActiveMaterial = 6; }
+        if (eKey == GetKey(Keys.KeyPad8)) { ActiveMaterial = 7; }
+        if (eKey == GetKey(Keys.KeyPad9)) { ActiveMaterial = 8; }
+        if (eKey == GetKey(Keys.KeyPad0)) { ActiveMaterial = 9; }
+    }
 }

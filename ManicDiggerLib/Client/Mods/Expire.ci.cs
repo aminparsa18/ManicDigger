@@ -32,7 +32,7 @@ public class ModExpire : ModBase
         float posY = sprite.positionY;
         float posZ = sprite.positionZ;
 
-        game.AudioPlayAt("grenadeexplosion.ogg", posX, posY, posZ);
+        game.PlayAudioAt("grenadeexplosion.ogg", posX, posY, posZ);
 
         // Spawn explosion animation sprite
         game.EntityAddLocal(new Entity

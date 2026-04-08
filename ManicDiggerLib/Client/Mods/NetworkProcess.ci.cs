@@ -385,7 +385,7 @@ public class ModNetworkProcess : ModBase
                 break;
             case Packet_ServerIdEnum.Sound:
                 {
-                    game.PlaySoundAt(packet.Sound.Name, packet.Sound.X, packet.Sound.Y, packet.Sound.Z);
+                    game.PlayAudio(packet.Sound.Name, packet.Sound.X, packet.Sound.Y, packet.Sound.Z);
                 }
                 break;
             case Packet_ServerIdEnum.RemoveMonsters:
@@ -567,7 +567,7 @@ public class ModNetworkProcess : ModBase
     {
         for (int i = 0; i < arrLength; i++)
         {
-            if (Game.StringEquals(arr[i], value))
+            if (string.Equals(arr[i], value))
             {
                 return i;
             }

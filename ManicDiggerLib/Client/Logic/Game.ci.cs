@@ -281,28 +281,7 @@ public partial class Game
     }
 
     internal GuiState guistate;
-    internal bool overheadcamera;
-    public bool GetFreeMouse()
-    {
-        if (overheadcamera)
-        {
-            return true;
-        }
-        return !platform.IsMousePointerLocked();
-    }
-    private bool mousePointerLockShouldBe;
-    public void SetFreeMouse(bool value)
-    {
-        mousePointerLockShouldBe = !value;
-        if (value)
-        {
-            platform.ExitMousePointerLock();
-        }
-        else
-        {
-            platform.RequestMousePointerLock();
-        }
-    }
+    
     internal MapLoadingProgressEventArgs maploadingprogress;
 
     public void MapLoadingStart()
@@ -385,8 +364,6 @@ public partial class Game
         return name.Contains("Water"); // todo
     }
 
-    internal int mouseCurrentX;
-    internal int mouseCurrentY;
     internal Packet_Inventory d_Inventory;
 
 
@@ -607,7 +584,7 @@ public partial class Game
         }
         string file_ = file.Replace(".wav", ".ogg");
 
-        if (GetFileLength(file_) == 0)
+        if (GetAssetFileLength(file_) == 0)
         {
             platform.ConsoleWriteLine(string.Format("File not found: {0}", file));
             return;
@@ -636,7 +613,7 @@ public partial class Game
 
         string file_ = file.Replace(".wav", ".ogg");
 
-        if (GetFileLength(file_) == 0)
+        if (GetAssetFileLength(file_) == 0)
         {
             platform.ConsoleWriteLine(string.Format("File not found: {0}", file));
             return;
@@ -1011,60 +988,7 @@ public partial class Game
     internal int grenadecookingstartMilliseconds;
     internal int lastpositionsentMilliseconds;
 
-    internal float mouseDeltaX;
-    internal float mouseDeltaY;
-    private float mouseSmoothingVelX;
-    private float mouseSmoothingVelY;
-    private float mouseSmoothingAccum;
-
-    internal void UpdateMouseViewportControl(float dt)
-    {
-        if (mouseSmoothing)
-        {
-            float constMouseSmoothing1 = 0.85f;
-            float constMouseSmoothing2 = 0.8f;
-            mouseSmoothingVelX = mouseSmoothingVelX + mouseDeltaX / (300 / 75) * constMouseSmoothing2;
-            mouseSmoothingVelY = mouseSmoothingVelY + mouseDeltaY / (300 / 75) * constMouseSmoothing2;
-            mouseSmoothingVelX = mouseSmoothingVelX * constMouseSmoothing1;
-            mouseSmoothingVelY = mouseSmoothingVelY * constMouseSmoothing1;
-        }
-        else
-        {
-            mouseSmoothingVelX = mouseDeltaX;
-            mouseSmoothingVelY = mouseDeltaY;
-        }
-
-        if (guistate == GuiState.Normal && enableCameraControl && platform.Focused())
-        {
-            if (!overheadcamera)
-            {
-                if (platform.IsMousePointerLocked())
-                {
-                    player.position.roty += mouseSmoothingVelX * rotationspeed * 1f / 75;
-                    player.position.rotx += mouseSmoothingVelY * rotationspeed * 1f / 75;
-                    player.position.rotx = Math.Clamp(player.position.rotx,
-                        MathF.PI / 2 + (one * 15 / 1000),
-                        (MathF.PI / 2 + MathF.PI - (one * 15 / 1000)));
-                }
-
-                player.position.rotx += touchOrientationDy * constRotationSpeed * (one / 75);
-                player.position.roty += touchOrientationDx * constRotationSpeed * (one / 75);
-                touchOrientationDx = 0;
-                touchOrientationDy = 0;
-            }
-            if (cameratype == CameraType.Overhead)
-            {
-                if (mouseMiddle || mouseRight)
-                {
-                    overheadcameraK.TurnLeft(mouseDeltaX / 70);
-                    overheadcameraK.TurnUp(mouseDeltaY / 3);
-                }
-            }
-        }
-
-        mouseDeltaX = 0;
-        mouseDeltaY = 0;
-    }
+    
 
     internal string Follow;
     internal int? FollowId()
@@ -1413,31 +1337,6 @@ public partial class Game
         SetFreeMouse(false);
     }
 
-    internal void MouseWheelChanged(MouseWheelEventArgs e)
-    {
-        float eDeltaPrecise = e.OffsetY;
-        if (keyboardState[GetKey(Keys.LeftShift)])
-        {
-            if (cameratype == CameraType.Overhead)
-            {
-                overheadcameradistance -= eDeltaPrecise;
-                if (overheadcameradistance < TPP_CAMERA_DISTANCE_MIN) { overheadcameradistance = TPP_CAMERA_DISTANCE_MIN; }
-                if (overheadcameradistance > TPP_CAMERA_DISTANCE_MAX) { overheadcameradistance = TPP_CAMERA_DISTANCE_MAX; }
-            }
-            if (cameratype == CameraType.Tpp)
-            {
-                tppcameradistance -= eDeltaPrecise;
-                if (tppcameradistance < TPP_CAMERA_DISTANCE_MIN) { tppcameradistance = TPP_CAMERA_DISTANCE_MIN; }
-                if (tppcameradistance > TPP_CAMERA_DISTANCE_MAX) { tppcameradistance = TPP_CAMERA_DISTANCE_MAX; }
-            }
-        }
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnMouseWheelChanged(this, e);
-        }
-    }
-
     internal void Connect(string serverAddress, int port, string username, string auth)
     {
         main.Start();
@@ -1543,26 +1442,6 @@ public partial class Game
             platform.ConsoleWriteLine(string.Format(language.CannotWriteChatLog(), this.ServerInfo.ServerName));
         }
     }
-
-    internal void KeyUp(int eKey)
-    {
-        keyboardStateRaw[eKey] = false;
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            KeyEventArgs args_ = new();
-            args_.SetKeyCode(eKey);
-            clientmods[i].OnKeyUp(this, args_);
-            if (args_.GetHandled())
-            {
-                return;
-            }
-        }
-        keyboardState[eKey] = false;
-        if (eKey == GetKey(Keys.LeftShift) || eKey == GetKey(Keys.RightShift))
-        {
-            IsShiftPressed = false;
-        }
-    }
     
 
     internal void MapLoaded()
@@ -1576,16 +1455,7 @@ public partial class Game
         playerPositionSpawnZ = player.position.z;
     }
 
-    internal void Draw2dText1(string text, int x, int y, int fontsize, int? color, bool enabledepthtest)
-    {
-        FontCi font = new()
-        {
-            family = "Arial",
-            size = fontsize
-        };
-
-        Draw2dText(text, font, x, y, color, enabledepthtest);
-    }
+   
 
     internal void UseInventory(Packet_Inventory packet_Inventory)
     {
@@ -1593,20 +1463,7 @@ public partial class Game
         d_InventoryUtil.UpdateInventory(packet_Inventory);
     }
 
-    internal void KeyPress(int eKeyChar)
-    {
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            KeyPressEventArgs args_ = new();
-            args_.SetKeyChar(eKeyChar);
-            clientmods[i].OnKeyPress(this, args_);
-            if (args_.GetHandled())
-            {
-                return;
-            }
-        }
-    }
+    
 
    
 
@@ -2000,115 +1857,7 @@ public partial class Game
         ChatLog("[GAME] Map initialized");
     }
 
-    private bool HasAsset(string md5, string name)
-    {
-        for (int i = 0; i < assets.count; i++)
-        {
-            if (assets.items[i].md5 == md5)
-            {
-                if (assets.items[i].name == name)
-                {
-                    //Check both MD5 and name as there might be files with same content
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-  
-
-    private void CacheAsset(Asset asset)
-    {
-        //Check if checksum is given (prevents crash on old servers)
-        if (asset.md5 == null)
-        {
-            return;
-        }
-        //Check if given checksum is valid
-        if (!platform.IsChecksum(asset.md5))
-        {
-            //Skip saving
-            return;
-        }
-        //Only cache a file if it's not already cached
-        if (!platform.IsCached(asset.md5))
-        {
-            platform.SaveAssetToCache(asset);
-        }
-    }
-
-    public void SetFile(string name, string md5, byte[] downloaded, int downloadedLength)
-    {
-        string nameLowercase = name.ToLowerInvariant();
-
-        // Update mouse cursor if changed
-        if (nameLowercase == "mousecursor.png")
-        {
-            platform.SetWindowCursor(0, 0, 32, 32, downloaded, downloadedLength);
-        }
-
-        //Create new asset from given data
-        Asset newAsset = new()
-        {
-            data = downloaded,
-            dataLength = downloadedLength,
-            name = nameLowercase,
-            md5 = md5
-        };
-
-        for (int i = 0; i < assets.count; i++)
-        {
-            if (assets.items[i] == null)
-            {
-                continue;
-            }
-            if (assets.items[i].name == nameLowercase)
-            {
-                if (options.UseServerTextures)
-                {
-                    //If server textures are allowed, replace content of current asset
-                    assets.items[i] = newAsset;
-                }
-                //Cache asset for later use
-                CacheAsset(newAsset);
-                return;
-            }
-        }
-        //Add new asset to asset list
-        assets.items[assets.count++] = newAsset;
-
-        //Store new asset in cache
-        CacheAsset(newAsset);
-    }
-
-   
-
-    internal byte[] GetFile(string p)
-    {
-        string pLowercase = p.ToLowerInvariant();
-        for (int i = 0; i < assets.count; i++)
-        {
-            if (assets.items[i].name == pLowercase)
-            {
-                return assets.items[i].data;
-            }
-        }
-        return null;
-    }
-
-    internal int GetFileLength(string p)
-    {
-        string pLowercase = p.ToLowerInvariant();
-        for (int i = 0; i < assets.count; i++)
-        {
-            if (assets.items[i].name == pLowercase)
-            {
-                return assets.items[i].dataLength;
-            }
-        }
-        return 0;
-    }
+    
 
     internal void InvalidVersionAllow()
     {
@@ -2119,9 +1868,6 @@ public partial class Game
             invalidVersionPacketIdentification = null;
         }
     }
-
-    
-    
 
     public static bool StringEquals(string strA, string strB)
     {
@@ -2136,250 +1882,7 @@ public partial class Game
         return strA == strB;
     }
 
-    internal void KeyDown(int eKey)
-    {
-        keyboardStateRaw[eKey] = true;
-        if (guistate != GuiState.MapLoading)
-        {
-            // only handle keys once game has been loaded
-            for (int i = 0; i < clientmodsCount; i++)
-            {
-                KeyEventArgs args_ = new();
-                args_.SetKeyCode(eKey);
-                clientmods[i].OnKeyDown(this, args_);
-                if (args_.GetHandled())
-                {
-                    return;
-                }
-            }
-        }
-        keyboardState[eKey] = true;
-        InvalidVersionAllow();
-        if (eKey == GetKey(Keys.F6))
-        {
-            float lagSeconds = one * (platform.TimeMillisecondsFromStart() - LastReceivedMilliseconds) / 1000;
-            if ((lagSeconds >= DISCONNECTED_ICON_AFTER_SECONDS) || guistate == GuiState.MapLoading)
-            {
-                Reconnect();
-            }
-        }
-        if (eKey == GetKey(Keys.LeftShift) || eKey == GetKey(Keys.RightShift))
-        {
-            IsShiftPressed = true;
-        }
-        if (guistate == GuiState.Normal)
-        {
-            string strFreemoveNotAllowed = "You are not allowed to enable freemove.";
-
-            if (eKey == GetKey(Keys.F1))
-            {
-                if (!this.AllowFreemove)
-                {
-                    Log(strFreemoveNotAllowed);
-                    return;
-                }
-                movespeed = basemovespeed * 1;
-                Log("Move speed: 1x.");
-            }
-            if (eKey == GetKey(Keys.F2))
-            {
-                if (!this.AllowFreemove)
-                {
-                    Log(strFreemoveNotAllowed);
-                    return;
-                }
-                movespeed = basemovespeed * 10;
-                Log(string.Format(language.MoveSpeed(), "10"));
-            }
-            if (eKey == GetKey(Keys.F3))
-            {
-                if (!this.AllowFreemove)
-                {
-                    Log(strFreemoveNotAllowed);
-                    return;
-                }
-                stopPlayerMove = true;
-                if (!controls.freemove)
-                {
-                    controls.freemove = true;
-                    Log(language.MoveFree());
-                }
-                else if (controls.freemove && (!controls.noclip))
-                {
-                    controls.noclip = true;
-                    Log(language.MoveFreeNoclip());
-                }
-                else if (controls.freemove && controls.noclip)
-                {
-                    controls.freemove = false;
-                    controls.noclip = false;
-                    Log(language.MoveNormal());
-                }
-            }
-            if (eKey == GetKey(Keys.I))
-            {
-                drawblockinfo = !drawblockinfo;
-            }
-            int playerx = (int)(player.position.x);
-            int playery = (int)(player.position.z);
-            if ((playerx >= 0 && playerx < map.MapSizeX)
-                && (playery >= 0 && playery < map.MapSizeY))
-            {
-                performanceinfo["height"] = string.Format("height:{0}", d_Heightmap.GetBlock(playerx, playery).ToString());
-            }
-            if (eKey == GetKey(Keys.F5))
-            {
-                CameraChange();
-            }
-            if (eKey == GetKey(Keys.Equal) || eKey == GetKey(Keys.Equal))
-            {
-                if (cameratype == CameraType.Overhead)
-                {
-                    overheadcameradistance -= 1;
-                }
-                else if (cameratype == CameraType.Tpp)
-                {
-                    tppcameradistance -= 1;
-                }
-            }
-            if (eKey == GetKey(Keys.Minus) || eKey == GetKey(Keys.KeyPadSubtract))
-            {
-                if (cameratype == CameraType.Overhead)
-                {
-                    overheadcameradistance += 1;
-                }
-                else if (cameratype == CameraType.Tpp)
-                {
-                    tppcameradistance += 1;
-                }
-            }
-            if (overheadcameradistance < TPP_CAMERA_DISTANCE_MIN) { overheadcameradistance = TPP_CAMERA_DISTANCE_MIN; }
-            if (overheadcameradistance > TPP_CAMERA_DISTANCE_MAX) { overheadcameradistance = TPP_CAMERA_DISTANCE_MAX; }
-
-            if (tppcameradistance < TPP_CAMERA_DISTANCE_MIN) { tppcameradistance = TPP_CAMERA_DISTANCE_MIN; }
-            if (tppcameradistance > TPP_CAMERA_DISTANCE_MAX) { tppcameradistance = TPP_CAMERA_DISTANCE_MAX; }
-
-            if (eKey == GetKey(Keys.F6))
-            {
-                RedrawAllBlocks();
-            }
-            if (eKey == (int)Keys.F8)
-            {
-                ToggleVsync();
-                if (ENABLE_LAG == 0) { Log(language.FrameRateVsync()); }
-                if (ENABLE_LAG == 1) { Log(language.FrameRateUnlimited()); }
-                if (ENABLE_LAG == 2) { Log(language.FrameRateLagSimulation()); }
-            }
-            if (eKey == GetKey(Keys.Tab))
-            {
-                SendPacketClient(ClientPackets.SpecialKeyTabPlayerList());
-            }
-            if (eKey == GetKey(Keys.E))
-            {
-                if (currentAttackedBlock != null)
-                {
-                    int posX = currentAttackedBlock.Value.X;
-                    int posY = currentAttackedBlock.Value.Y;
-                    int posZ = currentAttackedBlock.Value.Z;
-                    int blocktype = map.GetBlock(currentAttackedBlock.Value.X, currentAttackedBlock.Value.Y, currentAttackedBlock.Value.Z);
-                    if (IsUsableBlock(blocktype))
-                    {
-                        if (d_Data.IsRailTile(blocktype))
-                        {
-                            player.position.x = posX + (one / 2);
-                            player.position.y = posZ + 1;
-                            player.position.z = posY + (one / 2);
-                            controls.freemove = false;
-                        }
-                        else
-                        {
-                            SendSetBlock(posX, posY, posZ, Packet_BlockSetModeEnum.Use, 0, ActiveMaterial);
-                        }
-                    }
-                }
-                if (currentlyAttackedEntity != -1)
-                {
-                    if (entities[currentlyAttackedEntity].usable)
-                    {
-                        for (int i = 0; i < clientmodsCount; i++)
-                        {
-                            if (clientmods[i] == null) { continue; }
-                            OnUseEntityArgs args = new()
-                            {
-                                entityId = currentlyAttackedEntity
-                            };
-                            clientmods[i].OnUseEntity(this, args);
-                        }
-                        SendPacketClient(ClientPackets.UseEntity(currentlyAttackedEntity));
-                    }
-                }
-            }
-            if (eKey == GetKey(Keys.O))
-            {
-                Respawn();
-            }
-            if (eKey == GetKey(Keys.L))
-            {
-                SendPacketClient(ClientPackets.SpecialKeySelectTeam());
-            }
-            if (eKey == GetKey(Keys.P))
-            {
-                SendPacketClient(ClientPackets.SpecialKeySetSpawn());
-
-                playerPositionSpawnX = player.position.x;
-                playerPositionSpawnY = player.position.y;
-                playerPositionSpawnZ = player.position.z;
-
-                player.position.x = (int)(player.position.x) + one / 2;
-                //player.playerposition.Y = player.playerposition.Y;
-                player.position.z = (int)(player.position.z) + one / 2;
-            }
-            if (eKey == GetKey(Keys.F))
-            {
-                ToggleFog();
-                Log(string.Format(language.FogDistance(), ((int)d_Config3d.viewdistance).ToString()));
-                OnResize();
-            }
-            if (eKey == GetKey(Keys.B))
-            {
-                ShowInventory();
-                return;
-            }
-            HandleMaterialKeys(eKey);
-        }
-        if (guistate == GuiState.Inventory)
-        {
-            if (eKey == GetKey(Keys.B)
-                || eKey == GetKey(Keys.Escape))
-            {
-                GuiStateBackToGame();
-            }
-            return;
-        }
-        if (guistate == GuiState.MapLoading)
-        {
-            //Return to main menu when ESC key is pressed while loading
-            if (eKey == GetKey(Keys.Escape))
-            {
-                ExitToMainMenu_();
-            }
-        }
-        if (guistate == GuiState.CraftingRecipes)
-        {
-            if (eKey == GetKey(Keys.Escape))
-            {
-                GuiStateBackToGame();
-            }
-        }
-        if (guistate == GuiState.Normal)
-        {
-            if (eKey == GetKey(Keys.Escape))
-            {
-                EscapeMenuStart();
-                return;
-            }
-        }
-    }
+   
 
     internal bool escapeMenuRestart;
     public void EscapeMenuStart()
@@ -2436,25 +1939,8 @@ public partial class Game
             platform.ThrowException("");
         }
     }
-    internal bool drawblockinfo;
 
-    internal void Draw2d(float dt)
-    {
-        if (!ENABLE_DRAW2D)
-        {
-            return;
-        }
-
-        OrthoMode(Width(), Height());
-
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnNewFrameDraw2d(this, dt);
-        }
-
-        PerspectiveMode();
-    }
+   
 
     internal void FrameTick(float dt)
     {
@@ -2566,52 +2052,7 @@ public partial class Game
         while (changed);
     }
 
-    internal void MouseDown(MouseEventArgs args)
-    {
-        if (args.GetButton() == MouseButtonEnum.Left) { mouseLeft = true; }
-        if (args.GetButton() == MouseButtonEnum.Middle) { mouseMiddle = true; }
-        if (args.GetButton() == MouseButtonEnum.Right) { mouseRight = true; }
-        if (args.GetButton() == MouseButtonEnum.Left)
-        {
-            mouseleftclick = true;
-        }
-        if (args.GetButton() == MouseButtonEnum.Right)
-        {
-            mouserightclick = true;
-        }
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnMouseDown(this, args);
-        }
-        if (mousePointerLockShouldBe)
-        {
-            platform.RequestMousePointerLock();
-            mouseDeltaX = 0;
-            mouseDeltaY = 0;
-        }
-        InvalidVersionAllow();
-    }
-
-    internal void MouseUp(MouseEventArgs args)
-    {
-        if (args.GetButton() == MouseButtonEnum.Left) { mouseLeft = false; }
-        if (args.GetButton() == MouseButtonEnum.Middle) { mouseMiddle = false; }
-        if (args.GetButton() == MouseButtonEnum.Right) { mouseRight = false; }
-        if (args.GetButton() == MouseButtonEnum.Left)
-        {
-            mouseleftdeclick = true;
-        }
-        if (args.GetButton() == MouseButtonEnum.Right)
-        {
-            mouserightdeclick = true;
-        }
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnMouseUp(this, args);
-        }
-    }
+   
 
     public GamePlatform GetPlatform()
     {
@@ -2697,77 +2138,7 @@ public partial class Game
         }
     }
 
-    public void OnTouchStart(TouchEventArgs e)
-    {
-        InvalidVersionAllow();
-        mouseCurrentX = e.GetX();
-        mouseCurrentY = e.GetY();
-        mouseleftclick = true;
-
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnTouchStart(this, e);
-            if (e.GetHandled())
-            {
-                return;
-            }
-        }
-    }
-
-    public void OnTouchMove(TouchEventArgs e)
-    {
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnTouchMove(this, e);
-            if (e.GetHandled())
-            {
-                return;
-            }
-        }
-    }
-
-    public void OnTouchEnd(TouchEventArgs e)
-    {
-        mouseCurrentX = 0;
-        mouseCurrentY = 0;
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnTouchEnd(this, e);
-            if (e.GetHandled())
-            {
-                return;
-            }
-        }
-    }
-
-    public static void OnBackPressed()
-    {
-    }
-
-    public void MouseMove(MouseEventArgs e)
-    {
-        if (!e.GetEmulated() || e.GetForceUsage())
-        {
-            // Set x and y only for real MouseMove events
-            mouseCurrentX = e.GetX();
-            mouseCurrentY = e.GetY();
-        }
-        if (e.GetEmulated() || e.GetForceUsage())
-        {
-            // Get delta only from emulated events (actual events negate previous ones)
-            mouseDeltaX += e.GetMovementX();
-            mouseDeltaY += e.GetMovementY();
-        }
-        for (int i = 0; i < clientmodsCount; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnMouseMove(this, e);
-        }
-    }
-
+  
     public void QueueActionCommit(Action action)
     {
         commitActions.Add(action);

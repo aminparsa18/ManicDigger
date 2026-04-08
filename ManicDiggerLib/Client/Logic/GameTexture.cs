@@ -76,7 +76,7 @@
     {
         if (!textures.ContainsKey(p))
         {
-            Bitmap bmp = platform.BitmapCreateFromPng(GetFile(p), GetFileLength(p));
+            Bitmap bmp = platform.BitmapCreateFromPng(GetAssetFile(p), GetAssetFileLength(p));
             textures[p] = platform.LoadTextureFromBitmap(bmp);
             platform.BitmapDelete(bmp);
         }
@@ -133,7 +133,7 @@
             if (textureIds[i] == null)
                 continue;
 
-            byte[] fileData = GetFile(string.Concat(textureIds[i], ".png")) ?? GetFile("Unknown.png");
+            byte[] fileData = GetAssetFile(string.Concat(textureIds[i], ".png")) ?? GetAssetFile("Unknown.png");
             if (fileData == null)
                 continue;
 

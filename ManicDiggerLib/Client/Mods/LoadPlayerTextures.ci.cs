@@ -141,7 +141,7 @@ public class ModLoadPlayerTextures : ModBase
             return true;
         }
 
-        byte[] file = game.GetFile(e.drawModel.Texture_);
+        byte[] file = game.GetAssetFile(e.drawModel.Texture_);
         if (file == null)
         {
             e.drawModel.CurrentTexture = 0;

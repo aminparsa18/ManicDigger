@@ -60,8 +60,8 @@ public class ModDrawPlayers : ModBase
         if (p.drawModel.renderer != null) return;
 
         p.drawModel.renderer = new AnimatedModelRenderer();
-        byte[] data = game.GetFile(p.drawModel.Model_);
-        int dataLength = game.GetFileLength(p.drawModel.Model_);
+        byte[] data = game.GetAssetFile(p.drawModel.Model_);
+        int dataLength = game.GetAssetFileLength(p.drawModel.Model_);
         if (data == null) return;
 
         string dataString = Encoding.UTF8.GetString(data, 0, dataLength);

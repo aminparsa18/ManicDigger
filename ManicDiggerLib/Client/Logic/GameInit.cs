@@ -205,6 +205,17 @@ public partial class Game
     internal float touchOrientationDx;
     internal float touchOrientationDy;
 
+    internal int mouseCurrentX;
+    internal int mouseCurrentY;
+    internal float mouseDeltaX;
+    internal float mouseDeltaY;
+    private float mouseSmoothingVelX;
+    private float mouseSmoothingVelY;
+    private float mouseSmoothingAccum;
+    private bool mousePointerLockShouldBe;
+    internal bool overheadcamera;
+    internal bool drawblockinfo;
+
     // -------------------------------------------------------------------------
     // Fields — audio
     // -------------------------------------------------------------------------

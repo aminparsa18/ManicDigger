@@ -40,7 +40,7 @@ public class ModSkySphereAnimated : ModBase
 
     private void LoadPixels(Game game, string filename, ref int[] pixels)
     {
-        Bitmap bmp = game.platform.BitmapCreateFromPng(game.GetFile(filename), game.GetFileLength(filename));
+        Bitmap bmp = game.platform.BitmapCreateFromPng(game.GetAssetFile(filename), game.GetAssetFileLength(filename));
         pixels = new int[TextureSize * TextureSize * 4];
         game.platform.BitmapGetPixelsArgb(bmp, pixels);
         game.platform.BitmapDelete(bmp);

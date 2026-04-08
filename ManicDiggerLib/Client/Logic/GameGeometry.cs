@@ -66,7 +66,8 @@
         if (!enabledepthtest)
             platform.GlDisableDepthTest();
 
-        quadModel ??= platform.CreateModel(QuadModelData.GetQuadModelData());
+        if (quadModel == null)
+            quadModel = platform.CreateModel(QuadModelData.GetQuadModelData());
 
         GLPushMatrix();
         GLTranslate(x1, y1, 0);
@@ -165,6 +166,23 @@
         platform.GlEnableTexture2d();
     }
 
+    internal void Draw2d(float dt)
+    {
+        if (!ENABLE_DRAW2D)
+            return;
+
+        OrthoMode(Width(), Height());
+
+        for (int i = 0; i < clientmodsCount; i++)
+        {
+            if (clientmods[i] == null)
+                continue;
+            clientmods[i].OnNewFrameDraw2d(this, dt);
+        }
+
+        PerspectiveMode();
+    }
+
     public static ModelData CombineModelData(ModelData[] modelDatas, int count)
     {
         int totalIndices = 0;
@@ -211,6 +229,16 @@
     // -------------------------------------------------------------------------
     // 2D text
     // -------------------------------------------------------------------------
+
+    internal void Draw2dText1(string text, int x, int y, int fontsize, int? color, bool enabledepthtest)
+    {
+        FontCi font = new()
+        {
+            family = "Arial",
+            size = fontsize
+        };
+        Draw2dText(text, font, x, y, color, enabledepthtest);
+    }
 
     public void Draw2dText(string text, FontCi font, float x, float y, int? color, bool enabledepthtest)
     {

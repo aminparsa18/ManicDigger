@@ -2,15 +2,16 @@
 
 public partial class Game
 {
-    public void GLMatrixModeModelView()
-    {
-        currentMatrixModeProjection = false;
-    }
+    // -------------------------------------------------------------------------
+    // Matrix mode
+    // -------------------------------------------------------------------------
 
-    public void GLMatrixModeProjection()
-    {
-        currentMatrixModeProjection = true;
-    }
+    public void GLMatrixModeModelView() => currentMatrixModeProjection = false;
+    public void GLMatrixModeProjection() => currentMatrixModeProjection = true;
+
+    // -------------------------------------------------------------------------
+    // Shader uniforms
+    // -------------------------------------------------------------------------
 
     public void SetMatrixUniforms()
     {
@@ -32,135 +33,52 @@ public partial class Game
         platform.SetMatrixUniformModelView(ref mv);
     }
 
-    public void GLLoadMatrix(Matrix4 m)
+    // -------------------------------------------------------------------------
+    // Matrix stack operations
+    // -------------------------------------------------------------------------
+
+    public void GLPushMatrix()
     {
-        if (currentMatrixModeProjection)
-        {
-            if (pMatrix.Count > 0)
-            {
-                pMatrix.Pop();
-            }
-            pMatrix.Push(m);
-        }
-        else
-        {
-            if (mvMatrix.Count > 0)
-            {
-                mvMatrix.Pop();
-            }
-            mvMatrix.Push(m);
-        }
+        ActiveMatrix.Push(ActiveMatrix.Peek());
     }
 
     public void GLPopMatrix()
     {
-        if (currentMatrixModeProjection)
-        {
-            if (pMatrix.Count > 1)
-            {
-                pMatrix.Pop();
-            }
-        }
-        else
-        {
-            if (mvMatrix.Count() > 1)
-            {
-                mvMatrix.Pop();
-            }
-        }
+        if (ActiveMatrix.Count > 1)
+            ActiveMatrix.Pop();
+    }
+
+    public void GLLoadIdentity()
+    {
+        if (ActiveMatrix.Count > 0)
+            ActiveMatrix.Pop();
+        ActiveMatrix.Push(identityMatrix);
+    }
+
+    public void GLLoadMatrix(Matrix4 m)
+    {
+        if (ActiveMatrix.Count > 0)
+            ActiveMatrix.Pop();
+        ActiveMatrix.Push(m);
     }
 
     public void GLScale(float x, float y, float z)
     {
-        Matrix4 m;
-        if (currentMatrixModeProjection)
-        {
-            m = pMatrix.Peek();
-            Matrix4.CreateScale(x, y, z, out Matrix4 scale);
-            m = scale * m;
-            pMatrix.Pop();
-            pMatrix.Push(m);
-        }
-        else
-        {
-            m = mvMatrix.Peek();
-            Matrix4.CreateScale(x, y, z, out Matrix4 scale);
-            m = scale * m;
-            mvMatrix.Pop();
-            mvMatrix.Push(m);
-        }
+        Matrix4.CreateScale(x, y, z, out Matrix4 scale);
+        MultiplyActiveMatrix(scale);
     }
 
     public void GLRotate(float angle, float x, float y, float z)
     {
-        angle /= 360;
-        angle *= 2 * MathF.PI;
-        Matrix4.CreateFromAxisAngle(new Vector3(x, y, z), angle, out Matrix4 rotation);
-        if (currentMatrixModeProjection)
-        {
-            var m = pMatrix.Peek();
-            m = rotation * m;
-            pMatrix.Pop();
-            pMatrix.Push(m);
-        }
-        else
-        {
-            var m = mvMatrix.Peek();
-            m = rotation * m;
-            mvMatrix.Pop();
-            mvMatrix.Push(m);
-        }
+        float radians = angle / 360 * 2 * MathF.PI;
+        Matrix4.CreateFromAxisAngle(new Vector3(x, y, z), radians, out Matrix4 rotation);
+        MultiplyActiveMatrix(rotation);
     }
 
     public void GLTranslate(float x, float y, float z)
     {
         Matrix4.CreateTranslation(x, y, z, out Matrix4 translation);
-        if (currentMatrixModeProjection)
-        {
-            var m = pMatrix.Peek();
-            m = translation * m;
-            pMatrix.Pop();
-            pMatrix.Push(m);
-        }
-        else
-        {
-            var m = mvMatrix.Peek();
-            m = translation * m;
-            mvMatrix.Pop();
-            mvMatrix.Push(m);
-        }
-    }
-
-    public void GLPushMatrix()
-    {
-        if (currentMatrixModeProjection)
-        {
-            pMatrix.Push(pMatrix.Peek());
-        }
-        else
-        {
-            mvMatrix.Push(mvMatrix.Peek());
-        }
-    }
-
-    public void GLLoadIdentity()
-    {
-        if (currentMatrixModeProjection)
-        {
-            if (pMatrix.Count() > 0)
-            {
-                pMatrix.Pop();
-            }
-            pMatrix.Push(identityMatrix);
-        }
-        else
-        {
-            if (mvMatrix.Count() > 0)
-            {
-                mvMatrix.Pop();
-            }
-            mvMatrix.Push(identityMatrix);
-        }
+        MultiplyActiveMatrix(translation);
     }
 
     public void GLOrtho(float left, float right, float bottom, float top, float zNear, float zFar)
@@ -177,9 +95,12 @@ public partial class Game
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Projection helpers
+    // -------------------------------------------------------------------------
+
     public void OrthoMode(int width, int height)
     {
-        //GL.Disable(EnableCap.DepthTest);
         GLMatrixModeProjection();
         GLPushMatrix();
         GLLoadIdentity();
@@ -194,17 +115,26 @@ public partial class Game
 
     public void PerspectiveMode()
     {
-        // Enter into our projection matrix mode
         GLMatrixModeProjection();
-        // Pop off the last matrix pushed on when in projection mode (Get rid of ortho mode)
         GLPopMatrix();
         SetMatrixUniformProjection();
 
-        // Go back to our model view matrix like normal
         GLMatrixModeModelView();
         GLPopMatrix();
         SetMatrixUniformModelView();
-        //GL.LoadIdentity();
-        //GL.Enable(EnableCap.DepthTest);
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    private Stack<Matrix4> ActiveMatrix => currentMatrixModeProjection ? pMatrix : mvMatrix;
+
+    private void MultiplyActiveMatrix(Matrix4 transform)
+    {
+        var m = ActiveMatrix.Peek();
+        m = transform * m;
+        ActiveMatrix.Pop();
+        ActiveMatrix.Push(m);
     }
 }

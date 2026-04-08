@@ -351,6 +351,11 @@ public partial class Game
 
     internal List<Action> commitActions;
 
+    internal int SelectedBlockPositionX;
+    internal int SelectedBlockPositionY;
+    internal int SelectedBlockPositionZ;
+    internal int SelectedEntityId;
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------

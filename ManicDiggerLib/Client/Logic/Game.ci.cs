@@ -5,22 +5,6 @@ using Vector3 = OpenTK.Mathematics.Vector3;
 
 public partial class Game
 {
-    //internal int SelectedBlockPositionX;
-    internal int SelectedBlockPositionY;
-    internal int SelectedBlockPositionZ;
-    internal int SelectedEntityId;
-
-    public static bool IsEmptyForPhysics(Packet_BlockType block)
-    {
-        return (block.DrawType == Packet_DrawTypeEnum.Ladder)
-            || (block.WalkableType != Packet_WalkableTypeEnum.Solid && block.WalkableType != Packet_WalkableTypeEnum.Fluid);
-    }
-
-    public static bool IsTransparentForLight(Packet_BlockType b)
-    {
-        return b.DrawType != Packet_DrawTypeEnum.Solid && b.DrawType != Packet_DrawTypeEnum.ClosedDoor;
-    }
-
     public void MapLoadingStart()
     {
         guistate = GuiState.MapLoading;
@@ -68,32 +52,6 @@ public partial class Game
         return ENABLE_ZFAR ? d_Config3d.viewdistance : 99999;
     }
 
-    internal bool IsWater(int blockType)
-    {
-        string name = blocktypes[blockType].Name;
-        if (name == null)
-        {
-            return false;
-        }
-        return name.Contains("Water"); // todo
-    }
-
-    internal float CurrentFov()
-    {
-        if (IronSights)
-        {
-            Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-            if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
-            {
-                if (DecodeFixedPoint(blocktypes[item.BlockId].IronSightsFovFloat) != 0)
-                {
-                    return this.fov * DecodeFixedPoint(blocktypes[item.BlockId].IronSightsFovFloat);
-                }
-            }
-        }
-        return this.fov;
-    }
-
     internal float DecodeFixedPoint(int value)
     {
         return (one * value) / 32;
@@ -104,120 +62,10 @@ public partial class Game
         return (int)(p * 32);
     }
 
-    internal int BlockUnderPlayer()
-    {
-        if (!map.IsValidPos((int)player.position.x,
-            (int)player.position.z,
-            (int)player.position.y - 1))
-        {
-            return -1;
-        }
-        int blockunderplayer = map.GetBlock((int)player.position.x,
-            (int)(player.position.z),
-            (int)(player.position.y) - 1);
-        return blockunderplayer;
-    }
-
-    internal int? BlockInHand()
-    {
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-
-        if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
-        {
-            return item.BlockId;
-        }
-
-        return null;
-    }
-
-    internal float CurrentRecoil()
-    {
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != Packet_ItemClassEnum.Block)
-        {
-            return 0;
-        }
-        return DecodeFixedPoint(blocktypes[item.BlockId].RecoilFloat);
-    }
-
-    internal float CurrentAimRadius()
-    {
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != Packet_ItemClassEnum.Block)
-        {
-            return 0;
-        }
-        float radius = (DecodeFixedPoint(blocktypes[item.BlockId].AimRadiusFloat) / 800) * Width();
-        if (IronSights)
-        {
-            radius = (DecodeFixedPoint(blocktypes[item.BlockId].IronSightsAimRadiusFloat) / 800) * Width();
-        }
-        return radius + RadiusWhenMoving * radius * (Math.Min(playervelocity.Length / movespeed, 1));
-    }
-
-    public int GetLight(int x, int y, int z)
-    {
-        int light = map.MaybeGetLight(x, y, z);
-
-        if (light == -1)
-        {
-            if ((x >= 0 && x < map.MapSizeX)
-                && (y >= 0 && y < map.MapSizeY)
-                && (z >= d_Heightmap.GetBlock(x, y)))
-            {
-                return sunlight_;
-            }
-            else
-            {
-                return minlight;
-            }
-        }
-        else
-        {
-            return light;
-        }
-    }
-
     public void Draw2dBitmapFile(string filename, float x, float y, float w, float h)
     {
         Draw2dTexture(GetTexture(filename), x, y, w, h, null, 0, ColorFromArgb(255, 255, 255, 255), false);
     }
-
-    public void ToggleFog()
-    {
-        int[] drawDistances = new int[10];
-        int drawDistancesCount = 0;
-        drawDistances[drawDistancesCount++] = 32;
-        if (maxdrawdistance >= 64) { drawDistances[drawDistancesCount++] = 64; }
-        if (maxdrawdistance >= 128) { drawDistances[drawDistancesCount++] = 128; }
-        if (maxdrawdistance >= 256) { drawDistances[drawDistancesCount++] = 256; }
-        if (maxdrawdistance >= 512) { drawDistances[drawDistancesCount++] = 512; }
-        for (int i = 0; i < drawDistancesCount; i++)
-        {
-            if (d_Config3d.viewdistance == drawDistances[i])
-            {
-                d_Config3d.viewdistance = drawDistances[(i + 1) % drawDistancesCount];
-                RedrawAllBlocks();
-                return;
-            }
-        }
-        d_Config3d.viewdistance = drawDistances[0];
-        RedrawAllBlocks();
-    }
-
-    internal float GetCharacterEyesHeight()
-    {
-        return entities[LocalPlayerId].drawModel.eyeHeight;
-    }
-
-    internal void SetCharacterEyesHeight(float value)
-    {
-        entities[LocalPlayerId].drawModel.eyeHeight = value;
-    }
-
-    public float EyesPosX() { return player.position.x; }
-    public float EyesPosY() { return player.position.y + GetCharacterEyesHeight(); }
-    public float EyesPosZ() { return player.position.z; }
 
     internal string ValidFont(string family)
     {
@@ -242,139 +90,6 @@ public partial class Game
         return m;
     }
 
-    internal bool IsTileEmptyForPhysics(int x, int y, int z)
-    {
-        if (z >= map.MapSizeZ)
-        {
-            return true;
-        }
-        if (x < 0 || y < 0 || z < 0)// || z >= mapsizez)
-        {
-            return controls.freemove;
-        }
-        if (x >= map.MapSizeX || y >= map.MapSizeY)// || z >= mapsizez)
-        {
-            return controls.freemove;
-        }
-        int block = map.GetBlockValid(x, y, z);
-        return block == SpecialBlockId.Empty
-            || block == d_Data.BlockIdFillArea()
-            || IsWater(block);
-    }
-
-    internal bool IsTileEmptyForPhysicsClose(int x, int y, int z)
-    {
-        return IsTileEmptyForPhysics(x, y, z)
-            || (map.IsValidPos(x, y, z) && blocktypes[map.GetBlock(x, y, z)].DrawType == Packet_DrawTypeEnum.HalfHeight)
-            || (map.IsValidPos(x, y, z) && IsEmptyForPhysics(blocktypes[map.GetBlock(x, y, z)]));
-    }
-
-    internal bool IsUsableBlock(int blocktype)
-    {
-        return d_Data.IsRailTile(blocktype) || blocktypes[blocktype].IsUsable;
-    }
-
-    internal bool IsWearingWeapon()
-    {
-        return d_Inventory.RightHand[ActiveMaterial] != null;
-    }
-
-    internal void ApplyDamageToPlayer(int damage, int damageSource, int sourceId)
-    {
-        PlayerStats.CurrentHealth -= damage;
-        if (PlayerStats.CurrentHealth <= 0)
-        {
-            PlayerStats.CurrentHealth = 0;
-            PlayAudio("death.wav");
-            SendPacketClient(ClientPackets.Death(damageSource, sourceId));
-
-            //Respawn(); //Death is not respawn ;)
-        }
-        else
-        {
-            PlayAudio(rnd.Next() % 2 == 0 ? "grunt1.wav" : "grunt2.wav");
-        }
-        SendPacketClient(ClientPackets.Health(PlayerStats.CurrentHealth));
-    }
-
-    public int GetPlayerEyesBlockX()
-    {
-        return (int)(MathF.Floor(player.position.x));
-    }
-
-    public int GetPlayerEyesBlockY()
-    {
-        return (int)(MathF.Floor(player.position.z));
-    }
-
-    public int GetPlayerEyesBlockZ()
-    {
-        return (int)(MathF.Floor(player.position.y + entities[LocalPlayerId].drawModel.eyeHeight));
-    }
-
-    internal void UpdateColumnHeight(int x, int y)
-    {
-        //todo faster
-        int height = map.MapSizeZ - 1;
-        for (int i = map.MapSizeZ - 1; i >= 0; i--)
-        {
-            height = i;
-            if (!IsTransparentForLight(blocktypes[map.GetBlock(x, y, i)]))
-            {
-                break;
-            }
-        }
-        d_Heightmap.SetBlock(x, y, height);
-    }
-
-    internal void ShadowsOnSetBlock(int x, int y, int z)
-    {
-        int oldheight = d_Heightmap.GetBlock(x, y);
-        UpdateColumnHeight(x, y);
-        //update shadows in all chunks below
-        int newheight = d_Heightmap.GetBlock(x, y);
-        int min = Math.Min(oldheight, newheight);
-        int max = Math.Max(oldheight, newheight);
-        for (int i = min; i < max; i++)
-        {
-            if (i / chunksize != z / chunksize)
-            {
-                map.SetChunkDirty(x / chunksize, y / chunksize, i / chunksize, true, true);
-            }
-        }
-        //Todo: too many redraws. Optimize.
-        //Now placing a single block updates 27 chunks,
-        //and each of those chunk updates calculates light from 27 chunks.
-        //So placing a block is often 729x slower than it should be.
-        for (int xx = 0; xx < 3; xx++)
-        {
-            for (int yy = 0; yy < 3; yy++)
-            {
-                for (int zz = 0; zz < 3; zz++)
-                {
-                    int cx = x / chunksize + xx - 1;
-                    int cy = y / chunksize + yy - 1;
-                    int cz = z / chunksize + zz - 1;
-                    if (map.IsValidChunkPos(cx, cy, cz))
-                    {
-                        map.SetChunkDirty(cx, cy, cz, true, false);
-                    }
-                }
-            }
-        }
-    }
-
-    internal void SetBlock(int x, int y, int z, int tileType)
-    {
-        map.SetBlockRaw(x, y, z, tileType);
-        map.SetChunkDirty(x / chunksize, y / chunksize, z / chunksize, true, true);
-        //d_Shadows.OnSetBlock(x, y, z);
-        ShadowsOnSetBlock(x, y, z);
-        lastplacedblockX = x;
-        lastplacedblockY = y;
-        lastplacedblockZ = z;
-    }
-
     internal int DialogsCount => dialogs.Count(d => d != null);
 
     internal int GetDialogId(string name)
@@ -393,16 +108,6 @@ public partial class Game
         return -1;
     }
 
-    internal float GetCurrentBlockHealth(int x, int y, int z)
-    {
-        if (blockHealth.TryGetValue((x, y, z), out float health))
-        {
-            return health;
-        }
-        int blocktype = map.GetBlock(x, y, z);
-        return d_Data.Strength()[blocktype];
-    }
-
     internal static bool EnablePlayerUpdatePosition(int kKey)
     {
         return true;
@@ -411,11 +116,6 @@ public partial class Game
     internal static bool EnablePlayerUpdatePositionContainsKey(int kKey)
     {
         return false;
-    }
-
-    public float WeaponAttackStrength()
-    {
-        return rnd.Next(2, 4);
     }
 
     public static byte HeadingByte(float orientationX, float orientationY, float orientationZ) =>
@@ -442,65 +142,6 @@ public partial class Game
         AddChatline(p);
     }
 
-    internal void SetTileAndUpdate(int x, int y, int z, int type)
-    {
-        SetBlock(x, y, z, type);
-        RedrawBlock(x, y, z);
-    }
-
-    internal void RedrawBlock(int x, int y, int z)
-    {
-        map.SetBlockDirty(x, y, z);
-    }
-
-    internal bool IsFillBlock(int blocktype)
-    {
-        return blocktype == d_Data.BlockIdFillArea()
-            || blocktype == d_Data.BlockIdFillStart()
-            || blocktype == d_Data.BlockIdCuboid();
-    }
-
-    internal bool IsAnyPlayerInPos(int blockposX, int blockposY, int blockposZ)
-    {
-        for (int i = 0; i < entitiesCount; i++)
-        {
-            Entity e = entities[i];
-            if (e == null)
-            {
-                continue;
-            }
-            if (e.drawModel == null)
-            {
-                continue;
-            }
-            if (e.networkPosition == null || (e.networkPosition != null && e.networkPosition.PositionLoaded))
-            {
-                if (IsPlayerInPos(e.position.x, e.position.y, e.position.z,
-                    blockposX, blockposY, blockposZ, e.drawModel.ModelHeight))
-                {
-                    return true;
-                }
-            }
-        }
-        return IsPlayerInPos(player.position.x, player.position.y, player.position.z,
-            blockposX, blockposY, blockposZ, player.drawModel.ModelHeight);
-    }
-
-    private bool IsPlayerInPos(float playerposX, float playerposY, float playerposZ,
-                       int blockposX, int blockposY, int blockposZ, float playerHeight)
-    {
-        for (int i = 0; i < Math.Floor(playerHeight) + 1; i++)
-        {
-            if (ScriptCharacterPhysics.BoxPointDistance(blockposX, blockposZ, blockposY,
-                blockposX + 1, blockposZ + 1, blockposY + 1,
-                playerposX, playerposY + i + constWallDistance, playerposZ) < constWallDistance)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-   
     internal int? FollowId()
     {
         if (Follow == null)
@@ -524,11 +165,6 @@ public partial class Game
             }
         }
         return null;
-    }
-
-    internal bool IsValid(int blocktype)
-    {
-        return blocktypes[blocktype].Name != null;
     }
 
     internal int TextSizeWidth(string s, int size)
@@ -582,59 +218,6 @@ public partial class Game
         return entity;
     }
 
-    internal bool SwimmingEyes()
-    {
-        int eyesBlock = GetPlayerEyesBlock();
-        if (eyesBlock == -1) { return true; }
-        return d_Data.WalkableType1()[eyesBlock] == Packet_WalkableTypeEnum.Fluid;
-    }
-
-    internal bool SwimmingBody()
-    {
-        int block = map.GetBlock((int)(player.position.x), (int)(player.position.z), (int)(player.position.y + 1));
-        if (block == -1) { return true; }
-        return d_Data.WalkableType1()[block] == Packet_WalkableTypeEnum.Fluid;
-    }
-
-    internal bool WaterSwimmingEyes()
-    {
-        if (GetPlayerEyesBlock() == -1) { return true; }
-        return IsWater(GetPlayerEyesBlock());
-    }
-
-    internal int GetPlayerEyesBlock()
-    {
-        float pX = player.position.x;
-        float pY = player.position.y;
-        float pZ = player.position.z;
-        pY += entities[LocalPlayerId].drawModel.eyeHeight;
-        int bx = (int)MathF.Floor(pX);
-        int by = (int)MathF.Floor(pZ);
-        int bz = (int)MathF.Floor(pY);
-
-        if (!map.IsValidPos(bx, by, bz))
-        {
-            if (pY < WaterLevel())
-            {
-                return -1;
-            }
-            return 0;
-        }
-        return map.GetBlockValid(bx, by, bz);
-    }
-
-    public float WaterLevel() { return map.MapSizeZ / 2; }
-
-    internal bool IsLava(int blockType)
-    {
-        string name = blocktypes[blockType].Name;
-        if (name == null)
-        {
-            return false;
-        }
-        return name.Contains("Lava"); // todo
-    }
-
     internal int Terraincolor()
     {
         if (WaterSwimmingCamera())
@@ -659,46 +242,6 @@ public partial class Game
         platform.GlLightModelAmbient(r, g, b);
     }
 
-    internal float MoveSpeedNow()
-    {
-        float movespeednow = movespeed;
-        {
-            //walk faster on cobblestone
-            int blockunderplayer = BlockUnderPlayer();
-            if (blockunderplayer != -1)
-            {
-                float floorSpeed = d_Data.WalkSpeed()[blockunderplayer];
-                if (floorSpeed != 0)
-                {
-                    movespeednow *= floorSpeed;
-                }
-            }
-        }
-        if (keyboardState[GetKey(Keys.LeftShift)])
-        {
-            //enable_acceleration = false;
-            movespeednow *= one * 2 / 10;
-        }
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-        if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
-        {
-            float itemSpeed = DecodeFixedPoint(blocktypes[item.BlockId].WalkSpeedWhenUsedFloat);
-            if (itemSpeed != 0)
-            {
-                movespeednow *= itemSpeed;
-            }
-            if (IronSights)
-            {
-                float ironSightsSpeed = DecodeFixedPoint(blocktypes[item.BlockId].IronSightsMoveSpeedFloat);
-                if (ironSightsSpeed != 0)
-                {
-                    movespeednow *= ironSightsSpeed;
-                }
-            }
-        }
-        return movespeednow;
-    }
-
     internal void UseVsync()
     {
         platform.SetVSync((ENABLE_LAG == 1) ? false : true);
@@ -717,66 +260,10 @@ public partial class Game
         SetFreeMouse(false);
     }
     
-
-    internal void RedrawAllBlocks()
-    {
-        shouldRedrawAllBlocks = true;
-    }
-
     public const int clearcolorR = 0;
     public const int clearcolorG = 0;
     public const int clearcolorB = 0;
     public const int clearcolorA = 255;
-
-    internal void SetFog()
-    {
-        if (d_Config3d.viewdistance >= 512)
-        {
-            return;
-        }
-        //Density for linear fog
-        //float density = 0.3f;
-        // use this density for exp2 fog (0.0045f was a bit too much at close ranges)
-        float density = one * 25 / 10000; // 0.0025f;
-
-        int fogR;
-        int fogG;
-        int fogB;
-        int fogA;
-
-        if (SkySphereNight && (!shadowssimple))
-        {
-            fogR = 0;
-            fogG = 0;
-            fogB = 0;
-            fogA = 255;
-        }
-        else
-        {
-            fogR = clearcolorR;
-            fogG = clearcolorG;
-            fogB = clearcolorB;
-            fogA = clearcolorA;
-        }
-        platform.GlEnableFog();
-        platform.GlHintFogHintNicest();
-        //old linear fog
-        //GL.Fog(FogParameter.FogMode, (int)FogMode.Linear);
-        // looks better
-        platform.GlFogFogModeExp2();
-        platform.GlFogFogColor(fogR, fogG, fogB, fogA);
-        platform.GlFogFogDensity(density);
-        //Unfortunately not used for exp/exp2 fog
-        //float fogsize = 10;
-        //if (d_Config3d.viewdistance <= 64)
-        //{
-        //    fogsize = 5;
-        //}
-        // //float fogstart = d_Config3d.viewdistance - fogsize + 200;
-        //float fogstart = d_Config3d.viewdistance - fogsize;
-        //GL.Fog(FogParameter.FogStart, fogstart);
-        //GL.Fog(FogParameter.FogEnd, fogstart + fogsize);
-    }
 
     internal BlockPosSide Nearest(ArraySegment<BlockPosSide> pick2, int pick2Count, Vector3 target)
     {
@@ -804,82 +291,12 @@ public partial class Game
         }
     }
 
-    internal void MapLoaded()
-    {
-        RedrawAllBlocks();
-        materialSlots = d_Data.DefaultMaterialSlots();
-        GuiStateBackToGame();
-
-        playerPositionSpawnX = player.position.x;
-        playerPositionSpawnY = player.position.y;
-        playerPositionSpawnZ = player.position.z;
-    }
+    
 
     internal void UseInventory(Packet_Inventory packet_Inventory)
     {
         d_Inventory = packet_Inventory;
         d_InventoryUtil.UpdateInventory(packet_Inventory);
-    }
-
-    internal void SendSetBlockAndUpdateSpeculative(int material, int x, int y, int z, int mode)
-    {
-        SendSetBlock(x, y, z, mode, material, ActiveMaterial);
-
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-        if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
-        {
-            //int blockid = d_Inventory.RightHand[d_Viewport.ActiveMaterial].BlockId;
-            int blockid = material;
-            if (mode == Packet_BlockSetModeEnum.Destroy)
-            {
-                blockid = SpecialBlockId.Empty;
-            }
-            Speculative s_ = new()
-            {
-                x = x,
-                y = y,
-                z = z,
-                blocktype = map.GetBlock(x, y, z),
-                timeMilliseconds = platform.TimeMillisecondsFromStart()
-            };
-            AddSpeculative(s_);
-            SetBlock(x, y, z, blockid);
-            RedrawBlock(x, y, z);
-        }
-        else
-        {
-            //TODO
-        }
-    }
-
-    private void AddSpeculative(Speculative s_)
-    {
-        for (int i = 0; i < speculativeCount; i++)
-        {
-            if (speculative[i] == null)
-            {
-                speculative[i] = s_;
-                return;
-            }
-        }
-        speculative[speculativeCount++] = s_;
-    }
-
-    internal void RevertSpeculative(float dt)
-    {
-        for (int i = 0; i < speculativeCount; i++)
-        {
-            Speculative s_ = speculative[i];
-            if (s_ == null)
-            {
-                continue;
-            }
-            if ((one * (platform.TimeMillisecondsFromStart() - s_.timeMilliseconds) / 1000) > 2)
-            {
-                RedrawBlock(s_.x, s_.y, s_.z);
-                speculative[i] = null;
-            }
-        }
     }
 
     internal void Set3dProjection1(float zfar_)
@@ -990,11 +407,6 @@ public partial class Game
             d_Heightmap.Restart();
         }
         shadowssimple = packet.Identification.DisableShadows == 1 ? true : false;
-        //maxdrawdistance = packet.Identification.PlayerAreaSize / 2;
-        //if (maxdrawdistance == 0)
-        //{
-        //    maxdrawdistance = 128;
-        //}
         maxdrawdistance = 256;
         ChatLog("[GAME] Map initialized");
     }

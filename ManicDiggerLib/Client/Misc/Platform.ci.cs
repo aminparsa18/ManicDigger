@@ -20,7 +20,6 @@ public abstract class GamePlatform
     public abstract int GetCanvasHeight();
     public abstract int TimeMillisecondsFromStart();
     public abstract void ThrowException(string message);
-    public abstract Bitmap BitmapCreate(int width, int height);
     public abstract void BitmapSetPixelsArgb(Bitmap bmp, int[] pixels);
     public abstract Bitmap CreateTextTexture(Text_ t);
     public abstract void SetTextRendererFont(int fontID);
@@ -34,7 +33,6 @@ public abstract class GamePlatform
     public abstract void SaveScreenshot();
     public abstract Bitmap GrabScreenshot();
     public abstract AviWriterCi AviWriterCreate();
-    public abstract UriCi ParseUri(string uri);
     public abstract string PathStorage();
     public abstract void SetVSync(bool enabled);
     public abstract string GetGameVersion();
@@ -267,18 +265,6 @@ public class Preferences
     {
         items.Remove(key);
     }
-}
-
-public class UriCi
-{
-    internal string url;
-    internal string ip;
-    internal int port;
-    internal Dictionary<string, string> get;
-    public string GetUrl() { return url; }
-    public string GetIp() { return ip; }
-    public int GetPort() { return port; }
-    public Dictionary<string, string> GetGet() { return get; }
 }
 
 public class EnetHost

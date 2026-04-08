@@ -1,4 +1,6 @@
-﻿namespace ManicDigger.Mods;
+﻿using System.Runtime.InteropServices;
+
+namespace ManicDigger.Mods;
 
 public class ModNetworkProcess : ModBase
 {
@@ -131,7 +133,7 @@ public class ModNetworkProcess : ModBase
                 {
                     Packet_ServerHeightmapChunk p = packet.HeightmapChunk;
                     game.platform.GzipDecompress(p.CompressedHeightmap, p.CompressedHeightmap.Length, decompressedchunk);
-                    int[] decompressedchunk1 = Game.ByteArrayToUshortArray(decompressedchunk, p.SizeX * p.SizeY * 2);
+                    ReadOnlySpan<ushort> decompressedchunk1 = MemoryMarshal.Cast<byte, ushort>(decompressedchunk.AsSpan(0, p.SizeX * p.SizeY * 2));
                     for (int xx = 0; xx < p.SizeX; xx++)
                     {
                         for (int yy = 0; yy < p.SizeY; yy++)

@@ -306,7 +306,7 @@ public class ModGuiChat : ModBase
             int c = eKeyChar;
             if (game.platform.IsValidTypingChar(c))
             {
-                game.GuiTypingBuffer = string.Concat(game.GuiTypingBuffer, game.CharToString(c));
+                game.GuiTypingBuffer = string.Concat(game.GuiTypingBuffer, (char)c);
             }
         }
     }

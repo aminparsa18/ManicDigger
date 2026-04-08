@@ -56,29 +56,21 @@ public class ConnectData
     internal string Auth;
     internal string ServerPassword;
     internal bool IsServePasswordProtected;
-    public static ConnectData FromUri(UriCi uri)
+    public static ConnectData FromUri(Uri uri)
     {
-        ConnectData c = new();
-        c = new ConnectData
+        ConnectData c = new()
         {
-            Ip = uri.GetIp(),
-            Port = 25565,
+            Ip = uri.Host,
+            Port = uri.Port != -1 ? uri.Port : 25565,
             Username = "gamer"
         };
-        if (uri.GetPort() != -1)
-        {
-            c.Port = uri.GetPort();
-        }
-        var get = uri.GetGet();
 
-        if (get.TryGetValue("user", out string user))
-            c.Username = user;
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
-        if (get.TryGetValue("auth", out string auth))
-            c.Auth = auth;
+        if (query["user"] is string user) { c.Username = user; }
+        if (query["auth"] is string auth) { c.Auth = auth; }
+        if (query["serverPassword"] is string serverPassword) { c.IsServePasswordProtected = MiscCi.ReadBool(serverPassword); }
 
-        if (get.TryGetValue("serverPassword", out string serverPassword))
-            c.IsServePasswordProtected = MiscCi.ReadBool(serverPassword);
         return c;
     }
 
@@ -238,7 +230,7 @@ public class BitmapData_
 
     public Bitmap ToBitmap(GamePlatform p)
     {
-        Bitmap bmp = p.BitmapCreate(width, height);
+        Bitmap bmp = new(width, height);
         p.BitmapSetPixelsArgb(bmp, argb);
         return bmp;
     }

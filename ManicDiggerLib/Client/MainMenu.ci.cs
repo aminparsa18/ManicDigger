@@ -546,25 +546,6 @@ public class MainMenu
         return savegames;
     }
 
-
-
-
-    public string CharToString(int a)
-    {
-        int[] arr = [a];
-        return StringUtils.CharArrayToString(arr, 1);
-    }
-
-    public string CharRepeat(int c, int length)
-    {
-        int[] charArray = new int[length];
-        for (int i = 0; i < length; i++)
-        {
-            charArray[i] = c;
-        }
-        return StringUtils.CharArrayToString(charArray, length);
-    }
-    
     internal static void StartNewWorld()
     {
     }
@@ -717,7 +698,7 @@ public class Screen
                     {
                         if (menu.p.IsValidTypingChar(e.GetKeyChar()))
                         {
-                            w.text = string.Concat(w.text, menu.CharToString(e.GetKeyChar()));
+                            w.text = string.Concat(w.text, (char)e.GetKeyChar());
                         }
                     }
                 }
@@ -885,7 +866,7 @@ public class Screen
                 {
                     if (w.password)
                     {
-                        text = menu.CharRepeat(42, w.text.Length); // '*'
+                        text = new string((char)42, w.text.Length); // '*'
                     }
                     if (w.editing)
                     {

@@ -1361,7 +1361,7 @@ public class TextColorRenderer
 
         int size2X = NextPowerOfTwo((int)(totalwidth) + 1);
         int size2Y = NextPowerOfTwo((int)(totalheight) + 1);
-        Bitmap bmp2 = platform.BitmapCreate(size2X, size2Y);
+        Bitmap bmp2 = new(size2X, size2Y);
         int[] bmp2Pixels = new int[size2X * size2Y];
 
         float currentwidth = 0;

@@ -13,11 +13,12 @@ using System.Drawing.Imaging;
 using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
-using System.Security.Cryptography;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 using Monitor = System.Threading.Monitor;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
 public class GamePlatformNative : GamePlatform
@@ -162,42 +163,42 @@ public class GamePlatformNative : GamePlatform
         throw new Exception(message);
     }
 
-    public override Bitmap BitmapCreate(int width, int height)
-    {
-        return new Bitmap(width, height);
-    }
-
     public override void BitmapSetPixelsArgb(Bitmap bmp, int[] pixels)
     {
-        var bmp_ = bmp;
-        int width = bmp_.Width;
-        int height = bmp_.Height;
         if (IsMono)
         {
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int color = pixels[x + y * width];
-                    bmp_.SetPixel(x, y, Color.FromArgb(color));
-                }
-            }
+            SetPixelsSafe(bmp, pixels);
         }
         else
         {
-            FastBitmap fastbmp = new()
-            {
-                bmp = bmp_
-            };
-            fastbmp.Lock();
+            SetPixelsFast(bmp, pixels);
+        }
+    }
+
+    private static void SetPixelsSafe(Bitmap bmp, int[] pixels)
+    {
+        int width = bmp.Width;
+        int height = bmp.Height;
+        for (int y = 0; y < height; y++)
             for (int x = 0; x < width; x++)
             {
-                for (int y = 0; y < height; y++)
-                {
-                    fastbmp.SetPixel(x, y, pixels[x + y * width]);
-                }
+                bmp.SetPixel(x, y, Color.FromArgb(pixels[y * width + x]));
             }
-            fastbmp.Unlock();
+    }
+
+    private static void SetPixelsFast(Bitmap bmp, int[] pixels)
+    {
+        BitmapData bmd = bmp.LockBits(
+            new Rectangle(0, 0, bmp.Width, bmp.Height),
+            ImageLockMode.WriteOnly,
+            PixelFormat.Format32bppArgb);
+        try
+        {
+            Marshal.Copy(pixels, 0, bmd.Scan0, bmp.Width * bmp.Height);
+        }
+        finally
+        {
+            bmp.UnlockBits(bmd);
         }
     }
 
@@ -216,38 +217,64 @@ public class GamePlatformNative : GamePlatform
         return bmp;
     }
 
-    public bool IsMono = Type.GetType("Mono.Runtime") != null;
+    public bool IsMono = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
     public override void BitmapGetPixelsArgb(Bitmap bitmap, int[] bmpPixels)
     {
-        Bitmap bmp = bitmap;
-        int width = bmp.Width;
-        int height = bmp.Height;
         if (IsMono)
         {
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    bmpPixels[x + y * width] = bmp.GetPixel(x, y).ToArgb();
-                }
-            }
+            GetPixelsSafe(bitmap, bmpPixels);
         }
         else
         {
-            FastBitmap fastbmp = new()
-            {
-                bmp = bmp
-            };
-            fastbmp.Lock();
+            GetPixelsFast(bitmap, bmpPixels);
+        }
+    }
+
+    /// <summary>
+    /// Slow but portable pixel read using <see cref="Bitmap.GetPixel"/>.
+    /// Used on platforms where pointer access into locked bitmap memory is unsafe.
+    /// </summary>
+    private static void GetPixelsSafe(Bitmap bmp, int[] bmpPixels)
+    {
+        int width = bmp.Width;
+        int height = bmp.Height;
+        for (int y = 0; y < height; y++)
             for (int x = 0; x < width; x++)
             {
-                for (int y = 0; y < height; y++)
-                {
-                    bmpPixels[x + y * width] = fastbmp.GetPixel(x, y);
-                }
+                bmpPixels[y * width + x] = bmp.GetPixel(x, y).ToArgb();
             }
-            fastbmp.Unlock();
+    }
+
+    /// <summary>
+    /// Fast pixel read using <see cref="BitmapData"/> and <see cref="Marshal.Copy"/>.
+    /// Converts to <see cref="PixelFormat.Format32bppArgb"/> first if needed.
+    /// </summary>
+    private static void GetPixelsFast(Bitmap bmp, int[] bmpPixels)
+    {
+        // Ensure the bitmap is in the format we expect before locking.
+        Bitmap source = bmp.PixelFormat == PixelFormat.Format32bppArgb
+            ? bmp
+            : new Bitmap(bmp.Width, bmp.Height, PixelFormat.Format32bppArgb);
+
+        if (!ReferenceEquals(source, bmp))
+        {
+            using Graphics g = Graphics.FromImage(source);
+            g.DrawImage(bmp, 0, 0);
+        }
+
+        BitmapData bmd = source.LockBits(
+            new Rectangle(0, 0, source.Width, source.Height),
+            ImageLockMode.ReadOnly,
+            PixelFormat.Format32bppArgb);
+        try
+        {
+            Marshal.Copy(bmd.Scan0, bmpPixels, 0, source.Width * source.Height);
+        }
+        finally
+        {
+            source.UnlockBits(bmd);
+            if (!ReferenceEquals(source, bmp)) { source.Dispose(); }
         }
     }
 
@@ -308,24 +335,6 @@ public class GamePlatformNative : GamePlatform
     {
         AviWriterCiCs avi = new();
         return avi;
-    }
-
-    public override UriCi ParseUri(string uri)
-    {
-        MyUri myuri = new(uri);
-
-        UriCi ret = new()
-        {
-            url = myuri.Url,
-            ip = myuri.Ip,
-            port = myuri.Port,
-            get = []
-        };
-        foreach (var k in myuri.Get)
-        {
-            ret.get[k.Key] = k.Value;
-        }
-        return ret;
     }
 
     public override string PathStorage()
@@ -1754,11 +1763,6 @@ public class GamePlatformNative : GamePlatform
         return window.IsFocused;
     }
 
-    private static void Log(string msg)
-    {
-        File.AppendAllText("debug.log", $"{DateTime.Now}: {msg}\n");
-    }
-
     private void WindowRenderFrame(FrameEventArgs e)
     {
         UpdateMousePosition();
@@ -1937,120 +1941,6 @@ public class GamePlatformNative : GamePlatform
     }
 
     #endregion
-}
-
-public class AssetLoader
-{
-    public AssetLoader(string[] datapaths_)
-    {
-        this.datapaths = datapaths_;
-    }
-    private readonly string[] datapaths;
-    public void LoadAssetsAsync(AssetList list, out float progress)
-    {
-        List<Asset> assets = new();
-        foreach (string path in datapaths)
-        {
-            try
-            {
-                if (!Directory.Exists(path))
-                {
-                    continue;
-                }
-                foreach (string s in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
-                {
-                    try
-                    {
-                        FileInfo f = new(s);
-                        if (f.Name.Equals("thumbs.db", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            continue;
-                        }
-                        Asset a = new()
-                        {
-                            data = File.ReadAllBytes(s)
-                        };
-                        a.dataLength = a.data.Length;
-                        a.name = f.Name.ToLowerInvariant();
-                        a.md5 = Md5(a.data);
-                        assets.Add(a);
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
-            catch
-            {
-            }
-        }
-        progress = 1;
-        list.count = assets.Count;
-        list.items = new Asset[2048];
-        for (int i = 0; i < assets.Count; i++)
-        {
-            list.items[i] = assets[i];
-        }
-    }
-
-    private readonly MD5 sha1 = MD5.Create();
-    private string Md5(byte[] data)
-    {
-        string hash = ToHex(sha1.ComputeHash(data), false);
-        return hash;
-    }
-
-    public static string ToHex(byte[] bytes, bool upperCase)
-    {
-        StringBuilder result = new(bytes.Length * 2);
-
-        for (int i = 0; i < bytes.Length; i++)
-        {
-            result.Append(bytes[i].ToString(upperCase ? "X2" : "x2"));
-        }
-
-        return result.ToString();
-    }
-}
-
-public class MyUri
-{
-    public MyUri(string uri)
-    {
-        //string url = "md://publichash:123/?user=a&auth=123";
-        var a = new Uri(uri);
-        Ip = a.Host;
-        Port = a.Port;
-        Get = ParseGet(uri);
-    }
-    internal string Url { get; private set; }
-    internal string Ip { get; private set; }
-    internal int Port { get; private set; }
-    internal Dictionary<string, string> Get { get; private set; }
-    private static Dictionary<string, string> ParseGet(string url)
-    {
-        try
-        {
-            Dictionary<string, string> d;
-            d = new Dictionary<string, string>();
-            if (url.Contains("?"))
-            {
-                string url2 = url.Substring(url.IndexOf("?") + 1);
-                var ss = url2.Split(['&']);
-                for (int i = 0; i < ss.Length; i++)
-                {
-                    var ss2 = ss[i].Split(['=']);
-                    d[ss2[0]] = ss2[1];
-                }
-            }
-            return d;
-        }
-        catch
-        {
-            //throw new FormatException("Invalid address: " + url);
-            return null;
-        }
-    }
 }
 
 public class AviWriterCiCs : AviWriterCi

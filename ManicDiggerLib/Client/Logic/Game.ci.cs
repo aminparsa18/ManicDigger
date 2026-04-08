@@ -5,330 +5,14 @@ using System.Numerics;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
-public class Game
+public partial class Game
 {
-    public Game()
-    {
-        one = 1;
-        map = new Map();
-        performanceinfo = new();
-        AudioEnabled = true;
-        AutoJumpEnabled = false;
-        playerPositionSpawnX = 15 + one / 2;
-        playerPositionSpawnY = 64;
-        playerPositionSpawnZ = 15 + one / 2;
-
-        TextureId = new int[MaxBlockTypes][];
-        for (int i = 0; i < MaxBlockTypes; i++)
-        {
-            TextureId[i] = new int[6];
-        }
-        TextureIdForInventory = new int[MaxBlockTypes];
-        language = new Language();
-        lastplacedblockX = -1;
-        lastplacedblockY = -1;
-        lastplacedblockZ = -1;
-        mLightLevels = new float[16];
-        sunlight_ = 15;
-        mvMatrix = new();
-        pMatrix = new();
-        mvMatrix.Push(Matrix4.Identity);
-        pMatrix.Push(Matrix4.Identity);
-        whitetexture = -1;
-        cachedTextTexturesMax = 1024;
-        cachedTextTextures = new CachedTextTexture[cachedTextTexturesMax];
-        for (int i = 0; i < cachedTextTexturesMax; i++)
-        {
-            cachedTextTextures[i] = null;
-        }
-        ENABLE_DRAW2D = true;
-        AllowFreemove = true;
-        enableCameraControl = true;
-        textures = [];
-        ServerInfo = new ServerInformation();
-        menustate = new MenuState();
-        mouseleftclick = false;
-        mouseleftdeclick = false;
-        wasmouseleft = false;
-        mouserightclick = false;
-        mouserightdeclick = false;
-        wasmouseright = false;
-        ENABLE_LAG = 0;
-        znear = one / 10;
-        CameraMatrix = new CameraMatrixProvider();
-        ENABLE_ZFAR = true;
-        TotalAmmo = new int[GlobalVar.MAX_BLOCKTYPES];
-        LoadedAmmo = new int[GlobalVar.MAX_BLOCKTYPES];
-        AllowedFontsCount = 1;
-        AllowedFonts = new string[AllowedFontsCount];
-        AllowedFonts[0] = "Verdana";
-        fov = MathF.PI / 3;
-        cameratype = CameraType.Fpp;
-        ENABLE_TPP_VIEW = false;
-        basemovespeed = 5;
-        movespeed = 5;
-        RadiusWhenMoving = one * 3 / 10;
-        playervelocity = new Vector3();
-        LocalPlayerId = -1;
-        dialogs = new VisibleDialog[512];
-        dialogsCount = 512;
-        blockHealth = new();
-        playertexturedefault = -1;
-        constRotationSpeed = one * 180 / 20;
-        modmanager = new ClientModManager1();
-        particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
-        PICK_DISTANCE = 4.1f;
-        selectedmodelid = -1;
-        grenadetime = 3;
-        rotationspeed = one * 15 / 100;
-        entities = new Entity[entitiesMax];
-        for (int i = 0; i < entitiesMax; i++)
-        {
-            entities[i] = null;
-        }
-        entitiesCount = 512;
-        PlayerPushDistance = 2;
-        const int KeysMax = 360;
-        keyboardState = new bool[KeysMax];
-        for (int i = 0; i < KeysMax; i++)
-        {
-            keyboardState[i] = false;
-        }
-        keyboardStateRaw = new bool[KeysMax];
-        for (int i = 0; i < KeysMax; i++)
-        {
-            keyboardStateRaw[i] = false;
-        }
-        overheadcameradistance = 10;
-        tppcameradistance = 3;
-        TPP_CAMERA_DISTANCE_MIN = 1;
-        TPP_CAMERA_DISTANCE_MAX = 10;
-        options = new OptionsCi();
-        overheadcameraK = new Kamera();
-        fillAreaLimit = 200;
-        speculativeCount = 0;
-        speculative = new Speculative[speculativeMax];
-        typinglog = new string[1024 * 16];
-        typinglogCount = 0;
-        NewBlockTypes = new Packet_BlockType[GlobalVar.MAX_BLOCKTYPES];
-        localplayeranimationhint = new AnimationHint();
-        enable_move = true;
-        handTexture = -1;
-        modelViewInverted = new float[16];
-        identityMatrix = Matrix4.Identity;
-        Set3dProjectionTempMat4 = Matrix4.Identity;
-        getAsset = new string[1024 * 2];
-        PlayerStats = new Packet_ServerPlayerStats();
-        mLightLevels = new float[16];
-        for (int i = 0; i < 16; i++)
-        {
-            mLightLevels[i] = one * i / 15;
-        }
-        camera = Matrix4.Identity;
-        packetHandlers = new ClientPacketHandler[256];
-        player = new Entity
-        {
-            position = new EntityPosition_()
-        };
-        currentlyAttackedEntity = -1;
-        ChatLinesMax = 1;
-        ChatLines = new Chatline[ChatLinesMax];
-        ChatLineLength = 64;
-        audio = new AudioControl();
-        CameraEyeX = -1;
-        CameraEyeY = -1;
-        CameraEyeZ = -1;
-        controls = new Controls();
-        movedz = 0;
-        taskScheduler = new TaskScheduler();
-        commitActions = new List<Action>();
-        constWallDistance = 0.3f;
-        mouseSmoothing = true;
-    }
-
-    internal AssetList assets;
-    internal float assetsLoadProgress;
-    internal TextColorRenderer textColorRenderer;
-    internal AudioControl audio;
-
-    public void Start()
-    {
-        textColorRenderer = new TextColorRenderer
-        {
-            platform = platform
-        };
-        language.LoadTranslations();
-        GameData gamedata = new();
-        gamedata.Start();
-        Config3d config3d = new();
-        if (platform.IsFastSystem())
-        {
-            config3d.viewdistance = 128;
-        }
-        else
-        {
-            config3d.viewdistance = 32;
-        }
-
-        ITerrainTextures terrainTextures = new()
-        {
-            game = this
-        };
-        d_TextureAtlasConverter = new TextureAtlasConverter();
-        d_TerrainTextures = terrainTextures;
-
-        FrustumCulling frustumculling = new()
-        {
-            d_GetCameraMatrix = this.CameraMatrix,
-        };
-        d_FrustumCulling = frustumculling;
-
-        TerrainChunkTesselatorCi terrainchunktesselator = new();
-        d_TerrainChunkTesselator = terrainchunktesselator;
-        d_Batcher = new MeshBatcher
-        {
-            d_FrustumCulling = frustumculling,
-            game = this
-        };
-        d_FrustumCulling = frustumculling;
-        d_Data = gamedata;
-        d_DataMonsters = new GameDataMonsters();
-        d_Config3d = config3d;
-
-        ModDrawParticleEffectBlockBreak particle = new();
-        this.particleEffectBlockBreak = particle;
-        this.d_Data = gamedata;
-        d_TerrainTextures = terrainTextures;
-
-        map.Reset(256, 256, 128);
-
-        SunMoonRenderer sunmoonrenderer = new();
-        d_SunMoonRenderer = sunmoonrenderer;
-        d_SunMoonRenderer = sunmoonrenderer;
-        d_Heightmap = new InfiniteMapChunked2d
-        {
-            d_Map = this
-        };
-        d_Heightmap.Restart();
-        d_TerrainChunkTesselator = terrainchunktesselator;
-        terrainchunktesselator.game = this;
-
-        Packet_Inventory inventory = new() { RightHand = new Packet_Item[10] };
-        InventoryUtils dataItems = new(this);
-        InventoryUtilClient inventoryUtil = new(inventory, dataItems);
-
-        d_Inventory = inventory;
-        d_InventoryUtil = inventoryUtil;
-        platform.AddOnCrash(OnCrashHandlerLeave.Create(this));
-
-        rnd = new Random();
-
-        clientmods = new ModBase[128];
-        clientmodsCount = 0;
-        modmanager.game = this;
-        AddMod(new ModDrawMain());
-        AddMod(new ModUpdateMain());
-        AddMod(new ModNetworkProcess());
-        AddMod(new ModUnloadRendererChunks());
-        AddMod(new ModAutoCamera());
-        AddMod(new ModFpsHistoryGraph());
-        AddMod(new ModWalkSound());
-        AddMod(new ModFallDamageToPlayer());
-        AddMod(new ModBlockDamageToPlayer());
-        AddMod(new ModLoadPlayerTextures());
-        AddMod(new ModSendPosition());
-        AddMod(new ModInterpolatePositions());
-        AddMod(new ModRail());
-        AddMod(new ModCompass());
-        AddMod(new ModGrenade());
-        AddMod(new ModBullet());
-        AddMod(new ModExpire());
-        AddMod(new ModReloadAmmo());
-        AddMod(new ModPush());
-        if (platform.IsFastSystem())
-        {
-            AddMod(new ModSkySphereAnimated());
-        }
-        else
-        {
-            AddMod(new ModSkySphereStatic());
-        }
-        AddMod(sunmoonrenderer);
-        AddMod(new ModDrawTestModel());
-        AddMod(new ModDrawLinesAroundSelectedBlock());
-        AddMod(new ModDebugChunk());
-        AddMod(new ModDrawArea());
-        AddMod(new ModDrawTerrain());
-        AddMod(new ModDrawPlayers());
-        AddMod(new ModDrawPlayerNames());
-        AddMod(new ModDrawText());
-        AddMod(new ModDrawParticleEffectBlockBreak());
-        AddMod(new ModDrawSprites());
-        AddMod(new ModDrawMinecarts());
-        AddMod(new ModDrawHand2d());
-        AddMod(new ModDrawHand3d());
-        AddMod(new ModGuiCrafting());
-        AddMod(new ModDialog());
-        AddMod(new ModPicking());
-        AddMod(new ModClearInactivePlayersDrawInfo());
-        AddMod(new ModCameraKeys());
-        AddMod(new ModSendActiveMaterial());
-        AddMod(new ModCamera());
-        AddMod(new ModNetworkEntity());
-        AddMod(new ModGuiInventory());
-        AddMod(new ModGuiTouchButtons());
-        AddMod(new ModGuiEscapeMenu());
-        AddMod(new ModGuiMapLoading());
-        AddMod(new ModDraw2dMisc());
-        AddMod(new ModGuiPlayerStats());
-        AddMod(new ModGuiChat());
-        AddMod(new ModScreenshot());
-        AddMod(new ModAudio());
-
-        s = new();
-
-        //Prevent loding screen from immediately displaying lag symbol
-        LastReceivedMilliseconds = platform.TimeMillisecondsFromStart();
-
-        ENABLE_DRAW_TEST_CHARACTER = platform.IsDebuggerAttached();
-
-        int maxTextureSize_ = platform.GlGetMaxTextureSize();
-        if (maxTextureSize_ < 1024)
-        {
-            maxTextureSize_ = 1024;
-        }
-        maxTextureSize = maxTextureSize_;
-        taskScheduler.Initialise(this);
-        MapLoadingStart();
-        platform.GlClearColorRgbaf(0, 0, 0, 1);
-        if (d_Config3d.ENABLE_BACKFACECULLING)
-        {
-            platform.GlDepthMask(true);
-            platform.GlEnableDepthTest();
-            platform.GlCullFaceBack();
-            platform.GlEnableCullFace();
-        }
-        platform.GlEnableLighting();
-        platform.GlEnableColorMaterial();
-        platform.GlColorMaterialFrontAndBackAmbientAndDiffuse();
-        platform.GlShadeModelSmooth();
-    }
-
-    public void AddMod(ModBase mod)
-    {
-        clientmods[clientmodsCount++] = mod;
-        mod.Start(modmanager);
-    }
-
     // Main game loop
     public void OnRenderFrame(float deltaTime)
     {
         taskScheduler.Update(this, deltaTime);
     }
-    private readonly TaskScheduler taskScheduler;
-
-    internal Matrix4 camera;
-    private float accumulator;
+    
     internal void MainThreadOnRenderFrame(float deltaTime)
     {
         UpdateResize();
@@ -404,23 +88,7 @@ public class Game
         }
         GotoDraw2d(deltaTime);
     }
-
-    internal float one;
-
-    private const int MaxBlockTypes = 1024;
-
-    internal GamePlatform platform;
-    internal Packet_BlockType[] blocktypes;
-    internal Language language;
-    internal TerrainChunkTesselatorCi d_TerrainChunkTesselator;
-
-    internal Map map;
-    internal const int chunksize = 16;
-    internal const int chunksizebits = 4;
-
-    internal Entity player;
-    internal float constWallDistance;
-
+    
     public static bool IsRail(Packet_BlockType block)
     {
         return block.Rail > 0;	//Does not include Rail0, but this can't be placed.
@@ -454,30 +122,7 @@ public class Game
     public static int ColorR(int color) => (color >> 16) & 0xFF;
     public static int ColorG(int color) => (color >> 8) & 0xFF;
     public static int ColorB(int color) => color & 0xFF;
-
-    //Indexed by block id and TileSide.
-    internal int[][] TextureId;
-    internal int[] TextureIdForInventory;
-
-    internal int terrainTexturesPerAtlas;
-
-    internal static int texturesPacked() { return GlobalVar.MAX_BLOCKTYPES_SQRT; } //16x16
-    internal int terrainTexture;
-    internal int[] terrainTextures1d;
-    internal ITerrainTextures d_TerrainTextures;
-
-    internal int lastplacedblockX;
-    internal int lastplacedblockY;
-    internal int lastplacedblockZ;
-
-    internal InfiniteMapChunked2d d_Heightmap;
-    internal Config3d d_Config3d;
-
-    //maps light level (0-15) to GL.Color value.
-    internal float[] mLightLevels;
-    internal MeshBatcher d_Batcher;
-    internal int sunlight_;
-
+    
     public void Draw2dTexture(int textureid, float x1, float y1, float width, float height, int? inAtlasId, int atlastextures, int color, bool enabledepthtest)
     {
         if (color == ColorFromArgb(255, 255, 255, 255) && inAtlasId == null)
@@ -656,9 +301,7 @@ public class Game
         platform.GlEnableTexture2d();
     }
 
-    internal bool currentMatrixModeProjection;
-    internal Stack<Matrix4> mvMatrix;
-    internal Stack<Matrix4> pMatrix;
+   
 
     public void GLMatrixModeModelView()
     {
@@ -872,7 +515,7 @@ public class Game
     {
         if (this.whitetexture == -1)
         {
-            Bitmap bmp = platform.BitmapCreate(1, 1);
+            Bitmap bmp = new(1, 1);
             int[] pixels = [ColorFromArgb(255, 255, 255, 255)];
             platform.BitmapSetPixelsArgb(bmp, pixels);
             this.whitetexture = platform.LoadTextureFromBitmap(bmp);
@@ -1875,36 +1518,12 @@ public class Game
         return false;
     }
 
-    internal byte localstance;
-    internal bool spawned;
+ 
 
-    internal int LastReceivedMilliseconds;
-    internal int playertexturedefault;
-    public const string playertexturedefaultfilename = "mineplayer.png";
-    internal bool ENABLE_DRAW_TEST_CHARACTER;
-    internal ModSkySphereStatic skysphere;
-    internal int reloadblock;
-    internal int reloadstartMilliseconds;
-    internal int lastOxygenTickMilliseconds;
-    internal int typinglogpos;
-    internal TypingState GuiTyping;
-    internal ConnectData connectdata;
-    internal bool issingleplayer;
-    internal bool IsShiftPressed;
-    internal bool reconnect;
-    internal bool exitToMainMenu;
-    internal float constRotationSpeed;
     internal void SendLeave(int reason)
     {
         SendPacketClient(ClientPackets.Leave(reason));
     }
-    internal FrustumCulling d_FrustumCulling;
-    internal ClientModManager1 modmanager;
-    internal ModBase[] clientmods;
-    internal int clientmodsCount;
-    internal bool SkySphereNight;
-    internal ModDrawParticleEffectBlockBreak particleEffectBlockBreak;
-    internal bool ENABLE_DRAWPOSITION;
 
     public int SerializeFloat(float p)
     {
@@ -2595,9 +2214,7 @@ public class Game
             IsShiftPressed = false;
         }
     }
-    internal float playerPositionSpawnX;
-    internal float playerPositionSpawnY;
-    internal float playerPositionSpawnZ;
+    
 
     internal void MapLoaded()
     {
@@ -2609,7 +2226,6 @@ public class Game
         playerPositionSpawnY = player.position.y;
         playerPositionSpawnZ = player.position.z;
     }
-    internal int[] materialSlots;
 
     internal void Draw2dText1(string text, int x, int y, int fontsize, int? color, bool enabledepthtest)
     {
@@ -2622,7 +2238,6 @@ public class Game
         Draw2dText(text, font, x, y, color, enabledepthtest);
     }
 
-    internal InventoryUtilClient d_InventoryUtil;
     internal void UseInventory(Packet_Inventory packet_Inventory)
     {
         d_Inventory = packet_Inventory;
@@ -2644,15 +2259,7 @@ public class Game
         }
     }
 
-    public string CharToString(int c)
-    {
-        int[] arr = [c];
-        return StringUtils.CharArrayToString(arr, 1);
-    }
-
-    internal Speculative[] speculative;
-    internal int speculativeCount;
-    internal const int speculativeMax = 8 * 1024;
+   
 
     internal void SendSetBlockAndUpdateSpeculative(int material, int x, int y, int z, int mode)
     {
@@ -3063,12 +2670,7 @@ public class Game
         return false;
     }
 
-    internal bool handRedraw;
-    internal bool handSetAttackBuild;
-    internal bool handSetAttackDestroy;
-
-    internal string serverGameVersion;
-    internal ClientPacketHandler[] packetHandlers;
+  
 
     private void CacheAsset(Asset asset)
     {
@@ -3134,26 +2736,7 @@ public class Game
         CacheAsset(newAsset);
     }
 
-    internal int handTexture;
-
-    internal bool ammostarted;
-    internal Packet_BlockType[] NewBlockTypes;
-    internal string blobdownloadname;
-    internal string blobdownloadmd5;
-    internal CitoMemoryStream blobdownload;
-    internal SunMoonRenderer d_SunMoonRenderer;
-    internal int[] NightLevels;
-    public const int HourDetail = 4;
-    public static int[] ByteArrayToUshortArray(byte[] input, int inputLength)
-    {
-        int outputLength = inputLength / 2;
-        int[] output = new int[outputLength];
-        for (int i = 0; i < outputLength; i++)
-        {
-            output[i] = (input[i * 2 + 1] << 8) + input[i * 2];
-        }
-        return output;
-    }
+   
 
     internal byte[] GetFile(string p)
     {
@@ -3191,11 +2774,7 @@ public class Game
         }
     }
 
-    internal int maxTextureSize; // detected at runtime
-    internal int Atlas1dheight() { return maxTextureSize; }
-    internal static int atlas2dtiles() { return GlobalVar.MAX_BLOCKTYPES_SQRT; } // 16x16
-    internal TextureAtlasConverter d_TextureAtlasConverter;
-
+    
     internal void UseTerrainTextureAtlas2d(Bitmap atlas2d, int atlas2dWidth)
     {
         terrainTexture = platform.LoadTextureFromBitmap(atlas2d);
@@ -3261,7 +2840,7 @@ public class Game
 
             platform.BitmapDelete(bmp);
         }
-        Bitmap bitmap = platform.BitmapCreate(atlas2d.width, atlas2d.height);
+        Bitmap bitmap = new(atlas2d.width, atlas2d.height);
         platform.BitmapSetPixelsArgb(bitmap, atlas2d.argb);
         UseTerrainTextureAtlas2d(bitmap, atlas2d.width);
     }
@@ -3279,12 +2858,6 @@ public class Game
         return strA == strB;
     }
 
-   // internal AnimationState localplayeranim;
-    internal AnimationHint localplayeranimationhint;
-
-    internal bool enable_move;
-
-    public const int DISCONNECTED_ICON_AFTER_SECONDS = 10;
     internal void KeyDown(int eKey)
     {
         keyboardStateRaw[eKey] = true;
@@ -3605,15 +3178,6 @@ public class Game
         PerspectiveMode();
     }
 
-    public const int ChatFontSize = 11;
-
-    internal bool soundnow;
-
-    internal Controls controls;
-    internal float pushX;
-    internal float pushY;
-    internal float pushZ;
-
     internal void FrameTick(float dt)
     {
         NewFrameEventArgs args_ = new();
@@ -3660,10 +3224,6 @@ public class Game
         }
     }
 
-    private float lastplayerpositionX;
-    private float lastplayerpositionY;
-    private float lastplayerpositionZ;
-
     public ArraySegment<BlockPosSide> Pick(BlockOctreeSearcher s_, Line3D line, out int retCount)
     {
         int minX = (int)(Math.Min(line.Start[0], line.End[0]));
@@ -3704,7 +3264,6 @@ public class Game
         return pick2;
     }
 
-    private readonly float[] modelViewInverted;
 
     private void PickSort(ArraySegment<BlockPosSide> pick, int pickCount, float x, float y, float z)
     {
@@ -3728,10 +3287,6 @@ public class Game
         }
         while (changed);
     }
-
-    internal bool mouseLeft;
-    internal bool mouseMiddle;
-    internal bool mouseRight;
 
     internal void MouseDown(MouseEventArgs args)
     {
@@ -3790,9 +3345,6 @@ public class Game
         platform = value;
     }
 
-    internal int Font;
-    internal GameExit d_Exit;
-
     internal void OnFocusChanged()
     {
         if (guistate == GuiState.Normal)
@@ -3814,8 +3366,7 @@ public class Game
         MapLoadingStart();
     }
 
-    private int lastWidth;
-    private int lastHeight;
+   
     private void UpdateResize()
     {
         if (lastWidth != platform.GetCanvasWidth()
@@ -3886,11 +3437,6 @@ public class Game
         }
     }
 
-    internal float touchMoveDx;
-    internal float touchMoveDy;
-    internal float touchOrientationDx;
-    internal float touchOrientationDy;
-
     public void OnTouchMove(TouchEventArgs e)
     {
         for (int i = 0; i < clientmodsCount; i++)
@@ -3944,7 +3490,6 @@ public class Game
         }
     }
 
-    internal List<Action> commitActions;
     public void QueueActionCommit(Action action)
     {
         commitActions.Add(action);
@@ -4006,15 +3551,7 @@ public class Game
         GuiTyping = TypingState.None;
     }
 
-    internal float sunPositionX;
-    internal float sunPositionY;
-    internal float sunPositionZ;
-    internal float moonPositionX;
-    internal float moonPositionY;
-    internal float moonPositionZ;
-    internal bool isNight;
-    internal bool fancySkysphere;
-
+   
     internal static float Angle256ToRad(int value)
     {
         float one_ = 1;
@@ -4026,14 +3563,5 @@ public class Game
         return (value / (2 * MathF.PI)) * 255;
     }
 
-    internal float CameraEyeX;
-    internal float CameraEyeY;
-    internal float CameraEyeZ;
-
-    internal bool isplayeronground;
-
-    internal bool reachedwall;
-    internal bool reachedwall_1blockhigh;
-    internal bool reachedHalfBlock;
-    internal float movedz;
+   
 }

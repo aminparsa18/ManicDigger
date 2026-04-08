@@ -444,7 +444,6 @@ public partial class Game
         }
     }
 
-    private Matrix4 identityMatrix;
     public void GLLoadIdentity()
     {
         if (currentMatrixModeProjection)
@@ -510,7 +509,6 @@ public partial class Game
         //GL.Enable(EnableCap.DepthTest);
     }
 
-    private int whitetexture;
     public int WhiteTexture()
     {
         if (this.whitetexture == -1)
@@ -545,8 +543,6 @@ public partial class Game
         return 1;
     }
 
-    internal CachedTextTexture[] cachedTextTextures;
-    internal int cachedTextTexturesMax;
 
     public void DeleteUnusedCachedTextTextures()
     {
@@ -730,13 +726,7 @@ public partial class Game
         SendPacketClient(ClientPackets.MoveToInventory(from));
     }
 
-    internal Dictionary<string, string> performanceinfo;
-
-
-    internal Chatline[] ChatLines;
-    internal int ChatLinesMax;
     internal int ChatLinesCount;
-    internal int ChatLineLength;
     internal string GuiTypingBuffer;
     internal bool IsTyping;
 
@@ -820,10 +810,6 @@ public partial class Game
         ChatLines[ChatLinesCount++] = chatline;
     }
 
-    internal bool ENABLE_DRAW2D;
-    internal bool AllowFreemove;
-    internal bool enableCameraControl;
-
     internal bool stopPlayerMove;
 
     internal void Respawn()
@@ -875,7 +861,6 @@ public partial class Game
     internal string invalidVersionDrawMessage;
     internal Packet_Server invalidVersionPacketIdentification;
 
-    private readonly Dictionary<string, int> textures;
     internal int GetTexture(string p)
     {
         if (!textures.ContainsKey(p))
@@ -917,18 +902,6 @@ public partial class Game
         return platform.GetCanvasHeight() / 2 - (int)height / 2;
     }
 
-    internal ServerInformation ServerInfo;
-    internal bool AudioEnabled;
-    internal bool AutoJumpEnabled;
-    internal MenuState menustate;
-    internal bool mouseleftclick;
-    internal bool mouseleftdeclick;
-    internal bool wasmouseleft;
-    internal bool mouserightclick;
-    internal bool mouserightdeclick;
-    internal bool wasmouseright;
-    internal int ENABLE_LAG;
-
     public int Width()
     {
         return platform.GetCanvasWidth();
@@ -939,11 +912,6 @@ public partial class Game
         return platform.GetCanvasHeight();
     }
 
-    internal float znear;
-
-    internal CameraMatrixProvider CameraMatrix;
-
-    private readonly Matrix4 Set3dProjectionTempMat4;
     public void Set3dProjection(float zfar, float fov)
     {
         float aspect_ratio = 1f * Width() / Height();
@@ -953,7 +921,6 @@ public partial class Game
         GLLoadMatrix(projection);
         SetMatrixUniformProjection();
     }
-    internal bool ENABLE_ZFAR;
 
     internal float zfar()
     {
@@ -964,13 +931,6 @@ public partial class Game
         return ENABLE_ZFAR ? d_Config3d.viewdistance : 99999;
     }
 
-    internal Packet_ServerPlayerStats PlayerStats;
-
-    internal int[] TotalAmmo;
-    internal int[] LoadedAmmo;
-
-    private readonly string[] AllowedFonts;
-    private readonly int AllowedFontsCount;
 
     internal string ValidFont(string family)
     {
@@ -1003,7 +963,6 @@ public partial class Game
     internal int mouseCurrentY;
     internal Packet_Inventory d_Inventory;
 
-    internal float fov;
 
     internal float currentfov()
     {
@@ -1042,9 +1001,6 @@ public partial class Game
         return blockunderplayer;
     }
 
-    internal CameraType cameratype;
-    internal bool ENABLE_TPP_VIEW;
-
     internal Vector3 playerdestination;
     internal void SetCamera(CameraType type)
     {
@@ -1069,8 +1025,6 @@ public partial class Game
             playerdestination = new Vector3(player.position.x, player.position.y, player.position.z);
         }
     }
-    internal float basemovespeed;
-    internal float movespeed;
 
     internal static Packet_InventoryPosition InventoryPositionMaterialSelector(int materialId)
     {
@@ -1105,7 +1059,6 @@ public partial class Game
         return null;
     }
 
-    internal float RadiusWhenMoving;
 
     internal float CurrentRecoil()
     {
@@ -1116,7 +1069,6 @@ public partial class Game
         }
         return DeserializeFloat(blocktypes[item.BlockId].RecoilFloat);
     }
-    internal Vector3 playervelocity;
 
     internal float CurrentAimRadius()
     {
@@ -1189,8 +1141,6 @@ public partial class Game
         d_Config3d.viewdistance = drawDistances[0];
         RedrawAllBlocks();
     }
-
-    internal int LocalPlayerId;
 
     internal float GetCharacterEyesHeight()
     {
@@ -1447,8 +1397,7 @@ public partial class Game
         lastplacedblockZ = z;
     }
 
-    internal VisibleDialog[] dialogs;
-    internal int dialogsCount;
+    
 
     internal int DialogsCount_()
     {
@@ -1479,7 +1428,6 @@ public partial class Game
         return -1;
     }
 
-    internal Dictionary<(int x, int y, int z), float> blockHealth = new();
 
     internal float GetCurrentBlockHealth(int x, int y, int z)
     {
@@ -1492,7 +1440,6 @@ public partial class Game
     }
 
     internal Vector3i? currentAttackedBlock;
-    internal int currentlyAttackedEntity;
 
     internal void SendRequestBlob(string[] required, int requiredCount)
     {
@@ -1634,21 +1581,16 @@ public partial class Game
         }
         return false;
     }
-    internal float PICK_DISTANCE;
     internal bool leftpressedpicking;
-    internal int selectedmodelid;
     internal int pistolcycle;
     internal int lastironsightschangeMilliseconds;
     internal int grenadecookingstartMilliseconds;
-    internal float grenadetime;
     internal int lastpositionsentMilliseconds;
 
     internal float mouseDeltaX;
     internal float mouseDeltaY;
-    private readonly float rotationspeed;
     private float mouseSmoothingVelX;
     private float mouseSmoothingVelY;
-    private bool mouseSmoothing;
     private float mouseSmoothingAccum;
 
     internal void UpdateMouseViewportControl(float dt)
@@ -1799,9 +1741,6 @@ public partial class Game
 
     internal int totaltimeMilliseconds;
 
-    internal Entity[] entities;
-    internal int entitiesCount;
-    internal const int entitiesMax = 4096;
     public const int entityMonsterIdStart = 128;
     public const int entityMonsterIdCount = 128;
     public const int entityLocalIdStart = 256;
@@ -1819,7 +1758,6 @@ public partial class Game
         entities[entitiesCount++] = entity;
     }
 
-    internal float PlayerPushDistance;
 
     internal static Entity CreateBulletEntity(float fromX, float fromY, float fromZ, float toX, float toY, float toZ, float speed)
     {
@@ -1851,9 +1789,6 @@ public partial class Game
     {
         return ax == bx && ay == by && az == bz;
     }
-
-    internal bool[] keyboardState;
-    internal bool[] keyboardStateRaw;
 
     public const int KeyAltLeft = 5;
     public const int KeyAltRight = 6;
@@ -1959,8 +1894,6 @@ public partial class Game
         platform.GlLightModelAmbient(r, g, b);
     }
 
-    internal OptionsCi options;
-
     internal int GetKey(Keys key)
     {
         if (options == null)
@@ -2056,10 +1989,6 @@ public partial class Game
         SetFreeMouse(false);
     }
 
-    internal float overheadcameradistance;
-    internal float tppcameradistance;
-    internal int TPP_CAMERA_DISTANCE_MIN;
-    internal int TPP_CAMERA_DISTANCE_MAX;
     internal void MouseWheelChanged(MouseWheelEventArgs e)
     {
         float eDeltaPrecise = e.OffsetY;
@@ -2183,8 +2112,6 @@ public partial class Game
 
     internal BlockOctreeSearcher s;
 
-    internal Kamera overheadcameraK;
-
     internal void ChatLog(string p)
     {
         if (!platform.ChatLog(this.ServerInfo.ServerName, p))
@@ -2192,8 +2119,6 @@ public partial class Game
             platform.ConsoleWriteLine(string.Format(language.CannotWriteChatLog(), this.ServerInfo.ServerName));
         }
     }
-
-    internal int fillAreaLimit;
 
     internal void KeyUp(int eKey)
     {
@@ -2571,10 +2496,7 @@ public partial class Game
         arguments = arguments.Trim();
         return (arguments == "" || arguments == "1" || arguments == "on" || arguments == "yes");
     }
-    internal string[] typinglog;
-    internal int typinglogCount;
 
-    private readonly string[] getAsset;
     internal void ProcessServerIdentification(Packet_Server packet)
     {
         this.LocalPlayerId = packet.Identification.AssignedClientId;

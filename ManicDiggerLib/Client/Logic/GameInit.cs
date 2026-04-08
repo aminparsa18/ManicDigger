@@ -52,6 +52,13 @@ public partial class Game
     internal bool handSetAttackBuild;
     internal bool handSetAttackDestroy;
 
+    internal int whitetexture;
+    internal int cachedTextTexturesMax;
+    internal CachedTextTexture[] cachedTextTextures;
+    internal Dictionary<string, int> textures;
+    internal int AllowedFontsCount;
+    internal string[] AllowedFonts;
+
     // -------------------------------------------------------------------------
     // Fields — world / map
     // -------------------------------------------------------------------------
@@ -105,6 +112,27 @@ public partial class Game
     internal int lastOxygenTickMilliseconds;
     internal int LastReceivedMilliseconds;
 
+    internal int LocalPlayerId;
+    internal int currentlyAttackedEntity;
+    internal int selectedmodelid;
+    internal Vector3 playervelocity;
+    internal float RadiusWhenMoving;
+    internal float basemovespeed;
+    internal float movespeed;
+    internal float rotationspeed;
+    internal float PICK_DISTANCE;
+    internal int grenadetime;
+    internal int PlayerPushDistance;
+    internal bool AudioEnabled;
+    internal bool AutoJumpEnabled;
+    internal int[] TotalAmmo;
+    internal int[] LoadedAmmo;
+    internal Dictionary<(int x, int y, int z), float> blockHealth = new();
+    internal VisibleDialog[] dialogs;
+    internal int dialogsCount;
+    internal string[] typinglog;
+    internal int typinglogCount;
+
     // -------------------------------------------------------------------------
     // Fields — camera
     // -------------------------------------------------------------------------
@@ -117,6 +145,21 @@ public partial class Game
     internal bool currentMatrixModeProjection;
     internal Stack<Matrix4> mvMatrix;
     internal Stack<Matrix4> pMatrix;
+
+    internal CameraMatrixProvider CameraMatrix;
+    internal float fov;
+    internal CameraType cameratype;
+    internal bool ENABLE_TPP_VIEW;
+    internal float znear;
+    internal bool ENABLE_ZFAR;
+    internal float overheadcameradistance;
+    internal Kamera overheadcameraK;
+    internal float tppcameradistance;
+    internal float TPP_CAMERA_DISTANCE_MIN;
+    internal float TPP_CAMERA_DISTANCE_MAX;
+    internal bool enableCameraControl;
+    internal Matrix4 identityMatrix;
+    internal Matrix4 Set3dProjectionTempMat4;
 
     // -------------------------------------------------------------------------
     // Fields — lighting
@@ -143,6 +186,15 @@ public partial class Game
     // -------------------------------------------------------------------------
 
     internal Controls controls;
+    internal bool mouseSmoothing;
+    internal bool mouseleftclick;
+    internal bool mouseleftdeclick;
+    internal bool wasmouseleft;
+    internal bool mouserightclick;
+    internal bool mouserightdeclick;
+    internal bool wasmouseright;
+    internal bool[] keyboardState;
+    internal bool[] keyboardStateRaw;
 
     internal bool mouseLeft;
     internal bool mouseMiddle;
@@ -195,6 +247,9 @@ public partial class Game
     // a legacy Cito transpiler artifact where float literals needed to go through a variable.
     internal float one;
 
+    internal ModBase[] clientmods;
+    internal int clientmodsCount;
+
     internal GamePlatform platform;
     internal Language language;
     internal ClientModManager1 modmanager;
@@ -214,6 +269,24 @@ public partial class Game
 
     internal bool ENABLE_DRAW_TEST_CHARACTER;
     internal bool ENABLE_DRAWPOSITION;
+    internal bool ENABLE_DRAW2D;
+    internal int ENABLE_LAG;
+    internal bool AllowFreemove;
+    internal MenuState menustate;
+    internal ServerInformation ServerInfo;
+    internal OptionsCi options;
+    internal Dictionary<string, string> performanceinfo;
+    internal Packet_ServerPlayerStats PlayerStats;
+    internal string[] getAsset;
+    internal int fillAreaLimit;
+
+    internal Entity[] entities;
+    internal const int entitiesMax = 4096;
+    internal int entitiesCount;
+
+    internal int ChatLinesMax;
+    internal Chatline[] ChatLines;
+    internal int ChatLineLength;
 
     private int lastWidth;
     private int lastHeight;
@@ -231,31 +304,43 @@ public partial class Game
     public Game()
     {
         one = 1;
-        modelViewInverted = new float[16];
         taskScheduler = new TaskScheduler();
-        commitActions = new List<Action>();
-        modmanager = new ClientModManager1();
-        language = new Language();
+        modelViewInverted = new float[16];
 
+        InitCore();
         InitMap();
         InitTextures();
         InitPlayer();
         InitCamera();
         InitLighting();
-        InitNetworking();
-        InitAudio();
         InitInput();
-
-        // Fields owned by other partial classes — each partial is responsible
-        // for declaring and initializing its own state in a corresponding Init method.
-        //InitUi();       // UI, menus, dialogs, chat — see GameUi.cs
-        //InitEntities(); // Entity pool — see GameEntities.cs
-       // InitOptions();  // Game options and settings — see GameOptions.cs
+        InitEntities();
+        InitOptions();
+        InitNetworking();
+        InitChat();
+        InitAudio();
     }
 
     // -------------------------------------------------------------------------
     // Initialization helpers
     // -------------------------------------------------------------------------
+
+    private void InitCore()
+    {
+        clientmods = new ModBase[128];
+        clientmodsCount = 0;
+        performanceinfo = new();
+        language = new Language();
+        modmanager = new ClientModManager1();
+        particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
+        commitActions = new List<Action>();
+        identityMatrix = Matrix4.Identity;
+        Set3dProjectionTempMat4 = Matrix4.Identity;
+        getAsset = new string[1024 * 2];
+        ServerInfo = new ServerInformation();
+        options = new OptionsCi();
+        PlayerStats = new Packet_ServerPlayerStats();
+    }
 
     private void InitMap()
     {
@@ -263,6 +348,7 @@ public partial class Game
         lastplacedblockX = -1;
         lastplacedblockY = -1;
         lastplacedblockZ = -1;
+        fillAreaLimit = 200;
     }
 
     private void InitTextures()
@@ -273,35 +359,81 @@ public partial class Game
 
         TextureIdForInventory = new int[MaxBlockTypes];
         handTexture = -1;
+        whitetexture = -1;
+        textures = [];
+
+        cachedTextTexturesMax = 1024;
+        cachedTextTextures = new CachedTextTexture[cachedTextTexturesMax];
+        for (int i = 0; i < cachedTextTexturesMax; i++)
+            cachedTextTextures[i] = null;
+
+        AllowedFontsCount = 1;
+        AllowedFonts = new string[AllowedFontsCount];
+        AllowedFonts[0] = "Verdana";
     }
 
     private void InitPlayer()
     {
         player = new Entity { position = new EntityPosition_() };
+        LocalPlayerId = -1;
+        currentlyAttackedEntity = -1;
+        selectedmodelid = -1;
+        playertexturedefault = -1;
 
         playerPositionSpawnX = 15 + one / 2;
         playerPositionSpawnY = 64;
         playerPositionSpawnZ = 15 + one / 2;
 
+        playervelocity = new Vector3();
         movedz = 0;
         constWallDistance = 0.3f;
         constRotationSpeed = one * 180 / 20;
+        RadiusWhenMoving = one * 3 / 10;
+        basemovespeed = 5;
+        movespeed = 5;
+        rotationspeed = one * 15 / 100;
+        PICK_DISTANCE = 4.1f;
+        grenadetime = 3;
+        PlayerPushDistance = 2;
+
         localplayeranimationhint = new AnimationHint();
         enable_move = true;
-        playertexturedefault = -1;
+        AudioEnabled = true;
+        AutoJumpEnabled = false;
+
+        TotalAmmo = new int[GlobalVar.MAX_BLOCKTYPES];
+        LoadedAmmo = new int[GlobalVar.MAX_BLOCKTYPES];
+        blockHealth = new();
+        dialogs = new VisibleDialog[512];
+        dialogsCount = 512;
+        typinglog = new string[1024 * 16];
+        typinglogCount = 0;
     }
 
     private void InitCamera()
     {
         camera = Matrix4.Identity;
-        mvMatrix = new Stack<Matrix4>();
-        pMatrix = new Stack<Matrix4>();
+        mvMatrix = new();
+        pMatrix = new();
         mvMatrix.Push(Matrix4.Identity);
         pMatrix.Push(Matrix4.Identity);
 
         CameraEyeX = -1;
         CameraEyeY = -1;
         CameraEyeZ = -1;
+
+        CameraMatrix = new CameraMatrixProvider();
+        fov = MathF.PI / 3;
+        cameratype = CameraType.Fpp;
+        ENABLE_TPP_VIEW = false;
+        znear = one / 10;
+        ENABLE_ZFAR = true;
+        overheadcameradistance = 10;
+        overheadcameraK = new Kamera();
+        tppcameradistance = 3;
+        TPP_CAMERA_DISTANCE_MIN = 1;
+        TPP_CAMERA_DISTANCE_MAX = 10;
+        enableCameraControl = true;
     }
 
     private void InitLighting()
@@ -312,6 +444,44 @@ public partial class Game
             mLightLevels[i] = one * i / 15;
     }
 
+    private void InitInput()
+    {
+        controls = new Controls();
+        mouseSmoothing = true;
+        mouseleftclick = false;
+        mouseleftdeclick = false;
+        wasmouseleft = false;
+        mouserightclick = false;
+        mouserightdeclick = false;
+        wasmouseright = false;
+
+        const int KeysMax = 360;
+        keyboardState = new bool[KeysMax];
+        for (int i = 0; i < KeysMax; i++)
+            keyboardState[i] = false;
+
+        keyboardStateRaw = new bool[KeysMax];
+        for (int i = 0; i < KeysMax; i++)
+            keyboardStateRaw[i] = false;
+    }
+
+    private void InitEntities()
+    {
+        entities = new Entity[entitiesMax];
+        for (int i = 0; i < entitiesMax; i++)
+            entities[i] = null;
+
+        entitiesCount = 512;
+    }
+
+    private void InitOptions()
+    {
+        ENABLE_DRAW2D = true;
+        ENABLE_LAG = 0;
+        AllowFreemove = true;
+        menustate = new MenuState();
+    }
+
     private void InitNetworking()
     {
         packetHandlers = new ClientPacketHandler[256];
@@ -320,13 +490,15 @@ public partial class Game
         speculative = new Speculative[speculativeMax];
     }
 
+    private void InitChat()
+    {
+        ChatLinesMax = 1;
+        ChatLines = new Chatline[ChatLinesMax];
+        ChatLineLength = 64;
+    }
+
     private void InitAudio()
     {
         audio = new AudioControl();
-    }
-
-    private void InitInput()
-    {
-        controls = new Controls();
     }
 }

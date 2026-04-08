@@ -2,8 +2,7 @@
 
 public partial class Game
 {
-    internal ModBase[] clientmods;
-    internal int clientmodsCount;
+    
 
     public void Start()
     {

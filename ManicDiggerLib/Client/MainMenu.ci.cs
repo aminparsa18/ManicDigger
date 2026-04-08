@@ -191,7 +191,7 @@ public class MainMenu
             fontfamily = "Arial",
             color = Game.ColorFromArgb(255, 255, 255, 255)
         };
-        BitmapCi textBitmap = textColorRenderer.CreateTextTexture(text_);
+        Bitmap textBitmap = textColorRenderer.CreateTextTexture(text_);
 
         int texture = p.LoadTextureFromBitmap(textBitmap);
         
@@ -214,13 +214,14 @@ public class MainMenu
     internal Dictionary<string,int> textures;
     internal int GetTexture(string name)
     {
-        if (!textures.ContainsKey(name))
+        if (!textures.TryGetValue(name, out int value))
         {
-            BitmapCi bmp = p.BitmapCreateFromPng(GetFile(name), GetFileLength(name));
-            textures[name] = p.LoadTextureFromBitmap(bmp);
+            Bitmap bmp = p.BitmapCreateFromPng(GetFile(name), GetFileLength(name));
+            value = p.LoadTextureFromBitmap(bmp);
+            textures[name] = value;
             p.BitmapDelete(bmp);
         }
-        return textures[name];
+        return value;
     }
 
     internal byte[] GetFile(string name)

@@ -53,7 +53,7 @@ public class ModSkySphereStatic : ModBase
 
     private static int LoadTexture(Game game, string filename)
     {
-        BitmapCi bmp = game.platform.BitmapCreateFromPng(game.GetFile(filename), game.GetFileLength(filename));
+        Bitmap bmp = game.platform.BitmapCreateFromPng(game.GetFile(filename), game.GetFileLength(filename));
         int texture = game.platform.LoadTextureFromBitmap(bmp);
         game.platform.BitmapDelete(bmp);
         return texture;

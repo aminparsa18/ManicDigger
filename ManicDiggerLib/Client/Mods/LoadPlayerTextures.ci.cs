@@ -115,7 +115,7 @@ public class ModLoadPlayerTextures : ModBase
         if (!e.drawModel.SkinDownloadResponse.done) { return true; }
 
         // Download finished — decode and upload.
-        BitmapCi bmp = game.platform.BitmapCreateFromPng(
+        Bitmap bmp = game.platform.BitmapCreateFromPng(
             e.drawModel.SkinDownloadResponse.value,
             e.drawModel.SkinDownloadResponse.valueLength);
 
@@ -148,7 +148,7 @@ public class ModLoadPlayerTextures : ModBase
             return true;
         }
 
-        BitmapCi bmp = game.platform.BitmapCreateFromPng(file, file.Length);
+        Bitmap bmp = game.platform.BitmapCreateFromPng(file, file.Length);
         if (bmp == null)
         {
             e.drawModel.CurrentTexture = 0;

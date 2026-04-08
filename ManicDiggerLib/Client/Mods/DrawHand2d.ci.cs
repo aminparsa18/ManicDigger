@@ -18,7 +18,7 @@ public class ModDrawHand2d : ModBase
         {
             lastHandImage = img;
             byte[] file = game.GetFile(img);
-            BitmapCi bmp = game.platform.BitmapCreateFromPng(file, file.Length);
+            Bitmap bmp = game.platform.BitmapCreateFromPng(file, file.Length);
             if (bmp != null)
             {
                 game.handTexture = game.platform.LoadTextureFromBitmap(bmp);

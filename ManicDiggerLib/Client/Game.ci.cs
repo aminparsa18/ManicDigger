@@ -872,7 +872,7 @@ public class Game
     {
         if (this.whitetexture == -1)
         {
-            BitmapCi bmp = platform.BitmapCreate(1, 1);
+            Bitmap bmp = platform.BitmapCreate(1, 1);
             int[] pixels = [ColorFromArgb(255, 255, 255, 255)];
             platform.BitmapSetPixelsArgb(bmp, pixels);
             this.whitetexture = platform.LoadTextureFromBitmap(bmp);
@@ -996,7 +996,7 @@ public class Game
     private CachedTexture MakeTextTexture(Text_ t)
     {
         CachedTexture ct = new();
-        BitmapCi bmp = textColorRenderer.CreateTextTexture(t);
+        Bitmap bmp = textColorRenderer.CreateTextTexture(t);
         ct.sizeX = platform.BitmapGetWidth(bmp);
         ct.sizeY = platform.BitmapGetHeight(bmp);
         ct.textureId = platform.LoadTextureFromBitmap(bmp);
@@ -1237,14 +1237,14 @@ public class Game
     {
         if (!textures.ContainsKey(p))
         {
-            BitmapCi bmp = platform.BitmapCreateFromPng(GetFile(p), GetFileLength(p));
+            Bitmap bmp = platform.BitmapCreateFromPng(GetFile(p), GetFileLength(p));
             textures[p] = platform.LoadTextureFromBitmap(bmp);
             platform.BitmapDelete(bmp);
         }
         return textures[p];
     }
 
-    internal int GetTextureOrLoad(string name, BitmapCi bmp)
+    internal int GetTextureOrLoad(string name, Bitmap bmp)
     {
         if (!textures.ContainsKey(name))
         {
@@ -3196,18 +3196,18 @@ public class Game
     internal static int atlas2dtiles() { return GlobalVar.MAX_BLOCKTYPES_SQRT; } // 16x16
     internal TextureAtlasConverter d_TextureAtlasConverter;
 
-    internal void UseTerrainTextureAtlas2d(BitmapCi atlas2d, int atlas2dWidth)
+    internal void UseTerrainTextureAtlas2d(Bitmap atlas2d, int atlas2dWidth)
     {
         terrainTexture = platform.LoadTextureFromBitmap(atlas2d);
         int[] terrainTextures1d_;
         int terrainTextures1dCount = 0;
         {
             terrainTexturesPerAtlas = Atlas1dheight() / (atlas2dWidth / atlas2dtiles());
-            BitmapCi[] atlases1d = TextureAtlasConverter.Atlas2dInto1d(platform, atlas2d, atlas2dtiles(), Atlas1dheight(), out int atlasesidCount);
+            Bitmap[] atlases1d = TextureAtlasConverter.Atlas2dInto1d(platform, atlas2d, atlas2dtiles(), Atlas1dheight(), out int atlasesidCount);
             terrainTextures1d_ = new int[atlasesidCount];
             for (int i = 0; i < atlasesidCount; i++)
             {
-                BitmapCi bmp = atlases1d[i];
+                Bitmap bmp = atlases1d[i];
                 int texture = platform.LoadTextureFromBitmap(bmp);
                 terrainTextures1d_[terrainTextures1dCount++] = texture;
                 platform.BitmapDelete(bmp);
@@ -3234,7 +3234,7 @@ public class Game
             {
                 continue;
             }
-            BitmapCi bmp = platform.BitmapCreateFromPng(fileData, fileData.Length);
+            Bitmap bmp = platform.BitmapCreateFromPng(fileData, fileData.Length);
             if (platform.BitmapGetWidth(bmp) != tilesize)
             {
                 platform.BitmapDelete(bmp);
@@ -3261,7 +3261,7 @@ public class Game
 
             platform.BitmapDelete(bmp);
         }
-        BitmapCi bitmap = platform.BitmapCreate(atlas2d.width, atlas2d.height);
+        Bitmap bitmap = platform.BitmapCreate(atlas2d.width, atlas2d.height);
         platform.BitmapSetPixelsArgb(bitmap, atlas2d.argb);
         UseTerrainTextureAtlas2d(bitmap, atlas2d.width);
     }

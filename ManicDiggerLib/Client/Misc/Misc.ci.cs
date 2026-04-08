@@ -211,7 +211,7 @@ public class BitmapData_
         };
         return b;
     }
-    public static BitmapData_ CreateFromBitmap(GamePlatform p, BitmapCi atlas2d_)
+    public static BitmapData_ CreateFromBitmap(GamePlatform p, Bitmap atlas2d_)
     {
         BitmapData_ b = new()
         {
@@ -236,9 +236,9 @@ public class BitmapData_
         return argb[x + y * width];
     }
 
-    public BitmapCi ToBitmap(GamePlatform p)
+    public Bitmap ToBitmap(GamePlatform p)
     {
-        BitmapCi bmp = p.BitmapCreate(width, height);
+        Bitmap bmp = p.BitmapCreate(width, height);
         p.BitmapSetPixelsArgb(bmp, argb);
         return bmp;
     }
@@ -247,14 +247,14 @@ public class BitmapData_
 public class TextureAtlasConverter
 {
     //tiles = 16 means 16 x 16 atlas
-    public static BitmapCi[] Atlas2dInto1d(GamePlatform p, BitmapCi atlas2d_, int tiles, int atlassizezlimit, out int retCount)
+    public static Bitmap[] Atlas2dInto1d(GamePlatform p, Bitmap atlas2d_, int tiles, int atlassizezlimit, out int retCount)
     {
         BitmapData_ orig = BitmapData_.CreateFromBitmap(p, atlas2d_);
 
         int tilesize = orig.width / tiles;
 
         int atlasescount = Math.Max(1, (tiles * tiles * tilesize) / atlassizezlimit);
-        BitmapCi[] atlases = new BitmapCi[128];
+        Bitmap[] atlases = new Bitmap[128];
         int atlasesCount = 0;
 
         BitmapData_ atlas1d = null;

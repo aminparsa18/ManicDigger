@@ -162,20 +162,16 @@ public class GamePlatformNative : GamePlatform
         throw new Exception(message);
     }
 
-    public override BitmapCi BitmapCreate(int width, int height)
+    public override Bitmap BitmapCreate(int width, int height)
     {
-        BitmapCiCs bmp = new()
-        {
-            bmp = new Bitmap(width, height)
-        };
-        return bmp;
+        return new Bitmap(width, height);
     }
 
-    public override void BitmapSetPixelsArgb(BitmapCi bmp, int[] pixels)
+    public override void BitmapSetPixelsArgb(Bitmap bmp, int[] pixels)
     {
-        BitmapCiCs bmp_ = (BitmapCiCs)bmp;
-        int width = bmp_.bmp.Width;
-        int height = bmp_.bmp.Height;
+        var bmp_ = bmp;
+        int width = bmp_.Width;
+        int height = bmp_.Height;
         if (IsMono)
         {
             for (int y = 0; y < height; y++)
@@ -183,7 +179,7 @@ public class GamePlatformNative : GamePlatform
                 for (int x = 0; x < width; x++)
                 {
                     int color = pixels[x + y * width];
-                    bmp_.bmp.SetPixel(x, y, Color.FromArgb(color));
+                    bmp_.SetPixel(x, y, Color.FromArgb(color));
                 }
             }
         }
@@ -191,7 +187,7 @@ public class GamePlatformNative : GamePlatform
         {
             FastBitmap fastbmp = new()
             {
-                bmp = bmp_.bmp
+                bmp = bmp_
             };
             fastbmp.Lock();
             for (int x = 0; x < width; x++)
@@ -205,35 +201,35 @@ public class GamePlatformNative : GamePlatform
         }
     }
 
-    public override BitmapCi BitmapCreateFromPng(byte[] data, int dataLength)
+    public override Bitmap BitmapCreateFromPng(byte[] data, int dataLength)
     {
-        BitmapCiCs bmp = new();
+        Bitmap bmp;
         try
         {
-            bmp.bmp = new Bitmap(new MemoryStream(data, 0, dataLength));
+            bmp = new Bitmap(new MemoryStream(data, 0, dataLength));
         }
         catch
         {
-            bmp.bmp = new Bitmap(1, 1);
-            bmp.bmp.SetPixel(0, 0, Color.Orange);
+            bmp = new Bitmap(1, 1);
+            bmp.SetPixel(0, 0, Color.Orange);
         }
         return bmp;
     }
 
     public bool IsMono = Type.GetType("Mono.Runtime") != null;
 
-    public override void BitmapGetPixelsArgb(BitmapCi bitmap, int[] bmpPixels)
+    public override void BitmapGetPixelsArgb(Bitmap bitmap, int[] bmpPixels)
     {
-        BitmapCiCs bmp = (BitmapCiCs)bitmap;
-        int width = bmp.bmp.Width;
-        int height = bmp.bmp.Height;
+        Bitmap bmp = bitmap;
+        int width = bmp.Width;
+        int height = bmp.Height;
         if (IsMono)
         {
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    bmpPixels[x + y * width] = bmp.bmp.GetPixel(x, y).ToArgb();
+                    bmpPixels[x + y * width] = bmp.GetPixel(x, y).ToArgb();
                 }
             }
         }
@@ -241,7 +237,7 @@ public class GamePlatformNative : GamePlatform
         {
             FastBitmap fastbmp = new()
             {
-                bmp = bmp.bmp
+                bmp = bmp
             };
             fastbmp.Lock();
             for (int x = 0; x < width; x++)
@@ -255,18 +251,17 @@ public class GamePlatformNative : GamePlatform
         }
     }
 
-    public override int LoadTextureFromBitmap(BitmapCi bmp)
+    public override int LoadTextureFromBitmap(Bitmap bmp)
     {
-        BitmapCiCs bmp_ = (BitmapCiCs)bmp;
-        return LoadTexture(bmp_.bmp, false);
+        return LoadTexture(bmp, false);
     }
 
     private readonly ManicDigger.Renderers.TextRenderer textrenderer = new();
 
-    public override BitmapCi CreateTextTexture(Text_ t)
+    public override Bitmap CreateTextTexture(Text_ t)
     {
         Bitmap bmp = textrenderer.MakeTextTexture(t);
-        return new BitmapCiCs() { bmp = bmp };
+        return bmp;
     }
 
     public override void SetTextRendererFont(int fontID)
@@ -274,22 +269,19 @@ public class GamePlatformNative : GamePlatform
         textrenderer.SetFont(fontID);
     }
 
-    public override float BitmapGetWidth(BitmapCi bmp)
+    public override float BitmapGetWidth(Bitmap bmp)
     {
-        BitmapCiCs bmp_ = (BitmapCiCs)bmp;
-        return bmp_.bmp.Width;
+        return bmp.Width;
     }
 
-    public override float BitmapGetHeight(BitmapCi bmp)
+    public override float BitmapGetHeight(Bitmap bmp)
     {
-        BitmapCiCs bmp_ = (BitmapCiCs)bmp;
-        return bmp_.bmp.Height;
+        return bmp.Height;
     }
 
-    public override void BitmapDelete(BitmapCi bmp)
+    public override void BitmapDelete(Bitmap bmp)
     {
-        BitmapCiCs bmp_ = (BitmapCiCs)bmp;
-        bmp_.bmp.Dispose();
+        bmp.Dispose();
     }
 
     public override void ConsoleWriteLine(string s)
@@ -1122,15 +1114,11 @@ public class GamePlatformNative : GamePlatform
         screenshot.SaveScreenshot();
     }
 
-    public override BitmapCi GrabScreenshot()
+    public override Bitmap GrabScreenshot()
     {
         screenshot.d_GameWindow = window;
         Bitmap bmp = screenshot.GrabScreenshot();
-        BitmapCiCs bmp_ = new()
-        {
-            bmp = bmp
-        };
-        return bmp_;
+        return bmp;
     }
 
     public override void WindowExit()
@@ -2080,13 +2068,13 @@ public class AviWriterCiCs : AviWriterCi
         openbmp = avi.Open(filename, (uint)framerate, width, height);
     }
 
-    public override void AddFrame(BitmapCi bitmap)
+    public override void AddFrame(Bitmap bitmap)
     {
-        var bmp_ = (BitmapCiCs)bitmap;
+        var bmp_ = bitmap;
 
         using (Graphics g = Graphics.FromImage(openbmp))
         {
-            g.DrawImage(bmp_.bmp, 0, 0);
+            g.DrawImage(bmp_, 0, 0);
         }
         openbmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
@@ -2171,11 +2159,6 @@ public class EnetPeerNative : EnetPeer
         // GetRemoteAddress() -> separate IP and Port properties
         return IPEndPointCiDefault.Create(peer.IP);
     }
-}
-
-public class BitmapCiCs : BitmapCi
-{
-    public Bitmap bmp;
 }
 
 public class TextureNative : Texture

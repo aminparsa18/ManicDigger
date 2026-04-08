@@ -33,7 +33,7 @@ public class ModSkySphereAnimated : ModBase
 
         game.platform.GLDisableAlphaTest();
         game.platform.GlDisableDepthTest();
-        Draw(game, game.currentfov());
+        Draw(game, game.CurrentFov());
         game.platform.GLEnableAlphaTest();
         game.platform.GlEnableDepthTest();
     }
@@ -61,7 +61,7 @@ public class ModSkySphereAnimated : ModBase
         game.platform.BindTexture2d(0);
         game.DrawModelData(skyModel);
         game.GLPopMatrix();
-        game.Set3dProjection(game.zfar(), fov);
+        game.Set3dProjection(game.Zfar(), fov);
     }
 
     public static ModelData GetSphereModelData2(ModelData data,

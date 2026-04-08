@@ -8,7 +8,7 @@ public class ModReloadAmmo : ModBase
         if (game.reloadstartMilliseconds == 0) return;
 
         float elapsed = (game.platform.TimeMillisecondsFromStart() - game.reloadstartMilliseconds) / 1000f;
-        float reloadDelay = game.DeserializeFloat(game.blocktypes[game.reloadblock].ReloadDelayFloat);
+        float reloadDelay = game.DecodeFixedPoint(game.blocktypes[game.reloadblock].ReloadDelayFloat);
         if (elapsed <= reloadDelay) return;
 
         int blockId = game.reloadblock;

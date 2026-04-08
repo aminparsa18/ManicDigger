@@ -455,4 +455,17 @@ public partial class Game
         if (eKey == GetKey(Keys.KeyPad9)) { ActiveMaterial = 8; }
         if (eKey == GetKey(Keys.KeyPad0)) { ActiveMaterial = 9; }
     }
+
+    internal int GetKey(Keys key)
+    {
+        if (options == null)
+        {
+            return (int)key;
+        }
+        if (options.Keys[(int)key] != 0)
+        {
+            return options.Keys[(int)key];
+        }
+        return (int)key;
+    }
 }

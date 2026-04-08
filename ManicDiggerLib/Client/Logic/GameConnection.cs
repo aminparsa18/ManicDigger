@@ -54,6 +54,11 @@
         SendPacketClient(ClientPackets.FillArea(startx, starty, startz, endx, endy, endz, blockType, ActiveMaterial));
     }
 
+    internal void SendRequestBlob(string[] required, int requiredCount)
+    {
+        SendPacketClient(ClientPackets.RequestBlob(this, required, requiredCount));
+    }
+
     internal void SendGameResolution()
     {
         SendPacketClient(ClientPackets.GameResolution(Width(), Height()));

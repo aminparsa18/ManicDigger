@@ -22,6 +22,16 @@ public partial class Game
     internal const int chunksizebits = 4;
     internal const int speculativeMax = 8 * 1024;
 
+    public const int minlight = 0;
+    public const int maxlight = 15;
+
+    public const int entityMonsterIdStart = 128;
+    public const int entityMonsterIdCount = 128;
+    public const int entityLocalIdStart = 256;
+
+    public const int KeyAltLeft = 5;
+    public const int KeyAltRight = 6;
+
     // -------------------------------------------------------------------------
     // Fields — rendering / textures
     // -------------------------------------------------------------------------
@@ -101,6 +111,9 @@ public partial class Game
     internal AnimationHint localplayeranimationhint;
     internal bool enable_move;
 
+    internal bool stopPlayerMove;
+    internal GuiState guistate;
+
     internal byte localstance;
     internal bool spawned;
     internal bool IsShiftPressed;
@@ -129,9 +142,26 @@ public partial class Game
     internal int[] LoadedAmmo;
     internal Dictionary<(int x, int y, int z), float> blockHealth = new();
     internal VisibleDialog[] dialogs;
-    internal int dialogsCount;
     internal string[] typinglog;
     internal int typinglogCount;
+
+    internal bool IronSights;
+    internal Random rnd;
+    internal Vector3i? currentAttackedBlock;
+    internal int currentTimeMilliseconds;
+    internal int totaltimeMilliseconds;
+    internal int ReceivedMapLength;
+    internal int maxdrawdistance;
+
+    internal bool leftpressedpicking;
+    internal int pistolcycle;
+    internal int lastironsightschangeMilliseconds;
+    internal int grenadecookingstartMilliseconds;
+    internal int lastpositionsentMilliseconds;
+
+    internal bool shadowssimple;
+    internal bool shouldRedrawAllBlocks;
+    internal bool escapeMenuRestart;
 
     // -------------------------------------------------------------------------
     // Fields — camera
@@ -200,11 +230,6 @@ public partial class Game
     internal bool mouseMiddle;
     internal bool mouseRight;
 
-    internal float touchMoveDx;
-    internal float touchMoveDy;
-    internal float touchOrientationDx;
-    internal float touchOrientationDy;
-
     internal int mouseCurrentX;
     internal int mouseCurrentY;
     internal float mouseDeltaX;
@@ -214,6 +239,12 @@ public partial class Game
     private float mouseSmoothingAccum;
     private bool mousePointerLockShouldBe;
     internal bool overheadcamera;
+
+    internal float touchMoveDx;
+    internal float touchMoveDy;
+    internal float touchOrientationDx;
+    internal float touchOrientationDy;
+
     internal bool drawblockinfo;
 
     // -------------------------------------------------------------------------
@@ -270,6 +301,9 @@ public partial class Game
     internal SunMoonRenderer d_SunMoonRenderer;
     internal InventoryUtilClient d_InventoryUtil;
     internal ModDrawParticleEffectBlockBreak particleEffectBlockBreak;
+    internal GameData d_Data;
+    internal GameDataMonsters d_DataMonsters;
+    internal Packet_Inventory d_Inventory;
 
     internal int[] materialSlots;
     internal int Font;
@@ -299,11 +333,20 @@ public partial class Game
     internal Chatline[] ChatLines;
     internal int ChatLineLength;
 
+    internal MapLoadingProgressEventArgs maploadingprogress;
+    internal FontCi fontMapLoading;
+    internal string invalidVersionDrawMessage;
+    internal Packet_Server invalidVersionPacketIdentification;
+
+    internal Vector3 playerdestination;
+    internal string Follow;
+    private ModelData circleModelData;
+    private bool startedconnecting;
+
     private int lastWidth;
     private int lastHeight;
 
     private float accumulator;
-    private readonly float[] modelViewInverted;
     private TaskScheduler taskScheduler;
 
     internal List<Action> commitActions;
@@ -315,7 +358,6 @@ public partial class Game
     public Game()
     {
         one = 1;
-        modelViewInverted = new float[16];
 
         InitCore();
         InitMap();
@@ -414,7 +456,6 @@ public partial class Game
         LoadedAmmo = new int[GlobalVar.MAX_BLOCKTYPES];
         blockHealth = new();
         dialogs = new VisibleDialog[512];
-        dialogsCount = 512;
         typinglog = new string[1024 * 16];
         typinglogCount = 0;
     }

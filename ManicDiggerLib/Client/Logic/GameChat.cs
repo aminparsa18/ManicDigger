@@ -1,5 +1,9 @@
 ﻿public partial class Game
 {
+    internal int ChatLinesCount;
+    internal string GuiTypingBuffer;
+    internal bool IsTyping;
+
     // -------------------------------------------------------------------------
     // Chat line display
     // -------------------------------------------------------------------------

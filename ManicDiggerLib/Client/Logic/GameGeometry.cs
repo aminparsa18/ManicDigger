@@ -240,6 +240,50 @@
         Draw2dText(text, font, x, y, color, enabledepthtest);
     }
 
+    // -------------------------------------------------------------------------
+    // Primitives
+    // -------------------------------------------------------------------------
+    private const int CircleSegments = 32;
+
+    public void Circle3i(float x, float y, float radius)
+    {
+        if (circleModelData == null)
+        {
+            circleModelData = new ModelData();
+            circleModelData.setMode(DrawModeEnum.Lines);
+            circleModelData.indices = new int[CircleSegments * 2];
+            circleModelData.xyz = new float[CircleSegments * 3];
+            circleModelData.rgba = new byte[CircleSegments * 4];
+            circleModelData.uv = new float[CircleSegments * 2];
+            circleModelData.indicesCount = CircleSegments * 2;
+            circleModelData.verticesCount = CircleSegments;
+
+            // Indices and uv/rgba never change — build once.
+            for (int i = 0; i < CircleSegments; i++)
+            {
+                circleModelData.indices[i * 2] = i;
+                circleModelData.indices[i * 2 + 1] = (i + 1) % CircleSegments;
+            }
+            for (int i = 0; i < CircleSegments * 4; i++)
+                circleModelData.rgba[i] = 255;
+            // uv is already zero-initialised by default
+        }
+
+        // Only xyz changes per call.
+        for (int i = 0; i < CircleSegments; i++)
+        {
+            float angle = i * 2 * MathF.PI / CircleSegments;
+            circleModelData.xyz[i * 3 + 0] = x + MathF.Cos(angle) * radius;
+            circleModelData.xyz[i * 3 + 1] = y + MathF.Sin(angle) * radius;
+            circleModelData.xyz[i * 3 + 2] = 0;
+        }
+
+        GLPushMatrix();
+        GLLoadIdentity();
+        DrawModelData(circleModelData);
+        GLPopMatrix();
+    }
+
     public void Draw2dText(string text, FontCi font, float x, float y, int? color, bool enabledepthtest)
     {
         if (string.IsNullOrWhiteSpace(text))

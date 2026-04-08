@@ -222,9 +222,7 @@ public class PlayerDrawInfo
     internal float lastnetworkrotx;
     internal float lastnetworkroty;
     internal float lastnetworkrotz;
-    internal float velocityX;
-    internal float velocityY;
-    internal float velocityZ;
+    internal Vector3 Velocity = Vector3.Zero;
     internal bool moves;
 }
 

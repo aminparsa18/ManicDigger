@@ -5,12 +5,10 @@ using Vector3 = OpenTK.Mathematics.Vector3;
 
 public partial class Game
 {
-    
-    
-    public static bool IsRail(Packet_BlockType block)
-    {
-        return block.Rail > 0;	//Does not include Rail0, but this can't be placed.
-    }
+    //internal int SelectedBlockPositionX;
+    internal int SelectedBlockPositionY;
+    internal int SelectedBlockPositionZ;
+    internal int SelectedEntityId;
 
     public static bool IsEmptyForPhysics(Packet_BlockType block)
     {
@@ -18,34 +16,10 @@ public partial class Game
             || (block.WalkableType != Packet_WalkableTypeEnum.Solid && block.WalkableType != Packet_WalkableTypeEnum.Fluid);
     }
 
-    internal float FloorFloat(float a)
-    {
-        if (a >= 0)
-        {
-            return (int)(a);
-        }
-        else
-        {
-            return (int)(a) - 1;
-        }
-    }
-
-   
-
-    internal int ChatLinesCount;
-    internal string GuiTypingBuffer;
-    internal bool IsTyping;
-
-    internal bool stopPlayerMove;
-
     public static bool IsTransparentForLight(Packet_BlockType b)
     {
         return b.DrawType != Packet_DrawTypeEnum.Solid && b.DrawType != Packet_DrawTypeEnum.ClosedDoor;
     }
-
-    internal GuiState guistate;
-    
-    internal MapLoadingProgressEventArgs maploadingprogress;
 
     public void MapLoadingStart()
     {
@@ -55,17 +29,12 @@ public partial class Game
         fontMapLoading = FontCi.Create("Arial", 14, 0);
     }
 
-    internal FontCi fontMapLoading;
-
-    internal string invalidVersionDrawMessage;
-    internal Packet_Server invalidVersionPacketIdentification;
-
-    internal int xcenter(float width)
+    internal int Xcenter(float width)
     {
         return platform.GetCanvasWidth() / 2 - (int)width / 2;
     }
 
-    internal int ycenter(float height)
+    internal int Ycenter(float height)
     {
         return platform.GetCanvasHeight() / 2 - (int)height / 2;
     }
@@ -90,7 +59,7 @@ public partial class Game
         SetMatrixUniformProjection();
     }
 
-    internal float zfar()
+    internal float Zfar()
     {
         if (d_Config3d.viewdistance >= 256)
         {
@@ -98,24 +67,6 @@ public partial class Game
         }
         return ENABLE_ZFAR ? d_Config3d.viewdistance : 99999;
     }
-
-
-    internal string ValidFont(string family)
-    {
-        for (int i = 0; i < AllowedFontsCount; i++)
-        {
-            if (AllowedFonts[i] == family)
-            {
-                return family;
-            }
-        }
-        return AllowedFonts[0];
-    }
-
-    internal int SelectedBlockPositionX;
-    internal int SelectedBlockPositionY;
-    internal int SelectedBlockPositionZ;
-    internal int SelectedEntityId;
 
     internal bool IsWater(int blockType)
     {
@@ -127,30 +78,30 @@ public partial class Game
         return name.Contains("Water"); // todo
     }
 
-    internal Packet_Inventory d_Inventory;
-
-
-    internal float currentfov()
+    internal float CurrentFov()
     {
         if (IronSights)
         {
             Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
             if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
             {
-                if (DeserializeFloat(blocktypes[item.BlockId].IronSightsFovFloat) != 0)
+                if (DecodeFixedPoint(blocktypes[item.BlockId].IronSightsFovFloat) != 0)
                 {
-                    return this.fov * DeserializeFloat(blocktypes[item.BlockId].IronSightsFovFloat);
+                    return this.fov * DecodeFixedPoint(blocktypes[item.BlockId].IronSightsFovFloat);
                 }
             }
         }
         return this.fov;
     }
 
-    internal bool IronSights;
-
-    internal float DeserializeFloat(int value)
+    internal float DecodeFixedPoint(int value)
     {
         return (one * value) / 32;
+    }
+
+    public static int EncodeFixedPoint(float p)
+    {
+        return (int)(p * 32);
     }
 
     internal int BlockUnderPlayer()
@@ -167,30 +118,6 @@ public partial class Game
         return blockunderplayer;
     }
 
-    internal Vector3 playerdestination;
-
-
-    internal static Packet_InventoryPosition InventoryPositionMaterialSelector(int materialId)
-    {
-        Packet_InventoryPosition pos = new()
-        {
-            Type = Packet_InventoryPositionTypeEnum.MaterialSelector,
-            MaterialId = materialId
-        };
-        return pos;
-    }
-
-    internal static Packet_InventoryPosition InventoryPositionMainArea(int x, int y)
-    {
-        Packet_InventoryPosition pos = new()
-        {
-            Type = Packet_InventoryPositionTypeEnum.MainArea,
-            AreaX = x,
-            AreaY = y
-        };
-        return pos;
-    }
-
     internal int? BlockInHand()
     {
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
@@ -203,7 +130,6 @@ public partial class Game
         return null;
     }
 
-
     internal float CurrentRecoil()
     {
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
@@ -211,7 +137,7 @@ public partial class Game
         {
             return 0;
         }
-        return DeserializeFloat(blocktypes[item.BlockId].RecoilFloat);
+        return DecodeFixedPoint(blocktypes[item.BlockId].RecoilFloat);
     }
 
     internal float CurrentAimRadius()
@@ -221,20 +147,13 @@ public partial class Game
         {
             return 0;
         }
-        float radius = (DeserializeFloat(blocktypes[item.BlockId].AimRadiusFloat) / 800) * Width();
+        float radius = (DecodeFixedPoint(blocktypes[item.BlockId].AimRadiusFloat) / 800) * Width();
         if (IronSights)
         {
-            radius = (DeserializeFloat(blocktypes[item.BlockId].IronSightsAimRadiusFloat) / 800) * Width();
+            radius = (DecodeFixedPoint(blocktypes[item.BlockId].IronSightsAimRadiusFloat) / 800) * Width();
         }
         return radius + RadiusWhenMoving * radius * (Math.Min(playervelocity.Length / movespeed, 1));
     }
-
-    internal Random rnd;
-
-    internal GameData d_Data;
-
-    public const int minlight = 0;
-    public const int maxlight = 15;
 
     public int GetLight(int x, int y, int z)
     {
@@ -263,7 +182,7 @@ public partial class Game
     {
         Draw2dTexture(GetTexture(filename), x, y, w, h, null, 0, ColorFromArgb(255, 255, 255, 255), false);
     }
-    internal int maxdrawdistance;
+
     public void ToggleFog()
     {
         int[] drawDistances = new int[10];
@@ -300,7 +219,17 @@ public partial class Game
     public float EyesPosY() { return player.position.y + GetCharacterEyesHeight(); }
     public float EyesPosZ() { return player.position.z; }
 
-   
+    internal string ValidFont(string family)
+    {
+        for (int i = 0; i < AllowedFontsCount; i++)
+        {
+            if (AllowedFonts[i] == family)
+            {
+                return family;
+            }
+        }
+        return AllowedFonts[0];
+    }
 
     public int MaterialSlots_(int i)
     {
@@ -372,10 +301,12 @@ public partial class Game
     {
         return (int)(MathF.Floor(player.position.x));
     }
+
     public int GetPlayerEyesBlockY()
     {
         return (int)(MathF.Floor(player.position.z));
     }
+
     public int GetPlayerEyesBlockZ()
     {
         return (int)(MathF.Floor(player.position.y + entities[LocalPlayerId].drawModel.eyeHeight));
@@ -444,22 +375,11 @@ public partial class Game
         lastplacedblockZ = z;
     }
 
-    internal int DialogsCount_()
-    {
-        int count = 0;
-        for (int i = 0; i < dialogsCount; i++)
-        {
-            if (dialogs[i] != null)
-            {
-                count++;
-            }
-        }
-        return count;
-    }
+    internal int DialogsCount => dialogs.Count(d => d != null);
 
     internal int GetDialogId(string name)
     {
-        for (int i = 0; i < dialogsCount; i++)
+        for (int i = 0; i < dialogs.Length; i++)
         {
             if (dialogs[i] == null)
             {
@@ -473,7 +393,6 @@ public partial class Game
         return -1;
     }
 
-
     internal float GetCurrentBlockHealth(int x, int y, int z)
     {
         if (blockHealth.TryGetValue((x, y, z), out float health))
@@ -482,22 +401,6 @@ public partial class Game
         }
         int blocktype = map.GetBlock(x, y, z);
         return d_Data.Strength()[blocktype];
-    }
-
-    internal Vector3i? currentAttackedBlock;
-
-    internal void SendRequestBlob(string[] required, int requiredCount)
-    {
-        SendPacketClient(ClientPackets.RequestBlob(this, required, requiredCount));
-    }
-
-    internal int currentTimeMilliseconds;
-    internal GameDataMonsters d_DataMonsters;
-    internal int ReceivedMapLength;
-
-    private void InvalidPlayerWarning(int playerid)
-    {
-        platform.ConsoleWriteLine(string.Format("Position update of nonexistent player {0}.", playerid.ToString()));
     }
 
     internal static bool EnablePlayerUpdatePosition(int kKey)
@@ -510,35 +413,19 @@ public partial class Game
         return false;
     }
 
- 
-
-
-
-    public int SerializeFloat(float p)
-    {
-        return (int)(p * 32);
-    }
-
     public float WeaponAttackStrength()
     {
-        return NextFloat(2, 4);
+        return rnd.Next(2, 4);
     }
 
-    public float NextFloat(float min, float max)
-    {
-        return rnd.Next() * (max - min) + min;
-    }
-
-    public byte HeadingByte(float orientationX, float orientationY, float orientationZ) =>
+    public static byte HeadingByte(float orientationX, float orientationY, float orientationZ) =>
      (byte)(int)((orientationY % (2 * MathF.PI)) / (2 * MathF.PI) * 256);
 
-    public byte PitchByte(float orientationX, float orientationY, float orientationZ)
+    public static byte PitchByte(float orientationX, float orientationY, float orientationZ)
     {
         float xx = (orientationX + MathF.PI) % (2 * MathF.PI);
         return (byte)(int)(xx / (2 * MathF.PI) * 256);
     }
-
-
 
     internal void InvokeMapLoadingProgress(int progressPercent, int progressBytes, string status)
     {
@@ -602,7 +489,7 @@ public partial class Game
     private bool IsPlayerInPos(float playerposX, float playerposY, float playerposZ,
                        int blockposX, int blockposY, int blockposZ, float playerHeight)
     {
-        for (int i = 0; i < FloorFloat(playerHeight) + 1; i++)
+        for (int i = 0; i < Math.Floor(playerHeight) + 1; i++)
         {
             if (ScriptCharacterPhysics.BoxPointDistance(blockposX, blockposZ, blockposY,
                 blockposX + 1, blockposZ + 1, blockposY + 1,
@@ -613,15 +500,7 @@ public partial class Game
         }
         return false;
     }
-    internal bool leftpressedpicking;
-    internal int pistolcycle;
-    internal int lastironsightschangeMilliseconds;
-    internal int grenadecookingstartMilliseconds;
-    internal int lastpositionsentMilliseconds;
-
-    
-
-    internal string Follow;
+   
     internal int? FollowId()
     {
         if (Follow == null)
@@ -647,14 +526,6 @@ public partial class Game
         return null;
     }
 
-    public float Dist(float x1, float y1, float z1, float x2, float y2, float z2)
-    {
-        float dx = x2 - x1;
-        float dy = y2 - y1;
-        float dz = z2 - z1;
-        return MathF.Sqrt(dx * dx + dy * dy + dz * dz);
-    }
-
     internal bool IsValid(int blocktype)
     {
         return blocktypes[blocktype].Name != null;
@@ -672,58 +543,6 @@ public partial class Game
         return height;
     }
 
-    private ModelData circleModelData;
-    public void Circle3i(float x, float y, float radius)
-    {
-        float angle;
-        GLPushMatrix();
-        GLLoadIdentity();
-
-        int n = 32;
-        if (circleModelData == null)
-        {
-            circleModelData = new ModelData();
-            circleModelData.setMode(DrawModeEnum.Lines);
-            circleModelData.indices = new int[n * 2];
-            circleModelData.xyz = new float[3 * n];
-            circleModelData.rgba = new byte[4 * n];
-            circleModelData.uv = new float[2 * n];
-            circleModelData.indicesCount = n * 2;
-            circleModelData.verticesCount = n;
-        }
-
-        for (int i = 0; i < n; i++)
-        {
-            circleModelData.indices[i * 2] = i;
-            circleModelData.indices[i * 2 + 1] = (i + 1) % (n);
-        }
-        for (int i = 0; i < n; i++)
-        {
-            angle = (i * 2 * MathF.PI / n);
-            circleModelData.xyz[i * 3 + 0] = x + (MathF.Cos(angle) * radius);
-            circleModelData.xyz[i * 3 + 1] = y + (MathF.Sin(angle) * radius);
-            circleModelData.xyz[i * 3 + 2] = 0;
-        }
-        for (int i = 0; i < 4 * n; i++)
-        {
-            circleModelData.rgba[i] = 255;
-        }
-        for (int i = 0; i < 2 * n; i++)
-        {
-            circleModelData.uv[i] = 0;
-        }
-
-        DrawModelData(circleModelData);
-
-        GLPopMatrix();
-    }
-
-    internal int totaltimeMilliseconds;
-
-    public const int entityMonsterIdStart = 128;
-    public const int entityMonsterIdCount = 128;
-    public const int entityLocalIdStart = 256;
-
     internal void EntityAddLocal(Entity entity)
     {
         for (int i = entityLocalIdStart; i < entitiesCount; i++)
@@ -736,7 +555,6 @@ public partial class Game
         }
         entities[entitiesCount++] = entity;
     }
-
 
     internal static Entity CreateBulletEntity(float fromX, float fromY, float fromZ, float toX, float toY, float toZ, float speed)
     {
@@ -763,14 +581,6 @@ public partial class Game
 
         return entity;
     }
-
-    public static bool Vec3Equal(float ax, float ay, float az, float bx, float by, float bz)
-    {
-        return ax == bx && ay == by && az == bz;
-    }
-
-    public const int KeyAltLeft = 5;
-    public const int KeyAltRight = 6;
 
     internal bool SwimmingEyes()
     {
@@ -849,19 +659,6 @@ public partial class Game
         platform.GlLightModelAmbient(r, g, b);
     }
 
-    internal int GetKey(Keys key)
-    {
-        if (options == null)
-        {
-            return (int)key;
-        }
-        if (options.Keys[(int)key] != 0)
-        {
-            return options.Keys[(int)key];
-        }
-        return (int)key;
-    }
-
     internal float MoveSpeedNow()
     {
         float movespeednow = movespeed;
@@ -885,14 +682,14 @@ public partial class Game
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
         if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
         {
-            float itemSpeed = DeserializeFloat(blocktypes[item.BlockId].WalkSpeedWhenUsedFloat);
+            float itemSpeed = DecodeFixedPoint(blocktypes[item.BlockId].WalkSpeedWhenUsedFloat);
             if (itemSpeed != 0)
             {
                 movespeednow *= itemSpeed;
             }
             if (IronSights)
             {
-                float ironSightsSpeed = DeserializeFloat(blocktypes[item.BlockId].IronSightsMoveSpeedFloat);
+                float ironSightsSpeed = DecodeFixedPoint(blocktypes[item.BlockId].IronSightsMoveSpeedFloat);
                 if (ironSightsSpeed != 0)
                 {
                     movespeednow *= ironSightsSpeed;
@@ -901,17 +698,6 @@ public partial class Game
         }
         return movespeednow;
     }
-
-    internal float VectorAngleGet(float qX, float qY, float qZ)
-    {
-        return (MathF.Acos(qX / Length(qX, qY, qZ)) * Math.Sign(qZ));
-    }
-
-    internal float Length(float x, float y, float z)
-    {
-        return MathF.Sqrt(x * x + y * y + z * z);
-    }
-
 
     internal void UseVsync()
     {
@@ -930,11 +716,8 @@ public partial class Game
         guistate = GuiState.Normal;
         SetFreeMouse(false);
     }
-
     
 
-    internal bool shadowssimple;
-    internal bool shouldRedrawAllBlocks;
     internal void RedrawAllBlocks()
     {
         shouldRedrawAllBlocks = true;
@@ -995,13 +778,13 @@ public partial class Game
         //GL.Fog(FogParameter.FogEnd, fogstart + fogsize);
     }
 
-    internal BlockPosSide Nearest(ArraySegment<BlockPosSide> pick2, int pick2Count, float x, float y, float z)
+    internal BlockPosSide Nearest(ArraySegment<BlockPosSide> pick2, int pick2Count, Vector3 target)
     {
         float minDist = 1000 * 1000;
         BlockPosSide nearest = null;
         for (int i = 0; i < pick2Count; i++)
         {
-            float dist = Dist(pick2[i].blockPos[0], pick2[i].blockPos[1], pick2[i].blockPos[2], x, y, z);
+            float dist = Vector3.Distance(pick2[i].blockPos, target);
             if (dist < minDist)
             {
                 minDist = dist;
@@ -1101,12 +884,12 @@ public partial class Game
 
     internal void Set3dProjection1(float zfar_)
     {
-        Set3dProjection(zfar_, currentfov());
+        Set3dProjection(zfar_, CurrentFov());
     }
 
     internal void Set3dProjection2()
     {
-        Set3dProjection1(zfar());
+        Set3dProjection1(Zfar());
     }
 
     private bool sendResize;
@@ -1225,8 +1008,7 @@ public partial class Game
             invalidVersionPacketIdentification = null;
         }
     }
-
-    internal bool escapeMenuRestart;
+   
     public void EscapeMenuStart()
     {
         guistate = GuiState.EscapeMenu;
@@ -1293,13 +1075,12 @@ public partial class Game
             out retCount
         );
 
-        PickSort(pick2, retCount, line.Start[0], line.Start[1], line.Start[2]);
+        PickSort(pick2, retCount, line.Start);
 
         return pick2;
     }
 
-
-    private void PickSort(ArraySegment<BlockPosSide> pick, int pickCount, float x, float y, float z)
+    private void PickSort(ArraySegment<BlockPosSide> pick, int pickCount, Vector3 start)
     {
         bool changed;
         do
@@ -1307,8 +1088,8 @@ public partial class Game
             changed = false;
             for (int i = 0; i < pickCount - 1; i++)
             {
-                float dist = Dist(pick[i].blockPos[0], pick[i].blockPos[1], pick[i].blockPos[2], x, y, z);
-                float distNext = Dist(pick[i + 1].blockPos[0], pick[i + 1].blockPos[1], pick[i + 1].blockPos[2], x, y, z);
+                float dist = Vector3.Distance(pick[i].blockPos, start);
+                float distNext = Vector3.Distance(pick[i + 1].blockPos, start);
                 if (dist > distNext)
                 {
                     changed = true;
@@ -1321,7 +1102,6 @@ public partial class Game
         }
         while (changed);
     }
-   
 
     public GamePlatform GetPlatform()
     {
@@ -1332,19 +1112,6 @@ public partial class Game
     {
         platform = value;
     }
-
-    internal void OnFocusChanged()
-    {
-        if (guistate == GuiState.Normal)
-        {
-            EscapeMenuStart();
-        }
-    }
-
-    
-
-    private bool startedconnecting;
-  
 
     public float Scale()
     {
@@ -1406,16 +1173,5 @@ public partial class Game
             }
             platform.GLDeleteTexture(cachedTextTextures[i].texture.textureId);
         }
-    }
-   
-    internal static float Angle256ToRad(int value)
-    {
-        float one_ = 1;
-        return ((one_ * value) / 255) * MathF.PI * 2;
-    }
-
-    internal static float RadToAngle256(float value)
-    {
-        return (value / (2 * MathF.PI)) * 255;
     }
 }

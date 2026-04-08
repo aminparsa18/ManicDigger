@@ -1,81 +1,111 @@
-﻿public class WebSocketClient : NetClient
-{
-    public WebSocketClient()
-    {
-        incomingData = new byte[incomingDataMax];
-    }
+﻿// NetworkWebSocket.cs — WebSocket implementation of the abstract network layer.
+// Uses websocket-sharp (sta/websocket-sharp on GitHub).
+//
+// WebSocket already frames messages — no length-prefix protocol needed.
+// Both client and server receive complete messages, so there is no reassembly.
 
-    public override void Start()
-    {
-        c = new WebSocketClientConnection();
-    }
+using Serilog;
+using System.Threading.Channels;
+using WebSocketSharp;
+
+// ---------------------------------------------------------------------------
+// Client
+// ---------------------------------------------------------------------------
+public sealed class WebSocketNetClient : NetClient
+{
+    private readonly Channel<NetIncomingMessage> _inbox =
+        Channel.CreateUnbounded<NetIncomingMessage>(
+            new UnboundedChannelOptions { SingleReader = true });
+
+    private WebSocketClientConnection? _connection;
+
+    public override void Start() { }
 
     public override NetConnection Connect(string ip, int port)
     {
-        p.WebSocketConnect(ip, port);
-        c.address = string.Format("{0}:{1}", ip, port.ToString());
-        c.platform = p;
-        return c;
-    }
+        string url = $"ws://{ip}:{port}/Game";
+        WebSocket ws = new(url);
 
-    private WebSocketClientConnection c;
+        _connection = new WebSocketClientConnection(ws, $"{ip}:{port}");
 
-    private readonly byte[] incomingData;
-    private const int incomingDataMax = 16 * 1024;
-
-    public override NetIncomingMessage ReadMessage()
-    {
-        int received = p.WebSocketReceive(incomingData, incomingDataMax);
-        if (received == -1)
-        {
-            return null;
-        }
-        else
-        {
-            NetIncomingMessage msg = new()
+        ws.OnOpen += (_, _) =>
+            _inbox.Writer.TryWrite(new NetIncomingMessage
             {
-                message = incomingData,
-                messageLength = received,
-                SenderConnection = c
-            };
-            return msg;
-        }
+                Type = NetworkMessageType.Connect,
+                SenderConnection = _connection,
+            });
+
+        ws.OnMessage += (_, e) =>
+            _inbox.Writer.TryWrite(new NetIncomingMessage
+            {
+                Type = NetworkMessageType.Data,
+                Payload = e.RawData,
+                SenderConnection = _connection,
+            });
+
+        ws.OnClose += (_, _) =>
+            _inbox.Writer.TryWrite(new NetIncomingMessage
+            {
+                Type = NetworkMessageType.Disconnect,
+                SenderConnection = _connection,
+            });
+
+        ws.OnError += (_, e) =>
+            Log.Warning("WebSocket client error: {Message}", e.Message);
+
+        ws.ConnectAsync();
+        return _connection;
     }
 
-    public override void SendMessage(INetOutgoingMessage message, MyNetDeliveryMethod method)
+    public override NetIncomingMessage? ReadMessage()
     {
-        c.SendMessage(message, method, 0);
+        _inbox.Reader.TryRead(out NetIncomingMessage? msg);
+        return msg;
     }
 
-    private IGamePlatform p;
-
-    internal void SetPlatform(IGamePlatform platform)
+    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method)
     {
-        p = platform;
+        _connection?.SendMessage(payload, method);
     }
 }
 
-public class WebSocketClientConnection : NetConnection
+public sealed class WebSocketClientConnection : NetConnection
 {
-    internal string address;
-    internal IGamePlatform platform;
+    private readonly WebSocket _ws;
+    private readonly string _address;
 
-    public override IPEndPointCi RemoteEndPoint()
+    internal WebSocketClientConnection(WebSocket ws, string address)
     {
-        return IPEndPointCiDefault.Create(address);
+        _ws = ws;
+        _address = address;
     }
 
-    public override void SendMessage(INetOutgoingMessage msg, MyNetDeliveryMethod method, int sequenceChannel)
+    public override IPEndPointCi RemoteEndPoint() =>
+        IPEndPointCiDefault.Create(_address);
+
+    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
     {
-        platform.WebSocketSend(msg.message, msg.messageLength);
+        // websocket-sharp queues SendAsync calls internally — no manual queue needed.
+        _ws.SendAsync(payload.ToArray(), completed =>
+        {
+            if (!completed)
+                Log.Warning("WebSocket client send did not complete.");
+        });
     }
 
-    public override void Update()
-    {
-    }
+    public override void Update() { }
 
-    public override bool EqualsConnection(NetConnection connection)
-    {
-        return true;
-    }
+    public override bool EqualsConnection(NetConnection other) =>
+        other is WebSocketClientConnection w && w._address == _address;
 }
+
+// ---------------------------------------------------------------------------
+// Server
+// ---------------------------------------------------------------------------
+
+
+
+// ---------------------------------------------------------------------------
+// Server-side session (one instance per connected client, created by websocket-sharp)
+// ---------------------------------------------------------------------------
+

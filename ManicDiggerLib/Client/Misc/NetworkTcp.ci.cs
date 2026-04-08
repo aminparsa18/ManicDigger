@@ -1,133 +1,170 @@
-﻿public class TcpNetClient : NetClient
-{
-    public TcpNetClient()
-    {
-        incoming = new QueueByte();
-        data = new byte[dataLength];
-        connected = new bool();
-    }
-    internal IGamePlatform platform;
-    public override void Start()
-    {
-        tosend = new();
-    }
+﻿// TCP client implementation of the abstract network layer.
+//
+// Framing protocol: every message is prefixed with a 4-byte big-endian length.
+//   [4 bytes length][N bytes payload]
+//
+// Receiving runs on a dedicated async loop started at connect time.
+// The game loop calls ReadMessage() which drains an in-memory queue — no I/O
+// on the calling thread, no sends hidden inside reads.
 
-    private bool connected;
+using System.Buffers.Binary;
+using System.Net.Sockets;
+using System.Threading.Channels;
+
+public sealed class TcpNetClient : NetClient
+{
+    // Completed messages waiting for the game loop to poll.
+    private readonly Channel<ReadOnlyMemory<byte>> _inbox =
+        Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
+            new UnboundedChannelOptions { SingleReader = true });
+
+    // Outgoing messages queued before the connection is established.
+    private readonly Channel<ReadOnlyMemory<byte>> _pendingSend =
+        Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
+            new UnboundedChannelOptions { SingleWriter = true });
+
+    private TcpNetConnection? _connection;
+    private CancellationTokenSource? _cts;
+
+    public override void Start() { }
 
     public override NetConnection Connect(string ip, int port)
     {
-        platform.TcpConnect(ip, port, connected);
-        return null;
+        _cts = new CancellationTokenSource();
+        _connection = new TcpNetConnection(ip, port, _inbox.Writer, _pendingSend.Reader, _cts.Token);
+        _ = _connection.RunAsync();
+        return _connection;
     }
 
-    private readonly QueueByte incoming;
-    public const int MaxPacketLength = 1024 * 4;
-
-    private readonly byte[] data;
-    private const int dataLength = 1024;
-    public override NetIncomingMessage ReadMessage()
+    public override NetIncomingMessage? ReadMessage()
     {
-        if (connected)
+        if (_inbox.Reader.TryRead(out ReadOnlyMemory<byte> payload))
         {
-            while (tosend.Count() > 0)
+            return new NetIncomingMessage
             {
-                INetOutgoingMessage msg = tosend.Dequeue();
-                DoSendPacket(msg);
-            }
-        }
-        NetIncomingMessage message = GetMessage();
-        if (message != null)
-        {
-            return message;
-        }
-
-        for (int k = 0; k < 1; k++)
-        {
-            int received = platform.TcpReceive(data, dataLength);
-            if (received <= 0)
-            {
-                break;
-            }
-            for (int i = 0; i < received; i++)
-            {
-                incoming.Enqueue(data[i]);
-            }
-        }
-
-        message = GetMessage();
-        if (message != null)
-        {
-            return message;
-        }
-
-        return null;
-    }
-
-    private NetIncomingMessage GetMessage()
-    {
-        if (incoming.count >= 4)
-        {
-            byte[] length = new byte[4];
-            incoming.PeekRange(length, 4);
-            int messageLength = ReadInt(length, 0);
-            if (incoming.count >= 4 + messageLength)
-            {
-                incoming.DequeueRange(new byte[4], 4);
-                NetIncomingMessage msg = new()
-                {
-                    message = new byte[messageLength],
-                    messageLength = messageLength
-                };
-                incoming.DequeueRange(msg.message, msg.messageLength);
-                return msg;
-            }
+                Type = NetworkMessageType.Data,
+                Payload = payload,
+                SenderConnection = _connection,
+            };
         }
         return null;
     }
 
-    private static void WriteInt(byte[] writeBuf, int writePos, int n)
+    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method)
     {
-        writeBuf[writePos] = (byte)((n >> 24) & 0xFF);
-        writeBuf[writePos + 1] = (byte)((n >> 16) & 0xFF);
-        writeBuf[writePos + 2] = (byte)((n >> 8) & 0xFF);
-        writeBuf[writePos + 3] = (byte)(n & 0xFF);
+        // Always enqueue — RunAsync flushes _pendingSend once connected,
+        // so pre-connection messages are delivered in order after the handshake.
+        _pendingSend.Writer.TryWrite(payload);
     }
 
-    private static int ReadInt(byte[] readBuf, int readPos)
+    public void Disconnect()
     {
-        int n = readBuf[readPos] << 24;
-        n |= readBuf[readPos + 1] << 16;
-        n |= readBuf[readPos + 2] << 8;
-        n |= readBuf[readPos + 3];
-        return n;
-    }
-
-    private void DoSendPacket(INetOutgoingMessage msg)
-    {
-        byte[] packet = new byte[msg.messageLength + 4];
-        WriteInt(packet, 0, msg.messageLength);
-        for (int i = 0; i < msg.messageLength; i++)
-        {
-            packet[i + 4] = msg.message[i];
-        }
-        platform.TcpSend(packet, msg.messageLength + 4);
-    }
-
-    private Queue<INetOutgoingMessage> tosend;
-    public override void SendMessage(INetOutgoingMessage message, MyNetDeliveryMethod method)
-    {
-        INetOutgoingMessage msg = message;
-        if (!connected)
-        {
-            tosend.Enqueue(msg);
-            return;
-        }
-        DoSendPacket(msg);
-    }
-
-    public void SetPlatform(IGamePlatform platform_)
-    {
-        platform = platform_;
+        _cts?.Cancel();
     }
 }
 
+// ---------------------------------------------------------------------------
+// Connection handle + async I/O loop
+// ---------------------------------------------------------------------------
+
+public sealed class TcpNetConnection : NetConnection
+{
+    private readonly string _ip;
+    private readonly int _port;
+    private readonly ChannelWriter<ReadOnlyMemory<byte>> _inbox;
+    private readonly ChannelReader<ReadOnlyMemory<byte>> _pendingSend;
+    private readonly CancellationToken _ct;
+
+    private TcpClient? _tcp;
+    private NetworkStream? _stream;
+
+    internal TcpNetConnection(
+        string ip, int port,
+        ChannelWriter<ReadOnlyMemory<byte>> inbox,
+        ChannelReader<ReadOnlyMemory<byte>> pendingSend,
+        CancellationToken ct)
+    {
+        _ip = ip;
+        _port = port;
+        _inbox = inbox;
+        _pendingSend = pendingSend;
+        _ct = ct;
+    }
+
+    public override IPEndPointCi RemoteEndPoint() =>
+        IPEndPointCiDefault.Create($"{_ip}:{_port}");
+
+    public override void Update() { }
+
+    public override bool EqualsConnection(NetConnection other) =>
+        other is TcpNetConnection t && t._ip == _ip && t._port == _port;
+
+    /// <summary>
+    /// Connects, flushes any queued pre-connection sends, then runs the
+    /// receive loop until cancelled or the remote end closes.
+    /// </summary>
+    internal async Task RunAsync()
+    {
+        try
+        {
+            _tcp = new TcpClient { NoDelay = true };
+            await _tcp.ConnectAsync(_ip, _port, _ct);
+            _stream = _tcp.GetStream();
+
+            // Flush messages that were sent before the connection was ready.
+            while (_pendingSend.TryRead(out ReadOnlyMemory<byte> queued))
+                await WriteFramedAsync(queued);
+
+            // Receive loop and drain of any further sends run concurrently.
+            await Task.WhenAll(ReceiveLoopAsync(), SendLoopAsync());
+        }
+        catch (OperationCanceledException)
+        {
+            // Clean shutdown — caller called Disconnect().
+        }
+        catch (Exception ex)
+        {
+        }
+        finally
+        {
+            _tcp?.Close();
+            _inbox.TryComplete();
+        }
+    }
+
+    private async Task ReceiveLoopAsync()
+    {
+        byte[] lenBuf = new byte[4];
+        while (!_ct.IsCancellationRequested)
+        {
+            await _stream!.ReadExactlyAsync(lenBuf, _ct);
+            int length = BinaryPrimitives.ReadInt32BigEndian(lenBuf);
+
+            byte[] payload = new byte[length];
+            await _stream.ReadExactlyAsync(payload, _ct);
+            await _inbox.WriteAsync(payload, _ct);
+        }
+    }
+
+    private async Task SendLoopAsync()
+    {
+        await foreach (ReadOnlyMemory<byte> payload in _pendingSend.ReadAllAsync(_ct))
+            await WriteFramedAsync(payload);
+    }
+
+    public override async void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
+    {
+        // Called from the game loop. Fire-and-forget via the send channel
+        // so the game loop is never blocked on I/O.
+        if (_stream is not null)
+            await WriteFramedAsync(payload);
+    }
+
+    private async Task WriteFramedAsync(ReadOnlyMemory<byte> payload)
+    {
+        byte[] lenBuf = new byte[4];
+        BinaryPrimitives.WriteInt32BigEndian(lenBuf, payload.Length);
+        await _stream!.WriteAsync(lenBuf, _ct);
+        await _stream.WriteAsync(payload, _ct);
+    }
+}

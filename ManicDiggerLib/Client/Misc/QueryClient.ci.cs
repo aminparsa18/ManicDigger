@@ -1,152 +1,121 @@
-﻿public class QueryClient
+﻿// queries a server for its info (name, player count, etc.)
+// without joining. Used by the server browser.
+//
+// The query is async with a real timeout — no busy-wait spin loop.
+
+public sealed class QueryClient
 {
-    internal QueryResult result;
-    internal bool queryPerformed;
-    internal bool querySuccess;
-    internal IGamePlatform p;
-    internal string serverMessage;
-    
-    public QueryClient()
+    private readonly IGamePlatform _platform;
+
+    public QueryClient(IGamePlatform platform)
     {
-        result = new QueryResult();
-        querySuccess = false;
-        queryPerformed = false;
+        _platform = platform;
     }
-    
-    public void PerformQuery(string ip, int port)
+
+    /// <summary>
+    /// Queries the server at the given address.
+    /// Returns the result on success, or null on timeout or rejection.
+    /// <paramref name="serverMessage"/> carries a human-readable status on failure.
+    /// </summary>
+    public async Task<(QueryResult? result, string serverMessage)> QueryAsync(
+        string ip, int port, TimeSpan timeout = default)
     {
-        serverMessage = "";
-        NetClient client;
-        if (p.EnetAvailable())
-        {
-            //Create enet client
-            EnetNetClient c = new();
-            c.SetPlatform(p);
-            client = c;
-        }
-        else
-        {
-            //Create TCP client
-            TcpNetClient c = new();
-            c.SetPlatform(p);
-            client = c;
-        }
-        //Initialize client
+        if (timeout == default)
+            timeout = TimeSpan.FromSeconds(2);
+
+        NetClient client = CreateClient();
         client.Start();
         client.Connect(ip, port);
-
-        //Do network stuff
         SendRequest(client);
-        ReadPacket(client);
-        
-        queryPerformed = true;
+
+        return await ReadResponseAsync(client, timeout);
+    }
+
+    private NetClient CreateClient()
+    {
+        if (_platform.EnetAvailable())
+            return new EnetNetClient(_platform);
+
+        return new TcpNetClient();
     }
 
     private static void SendRequest(NetClient client)
     {
-        //Create request packet
-        Packet_Client pp = ClientPackets.ServerQuery();
-        
-        //Serialize packet
         CitoMemoryStream ms = new();
-        Packet_ClientSerializer.Serialize(ms, pp);
-        byte[] data = ms.ToArray();
-        
-        //Send packet to server
-        INetOutgoingMessage msg = new();
-        msg.Write(data, ms.Length());
-        client.SendMessage(msg, MyNetDeliveryMethod.ReliableOrdered);
+        Packet_ClientSerializer.Serialize(ms, ClientPackets.ServerQuery());
+        client.SendMessage(ms.ToArray().AsMemory(0, ms.Length()), MyNetDeliveryMethod.ReliableOrdered);
     }
 
-    private void ReadPacket(NetClient client)
+    private static async Task<(QueryResult? result, string serverMessage)> ReadResponseAsync(
+        NetClient client, TimeSpan timeout)
     {
-        bool success = false;
-        int started = p.TimeMillisecondsFromStart();
-        int timeout = 2000;
-        while (p.TimeMillisecondsFromStart() < started + timeout)
+        using CancellationTokenSource cts = new(timeout);
+
+        try
         {
-            if (success)
+            while (!cts.IsCancellationRequested)
             {
-                //Return if already received answer from server
-                querySuccess = true;
-                return;
-            }
-            NetIncomingMessage msg;
-            msg = client.ReadMessage();
-            if (msg == null)
-            {
-                //Message empty - skip processing.
-                continue;
-            }
-            
-            Packet_Server packet = new();
-            Packet_ServerSerializer.DeserializeBuffer(msg.message, msg.messageLength, packet);
-            
-            switch (packet.Id)
-            {
-                case Packet_ServerIdEnum.QueryAnswer:
-                    //Got answer from server. Process it.
-                    result.Name = packet.QueryAnswer.Name;
-                    result.MOTD = packet.QueryAnswer.MOTD;
-                    result.PlayerCount = packet.QueryAnswer.PlayerCount;
-                    result.MaxPlayers = packet.QueryAnswer.MaxPlayers;
-                    result.PlayerList = packet.QueryAnswer.PlayerList;
-                    result.Port = packet.QueryAnswer.Port;
-                    result.GameMode = packet.QueryAnswer.GameMode;
-                    result.Password = packet.QueryAnswer.Password;
-                    result.PublicHash = packet.QueryAnswer.PublicHash;
-                    result.ServerVersion = packet.QueryAnswer.ServerVersion;
-                    result.MapSizeX = packet.QueryAnswer.MapSizeX;
-                    result.MapSizeY = packet.QueryAnswer.MapSizeY;
-                    result.MapSizeZ = packet.QueryAnswer.MapSizeZ;
-                    result.ServerThumbnail = packet.QueryAnswer.ServerThumbnail;
-                    success = true;
+                NetIncomingMessage? msg = client.ReadMessage();
+
+                if (msg == null)
+                {
+                    await Task.Delay(10, cts.Token);
                     continue;
-                    
-                case Packet_ServerIdEnum.DisconnectPlayer:
-                    serverMessage = packet.DisconnectPlayer.DisconnectReason;
-                    //End method as server kicked us out
-                    return;
-                    
-                default:
-                    //Drop all other packets sent by server (not relevant)
-                    continue;
+                }
+
+                Packet_Server packet = new();
+                Packet_ServerSerializer.DeserializeBuffer(
+                    msg.Payload.ToArray(), msg.Payload.Length, packet);
+
+                switch (packet.Id)
+                {
+                    case Packet_ServerIdEnum.QueryAnswer:
+                        return (QueryResult.FromPacket(packet.QueryAnswer), "");
+
+                    case Packet_ServerIdEnum.DisconnectPlayer:
+                        return (null, packet.DisconnectPlayer.DisconnectReason);
+                }
+                // All other packets are silently dropped — not relevant to a query.
             }
         }
-        //Set timeout message if query did not finish in time
-        serverMessage = "Timeout while querying server!";
-    }
-    
-    public void SetPlatform(IGamePlatform p_)
-    {
-        p = p_;
-    }
-    
-    public QueryResult GetResult()
-    {
-        return result;
-    }
-    
-    public string GetServerMessage()
-    {
-        return serverMessage;
+        catch (OperationCanceledException) { }
+
+        return (null, "Timeout while querying server.");
     }
 }
 
-public class QueryResult
+public sealed class QueryResult
 {
-    internal string Name;
-    internal string MOTD;
-    internal int PlayerCount;
-    internal int MaxPlayers;
-    internal string PlayerList;
-    internal int Port;
-    internal string GameMode;
-    internal bool Password;
-    internal string PublicHash;
-    internal string ServerVersion;
-    internal int MapSizeX;
-    internal int MapSizeY;
-    internal int MapSizeZ;
-    internal byte[] ServerThumbnail;
+    public string Name { get; init; } = "";
+    public string Motd { get; init; } = "";
+    public int PlayerCount { get; init; }
+    public int MaxPlayers { get; init; }
+    public string PlayerList { get; init; } = "";
+    public int Port { get; init; }
+    public string GameMode { get; init; } = "";
+    public bool Password { get; init; }
+    public string PublicHash { get; init; } = "";
+    public string ServerVersion { get; init; } = "";
+    public int MapSizeX { get; init; }
+    public int MapSizeY { get; init; }
+    public int MapSizeZ { get; init; }
+    public byte[] ServerThumbnail { get; init; } = [];
+
+    internal static QueryResult FromPacket(Packet_ServerQueryAnswer a) => new()
+    {
+        Name = a.Name,
+        Motd = a.MOTD,
+        PlayerCount = a.PlayerCount,
+        MaxPlayers = a.MaxPlayers,
+        PlayerList = a.PlayerList,
+        Port = a.Port,
+        GameMode = a.GameMode,
+        Password = a.Password,
+        PublicHash = a.PublicHash,
+        ServerVersion = a.ServerVersion,
+        MapSizeX = a.MapSizeX,
+        MapSizeY = a.MapSizeY,
+        MapSizeZ = a.MapSizeZ,
+        ServerThumbnail = a.ServerThumbnail,
+    };
 }

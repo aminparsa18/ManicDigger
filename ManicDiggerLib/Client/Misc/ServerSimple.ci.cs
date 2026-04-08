@@ -253,31 +253,27 @@ public class ServerSimple
 
     private void ProcessPackets()
     {
-        for (; ; )
+        while (server.ReadMessage() is { } msg)
         {
-            NetIncomingMessage msg = server.ReadMessage();
-            if (msg == null)
-            {
-                return;
-            }
             switch (msg.Type)
             {
                 case NetworkMessageType.Connect:
-                    ClientSimple c = new()
+                    clients[0] = new ClientSimple
                     {
                         MainSocket = server,
                         Connection = msg.SenderConnection,
-                        chunksseen = new bool[(MapSizeX / ChunkSize) * (MapSizeY / ChunkSize)][]
+                        chunksseen = new bool[(MapSizeX / ChunkSize) * (MapSizeY / ChunkSize)][],
                     };
-                    clients[0] = c;
                     clientsCount = 1;
                     break;
+
                 case NetworkMessageType.Data:
-                    byte[] data = msg.message;
                     Packet_Client packet = new();
-                    Packet_ClientSerializer.DeserializeBuffer(data, msg.messageLength, packet);
+                    Packet_ClientSerializer.DeserializeBuffer(
+                        msg.Payload.ToArray(), msg.Payload.Length, packet);
                     ProcessPacket(0, packet);
                     break;
+
                 case NetworkMessageType.Disconnect:
                     break;
             }
@@ -406,10 +402,9 @@ public class ServerSimple
     public void SendPacket(int client, Packet_Server packet)
     {
         byte[] data = ServerPackets.Serialize(packet, out int length);
-        INetOutgoingMessage msg = new();
-        msg.Write(data, length);
-        clients[client].Connection.SendMessage(msg, MyNetDeliveryMethod.ReliableOrdered, 0);
+        clients[client].Connection.SendMessage(data.AsMemory(0, length), MyNetDeliveryMethod.ReliableOrdered);
     }
+
     internal Packet_BlockType[] blockTypes;
     internal int blockTypesCount;
     

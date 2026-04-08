@@ -31,13 +31,14 @@ public class ScreenGame : Screen
     {
         if (singleplayer)
         {
+            DummyNetwork network = platform.SinglePlayerServerGetNetwork();
+
             if (platform.SinglePlayerServerAvailable())
             {
                 platform.SinglePlayerServerStart(singleplayerSavePath);
             }
             else
             {
-                DummyNetwork network = new();
                 DummyNetServer server = new(network);
                 server.Start();
 
@@ -46,15 +47,10 @@ public class ScreenGame : Screen
 
                 serverSimpleMod = new ModServerSimple { server = serverSimple };
                 game.AddMod(serverSimpleMod);
-
-                network.ServerInbox.Enqueue([]);
-                game.main = new DummyNetClient(network);
             }
 
-            // game.main is only set via DummyNetClient above — the native single-player
-            // path still needs a real client to connect to the local server.
-            game.main ??= CreateNetClient(platform)
-                ?? throw new InvalidOperationException("No network transport available.");
+            network.ServerInbox.Enqueue([]);
+            game.main = new DummyNetClient(network);
 
             connectData = new ConnectData { Username = "Local" };
             game.connectdata = connectData;

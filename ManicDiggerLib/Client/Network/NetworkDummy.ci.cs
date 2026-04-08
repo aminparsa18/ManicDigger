@@ -127,12 +127,10 @@ public sealed class DummyNetServer : NetServer
         if (_network.ServerInbox.IsEmpty)
             return null;
 
-        // First time we see data, announce the connection before delivering
-        // the actual message. Next call will deliver the real payload.
-        // This is explicit and visible rather than hidden boolean state.
         if (!_connectionAnnounced)
         {
             _connectionAnnounced = true;
+            _network.ServerInbox.TryDequeue(out _); // consume the trigger packet
             _clientConnection = new DummyNetConnection(_network);
             return new NetIncomingMessage
             {

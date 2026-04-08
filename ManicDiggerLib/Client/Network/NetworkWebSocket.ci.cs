@@ -1,4 +1,4 @@
-﻿// NetworkWebSocket.cs — WebSocket implementation of the abstract network layer.
+﻿// WebSocket implementation of the abstract network layer.
 // Uses websocket-sharp (sta/websocket-sharp on GitHub).
 //
 // WebSocket already frames messages — no length-prefix protocol needed.

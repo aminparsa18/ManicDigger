@@ -31,7 +31,7 @@ public class ModUnloadRendererChunks : ModBase
     /// </summary>
     private int _unloadIterator;
 
-    /// <summary>Reusable output for <see cref="MapUtilCi.PosInt"/> to avoid per-frame allocation.</summary>
+    /// <summary>Reusable output for <see cref="VectorIndexUtil.PosInt"/> to avoid per-frame allocation.</summary>
     private Vector3i _unloadXyzTemp;
 
     public ModUnloadRendererChunks()
@@ -56,7 +56,7 @@ public class ModUnloadRendererChunks : ModBase
         {
             if (chunkFlatIndex == -1) { return; }
 
-            RenderedChunk rendered = game.map.chunks[chunkFlatIndex].rendered;
+            RenderedChunk rendered = game.VoxelMap.chunks[chunkFlatIndex].rendered;
             for (int k = 0; k < rendered.idsCount; k++)
             {
                 game.d_Batcher.Remove(rendered.ids[k]);
@@ -99,13 +99,13 @@ public class ModUnloadRendererChunks : ModBase
             // Advance and wrap the round-robin iterator.
             if (++_unloadIterator >= totalChunks) { _unloadIterator = 0; }
 
-            MapUtilCi.PosInt(_unloadIterator, _mapSizeXChunks, _mapSizeYChunks, ref _unloadXyzTemp);
+            VectorIndexUtil.PosInt(_unloadIterator, _mapSizeXChunks, _mapSizeYChunks, ref _unloadXyzTemp);
             int x = _unloadXyzTemp.X;
             int y = _unloadXyzTemp.Y;
             int z = _unloadXyzTemp.Z;
 
-            int flatIndex = MapUtilCi.Index3d(x, y, z, _mapSizeXChunks, _mapSizeYChunks);
-            Chunk chunk = _game.map.chunks[flatIndex];
+            int flatIndex = VectorIndexUtil.Index3d(x, y, z, _mapSizeXChunks, _mapSizeYChunks);
+            Chunk chunk = _game.VoxelMap.chunks[flatIndex];
 
             // Skip chunks that have no geometry to unload.
             if (chunk?.rendered?.ids == null) { continue; }
@@ -128,9 +128,9 @@ public class ModUnloadRendererChunks : ModBase
     {
         _chunkSize = Game.chunksize;
         _invertedChunk = 1.0f / _chunkSize;
-        _mapSizeXChunks = (int)(_game.map.MapSizeX * _invertedChunk);
-        _mapSizeYChunks = (int)(_game.map.MapSizeY * _invertedChunk);
-        _mapSizeZChunks = (int)(_game.map.MapSizeZ * _invertedChunk);
+        _mapSizeXChunks = (int)(_game.VoxelMap.MapSizeX * _invertedChunk);
+        _mapSizeYChunks = (int)(_game.VoxelMap.MapSizeY * _invertedChunk);
+        _mapSizeZChunks = (int)(_game.VoxelMap.MapSizeZ * _invertedChunk);
     }
 
     /// <summary>View-distance-based side length of the active area in blocks.</summary>

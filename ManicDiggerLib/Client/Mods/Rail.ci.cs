@@ -259,13 +259,13 @@ public class ModRail : ModBase
         currentrailblockY = (int)game.player.position.z;
         currentrailblockZ = (int)game.player.position.y - 1;
 
-        if (!game.map.IsValidPos(currentrailblockX, currentrailblockY, currentrailblockZ))
+        if (!game.VoxelMap.IsValidPos(currentrailblockX, currentrailblockY, currentrailblockZ))
         {
             ExitVehicle(game);
             return;
         }
 
-        int railUnder = game.d_Data.Rail()[game.map.GetBlock(currentrailblockX, currentrailblockY, currentrailblockZ)];
+        int railUnder = game.d_Data.Rail()[game.VoxelMap.GetBlock(currentrailblockX, currentrailblockY, currentrailblockZ)];
 
         railriding = true;
         originalmodelheight = game.GetCharacterEyesHeight();
@@ -369,7 +369,7 @@ public class ModRail : ModBase
     /// <returns>One of <see cref="UpDown.Up"/>, <see cref="UpDown.Down"/>, or <see cref="UpDown.None"/>.</returns>
     internal int GetUpDownMove(Game game, int railblockX, int railblockY, int railblockZ, TileEnterDirection dir)
     {
-        if (!game.map.IsValidPos(railblockX, railblockY, railblockZ)) { return UpDown.None; }
+        if (!game.VoxelMap.IsValidPos(railblockX, railblockY, railblockZ)) { return UpDown.None; }
 
         RailSlope slope = d_RailMapUtil.GetRailSlope(railblockX, railblockY, railblockZ);
 
@@ -431,13 +431,13 @@ public class ModRail : ModBase
     /// </summary>
     internal static int PossibleRails(Game game, TileEnterData enter)
     {
-        if (!game.map.IsValidPos(enter.BlockPositionX, enter.BlockPositionY, enter.BlockPositionZ))
+        if (!game.VoxelMap.IsValidPos(enter.BlockPositionX, enter.BlockPositionY, enter.BlockPositionZ))
         {
             return 0;
         }
 
         int railFlags = game.d_Data.Rail()[
-            game.map.GetBlock(enter.BlockPositionX, enter.BlockPositionY, enter.BlockPositionZ)];
+            game.VoxelMap.GetBlock(enter.BlockPositionX, enter.BlockPositionY, enter.BlockPositionZ)];
 
         VehicleDirection12[] candidates = new VehicleDirection12[3];
         int candidateCount = 0;

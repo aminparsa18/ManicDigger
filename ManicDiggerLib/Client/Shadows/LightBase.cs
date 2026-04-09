@@ -47,7 +47,7 @@ public class LightBase
         int[] dataLightRadius,
         bool[] transparentForLight)
     {
-        Chunk chunk = game.map.GetChunk_(cx, cy, cz);
+        Chunk chunk = game.VoxelMap.GetChunk_(cx, cy, cz);
 
         // Copy block data into the working buffer via the chunk's unified accessor,
         // which handles both byte (data) and int (dataInt) storage transparently.
@@ -137,14 +137,14 @@ public class LightBase
     /// </returns>
     private static int GetLightHeight(Game game, int cx, int cy, int xx, int yy)
     {
-        int[] heightmapChunk = game.d_Heightmap.chunks[
-            MapUtilCi.Index2d(cx, cy, game.map.MapSizeX / Game.chunksize)];
+        int[] heightmapChunk = game.d_Heightmap._chunks[
+            VectorIndexUtil.Index2d(cx, cy, game.VoxelMap.MapSizeX / Game.chunksize)];
 
         if (heightmapChunk == null)
             return 0;
 
         return heightmapChunk[
-            MapUtilCi.Index2d(xx % Game.chunksize, yy % Game.chunksize, Game.chunksize)];
+            VectorIndexUtil.Index2d(xx % Game.chunksize, yy % Game.chunksize, Game.chunksize)];
     }
 
     /// <summary>
@@ -224,9 +224,9 @@ public class LightBase
             if (emitRadius <= workLight[pos])
                 continue;
 
-            int xx = MapUtilCi.PosX(pos, ChunkSize, ChunkSize);
-            int yy = MapUtilCi.PosY(pos, ChunkSize, ChunkSize);
-            int zz = MapUtilCi.PosZ(pos, ChunkSize, ChunkSize);
+            int xx = VectorIndexUtil.PosX(pos, ChunkSize, ChunkSize);
+            int yy = VectorIndexUtil.PosY(pos, ChunkSize, ChunkSize);
+            int zz = VectorIndexUtil.PosZ(pos, ChunkSize, ChunkSize);
 
             workLight[pos] = (byte)(Math.Max(emitRadius, workLight[pos]));
             _flood.FloodLight(workData, workLight, xx, yy, zz, dataLightRadius, dataTransparent);

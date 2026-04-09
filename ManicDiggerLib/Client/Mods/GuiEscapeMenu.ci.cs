@@ -127,7 +127,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button graphicsReturnToOptionsMenu;
     private void GraphicsSet()
     {
-        OptionsCi options = game.options;
+        GameOption options = game.options;
         Language language = game.language;
         graphicsOptionSmoothShadows = new Button
         {
@@ -179,7 +179,7 @@ public class ModGuiEscapeMenu : ModBase
     }
     private void GraphicsHandleClick(Button b)
     {
-        OptionsCi options = game.options;
+        GameOption options = game.options;
         if (b == graphicsOptionSmoothShadows)
         {
             options.Smoothshadows = !options.Smoothshadows;
@@ -474,7 +474,7 @@ public class ModGuiEscapeMenu : ModBase
 
     private void ToggleResolution()
     {
-        OptionsCi options = game.options;
+        GameOption options = game.options;
         options.Resolution++;
 
         game.platform.GetDisplayResolutions(out int resolutionsCount);
@@ -498,7 +498,7 @@ public class ModGuiEscapeMenu : ModBase
     }
     public void UseResolution()
     {
-        OptionsCi options = game.options;
+        GameOption options = game.options;
         DisplayResolutionCi[] resolutions = game.platform.GetDisplayResolutions(out int resolutionsCount);
 
         if (resolutions == null)
@@ -534,7 +534,7 @@ public class ModGuiEscapeMenu : ModBase
     }
     private void ToggleFont()
     {
-        OptionsCi options = game.options;
+        GameOption options = game.options;
         options.Font++;
         if (options.Font >= fontsLength)
         {
@@ -704,13 +704,13 @@ public class ModGuiEscapeMenu : ModBase
     }
     public void LoadOptions()
     {
-        OptionsCi o = LoadOptions_();
+        GameOption o = LoadOptions_();
         if (o == null)
         {
             return;
         }
         game.options = o;
-        OptionsCi options = o;
+        GameOption options = o;
 
         game.Font = fontValues[options.Font];
         game.UpdateTextRendererFont();
@@ -731,9 +731,9 @@ public class ModGuiEscapeMenu : ModBase
         UseResolution();
     }
 
-    private OptionsCi LoadOptions_()
+    private GameOption LoadOptions_()
     {
-        OptionsCi options = new();
+        GameOption options = new();
         Preferences preferences = game.platform.GetPreferences();
                 
         options.Shadows = preferences.GetBool("Shadows", true);
@@ -765,7 +765,7 @@ public class ModGuiEscapeMenu : ModBase
 
     public void SaveOptions()
     {
-        OptionsCi options = game.options;
+        GameOption options = game.options;
 
         options.Font = game.Font;
         options.Shadows = true; // game.d_CurrentShadows.ShadowsFull;
@@ -784,7 +784,7 @@ public class ModGuiEscapeMenu : ModBase
         SaveOptions_(options);
     }
 
-    private void SaveOptions_(OptionsCi options)
+    private void SaveOptions_(GameOption options)
     {
         Preferences preferences = game.platform.GetPreferences();
 

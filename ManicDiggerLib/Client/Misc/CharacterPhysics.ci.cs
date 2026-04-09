@@ -122,11 +122,11 @@ public class ScriptCharacterPhysics : EntityScript
         int cx = (int)(game.player.position.x / Game.chunksize);
         int cy = (int)(game.player.position.z / Game.chunksize);
         int cz = (int)(game.player.position.y / Game.chunksize);
-        if (game.map.IsValidChunkPos(cx, cy, cz))
+        if (game.VoxelMap.IsValidChunkPos(cx, cy, cz))
         {
-            if (game.map.chunks[MapUtilCi.Index3d(cx, cy, cz,
-                game.map.MapSizeX / Game.chunksize,
-                game.map.MapSizeY / Game.chunksize)] != null)
+            if (game.VoxelMap.chunks[VectorIndexUtil.Index3d(cx, cy, cz,
+                game.VoxelMap.MapSizeX / Game.chunksize,
+                game.VoxelMap.MapSizeY / Game.chunksize)] != null)
             {
                 loaded = true;
             }
@@ -259,7 +259,7 @@ public class ScriptCharacterPhysics : EntityScript
 
     public bool IsTileEmptyForPhysics(int x, int y, int z)
     {
-        if (z >= game.map.MapSizeZ)
+        if (z >= game.VoxelMap.MapSizeZ)
         {
             return true;
         }
@@ -268,11 +268,11 @@ public class ScriptCharacterPhysics : EntityScript
         {
             return enableFreemove;
         }
-        if (x >= game.map.MapSizeX || y >= game.map.MapSizeY)// || z >= mapsizez)
+        if (x >= game.VoxelMap.MapSizeX || y >= game.VoxelMap.MapSizeY)// || z >= mapsizez)
         {
             return enableFreemove;
         }
-        int block = game.map.GetBlockValid(x, y, z);
+        int block = game.VoxelMap.GetBlockValid(x, y, z);
         if (block == 0)
         {
             return true;
@@ -345,7 +345,7 @@ public class ScriptCharacterPhysics : EntityScript
 
     private bool StandingOnHalfBlock(float x, float y, float z)
     {
-        int under = game.map.GetBlock((int)(x),
+        int under = game.VoxelMap.GetBlock((int)(x),
             (int)(z),
             (int)(y));
         return game.blocktypes[under].DrawType == Packet_DrawTypeEnum.HalfHeight;
@@ -383,7 +383,7 @@ public class ScriptCharacterPhysics : EntityScript
                         // Check if the block is too close
                         if (BoxPointDistance(minX, minY, minZ, maxX, maxY, maxZ, x, y, z) < game.constWallDistance)
                         {
-                            blockingBlocktype = game.map.GetBlock((int)(x + xx - 1), (int)(z + zz - 1), (int)(y + yy - 1));
+                            blockingBlocktype = game.VoxelMap.GetBlock((int)(x + xx - 1), (int)(z + zz - 1), (int)(y + yy - 1));
                             return false;
                         }
                     }

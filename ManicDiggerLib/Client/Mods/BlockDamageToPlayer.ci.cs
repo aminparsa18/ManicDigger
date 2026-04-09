@@ -78,7 +78,7 @@ public class ModBlockDamageToPlayer : ModBase
         int bx = (int)MathF.Floor(x);
         int by = (int)MathF.Floor(y);
         int bz = (int)MathF.Floor(z);
-        return game.map.IsValidPos(bx, bz, by) ? game.map.GetBlock((int)x, (int)z, (int)y) : 0;
+        return game.VoxelMap.IsValidPos(bx, bz, by) ? game.VoxelMap.GetBlock((int)x, (int)z, (int)y) : 0;
     }
 }
 

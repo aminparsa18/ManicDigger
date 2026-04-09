@@ -170,7 +170,7 @@ public class ModSkySphereAnimated : ModBase
     {
         int px = PositiveMod((int)(x * (TextureSize - 1)), TextureSize - 1);
         int py = PositiveMod((int)(y * (TextureSize - 1)), TextureSize - 1);
-        return pixelsArgb[MapUtilCi.Index2d(px, py, TextureSize)];
+        return pixelsArgb[VectorIndexUtil.Index2d(px, py, TextureSize)];
     }
 
     private static int PositiveMod(int i, int n) => (i % n + n) % n;

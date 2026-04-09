@@ -394,12 +394,12 @@ public class RailMapUtil
     internal Game game;
     public RailSlope GetRailSlope(int x, int y, int z)
     {
-        int tiletype = game.map.GetBlock(x, y, z);
+        int tiletype = game.VoxelMap.GetBlock(x, y, z);
         int railDirectionFlags = game.blocktypes[tiletype].Rail;
         int blocknear;
-        if (x < game.map.MapSizeX - 1)
+        if (x < game.VoxelMap.MapSizeX - 1)
         {
-            blocknear = game.map.GetBlock(x + 1, y, z);
+            blocknear = game.VoxelMap.GetBlock(x + 1, y, z);
             if (railDirectionFlags == RailDirectionFlags.Horizontal &&
                  blocknear != 0 && game.blocktypes[blocknear].Rail == 0)
             {
@@ -408,7 +408,7 @@ public class RailMapUtil
         }
         if (x > 0)
         {
-            blocknear = game.map.GetBlock(x - 1, y, z);
+            blocknear = game.VoxelMap.GetBlock(x - 1, y, z);
             if (railDirectionFlags == RailDirectionFlags.Horizontal &&
                  blocknear != 0 && game.blocktypes[blocknear].Rail == 0)
             {
@@ -418,16 +418,16 @@ public class RailMapUtil
         }
         if (y > 0)
         {
-            blocknear = game.map.GetBlock(x, y - 1, z);
+            blocknear = game.VoxelMap.GetBlock(x, y - 1, z);
             if (railDirectionFlags == RailDirectionFlags.Vertical &&
                   blocknear != 0 && game.blocktypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoUpRaised;
             }
         }
-        if (y < game.map.MapSizeY - 1)
+        if (y < game.VoxelMap.MapSizeY - 1)
         {
-            blocknear = game.map.GetBlock(x, y + 1, z);
+            blocknear = game.VoxelMap.GetBlock(x, y + 1, z);
             if (railDirectionFlags == RailDirectionFlags.Vertical &&
                   blocknear != 0 && game.blocktypes[blocknear].Rail == 0)
             {
@@ -886,101 +886,6 @@ public class Config3d
     public void SetEnableMipmaps(bool value) { ENABLE_MIPMAPS = value; }
 }
 
-public class MapUtilCi
-{
-    public static int Index3d(int x, int y, int h, int sizex, int sizey)
-    {
-        return (h * sizey + y) * sizex + x;
-    }
-
-    public static int Index2d(int x, int y, int sizex)
-    {
-        return x + y * sizex;
-    }
-
-    public static Vector3 Pos(int index, int sizex, int sizey)
-    {
-        int x = index % sizex;
-        int y = (index / sizex) % sizey;
-        int h = index / (sizex * sizey);
-        return new Vector3(x, y, h);
-    }
-
-    internal static void PosInt(int index, int sizex, int sizey, ref Vector3i ret)
-    {
-        int x = index % sizex;
-        int y = (index / sizex) % sizey;
-        int h = index / (sizex * sizey);
-        ret.X = x;
-        ret.Y = y;
-        ret.Z = h;
-    }
-
-    public static int PosX(int index, int sizex, int sizey)
-    {
-        return index % sizex;
-    }
-
-    public static int PosY(int index, int sizex, int sizey)
-    {
-        return (index / sizex) % sizey;
-    }
-
-    public static int PosZ(int index, int sizex, int sizey)
-    {
-        return index / (sizex * sizey);
-    }
-}
-
-public class InfiniteMapChunked2d
-{
-    internal Game d_Map;
-    public const int chunksize = 16;
-    internal int[][] chunks;
-    public int GetBlock(int x, int y)
-    {
-        int[] chunk = GetChunk(x, y);
-        return chunk[MapUtilCi.Index2d(x % chunksize, y % chunksize, chunksize)];
-    }
-    public int[] GetChunk(int x, int y)
-    {
-        int[] chunk = null;
-        int kx = x / chunksize;
-        int ky = y / chunksize;
-        if (chunks[MapUtilCi.Index2d(kx, ky, d_Map.map.MapSizeX / chunksize)] == null)
-        {
-            chunk = new int[chunksize * chunksize];// (byte*)Marshal.AllocHGlobal(chunksize * chunksize);
-            for (int i = 0; i < chunksize * chunksize; i++)
-            {
-                chunk[i] = 0;
-            }
-            chunks[MapUtilCi.Index2d(kx, ky, d_Map.map.MapSizeX / chunksize)] = chunk;
-        }
-        chunk = chunks[MapUtilCi.Index2d(kx, ky, d_Map.map.MapSizeX / chunksize)];
-        return chunk;
-    }
-    public void SetBlock(int x, int y, int blocktype)
-    {
-        GetChunk(x, y)[MapUtilCi.Index2d(x % chunksize, y % chunksize, chunksize)] = blocktype;
-    }
-    public void Restart()
-    {
-        //chunks = new byte[d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize][,];
-        int n = (d_Map.map.MapSizeX / chunksize) * (d_Map.map.MapSizeY / chunksize);
-        chunks = new int[n][];//(byte**)Marshal.AllocHGlobal(n * sizeof(IntPtr));
-        for (int i = 0; i < n; i++)
-        {
-            chunks[i] = null;
-        }
-    }
-    public void ClearChunk(int x, int y)
-    {
-        int px = x / chunksize;
-        int py = y / chunksize;
-        chunks[MapUtilCi.Index2d(px, py, d_Map.map.MapSizeX / chunksize)] = null;
-    }
-}
-
 public abstract class ClientModManager
 {
     public abstract void MakeScreenshot();
@@ -1331,16 +1236,14 @@ public class TextColorRenderer
         for (int i = 0; i < partsCount; i++)
         {
             platform.TextSize(parts[i].text, t.fontsize, out int outWidth, out int outHeight);
-
             sizesX[i] = outWidth;
             sizesY[i] = outHeight;
-
             totalwidth += outWidth;
             totalheight = Math.Max(totalheight, outHeight);
         }
 
-        int size2X = NextPowerOfTwo((int)(totalwidth) + 1);
-        int size2Y = NextPowerOfTwo((int)(totalheight) + 1);
+        int size2X = NextPowerOfTwo((int)totalwidth + 1);
+        int size2Y = NextPowerOfTwo((int)totalheight + 1);
         Bitmap bmp2 = new(size2X, size2Y);
         int[] bmp2Pixels = new int[size2X * size2Y];
 
@@ -1349,10 +1252,8 @@ public class TextColorRenderer
         {
             int sizeiX = sizesX[i];
             int sizeiY = sizesY[i];
-            if (sizeiX == 0 || sizeiY == 0)
-            {
-                continue;
-            }
+            if (sizeiX == 0 || sizeiY == 0) { continue; }
+
             Text_ partText = new()
             {
                 text = parts[i].text,
@@ -1361,332 +1262,152 @@ public class TextColorRenderer
                 fontstyle = t.fontstyle,
                 fontfamily = t.fontfamily
             };
+
             Bitmap partBmp = platform.CreateTextTexture(partText);
-            int partWidth = (int)(platform.BitmapGetWidth(partBmp));
-            int partHeight = (int)(platform.BitmapGetHeight(partBmp));
+            int partWidth = (int)platform.BitmapGetWidth(partBmp);
+            int partHeight = (int)platform.BitmapGetHeight(partBmp);
             int[] partBmpPixels = new int[partWidth * partHeight];
             platform.BitmapGetPixelsArgb(partBmp, partBmpPixels);
+
             for (int x = 0; x < partWidth; x++)
             {
                 for (int y = 0; y < partHeight; y++)
                 {
-                    if (x + currentwidth >= size2X) { continue; }
-                    if (y >= size2Y) { continue; }
-                    int c = partBmpPixels[MapUtilCi.Index2d(x, y, partWidth)];
+                    if (x + currentwidth >= size2X || y >= size2Y) { continue; }
+                    int c = partBmpPixels[VectorIndexUtil.Index2d(x, y, partWidth)];
                     if (Game.ColorA(c) > 0)
                     {
-                        bmp2Pixels[MapUtilCi.Index2d((int)(currentwidth) + x, y, size2X)] = c;
+                        bmp2Pixels[VectorIndexUtil.Index2d((int)currentwidth + x, y, size2X)] = c;
                     }
                 }
             }
             currentwidth += sizeiX;
         }
+
         platform.BitmapSetPixelsArgb(bmp2, bmp2Pixels);
         return bmp2;
     }
 
+    /// <summary>
+    /// Splits <paramref name="s"/> into colored segments by parsing inline color codes of the
+    /// form <c>&amp;X</c> where X is a hex digit (0–9, a–f). Unrecognised sequences are kept as-is.
+    /// </summary>
     public static TextPart[] DecodeColors(string s, int defaultcolor, out int retLength)
     {
-        TextPart[] parts = new TextPart[256];
-        int partsCount = 0;
-
+        List<TextPart> parts = [];
         int currentcolor = defaultcolor;
-        int[] currenttext = new int[256];
-        int currenttextLength = 0;
-
+        StringBuilder currenttext = new();
 
         for (int i = 0; i < s.Length; i++)
         {
-            if (s[i] == '&')
+            if (s[i] == '&' && i + 1 < s.Length)
             {
-                if (i + 1 < s.Length)
+                int color = HexToInt(s[i + 1]);
+                if (color != -1)
                 {
-                    int color = HexToInt(s[i + 1]);
-                    if (color != -1)
+                    if (currenttext.Length > 0)
                     {
-                        if (currenttextLength != 0)
-                        {
-                            TextPart part = new()
-                            {
-                                text = StringUtils.CharArrayToString(currenttext, currenttextLength),
-                                color = currentcolor
-                            };
-                            parts[partsCount++] = part;
-                        }
-
-                        currenttextLength = 0;
-                        currentcolor = GetColor(color);
-                        i++;
+                        parts.Add(new TextPart { text = currenttext.ToString(), color = currentcolor });
+                        currenttext.Clear();
                     }
-                    else
-                    {
-                        currenttext[currenttextLength++] = s[i];
-                    }
-                }
-                else
-                {
-                    currenttext[currenttextLength++] = s[i];
+                    currentcolor = GetColor(color);
+                    i++; // skip the hex digit
+                    continue;
                 }
             }
-            else
-            {
-                currenttext[currenttextLength++] = s[i];
-            }
+            currenttext.Append(s[i]);
         }
 
-        if (currenttextLength != 0)
+        if (currenttext.Length > 0)
         {
-            TextPart part = new()
-            {
-                text = StringUtils.CharArrayToString(currenttext, currenttextLength),
-                color = currentcolor
-            };
-            parts[partsCount++] = part;
+            parts.Add(new TextPart { text = currenttext.ToString(), color = currentcolor });
         }
 
-        retLength = partsCount;
-        return parts;
+        retLength = parts.Count;
+        return parts.ToArray();
     }
 
+    /// <summary>
+    /// Returns the smallest power of two that is greater than or equal to <paramref name="x"/>.
+    /// Handles values up to 2^31.
+    /// </summary>
     private static int NextPowerOfTwo(int x)
     {
         x--;
-        x |= x >> 1;  // handle  2 bit numbers
-        x |= x >> 2;  // handle  4 bit numbers
-        x |= x >> 4;  // handle  8 bit numbers
-        x |= x >> 8;  // handle 16 bit numbers
-        //x |= x >> 16; // handle 32 bit numbers
+        x |= x >> 1;  // handle  2-bit numbers
+        x |= x >> 2;  // handle  4-bit numbers
+        x |= x >> 4;  // handle  8-bit numbers
+        x |= x >> 8;  // handle 16-bit numbers
+        x |= x >> 16; // handle 32-bit numbers
         x++;
         return x;
     }
 
-    private static int GetColor(int currentcolor)
+    // ARGB color palette indexed by the hex digit in a color code sequence.
+    // Loosely follows the classic 16-color terminal palette.
+    private static readonly int[] ColorPalette =
+    [
+        Game.ColorFromArgb(255,   0,   0,   0), // 0 black
+        Game.ColorFromArgb(255,   0,   0, 191), // 1 dark blue
+        Game.ColorFromArgb(255,   0, 191,   0), // 2 dark green
+        Game.ColorFromArgb(255,   0, 191, 191), // 3 dark cyan
+        Game.ColorFromArgb(255, 191,   0,   0), // 4 dark red
+        Game.ColorFromArgb(255, 191,   0, 191), // 5 dark magenta
+        Game.ColorFromArgb(255, 191, 191,   0), // 6 dark yellow
+        Game.ColorFromArgb(255, 191, 191, 191), // 7 light grey
+        Game.ColorFromArgb(255,  40,  40,  40), // 8 dark grey
+        Game.ColorFromArgb(255,  64,  64, 255), // 9 blue
+        Game.ColorFromArgb(255,  64, 255,  64), // a green
+        Game.ColorFromArgb(255,  64, 255, 255), // b cyan
+        Game.ColorFromArgb(255, 255,  64,  64), // c red
+        Game.ColorFromArgb(255, 255,  64, 255), // d magenta
+        Game.ColorFromArgb(255, 255, 255,  64), // e yellow
+        Game.ColorFromArgb(255, 255, 255, 255), // f white
+    ];
+
+    private static int GetColor(int index)
     {
-        switch (currentcolor)
-        {
-            case 0: { return Game.ColorFromArgb(255, 0, 0, 0); }
-            case 1: { return Game.ColorFromArgb(255, 0, 0, 191); }
-            case 2: { return Game.ColorFromArgb(255, 0, 191, 0); }
-            case 3: { return Game.ColorFromArgb(255, 0, 191, 191); }
-            case 4: { return Game.ColorFromArgb(255, 191, 0, 0); }
-            case 5: { return Game.ColorFromArgb(255, 191, 0, 191); }
-            case 6: { return Game.ColorFromArgb(255, 191, 191, 0); }
-            case 7: { return Game.ColorFromArgb(255, 191, 191, 191); }
-            case 8: { return Game.ColorFromArgb(255, 40, 40, 40); }
-            case 9: { return Game.ColorFromArgb(255, 64, 64, 255); }
-            case 10: { return Game.ColorFromArgb(255, 64, 255, 64); }
-            case 11: { return Game.ColorFromArgb(255, 64, 255, 255); }
-            case 12: { return Game.ColorFromArgb(255, 255, 64, 64); }
-            case 13: { return Game.ColorFromArgb(255, 255, 64, 255); }
-            case 14: { return Game.ColorFromArgb(255, 255, 255, 64); }
-            case 15: { return Game.ColorFromArgb(255, 255, 255, 255); }
-            default: return Game.ColorFromArgb(255, 255, 255, 255);
-        }
+        if (index >= 0 && index < ColorPalette.Length)
+            return ColorPalette[index];
+        return ColorPalette[15]; // default white
     }
 
-    private static int HexToInt(int c)
+    /// <summary>
+    /// Converts a hex character (0–9, a–f, A–F) to its integer value, or -1 if not a hex digit.
+    /// </summary>
+    private static int HexToInt(char c)
     {
-        if (c == '0') { return 0; }
-        if (c == '1') { return 1; }
-        if (c == '2') { return 2; }
-        if (c == '3') { return 3; }
-        if (c == '4') { return 4; }
-        if (c == '5') { return 5; }
-        if (c == '6') { return 6; }
-        if (c == '7') { return 7; }
-        if (c == '8') { return 8; }
-        if (c == '9') { return 9; }
-        if (c == 'a') { return 10; }
-        if (c == 'b') { return 11; }
-        if (c == 'c') { return 12; }
-        if (c == 'd') { return 13; }
-        if (c == 'e') { return 14; }
-        if (c == 'f') { return 15; }
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
         return -1;
     }
 }
 
-public class CameraMove
+public interface IMapStorage
 {
-    internal bool TurnLeft;
-    internal bool TurnRight;
-    internal bool DistanceUp;
-    internal bool DistanceDown;
-    internal bool AngleUp;
-    internal bool AngleDown;
-    internal int MoveX;
-    internal int MoveY;
-    internal float Distance;
+    int MapSizeX { get; }
+    int MapSizeY { get; }
+    int MapSizeZ { get; }
+    int GetBlock(int x, int y, int z);
+    void SetBlock(int x, int y, int z, int tileType);
 }
 
-public class Kamera
+public class MapStorage : IMapStorage
 {
-    public Kamera()
+    private readonly Game game;
+
+    public MapStorage(Game game)
     {
-        one = 1;
-        distance = 5;
-        Angle = 45;
-        MinimumDistance = 2;
-        tt = 0;
-        MaximumAngle = 89;
-        MinimumAngle = 0;
-        Center = new Vector3();
-    }
-    private readonly float one;
-    public void GetPosition(IGamePlatform platform, ref Vector3 ret)
-    {
-        float cx = MathF.Cos(tt * one / 2) * GetFlatDistance(platform) + Center.X;
-        float cy = MathF.Sin(tt * one / 2) * GetFlatDistance(platform) + Center.Z;
-        ret.X = cx;
-        ret.Y = Center.Y + GetCameraHeightFromCenter(platform);
-        ret.Z = cy;
-    }
-    private float distance;
-    public float GetDistance() { return distance; }
-    public void SetDistance(float value)
-    {
-        distance = value;
-        if (distance < MinimumDistance)
-        {
-            distance = MinimumDistance;
-        }
-    }
-    internal float Angle;
-    internal float MinimumDistance;
-    private float GetCameraHeightFromCenter(IGamePlatform platform)
-    {
-        return MathF.Sin(Angle * MathF.PI / 180) * distance;
-    }
-    private float GetFlatDistance(IGamePlatform platform)
-    {
-        return MathF.Cos(Angle * MathF.PI / 180) * distance;
-    }
-    internal Vector3 Center;
-    internal float tt;
-    public float GetT()
-    {
-        return tt;
-    }
-    public void SetT(float value)
-    {
-        tt = value;
-    }
-    public void TurnLeft(float p)
-    {
-        tt += p;
-    }
-    public void TurnRight(float p)
-    {
-        tt -= p;
-    }
-    public void Move(CameraMove camera_move, float p)
-    {
-        p *= 2;
-        p *= 2;
-        if (camera_move.TurnLeft)
-        {
-            TurnLeft(p);
-        }
-        if (camera_move.TurnRight)
-        {
-            TurnRight(p);
-        }
-        if (camera_move.DistanceUp)
-        {
-            SetDistance(GetDistance() + p);
-        }
-        if (camera_move.DistanceDown)
-        {
-            SetDistance(GetDistance() - p);
-        }
-        if (camera_move.AngleUp)
-        {
-            Angle += p * 10;
-        }
-        if (camera_move.AngleDown)
-        {
-            Angle -= p * 10;
-        }
-        SetDistance(camera_move.Distance);
-        //if (MaximumAngle < MinimumAngle) { throw new Exception(); }
-        SetValidAngle();
+        this.game = game;
     }
 
-    private void SetValidAngle()
-    {
-        if (Angle > MaximumAngle) { Angle = MaximumAngle; }
-        if (Angle < MinimumAngle) { Angle = MinimumAngle; }
-    }
+    public int MapSizeX => game.VoxelMap.MapSizeX;
+    public int MapSizeY => game.VoxelMap.MapSizeY;
+    public int MapSizeZ => game.VoxelMap.MapSizeZ;
 
-    internal int MaximumAngle;
-    internal int MinimumAngle;
-
-    public float GetAngle()
-    {
-        return Angle;
-    }
-
-    public void SetAngle(float value)
-    {
-        Angle = value;
-    }
-
-    public Vector3 GetCenter()
-    {
-        return new Vector3(Center.X, Center.Y, Center.Z);
-    }
-
-    public void TurnUp(float p)
-    {
-        Angle += p;
-        SetValidAngle();
-    }
-}
-
-public abstract class IMapStorage2
-{
-    public abstract int GetMapSizeX();
-    public abstract int GetMapSizeY();
-    public abstract int GetMapSizeZ();
-    public abstract int GetBlock(int x, int y, int z);
-    public abstract void SetBlock(int x, int y, int z, int tileType);
-}
-
-public class MapStorage2 : IMapStorage2
-{
-    public static MapStorage2 Create(Game game)
-    {
-        MapStorage2 s = new()
-        {
-            game = game
-        };
-        return s;
-    }
-    private Game game;
-    public override int GetMapSizeX()
-    {
-        return game.map.MapSizeX;
-    }
-
-    public override int GetMapSizeY()
-    {
-        return game.map.MapSizeY;
-    }
-
-    public override int GetMapSizeZ()
-    {
-        return game.map.MapSizeZ;
-    }
-
-    public override int GetBlock(int x, int y, int z)
-    {
-        return game.map.GetBlock(x, y, z);
-    }
-
-    public override void SetBlock(int x, int y, int z, int tileType)
-    {
-        game.SetBlock(x, y, z, tileType);
-    }
+    public int GetBlock(int x, int y, int z) => game.VoxelMap.GetBlock(x, y, z);
+    public void SetBlock(int x, int y, int z, int tileType) => game.SetBlock(x, y, z, tileType);
 }
 
 public class GameDataMonsters
@@ -2028,373 +1749,5 @@ public class OnCrashHandlerLeave : OnCrashHandler
     public override void OnCrash()
     {
         g.SendLeave(Packet_LeaveReasonEnum.Crash);
-    }
-}
-
-public class OptionsCi
-{
-    public OptionsCi()
-    {
-        float one = 1;
-        Shadows = false;
-        Font = 0;
-        DrawDistance = 32;
-        UseServerTextures = true;
-        EnableSound = true;
-        EnableAutoJump = false;
-        ClientLanguage = "";
-        Framerate = 0;
-        Resolution = 0;
-        Fullscreen = false;
-        Smoothshadows = true;
-        BlockShadowSave = one * 6 / 10;
-        EnableBlockShadow = true;
-        Keys = new int[360];
-    }
-    internal bool Shadows;
-    internal int Font;
-    internal int DrawDistance;
-    internal bool UseServerTextures;
-    internal bool EnableSound;
-    internal bool EnableAutoJump;
-    internal string ClientLanguage;
-    internal int Framerate;
-    internal int Resolution;
-    internal bool Fullscreen;
-    internal bool Smoothshadows;
-    internal float BlockShadowSave;
-    internal bool EnableBlockShadow;
-    internal int[] Keys;
-}
-
-public class TextureAtlas
-{
-    public static RectangleF TextureCoords2d(int textureId, int texturesPacked)
-    {
-        float one = 1;
-        RectangleF r = new()
-        {
-            Y = (one / texturesPacked * (textureId / texturesPacked)),
-            X = (one / texturesPacked * (textureId % texturesPacked)),
-            Width = one / texturesPacked,
-            Height = one / texturesPacked
-        };
-        return r;
-    }
-}
-
-public class Map
-{
-    internal Chunk[] chunks;
-    internal int MapSizeX;
-    internal int MapSizeY;
-    internal int MapSizeZ;
-
-    private static int Index3d(int x, int y, int h, int sizex, int sizey)
-    {
-        return (h * sizey + y) * sizex + x;
-    }
-
-    public int GetBlockValid(int x, int y, int z)
-    {
-        int cx = x >> Game.chunksizebits;
-        int cy = y >> Game.chunksizebits;
-        int cz = z >> Game.chunksizebits;
-        int chunkpos = Index3d(cx, cy, cz, MapSizeX >> Game.chunksizebits, MapSizeY >> Game.chunksizebits);
-        if (chunks[chunkpos] == null)
-        {
-            return 0;
-        }
-        else
-        {
-            int pos = Index3d(x & (Game.chunksize - 1), y & (Game.chunksize - 1), z & (Game.chunksize - 1), Game.chunksize, Game.chunksize);
-            return chunks[chunkpos].GetBlockInChunk(pos);
-        }
-    }
-
-    public Chunk GetChunk(int x, int y, int z)
-    {
-        x = x / Game.chunksize;
-        y = y / Game.chunksize;
-        z = z / Game.chunksize;
-        return GetChunk_(x, y, z);
-    }
-
-    public Chunk GetChunk_(int cx, int cy, int cz)
-    {
-        int mapsizexchunks = MapSizeX / Game.chunksize;
-        int mapsizeychunks = MapSizeY / Game.chunksize;
-        Chunk chunk = chunks[Index3d(cx, cy, cz, mapsizexchunks, mapsizeychunks)];
-        if (chunk == null)
-        {
-            Chunk c = new()
-            {
-                data = new byte[Game.chunksize * Game.chunksize * Game.chunksize],
-                baseLight = new byte[Game.chunksize * Game.chunksize * Game.chunksize]
-            };
-            chunks[Index3d(cx, cy, cz, mapsizexchunks, mapsizeychunks)] = c;
-            return chunks[Index3d(cx, cy, cz, mapsizexchunks, mapsizeychunks)];
-        }
-        return chunk;
-    }
-
-    public void SetBlockRaw(int x, int y, int z, int tileType)
-    {
-        Chunk chunk = GetChunk(x, y, z);
-        int pos = Index3d(x % Game.chunksize, y % Game.chunksize, z % Game.chunksize, Game.chunksize, Game.chunksize);
-        chunk.SetBlockInChunk(pos, tileType);
-    }
-
-    public static void CopyChunk(Chunk chunk, int[] output)
-    {
-        int n = Game.chunksize * Game.chunksize * Game.chunksize;
-        if (chunk.dataInt != null)
-        {
-            for (int i = 0; i < n; i++)
-            {
-                output[i] = chunk.dataInt[i];
-            }
-        }
-        else
-        {
-            for (int i = 0; i < n; i++)
-            {
-                output[i] = chunk.data[i];
-            }
-        }
-    }
-
-    public void Reset(int sizex, int sizey, int sizez)
-    {
-        MapSizeX = sizex;
-        MapSizeY = sizey;
-        MapSizeZ = sizez;
-        chunks = new Chunk[(sizex / Game.chunksize) * (sizey / Game.chunksize) * (sizez / Game.chunksize)];
-    }
-
-    public void GetMapPortion(int[] outPortion, int x, int y, int z, int portionsizex, int portionsizey, int portionsizez)
-    {
-        int outPortionCount = portionsizex * portionsizey * portionsizez;
-        for (int i = 0; i < outPortionCount; i++)
-        {
-            outPortion[i] = 0;
-        }
-
-        //int chunksizebits = p.FloatToInt(p.MathLog(chunksize, 2));
-
-        int mapchunksx = MapSizeX / Game.chunksize;
-        int mapchunksy = MapSizeY / Game.chunksize;
-        int mapchunksz = MapSizeZ / Game.chunksize;
-        int mapsizechunks = mapchunksx * mapchunksy * mapchunksz;
-
-        for (int xx = 0; xx < portionsizex; xx++)
-        {
-            for (int yy = 0; yy < portionsizey; yy++)
-            {
-                for (int zz = 0; zz < portionsizez; zz++)
-                {
-                    //Find chunk.
-                    int cx = (x + xx) >> Game.chunksizebits;
-                    int cy = (y + yy) >> Game.chunksizebits;
-                    int cz = (z + zz) >> Game.chunksizebits;
-                    //int cpos = MapUtil.Index3d(cx, cy, cz, MapSizeX / chunksize, MapSizeY / chunksize);
-                    int cpos = (cz * mapchunksy + cy) * mapchunksx + cx;
-                    //if (cpos < 0 || cpos >= ((MapSizeX / chunksize) * (MapSizeY / chunksize) * (MapSizeZ / chunksize)))
-                    if (cpos < 0 || cpos >= mapsizechunks)
-                    {
-                        continue;
-                    }
-                    Chunk chunk = chunks[cpos];
-                    if (chunk == null || !chunk.ChunkHasData())
-                    {
-                        continue;
-                    }
-                    //int pos = MapUtil.Index3d((x + xx) % chunksize, (y + yy) % chunksize, (z + zz) % chunksize, chunksize, chunksize);
-                    int chunkGlobalX = cx << Game.chunksizebits;
-                    int chunkGlobalY = cy << Game.chunksizebits;
-                    int chunkGlobalZ = cz << Game.chunksizebits;
-
-                    int inChunkX = (x + xx) - chunkGlobalX;
-                    int inChunkY = (y + yy) - chunkGlobalY;
-                    int inChunkZ = (z + zz) - chunkGlobalZ;
-
-                    //int pos = MapUtil.Index3d(inChunkX, inChunkY, inChunkZ, chunksize, chunksize);
-                    int pos = (((inChunkZ << Game.chunksizebits) + inChunkY) << Game.chunksizebits) + inChunkX;
-
-                    int block = chunk.GetBlockInChunk(pos);
-                    //outPortion[MapUtil.Index3d(xx, yy, zz, portionsizex, portionsizey)] = (byte)block;
-                    outPortion[(zz * portionsizey + yy) * portionsizex + xx] = block;
-                }
-            }
-        }
-    }
-
-    public bool IsValidPos(int x, int y, int z)
-    {
-        if (x < 0 || y < 0 || z < 0)
-        {
-            return false;
-        }
-        if (x >= MapSizeX || y >= MapSizeY || z >= MapSizeZ)
-        {
-            return false;
-        }
-        return true;
-    }
-
-    public bool IsValidChunkPos(int cx, int cy, int cz)
-    {
-        return cx >= 0 && cy >= 0 && cz >= 0
-            && cx < MapSizeX / Game.chunksize
-            && cy < MapSizeY / Game.chunksize
-            && cz < MapSizeZ / Game.chunksize;
-    }
-
-    public int GetBlock(int x, int y, int z)
-    {
-        if (!IsValidPos(x, y, z))
-        {
-            return 0;
-        }
-        return GetBlockValid(x, y, z);
-    }
-
-    public void SetChunkDirty(int cx, int cy, int cz, bool dirty, bool blockschanged)
-    {
-        if (!IsValidChunkPos(cx, cy, cz))
-        {
-            return;
-        }
-
-        Chunk c = chunks[MapUtilCi.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
-        if (c == null)
-        {
-            return;
-        }
-        c.rendered ??= new RenderedChunk();
-        c.rendered.dirty = dirty;
-        if (blockschanged)
-        {
-            c.baseLightDirty = true;
-        }
-    }
-
-    public int Mapsizexchunks => MapSizeX >> Game.chunksizebits;
-    public int Mapsizeychunks => MapSizeY >> Game.chunksizebits;
-    public int Mapsizezchunks => MapSizeZ >> Game.chunksizebits;
-
-    public void SetChunksAroundDirty(int cx, int cy, int cz)
-    {
-        if (IsValidChunkPos(cx, cy, cz)) { SetChunkDirty(cx - 1, cy, cz, true, false); }
-        if (IsValidChunkPos(cx - 1, cy, cz)) { SetChunkDirty(cx - 1, cy, cz, true, false); }
-        if (IsValidChunkPos(cx + 1, cy, cz)) { SetChunkDirty(cx + 1, cy, cz, true, false); }
-        if (IsValidChunkPos(cx, cy - 1, cz)) { SetChunkDirty(cx, cy - 1, cz, true, false); }
-        if (IsValidChunkPos(cx, cy + 1, cz)) { SetChunkDirty(cx, cy + 1, cz, true, false); }
-        if (IsValidChunkPos(cx, cy, cz - 1)) { SetChunkDirty(cx, cy, cz - 1, true, false); }
-        if (IsValidChunkPos(cx, cy, cz + 1)) { SetChunkDirty(cx, cy, cz + 1, true, false); }
-    }
-
-    public void SetMapPortion(int x, int y, int z, int[] chunk, int sizeX, int sizeY, int sizeZ)
-    {
-        int chunksizex = sizeX;
-        int chunksizey = sizeY;
-        int chunksizez = sizeZ;
-        //if (chunksizex % chunksize != 0) { platform.ThrowException(""); }
-        //if (chunksizey % chunksize != 0) { platform.ThrowException(""); }
-        //if (chunksizez % chunksize != 0) { platform.ThrowException(""); }
-        int chunksize = Game.chunksize;
-        Chunk[] localchunks = new Chunk[(chunksizex / chunksize) * (chunksizey / chunksize) * (chunksizez / chunksize)];
-        for (int cx = 0; cx < chunksizex / chunksize; cx++)
-        {
-            for (int cy = 0; cy < chunksizey / chunksize; cy++)
-            {
-                for (int cz = 0; cz < chunksizex / chunksize; cz++)
-                {
-                    localchunks[Index3d(cx, cy, cz, (chunksizex / chunksize), (chunksizey / chunksize))] = GetChunk(x + cx * chunksize, y + cy * chunksize, z + cz * chunksize);
-                    FillChunk(localchunks[Index3d(cx, cy, cz, (chunksizex / chunksize), (chunksizey / chunksize))], chunksize, cx * chunksize, cy * chunksize, cz * chunksize, chunk, sizeX, sizeY, sizeZ);
-                }
-            }
-        }
-        for (int xxx = 0; xxx < chunksizex; xxx += chunksize)
-        {
-            for (int yyy = 0; yyy < chunksizex; yyy += chunksize)
-            {
-                for (int zzz = 0; zzz < chunksizex; zzz += chunksize)
-                {
-                    SetChunkDirty((x + xxx) / chunksize, (y + yyy) / chunksize, (z + zzz) / chunksize, true, true);
-                    SetChunksAroundDirty((x + xxx) / chunksize, (y + yyy) / chunksize, (z + zzz) / chunksize);
-                }
-            }
-        }
-    }
-
-    public static void FillChunk(Chunk destination, int destinationchunksize, int sourcex, int sourcey, int sourcez, int[] source, int sourcechunksizeX, int sourcechunksizeY, int sourcechunksizeZ)
-    {
-        for (int x = 0; x < destinationchunksize; x++)
-        {
-            for (int y = 0; y < destinationchunksize; y++)
-            {
-                for (int z = 0; z < destinationchunksize; z++)
-                {
-                    //if (x + sourcex < source.GetUpperBound(0) + 1
-                    //    && y + sourcey < source.GetUpperBound(1) + 1
-                    //    && z + sourcez < source.GetUpperBound(2) + 1)
-                    {
-                        destination.SetBlockInChunk(Index3d(x, y, z, destinationchunksize, destinationchunksize)
-                            , source[Index3d(x + sourcex, y + sourcey, z + sourcez, sourcechunksizeX, sourcechunksizeY)]);
-                    }
-                }
-            }
-        }
-    }
-
-    public int MaybeGetLight(int x, int y, int z)
-    {
-        int light = -1;
-        int cx = x / Game.chunksize;
-        int cy = y / Game.chunksize;
-        int cz = z / Game.chunksize;
-        if (IsValidPos(x, y, z) && IsValidChunkPos(cx, cy, cz))
-        {
-            Chunk c = chunks[MapUtilCi.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
-            if (c == null
-                || c.rendered == null
-                || c.rendered.light == null)
-            {
-                light = -1;
-            }
-            else
-            {
-                light = c.rendered.light[MapUtilCi.Index3d((x % Game.chunksize) + 1, (y % Game.chunksize) + 1, (z % Game.chunksize) + 1, Game.chunksize + 2, Game.chunksize + 2)];
-            }
-        }
-        return light;
-    }
-
-    public void SetBlockDirty(int x, int y, int z)
-    {
-        Vector3i[] around = ModDrawTerrain.BlocksAround7(new Vector3i(x, y, z));
-        for (int i = 0; i < 7; i++)
-        {
-            Vector3i a = around[i];
-            int xx = a.X;
-            int yy = a.Y;
-            int zz = a.Z;
-            if (xx < 0 || yy < 0 || zz < 0 || xx >= MapSizeX || yy >= MapSizeY || zz >= MapSizeZ)
-            {
-                return;
-            }
-            SetChunkDirty((xx / Game.chunksize), (yy / Game.chunksize), (zz / Game.chunksize), true, true);
-        }
-    }
-
-    public bool IsChunkRendered(int cx, int cy, int cz)
-    {
-        Chunk c = chunks[MapUtilCi.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
-        if (c == null)
-        {
-            return false;
-        }
-        return c.rendered != null && c.rendered.ids != null;
     }
 }

@@ -338,7 +338,7 @@ public partial class Game
 
         int playerx = (int)player.position.x;
         int playery = (int)player.position.z;
-        if (playerx >= 0 && playerx < map.MapSizeX && playery >= 0 && playery < map.MapSizeY)
+        if (playerx >= 0 && playerx < VoxelMap.MapSizeX && playery >= 0 && playery < VoxelMap.MapSizeY)
             performanceinfo["height"] = string.Format("height:{0}", d_Heightmap.GetBlock(playerx, playery).ToString());
 
         if (eKey == GetKey(Keys.F5))
@@ -414,7 +414,7 @@ public partial class Game
             int posX = currentAttackedBlock.Value.X;
             int posY = currentAttackedBlock.Value.Y;
             int posZ = currentAttackedBlock.Value.Z;
-            int blocktype = map.GetBlock(posX, posY, posZ);
+            int blocktype = VoxelMap.GetBlock(posX, posY, posZ);
 
             if (IsUsableBlock(blocktype))
             {

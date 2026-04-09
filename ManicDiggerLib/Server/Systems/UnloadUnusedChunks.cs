@@ -19,7 +19,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
         for (int i = 0; i < 100; i++)
         {
-            MapUtilCi.PosInt(CompressUnusedIteration, sizexchunks, sizeychunks, ref chunkpos);
+            VectorIndexUtil.PosInt(CompressUnusedIteration, sizexchunks, sizeychunks, ref chunkpos);
             ServerChunk c = server.d_Map.GetChunkValid(chunkpos.X, chunkpos.Y, chunkpos.Z);
             bool stop = false;
             if (c != null)

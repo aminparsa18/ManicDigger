@@ -8,7 +8,7 @@
     {
         for (int z = z_; z >= 0; z--)
         {
-            if (map.GetBlock(x, y, z) != 0)
+            if (VoxelMap.GetBlock(x, y, z) != 0)
                 return z + 1;
         }
         return 0;
@@ -17,10 +17,10 @@
     public float Getblockheight(int x, int y, int z)
     {
         float RailHeight = one * 3 / 10;
-        if (!map.IsValidPos(x, y, z))
+        if (!VoxelMap.IsValidPos(x, y, z))
             return 1;
 
-        int block = map.GetBlock(x, y, z);
+        int block = VoxelMap.GetBlock(x, y, z);
         if (blocktypes[block].Rail != 0)
             return RailHeight;
         if (blocktypes[block].DrawType == Packet_DrawTypeEnum.HalfHeight)

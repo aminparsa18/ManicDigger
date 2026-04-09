@@ -22,7 +22,7 @@ public class ModDrawPlayers : ModBase
             int cx = (int)p.position.x / Game.chunksize;
             int cy = (int)p.position.z / Game.chunksize;
             int cz = (int)p.position.y / Game.chunksize;
-            if (game.map.IsValidChunkPos(cx, cy, cz) && !game.map.IsChunkRendered(cx, cy, cz)) continue;
+            if (game.VoxelMap.IsValidChunkPos(cx, cy, cz) && !game.VoxelMap.IsChunkRendered(cx, cy, cz)) continue;
 
             p.playerDrawInfo ??= new PlayerDrawInfo();
 

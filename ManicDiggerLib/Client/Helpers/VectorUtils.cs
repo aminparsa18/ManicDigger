@@ -61,4 +61,23 @@ public class VectorUtils
     /// </summary>
     public static bool PointInRect(float x, float y, float rx, float ry, float rw, float rh)
        => new Box2(rx, ry, rx + rw, ry + rh).ContainsExclusive(new Vector2(x, y));
+
+
+    /// <summary>
+    /// Returns the UV rectangle for a texture within a packed atlas grid.
+    /// </summary>
+    /// <param name="textureId">Flat index of the texture in the atlas.</param>
+    /// <param name="texturesPacked">Number of textures along one axis of the atlas (assumed square).</param>
+    /// <returns>A <see cref="RectangleF"/> in normalised [0,1] UV space.</returns>
+    public static RectangleF GetAtlasRect(int textureId, int texturesPacked)
+    {
+        RectangleF r = new()
+        {
+            Y = (1 / texturesPacked * (textureId / texturesPacked)),
+            X = (1 / texturesPacked * (textureId % texturesPacked)),
+            Width = 1 / texturesPacked,
+            Height = 1 / texturesPacked
+        };
+        return r;
+    }
 }

@@ -64,9 +64,8 @@ public class ModCameraKeys : ModBase
         if (game.keyboardState[game.GetKey(Keys.A)]) game.overheadcameraK.TurnRight(dt * OverheadCameraSpeed);
         if (game.keyboardState[game.GetKey(Keys.D)]) game.overheadcameraK.TurnLeft(dt * OverheadCameraSpeed);
 
-        game.overheadcameraK.Center.X = game.player.position.x;
-        game.overheadcameraK.Center.Y = game.player.position.y;
-        game.overheadcameraK.Center.Z = game.player.position.z;
+        game.overheadcameraK.Center = new Vector3(game.player.position.x,
+            game.player.position.y, game.player.position.z);
 
         CameraMove m = new()
         {

@@ -40,9 +40,9 @@ public class ModFallDamageToPlayer : ModBase
     private void ApplyFallDamage(Game game, int posX, int posY, int posZ, float fallSpeed)
     {
         if (fallSpeed < 4f) return;
-        if (!game.map.IsValidPos(posX, posY, posZ - 3)) return;
+        if (!game.VoxelMap.IsValidPos(posX, posY, posZ - 3)) return;
 
-        int blockBelow = game.map.GetBlock(posX, posY, posZ - 3);
+        int blockBelow = game.VoxelMap.GetBlock(posX, posY, posZ - 3);
         if (blockBelow == 0 || game.IsWater(blockBelow)) return;
 
         // fallspeed 4 ≈ 10 blocks high, 5.5 ≈ 20 blocks high

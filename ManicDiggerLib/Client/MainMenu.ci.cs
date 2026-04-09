@@ -1,6 +1,5 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
-using System.Text;
 
 public class MainMenu
 {

@@ -2383,7 +2383,7 @@ public partial class Server : ICurrentTime, IDropItem
     /// <returns>true if client can see the chunk, false otherwise</returns>
     public bool ClientSeenChunk(int clientid, int vx, int vy, int vz)
     {
-        int pos = MapUtilCi.Index3d(vx, vy, vz, d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize);
+        int pos = VectorIndexUtil.Index3d(vx, vy, vz, d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize);
         return clients[clientid].chunksseen[pos];
     }
     /// <summary>
@@ -2398,7 +2398,7 @@ public partial class Server : ICurrentTime, IDropItem
     /// <param name="time"></param>
     public void ClientSeenChunkSet(int clientid, int vx, int vy, int vz, int time)
     {
-        int pos = MapUtilCi.Index3d(vx, vy, vz, d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize);
+        int pos = VectorIndexUtil.Index3d(vx, vy, vz, d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize);
         clients[clientid].chunksseen[pos] = true;
         clients[clientid].chunksseenTime[pos] = time;
         //Console.WriteLine("SeenChunk:   {0},{1},{2} Client: {3}", vx, vy, vz, clientid);
@@ -2414,7 +2414,7 @@ public partial class Server : ICurrentTime, IDropItem
     /// <param name="vz">Chunk z coordinate</param>
     public void ClientSeenChunkRemove(int clientid, int vx, int vy, int vz)
     {
-        int pos = MapUtilCi.Index3d(vx, vy, vz, d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize);
+        int pos = VectorIndexUtil.Index3d(vx, vy, vz, d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize);
         clients[clientid].chunksseen[pos] = false;
         clients[clientid].chunksseenTime[pos] = 0;
         //Console.WriteLine("UnseenChunk: {0},{1},{2} Client: {3}", vx, vy, vz, clientid);
@@ -4150,50 +4150,50 @@ public static class MapUtil
         return new Vector3i(x, y, h);
     }
 
-    public static bool IsValidPos(IMapStorage2 map, int x, int y, int z)
+    public static bool IsValidPos(IMapStorage map, int x, int y, int z)
     {
         if (x < 0 || y < 0 || z < 0)
         {
             return false;
         }
-        if (x >= map.GetMapSizeX() || y >= map.GetMapSizeY() || z >= map.GetMapSizeZ())
+        if (x >= map.MapSizeX || y >= map.MapSizeY || z >= map.MapSizeZ)
         {
             return false;
         }
         return true;
     }
 
-    public static bool IsValidPos(IMapStorage2 map, int x, int y)
+    public static bool IsValidPos(IMapStorage map, int x, int y)
     {
         if (x < 0 || y < 0)
         {
             return false;
         }
-        if (x >= map.GetMapSizeX() || y >= map.GetMapSizeY())
+        if (x >= map.MapSizeX || y >= map.MapSizeY)
         {
             return false;
         }
         return true;
     }
 
-    public static bool IsValidChunkPos(IMapStorage2 map, int cx, int cy, int cz, int chunksize)
+    public static bool IsValidChunkPos(IMapStorage map, int cx, int cy, int cz, int chunksize)
     {
         return cx >= 0 && cy >= 0 && cz >= 0
-            && cx < map.GetMapSizeX() / chunksize
-            && cy < map.GetMapSizeY() / chunksize
-            && cz < map.GetMapSizeZ() / chunksize;
+            && cx < map.MapSizeX / chunksize
+            && cy < map.MapSizeY / chunksize
+            && cz < map.MapSizeZ / chunksize;
     }
 
-    public static int blockheight(IMapStorage2 map, int tileidempty, int x, int y)
+    public static int blockheight(IMapStorage map, int tileidempty, int x, int y)
     {
-        for (int z = map.GetMapSizeZ() - 1; z >= 0; z--)
+        for (int z = map.MapSizeZ - 1; z >= 0; z--)
         {
             if (map.GetBlock(x, y, z) != tileidempty)
             {
                 return z + 1;
             }
         }
-        return map.GetMapSizeZ() / 2;
+        return map.MapSizeZ / 2;
     }
 
     private static readonly ulong pow20minus1 = 1048576 - 1;
@@ -4216,7 +4216,7 @@ public static class MapUtil
         return v;
     }
 
-    public static int SearchColumn(IMapStorage2 map, int x, int y, int id, int startH)
+    public static int SearchColumn(IMapStorage map, int x, int y, int id, int startH)
     {
         for (int h = startH; h > 0; h--)
         {
@@ -4228,9 +4228,9 @@ public static class MapUtil
         return -1; // -1 means 'not found'
     }
 
-    public static int SearchColumn(IMapStorage2 map, int x, int y, int id)
+    public static int SearchColumn(IMapStorage map, int x, int y, int id)
     {
-        return SearchColumn(map, x, y, id, map.GetMapSizeZ() - 1);
+        return SearchColumn(map, x, y, id, map.MapSizeZ - 1);
     }
 
     public static bool IsSolidChunk(ushort[] chunk)

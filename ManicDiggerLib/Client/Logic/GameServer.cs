@@ -55,11 +55,11 @@
         SendRequestBlob(getAsset, getCount);
         ChatLog("[GAME] Sent BLOB request");
 
-        if (packet.Identification.MapSizeX != map.MapSizeX
-            || packet.Identification.MapSizeY != map.MapSizeY
-            || packet.Identification.MapSizeZ != map.MapSizeZ)
+        if (packet.Identification.MapSizeX != VoxelMap.MapSizeX
+            || packet.Identification.MapSizeY != VoxelMap.MapSizeY
+            || packet.Identification.MapSizeZ != VoxelMap.MapSizeZ)
         {
-            map.Reset(packet.Identification.MapSizeX,
+            VoxelMap.Reset(packet.Identification.MapSizeX,
                 packet.Identification.MapSizeY,
                 packet.Identification.MapSizeZ);
             d_Heightmap.Restart();

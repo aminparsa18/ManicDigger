@@ -37,11 +37,11 @@
 
     internal bool IsTileEmptyForPhysics(int x, int y, int z)
     {
-        if (z >= map.MapSizeZ) return true;
+        if (z >= VoxelMap.MapSizeZ) return true;
         if (x < 0 || y < 0 || z < 0) return controls.freemove;
-        if (x >= map.MapSizeX || y >= map.MapSizeY) return controls.freemove;
+        if (x >= VoxelMap.MapSizeX || y >= VoxelMap.MapSizeY) return controls.freemove;
 
-        int block = map.GetBlockValid(x, y, z);
+        int block = VoxelMap.GetBlockValid(x, y, z);
         return block == SpecialBlockId.Empty
             || block == d_Data.BlockIdFillArea()
             || IsWater(block);
@@ -49,8 +49,8 @@
 
     internal bool IsTileEmptyForPhysicsClose(int x, int y, int z) =>
         IsTileEmptyForPhysics(x, y, z)
-        || (map.IsValidPos(x, y, z) && blocktypes[map.GetBlock(x, y, z)].DrawType == Packet_DrawTypeEnum.HalfHeight)
-        || (map.IsValidPos(x, y, z) && IsEmptyForPhysics(blocktypes[map.GetBlock(x, y, z)]));
+        || (VoxelMap.IsValidPos(x, y, z) && blocktypes[VoxelMap.GetBlock(x, y, z)].DrawType == Packet_DrawTypeEnum.HalfHeight)
+        || (VoxelMap.IsValidPos(x, y, z) && IsEmptyForPhysics(blocktypes[VoxelMap.GetBlock(x, y, z)]));
 
     // -------------------------------------------------------------------------
     // Block manipulation
@@ -58,8 +58,8 @@
 
     internal void SetBlock(int x, int y, int z, int tileType)
     {
-        map.SetBlockRaw(x, y, z, tileType);
-        map.SetChunkDirty(x / chunksize, y / chunksize, z / chunksize, true, true);
+        VoxelMap.SetBlockRaw(x, y, z, tileType);
+        VoxelMap.SetChunkDirty(x / chunksize, y / chunksize, z / chunksize, true, true);
         ShadowsOnSetBlock(x, y, z);
         lastplacedblockX = x;
         lastplacedblockY = y;
@@ -72,7 +72,7 @@
         RedrawBlock(x, y, z);
     }
 
-    internal void RedrawBlock(int x, int y, int z) => map.SetBlockDirty(x, y, z);
+    internal void RedrawBlock(int x, int y, int z) => VoxelMap.SetBlockDirty(x, y, z);
 
     internal void RedrawAllBlocks() => shouldRedrawAllBlocks = true;
 
@@ -82,12 +82,12 @@
 
     public int GetLight(int x, int y, int z)
     {
-        int light = map.MaybeGetLight(x, y, z);
+        int light = VoxelMap.MaybeGetLight(x, y, z);
         if (light != -1)
             return light;
 
-        if (x >= 0 && x < map.MapSizeX
-            && y >= 0 && y < map.MapSizeY
+        if (x >= 0 && x < VoxelMap.MapSizeX
+            && y >= 0 && y < VoxelMap.MapSizeY
             && z >= d_Heightmap.GetBlock(x, y))
             return sunlight_;
 
@@ -97,11 +97,11 @@
     internal void UpdateColumnHeight(int x, int y)
     {
         // TODO: optimize
-        int height = map.MapSizeZ - 1;
-        for (int i = map.MapSizeZ - 1; i >= 0; i--)
+        int height = VoxelMap.MapSizeZ - 1;
+        for (int i = VoxelMap.MapSizeZ - 1; i >= 0; i--)
         {
             height = i;
-            if (!IsTransparentForLight(blocktypes[map.GetBlock(x, y, i)]))
+            if (!IsTransparentForLight(blocktypes[VoxelMap.GetBlock(x, y, i)]))
                 break;
         }
         d_Heightmap.SetBlock(x, y, height);
@@ -118,7 +118,7 @@
         for (int i = min; i < max; i++)
         {
             if (i / chunksize != z / chunksize)
-                map.SetChunkDirty(x / chunksize, y / chunksize, i / chunksize, true, true);
+                VoxelMap.SetChunkDirty(x / chunksize, y / chunksize, i / chunksize, true, true);
         }
 
         // TODO: too many redraws — placing a block currently updates 27 chunks,
@@ -130,8 +130,8 @@
                     int cx = x / chunksize + xx - 1;
                     int cy = y / chunksize + yy - 1;
                     int cz = z / chunksize + zz - 1;
-                    if (map.IsValidChunkPos(cx, cy, cz))
-                        map.SetChunkDirty(cx, cy, cz, true, false);
+                    if (VoxelMap.IsValidChunkPos(cx, cy, cz))
+                        VoxelMap.SetChunkDirty(cx, cy, cz, true, false);
                 }
     }
 
@@ -144,7 +144,7 @@
         if (blockHealth.TryGetValue((x, y, z), out float health))
             return health;
 
-        return d_Data.Strength()[map.GetBlock(x, y, z)];
+        return d_Data.Strength()[VoxelMap.GetBlock(x, y, z)];
     }
 
     // -------------------------------------------------------------------------
@@ -165,7 +165,7 @@
             x = x,
             y = y,
             z = z,
-            blocktype = map.GetBlock(x, y, z),
+            blocktype = VoxelMap.GetBlock(x, y, z),
             timeMilliseconds = platform.TimeMillisecondsFromStart()
         });
         SetBlock(x, y, z, blockid);
@@ -263,5 +263,5 @@
         playerPositionSpawnZ = player.position.z;
     }
 
-    public float WaterLevel() => map.MapSizeZ / 2f;
+    public float WaterLevel() => VoxelMap.MapSizeZ / 2f;
 }

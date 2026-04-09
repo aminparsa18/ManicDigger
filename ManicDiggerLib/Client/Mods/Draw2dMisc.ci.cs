@@ -29,11 +29,11 @@ public class ModDraw2dMisc : ModBase
         int y = game.SelectedBlockPositionZ;
         int z = game.SelectedBlockPositionY;
         //string info = "None";
-        if (!game.map.IsValidPos(x, y, z))
+        if (!game.VoxelMap.IsValidPos(x, y, z))
         {
             return;
         }
-        int blocktype = game.map.GetBlock(x, y, z);
+        int blocktype = game.VoxelMap.GetBlock(x, y, z);
         if (!game.IsValid(blocktype))
         {
             return;
@@ -61,7 +61,7 @@ public class ModDraw2dMisc : ModBase
             int x = game.currentAttackedBlock.Value.X;
             int y = game.currentAttackedBlock.Value.Y;
             int z = game.currentAttackedBlock.Value.Z;
-            int blocktype = game.map.GetBlock(x, y, z);
+            int blocktype = game.VoxelMap.GetBlock(x, y, z);
             float health = game.GetCurrentBlockHealth(x, y, z);
             float progress = health / game.d_Data.Strength()[blocktype];
             if (game.IsUsableBlock(blocktype))

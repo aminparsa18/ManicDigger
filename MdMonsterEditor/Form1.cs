@@ -227,7 +227,7 @@ public partial class Form1 : Form
     //CharacterDrawerBlock d = new CharacterDrawerBlock();
     private AnimationState animstate = new();
     private Config3d config3d = new();
-    private Kamera overheadcameraK = new();
+    private Camera overheadcameraK = new();
     private Vector3 up = new(0f, 1f, 0f);
     private void SetupViewport()
     {

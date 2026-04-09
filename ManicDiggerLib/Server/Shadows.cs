@@ -1,6 +1,6 @@
 ﻿public class InfiniteMapChunked2dServer
 {
-    public IMapStorage2? d_Map;
+    public IMapStorage? d_Map;
     public int chunksize = 16;
     public ushort[][]? chunks;
 
@@ -15,16 +15,16 @@
         ushort[] chunk = null;
         int kx = x / chunksize;
         int ky = y / chunksize;
-        if (chunks[MapUtil.Index2d(kx, ky, d_Map.GetMapSizeX() / chunksize)] == null)
+        if (chunks[MapUtil.Index2d(kx, ky, d_Map.MapSizeX / chunksize)] == null)
         {
             chunk = new ushort[chunksize * chunksize];// (byte*)Marshal.AllocHGlobal(chunksize * chunksize);
             for (int i = 0; i < chunksize * chunksize; i++)
             {
                 chunk[i] = 0;
             }
-            chunks[MapUtil.Index2d(kx, ky, d_Map.GetMapSizeX() / chunksize)] = chunk;
+            chunks[MapUtil.Index2d(kx, ky, d_Map.MapSizeX / chunksize)] = chunk;
         }
-        chunk = chunks[MapUtil.Index2d(kx, ky, d_Map.GetMapSizeX() / chunksize)];
+        chunk = chunks[MapUtil.Index2d(kx, ky, d_Map.MapSizeX / chunksize)];
         return chunk;
     }
 
@@ -36,7 +36,7 @@
     public void Restart()
     {
         //chunks = new byte[d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize][,];
-        int n = (d_Map.GetMapSizeX() / chunksize) * (d_Map.GetMapSizeY() / chunksize);
+        int n = (d_Map.MapSizeX / chunksize) * (d_Map.MapSizeY / chunksize);
         chunks = new ushort[n][];//(byte**)Marshal.AllocHGlobal(n * sizeof(IntPtr));
         for (int i = 0; i < n; i++)
         {
@@ -48,6 +48,6 @@
     {
         int px = x / chunksize;
         int py = y / chunksize;
-        chunks[MapUtil.Index2d(px, py, d_Map.GetMapSizeX() / chunksize)] = null;
+        chunks[MapUtil.Index2d(px, py, d_Map.MapSizeX / chunksize)] = null;
     }
 }

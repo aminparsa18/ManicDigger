@@ -15,7 +15,7 @@ public class ModCamera : ModBase
 
     internal Matrix4 OverheadCamera(Game game)
     {
-        game.overheadcameraK.GetPosition(game.platform, ref overheadCameraEye);
+        game.overheadcameraK.GetPosition(ref overheadCameraEye);
         Vector3 eye = overheadCameraEye;
         Vector3 target = new(
             game.overheadcameraK.Center.X,

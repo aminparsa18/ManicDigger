@@ -48,12 +48,12 @@ public partial class Game
         d_Data = gamedata;
         d_TerrainTextures = terrainTextures;
 
-        map.Reset(256, 256, 128);
+        VoxelMap.Reset(256, 256, 128);
 
         SunMoonRenderer sunmoonrenderer = new();
         d_SunMoonRenderer = sunmoonrenderer;
 
-        d_Heightmap = new InfiniteMapChunked2d { d_Map = this };
+        d_Heightmap = new ChunkedMap2d { _game = this };
         d_Heightmap.Restart();
         d_TerrainChunkTesselator = terrainchunktesselator;
         terrainchunktesselator.game = this;

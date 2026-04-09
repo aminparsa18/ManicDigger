@@ -305,7 +305,7 @@ public class ServerSimple
     private void LoadAndSendChunk(int x, int y, int z, int clientId)
     {
         ClientSimple c = clients[clientId];
-        int pos = MapUtilCi.Index2d(x, y, MapSizeX / ChunkSize);
+        int pos = VectorIndexUtil.Index2d(x, y, MapSizeX / ChunkSize);
 
         c.chunksseen[pos] ??= new bool[MapSizeZ / ChunkSize];
         c.chunksseen[pos][z] = true;
@@ -346,7 +346,7 @@ public class ServerSimple
         {
             for (int y = startY; y <= endY; y++)
             {
-                int pos = MapUtilCi.Index2d(x, y, MapSizeX / ChunkSize);
+                int pos = VectorIndexUtil.Index2d(x, y, MapSizeX / ChunkSize);
                 client.chunksseen[pos] ??= new bool[MapSizeZ / ChunkSize];
 
                 for (int z = startZ; z <= endZ; z++)

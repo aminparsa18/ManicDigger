@@ -113,7 +113,7 @@ public class ModNetworkProcess : ModBase
                         }
                     }
                     {
-                        game.map.SetMapPortion(p.X, p.Y, p.Z, receivedchunk, p.SizeX, p.SizeY, p.SizeZ);
+                        game.VoxelMap.SetMapPortion(p.X, p.Y, p.Z, receivedchunk, p.SizeX, p.SizeY, p.SizeZ);
                         for (int xx = 0; xx < 2; xx++)
                         {
                             for (int yy = 0; yy < 2; yy++)
@@ -138,7 +138,7 @@ public class ModNetworkProcess : ModBase
                     {
                         for (int yy = 0; yy < p.SizeY; yy++)
                         {
-                            int height = decompressedchunk1[MapUtilCi.Index2d(xx, yy, p.SizeX)];
+                            int height = decompressedchunk1[VectorIndexUtil.Index2d(xx, yy, p.SizeX)];
                             game.d_Heightmap.SetBlock(p.X + xx, p.Y + yy, height);
                         }
                     }

@@ -506,7 +506,7 @@ public class ModDrawHand3d : ModBase
     private void AddFace(ModelData m, int x, int y, int z, int c, TileSide side, bool windingCw)
     {
         int tex = GetWeaponTextureId(side);
-        RectangleF r = TextureAtlas.TextureCoords2d(tex, TexturesPacked);
+        RectangleF r = VectorUtils.GetAtlasRect(tex, TexturesPacked);
         int base_ = m.VerticesCount;
 
         switch (side)
@@ -863,7 +863,7 @@ public class BlockRendererTorch
     /// Returns the normalised UV rectangle for <paramref name="textureIndex"/> in the terrain atlas.
     /// </summary>
     private static RectangleF GetTexRect(int textureIndex)
-        => TextureAtlas.TextureCoords2d(textureIndex, Game.TexturesPacked);
+        => VectorUtils.GetAtlasRect(textureIndex, Game.TexturesPacked);
 
     /// <summary>
     /// Convenience overload of <see cref="AddVertex(ModelData,float,float,float,float,float,int)"/>

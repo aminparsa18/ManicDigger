@@ -199,9 +199,9 @@ public class TerrainChunkTesselatorCi
         currentChunkShadows18 = new byte[(chunksize + 2) * (chunksize + 2) * (chunksize + 2)];
         currentChunkDraw16 = new byte[chunksize * chunksize * chunksize];
         currentChunkDrawCount16 = new byte[chunksize * chunksize * chunksize][];
-        mapsizex = game.map.MapSizeX;
-        mapsizey = game.map.MapSizeY;
-        mapsizez = game.map.MapSizeZ;
+        mapsizex = game.VoxelMap.MapSizeX;
+        mapsizey = game.VoxelMap.MapSizeY;
+        mapsizez = game.VoxelMap.MapSizeZ;
         started = true;
 
         istransparent = new bool[GlobalVar.MAX_BLOCKTYPES];

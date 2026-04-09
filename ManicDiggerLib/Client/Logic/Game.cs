@@ -330,9 +330,9 @@ public partial class Game
         int maxY = (int)(Math.Max(line.Start[1], line.End[1]));
         int maxZ = (int)(Math.Max(line.Start[2], line.End[2]));
 
-        if (maxX > map.MapSizeX) { maxX = map.MapSizeX; }
-        if (maxY > map.MapSizeZ) { maxY = map.MapSizeZ; }
-        if (maxZ > map.MapSizeY) { maxZ = map.MapSizeY; }
+        if (maxX > VoxelMap.MapSizeX) { maxX = VoxelMap.MapSizeX; }
+        if (maxY > VoxelMap.MapSizeZ) { maxY = VoxelMap.MapSizeZ; }
+        if (maxZ > VoxelMap.MapSizeY) { maxZ = VoxelMap.MapSizeY; }
 
         int sizex = maxX - minX + 1;
         int sizey = maxY - minY + 1;

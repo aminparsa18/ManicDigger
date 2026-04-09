@@ -201,15 +201,15 @@ public class ModDrawTerrain : ModBase
             StartTerrain();
         }
 
-        int chunksLength = InvertChunk(_game.map.MapSizeX)
-                         * InvertChunk(_game.map.MapSizeY)
-                         * InvertChunk(_game.map.MapSizeZ);
+        int chunksLength = InvertChunk(_game.VoxelMap.MapSizeX)
+                         * InvertChunk(_game.VoxelMap.MapSizeY)
+                         * InvertChunk(_game.VoxelMap.MapSizeZ);
 
         unchecked
         {
             for (int i = 0; i < chunksLength; i++)
             {
-                Chunk c = _game.map.chunks[i];
+                Chunk c = _game.VoxelMap.chunks[i];
                 if (c == null) { continue; }
 
                 c.rendered ??= new RenderedChunk();
@@ -256,9 +256,9 @@ public class ModDrawTerrain : ModBase
             return;
         }
 
-        int mapSizeX = InvertChunk(_game.map.MapSizeX);
-        int mapSizeY = InvertChunk(_game.map.MapSizeY);
-        int mapSizeZ = InvertChunk(_game.map.MapSizeZ);
+        int mapSizeX = InvertChunk(_game.VoxelMap.MapSizeX);
+        int mapSizeY = InvertChunk(_game.VoxelMap.MapSizeY);
+        int mapSizeZ = InvertChunk(_game.VoxelMap.MapSizeZ);
         int mapsizexchunks = MapsizeXChunks();
         int mapsizeychunks = MapsizeYChunks();
 
@@ -279,7 +279,7 @@ public class ModDrawTerrain : ModBase
                 continue;
             }
 
-            Chunk chunk = _game.map.chunks[Index3d(xx, yy, zz, mapsizexchunks, mapsizeychunks)];
+            Chunk chunk = _game.VoxelMap.chunks[Index3d(xx, yy, zz, mapsizexchunks, mapsizeychunks)];
             if (chunk?.rendered == null) { continue; }
 
             if (chunk.rendered.dirty)
@@ -344,7 +344,7 @@ public class ModDrawTerrain : ModBase
                 for (int y = startY; y <= endY; y++)
                     for (int z = startZ; z <= endZ; z++)
                     {
-                        Chunk c = _game.map.chunks[Index3d(x, y, z, mapsizexchunks, mapsizeychunks)];
+                        Chunk c = _game.VoxelMap.chunks[Index3d(x, y, z, mapsizexchunks, mapsizeychunks)];
                         if (c?.rendered == null || !c.rendered.dirty) { continue; }
 
                         int dx = px - x, dy = py - y, dz = pz - z;
@@ -427,7 +427,7 @@ public class ModDrawTerrain : ModBase
     {
         unchecked
         {
-            Chunk c = _game.map.chunks[MapUtilCi.Index3d(x, y, z, MapsizeXChunks(), MapsizeYChunks())];
+            Chunk c = _game.VoxelMap.chunks[VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(), MapsizeYChunks())];
             if (c == null) { return; }
 
             c.rendered ??= new RenderedChunk();
@@ -466,7 +466,7 @@ public class ModDrawTerrain : ModBase
     /// <param name="z">Chunk Z coordinate.</param>
     private void GetExtendedChunk(int x, int y, int z)
     {
-        _game.map.GetMapPortion(
+        _game.VoxelMap.GetMapPortion(
             _currentChunk,
             x * chunksize - 1, y * chunksize - 1, z * chunksize - 1,
             bufferedChunkSize, bufferedChunkSize, bufferedChunkSize);
@@ -519,9 +519,9 @@ public class ModDrawTerrain : ModBase
                         int cx1 = cx + xx - 1;
                         int cy1 = cy + yy - 1;
                         int cz1 = cz + zz - 1;
-                        if (!_game.map.IsValidChunkPos(cx1, cy1, cz1)) { continue; }
+                        if (!_game.VoxelMap.IsValidChunkPos(cx1, cy1, cz1)) { continue; }
 
-                        Chunk neighbour = _game.map.GetChunk(cx1 * chunksize, cy1 * chunksize, cz1 * chunksize);
+                        Chunk neighbour = _game.VoxelMap.GetChunk(cx1 * chunksize, cy1 * chunksize, cz1 * chunksize);
                         if (neighbour.baseLightDirty)
                         {
                             _lightBase.CalculateChunkBaseLight(
@@ -532,7 +532,7 @@ public class ModDrawTerrain : ModBase
                     }
 
             // Initialise the chunk's light buffer to full brightness on first use.
-            RenderedChunk rendered = _game.map.GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).rendered;
+            RenderedChunk rendered = _game.VoxelMap.GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).rendered;
             if (rendered.light == null)
             {
                 rendered.light = new byte[BufferedChunkVolume];
@@ -605,13 +605,13 @@ public class ModDrawTerrain : ModBase
     private int MapAreaSizeZ() => MapAreaSize();
 
     /// <summary>Map width in chunks.</summary>
-    private int MapsizeXChunks() => _game.map.Mapsizexchunks;
+    private int MapsizeXChunks() => _game.VoxelMap.Mapsizexchunks;
 
     /// <summary>Map depth in chunks.</summary>
-    private int MapsizeYChunks() => _game.map.Mapsizeychunks;
+    private int MapsizeYChunks() => _game.VoxelMap.Mapsizeychunks;
 
     /// <summary>Map height in chunks.</summary>
-    private int MapsizeZChunks() => _game.map.Mapsizezchunks;
+    private int MapsizeZChunks() => _game.VoxelMap.Mapsizezchunks;
 
     /// <summary>
     /// Converts 3-D chunk coordinates to a flat array index using row-major order.

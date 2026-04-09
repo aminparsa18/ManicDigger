@@ -116,14 +116,14 @@ public class LightBetweenChunks
                     int pcz = cz + z - 1;
 
                     // Zero out buffers for missing or out-of-bounds chunks.
-                    if (!game.map.IsValidChunkPos(pcx, pcy, pcz))
+                    if (!game.VoxelMap.IsValidChunkPos(pcx, pcy, pcz))
                     {
                         Array.Clear(_chunksData[slotIndex], 0, ChunkVolume);
                         Array.Clear(_chunksLight[slotIndex], 0, ChunkVolume);
                         continue;
                     }
 
-                    Chunk chunk = game.map.GetChunk_(pcx, pcy, pcz);
+                    Chunk chunk = game.VoxelMap.GetChunk_(pcx, pcy, pcz);
                     int[] dataSlot = _chunksData[slotIndex];
                     byte[] lightSlot = _chunksLight[slotIndex];
 
@@ -274,7 +274,7 @@ public class LightBetweenChunks
     /// <param name="cz">Target chunk Z coordinate.</param>
     private void Output(Game game, int cx, int cy, int cz)
     {
-        Chunk chunk = game.map.GetChunk_(cx, cy, cz);
+        Chunk chunk = game.VoxelMap.GetChunk_(cx, cy, cz);
 
         for (int x = 0; x < OutputSize; x++)
         {

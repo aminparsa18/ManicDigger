@@ -35,7 +35,7 @@ public class ModGuiCrafting : ModBase
     {
         d_CraftingTableTool ??= new CraftingTableTool
         {
-            d_Map = MapStorage2.Create(game),
+            d_Map = new MapStorage(game),
             d_Data = game.d_Data
         };
 
@@ -60,7 +60,7 @@ public class ModGuiCrafting : ModBase
         int posY = game.SelectedBlockPositionZ;
         int posZ = game.SelectedBlockPositionY;
 
-        if (game.map.GetBlock(posX, posY, posZ) != game.d_Data.BlockIdCraftingTable()) return;
+        if (game.VoxelMap.GetBlock(posX, posY, posZ) != game.d_Data.BlockIdCraftingTable()) return;
 
         Vector3i[] table = d_CraftingTableTool.GetTable(posX, posY, posZ, out int tableCount);
         int[] onTable = d_CraftingTableTool.GetOnTable(table, tableCount, out int onTableCount);
@@ -181,7 +181,7 @@ public class PacketHandlerCraftingRecipes : ClientPacketHandler
 
 public class CraftingTableTool
 {
-    internal IMapStorage2 d_Map;
+    internal IMapStorage d_Map;
     internal GameData d_Data;
     public int[] GetOnTable(Vector3i[] table, int tableCount, out int retCount)
     {

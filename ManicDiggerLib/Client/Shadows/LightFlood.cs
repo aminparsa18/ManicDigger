@@ -79,9 +79,9 @@ public class LightFlood
             if (!dataTransparent[vBlock] && dataLightRadius[vBlock] == 0)
                 continue;
 
-            int x = MapUtilCi.PosX(vPos, 16, 16);
-            int y = MapUtilCi.PosY(vPos, 16, 16);
-            int z = MapUtilCi.PosZ(vPos, 16, 16);
+            int x = VectorIndexUtil.PosX(vPos, 16, 16);
+            int y = VectorIndexUtil.PosY(vPos, 16, 16);
+            int z = VectorIndexUtil.PosZ(vPos, 16, 16);
 
             // Propagate to each face-connected neighbour within chunk bounds.
             if (x < 15) Push(light, vLight, vPos + XPlus);

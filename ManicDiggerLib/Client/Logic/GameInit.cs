@@ -71,8 +71,8 @@ public partial class Game
     // Fields — world / map
     // -------------------------------------------------------------------------
 
-    internal Map map;
-    internal InfiniteMapChunked2d d_Heightmap;
+    internal VoxelMap VoxelMap;
+    internal ChunkedMap2d d_Heightmap;
     internal Config3d d_Config3d;
 
     internal int lastplacedblockX;
@@ -180,7 +180,7 @@ public partial class Game
     internal float znear;
     internal bool ENABLE_ZFAR;
     internal float overheadcameradistance;
-    internal Kamera overheadcameraK;
+    internal Camera overheadcameraK;
     internal float tppcameradistance;
     internal float TPP_CAMERA_DISTANCE_MIN;
     internal float TPP_CAMERA_DISTANCE_MAX;
@@ -315,7 +315,7 @@ public partial class Game
     internal bool AllowFreemove;
     internal MenuState menustate;
     internal ServerInformation ServerInfo;
-    internal OptionsCi options;
+    internal GameOption options;
     internal Dictionary<string, string> performanceinfo;
     internal Packet_ServerPlayerStats PlayerStats;
     internal string[] getAsset;
@@ -382,7 +382,7 @@ public partial class Game
         modmanager = new ClientModManager1();
         particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
         ServerInfo = new ServerInformation();
-        options = new OptionsCi();
+        options = new GameOption();
         getAsset = new string[1024 * 2];
         identityMatrix = Matrix4.Identity;
         Set3dProjectionTempMat4 = Matrix4.Identity;
@@ -394,7 +394,7 @@ public partial class Game
 
     private void InitMap()
     {
-        map = new Map();
+        VoxelMap = new VoxelMap();
         lastplacedblockX = -1;
         lastplacedblockY = -1;
         lastplacedblockZ = -1;
@@ -471,7 +471,7 @@ public partial class Game
         znear = one / 10;
         ENABLE_ZFAR = true;
         overheadcameradistance = 10;
-        overheadcameraK = new Kamera();
+        overheadcameraK = new Camera();
         tppcameradistance = 3;
         TPP_CAMERA_DISTANCE_MIN = 1;
         TPP_CAMERA_DISTANCE_MAX = 10;

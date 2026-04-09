@@ -48,6 +48,24 @@ APIVersion = new Version(3, 3),
 
 This keeps the game running without rewriting all rendering code at once.
 
+### Additional Migration Work (this fork)
+
+#### Math Library Migration
+- Custom `Vec3` / `Mat4` classes replaced with `System.Numerics.Vector3` and `System.Numerics.Matrix4x4`
+- Introduced `ToOpenTK()` conversion helpers (`Mat4` → `OpenTK.Mathematics.Matrix4`, `Vec3` → `OpenTK.Mathematics.Vector3`) since the legacy GL pipeline still requires OpenTK math types for calls like `GL.LoadMatrix`
+- Fixed a column-major ordering bug: `System.Numerics.Matrix4x4` is row-major, but OpenGL's fixed-function pipeline expects column-major — the converter transposes accordingly
+
+#### Custom Cursor
+- `window.Cursor = new MouseCursor(hotx, hoty, sizex, sizey, data)` rewritten for OpenTK 4's `ICursorHandle` system
+- Pixel format corrected from RGBA to BGRA (premultiplied alpha) as required by the new API
+
+#### VSync Context Timing Fix
+- `VSync` assignment moved inside the window constructor / `OnLoad` — setting it before the OpenGL context is fully initialized caused a runtime crash ("Cannot set swap interval without a current OpenGL context")
+
+#### OpenAL Lifecycle & Threading
+- `AudioContext` replaced with the explicit `ALC.OpenDevice` → `ALC.CreateContext` → `ALC.MakeContextCurrent` pattern, with proper `ALC.DestroyContext` / `ALC.CloseDevice` on shutdown
+- Fixed a threading bug where OpenAL audio worker threads were calling `AL.*` functions without first making the context current on that thread, causing native crashes
+
 ---
 
 ## Roadmap

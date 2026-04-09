@@ -1,7 +1,6 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using System.Text;
-using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 public class MainMenu
 {
@@ -11,7 +10,7 @@ public class MainMenu
         textures = [];
         textTextures = new TextTexture[256];
         textTexturesCount = 0;
-        screen = new ScreenMain
+        screen = new MainScreen
         {
             menu = this
         };
@@ -116,7 +115,7 @@ public class MainMenu
         screen.Render(dt);
     }
 
-    private Screen screen;
+    private ScreenBase screen;
 
     internal void DrawButton(string text, float fontSize, float dx, float dy, float dw, float dh, bool pressed)
     {
@@ -423,7 +422,7 @@ public class MainMenu
 
     internal void StartSingleplayer()
     {
-        screen = new ScreenSingleplayer
+        screen = new SingleplayerScreen
         {
             menu = this
         };
@@ -432,7 +431,7 @@ public class MainMenu
 
     internal void StartLogin(string serverHash, string ip, int port)
     {
-        ScreenLogin screenLogin = new()
+        LoginScreen screenLogin = new()
         {
             serverHash = serverHash,
             serverIp = ip,
@@ -445,7 +444,7 @@ public class MainMenu
 
     internal void StartConnectToIp()
     {
-        ScreenConnectToIp screenConnectToIp = new();
+        ConnectionScreen screenConnectToIp = new();
         screen = screenConnectToIp;
         screen.menu = this;
         screen.LoadTranslations();
@@ -458,7 +457,7 @@ public class MainMenu
 
     internal void StartMainMenu()
     {
-        screen = new ScreenMain
+        screen = new MainScreen
         {
             menu = this
         };
@@ -489,7 +488,7 @@ public class MainMenu
 
     internal void StartMultiplayer()
     {
-        screen = new ScreenMultiplayer
+        screen = new MultiplayerScreen
         {
             menu = this
         };
@@ -593,292 +592,6 @@ public class TextTexture
     internal int textureheight;
     internal int textwidth;
     internal int textheight;
-}
-
-public class Screen
-{
-    public Screen()
-    {
-        WidgetCount = 64;
-        widgets = new MenuWidget[WidgetCount];
-    }
-    internal MainMenu menu;
-    public virtual void Render(float dt) { }
-    public virtual void OnKeyDown(KeyEventArgs e) { KeyDown(e); }
-    public virtual void OnKeyPress(KeyPressEventArgs e) { KeyPress(e); }
-    public virtual void OnKeyUp(KeyEventArgs e) {  }
-    public virtual void OnTouchStart(TouchEventArgs e) { MouseDown(e.GetX(), e.GetY()); }
-    public virtual void OnTouchMove(TouchEventArgs e) { }
-    public virtual void OnTouchEnd(TouchEventArgs e) { MouseUp(e.GetX(), e.GetY()); }
-    public virtual void OnMouseDown(MouseEventArgs e) { MouseDown(e.GetX(), e.GetY()); }
-    public virtual void OnMouseUp(MouseEventArgs e) { MouseUp(e.GetX(), e.GetY()); }
-    public virtual void OnMouseMove(MouseEventArgs e) { MouseMove(e); }
-    public virtual void OnBackPressed() { }
-    public virtual void LoadTranslations() { }
-
-    private void KeyDown(KeyEventArgs e)
-    {
-        for (int i = 0; i < WidgetCount; i++)
-        {
-            MenuWidget w = widgets[i];
-            if (w == null)
-            {
-			    continue;
-			}
-            if (w.hasKeyboardFocus)
-            {
-                if (e.KeyChar == (int)Keys.Tab || e.KeyChar == (int)Keys.Enter)
-                {
-                    if (w.type == WidgetType.Button && e.KeyChar == (int)Keys.Enter)
-                    {
-                        //Call OnButton when enter is pressed and widget is a button
-                        OnButton(w);
-                        return;
-                    }
-                    if (w.nextWidget != -1)
-                    {
-                        //Just switch focus otherwise
-                        w.LoseFocus();
-                        widgets[w.nextWidget].GetFocus();
-                        return;
-                    }
-                }
-            }
-            if (w.type == WidgetType.Textbox)
-            {
-                if (w.editing)
-                {
-                    int key = e.KeyChar;
-                    // pasting text from clipboard
-                    if (e.CtrlPressed && key == (int)Keys.V)
-                    {
-                        if (Clipboard.ContainsText())
-                        {
-                            w.text = string.Concat(w.text, Clipboard.GetText());
-                        }
-                        return;
-                    }
-                    // deleting characters using backspace
-                    if (key == (int)Keys.Backspace)
-                    {
-                        if (w.text.Length > 0)
-                        {
-                            w.text = w.text[..^1];
-                        }
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    private void KeyPress(KeyPressEventArgs e)
-    {
-        for (int i = 0; i < WidgetCount; i++)
-        {
-            MenuWidget w = widgets[i];
-            if (w != null)
-            {
-                if (w.type == WidgetType.Textbox)
-                {
-                    if (w.editing)
-                    {
-                        if (menu.p.IsValidTypingChar(e.KeyChar))
-                        {
-                            w.text = string.Concat(w.text, (char)e.KeyChar);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void MouseDown(int x, int y)
-    {
-        bool editingChange = false;
-        for (int i = 0; i < WidgetCount; i++)
-        {
-            MenuWidget w = widgets[i];
-            if (w != null)
-            {
-                if (w.type == WidgetType.Button)
-                {
-                    w.pressed = pointInRect(x, y, w.x, w.y, w.sizex, w.sizey);
-                }
-                if (w.type == WidgetType.Textbox)
-                {
-                    w.pressed = pointInRect(x, y, w.x, w.y, w.sizex, w.sizey);
-                    bool wasEditing = w.editing;
-                    w.editing = w.pressed;
-                    if (w.editing && (!wasEditing))
-                    {
-                        menu.p.ShowKeyboard(true);
-                        editingChange = true;
-                    }
-                    if ((!w.editing) && wasEditing && (!editingChange))
-                    {
-                        menu.p.ShowKeyboard(false);
-                    }
-                }
-                if (w.pressed)
-                {
-                    //Set focus to new element when clicked on
-                    AllLoseFocus();
-                    w.GetFocus();
-                }
-            }
-        }
-    }
-
-    private void AllLoseFocus()
-    {
-        for (int i = 0; i < WidgetCount; i++)
-        {
-            MenuWidget w = widgets[i];
-            if (w != null)
-            {
-                w.LoseFocus();
-            }
-        }
-    }
-
-    private void MouseUp(int x, int y)
-    {
-        for (int i = 0; i < WidgetCount; i++)
-        {
-            MenuWidget w = widgets[i];
-            if (w != null)
-            {
-                w.pressed = false;
-            }
-        }
-        for (int i = 0; i < WidgetCount; i++)
-        {
-            MenuWidget w = widgets[i];
-            if (w != null)
-            {
-                if (w.type == WidgetType.Button)
-                {
-                    if (pointInRect(x, y, w.x, w.y, w.sizex, w.sizey))
-                    {
-                        OnButton(w);
-                    }
-                }
-            }
-        }
-    }
-
-    public virtual void OnButton(MenuWidget w) { }
-
-    private void MouseMove(MouseEventArgs e)
-    {
-        if (e.GetEmulated() && !e.GetForceUsage())
-        {
-            return;
-        }
-        for (int i = 0; i < WidgetCount; i++)
-        {
-            MenuWidget w = widgets[i];
-            w?.hover = pointInRect(e.GetX(), e.GetY(), w.x, w.y, w.sizex, w.sizey);
-        }
-    }
-
-    private static bool pointInRect(float x, float y, float rx, float ry, float rw, float rh)
-    {
-        return x >= rx && y >= ry && x < rx + rw && y < ry + rh;
-    }
-
-    public virtual void OnMouseWheel(MouseWheelEventArgs e) { }
-    internal int WidgetCount;
-    internal MenuWidget[] widgets;
-    public void DrawWidgets()
-    {
-        for (int i = 0; i < WidgetCount; i++)
-        {
-            MenuWidget w = widgets[i];
-            if (w != null)
-            {
-                if (!w.visible)
-                {
-                    continue;
-                }
-                string text = w.text;
-                if (w.selected)
-                {
-                    text = string.Concat("&2", text);
-                }
-                if (w.type == WidgetType.Button)
-                {
-                    if (w.buttonStyle == ButtonStyle.Text)
-                    {
-                        if (w.image != null)
-                        {
-                            menu.Draw2dQuad(menu.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
-                        }
-                        menu.DrawText(text, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Left, TextBaseline.Middle);
-                    }
-                    else if (w.buttonStyle == ButtonStyle.Button)
-                    {
-                        menu.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey, (w.hover || w.hasKeyboardFocus));
-                        if (w.description != null)
-                        {
-                            menu.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
-                        }
-                    }
-                    else
-                    {
-                        string[] strings = w.text.Split('\n');
-                        if (w.selected)
-                        {
-                            //Highlight text if selected
-                            strings[0] = string.Concat("&2", strings[0]);
-                            strings[1] = string.Concat("&2", strings[1]);
-                            strings[2] = string.Concat("&2", strings[2]);
-                            strings[3] = string.Concat("&2", strings[3]);
-                        }
-                        menu.DrawServerButton(strings[0], strings[1], strings[2], strings[3], w.x, w.y, w.sizex, w.sizey, w.image);
-                        if (w.description != null)
-                        {
-                            //Display a warning sign, when server does not respond to queries
-                            menu.Draw2dQuad(menu.GetTexture("serverlist_entry_noresponse.png"), w.x - 38 * menu.GetScale(), w.y, w.sizey / 2, w.sizey / 2);
-                        }
-                        if (strings[4] != menu.p.GetGameVersion())
-                        {
-                            //Display an icon if server version differs from client version
-                            menu.Draw2dQuad(menu.GetTexture("serverlist_entry_differentversion.png"), w.x - 38 * menu.GetScale(), w.y + w.sizey / 2, w.sizey / 2, w.sizey / 2);
-                        }
-                    }
-                }
-                if (w.type == WidgetType.Textbox)
-                {
-                    if (w.password)
-                    {
-                        text = new string((char)42, w.text.Length); // '*'
-                    }
-                    if (w.editing)
-                    {
-                        text = string.Concat(text, "_");
-                    }
-                    if (w.buttonStyle == ButtonStyle.Text)
-                    {
-                        if (w.image != null)
-                        {
-                            menu.Draw2dQuad(menu.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
-                        }
-                        menu.DrawText(text, w.fontSize, w.x, w.y, TextAlign.Left, TextBaseline.Top);
-                    }
-                    else
-                    {
-                        menu.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey, (w.hover || w.editing || w.hasKeyboardFocus));
-                    }
-                    if (w.description != null)
-                    {
-                        menu.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
-                    }
-                }
-            }
-        }
-    }
 }
 
 public enum LoginResult

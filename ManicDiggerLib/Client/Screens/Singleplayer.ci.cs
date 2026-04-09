@@ -1,6 +1,27 @@
-﻿public class ScreenSingleplayer : Screen
+﻿/// <summary>
+/// Screen that shows available singleplayer save files and lets the player
+/// launch, create, or modify a world.
+/// </summary>
+/// <remarks>
+/// When the platform does not support singleplayer (i.e. web/mobile), all world
+/// widgets are hidden and an explanatory message is displayed instead.
+/// </remarks>
+public class SingleplayerScreen : ScreenBase
 {
-    public ScreenSingleplayer()
+    private readonly MenuWidget play;
+    private readonly MenuWidget newWorld;
+    private readonly MenuWidget modify;
+    private readonly MenuWidget back;
+    private readonly MenuWidget open;
+
+    /// <summary>Dynamically populated buttons, one per discovered save file (up to 10).</summary>
+    private readonly MenuWidget[] worldButtons;
+
+    private string[] savegames;
+    private int savegamesCount;
+    private string title;
+
+    public SingleplayerScreen()
     {
         play = new MenuWidget
         {
@@ -44,18 +65,7 @@
         }
     }
 
-    private readonly MenuWidget newWorld;
-    private readonly MenuWidget play;
-    private readonly MenuWidget modify;
-    private readonly MenuWidget back;
-    private readonly MenuWidget open;
-
-    private readonly MenuWidget[] worldButtons;
-
-    private string[] savegames;
-    private int savegamesCount;
-    private string title;
-
+    /// <inheritdoc/>
     public override void LoadTranslations()
     {
         back.text = menu.lang.Get("MainMenu_ButtonBack");
@@ -63,10 +73,10 @@
         title = menu.lang.Get("MainMenu_Singleplayer");
     }
 
+    /// <inheritdoc/>
     public override void Render(float dt)
     {
         IGamePlatform p = menu.p;
-
         float scale = menu.GetScale();
 
         menu.DrawBackground();
@@ -126,6 +136,9 @@
             worldButtons[i].fontSize = 14 * scale;
         }
 
+        // Only the Open button is active on supporting platforms.
+        // Play, NewWorld, Modify, and worldButtons are reserved for a future
+        // save-file browser and are hidden until that UI is implemented.
         open.visible = menu.p.SinglePlayerServerAvailable();
         play.visible = false;
         newWorld.visible = false;
@@ -139,15 +152,17 @@
 
         if (!menu.p.SinglePlayerServerAvailable())
         {
-            menu.DrawText("Singleplayer is only available on desktop (Windows, Linux, Mac) version of game.", 16 * scale, menu.p.GetCanvasWidth() / 2, menu.p.GetCanvasHeight() / 2, TextAlign.Center, TextBaseline.Middle);
+            menu.DrawText(
+                "Singleplayer is only available on desktop (Windows, Linux, Mac) version of game.",
+                16 * scale, menu.p.GetCanvasWidth() / 2, menu.p.GetCanvasHeight() / 2,
+                TextAlign.Center, TextBaseline.Middle);
         }
     }
 
-    public override void OnBackPressed()
-    {
-        menu.StartMainMenu();
-    }
+    /// <inheritdoc/>
+    public override void OnBackPressed() => menu.StartMainMenu();
 
+    /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
     {
         for (int i = 0; i < 10; i++)
@@ -169,6 +184,7 @@
 
         if (w == play)
         {
+            // Reserved — will launch the selected world once the save-file browser is implemented.
         }
 
         if (w == modify)

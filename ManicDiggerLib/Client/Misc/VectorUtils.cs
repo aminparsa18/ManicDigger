@@ -53,4 +53,12 @@ public class VectorUtils
 
         return true;
     }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the point (<paramref name="x"/>, <paramref name="y"/>)
+    /// lies within the rectangle defined by origin (<paramref name="rx"/>, <paramref name="ry"/>)
+    /// and size (<paramref name="rw"/>, <paramref name="rh"/>).
+    /// </summary>
+    public static bool PointInRect(float x, float y, float rx, float ry, float rw, float rh)
+       => new Box2(rx, ry, rx + rw, ry + rh).ContainsExclusive(new Vector2(x, y));
 }

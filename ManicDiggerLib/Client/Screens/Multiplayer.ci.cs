@@ -1,8 +1,8 @@
 ﻿using OpenTK.Windowing.Common;
 
-public class ScreenMultiplayer : Screen
+public class MultiplayerScreen : ScreenBase
 {
-    public ScreenMultiplayer()
+    public MultiplayerScreen()
     {
         WidgetCount = 64 + serverButtonsCount;
         widgets = new MenuWidget[WidgetCount];

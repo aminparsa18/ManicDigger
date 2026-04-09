@@ -115,7 +115,7 @@ public class GameScreen : ModBase
             MenuWidget w = widgets[i];
             if (w == null) { continue; }
 
-            bool hit = PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey);
+            bool hit = VectorUtils.PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey);
 
             if (w.type == WidgetType.Button)
             {
@@ -164,7 +164,7 @@ public class GameScreen : ModBase
             MenuWidget w = widgets[i];
             if (w == null || w.type != WidgetType.Button) { continue; }
 
-            if (PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey))
+            if (VectorUtils.PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey))
             {
                 OnButton(w);
             }
@@ -182,7 +182,7 @@ public class GameScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            w?.hover = PointInRect(e.GetX(), e.GetY(), screenx + w.x, screeny + w.y, w.sizex, w.sizey);
+            w?.hover = VectorUtils.PointInRect(e.GetX(), e.GetY(), screenx + w.x, screeny + w.y, w.sizex, w.sizey);
         }
     }
 
@@ -234,12 +234,4 @@ public class GameScreen : ModBase
             }
         }
     }
-
-    /// <summary>
-    /// Returns <see langword="true"/> when the point (<paramref name="x"/>, <paramref name="y"/>)
-    /// lies within the rectangle defined by origin (<paramref name="rx"/>, <paramref name="ry"/>)
-    /// and size (<paramref name="rw"/>, <paramref name="rh"/>).
-    /// </summary>
-    private static bool PointInRect(float x, float y, float rx, float ry, float rw, float rh)
-        => x >= rx && y >= ry && x < rx + rw && y < ry + rh;
 }

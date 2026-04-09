@@ -58,6 +58,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Client\NewFolder\" />
+	  <Folder Include="Client\MainMenu\" />
 	</ItemGroup>
 </Project>

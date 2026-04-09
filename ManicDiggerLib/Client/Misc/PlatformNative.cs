@@ -1072,7 +1072,7 @@ public class GamePlatformNative : IGamePlatform
     private int _uFogColor;
     private int _uFogDensity;
 
-    public ModelData CreateModel(ModelData data)
+    public GeometryModel CreateModel(GeometryModel data)
     {
         int vao = GL.GenVertexArray();
         GL.BindVertexArray(vao);
@@ -1113,7 +1113,7 @@ public class GamePlatformNative : IGamePlatform
         return data;
     }
 
-    public void UpdateModel(ModelData data)
+    public void UpdateModel(GeometryModel data)
     {
         if (data.VaoId == 0)
         {
@@ -1140,7 +1140,7 @@ public class GamePlatformNative : IGamePlatform
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
     }
 
-    public void UpdateModelColors(ModelData data)
+    public void UpdateModelColors(GeometryModel data)
     {
         if (data.VaoId == 0)
         {
@@ -1156,7 +1156,7 @@ public class GamePlatformNative : IGamePlatform
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
     }
 
-    public void DrawModelData(ModelData data)
+    public void DrawModelData(GeometryModel data)
     {
         GL.UseProgram(_shaderProgram);
         GL.UniformMatrix4(_uProjection, false, ref _projectionMatrix);
@@ -1169,16 +1169,16 @@ public class GamePlatformNative : IGamePlatform
         GL.BindVertexArray(0);
     }
 
-    public void DrawModel(ModelData model)
+    public void DrawModel(GeometryModel model)
     {
-        DrawModelData((ModelData)model);
+        DrawModelData((GeometryModel)model);
     }
 
-    public void DrawModels(List<ModelData> models, int count)
+    public void DrawModels(List<GeometryModel> models, int count)
     {
         for (int i = 0; i < count; i++)
         {
-            DrawModelData((ModelData)models[i]);
+            DrawModelData((GeometryModel)models[i]);
         }
     }
 
@@ -1420,9 +1420,9 @@ public class GamePlatformNative : IGamePlatform
         GL.Enable(EnableCap.CullFace);
     }
 
-    public void DeleteModel(ModelData model)
+    public void DeleteModel(GeometryModel model)
     {
-        ModelData m = (ModelData)model;
+        GeometryModel m = (GeometryModel)model;
         GL.DeleteVertexArray(m.VaoId);
         GL.DeleteBuffer(m.VertexVboId);
         GL.DeleteBuffer(m.ColorVboId);

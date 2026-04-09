@@ -46,8 +46,8 @@ public class MeshBatcher
     /// </summary>
     private readonly List<int> _glTextures;
 
-    private List<ModelData>[] tocallSolid;
-    private List<ModelData>[] tocallTransparent;
+    private List<GeometryModel>[] tocallSolid;
+    private List<GeometryModel>[] tocallTransparent;
 
     /// <summary>
     /// Initialises a new <see cref="MeshBatcher"/> with pre-allocated model slots.
@@ -61,8 +61,8 @@ public class MeshBatcher
         _modelsCount = 0;
         _freeSlots = new Stack<int>();
         _glTextures = new List<int>(MaxTextures);
-        tocallSolid = new List<ModelData>[MaxTextures];
-        tocallTransparent = new List<ModelData>[MaxTextures];
+        tocallSolid = new List<GeometryModel>[MaxTextures];
+        tocallTransparent = new List<GeometryModel>[MaxTextures];
         for (int i = 0; i < MaxTextures; i++)
         {
             tocallSolid[i] = [];
@@ -86,13 +86,13 @@ public class MeshBatcher
     /// <param name="centerZ">World-space Z centre of the model's bounding sphere.</param>
     /// <param name="radius">Radius of the model's bounding sphere, used for frustum culling.</param>
     /// <returns>The slot ID representing this model. Pass it to <see cref="Remove"/> later.</returns>
-    public int Add(ModelData modelData, bool transparent, int texture, float centerX, float centerY, float centerZ, float radius)
+    public int Add(GeometryModel modelData, bool transparent, int texture, float centerX, float centerY, float centerZ, float radius)
     {
         int id = _freeSlots.Count > 0
             ? _freeSlots.Pop()
             : _modelsCount++;
 
-        ModelData model = game.platform.CreateModel(modelData);
+        GeometryModel model = game.platform.CreateModel(modelData);
 
         BatchEntry slot = _models[id];
         slot.IndicesCount = modelData.IndicesCount;
@@ -130,7 +130,6 @@ public class MeshBatcher
     /// <param name="playerPositionZ">Player world-space Z, passed to culling logic.</param>
     public void Draw(float playerPositionX, float playerPositionY, float playerPositionZ)
     {
-
         SortListsByTexture();
 
         // --- Solid pass: fills the depth buffer before any transparency is drawn.
@@ -211,7 +210,7 @@ public class MeshBatcher
             if (li.Empty)
                 continue;
 
-            List<ModelData> bucket = li.Transparent
+            List<GeometryModel> bucket = li.Transparent
                 ? tocallTransparent[li.Texture]
                 : tocallSolid[li.Texture];
 
@@ -287,5 +286,5 @@ internal class BatchEntry
     internal int Texture;
 
     /// <summary>The GPU model handle issued by the platform layer.</summary>
-    internal ModelData Model;
+    internal GeometryModel Model;
 }

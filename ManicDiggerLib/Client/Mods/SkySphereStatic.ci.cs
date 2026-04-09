@@ -9,7 +9,7 @@ public class ModSkySphereStatic : ModBase
     internal int SkyTexture = -1;
     private int skySphereTexture = -1;
     private int skySphereNightTexture = -1;
-    private ModelData skyModel;
+    private GeometryModel skyModel;
 
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
@@ -39,7 +39,7 @@ public class ModSkySphereStatic : ModBase
         if (SkyTexture == -1)
             game.platform.ThrowException("InvalidOperationException");
 
-        skyModel ??= game.platform.CreateModel(SphereModelData.GetSphereModelData(SphereSize, SphereSize, SphereSegments, SphereSegments));
+        skyModel ??= game.platform.CreateModel(Sphere.Create(SphereSize, SphereSize, SphereSegments, SphereSegments));
 
         game.Set3dProjection(SphereSize * 2, fov);
         game.GLMatrixModeModelView();

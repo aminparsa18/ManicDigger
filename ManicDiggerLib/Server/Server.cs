@@ -86,7 +86,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     private readonly IGamePlatform gameplatform;
     public GameExit exit;
-    public ServerMap d_Map;
+    public ServerMapStorage d_Map;
     public GameData d_Data;
     public CraftingTableTool d_CraftingTableTool;
     public IGetFileStream d_GetFile;
@@ -328,7 +328,7 @@ public partial class Server : ICurrentTime, IDropItem
     public void OnConfigLoaded()
     {
         //Initialize server map
-        var map = new ServerMap
+        var map = new ServerMapStorage
         {
             server = this,
             d_CurrentTime = this,

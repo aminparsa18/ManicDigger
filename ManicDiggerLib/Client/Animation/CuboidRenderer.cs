@@ -77,14 +77,14 @@ public static class CuboidRenderer
     }
 
     /// <summary>
-    /// Uploads and submits a <see cref="ModelData"/> buffer for a cuboid,
+    /// Uploads and submits a <see cref="GeometryModel"/> buffer for a cuboid,
     /// disabling face culling during the draw call so all faces are visible.
     /// Since cuboid geometry is rebuilt every draw call, <see cref="IGamePlatform.UpdateModel"/>
     /// is used to sync the CPU buffers to the GPU before drawing.
     /// </summary>
     /// <param name="game">The game instance used for GL draw calls.</param>
     /// <param name="data">The model data with all vertices already written.</param>
-    private static void SubmitCuboid(Game game, ModelData data)
+    private static void SubmitCuboid(Game game, GeometryModel data)
     {
         data.Indices = new int[FaceCount * IndicesPerFace];
         for (int i = 0; i < FaceCount; i++)
@@ -109,15 +109,15 @@ public static class CuboidRenderer
     }
 
     /// <summary>
-    /// Creates an empty <see cref="ModelData"/> buffer sized for one cuboid (6 faces × 4 vertices).
+    /// Creates an empty <see cref="GeometryModel"/> buffer sized for one cuboid (6 faces × 4 vertices).
     /// </summary>
     /// <param name="light">Light intensity in the range 0-1.</param>
     /// <param name="color">The packed ARGB color encoding the light intensity.</param>
-    private static ModelData CreateCuboidBuffer(float light, out int color)
+    private static GeometryModel CreateCuboidBuffer(float light, out int color)
     {
         int light255 = (int)(light * 255);
         color = Game.ColorFromArgb(255, light255, light255, light255);
-        return new ModelData
+        return new GeometryModel
         {
             Xyz = new float[VerticesPerFace * FaceCount * 3],
             Uv = new float[VerticesPerFace * FaceCount * 2],
@@ -133,7 +133,7 @@ public static class CuboidRenderer
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {
-        ModelData data = CreateCuboidBuffer(light, out int color);
+        GeometryModel data = CreateCuboidBuffer(light, out int color);
         RectangleF rect;
 
         // Front (min X)
@@ -190,7 +190,7 @@ public static class CuboidRenderer
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {
-        ModelData data = CreateCuboidBuffer(light, out int color);
+        GeometryModel data = CreateCuboidBuffer(light, out int color);
         RectangleF rect;
 
         // Right (min X)
@@ -249,7 +249,7 @@ public static class CuboidRenderer
     /// <param name="u">Horizontal UV coordinate in normalized 0-1 space.</param>
     /// <param name="v">Vertical UV coordinate in normalized 0-1 space.</param>
     /// <param name="color">Packed ARGB color value, typically encoding light intensity.</param>
-    private static void AddVertex(ModelData model, float x, float y, float z, float u, float v, int color)
+    private static void AddVertex(GeometryModel model, float x, float y, float z, float u, float v, int color)
     {
         int xyzOffset = model.XyzCount;
         int uvOffset = model.UvCount;

@@ -5,7 +5,7 @@
 /// GPU handles (<see cref="VaoId"/>, <see cref="VertexVboId"/> etc.) are populated by
 /// <see cref="IGamePlatform.CreateModel"/> and must not be modified directly.
 /// </summary>
-public class ModelData
+public class GeometryModel
 {
     // GPU handles (set by CreateModel)
     public int VaoId { get; set; }
@@ -39,7 +39,7 @@ public class ModelData
 
 public class ModelDataTool
 {
-    public static void AddVertex(ModelData model, float x, float y, float z, float u, float v, int color)
+    public static void AddVertex(GeometryModel model, float x, float y, float z, float u, float v, int color)
     {
         if (model.VerticesCount >= model.Xyz.Length / 3)
         {
@@ -75,7 +75,7 @@ public class ModelDataTool
         model.VerticesCount++;
     }
 
-    internal static void AddIndex(ModelData model, int index)
+    internal static void AddIndex(GeometryModel model, int index)
     {
         if (model.IndicesCount >= model.Indices.Length)
         {

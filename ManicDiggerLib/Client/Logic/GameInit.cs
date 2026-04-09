@@ -334,7 +334,7 @@ public partial class Game
 
     internal Vector3 playerdestination;
     internal string Follow;
-    private ModelData circleModelData;
+    private GeometryModel circleModelData;
     private bool startedconnecting;
 
     private int lastWidth;

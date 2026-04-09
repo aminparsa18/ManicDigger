@@ -8,7 +8,7 @@ public class ModSkySphereAnimated : ModBase
     private const int NormalSegments = 20;
 
     private readonly ModBase stars = new ModSkySphereStatic();
-    private ModelData skyModel;
+    private GeometryModel skyModel;
     private int[] skyPixels;
     private int[] glowPixels;
     private bool started;
@@ -65,7 +65,7 @@ public class ModSkySphereAnimated : ModBase
         game.Set3dProjection(game.Zfar(), fov);
     }
 
-    public static ModelData GetSphereModelData2(ModelData data,
+    public static GeometryModel GetSphereModelData2(GeometryModel data,
         IGamePlatform platform,
         float radius, float height, int segments, int rings,
         int[] skyPixels, int[] glowPixels,
@@ -73,7 +73,7 @@ public class ModSkySphereAnimated : ModBase
     {
         if (data == null)
         {
-            data = new ModelData
+            data = new GeometryModel
             {
                 Xyz = new float[rings * segments * 3],
                 Uv = new float[rings * segments * 2],

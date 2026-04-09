@@ -3,7 +3,7 @@
 /// Typically used for heightmap data that mirrors a <see cref="VoxelMap"/>.
 /// <para>
 /// <b>Note:</b> <see cref="ChunkSize"/> is hardcoded to 16 and must match
-/// <see cref="ServerMap.ChunkSize"/> if used alongside it.
+/// <see cref="ServerMapStorage.ChunkSize"/> if used alongside it.
 /// </para>
 /// </summary>
 public class ChunkedMap2d

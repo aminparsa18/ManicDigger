@@ -105,7 +105,7 @@ public class ModDrawHand3d : ModBase
     private readonly float _restOffsetY;
 
     /// <summary>Cached geometry for the currently held item.</summary>
-    private ModelData _modelData;
+    private GeometryModel _modelData;
 
     /// <summary>Block ID of the item that was used to build <see cref="_modelData"/>.</summary>
     private int _cachedMaterial;
@@ -342,7 +342,7 @@ public class ModDrawHand3d : ModBase
     }
 
     /// <summary>
-    /// Allocates a fresh <see cref="ModelData"/> buffer and populates it with the
+    /// Allocates a fresh <see cref="GeometryModel"/> buffer and populates it with the
     /// geometry for the currently held item.
     /// Called whenever the held item, light level, or a forced-redraw flag changes.
     /// </summary>
@@ -351,7 +351,7 @@ public class ModDrawHand3d : ModBase
     /// </param>
     private void RebuildHandModel(int lightByte)
     {
-        _modelData = new ModelData
+        _modelData = new GeometryModel
         {
             Indices = new int[128],
             Xyz = new float[128],
@@ -480,7 +480,7 @@ public class ModDrawHand3d : ModBase
     /// <param name="y">Cube origin Y in local model space.</param>
     /// <param name="z">Cube origin Z in local model space.</param>
     /// <param name="c">Packed ARGB vertex colour applied to every vertex.</param>
-    private void DrawCube(ModelData m, int x, int y, int z, int c)
+    private void DrawCube(GeometryModel m, int x, int y, int z, int c)
     {
         AddFace(m, x, y, z, c, TileSide.Top, windingCw: false);
         AddFace(m, x, y, z, c, TileSide.Bottom, windingCw: true);
@@ -503,7 +503,7 @@ public class ModDrawHand3d : ModBase
     /// <see langword="true"/> to emit indices in clockwise winding (back-facing normals);
     /// <see langword="false"/> for counter-clockwise (front-facing normals).
     /// </param>
-    private void AddFace(ModelData m, int x, int y, int z, int c, TileSide side, bool windingCw)
+    private void AddFace(GeometryModel m, int x, int y, int z, int c, TileSide side, bool windingCw)
     {
         int tex = GetWeaponTextureId(side);
         RectangleF r = VectorUtils.GetAtlasRect(tex, TexturesPacked);
@@ -579,7 +579,7 @@ public class ModDrawHand3d : ModBase
     /// <param name="u">Horizontal texture coordinate.</param>
     /// <param name="v">Vertical texture coordinate.</param>
     /// <param name="color">Packed ARGB colour applied to the vertex.</param>
-    public static void AddVertex(ModelData model, float x, float y, float z, float u, float v, int color)
+    public static void AddVertex(GeometryModel model, float x, float y, float z, float u, float v, int color)
     {
         int xyzOffset = model.XyzCount;
         int uvOffset = model.UvCount;
@@ -625,7 +625,7 @@ public enum TorchType
 }
 
 /// <summary>
-/// Builds the six-faced torch geometry and appends it to a <see cref="ModelData"/> buffer.
+/// Builds the six-faced torch geometry and appends it to a <see cref="GeometryModel"/> buffer.
 /// The torch is rendered as a thin rectangular prism whose top cap uses
 /// <see cref="TopTexture"/> and whose four sides and bottom use <see cref="SideTexture"/>.
 /// Wall-mounted types tilt the prism by offsetting the base corners away from the wall.
@@ -668,7 +668,7 @@ public class BlockRendererTorch
     /// <param name="y">Block-grid Y origin of the torch.</param>
     /// <param name="z">Block-grid Z (vertical) origin of the torch.</param>
     /// <param name="type">Mount type that determines the tilt direction.</param>
-    public void AddTorch(GameData d_Data, Game d_TerrainRenderer, ModelData m,
+    public void AddTorch(GameData d_Data, Game d_TerrainRenderer, GeometryModel m,
                          int x, int y, int z, TorchType type)
     {
         // --- Compute top-cap corners ---
@@ -745,7 +745,7 @@ public class BlockRendererTorch
     }
 
     /// <summary>Emits the top (flame cap) face using <see cref="TopTexture"/>.</summary>
-    private void AddTopFace(ModelData m,
+    private void AddTopFace(GeometryModel m,
         Vector3 v00, Vector3 v01, Vector3 v10, Vector3 v11)
     {
         RectangleF r = GetTexRect(TopTexture);
@@ -761,7 +761,7 @@ public class BlockRendererTorch
     /// Emits the bottom face using <see cref="SideTexture"/>.
     /// Winding is reversed (CW) so the normal points downward.
     /// </summary>
-    private void AddBottomFace(ModelData m,
+    private void AddBottomFace(GeometryModel m,
         Vector3 v00, Vector3 v01, Vector3 v10, Vector3 v11)
     {
         RectangleF r = GetTexRect(SideTexture);
@@ -774,7 +774,7 @@ public class BlockRendererTorch
     }
 
     /// <summary>Emits the front side face (−X direction) using <see cref="SideTexture"/>.</summary>
-    private void AddFrontFace(ModelData m,
+    private void AddFrontFace(GeometryModel m,
         Vector3 b00, Vector3 b01, Vector3 t00, Vector3 t01)
     {
         RectangleF r = GetTexRect(SideTexture);
@@ -787,7 +787,7 @@ public class BlockRendererTorch
     }
 
     /// <summary>Emits the back side face (+X direction) using <see cref="SideTexture"/>.</summary>
-    private void AddBackFace(ModelData m,
+    private void AddBackFace(GeometryModel m,
         Vector3 b10, Vector3 b11, Vector3 t10, Vector3 t11)
     {
         RectangleF r = GetTexRect(SideTexture);
@@ -800,7 +800,7 @@ public class BlockRendererTorch
     }
 
     /// <summary>Emits the left side face (−Y direction) using <see cref="SideTexture"/>.</summary>
-    private void AddLeftFace(ModelData m,
+    private void AddLeftFace(GeometryModel m,
         Vector3 b00, Vector3 b10, Vector3 t00, Vector3 t10)
     {
         RectangleF r = GetTexRect(SideTexture);
@@ -813,7 +813,7 @@ public class BlockRendererTorch
     }
 
     /// <summary>Emits the right side face (+Y direction) using <see cref="SideTexture"/>.</summary>
-    private void AddRightFace(ModelData m,
+    private void AddRightFace(GeometryModel m,
         Vector3 b01, Vector3 b11, Vector3 t01, Vector3 t11)
     {
         RectangleF r = GetTexRect(SideTexture);
@@ -832,7 +832,7 @@ public class BlockRendererTorch
     /// </summary>
     /// <param name="m">Target model data buffer.</param>
     /// <param name="b">Base vertex index of the quad's first vertex.</param>
-    private static void EmitQuadCcw(ModelData m, int b)
+    private static void EmitQuadCcw(GeometryModel m, int b)
     {
         m.Indices[m.IndicesCount++] = b + 0;
         m.Indices[m.IndicesCount++] = b + 1;
@@ -849,7 +849,7 @@ public class BlockRendererTorch
     /// </summary>
     /// <param name="m">Target model data buffer.</param>
     /// <param name="b">Base vertex index of the quad's first vertex.</param>
-    private static void EmitQuadCw(ModelData m, int b)
+    private static void EmitQuadCw(GeometryModel m, int b)
     {
         m.Indices[m.IndicesCount++] = b + 1;
         m.Indices[m.IndicesCount++] = b + 0;
@@ -866,10 +866,10 @@ public class BlockRendererTorch
         => VectorUtils.GetAtlasRect(textureIndex, Game.TexturesPacked);
 
     /// <summary>
-    /// Convenience overload of <see cref="AddVertex(ModelData,float,float,float,float,float,int)"/>
+    /// Convenience overload of <see cref="AddVertex(GeometryModel,float,float,float,float,float,int)"/>
     /// that accepts a <see cref="Vector3"/> position.
     /// </summary>
-    private static void AddVertex(ModelData model, Vector3 pos, float u, float v, int color)
+    private static void AddVertex(GeometryModel model, Vector3 pos, float u, float v, int color)
         => AddVertex(model, pos.X, pos.Y, pos.Z, u, v, color);
 
     /// <summary>
@@ -882,7 +882,7 @@ public class BlockRendererTorch
     /// <param name="u">Horizontal texture coordinate.</param>
     /// <param name="v">Vertical texture coordinate.</param>
     /// <param name="color">Packed ARGB colour applied to the vertex.</param>
-    public static void AddVertex(ModelData model, float x, float y, float z, float u, float v, int color)
+    public static void AddVertex(GeometryModel model, float x, float y, float z, float u, float v, int color)
     {
         int xyzOffset = model.XyzCount;
         int uvOffset = model.UvCount;

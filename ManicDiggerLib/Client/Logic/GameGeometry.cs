@@ -47,7 +47,7 @@
     // 2D drawing
     // -------------------------------------------------------------------------
 
-    private ModelData quadModel;
+    private GeometryModel quadModel;
 
     public void Draw2dTexture(int textureid, float x1, float y1, float width, float height, int? inAtlasId, int atlastextures, int color, bool enabledepthtest)
     {
@@ -65,8 +65,7 @@
         if (!enabledepthtest)
             platform.GlDisableDepthTest();
 
-        if (quadModel == null)
-            quadModel = platform.CreateModel(QuadModelData.GetQuadModelData());
+        quadModel ??= platform.CreateModel(Quad.Create());
 
         GLPushMatrix();
         GLTranslate(x1, y1, 0);
@@ -95,7 +94,7 @@
         if (!enabledepthtest)
             platform.GlDisableDepthTest();
 
-        ModelData data = QuadModelData.GetColoredQuadModelData(
+        GeometryModel data = Quad.CreateColored(
             rect.X, rect.Y, rect.Width, rect.Height,
             x1, y1, width, height,
             (byte)ColorR(color), (byte)ColorG(color), (byte)ColorB(color), (byte)ColorA(color));
@@ -119,7 +118,7 @@
         if (!enabledepthtest)
             platform.GlDisableDepthTest();
 
-        ModelData data = QuadModelData.GetColoredQuadModelData(
+        GeometryModel data = Quad.CreateColored(
             rect.X, rect.Y, rect.Width, rect.Height,
             dstx, dsty, dstwidth, dstheight,
             (byte)ColorR(color), (byte)ColorG(color), (byte)ColorB(color), (byte)ColorA(color));
@@ -135,7 +134,7 @@
 
     public void Draw2dTextures(Draw2dData[] todraw, int todrawLength, int textureid)
     {
-        ModelData[] modelDatas = new ModelData[512];
+        GeometryModel[] modelDatas = new GeometryModel[512];
         int modelDatasCount = 0;
 
         for (int i = 0; i < todrawLength; i++)
@@ -143,13 +142,13 @@
             Draw2dData d = todraw[i];
             RectangleF rect = TextureAtlasCi.TextureCoords2d(d.inAtlasId, TexturesPacked);
 
-            modelDatas[modelDatasCount++] = QuadModelData.GetColoredQuadModelData(
+            modelDatas[modelDatasCount++] = Quad.CreateColored(
                 rect.X, rect.Y, rect.Width, rect.Height,
                 d.x1, d.y1, d.width, d.height,
                 (byte)ColorR(d.color), (byte)ColorG(d.color), (byte)ColorB(d.color), (byte)ColorA(d.color));
         }
 
-        ModelData combined = CombineModelData(modelDatas, modelDatasCount);
+        GeometryModel combined = CombineModelData(modelDatas, modelDatasCount);
         combined.Mode = (int)DrawMode.Triangles;
 
         platform.GlDisableCullFace();
@@ -178,7 +177,7 @@
         PerspectiveMode();
     }
 
-    public static ModelData CombineModelData(ModelData[] modelDatas, int count)
+    public static GeometryModel CombineModelData(GeometryModel[] modelDatas, int count)
     {
         int totalIndices = 0;
         int totalVertices = 0;
@@ -188,7 +187,7 @@
             totalVertices += modelDatas[i].VerticesCount;
         }
 
-        ModelData ret = new()
+        GeometryModel ret = new()
         {
             Indices = new int[totalIndices],
             Xyz = new float[totalVertices * 3],
@@ -198,7 +197,7 @@
 
         for (int i = 0; i < count; i++)
         {
-            ModelData m = modelDatas[i];
+            GeometryModel m = modelDatas[i];
             int baseVertex = ret.VerticesCount;
             int baseIndex = ret.IndicesCount;
 
@@ -238,7 +237,7 @@
     {
         if (circleModelData == null)
         {
-            circleModelData = new ModelData
+            circleModelData = new GeometryModel
             {
                 Mode = (int)DrawMode.Lines,
                 Indices = new int[CircleSegments * 2],

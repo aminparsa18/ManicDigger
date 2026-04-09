@@ -635,14 +635,14 @@ public class ModDrawTerrain : ModBase
         };
 
     /// <summary>
-    /// Performs a deep copy of a <see cref="ModelData"/> instance, duplicating all
+    /// Performs a deep copy of a <see cref="GeometryModel"/> instance, duplicating all
     /// vertex position, UV, colour, and index arrays.
     /// Required because the background thread writes into shared tessellator buffers
     /// that are overwritten on the next pass.
     /// </summary>
-    private static ModelData CloneModelData(ModelData source)
+    private static GeometryModel CloneModelData(GeometryModel source)
     {
-        ModelData dest = new();
+        GeometryModel dest = new();
         unchecked
         {
             dest.Xyz = new float[source.XyzCount];

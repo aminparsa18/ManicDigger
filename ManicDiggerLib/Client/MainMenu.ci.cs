@@ -245,7 +245,7 @@ public class MainMenu
         return 0;
     }
 
-    private ModelData cubeModel;
+    private GeometryModel cubeModel;
     public void Draw2dQuad(int textureid, float dx, float dy, float dw, float dh)
     {
         mvMatrix = Matrix4.Identity;
@@ -258,7 +258,7 @@ public class MainMenu
         Matrix4.CreateTranslation(1, 1, 0, out Matrix4 t2);
         mvMatrix = t2 * mvMatrix;
         SetMatrixUniforms();
-        cubeModel ??= p.CreateModel(QuadModelData.GetQuadModelData());
+        cubeModel ??= p.CreateModel(Quad.Create());
         p.BindTexture2d(textureid);
         p.DrawModel(cubeModel);
     }

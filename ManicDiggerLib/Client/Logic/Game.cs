@@ -408,19 +408,19 @@ public partial class Game
         commitActions.Add(action);
     }
 
-    public void DrawModel(ModelData model)
+    public void DrawModel(GeometryModel model)
     {
         SetMatrixUniformModelView();
         platform.DrawModel(model);
     }
 
-    public void DrawModels(List<ModelData> model, int count)
+    public void DrawModels(List<GeometryModel> model, int count)
     {
         SetMatrixUniformModelView();
         platform.DrawModels(model, count);
     }
 
-    public void DrawModelData(ModelData data)
+    public void DrawModelData(GeometryModel data)
     {
         SetMatrixUniformModelView();
         platform.DrawModelData(data);

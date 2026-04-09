@@ -42,7 +42,7 @@ public class ServerChunk
     public ServerEntity[] Entities;
 }
 
-public class ServerMap : IMapStorage
+public class ServerMapStorage : IMapStorage
 {
     internal Server server;
     internal IChunkDb d_ChunkDb;

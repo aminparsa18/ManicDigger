@@ -179,15 +179,15 @@ public interface IPlatformOpenGl
     void GlShadeModelSmooth();
     void GlDisableFog();
     void BindTexture2d(int texture);
-    ModelData CreateModel(ModelData modelData);
-    void UpdateModel(ModelData data);
-    void DrawModel(ModelData model);
+    GeometryModel CreateModel(GeometryModel modelData);
+    void UpdateModel(GeometryModel data);
+    void DrawModel(GeometryModel model);
     void InitShaders();
     void SetMatrixUniformProjection(ref Matrix4 pMatrix);
     void SetMatrixUniformModelView(ref Matrix4 mvMatrix);
-    void DrawModels(List<ModelData> model, int count);
-    void DrawModelData(ModelData data);
-    void DeleteModel(ModelData model);
+    void DrawModels(List<GeometryModel> model, int count);
+    void DrawModelData(GeometryModel data);
+    void DeleteModel(GeometryModel model);
     int LoadTextureFromBitmap(Bitmap bmp);
 }
 

@@ -37,7 +37,6 @@ public class ModelData
     public int IndicesMax => Indices.Length;
 }
 
-
 public class ModelDataTool
 {
     public static void AddVertex(ModelData model, float x, float y, float z, float u, float v, int color)

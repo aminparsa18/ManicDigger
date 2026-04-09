@@ -1609,6 +1609,10 @@ public class GamePlatformNative : IGamePlatform
     public List<Action<KeyEventArgs>> keyUpHandlers = new();
     public List<Action<KeyPressEventArgs>> keyPressHandlers = new();
 
+    public event Action<TouchEventArgs> OnTouchStart;
+    public event Action<TouchEventArgs> OnTouchMove;
+    public event Action<TouchEventArgs> OnTouchEnd;
+
     public event Action<MouseEventArgs> OnMouseDown;
     public event Action<MouseEventArgs> OnMouseUp;
     public event Action<MouseEventArgs> OnMouseMove;
@@ -1641,11 +1645,14 @@ public class GamePlatformNative : IGamePlatform
         OnMouseMove += onMouseMove;
         OnMouseWheel += onMouseWheel;
     }
-
-    public List<TouchEventHandler> touchEventHandlers = new();
-    public void AddOnTouchEvent(TouchEventHandler handler)
+    
+    public void AddOnTouchEvent(Action<TouchEventArgs> onTouchStart,
+        Action<TouchEventArgs> onTouchMove,
+        Action<TouchEventArgs> onTouchEnd)
     {
-        touchEventHandlers.Add(handler);
+        OnTouchStart += onTouchStart;
+        OnTouchMove += onTouchMove;
+        OnTouchEnd += onTouchEnd;
     }
 
     public CrashReporter crashreporter;
@@ -1801,14 +1808,11 @@ public class GamePlatformNative : IGamePlatform
         var pos = window.MousePosition;
         if (TouchTest)
         {
-            foreach (TouchEventHandler h in touchEventHandlers)
-            {
-                TouchEventArgs args = new();
-                args.SetX((int)pos.X);
-                args.SetY((int)pos.Y);
-                args.SetId(0);
-                h.OnTouchStart(args);
-            }
+            TouchEventArgs args = new();
+            args.SetX((int)pos.X);
+            args.SetY((int)pos.Y);
+            args.SetId(0);
+            OnTouchStart?.Invoke(args);
         }
         else
         {
@@ -1825,14 +1829,11 @@ public class GamePlatformNative : IGamePlatform
         var pos = window.MousePosition;
         if (TouchTest)
         {
-            foreach (TouchEventHandler h in touchEventHandlers)
-            {
-                TouchEventArgs args = new();
-                args.SetX((int)pos.X);
-                args.SetY((int)pos.Y);
-                args.SetId(0);
-                h.OnTouchEnd(args);
-            }
+            TouchEventArgs args = new();
+            args.SetX((int)pos.X);
+            args.SetY((int)pos.Y);
+            args.SetId(0);
+            OnTouchEnd?.Invoke(args);
         }
         else
         {
@@ -1855,15 +1856,11 @@ public class GamePlatformNative : IGamePlatform
             if (TouchTest)
             {
                 Console.WriteLine("TouchTest path");
-                foreach (TouchEventHandler h in touchEventHandlers)
-                {
-                    Console.WriteLine($"Touch handler: {h}");
-                    TouchEventArgs args = new();
-                    args.SetX((int)e.X);
-                    args.SetY((int)e.Y);
-                    args.SetId(0);
-                    h.OnTouchMove(args);
-                }
+                TouchEventArgs args = new();
+                args.SetX((int)e.X);
+                args.SetY((int)e.Y);
+                args.SetId(0);
+                OnTouchMove?.Invoke(args);
             }
             else
             {

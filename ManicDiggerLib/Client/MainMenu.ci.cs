@@ -64,7 +64,7 @@ public class MainMenu
         p.AddOnNewFrame(dt => OnNewFrame(dt));
         p.AddOnKeyEvent(HandleKeyDown, HandleKeyUp, HandleKeyPress);
         p.AddOnMouseEvent(HandleMouseDown, HandleMouseUp, HandleMouseMove, HandleMouseWheel);
-        p.AddOnTouchEvent(MainMenuTouchEventHandler.Create(this));
+        p.AddOnTouchEvent(HandleTouchStart, HandleTouchMove, HandleTouchEnd);
     }
 
     private int viewportWidth;
@@ -1005,32 +1005,4 @@ public enum ButtonStyle
     Button,
     Text,
     ServerEntry
-}
-
-public class MainMenuTouchEventHandler : TouchEventHandler
-{
-    public static MainMenuTouchEventHandler Create(MainMenu l)
-    {
-        MainMenuTouchEventHandler h = new()
-        {
-            l = l
-        };
-        return h;
-    }
-    private MainMenu l;
-
-    public override void OnTouchStart(TouchEventArgs e)
-    {
-        l.HandleTouchStart(e);
-    }
-
-    public override void OnTouchMove(TouchEventArgs e)
-    {
-        l.HandleTouchMove(e);
-    }
-
-    public override void OnTouchEnd(TouchEventArgs e)
-    {
-        l.HandleTouchEnd(e);
-    }
 }

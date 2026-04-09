@@ -37,7 +37,9 @@ public interface IPlatformMisc
         Action<MouseEventArgs> onMouseUp,
         Action<MouseEventArgs> onMouseMove,
         Action<MouseWheelEventArgs> onMouseWheel);
-    void AddOnTouchEvent(TouchEventHandler handler);
+    void AddOnTouchEvent(Action<TouchEventArgs> onTouchStart,
+        Action<TouchEventArgs> onTouchMove,
+        Action<TouchEventArgs> onTouchEnd);
     int GetCanvasWidth();
     int GetCanvasHeight();
     int TimeMillisecondsFromStart();

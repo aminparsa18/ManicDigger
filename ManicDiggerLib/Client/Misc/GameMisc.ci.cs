@@ -1258,14 +1258,14 @@ public class TextureAtlasCi
 {
     public static RectangleF TextureCoords2d(int textureId, int texturesPacked)
     {
-        var r = new RectangleF
+        float step = 1f / texturesPacked;
+        return new RectangleF
         {
-            Y = (1 / texturesPacked * (textureId / texturesPacked)),
-            X = (1 / texturesPacked * (textureId % texturesPacked)),
-            Width = 1 / texturesPacked,
-            Height = 1 / texturesPacked
+            X = step * (textureId % texturesPacked),
+            Y = step * (textureId / texturesPacked),
+            Width = step,
+            Height = step
         };
-        return r;
     }
 }
 

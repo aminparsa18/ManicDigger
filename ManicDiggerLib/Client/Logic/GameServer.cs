@@ -62,7 +62,8 @@
             VoxelMap.Reset(packet.Identification.MapSizeX,
                 packet.Identification.MapSizeY,
                 packet.Identification.MapSizeZ);
-            d_Heightmap.Restart();
+            d_Heightmap.Restart(packet.Identification.MapSizeX,
+                packet.Identification.MapSizeY);
         }
 
         shadowssimple = packet.Identification.DisableShadows == 1;

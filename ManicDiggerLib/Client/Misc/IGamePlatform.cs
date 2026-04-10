@@ -22,9 +22,6 @@ public interface IGamePlatform :
 public interface IPlatformMisc
 {
     void TextSize(string text, float fontSize, out int outWidth, out int outHeight);
-    void Exit();
-    bool ExitAvailable();
-    string PathSavegames();
     void WebClientDownloadDataAsync(string url, HttpResponse response);
     void ThumbnailDownloadAsync(string ip, int port, ThumbnailResponseCi response);
     void AddOnNewFrame(Action<float> handler);
@@ -93,8 +90,6 @@ public interface IPlatformMisc
     void SaveAssetToCache(Asset tosave);
     Asset LoadAssetFromCache(string md5);
     bool IsCached(string md5);
-    bool IsChecksum(string checksum);
-    string DecodeHTMLEntities(string htmlencodedstring);
     string QueryStringValue(string key);
     void SetWindowCursor(int hotx, int hoty, int sizex, int sizey, byte[] imgdata, int imgdataLength);
     void RestoreWindowCursor();

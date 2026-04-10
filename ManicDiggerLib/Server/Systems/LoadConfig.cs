@@ -46,36 +46,36 @@ public class ServerSystemLoadConfig : ServerSystem
                     StreamReader sr = new(s);
                     XmlDocument d = new();
                     d.Load(sr);
-                    server.config.Format = int.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/Format"));
-                    server.config.Name = XmlTool.XmlVal(d, "/ManicDiggerServerConfig/Name");
-                    server.config.Motd = XmlTool.XmlVal(d, "/ManicDiggerServerConfig/Motd");
-                    server.config.Port = int.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/Port"));
-                    string maxclients = XmlTool.XmlVal(d, "/ManicDiggerServerConfig/MaxClients");
+                    server.config.Format = int.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/Format"));
+                    server.config.Name = StringUtils.XmlValue(d, "/ManicDiggerServerConfig/Name");
+                    server.config.Motd = StringUtils.XmlValue(d, "/ManicDiggerServerConfig/Motd");
+                    server.config.Port = int.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/Port"));
+                    string maxclients = StringUtils.XmlValue(d, "/ManicDiggerServerConfig/MaxClients");
                     if (maxclients != null)
                     {
                         server.config.MaxClients = int.Parse(maxclients);
                     }
-                    string key = XmlTool.XmlVal(d, "/ManicDiggerServerConfig/Key");
+                    string key = StringUtils.XmlValue(d, "/ManicDiggerServerConfig/Key");
                     if (key != null)
                     {
                         server.config.Key = key;
                     }
-                    server.config.IsCreative = Misc.ReadBool(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/Creative"));
-                    server.config.Public = Misc.ReadBool(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/Public"));
-                    server.config.AllowGuests = Misc.ReadBool(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/AllowGuests"));
-                    if (XmlTool.XmlVal(d, "/ManicDiggerServerConfig/MapSizeX") != null)
+                    server.config.IsCreative = StringUtils.ReadBool(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/Creative"));
+                    server.config.Public = StringUtils.ReadBool(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/Public"));
+                    server.config.AllowGuests = StringUtils.ReadBool(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/AllowGuests"));
+                    if (StringUtils.XmlValue(d, "/ManicDiggerServerConfig/MapSizeX") != null)
                     {
-                        server.config.MapSizeX = int.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/MapSizeX"));
-                        server.config.MapSizeY = int.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/MapSizeY"));
-                        server.config.MapSizeZ = int.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/MapSizeZ"));
+                        server.config.MapSizeX = int.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/MapSizeX"));
+                        server.config.MapSizeY = int.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/MapSizeY"));
+                        server.config.MapSizeZ = int.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/MapSizeZ"));
                     }
-                    server.config.BuildLogging = bool.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/BuildLogging"));
-                    server.config.ServerEventLogging = bool.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/ServerEventLogging"));
-                    server.config.ChatLogging = bool.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/ChatLogging"));
-                    server.config.AllowScripting = bool.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/AllowScripting"));
-                    server.config.ServerMonitor = bool.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/ServerMonitor"));
-                    server.config.ClientConnectionTimeout = int.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/ClientConnectionTimeout"));
-                    server.config.ClientPlayingTimeout = int.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerConfig/ClientPlayingTimeout"));
+                    server.config.BuildLogging = bool.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/BuildLogging"));
+                    server.config.ServerEventLogging = bool.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/ServerEventLogging"));
+                    server.config.ChatLogging = bool.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/ChatLogging"));
+                    server.config.AllowScripting = bool.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/AllowScripting"));
+                    server.config.ServerMonitor = bool.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/ServerMonitor"));
+                    server.config.ClientConnectionTimeout = int.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/ClientConnectionTimeout"));
+                    server.config.ClientPlayingTimeout = int.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerConfig/ClientPlayingTimeout"));
                 }
                 //Save with new version.
                 SaveConfig(server);

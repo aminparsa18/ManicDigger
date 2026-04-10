@@ -33,15 +33,15 @@ public class GamePlatformNative : IGamePlatform
     public bool TouchTest = false;
     private readonly string[] datapaths;
 
-    private readonly Dictionary<TextAndSize, SizeF> textsizes = new();
+    private readonly Dictionary<TextStyle, SizeF> textsizes = [];
     public SizeF TextSize(string text, float fontsize)
     {
-        if (textsizes.TryGetValue(new TextAndSize() { text = text, size = fontsize }, out SizeF size))
+        if (textsizes.TryGetValue(new TextStyle() { Text = text, FontSize = fontsize }, out SizeF size))
         {
             return size;
         }
         size = textrenderer.MeasureTextSize(text, fontsize);
-        textsizes[new TextAndSize() { text = text, size = fontsize }] = size;
+        textsizes[new TextStyle() { Text = text, FontSize = fontsize }] = size;
         return size;
     }
 
@@ -52,20 +52,7 @@ public class GamePlatformNative : IGamePlatform
         outHeight = (int)size.Height;
     }
 
-    public void Exit()
-    {
-        Environment.Exit(0);
-    }
-
-    public bool ExitAvailable()
-    {
-        return true;
-    }
-
-    public string PathSavegames()
-    {
-        return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-    }
+    public static string PathSavegames => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
     public void WebClientDownloadDataAsync(string url, HttpResponse response)
     {
@@ -146,7 +133,7 @@ public class GamePlatformNative : IGamePlatform
         return LoadTexture(bmp, false);
     }
 
-    private readonly ManicDigger.Renderers.TextRenderer textrenderer = new();
+    private readonly TextRenderer textrenderer = new();
 
     public Bitmap CreateTextTexture(TextStyle t)
     {
@@ -516,33 +503,6 @@ public class GamePlatformNative : IGamePlatform
         if (!Directory.Exists(Cachepath()))
             return false;
         return File.Exists(Path.Combine(Cachepath(), md5));
-    }
-
-    public bool IsChecksum(string checksum)
-    {
-        //Check if checksum string has correct length
-        if (checksum.Length != 32)
-        {
-            return false;
-        }
-        //Convert checksum string to lowercase letters
-        checksum = checksum.ToLower();
-        char[] chars = checksum.ToCharArray();
-        for (int i = 0; i < chars.Length; i++)
-        {
-            if ((chars[i] < '0' || chars[i] > '9') && (chars[i] < 'a' || chars[i] > 'f'))
-            {
-                //Return false if any character inside the checksum is not hexadecimal
-                return false;
-            }
-        }
-        //Return true if all checks have been passed
-        return true;
-    }
-
-    public string DecodeHTMLEntities(string htmlencodedstring)
-    {
-        return System.Web.HttpUtility.HtmlDecode(htmlencodedstring);
     }
 
     public bool IsDebuggerAttached()

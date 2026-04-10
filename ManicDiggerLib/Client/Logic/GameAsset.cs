@@ -48,7 +48,7 @@
         if (asset.md5 == null)
             return;
 
-        if (!platform.IsChecksum(asset.md5))
+        if (!StringUtils.IsChecksum(asset.md5))
             return;
 
         if (!platform.IsCached(asset.md5))

@@ -90,7 +90,7 @@ public class MainScreen : ScreenBase
         buttonMultiplayer.sizex = ButtonWidth * scale;
         buttonMultiplayer.sizey = ButtonHeight * scale;
 
-        buttonExit.visible = menu.p.ExitAvailable();
+        buttonExit.visible = true;
         buttonExit.x = centerX;
         buttonExit.y = ButtonY(1, scale);
         buttonExit.sizex = ButtonWidth * scale;
@@ -131,11 +131,11 @@ public class MainScreen : ScreenBase
     {
         if (w == buttonSingleplayer) { menu.StartSingleplayer(); return; }
         if (w == buttonMultiplayer) { menu.StartMultiplayer(); return; }
-        if (w == buttonExit) { menu.Exit(); return; }
+        if (w == buttonExit) { Environment.Exit(0); return; }
     }
 
     /// <inheritdoc/>
-    public override void OnBackPressed() => menu.Exit();
+    public override void OnBackPressed() => Environment.Exit(0);
 
     /// <inheritdoc/>
     public override void OnKeyDown(KeyEventArgs e)
@@ -145,12 +145,12 @@ public class MainScreen : ScreenBase
         if (e.KeyChar == (int)Keys.F5)
         {
             menu.p.SinglePlayerServerDisable();
-            menu.StartGame(true, Path.Combine(menu.p.PathSavegames(), "Default.mdss"), null);
+            menu.StartGame(true, Path.Combine(GamePlatformNative.PathSavegames, "Default.mdss"), null);
         }
         // F6 — launch default singleplayer save (database .mddbs format).
         if (e.KeyChar == (int)Keys.F6)
         {
-            menu.StartGame(true, Path.Combine(menu.p.PathSavegames(), "Default.mddbs"), null);
+            menu.StartGame(true, Path.Combine(GamePlatformNative.PathSavegames, "Default.mddbs"), null);
         }
 #endif
     }

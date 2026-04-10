@@ -1,7 +1,5 @@
 ﻿using System.Drawing.Drawing2D;
 
-namespace ManicDigger.Renderers;
-
 public class TextRenderer
 {
     public FontType Font = FontType.Nice;
@@ -92,7 +90,7 @@ public class TextRenderer
         float fontsize = t.FontSize;
         fontsize = Math.Max(t.FontSize, 9);
         fontsize *= 1.1f;
-        Font font = new("Arial", fontsize, (FontStyle)t.FontStyle);
+        Font font = new("Arial", (float)t.FontSize, (FontStyle)t.FontStyle);
 
         SizeF size;
         using (Bitmap bmp = new(1, 1))
@@ -177,6 +175,7 @@ public class TextRenderer
             _ => this.DefaultFont(t),
         };
     }
+
     private static GraphicsPath GetStringPath(string s, float emSize, RectangleF rect, Font font, StringFormat format)
     {
         GraphicsPath path = new();

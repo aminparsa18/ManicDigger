@@ -114,7 +114,7 @@ public class SingleplayerScreen : ScreenBase
 
         if (savegames == null)
         {
-            savegames = menu.GetSavegames(out int savegamesCount_);
+            savegames = MainMenu.GetSaveGames(out int savegamesCount_);
             savegamesCount = savegamesCount_;
         }
 
@@ -205,7 +205,7 @@ public class SingleplayerScreen : ScreenBase
             {
                 extension = "mdss";
             }
-            string result = menu.p.FileOpenDialog(extension, "Manic Digger Savegame", menu.p.PathSavegames());
+            string result = menu.p.FileOpenDialog(extension, "Manic Digger Savegame", GamePlatformNative.PathSavegames);
             if (result != null)
             {
                 menu.ConnectToSingleplayer(result);

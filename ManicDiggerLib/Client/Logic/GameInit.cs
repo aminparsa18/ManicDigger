@@ -38,6 +38,7 @@ public partial class Game
 
     internal List<Asset> assets;
     internal float assetsLoadProgress;
+    internal TextRenderer textRenderer;
     internal TextColorRenderer textColorRenderer;
 
     /// <summary>Texture IDs indexed by [blockId][TileSide].</summary>

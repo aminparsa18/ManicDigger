@@ -56,14 +56,29 @@ public class ModUnloadRendererChunks : ModBase
         {
             if (chunkFlatIndex == -1) { return; }
 
-            RenderedChunk rendered = game.VoxelMap.chunks[chunkFlatIndex].rendered;
-            for (int k = 0; k < rendered.IdsCount; k++)
+            Chunk chunk = game.VoxelMap.chunks[chunkFlatIndex];
+            if (chunk == null) { return; }
+
+            // Existing: unload GPU geometry
+            RenderedChunk rendered = chunk.rendered;
+            if (rendered != null)
             {
-                game.d_Batcher.Remove(rendered.Ids[k]);
+                for (int k = 0; k < rendered.IdsCount; k++)
+                {
+                    game.d_Batcher.Remove(rendered.Ids[k]);
+                }
+                rendered.Ids = null;
+                rendered.Dirty = true;
+                rendered.Light = null;
             }
-            rendered.Ids = null;
-            rendered.Dirty = true;
-            rendered.Light = null;
+
+            // NEW: also free the raw block data so GC can reclaim the memory
+            chunk.data = null;
+            chunk.dataInt = null;
+            chunk.baseLight = null;
+
+            // Null the slot itself so the chunk object is also GC'd
+            game.VoxelMap.chunks[chunkFlatIndex] = null;
         };
     }
 

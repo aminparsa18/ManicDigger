@@ -121,8 +121,8 @@ public class MultiplayerScreen : ScreenBase
                 ServerOnList s = new()
                 {
                     Hash = ss[0],
-                    Name = menu.p.DecodeHTMLEntities(ss[1]),
-                    Motd = menu.p.DecodeHTMLEntities(ss[2]),
+                    Name = StringUtils.DecodeHTMLEntities(ss[1]),
+                    Motd = StringUtils.DecodeHTMLEntities(ss[2]),
                     Port = int.Parse(ss[3]),
                     Ip = ss[4],
                     Version = ss[5],

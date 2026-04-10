@@ -49,9 +49,9 @@ public class ServerSystemLoadServerClient : ServerSystem
                     StreamReader sr = new(s);
                     XmlDocument d = new();
                     d.Load(sr);
-                    server.serverClient.Format = int.Parse(XmlTool.XmlVal(d, "/ManicDiggerServerClient/Format"));
-                    server.serverClient.DefaultGroupGuests = XmlTool.XmlVal(d, "/ManicDiggerServerClient/DefaultGroupGuests");
-                    server.serverClient.DefaultGroupRegistered = XmlTool.XmlVal(d, "/ManicDiggerServerClient/DefaultGroupRegistered");
+                    server.serverClient.Format = int.Parse(StringUtils.XmlValue(d, "/ManicDiggerServerClient/Format"));
+                    server.serverClient.DefaultGroupGuests = StringUtils.XmlValue(d, "/ManicDiggerServerClient/DefaultGroupGuests");
+                    server.serverClient.DefaultGroupRegistered = StringUtils.XmlValue(d, "/ManicDiggerServerClient/DefaultGroupRegistered");
                 }
                 //Save with new version.
                 SaveServerClient(server);

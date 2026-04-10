@@ -451,7 +451,7 @@ public class MainMenu
 
     internal void Exit()
     {
-        p.Exit();
+        Environment.Exit(0);
     }
 
     internal void StartMainMenu()
@@ -514,9 +514,9 @@ public class MainMenu
         return LoginResult.Ok;
     }
 
-    internal string[] GetSavegames(out int length)
+    internal static string[] GetSaveGames(out int length)
     {
-        string[] files = FileHelper.DirectoryGetFiles(p.PathSavegames());
+        string[] files = FileHelper.DirectoryGetFiles(GamePlatformNative.PathSavegames);
         length = files.Length;
         string[] savegames = new string[length];
         int count = 0;

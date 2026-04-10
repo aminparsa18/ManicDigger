@@ -297,12 +297,12 @@ public class MultiplayerScreen : ScreenBase
                     if (thumbResponses[i].done)
                     {
                         //Request completed. load received bitmap
-                        Bitmap bmp = menu.p.BitmapCreateFromPng(thumbResponses[i].data, thumbResponses[i].data.Length);
+                        Bitmap bmp = PixelBuffer.BitmapFromPng(thumbResponses[i].data, thumbResponses[i].data.Length);
                         if (bmp != null)
                         {
                             int texture = menu.p.LoadTextureFromBitmap(bmp);
                             menu.textures[string.Format("serverlist_entry_{0}.png", server.Hash)] = texture;
-                            menu.p.BitmapDelete(bmp);
+                            bmp.Dispose();
                         }
                         server.ThumbnailDownloading = false;
                         server.ThumbnailFetched = true;

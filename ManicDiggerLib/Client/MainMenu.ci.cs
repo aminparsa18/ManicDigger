@@ -179,12 +179,12 @@ public class MainMenu
         }
         TextTexture textTexture = new();
 
-        Text_ text_ = new()
+        TextStyle text_ = new()
         {
-            text = text,
-            fontsize = fontSize,
-            fontfamily = "Arial",
-            color = ColorUtils.ColorFromArgb(255, 255, 255, 255)
+            Text = text,
+            FontSize = fontSize,
+            FontFamily = "Arial",
+            Color = ColorUtils.ColorFromArgb(255, 255, 255, 255)
         };
         Bitmap textBitmap = textColorRenderer.CreateTextTexture(text_);
 
@@ -200,7 +200,7 @@ public class MainMenu
         textTexture.textwidth = textWidth;
         textTexture.textheight = textHeight;
 
-        p.BitmapDelete(textBitmap);
+        textBitmap.Dispose();
         
         textTextures[textTexturesCount++] = textTexture;
         return textTexture;
@@ -211,10 +211,10 @@ public class MainMenu
     {
         if (!textures.TryGetValue(name, out int value))
         {
-            Bitmap bmp = p.BitmapCreateFromPng(GetFile(name), GetFileLength(name));
+            Bitmap bmp = PixelBuffer.BitmapFromPng(GetFile(name), GetFileLength(name));
             value = p.LoadTextureFromBitmap(bmp);
             textures[name] = value;
-            p.BitmapDelete(bmp);
+            bmp.Dispose();
         }
         return value;
     }

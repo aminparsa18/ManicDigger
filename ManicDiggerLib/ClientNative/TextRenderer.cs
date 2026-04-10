@@ -12,19 +12,19 @@ public class TextRenderer
     }
 
     // TODO: Currently broken in mono (Graphics Path).
-    private Bitmap defaultFont(Text_ t)
+    private Bitmap DefaultFont(TextStyle t)
     {
         //outlined font looks smaller
-        float oldfontsize = t.fontsize;
-        t.fontsize = Math.Max(t.fontsize, 9);
-        t.fontsize *= 1.65f;
-        Font font = new("Arial", t.fontsize, (FontStyle)t.GetFontStyle());
+        float oldfontsize = t.FontSize;
+        t.FontSize = Math.Max(t.FontSize, 9);
+        t.FontSize *= 1.65f;
+        Font font = new("Arial", t.FontSize, (FontStyle)t.FontStyle);
 
         SizeF size;
         using (Bitmap bmp = new(1, 1))
         {
             using Graphics g = Graphics.FromImage(bmp);
-            size = g.MeasureString(t.text, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
+            size = g.MeasureString(t.Text, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
         }
         size.Width *= 0.7f;
 
@@ -43,31 +43,31 @@ public class TextRenderer
                 g2.FillRectangle(new SolidBrush(Color.FromArgb(textalpha, 0, 0, 0)), 0, 0, size.Width, size.Height);
                 g2.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
                 Rectangle rect = new() { X = 0, Y = 0 };
-                using GraphicsPath path = GetStringPath(t.text, t.fontsize, rect, font, format);
+                using GraphicsPath path = GetStringPath(t.Text, t.FontSize, rect, font, format);
                 g2.SmoothingMode = SmoothingMode.AntiAlias;
                 RectangleF off = rect;
                 off.Offset(2, 2);
-                using (GraphicsPath offPath = GetStringPath(t.text, t.fontsize, off, font, format))
+                using (GraphicsPath offPath = GetStringPath(t.Text, t.FontSize, off, font, format))
                 {
                     Brush b = new SolidBrush(Color.FromArgb(100, 0, 0, 0));
                     g2.FillPath(b, offPath);
                     b.Dispose();
                 }
-                g2.FillPath(new SolidBrush(Color.FromArgb(t.color)), path);
+                g2.FillPath(new SolidBrush(Color.FromArgb(t.Color)), path);
                 g2.DrawPath(Pens.Black, path);
             }
         }
         return bmp2;
     }
 
-    private static Bitmap BlackBackgroundFont(Text_ t)
+    private static Bitmap BlackBackgroundFont(TextStyle t)
     {
-        Font font = new("Verdana", t.fontsize, (FontStyle)t.GetFontStyle());
+        Font font = new("Verdana", t.FontSize, (FontStyle)t.FontStyle);
         SizeF size;
         using (Bitmap bmp = new(1, 1))
         {
             using Graphics g = Graphics.FromImage(bmp);
-            size = g.MeasureString(t.text, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
+            size = g.MeasureString(t.Text, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
         }
 
         SizeF size2 = new(NextPowerOfTwo((uint)size.Width), NextPowerOfTwo((uint)size.Height));
@@ -81,24 +81,24 @@ public class TextRenderer
             if (size.Width != 0 && size.Height != 0)
             {
                 g2.FillRectangle(new SolidBrush(Color.Black), 0, 0, size.Width, size.Height);
-                g2.DrawString(t.text, font, new SolidBrush(Color.FromArgb(t.color)), 0, 0);
+                g2.DrawString(t.Text, font, new SolidBrush(Color.FromArgb(t.Color)), 0, 0);
             }
         }
         return bmp2;
     }
 
-    private static Bitmap SimpleFont(Text_ t)
+    private static Bitmap SimpleFont(TextStyle t)
     {
-        float fontsize = t.fontsize;
-        fontsize = Math.Max(t.fontsize, 9);
+        float fontsize = t.FontSize;
+        fontsize = Math.Max(t.FontSize, 9);
         fontsize *= 1.1f;
-        Font font = new("Arial", fontsize, (FontStyle)t.GetFontStyle());
+        Font font = new("Arial", fontsize, (FontStyle)t.FontStyle);
 
         SizeF size;
         using (Bitmap bmp = new(1, 1))
         {
             using Graphics g = Graphics.FromImage(bmp);
-            size = g.MeasureString(t.text, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
+            size = g.MeasureString(t.Text, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
         }
 
         SizeF size2 = new(NextPowerOfTwo((uint)size.Width), NextPowerOfTwo((uint)size.Height));
@@ -114,21 +114,21 @@ public class TextRenderer
             {
                 g2.SmoothingMode = SmoothingMode.AntiAlias;
                 g2.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-                g2.DrawString(t.text, font, new SolidBrush(Color.FromArgb(t.color)), 0, 0);
+                g2.DrawString(t.Text, font, new SolidBrush(Color.FromArgb(t.Color)), 0, 0);
             }
         }
         return bmp2;
     }
 
-    private static Bitmap NiceFont(Text_ t)
+    private static Bitmap NiceFont(TextStyle t)
     {
-        float fontsize = t.fontsize;
+        float fontsize = t.FontSize;
         Font font;
         fontsize = Math.Max(fontsize, 9);
         fontsize *= 1.1f;
         try
         {
-            font = new Font(t.GetFontFamily(), fontsize, (FontStyle)t.GetFontStyle());
+            font = new Font(t.FontFamily, fontsize, (FontStyle)t.FontStyle);
         }
         catch
         {
@@ -139,7 +139,7 @@ public class TextRenderer
         using (Bitmap bmp = new(1, 1))
         {
             using Graphics g = Graphics.FromImage(bmp);
-            size = g.MeasureString(t.text, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
+            size = g.MeasureString(t.Text, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
         }
 
         SizeF size2 = new(NextPowerOfTwo((uint)size.Width), NextPowerOfTwo((uint)size.Height));
@@ -157,24 +157,24 @@ public class TextRenderer
 
                 Matrix mx = new(1f, 0, 0, 1f, 1, 1);
                 g2.Transform = mx;
-                g2.DrawString(t.text, font, new SolidBrush(Color.FromArgb(128, Color.Black)), 0, 0);
+                g2.DrawString(t.Text, font, new SolidBrush(Color.FromArgb(128, Color.Black)), 0, 0);
                 g2.ResetTransform();
 
-                g2.DrawString(t.text, font, new SolidBrush(Color.FromArgb(t.color)), 0, 0);
+                g2.DrawString(t.Text, font, new SolidBrush(Color.FromArgb(t.Color)), 0, 0);
             }
         }
         return bmp2;
     }
 
-    public virtual Bitmap MakeTextTexture(Text_ t)
+    public virtual Bitmap MakeTextTexture(TextStyle t)
     {
         return this.Font switch
         {
-            FontType.Default => this.defaultFont(t),
+            FontType.Default => this.DefaultFont(t),
             FontType.BlackBackground => BlackBackgroundFont(t),
             FontType.Simple => SimpleFont(t),
             FontType.Nice => NiceFont(t),
-            _ => this.defaultFont(t),
+            _ => this.DefaultFont(t),
         };
     }
     private static GraphicsPath GetStringPath(string s, float emSize, RectangleF rect, Font font, StringFormat format)

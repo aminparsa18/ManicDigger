@@ -33,7 +33,6 @@ public class GamePlatformNative : IGamePlatform
     public bool TouchTest = false;
     private readonly string[] datapaths;
 
-    private readonly ManicDigger.Renderers.TextRenderer r = new();
     private readonly Dictionary<TextAndSize, SizeF> textsizes = new();
     public SizeF TextSize(string text, float fontsize)
     {
@@ -131,12 +130,6 @@ public class GamePlatformNative : IGamePlatform
         public ThumbnailResponseCi response;
     }
 
-    public string FileName(string fullpath)
-    {
-        FileInfo info = new(fullpath);
-        return info.Name.Replace(info.Extension, "");
-    }
-
     private readonly Stopwatch start = new();
 
     public int TimeMillisecondsFromStart => (int)start.ElapsedMilliseconds;
@@ -146,27 +139,8 @@ public class GamePlatformNative : IGamePlatform
         throw new Exception(message);
     }
 
-    
-
-    public Bitmap BitmapCreateFromPng(byte[] data, int dataLength)
-    {
-        Bitmap bmp;
-        try
-        {
-            bmp = new Bitmap(new MemoryStream(data, 0, dataLength));
-        }
-        catch
-        {
-            bmp = new Bitmap(1, 1);
-            bmp.SetPixel(0, 0, Color.Orange);
-        }
-        return bmp;
-    }
-
     public bool IsMono = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-
     
-
     public int LoadTextureFromBitmap(Bitmap bmp)
     {
         return LoadTexture(bmp, false);
@@ -174,7 +148,7 @@ public class GamePlatformNative : IGamePlatform
 
     private readonly ManicDigger.Renderers.TextRenderer textrenderer = new();
 
-    public Bitmap CreateTextTexture(Text_ t)
+    public Bitmap CreateTextTexture(TextStyle t)
     {
         Bitmap bmp = textrenderer.MakeTextTexture(t);
         return bmp;
@@ -183,11 +157,6 @@ public class GamePlatformNative : IGamePlatform
     public void SetTextRendererFont(int fontID)
     {
         textrenderer.SetFont(fontID);
-    }
-
-    public void BitmapDelete(Bitmap bmp)
-    {
-        bmp.Dispose();
     }
 
     public void ConsoleWriteLine(string s)

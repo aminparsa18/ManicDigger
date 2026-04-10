@@ -37,7 +37,7 @@
         }
     }
 
-    private CachedTexture GetCachedTextTexture(Text_ t)
+    private CachedTexture GetCachedTextTexture(TextStyle t)
     {
         for (int i = 0; i < cachedTextTextures.Count; i++)
         {
@@ -45,13 +45,13 @@
             if (ct == null)
                 continue;
 
-            if (ct.text.Equals_(t))
+            if (ct.text.Equals(t))
                 return ct.texture;
         }
         return null;
     }
 
-    private CachedTexture MakeTextTexture(Text_ t)
+    private CachedTexture MakeTextTexture(TextStyle t)
     {
         Bitmap bmp = textColorRenderer.CreateTextTexture(t);
         CachedTexture ct = new()
@@ -60,7 +60,7 @@
             sizeY = bmp.Height,
             textureId = platform.LoadTextureFromBitmap(bmp)
         };
-        platform.BitmapDelete(bmp);
+        bmp.Dispose();
         return ct;
     }
 
@@ -75,13 +75,14 @@
 
     internal int GetTexture(string p)
     {
-        if (!textures.ContainsKey(p))
+        if (!textures.TryGetValue(p, out int value))
         {
-            Bitmap bmp = platform.BitmapCreateFromPng(GetAssetFile(p), GetAssetFileLength(p));
-            textures[p] = platform.LoadTextureFromBitmap(bmp);
-            platform.BitmapDelete(bmp);
+            Bitmap bmp = PixelBuffer.BitmapFromPng(GetAssetFile(p), GetAssetFileLength(p));
+            value = platform.LoadTextureFromBitmap(bmp);
+            textures[p] = value;
+            bmp.Dispose();
         }
-        return textures[p];
+        return value;
     }
 
     internal int GetTextureOrLoad(string name, Bitmap bmp)
@@ -112,14 +113,14 @@
         terrainTexture = platform.LoadTextureFromBitmap(atlas2d);
 
         terrainTexturesPerAtlas = Atlas1dheight() / (atlas2dWidth / Atlas2DTiles);
-        Bitmap[] atlases1d = TextureAtlasConverter.Atlas2dInto1d(platform, atlas2d, Atlas2DTiles, Atlas1dheight(), out int atlasesidCount);
+        Bitmap[] atlases1d = PixelBuffer.Atlas2dInto1d(atlas2d, Atlas2DTiles, Atlas1dheight(), out int atlasesidCount);
 
         terrainTextures1d = new int[atlasesidCount];
         int count = 0;
         for (int i = 0; i < atlasesidCount; i++)
         {
             terrainTextures1d[count++] = platform.LoadTextureFromBitmap(atlases1d[i]);
-            platform.BitmapDelete(atlases1d[i]);
+            atlases1d[i].Dispose();
         }
     }
 
@@ -146,15 +147,15 @@
             byte[] fileData = GetAssetFile(string.Concat(textureIds[i], ".png")) ?? GetAssetFile("Unknown.png");
             if (fileData == null) continue;
 
-            Bitmap bmp = platform.BitmapCreateFromPng(fileData, fileData.Length);
+            Bitmap bmp = PixelBuffer.BitmapFromPng(fileData, fileData.Length);
             if (bmp.Width != tilesize || bmp.Height != tilesize)
             {
-                platform.BitmapDelete(bmp);
+                bmp.Dispose();
                 continue;
             }
 
             PixelBuffer tile = PixelBuffer.FromBitmap(bmp);
-            platform.BitmapDelete(bmp);
+            bmp.Dispose();
 
             int x = (i % TexturesPacked) * tilesize;
             int y = (i / TexturesPacked) * tilesize;

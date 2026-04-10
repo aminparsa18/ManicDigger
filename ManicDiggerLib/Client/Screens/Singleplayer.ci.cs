@@ -125,7 +125,7 @@ public class SingleplayerScreen : ScreenBase
         for (int i = 0; i < savegamesCount; i++)
         {
             worldButtons[i].visible = true;
-            worldButtons[i].text = menu.p.FileName(savegames[i]);
+            worldButtons[i].text = Path.GetFileNameWithoutExtension(savegames[i]);
             worldButtons[i].x = leftx;
             worldButtons[i].y = 100 + 100 * scale * i;
             worldButtons[i].sizex = 256 * scale;

@@ -27,7 +27,6 @@ public interface IPlatformMisc
     string PathSavegames();
     void WebClientDownloadDataAsync(string url, HttpResponse response);
     void ThumbnailDownloadAsync(string ip, int port, ThumbnailResponseCi response);
-    string FileName(string fullpath);
     void AddOnNewFrame(Action<float> handler);
     void AddOnKeyEvent(Action<KeyEventArgs> onKeyDown,
         Action<KeyEventArgs> onKeyUp,
@@ -45,9 +44,8 @@ public interface IPlatformMisc
     int TimeMillisecondsFromStart { get; }
 
     void ThrowException(string message);
-    Bitmap CreateTextTexture(Text_ t);
+    Bitmap CreateTextTexture(TextStyle t);
     void SetTextRendererFont(int fontID);
-    void BitmapDelete(Bitmap bmp);
     void ConsoleWriteLine(string p);
     MonitorObject MonitorCreate();
     void MonitorEnter(MonitorObject monitorObject);
@@ -63,7 +61,6 @@ public interface IPlatformMisc
     bool IsValidTypingChar(int c);
     void WindowExit();
     void MessageBoxShowError(string text, string caption);
-    Bitmap BitmapCreateFromPng(byte[] data, int dataLength);
     void SetTitle(string applicationname);
     bool Focused();
     void AddOnCrash(OnCrashHandler handler);

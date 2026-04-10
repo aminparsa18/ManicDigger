@@ -125,4 +125,75 @@ public class PixelBuffer
             bmp.UnlockBits(bmd);
         }
     }
+
+    /// <summary>
+    /// Creates a <see cref="Bitmap"/> from raw PNG file bytes.
+    /// If the data is invalid or cannot be decoded, returns a 1×1 orange pixel as a fallback.
+    /// </summary>
+    /// <param name="data">The raw PNG byte data.</param>
+    /// <param name="dataLength">Number of bytes to read from <paramref name="data"/>.</param>
+    /// <returns>A <see cref="Bitmap"/> decoded from the PNG data, or a 1×1 orange fallback.</returns>
+    public static Bitmap BitmapFromPng(byte[] data, int dataLength)
+    {
+        try
+        {
+            return new Bitmap(new MemoryStream(data, 0, dataLength));
+        }
+        catch
+        {
+            Bitmap fallback = new(1, 1);
+            fallback.SetPixel(0, 0, Color.Orange);
+            return fallback;
+        }
+    }
+
+    /// <summary>
+    /// Splits a square 2-D texture atlas into one or more 1-D (vertical strip) atlases,
+    /// each no taller than <paramref name="atlasSizeLimit"/> pixels.
+    /// </summary>
+    /// <param name="p">The platform instance (unused directly; passed for context).</param>
+    /// <param name="atlas2d">The source square atlas. Must be <paramref name="tiles"/> × <paramref name="tiles"/> tiles.</param>
+    /// <param name="tiles">Number of tiles along each axis of the source atlas (e.g. 16 for a 16×16 atlas).</param>
+    /// <param name="atlasSizeLimit">Maximum height in pixels of each output 1-D atlas.</param>
+    /// <param name="retCount">Returns the number of 1-D atlases produced.</param>
+    /// <returns>
+    /// An array of <see cref="Bitmap"/> strips. Only the first <paramref name="retCount"/>
+    /// entries are valid; the rest are <see langword="null"/>.
+    /// </returns>
+    public static Bitmap[] Atlas2dInto1d(Bitmap atlas2d, int tiles, int atlasSizeLimit, out int retCount)
+    {
+        PixelBuffer orig = FromBitmap(atlas2d);
+
+        int tilesize = orig.Width / tiles;
+        int totalTiles = tiles * tiles;
+        int atlasesCount = Math.Max(1, (totalTiles * tilesize) / atlasSizeLimit);
+        int tilesPerAtlas = totalTiles / atlasesCount;
+
+        Bitmap[] atlases = new Bitmap[128];
+        int atlasIndex = 0;
+        PixelBuffer atlas1d = null;
+
+        for (int i = 0; i < totalTiles; i++)
+        {
+            int x = i % tiles;
+            int y = i / tiles;
+
+            if (i % tilesPerAtlas == 0)
+            {
+                if (atlas1d != null)
+                    atlases[atlasIndex++] = atlas1d.ToBitmap();
+
+                atlas1d = Create(tilesize, atlasSizeLimit);
+            }
+
+            int destY = (i % tilesPerAtlas) * tilesize;
+            for (int yy = 0; yy < tilesize; yy++)
+                for (int xx = 0; xx < tilesize; xx++)
+                    atlas1d.SetPixel(xx, destY + yy, orig.GetPixel(x * tilesize + xx, y * tilesize + yy));
+        }
+
+        atlases[atlasIndex++] = atlas1d.ToBitmap();
+        retCount = atlasesCount;
+        return atlases;
+    }
 }

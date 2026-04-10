@@ -1179,38 +1179,9 @@ public class CachedTexture
     internal int lastuseMilliseconds;
 }
 
-public class Text_
-{
-    internal string text;
-    internal float fontsize;
-    internal int color;
-    internal string fontfamily;
-    internal int fontstyle;
-
-    internal bool Equals_(Text_ t)
-    {
-        return this.text == t.text
-            && this.fontsize == t.fontsize
-            && this.color == t.color
-            && this.fontfamily == t.fontfamily
-            && this.fontstyle == t.fontstyle;
-    }
-
-    public string GetText() { return text; }
-    public void SetText(string value) { text = value; }
-    public float GetFontSize() { return fontsize; }
-    public void SetFontSize(float value) { fontsize = value; }
-    public int GetColor() { return color; }
-    public void SetColor(int value) { color = value; }
-    public string GetFontFamily() { return fontfamily; }
-    public void SetFontFamily(string value) { fontfamily = value; }
-    public int GetFontStyle() { return fontstyle; }
-    public void SetFontStyle(int value) { fontstyle = value; }
-}
-
 public class CachedTextTexture
 {
-    internal Text_ text;
+    internal TextStyle text;
     internal CachedTexture texture;
 }
 
@@ -1226,7 +1197,7 @@ public class TextColorRenderer
     internal IGamePlatform platform;
 
     /// <summary>
-    /// Renders a <see cref="Text_"/> value (which may contain inline color codes) into a
+    /// Renders a <see cref="TextStyle"/> value (which may contain inline color codes) into a
     /// <see cref="Bitmap"/> sized to the next power of two in each dimension.
     /// Each color segment is rendered separately and composited into a single atlas.
     /// </summary>
@@ -1235,9 +1206,9 @@ public class TextColorRenderer
     /// A <see cref="Bitmap"/> containing the rendered text, with transparent pixels where
     /// no glyph was drawn.
     /// </returns>
-    internal Bitmap CreateTextTexture(Text_ t)
+    internal Bitmap CreateTextTexture(TextStyle t)
     {
-        TextPart[] parts = DecodeColors(t.text, t.color, out int partsCount);
+        TextPart[] parts = DecodeColors(t.Text, t.Color, out int partsCount);
 
         float totalWidth = 0;
         float totalHeight = 0;
@@ -1246,7 +1217,7 @@ public class TextColorRenderer
 
         for (int i = 0; i < partsCount; i++)
         {
-            platform.TextSize(parts[i].text, t.fontsize, out int outWidth, out int outHeight);
+            platform.TextSize(parts[i].text, t.FontSize, out int outWidth, out int outHeight);
             sizesX[i] = outWidth;
             sizesY[i] = outHeight;
             totalWidth += outWidth;
@@ -1264,13 +1235,13 @@ public class TextColorRenderer
             int sizeY = sizesY[i];
             if (sizeX == 0 || sizeY == 0) continue;
 
-            Text_ partText = new()
+            TextStyle partText = new()
             {
-                text = parts[i].text,
-                color = parts[i].color,
-                fontsize = t.fontsize,
-                fontstyle = t.fontstyle,
-                fontfamily = t.fontfamily
+                Text = parts[i].text,
+                Color = parts[i].color,
+                FontSize = t.FontSize,
+                FontStyle = t.FontStyle,
+                FontFamily = t.FontFamily
             };
 
             PixelBuffer part = PixelBuffer.FromBitmap(platform.CreateTextTexture(partText));

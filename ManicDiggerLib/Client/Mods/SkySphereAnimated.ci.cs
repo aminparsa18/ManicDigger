@@ -46,7 +46,7 @@ public class ModSkySphereAnimated : ModBase
     /// <param name="pixels">Receives the loaded ARGB pixel data.</param>
     private void LoadPixels(Game game, string filename, ref int[] pixels)
     {
-        Bitmap bmp = game.platform.BitmapCreateFromPng(game.GetAssetFile(filename), game.GetAssetFileLength(filename));
+        Bitmap bmp = PixelBuffer.BitmapFromPng(game.GetAssetFile(filename), game.GetAssetFileLength(filename));
         PixelBuffer buffer = PixelBuffer.FromBitmap(bmp);
         bmp.Dispose();
         pixels = buffer.Argb;

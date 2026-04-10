@@ -18,11 +18,11 @@ public class ModDrawHand2d : ModBase
         {
             lastHandImage = img;
             byte[] file = game.GetAssetFile(img);
-            Bitmap bmp = game.platform.BitmapCreateFromPng(file, file.Length);
+            Bitmap bmp = PixelBuffer.BitmapFromPng(file, file.Length);
             if (bmp != null)
             {
                 game.handTexture = game.platform.LoadTextureFromBitmap(bmp);
-                game.platform.BitmapDelete(bmp);
+                bmp.Dispose();
             }
         }
 

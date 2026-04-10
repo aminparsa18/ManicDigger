@@ -60,7 +60,7 @@ public class TerrainChunkTesselatorCi
     internal bool option_DoNotDrawEdges;
     internal float AtiArtifactFix;
 
-    private readonly VecCito3i[][] c_OcclusionNeighbors;
+    private readonly Vector3i[][] c_OcclusionNeighbors;
 
     private readonly float[] ref_blockCornerHeight;
     private readonly int[] tmpnPos;
@@ -80,106 +80,102 @@ public class TerrainChunkTesselatorCi
         tmpshadowration = new int[TileDirectionEnum.DirectionCounts];
         tmpoccupied = new bool[TileDirectionEnum.DirectionCounts];
         tmpfShadowRation = new float[4];
-        tmpv = new VecCito3i();
+        tmpv = Vector3i.Zero;
         ref_blockCornerHeight = new float[4];
 
-        c_OcclusionNeighbors = new VecCito3i[TileSideEnum.SideCount][];
+        c_OcclusionNeighbors = new Vector3i[TileSideEnum.SideCount][];
 
         //Initialize array
         for (int i = 0; i < TileSideEnum.SideCount; i++)
         {
-            c_OcclusionNeighbors[i] = new VecCito3i[TileDirectionEnum.DirectionCounts];
+            c_OcclusionNeighbors[i] = new Vector3i[TileDirectionEnum.DirectionCounts];
         }
 
         //Top
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Center] = VecCito3i.CitoCtr(0, 0, 1);
+        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Center] = new Vector3i(0, 0, 1);
+        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Top] = new Vector3i(0, -1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Bottom] = new Vector3i(0, 1, 1);
 
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Top] = VecCito3i.CitoCtr(0, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Bottom] = VecCito3i.CitoCtr(0, 1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Left] = new Vector3i(-1, 0, 1);
+        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Right] = new Vector3i(1, 0, 1);
+        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.TopLeft] = new Vector3i(-1, -1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.TopRight] = new Vector3i(1, -1, 1);
 
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Left] = VecCito3i.CitoCtr(-1, 0, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Right] = VecCito3i.CitoCtr(1, 0, 1);
-
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.TopLeft] = VecCito3i.CitoCtr(-1, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.TopRight] = VecCito3i.CitoCtr(1, -1, 1);
-
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.BottomLeft] = VecCito3i.CitoCtr(-1, 1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.BottomRight] = VecCito3i.CitoCtr(1, 1, 1);
-
+        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.BottomLeft] = new Vector3i(-1, 1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.BottomRight] = new Vector3i(1, 1, 1);
         //Left
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Center] = VecCito3i.CitoCtr(-1, 0, 0);
+        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Center] = new Vector3i(-1, 0, 0);
 
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Top] = VecCito3i.CitoCtr(-1, 0, 1);
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Bottom] = VecCito3i.CitoCtr(-1, 0, -1);
+        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Top] = new Vector3i(-1, 0, 1);
+        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Bottom] = new Vector3i(-1, 0, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Left] = VecCito3i.CitoCtr(-1, -1, 0);
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Right] = VecCito3i.CitoCtr(-1, 1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Left] = new Vector3i(-1, -1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Right] = new Vector3i(-1, 1, 0);
 
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.TopLeft] = VecCito3i.CitoCtr(-1, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.TopRight] = VecCito3i.CitoCtr(-1, 1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.TopLeft] = new Vector3i(-1, -1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.TopRight] = new Vector3i(-1, 1, 1);
 
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.BottomLeft] = VecCito3i.CitoCtr(-1, -1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.BottomRight] = VecCito3i.CitoCtr(-1, 1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.BottomLeft] = new Vector3i(-1, -1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.BottomRight] = new Vector3i(-1, 1, -1);
 
         //Bottom
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Center] = VecCito3i.CitoCtr(0, 0, -1);
+        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Center] = new Vector3i(0, 0, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Top] = VecCito3i.CitoCtr(0, 1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Bottom] = VecCito3i.CitoCtr(0, -1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Top] = new Vector3i(0, 1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Bottom] = new Vector3i(0, -1, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Left] = VecCito3i.CitoCtr(-1, 0, -1);
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Right] = VecCito3i.CitoCtr(1, 0, -1);
+        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Left] = new Vector3i(-1, 0, -1);
+        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Right] = new Vector3i(1, 0, -1);
+        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.TopLeft] = new Vector3i(-1, 1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.TopRight] = new Vector3i(1, 1, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.TopLeft] = VecCito3i.CitoCtr(-1, 1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.TopRight] = VecCito3i.CitoCtr(1, 1, -1);
-
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.BottomLeft] = VecCito3i.CitoCtr(-1, -1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.BottomRight] = VecCito3i.CitoCtr(1, -1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.BottomLeft] = new Vector3i(-1, -1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.BottomRight] = new Vector3i(1, -1, -1);
 
         //Right
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Center] = VecCito3i.CitoCtr(1, 0, 0);
+        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Center] = new Vector3i(1, 0, 0);
 
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Top] = VecCito3i.CitoCtr(1, 0, 1);
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Bottom] = VecCito3i.CitoCtr(1, 0, -1);
+        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Top] = new Vector3i(1, 0, 1);
+        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Bottom] = new Vector3i(1, 0, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Left] = VecCito3i.CitoCtr(1, 1, 0);
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Right] = VecCito3i.CitoCtr(1, -1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Left] = new Vector3i(1, 1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Right] = new Vector3i(1, -1, 0);
 
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.TopLeft] = VecCito3i.CitoCtr(1, 1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.TopRight] = VecCito3i.CitoCtr(1, -1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.TopLeft] = new Vector3i(1, 1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.TopRight] = new Vector3i(1, -1, 1);
 
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.BottomLeft] = VecCito3i.CitoCtr(1, 1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.BottomRight] = VecCito3i.CitoCtr(1, -1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.BottomLeft] = new Vector3i(1, 1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.BottomRight] = new Vector3i(1, -1, -1);
 
         //Back
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Center] = VecCito3i.CitoCtr(0, -1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Center] = new Vector3i(0, -1, 0);
 
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Top] = VecCito3i.CitoCtr(0, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Bottom] = VecCito3i.CitoCtr(0, -1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Top] = new Vector3i(0, -1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Bottom] = new Vector3i(0, -1, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Left] = VecCito3i.CitoCtr(1, -1, 0);
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Right] = VecCito3i.CitoCtr(-1, -1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Left] = new Vector3i(1, -1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Right] = new Vector3i(-1, -1, 0);
 
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.TopLeft] = VecCito3i.CitoCtr(1, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.TopRight] = VecCito3i.CitoCtr(-1, -1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.TopLeft] = new Vector3i(1, -1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.TopRight] = new Vector3i(-1, -1, 1);
 
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.BottomLeft] = VecCito3i.CitoCtr(1, -1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.BottomRight] = VecCito3i.CitoCtr(-1, -1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.BottomLeft] = new Vector3i(1, -1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.BottomRight] = new Vector3i(-1, -1, -1);
 
         //Front
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Center] = VecCito3i.CitoCtr(0, 1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Center] = new Vector3i(0, 1, 0);
 
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Top] = VecCito3i.CitoCtr(0, 1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Bottom] = VecCito3i.CitoCtr(0, 1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Top] = new Vector3i(0, 1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Bottom] = new Vector3i(0, 1, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Left] = VecCito3i.CitoCtr(-1, 1, 0);
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Right] = VecCito3i.CitoCtr(1, 1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Left] = new Vector3i(-1, 1, 0);
+        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Right] = new Vector3i(1, 1, 0);
 
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.TopLeft] = VecCito3i.CitoCtr(-1, 1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.TopRight] = VecCito3i.CitoCtr(1, 1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.TopLeft] = new Vector3i(-1, 1, 1);
+        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.TopRight] = new Vector3i(1, 1, 1);
 
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.BottomLeft] = VecCito3i.CitoCtr(-1, 1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.BottomRight] = VecCito3i.CitoCtr(1, 1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.BottomLeft] = new Vector3i(-1, 1, -1);
+        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.BottomRight] = new Vector3i(1, 1, -1);
 
     }
 
@@ -586,9 +582,9 @@ public class TerrainChunkTesselatorCi
         return GetShadowRatio(xx, yy, zz);
     }
 
-    public int GetShadowRatioVec(VecCito3i v)
+    public int GetShadowRatioVec(Vector3i v)
     {
-        return GetShadowRatio(v.x, v.y, v.z);
+        return GetShadowRatio(v.X, v.Y, v.Z);
     }
 
     public int GetShadowRatio(int xx, int yy, int zz)
@@ -638,14 +634,14 @@ public class TerrainChunkTesselatorCi
         int xx = x % chunksize + 1;
         int yy = y % chunksize + 1;
         int zz = z % chunksize + 1;
-        VecCito3i[] vNeighbors = c_OcclusionNeighbors[tileSide];
+        Vector3i[] vNeighbors = c_OcclusionNeighbors[tileSide];
 
         int[] shadowration = tmpshadowration;
         bool[] occupied = tmpoccupied;
 
-        int shadowratio = GetShadowRatio(vNeighbors[TileDirectionEnum.Center].x + xx,
-            vNeighbors[TileDirectionEnum.Center].y + yy,
-            vNeighbors[TileDirectionEnum.Center].z + zz);
+        int shadowratio = GetShadowRatio(vNeighbors[TileDirectionEnum.Center].X + xx,
+            vNeighbors[TileDirectionEnum.Center].Y + yy,
+            vNeighbors[TileDirectionEnum.Center].Z + zz);
 
         //initialize shadow values
         float[] fShadowRation = tmpfShadowRation;
@@ -660,9 +656,9 @@ public class TerrainChunkTesselatorCi
             //Get occupation and int shadowRation
             for (int i = 0; i < TileDirectionEnum.DirectionCounts; i++)
             {
-                int vPosX = vNeighbors[i].x + xx;
-                int vPosY = vNeighbors[i].y + yy;
-                int vPosZ = vNeighbors[i].z + zz;
+                int vPosX = vNeighbors[i].X + xx;
+                int vPosY = vNeighbors[i].Y + yy;
+                int vPosZ = vNeighbors[i].Z + zz;
                 int nBlockType = currentChunk[Index3d(vPosX, vPosY, vPosZ, chunksize + 2, chunksize + 2)];
 
                 if (nBlockType != 0)
@@ -711,8 +707,8 @@ public class TerrainChunkTesselatorCi
         }
     }
 
-    private readonly VecCito3i tmpv;
-    private void DrawBlockFace(int x, int y, int z, int tileType, int tileSide, float vOffsetX, float vOffsetY, float vOffsetZ, float vScaleX, float vScaleY, float vScaleZ, VecCito3i[] vNeighbors, float[] fShadowRation)
+    private readonly Vector3i tmpv;
+    private void DrawBlockFace(int x, int y, int z, int tileType, int tileSide, float vOffsetX, float vOffsetY, float vOffsetZ, float vScaleX, float vScaleY, float vScaleZ, Vector3i[] vNeighbors, float[] fShadowRation)
     {
         int color = _colorWhite;
 
@@ -735,36 +731,36 @@ public class TerrainChunkTesselatorCi
         float texrecBottom = texrecTop +_texrecHeight;
         int lastelement = toreturn.VerticesCount;
 
-        VecCito3i v = tmpv;
+        Vector3i v = tmpv;
         float fSlopeModifier = 0f;
 
         //Calculate the corner points
-        vNeighbors[TileDirectionEnum.TopRight].Add(1, 1, 1, v);
+        v = vNeighbors[TileDirectionEnum.TopRight] + new Vector3i(1, 1, 1);
         fSlopeModifier = GetCornerHeightModifier(tileSide, CornerEnum.TopRight);
-        float xPos = x + vOffsetX + ((v.x * 0.5f) * vScaleX);
-        float zPos = z + vOffsetZ + ((v.z * 0.5f) * vScaleZ) + fSlopeModifier;
-        float yPos = y + vOffsetY + ((v.y * 0.5f) * vScaleY);
+        float xPos = x + vOffsetX + ((v.X * 0.5f) * vScaleX);
+        float zPos = z + vOffsetZ + ((v.Z * 0.5f) * vScaleZ) + fSlopeModifier;
+        float yPos = y + vOffsetY + ((v.Y * 0.5f) * vScaleY);
         ModelDataTool.AddVertex(toreturn, xPos, zPos , yPos, _texrecRight, texrecTop, ColorMultiply(color, fShadowRation[CornerEnum.TopRight]));
 
-        vNeighbors[TileDirectionEnum.TopLeft].Add(1, 1, 1, v);
+        v = vNeighbors[TileDirectionEnum.TopLeft] + new Vector3i(1, 1, 1);
         fSlopeModifier = GetCornerHeightModifier(tileSide, CornerEnum.TopLeft);
-        xPos = x + vOffsetX + ((v.x * 0.5f) * vScaleX);
-        zPos = z + vOffsetZ + ((v.z * 0.5f) * vScaleZ) + fSlopeModifier;
-        yPos = y + vOffsetY + ((v.y * 0.5f) * vScaleY);
+        xPos = x + vOffsetX + ((v.X * 0.5f) * vScaleX);
+        zPos = z + vOffsetZ + ((v.Z * 0.5f) * vScaleZ) + fSlopeModifier;
+        yPos = y + vOffsetY + ((v.Y * 0.5f) * vScaleY);
         ModelDataTool.AddVertex(toreturn, xPos, zPos, yPos, _texrecLeft, texrecTop, ColorMultiply(color, fShadowRation[CornerEnum.TopLeft]));
 
-        vNeighbors[TileDirectionEnum.BottomRight].Add(1, 1, 1, v);
+        v = vNeighbors[TileDirectionEnum.BottomRight] + new Vector3i(1, 1, 1);
         fSlopeModifier = GetCornerHeightModifier(tileSide, CornerEnum.BottomRight);
-        xPos = x + vOffsetX + ((v.x * 0.5f) * vScaleX);
-        zPos = z + vOffsetZ + ((v.z * 0.5f) * vScaleZ) + fSlopeModifier;
-        yPos = y + vOffsetY + ((v.y * 0.5f) * vScaleY);
+        xPos = x + vOffsetX + ((v.X * 0.5f) * vScaleX);
+        zPos = z + vOffsetZ + ((v.Z * 0.5f) * vScaleZ) + fSlopeModifier;
+        yPos = y + vOffsetY + ((v.Y * 0.5f) * vScaleY);
         ModelDataTool.AddVertex(toreturn, xPos, zPos, yPos, _texrecRight, texrecBottom, ColorMultiply(color, fShadowRation[CornerEnum.BottomRight]));
 
-        vNeighbors[TileDirectionEnum.BottomLeft].Add(1, 1, 1, v);
+        v = vNeighbors[TileDirectionEnum.BottomLeft] + new Vector3i(1, 1, 1);
         fSlopeModifier = GetCornerHeightModifier(tileSide, CornerEnum.BottomLeft);
-        xPos = x + vOffsetX + ((v.x * 0.5f) * vScaleX);
-        zPos = z + vOffsetZ + ((v.z * 0.5f) * vScaleZ) + fSlopeModifier;
-        yPos = y + vOffsetY + ((v.y * 0.5f) * vScaleY);
+        xPos = x + vOffsetX + ((v.X * 0.5f) * vScaleX);
+        zPos = z + vOffsetZ + ((v.Z * 0.5f) * vScaleZ) + fSlopeModifier;
+        yPos = y + vOffsetY + ((v.Y * 0.5f) * vScaleY);
         ModelDataTool.AddVertex(toreturn, xPos, zPos, yPos, _texrecLeft, texrecBottom, ColorMultiply(color, fShadowRation[CornerEnum.BottomLeft]));
 
         {

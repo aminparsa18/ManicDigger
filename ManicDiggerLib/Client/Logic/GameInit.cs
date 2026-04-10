@@ -48,7 +48,6 @@ public partial class Game
     internal int terrainTexture;
     internal int[] terrainTextures1d;
     internal ITerrainTextures d_TerrainTextures;
-    internal TextureAtlasConverter d_TextureAtlasConverter;
 
     /// <summary>Maximum texture size detected at runtime.</summary>
     internal int maxTextureSize;

@@ -1,6 +1,4 @@
-﻿using ManicDigger;
-using ManicDigger.Mods;
-using Microsoft.CodeAnalysis.Operations;
+﻿using ManicDigger.Mods;
 
 public partial class Game
 {
@@ -26,7 +24,6 @@ public partial class Game
         config3d.viewdistance = platform.IsFastSystem() ? 128 : 32;
 
         ITerrainTextures terrainTextures = new() { game = this };
-        d_TextureAtlasConverter = new TextureAtlasConverter();
         d_TerrainTextures = terrainTextures;
 
         FrustumCulling frustumculling = new() { d_GetCameraMatrix = CameraMatrix };

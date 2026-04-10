@@ -115,14 +115,14 @@ public class ModLoadPlayerTextures : ModBase
         if (!e.drawModel.SkinDownloadResponse.Done) { return true; }
 
         // Download finished — decode and upload.
-        Bitmap bmp = game.platform.BitmapCreateFromPng(
+        Bitmap bmp = PixelBuffer.BitmapFromPng(
             e.drawModel.SkinDownloadResponse.Value,
             e.drawModel.SkinDownloadResponse.ValueLength);
 
         if (bmp != null)
         {
             e.drawModel.CurrentTexture = game.GetTextureOrLoad(e.drawName.Name, bmp);
-            game.platform.BitmapDelete(bmp);
+            bmp.Dispose();
         }
 
         return true;
@@ -148,7 +148,7 @@ public class ModLoadPlayerTextures : ModBase
             return true;
         }
 
-        Bitmap bmp = game.platform.BitmapCreateFromPng(file, file.Length);
+        Bitmap bmp = PixelBuffer.BitmapFromPng(file, file.Length);
         if (bmp == null)
         {
             e.drawModel.CurrentTexture = 0;
@@ -156,7 +156,7 @@ public class ModLoadPlayerTextures : ModBase
         }
 
         e.drawModel.CurrentTexture = game.GetTextureOrLoad(e.drawModel.Texture_, bmp);
-        game.platform.BitmapDelete(bmp);
+        bmp.Dispose();
         return true;
     }
 }

@@ -270,13 +270,13 @@
             return;
 
         color ??= ColorUtils.ColorFromArgb(255, 255, 255, 255);
-        Text_ t = new()
+        TextStyle t = new()
         {
-            text = text,
-            color = color.Value,
-            fontsize = font.Size,
-            fontfamily = font.FontFamily.Name,
-            fontstyle = (int)font.Style
+            Text = text,
+            Color = color.Value,
+            FontSize = font.Size,
+            FontFamily = font.FontFamily.Name,
+            FontStyle = (int)font.Style
         };
 
         if (GetCachedTextTexture(t) == null)

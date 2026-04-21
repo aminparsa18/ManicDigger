@@ -6301,31 +6301,31 @@ public class Packet_ClientIdentificationSerializer
         if (instance.MdProtocolVersion != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.MdProtocolVersion));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.MdProtocolVersion));
         }
         if (instance.Username != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Username));
+            stream.WriteByte(18);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Username));
         }
         if (instance.VerificationKey != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.VerificationKey));
+            stream.WriteByte(26);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.VerificationKey));
         }
         if (instance.ServerPassword != null)
         {
             // Key for field: 4, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(34));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.ServerPassword));
+            stream.WriteByte(34);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.ServerPassword));
         }
         if (instance.RequestPosition != null)
         {
             // Key for field: 5, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(42));
+            stream.WriteByte(42);
             CitoMemoryStream ms5 = new CitoMemoryStream();
 
             Packet_PositionAndOrientationSerializer.Serialize(ms5, instance.RequestPosition);
@@ -6353,8 +6353,8 @@ public class Packet_ClientIdentificationSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientIdentification instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -6529,7 +6529,7 @@ public class Packet_ClientRequestBlobSerializer
         if (instance.RequestedMd5 != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
+            stream.WriteByte(10);
             CitoMemoryStream ms1 = new CitoMemoryStream();
 
             Packet_StringListSerializer.Serialize(ms1, instance.RequestedMd5);
@@ -6557,8 +6557,8 @@ public class Packet_ClientRequestBlobSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientRequestBlob instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -6785,25 +6785,25 @@ public class Packet_ClientSetBlockSerializer
     public static void Serialize(CitoStream stream, Packet_ClientSetBlock instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Z);
         if (instance.Mode != Packet_BlockSetModeEnum.Destroy)
         {
             // Key for field: 4, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(32));
+            stream.WriteByte(32);
             ProtocolParser.WriteUInt64(stream, instance.Mode);
         }
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.BlockType);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.MaterialSlot);
     }
 
@@ -6818,8 +6818,8 @@ public class Packet_ClientSetBlockSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientSetBlock instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -7067,28 +7067,28 @@ public class Packet_ClientFillAreaSerializer
     public static void Serialize(CitoStream stream, Packet_ClientFillArea instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X1);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.X2);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Y1);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Y2);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.Z1);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.Z2);
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.BlockType);
         // Key for field: 8, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(64));
+        stream.WriteByte(64);
         ProtocolParser.WriteUInt64(stream, instance.MaterialSlot);
     }
 
@@ -7103,8 +7103,8 @@ public class Packet_ClientFillAreaSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientFillArea instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -7340,25 +7340,25 @@ public class Packet_ClientPositionAndOrientationSerializer
     public static void Serialize(CitoStream stream, Packet_ClientPositionAndOrientation instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.PlayerId);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Z);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.Heading);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.Pitch);
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.Stance);
     }
 
@@ -7373,8 +7373,8 @@ public class Packet_ClientPositionAndOrientationSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientPositionAndOrientation instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -7552,11 +7552,11 @@ public class Packet_ClientMessageSerializer
         if (instance.Message != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Message));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Message));
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.IsTeamchat);
     }
 
@@ -7571,8 +7571,8 @@ public class Packet_ClientMessageSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientMessage instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -7783,13 +7783,13 @@ public class Packet_ClientInventoryActionSerializer
         if (instance.Action != Packet_InventoryActionTypeEnum.Click)
         {
             // Key for field: 1, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(8));
+            stream.WriteByte(8);
             ProtocolParser.WriteUInt64(stream, instance.Action);
         }
         if (instance.A != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_InventoryPositionSerializer.Serialize(ms2, instance.A);
@@ -7807,7 +7807,7 @@ public class Packet_ClientInventoryActionSerializer
         if (instance.B != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
+            stream.WriteByte(26);
             CitoMemoryStream ms3 = new CitoMemoryStream();
 
             Packet_InventoryPositionSerializer.Serialize(ms3, instance.B);
@@ -7835,8 +7835,8 @@ public class Packet_ClientInventoryActionSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientInventoryAction instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -8101,32 +8101,32 @@ public class Packet_InventoryPositionSerializer
         if (instance.Type != Packet_InventoryPositionTypeEnum.MainArea)
         {
             // Key for field: 1, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(8));
+            stream.WriteByte(8);
             ProtocolParser.WriteUInt64(stream, instance.Type);
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.AreaX);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.AreaY);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.MaterialId);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.WearPlace);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.ActiveMaterial);
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.GroundPositionX);
         // Key for field: 8, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(64));
+        stream.WriteByte(64);
         ProtocolParser.WriteUInt64(stream, instance.GroundPositionY);
         // Key for field: 9, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(72));
+        stream.WriteByte(72);
         ProtocolParser.WriteUInt64(stream, instance.GroundPositionZ);
     }
 
@@ -8141,8 +8141,8 @@ public class Packet_InventoryPositionSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_InventoryPosition instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -8366,22 +8366,22 @@ public class Packet_PositionAndOrientationSerializer
     public static void Serialize(CitoStream stream, Packet_PositionAndOrientation instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Z);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Heading);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.Pitch);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.Stance);
     }
 
@@ -8396,8 +8396,8 @@ public class Packet_PositionAndOrientationSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_PositionAndOrientation instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -8543,8 +8543,8 @@ public class Packet_ClientReloadSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientReload instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -8713,7 +8713,7 @@ public class Packet_ClientLeaveSerializer
         if (instance.Reason != Packet_LeaveReasonEnum.Leave)
         {
             // Key for field: 1, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(8));
+            stream.WriteByte(8);
             ProtocolParser.WriteUInt64(stream, instance.Reason);
         }
     }
@@ -8729,8 +8729,8 @@ public class Packet_ClientLeaveSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientLeave instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -8894,7 +8894,7 @@ public class Packet_ClientHealthSerializer
     public static void Serialize(CitoStream stream, Packet_ClientHealth instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.CurrentHealth);
     }
 
@@ -8909,8 +8909,8 @@ public class Packet_ClientHealthSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientHealth instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -9074,7 +9074,7 @@ public class Packet_ClientOxygenSerializer
     public static void Serialize(CitoStream stream, Packet_ClientOxygen instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.CurrentOxygen);
     }
 
@@ -9089,8 +9089,8 @@ public class Packet_ClientOxygenSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientOxygen instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -9289,8 +9289,8 @@ public class Packet_ClientDialogClickSerializer
         if (instance.WidgetId != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.WidgetId));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.WidgetId));
         }
         if (instance.TextBoxValue != null)
         {
@@ -9298,8 +9298,8 @@ public class Packet_ClientDialogClickSerializer
             {
                 string i3 = instance.TextBoxValue[k];
                 // Key for field: 3, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(26));
-                ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(i3));
+                stream.WriteByte(26);
+                ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(i3));
             }
         }
     }
@@ -9315,8 +9315,8 @@ public class Packet_ClientDialogClickSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientDialogClick instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -9462,8 +9462,8 @@ public class Packet_ClientPingReplySerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientPingReply instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -9663,16 +9663,16 @@ public class Packet_ClientCraftSerializer
     public static void Serialize(CitoStream stream, Packet_ClientCraft instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Z);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.RecipeId);
     }
 
@@ -9687,8 +9687,8 @@ public class Packet_ClientCraftSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientCraft instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -9960,34 +9960,34 @@ public class Packet_ClientShotSerializer
     public static void Serialize(CitoStream stream, Packet_ClientShot instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.FromX);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.FromY);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.FromZ);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.ToX);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.ToY);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.ToZ);
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.WeaponBlock);
         // Key for field: 8, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(64));
+        stream.WriteByte(64);
         ProtocolParser.WriteUInt64(stream, instance.HitPlayer);
         // Key for field: 9, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(72));
+        stream.WriteByte(72);
         ProtocolParser.WriteUInt64(stream, instance.IsHitHead);
         // Key for field: 10, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(80));
+        stream.WriteByte(80);
         ProtocolParser.WriteUInt64(stream, instance.ExplodesAfter);
     }
 
@@ -10002,8 +10002,8 @@ public class Packet_ClientShotSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientShot instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -10172,7 +10172,7 @@ public class Packet_ClientSpecialKeySerializer
         if (instance.Key_ != Packet_SpecialKeyEnum.Respawn)
         {
             // Key for field: 1, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(8));
+            stream.WriteByte(8);
             ProtocolParser.WriteUInt64(stream, instance.Key_);
         }
     }
@@ -10188,8 +10188,8 @@ public class Packet_ClientSpecialKeySerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientSpecialKey instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -10353,7 +10353,7 @@ public class Packet_ClientActiveMaterialSlotSerializer
     public static void Serialize(CitoStream stream, Packet_ClientActiveMaterialSlot instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.ActiveMaterialSlot);
     }
 
@@ -10368,8 +10368,8 @@ public class Packet_ClientActiveMaterialSlotSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientActiveMaterialSlot instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -10550,11 +10550,11 @@ public class Packet_ClientDeathSerializer
         if (instance.Reason != Packet_DeathReasonEnum.FallDamage)
         {
             // Key for field: 1, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(8));
+            stream.WriteByte(8);
             ProtocolParser.WriteUInt64(stream, instance.Reason);
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.SourcePlayer);
     }
 
@@ -10569,8 +10569,8 @@ public class Packet_ClientDeathSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientDeath instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -10716,8 +10716,8 @@ public class Packet_ClientServerQuerySerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientServerQuery instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -10893,10 +10893,10 @@ public class Packet_ClientGameResolutionSerializer
     public static void Serialize(CitoStream stream, Packet_ClientGameResolution instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Width);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Height);
     }
 
@@ -10911,8 +10911,8 @@ public class Packet_ClientGameResolutionSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientGameResolution instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -11543,13 +11543,13 @@ public class Packet_ClientSerializer
         if (instance.Id != Packet_ClientIdEnum.PlayerIdentification)
         {
             // Key for field: 1, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(8));
+            stream.WriteByte(8);
             ProtocolParser.WriteUInt64(stream, instance.Id);
         }
         if (instance.Identification != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_ClientIdentificationSerializer.Serialize(ms2, instance.Identification);
@@ -11567,7 +11567,7 @@ public class Packet_ClientSerializer
         if (instance.SetBlock != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
+            stream.WriteByte(26);
             CitoMemoryStream ms3 = new CitoMemoryStream();
 
             Packet_ClientSetBlockSerializer.Serialize(ms3, instance.SetBlock);
@@ -11585,8 +11585,8 @@ public class Packet_ClientSerializer
         if (instance.FillArea != null)
         {
             // Key for field: 31, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(250));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(250);
+            stream.WriteByte(1);
             CitoMemoryStream ms31 = new CitoMemoryStream();
 
             Packet_ClientFillAreaSerializer.Serialize(ms31, instance.FillArea);
@@ -11604,7 +11604,7 @@ public class Packet_ClientSerializer
         if (instance.PositionAndOrientation != null)
         {
             // Key for field: 4, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(34));
+            stream.WriteByte(34);
             CitoMemoryStream ms4 = new CitoMemoryStream();
 
             Packet_ClientPositionAndOrientationSerializer.Serialize(ms4, instance.PositionAndOrientation);
@@ -11622,7 +11622,7 @@ public class Packet_ClientSerializer
         if (instance.Message != null)
         {
             // Key for field: 5, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(42));
+            stream.WriteByte(42);
             CitoMemoryStream ms5 = new CitoMemoryStream();
 
             Packet_ClientMessageSerializer.Serialize(ms5, instance.Message);
@@ -11640,7 +11640,7 @@ public class Packet_ClientSerializer
         if (instance.Craft != null)
         {
             // Key for field: 6, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(50));
+            stream.WriteByte(50);
             CitoMemoryStream ms6 = new CitoMemoryStream();
 
             Packet_ClientCraftSerializer.Serialize(ms6, instance.Craft);
@@ -11658,7 +11658,7 @@ public class Packet_ClientSerializer
         if (instance.RequestBlob != null)
         {
             // Key for field: 7, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(58));
+            stream.WriteByte(58);
             CitoMemoryStream ms7 = new CitoMemoryStream();
 
             Packet_ClientRequestBlobSerializer.Serialize(ms7, instance.RequestBlob);
@@ -11676,7 +11676,7 @@ public class Packet_ClientSerializer
         if (instance.InventoryAction != null)
         {
             // Key for field: 8, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(66));
+            stream.WriteByte(66);
             CitoMemoryStream ms8 = new CitoMemoryStream();
 
             Packet_ClientInventoryActionSerializer.Serialize(ms8, instance.InventoryAction);
@@ -11694,7 +11694,7 @@ public class Packet_ClientSerializer
         if (instance.Health != null)
         {
             // Key for field: 9, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(74));
+            stream.WriteByte(74);
             CitoMemoryStream ms9 = new CitoMemoryStream();
 
             Packet_ClientHealthSerializer.Serialize(ms9, instance.Health);
@@ -11712,7 +11712,7 @@ public class Packet_ClientSerializer
         if (instance.PingReply != null)
         {
             // Key for field: 10, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(82));
+            stream.WriteByte(82);
             CitoMemoryStream ms10 = new CitoMemoryStream();
 
             Packet_ClientPingReplySerializer.Serialize(ms10, instance.PingReply);
@@ -11730,7 +11730,7 @@ public class Packet_ClientSerializer
         if (instance.DialogClick_ != null)
         {
             // Key for field: 11, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(90));
+            stream.WriteByte(90);
             CitoMemoryStream ms11 = new CitoMemoryStream();
 
             Packet_ClientDialogClickSerializer.Serialize(ms11, instance.DialogClick_);
@@ -11748,7 +11748,7 @@ public class Packet_ClientSerializer
         if (instance.Shot != null)
         {
             // Key for field: 12, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(98));
+            stream.WriteByte(98);
             CitoMemoryStream ms12 = new CitoMemoryStream();
 
             Packet_ClientShotSerializer.Serialize(ms12, instance.Shot);
@@ -11766,7 +11766,7 @@ public class Packet_ClientSerializer
         if (instance.SpecialKey_ != null)
         {
             // Key for field: 13, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(106));
+            stream.WriteByte(106);
             CitoMemoryStream ms13 = new CitoMemoryStream();
 
             Packet_ClientSpecialKeySerializer.Serialize(ms13, instance.SpecialKey_);
@@ -11784,7 +11784,7 @@ public class Packet_ClientSerializer
         if (instance.ActiveMaterialSlot != null)
         {
             // Key for field: 14, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(114));
+            stream.WriteByte(114);
             CitoMemoryStream ms14 = new CitoMemoryStream();
 
             Packet_ClientActiveMaterialSlotSerializer.Serialize(ms14, instance.ActiveMaterialSlot);
@@ -11802,7 +11802,7 @@ public class Packet_ClientSerializer
         if (instance.Leave != null)
         {
             // Key for field: 15, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(122));
+            stream.WriteByte(122);
             CitoMemoryStream ms15 = new CitoMemoryStream();
 
             Packet_ClientLeaveSerializer.Serialize(ms15, instance.Leave);
@@ -11820,8 +11820,8 @@ public class Packet_ClientSerializer
         if (instance.Reload != null)
         {
             // Key for field: 16, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(130));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(130);
+            stream.WriteByte(1);
             CitoMemoryStream ms16 = new CitoMemoryStream();
 
             Packet_ClientReloadSerializer.Serialize(ms16, instance.Reload);
@@ -11839,8 +11839,8 @@ public class Packet_ClientSerializer
         if (instance.Oxygen != null)
         {
             // Key for field: 17, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(138));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(138);
+            stream.WriteByte(1);
             CitoMemoryStream ms17 = new CitoMemoryStream();
 
             Packet_ClientOxygenSerializer.Serialize(ms17, instance.Oxygen);
@@ -11858,8 +11858,8 @@ public class Packet_ClientSerializer
         if (instance.Death != null)
         {
             // Key for field: 18, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(146));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(146);
+            stream.WriteByte(1);
             CitoMemoryStream ms18 = new CitoMemoryStream();
 
             Packet_ClientDeathSerializer.Serialize(ms18, instance.Death);
@@ -11877,8 +11877,8 @@ public class Packet_ClientSerializer
         if (instance.Query != null)
         {
             // Key for field: 19, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(154));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(154);
+            stream.WriteByte(1);
             CitoMemoryStream ms19 = new CitoMemoryStream();
 
             Packet_ClientServerQuerySerializer.Serialize(ms19, instance.Query);
@@ -11896,8 +11896,8 @@ public class Packet_ClientSerializer
         if (instance.GameResolution != null)
         {
             // Key for field: 20, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(162));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(162);
+            stream.WriteByte(1);
             CitoMemoryStream ms20 = new CitoMemoryStream();
 
             Packet_ClientGameResolutionSerializer.Serialize(ms20, instance.GameResolution);
@@ -11915,8 +11915,8 @@ public class Packet_ClientSerializer
         if (instance.EntityInteraction != null)
         {
             // Key for field: 21, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(170));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(170);
+            stream.WriteByte(1);
             CitoMemoryStream ms21 = new CitoMemoryStream();
 
             Packet_ClientEntityInteractionSerializer.Serialize(ms21, instance.EntityInteraction);
@@ -11944,8 +11944,8 @@ public class Packet_ClientSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_Client instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -12124,12 +12124,12 @@ public class Packet_ClientEntityInteractionSerializer
     public static void Serialize(CitoStream stream, Packet_ClientEntityInteraction instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.EntityId);
         if (instance.InteractionType != Packet_EntityInteractionTypeEnum.Use)
         {
             // Key for field: 2, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(16));
+            stream.WriteByte(16);
             ProtocolParser.WriteUInt64(stream, instance.InteractionType);
         }
     }
@@ -12145,8 +12145,8 @@ public class Packet_ClientEntityInteractionSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientEntityInteraction instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -12534,8 +12534,8 @@ public class Packet_SoundSetSerializer
             {
                 string i1 = instance.Walk[k];
                 // Key for field: 1, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(10));
-                ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(i1));
+                stream.WriteByte(10);
+                ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(i1));
             }
         }
         if (instance.Break1 != null)
@@ -12544,8 +12544,8 @@ public class Packet_SoundSetSerializer
             {
                 string i2 = instance.Break1[k];
                 // Key for field: 2, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(18));
-                ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(i2));
+                stream.WriteByte(18);
+                ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(i2));
             }
         }
         if (instance.Build != null)
@@ -12554,8 +12554,8 @@ public class Packet_SoundSetSerializer
             {
                 string i3 = instance.Build[k];
                 // Key for field: 3, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(26));
-                ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(i3));
+                stream.WriteByte(26);
+                ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(i3));
             }
         }
         if (instance.Clone != null)
@@ -12564,8 +12564,8 @@ public class Packet_SoundSetSerializer
             {
                 string i4 = instance.Clone[k];
                 // Key for field: 4, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(34));
-                ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(i4));
+                stream.WriteByte(34);
+                ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(i4));
             }
         }
         if (instance.Shoot != null)
@@ -12574,8 +12574,8 @@ public class Packet_SoundSetSerializer
             {
                 string i5 = instance.Shoot[k];
                 // Key for field: 5, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(42));
-                ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(i5));
+                stream.WriteByte(42);
+                ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(i5));
             }
         }
         if (instance.ShootEnd != null)
@@ -12584,8 +12584,8 @@ public class Packet_SoundSetSerializer
             {
                 string i6 = instance.ShootEnd[k];
                 // Key for field: 6, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(50));
-                ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(i6));
+                stream.WriteByte(50);
+                ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(i6));
             }
         }
         if (instance.Reload != null)
@@ -12594,8 +12594,8 @@ public class Packet_SoundSetSerializer
             {
                 string i7 = instance.Reload[k];
                 // Key for field: 7, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(58));
-                ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(i7));
+                stream.WriteByte(58);
+                ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(i7));
             }
         }
     }
@@ -12611,8 +12611,8 @@ public class Packet_SoundSetSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_SoundSet instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -13414,70 +13414,70 @@ public class Packet_BlockTypeSerializer
         if (instance.TextureIdTop != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.TextureIdTop));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.TextureIdTop));
         }
         if (instance.TextureIdBottom != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.TextureIdBottom));
+            stream.WriteByte(18);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.TextureIdBottom));
         }
         if (instance.TextureIdFront != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.TextureIdFront));
+            stream.WriteByte(26);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.TextureIdFront));
         }
         if (instance.TextureIdBack != null)
         {
             // Key for field: 4, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(34));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.TextureIdBack));
+            stream.WriteByte(34);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.TextureIdBack));
         }
         if (instance.TextureIdLeft != null)
         {
             // Key for field: 5, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(42));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.TextureIdLeft));
+            stream.WriteByte(42);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.TextureIdLeft));
         }
         if (instance.TextureIdRight != null)
         {
             // Key for field: 6, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(50));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.TextureIdRight));
+            stream.WriteByte(50);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.TextureIdRight));
         }
         if (instance.TextureIdForInventory != null)
         {
             // Key for field: 7, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(58));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.TextureIdForInventory));
+            stream.WriteByte(58);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.TextureIdForInventory));
         }
         if (instance.DrawType != Packet_DrawTypeEnum.Empty)
         {
             // Key for field: 8, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(64));
+            stream.WriteByte(64);
             ProtocolParser.WriteUInt64(stream, instance.DrawType);
         }
         if (instance.WalkableType != Packet_WalkableTypeEnum.Empty)
         {
             // Key for field: 9, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(72));
+            stream.WriteByte(72);
             ProtocolParser.WriteUInt64(stream, instance.WalkableType);
         }
         // Key for field: 10, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(80));
+        stream.WriteByte(80);
         ProtocolParser.WriteUInt64(stream, instance.Rail);
         // Key for field: 11, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(88));
+        stream.WriteByte(88);
         ProtocolParser.WriteUInt64(stream, instance.WalkSpeedFloat);
         // Key for field: 12, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(96));
+        stream.WriteByte(96);
         ProtocolParser.WriteBool(stream, instance.IsSlipperyWalk);
         if (instance.Sounds != null)
         {
             // Key for field: 13, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(106));
+            stream.WriteByte(106);
             CitoMemoryStream ms13 = new CitoMemoryStream();
 
             Packet_SoundSetSerializer.Serialize(ms13, instance.Sounds);
@@ -13493,142 +13493,142 @@ public class Packet_BlockTypeSerializer
 
         }
         // Key for field: 14, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(112));
+        stream.WriteByte(112);
         ProtocolParser.WriteUInt64(stream, instance.LightRadius);
         // Key for field: 15, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(120));
+        stream.WriteByte(120);
         ProtocolParser.WriteUInt64(stream, instance.StartInventoryAmount);
         // Key for field: 16, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(128));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(128);
+        stream.WriteByte(1);
         ProtocolParser.WriteUInt64(stream, instance.Strength);
         if (instance.Name != null)
         {
             // Key for field: 17, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(138));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Name));
+            stream.WriteByte(138);
+            stream.WriteByte(1);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Name));
         }
         // Key for field: 18, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(144));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(144);
+        stream.WriteByte(1);
         ProtocolParser.WriteBool(stream, instance.IsBuildable);
         // Key for field: 19, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(152));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(152);
+        stream.WriteByte(1);
         ProtocolParser.WriteBool(stream, instance.IsUsable);
         // Key for field: 20, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(160));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(160);
+        stream.WriteByte(1);
         ProtocolParser.WriteBool(stream, instance.IsTool);
         if (instance.Handimage != null)
         {
             // Key for field: 21, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(170));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Handimage));
+            stream.WriteByte(170);
+            stream.WriteByte(1);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Handimage));
         }
         // Key for field: 22, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(176));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(176);
+        stream.WriteByte(1);
         ProtocolParser.WriteBool(stream, instance.IsPistol);
         // Key for field: 23, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(184));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(184);
+        stream.WriteByte(1);
         ProtocolParser.WriteUInt64(stream, instance.AimRadiusFloat);
         // Key for field: 24, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(192));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(192);
+        stream.WriteByte(1);
         ProtocolParser.WriteUInt64(stream, instance.RecoilFloat);
         // Key for field: 25, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(200));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(200);
+        stream.WriteByte(1);
         ProtocolParser.WriteUInt64(stream, instance.DelayFloat);
         // Key for field: 26, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(208));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(208);
+        stream.WriteByte(1);
         ProtocolParser.WriteUInt64(stream, instance.BulletsPerShotFloat);
         // Key for field: 27, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(216));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(216);
+        stream.WriteByte(1);
         ProtocolParser.WriteUInt64(stream, instance.WalkSpeedWhenUsedFloat);
         // Key for field: 28, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(224));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(224);
+        stream.WriteByte(1);
         ProtocolParser.WriteBool(stream, instance.IronSightsEnabled);
         // Key for field: 29, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(232));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(232);
+        stream.WriteByte(1);
         ProtocolParser.WriteUInt64(stream, instance.IronSightsMoveSpeedFloat);
         if (instance.IronSightsImage != null)
         {
             // Key for field: 30, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(242));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.IronSightsImage));
+            stream.WriteByte(242);
+            stream.WriteByte(1);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.IronSightsImage));
         }
         // Key for field: 31, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(248));
-        stream.WriteByte(ProtoPlatform.IntToByte(1));
+        stream.WriteByte(248);
+        stream.WriteByte(1);
         ProtocolParser.WriteUInt64(stream, instance.IronSightsAimRadiusFloat);
         // Key for field: 32, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(128));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(128);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.IronSightsFovFloat);
         // Key for field: 33, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(136));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(136);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.AmmoMagazine);
         // Key for field: 34, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(144));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(144);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.AmmoTotal);
         // Key for field: 35, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(152));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(152);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.ReloadDelayFloat);
         // Key for field: 36, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(160));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(160);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.ExplosionRangeFloat);
         // Key for field: 37, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(168));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(168);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.ExplosionTimeFloat);
         // Key for field: 38, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(176));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(176);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.ProjectileSpeedFloat);
         // Key for field: 39, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(184));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(184);
+        stream.WriteByte(2);
         ProtocolParser.WriteBool(stream, instance.ProjectileBounce);
         // Key for field: 40, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(192));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(192);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.DamageBodyFloat);
         // Key for field: 41, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(200));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(200);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.DamageHeadFloat);
         if (instance.PistolType != Packet_PistolTypeEnum.Normal)
         {
             // Key for field: 42, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(208));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(208);
+            stream.WriteByte(2);
             ProtocolParser.WriteUInt64(stream, instance.PistolType);
         }
         // Key for field: 43, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(216));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(216);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.DamageToPlayer);
         // Key for field: 44, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(224));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(224);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.WhenPlacedGetsConvertedTo);
         // Key for field: 45, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(232));
-        stream.WriteByte(ProtoPlatform.IntToByte(2));
+        stream.WriteByte(232);
+        stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.PickDistanceWhenUsedFloat);
     }
 
@@ -13643,8 +13643,8 @@ public class Packet_BlockTypeSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_BlockType instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -13960,46 +13960,46 @@ public class Packet_ServerIdentificationSerializer
         if (instance.MdProtocolVersion != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.MdProtocolVersion));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.MdProtocolVersion));
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.AssignedClientId);
         if (instance.ServerName != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.ServerName));
+            stream.WriteByte(26);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.ServerName));
         }
         if (instance.ServerMotd != null)
         {
             // Key for field: 4, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(34));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.ServerMotd));
+            stream.WriteByte(34);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.ServerMotd));
         }
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.MapSizeX);
         // Key for field: 8, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(64));
+        stream.WriteByte(64);
         ProtocolParser.WriteUInt64(stream, instance.MapSizeY);
         // Key for field: 9, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(72));
+        stream.WriteByte(72);
         ProtocolParser.WriteUInt64(stream, instance.MapSizeZ);
         // Key for field: 11, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(88));
+        stream.WriteByte(88);
         ProtocolParser.WriteUInt64(stream, instance.DisableShadows);
         // Key for field: 12, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(96));
+        stream.WriteByte(96);
         ProtocolParser.WriteUInt64(stream, instance.PlayerAreaSize);
         // Key for field: 13, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(104));
+        stream.WriteByte(104);
         ProtocolParser.WriteUInt64(stream, instance.RenderHint_);
         if (instance.RequiredBlobMd5 != null)
         {
             // Key for field: 14, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(114));
+            stream.WriteByte(114);
             CitoMemoryStream ms14 = new CitoMemoryStream();
 
             Packet_StringListSerializer.Serialize(ms14, instance.RequiredBlobMd5);
@@ -14017,7 +14017,7 @@ public class Packet_ServerIdentificationSerializer
         if (instance.RequiredBlobName != null)
         {
             // Key for field: 15, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(122));
+            stream.WriteByte(122);
             CitoMemoryStream ms15 = new CitoMemoryStream();
 
             Packet_StringListSerializer.Serialize(ms15, instance.RequiredBlobName);
@@ -14045,8 +14045,8 @@ public class Packet_ServerIdentificationSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerIdentification instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -14236,8 +14236,8 @@ public class Packet_StringListSerializer
             {
                 string i1 = instance.Items[k];
                 // Key for field: 1, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(10));
-                ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(i1));
+                stream.WriteByte(10);
+                ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(i1));
             }
         }
     }
@@ -14253,8 +14253,8 @@ public class Packet_StringListSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_StringList instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -14430,13 +14430,13 @@ public class Packet_IntStringSerializer
     public static void Serialize(CitoStream stream, Packet_IntString instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Key_);
         if (instance.Value_ != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Value_));
+            stream.WriteByte(18);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Value_));
         }
     }
 
@@ -14451,8 +14451,8 @@ public class Packet_IntStringSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_IntString instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -14640,13 +14640,13 @@ public class Packet_ServerPlayerSpawnPositionSerializer
     public static void Serialize(CitoStream stream, Packet_ServerPlayerSpawnPosition instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Z);
     }
 
@@ -14661,8 +14661,8 @@ public class Packet_ServerPlayerSpawnPositionSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerPlayerSpawnPosition instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -14808,8 +14808,8 @@ public class Packet_ServerLevelInitializeSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerLevelInitialize instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -14987,14 +14987,14 @@ public class Packet_ServerBlobInitializeSerializer
         if (instance.Name != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Name));
+            stream.WriteByte(18);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Name));
         }
         if (instance.Md5 != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Md5));
+            stream.WriteByte(26);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Md5));
         }
     }
 
@@ -15009,8 +15009,8 @@ public class Packet_ServerBlobInitializeSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlobInitialize instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -15188,11 +15188,11 @@ public class Packet_ServerBlobPartSerializer
         if (instance.Data != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
+            stream.WriteByte(10);
             ProtocolParser.WriteBytes(stream, instance.Data);
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Islastpart);
     }
 
@@ -15207,8 +15207,8 @@ public class Packet_ServerBlobPartSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlobPart instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -15354,8 +15354,8 @@ public class Packet_ServerBlobFinalizeSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlobFinalize instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -15501,8 +15501,8 @@ public class Packet_ServerBlockTypesSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlockTypes instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -15687,12 +15687,12 @@ public class Packet_ServerBlockTypeSerializer
     public static void Serialize(CitoStream stream, Packet_ServerBlockType instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Id);
         if (instance.Blocktype != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_BlockTypeSerializer.Serialize(ms2, instance.Blocktype);
@@ -15720,8 +15720,8 @@ public class Packet_ServerBlockTypeSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlockType instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -15911,7 +15911,7 @@ public class Packet_ServerSunLevelsSerializer
             {
                 int i1 = instance.Sunlevels[k];
                 // Key for field: 1, Varint
-                stream.WriteByte(ProtoPlatform.IntToByte(8));
+                stream.WriteByte(8);
                 ProtocolParser.WriteUInt64(stream, i1);
             }
         }
@@ -15928,8 +15928,8 @@ public class Packet_ServerSunLevelsSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerSunLevels instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -16119,7 +16119,7 @@ public class Packet_ServerLightLevelsSerializer
             {
                 int i1 = instance.Lightlevels[k];
                 // Key for field: 1, Varint
-                stream.WriteByte(ProtoPlatform.IntToByte(8));
+                stream.WriteByte(8);
                 ProtocolParser.WriteUInt64(stream, i1);
             }
         }
@@ -16136,8 +16136,8 @@ public class Packet_ServerLightLevelsSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerLightLevels instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -16327,7 +16327,7 @@ public class Packet_ServerCraftingRecipesSerializer
             {
                 Packet_CraftingRecipe i1 = instance.CraftingRecipes[k];
                 // Key for field: 1, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(10));
+                stream.WriteByte(10);
                 CitoMemoryStream ms1 = new CitoMemoryStream();
 
                 Packet_CraftingRecipeSerializer.Serialize(ms1, i1);
@@ -16356,8 +16356,8 @@ public class Packet_ServerCraftingRecipesSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerCraftingRecipes instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -16533,10 +16533,10 @@ public class Packet_IngredientSerializer
     public static void Serialize(CitoStream stream, Packet_Ingredient instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Type);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Amount);
     }
 
@@ -16551,8 +16551,8 @@ public class Packet_IngredientSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_Ingredient instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -16763,7 +16763,7 @@ public class Packet_CraftingRecipeSerializer
             {
                 Packet_Ingredient i1 = instance.Ingredients[k];
                 // Key for field: 1, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(10));
+                stream.WriteByte(10);
                 CitoMemoryStream ms1 = new CitoMemoryStream();
 
                 Packet_IngredientSerializer.Serialize(ms1, i1);
@@ -16782,7 +16782,7 @@ public class Packet_CraftingRecipeSerializer
         if (instance.Output != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_IngredientSerializer.Serialize(ms2, instance.Output);
@@ -16810,8 +16810,8 @@ public class Packet_CraftingRecipeSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_CraftingRecipe instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -16999,16 +16999,16 @@ public class Packet_ServerLevelProgressSerializer
     public static void Serialize(CitoStream stream, Packet_ServerLevelProgress instance)
     {
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.PercentComplete);
         if (instance.Status != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Status));
+            stream.WriteByte(26);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Status));
         }
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.PercentCompleteSubitem);
     }
 
@@ -17023,8 +17023,8 @@ public class Packet_ServerLevelProgressSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerLevelProgress instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -17170,8 +17170,8 @@ public class Packet_ServerLevelFinalizeSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerLevelFinalize instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -17371,16 +17371,16 @@ public class Packet_ServerSetBlockSerializer
     public static void Serialize(CitoStream stream, Packet_ServerSetBlock instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Z);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.BlockType);
     }
 
@@ -17395,8 +17395,8 @@ public class Packet_ServerSetBlockSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerSetBlock instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -17644,28 +17644,28 @@ public class Packet_ServerFillAreaSerializer
     public static void Serialize(CitoStream stream, Packet_ServerFillArea instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X1);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.X2);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Y1);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Y2);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.Z1);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.Z2);
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.BlockType);
         // Key for field: 8, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(64));
+        stream.WriteByte(64);
         ProtocolParser.WriteUInt64(stream, instance.BlockCount);
     }
 
@@ -17680,8 +17680,8 @@ public class Packet_ServerFillAreaSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerFillArea instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -17845,7 +17845,7 @@ public class Packet_ServerFillAreaLimitSerializer
     public static void Serialize(CitoStream stream, Packet_ServerFillAreaLimit instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Limit);
     }
 
@@ -17860,8 +17860,8 @@ public class Packet_ServerFillAreaLimitSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerFillAreaLimit instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -18025,7 +18025,7 @@ public class Packet_ServerFreemoveSerializer
     public static void Serialize(CitoStream stream, Packet_ServerFreemove instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.IsEnabled);
     }
 
@@ -18040,8 +18040,8 @@ public class Packet_ServerFreemoveSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerFreemove instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -18207,8 +18207,8 @@ public class Packet_ServerMessageSerializer
         if (instance.Message != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Message));
+            stream.WriteByte(18);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Message));
         }
     }
 
@@ -18223,8 +18223,8 @@ public class Packet_ServerMessageSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerMessage instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -18390,8 +18390,8 @@ public class Packet_ServerDisconnectPlayerSerializer
         if (instance.DisconnectReason != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.DisconnectReason));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.DisconnectReason));
         }
     }
 
@@ -18406,8 +18406,8 @@ public class Packet_ServerDisconnectPlayerSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerDisconnectPlayer instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -18609,17 +18609,17 @@ public class Packet_ServerSoundSerializer
         if (instance.Name != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Name));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Name));
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Z);
     }
 
@@ -18634,8 +18634,8 @@ public class Packet_ServerSoundSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerSound instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -18813,11 +18813,11 @@ public class Packet_ServerFollowSerializer
         if (instance.Client != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Client));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Client));
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Tpp);
     }
 
@@ -18832,8 +18832,8 @@ public class Packet_ServerFollowSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerFollow instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -19069,25 +19069,25 @@ public class Packet_ServerBulletSerializer
     public static void Serialize(CitoStream stream, Packet_ServerBullet instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.FromXFloat);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.FromYFloat);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.FromZFloat);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.ToXFloat);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.ToYFloat);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.ToZFloat);
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.SpeedFloat);
     }
 
@@ -19102,8 +19102,8 @@ public class Packet_ServerBulletSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBullet instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -19363,31 +19363,31 @@ public class Packet_ServerProjectileSerializer
     public static void Serialize(CitoStream stream, Packet_ServerProjectile instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.FromXFloat);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.FromYFloat);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.FromZFloat);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.VelocityXFloat);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.VelocityYFloat);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.VelocityZFloat);
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.BlockId);
         // Key for field: 8, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(64));
+        stream.WriteByte(64);
         ProtocolParser.WriteUInt64(stream, instance.ExplodesAfterFloat);
         // Key for field: 9, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(72));
+        stream.WriteByte(72);
         ProtocolParser.WriteUInt64(stream, instance.SourcePlayerID);
     }
 
@@ -19402,8 +19402,8 @@ public class Packet_ServerProjectileSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerProjectile instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -19627,22 +19627,22 @@ public class Packet_ServerExplosionSerializer
     public static void Serialize(CitoStream stream, Packet_ServerExplosion instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.XFloat);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.YFloat);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.ZFloat);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.IsRelativeToPlayerPosition);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.RangeFloat);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.TimeFloat);
     }
 
@@ -19657,8 +19657,8 @@ public class Packet_ServerExplosionSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerExplosion instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -19980,64 +19980,64 @@ public class Packet_ServerQueryAnswerSerializer
         if (instance.Name != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Name));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Name));
         }
         if (instance.MOTD != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.MOTD));
+            stream.WriteByte(18);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.MOTD));
         }
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.PlayerCount);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.MaxPlayers);
         if (instance.PlayerList != null)
         {
             // Key for field: 5, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(42));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.PlayerList));
+            stream.WriteByte(42);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.PlayerList));
         }
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.Port);
         if (instance.GameMode != null)
         {
             // Key for field: 7, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(58));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.GameMode));
+            stream.WriteByte(58);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.GameMode));
         }
         // Key for field: 8, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(64));
+        stream.WriteByte(64);
         ProtocolParser.WriteBool(stream, instance.Password);
         if (instance.PublicHash != null)
         {
             // Key for field: 9, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(74));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.PublicHash));
+            stream.WriteByte(74);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.PublicHash));
         }
         if (instance.ServerVersion != null)
         {
             // Key for field: 10, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(82));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.ServerVersion));
+            stream.WriteByte(82);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.ServerVersion));
         }
         // Key for field: 11, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(88));
+        stream.WriteByte(88);
         ProtocolParser.WriteUInt64(stream, instance.MapSizeX);
         // Key for field: 12, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(96));
+        stream.WriteByte(96);
         ProtocolParser.WriteUInt64(stream, instance.MapSizeY);
         // Key for field: 13, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(104));
+        stream.WriteByte(104);
         ProtocolParser.WriteUInt64(stream, instance.MapSizeZ);
         if (instance.ServerThumbnail != null)
         {
             // Key for field: 14, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(114));
+            stream.WriteByte(114);
             ProtocolParser.WriteBytes(stream, instance.ServerThumbnail);
         }
     }
@@ -20053,8 +20053,8 @@ public class Packet_ServerQueryAnswerSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerQueryAnswer instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -20232,11 +20232,11 @@ public class Packet_ServerRedirectSerializer
         if (instance.IP != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.IP));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.IP));
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Port);
     }
 
@@ -20251,8 +20251,8 @@ public class Packet_ServerRedirectSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerRedirect instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -21372,14 +21372,14 @@ public class Packet_ServerSerializer
         if (instance.Id != Packet_ServerIdEnum.ServerIdentification)
         {
             // Key for field: 90, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(208));
-            stream.WriteByte(ProtoPlatform.IntToByte(5));
+            stream.WriteByte(208);
+            stream.WriteByte(5);
             ProtocolParser.WriteUInt64(stream, instance.Id);
         }
         if (instance.Identification != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
+            stream.WriteByte(10);
             CitoMemoryStream ms1 = new CitoMemoryStream();
 
             Packet_ServerIdentificationSerializer.Serialize(ms1, instance.Identification);
@@ -21397,7 +21397,7 @@ public class Packet_ServerSerializer
         if (instance.LevelInitialize != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_ServerLevelInitializeSerializer.Serialize(ms2, instance.LevelInitialize);
@@ -21415,7 +21415,7 @@ public class Packet_ServerSerializer
         if (instance.LevelDataChunk != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
+            stream.WriteByte(26);
             CitoMemoryStream ms3 = new CitoMemoryStream();
 
             Packet_ServerLevelProgressSerializer.Serialize(ms3, instance.LevelDataChunk);
@@ -21433,7 +21433,7 @@ public class Packet_ServerSerializer
         if (instance.LevelFinalize != null)
         {
             // Key for field: 4, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(34));
+            stream.WriteByte(34);
             CitoMemoryStream ms4 = new CitoMemoryStream();
 
             Packet_ServerLevelFinalizeSerializer.Serialize(ms4, instance.LevelFinalize);
@@ -21451,7 +21451,7 @@ public class Packet_ServerSerializer
         if (instance.SetBlock != null)
         {
             // Key for field: 5, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(42));
+            stream.WriteByte(42);
             CitoMemoryStream ms5 = new CitoMemoryStream();
 
             Packet_ServerSetBlockSerializer.Serialize(ms5, instance.SetBlock);
@@ -21469,8 +21469,8 @@ public class Packet_ServerSerializer
         if (instance.FillArea != null)
         {
             // Key for field: 51, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(154));
-            stream.WriteByte(ProtoPlatform.IntToByte(3));
+            stream.WriteByte(154);
+            stream.WriteByte(3);
             CitoMemoryStream ms51 = new CitoMemoryStream();
 
             Packet_ServerFillAreaSerializer.Serialize(ms51, instance.FillArea);
@@ -21488,8 +21488,8 @@ public class Packet_ServerSerializer
         if (instance.FillAreaLimit != null)
         {
             // Key for field: 52, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(162));
-            stream.WriteByte(ProtoPlatform.IntToByte(3));
+            stream.WriteByte(162);
+            stream.WriteByte(3);
             CitoMemoryStream ms52 = new CitoMemoryStream();
 
             Packet_ServerFillAreaLimitSerializer.Serialize(ms52, instance.FillAreaLimit);
@@ -21507,8 +21507,8 @@ public class Packet_ServerSerializer
         if (instance.Freemove != null)
         {
             // Key for field: 53, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(170));
-            stream.WriteByte(ProtoPlatform.IntToByte(3));
+            stream.WriteByte(170);
+            stream.WriteByte(3);
             CitoMemoryStream ms53 = new CitoMemoryStream();
 
             Packet_ServerFreemoveSerializer.Serialize(ms53, instance.Freemove);
@@ -21526,7 +21526,7 @@ public class Packet_ServerSerializer
         if (instance.Message != null)
         {
             // Key for field: 9, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(74));
+            stream.WriteByte(74);
             CitoMemoryStream ms9 = new CitoMemoryStream();
 
             Packet_ServerMessageSerializer.Serialize(ms9, instance.Message);
@@ -21544,7 +21544,7 @@ public class Packet_ServerSerializer
         if (instance.DisconnectPlayer != null)
         {
             // Key for field: 10, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(82));
+            stream.WriteByte(82);
             CitoMemoryStream ms10 = new CitoMemoryStream();
 
             Packet_ServerDisconnectPlayerSerializer.Serialize(ms10, instance.DisconnectPlayer);
@@ -21562,7 +21562,7 @@ public class Packet_ServerSerializer
         if (instance.Chunk_ != null)
         {
             // Key for field: 11, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(90));
+            stream.WriteByte(90);
             CitoMemoryStream ms11 = new CitoMemoryStream();
 
             Packet_ServerChunkSerializer.Serialize(ms11, instance.Chunk_);
@@ -21580,7 +21580,7 @@ public class Packet_ServerSerializer
         if (instance.Inventory != null)
         {
             // Key for field: 12, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(98));
+            stream.WriteByte(98);
             CitoMemoryStream ms12 = new CitoMemoryStream();
 
             Packet_ServerInventorySerializer.Serialize(ms12, instance.Inventory);
@@ -21598,7 +21598,7 @@ public class Packet_ServerSerializer
         if (instance.Season != null)
         {
             // Key for field: 13, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(106));
+            stream.WriteByte(106);
             CitoMemoryStream ms13 = new CitoMemoryStream();
 
             Packet_ServerSeasonSerializer.Serialize(ms13, instance.Season);
@@ -21616,7 +21616,7 @@ public class Packet_ServerSerializer
         if (instance.BlobInitialize != null)
         {
             // Key for field: 14, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(114));
+            stream.WriteByte(114);
             CitoMemoryStream ms14 = new CitoMemoryStream();
 
             Packet_ServerBlobInitializeSerializer.Serialize(ms14, instance.BlobInitialize);
@@ -21634,7 +21634,7 @@ public class Packet_ServerSerializer
         if (instance.BlobPart != null)
         {
             // Key for field: 15, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(122));
+            stream.WriteByte(122);
             CitoMemoryStream ms15 = new CitoMemoryStream();
 
             Packet_ServerBlobPartSerializer.Serialize(ms15, instance.BlobPart);
@@ -21652,8 +21652,8 @@ public class Packet_ServerSerializer
         if (instance.BlobFinalize != null)
         {
             // Key for field: 16, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(130));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(130);
+            stream.WriteByte(1);
             CitoMemoryStream ms16 = new CitoMemoryStream();
 
             Packet_ServerBlobFinalizeSerializer.Serialize(ms16, instance.BlobFinalize);
@@ -21671,8 +21671,8 @@ public class Packet_ServerSerializer
         if (instance.HeightmapChunk != null)
         {
             // Key for field: 17, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(138));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(138);
+            stream.WriteByte(1);
             CitoMemoryStream ms17 = new CitoMemoryStream();
 
             Packet_ServerHeightmapChunkSerializer.Serialize(ms17, instance.HeightmapChunk);
@@ -21690,8 +21690,8 @@ public class Packet_ServerSerializer
         if (instance.Ping != null)
         {
             // Key for field: 18, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(146));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(146);
+            stream.WriteByte(1);
             CitoMemoryStream ms18 = new CitoMemoryStream();
 
             Packet_ServerPingSerializer.Serialize(ms18, instance.Ping);
@@ -21709,8 +21709,8 @@ public class Packet_ServerSerializer
         if (instance.PlayerPing != null)
         {
             // Key for field: 181, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(170));
-            stream.WriteByte(ProtoPlatform.IntToByte(11));
+            stream.WriteByte(170);
+            stream.WriteByte(11);
             CitoMemoryStream ms181 = new CitoMemoryStream();
 
             Packet_ServerPlayerPingSerializer.Serialize(ms181, instance.PlayerPing);
@@ -21728,8 +21728,8 @@ public class Packet_ServerSerializer
         if (instance.Sound != null)
         {
             // Key for field: 19, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(154));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(154);
+            stream.WriteByte(1);
             CitoMemoryStream ms19 = new CitoMemoryStream();
 
             Packet_ServerSoundSerializer.Serialize(ms19, instance.Sound);
@@ -21747,8 +21747,8 @@ public class Packet_ServerSerializer
         if (instance.PlayerStats != null)
         {
             // Key for field: 20, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(162));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(162);
+            stream.WriteByte(1);
             CitoMemoryStream ms20 = new CitoMemoryStream();
 
             Packet_ServerPlayerStatsSerializer.Serialize(ms20, instance.PlayerStats);
@@ -21766,8 +21766,8 @@ public class Packet_ServerSerializer
         if (instance.Monster != null)
         {
             // Key for field: 21, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(170));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(170);
+            stream.WriteByte(1);
             CitoMemoryStream ms21 = new CitoMemoryStream();
 
             Packet_ServerMonstersSerializer.Serialize(ms21, instance.Monster);
@@ -21785,8 +21785,8 @@ public class Packet_ServerSerializer
         if (instance.PlayerSpawnPosition != null)
         {
             // Key for field: 22, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(178));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(178);
+            stream.WriteByte(1);
             CitoMemoryStream ms22 = new CitoMemoryStream();
 
             Packet_ServerPlayerSpawnPositionSerializer.Serialize(ms22, instance.PlayerSpawnPosition);
@@ -21804,8 +21804,8 @@ public class Packet_ServerSerializer
         if (instance.BlockTypes != null)
         {
             // Key for field: 23, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(186));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(186);
+            stream.WriteByte(1);
             CitoMemoryStream ms23 = new CitoMemoryStream();
 
             Packet_ServerBlockTypesSerializer.Serialize(ms23, instance.BlockTypes);
@@ -21823,8 +21823,8 @@ public class Packet_ServerSerializer
         if (instance.SunLevels != null)
         {
             // Key for field: 24, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(194));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(194);
+            stream.WriteByte(1);
             CitoMemoryStream ms24 = new CitoMemoryStream();
 
             Packet_ServerSunLevelsSerializer.Serialize(ms24, instance.SunLevels);
@@ -21842,8 +21842,8 @@ public class Packet_ServerSerializer
         if (instance.LightLevels != null)
         {
             // Key for field: 25, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(202));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(202);
+            stream.WriteByte(1);
             CitoMemoryStream ms25 = new CitoMemoryStream();
 
             Packet_ServerLightLevelsSerializer.Serialize(ms25, instance.LightLevels);
@@ -21861,8 +21861,8 @@ public class Packet_ServerSerializer
         if (instance.CraftingRecipes != null)
         {
             // Key for field: 26, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(210));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(210);
+            stream.WriteByte(1);
             CitoMemoryStream ms26 = new CitoMemoryStream();
 
             Packet_ServerCraftingRecipesSerializer.Serialize(ms26, instance.CraftingRecipes);
@@ -21880,8 +21880,8 @@ public class Packet_ServerSerializer
         if (instance.Dialog != null)
         {
             // Key for field: 27, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(218));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(218);
+            stream.WriteByte(1);
             CitoMemoryStream ms27 = new CitoMemoryStream();
 
             Packet_ServerDialogSerializer.Serialize(ms27, instance.Dialog);
@@ -21899,8 +21899,8 @@ public class Packet_ServerSerializer
         if (instance.Follow != null)
         {
             // Key for field: 28, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(226));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(226);
+            stream.WriteByte(1);
             CitoMemoryStream ms28 = new CitoMemoryStream();
 
             Packet_ServerFollowSerializer.Serialize(ms28, instance.Follow);
@@ -21918,8 +21918,8 @@ public class Packet_ServerSerializer
         if (instance.Bullet != null)
         {
             // Key for field: 29, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(234));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(234);
+            stream.WriteByte(1);
             CitoMemoryStream ms29 = new CitoMemoryStream();
 
             Packet_ServerBulletSerializer.Serialize(ms29, instance.Bullet);
@@ -21937,8 +21937,8 @@ public class Packet_ServerSerializer
         if (instance.Ammo != null)
         {
             // Key for field: 30, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(242));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(242);
+            stream.WriteByte(1);
             CitoMemoryStream ms30 = new CitoMemoryStream();
 
             Packet_ServerAmmoSerializer.Serialize(ms30, instance.Ammo);
@@ -21956,8 +21956,8 @@ public class Packet_ServerSerializer
         if (instance.BlockType != null)
         {
             // Key for field: 31, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(250));
-            stream.WriteByte(ProtoPlatform.IntToByte(1));
+            stream.WriteByte(250);
+            stream.WriteByte(1);
             CitoMemoryStream ms31 = new CitoMemoryStream();
 
             Packet_ServerBlockTypeSerializer.Serialize(ms31, instance.BlockType);
@@ -21975,8 +21975,8 @@ public class Packet_ServerSerializer
         if (instance.ChunkPart != null)
         {
             // Key for field: 32, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(130));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(130);
+            stream.WriteByte(2);
             CitoMemoryStream ms32 = new CitoMemoryStream();
 
             Packet_ServerChunkPartSerializer.Serialize(ms32, instance.ChunkPart);
@@ -21994,8 +21994,8 @@ public class Packet_ServerSerializer
         if (instance.Explosion != null)
         {
             // Key for field: 33, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(138));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(138);
+            stream.WriteByte(2);
             CitoMemoryStream ms33 = new CitoMemoryStream();
 
             Packet_ServerExplosionSerializer.Serialize(ms33, instance.Explosion);
@@ -22013,8 +22013,8 @@ public class Packet_ServerSerializer
         if (instance.Projectile != null)
         {
             // Key for field: 34, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(146));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(146);
+            stream.WriteByte(2);
             CitoMemoryStream ms34 = new CitoMemoryStream();
 
             Packet_ServerProjectileSerializer.Serialize(ms34, instance.Projectile);
@@ -22032,8 +22032,8 @@ public class Packet_ServerSerializer
         if (instance.Translation != null)
         {
             // Key for field: 35, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(154));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(154);
+            stream.WriteByte(2);
             CitoMemoryStream ms35 = new CitoMemoryStream();
 
             Packet_ServerTranslatedStringSerializer.Serialize(ms35, instance.Translation);
@@ -22051,8 +22051,8 @@ public class Packet_ServerSerializer
         if (instance.QueryAnswer != null)
         {
             // Key for field: 36, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(162));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(162);
+            stream.WriteByte(2);
             CitoMemoryStream ms36 = new CitoMemoryStream();
 
             Packet_ServerQueryAnswerSerializer.Serialize(ms36, instance.QueryAnswer);
@@ -22070,8 +22070,8 @@ public class Packet_ServerSerializer
         if (instance.Redirect != null)
         {
             // Key for field: 37, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(170));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(170);
+            stream.WriteByte(2);
             CitoMemoryStream ms37 = new CitoMemoryStream();
 
             Packet_ServerRedirectSerializer.Serialize(ms37, instance.Redirect);
@@ -22089,8 +22089,8 @@ public class Packet_ServerSerializer
         if (instance.EntitySpawn != null)
         {
             // Key for field: 39, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(186));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(186);
+            stream.WriteByte(2);
             CitoMemoryStream ms39 = new CitoMemoryStream();
 
             Packet_ServerEntitySpawnSerializer.Serialize(ms39, instance.EntitySpawn);
@@ -22108,8 +22108,8 @@ public class Packet_ServerSerializer
         if (instance.EntityPosition != null)
         {
             // Key for field: 40, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(194));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(194);
+            stream.WriteByte(2);
             CitoMemoryStream ms40 = new CitoMemoryStream();
 
             Packet_ServerEntityPositionAndOrientationSerializer.Serialize(ms40, instance.EntityPosition);
@@ -22127,8 +22127,8 @@ public class Packet_ServerSerializer
         if (instance.EntityDespawn != null)
         {
             // Key for field: 41, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(202));
-            stream.WriteByte(ProtoPlatform.IntToByte(2));
+            stream.WriteByte(202);
+            stream.WriteByte(2);
             CitoMemoryStream ms41 = new CitoMemoryStream();
 
             Packet_ServerEntityDespawnSerializer.Serialize(ms41, instance.EntityDespawn);
@@ -22156,8 +22156,8 @@ public class Packet_ServerSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_Server instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -22342,12 +22342,12 @@ public class Packet_ServerEntitySpawnSerializer
     public static void Serialize(CitoStream stream, Packet_ServerEntitySpawn instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Id);
         if (instance.Entity_ != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_ServerEntitySerializer.Serialize(ms2, instance.Entity_);
@@ -22375,8 +22375,8 @@ public class Packet_ServerEntitySpawnSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntitySpawn instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -22561,12 +22561,12 @@ public class Packet_ServerEntityPositionAndOrientationSerializer
     public static void Serialize(CitoStream stream, Packet_ServerEntityPositionAndOrientation instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Id);
         if (instance.PositionAndOrientation != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_PositionAndOrientationSerializer.Serialize(ms2, instance.PositionAndOrientation);
@@ -22594,8 +22594,8 @@ public class Packet_ServerEntityPositionAndOrientationSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityPositionAndOrientation instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -22759,7 +22759,7 @@ public class Packet_ServerEntityDespawnSerializer
     public static void Serialize(CitoStream stream, Packet_ServerEntityDespawn instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Id);
     }
 
@@ -22774,8 +22774,8 @@ public class Packet_ServerEntityDespawnSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDespawn instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -23109,7 +23109,7 @@ public class Packet_ServerEntitySerializer
         if (instance.Position != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
+            stream.WriteByte(10);
             CitoMemoryStream ms1 = new CitoMemoryStream();
 
             Packet_PositionAndOrientationSerializer.Serialize(ms1, instance.Position);
@@ -23127,7 +23127,7 @@ public class Packet_ServerEntitySerializer
         if (instance.DrawModel != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_ServerEntityAnimatedModelSerializer.Serialize(ms2, instance.DrawModel);
@@ -23145,7 +23145,7 @@ public class Packet_ServerEntitySerializer
         if (instance.DrawName_ != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
+            stream.WriteByte(26);
             CitoMemoryStream ms3 = new CitoMemoryStream();
 
             Packet_ServerEntityDrawNameSerializer.Serialize(ms3, instance.DrawName_);
@@ -23163,7 +23163,7 @@ public class Packet_ServerEntitySerializer
         if (instance.DrawText != null)
         {
             // Key for field: 4, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(34));
+            stream.WriteByte(34);
             CitoMemoryStream ms4 = new CitoMemoryStream();
 
             Packet_ServerEntityDrawTextSerializer.Serialize(ms4, instance.DrawText);
@@ -23181,7 +23181,7 @@ public class Packet_ServerEntitySerializer
         if (instance.DrawBlock != null)
         {
             // Key for field: 5, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(42));
+            stream.WriteByte(42);
             CitoMemoryStream ms5 = new CitoMemoryStream();
 
             Packet_ServerEntityDrawBlockSerializer.Serialize(ms5, instance.DrawBlock);
@@ -23199,7 +23199,7 @@ public class Packet_ServerEntitySerializer
         if (instance.Push != null)
         {
             // Key for field: 6, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(50));
+            stream.WriteByte(50);
             CitoMemoryStream ms6 = new CitoMemoryStream();
 
             Packet_ServerEntityPushSerializer.Serialize(ms6, instance.Push);
@@ -23215,12 +23215,12 @@ public class Packet_ServerEntitySerializer
 
         }
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteBool(stream, instance.Usable);
         if (instance.PlayerStats != null)
         {
             // Key for field: 8, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(66));
+            stream.WriteByte(66);
             CitoMemoryStream ms8 = new CitoMemoryStream();
 
             Packet_ServerPlayerStatsSerializer.Serialize(ms8, instance.PlayerStats);
@@ -23238,7 +23238,7 @@ public class Packet_ServerEntitySerializer
         if (instance.DrawArea != null)
         {
             // Key for field: 9, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(74));
+            stream.WriteByte(74);
             CitoMemoryStream ms9 = new CitoMemoryStream();
 
             Packet_ServerEntityDrawAreaSerializer.Serialize(ms9, instance.DrawArea);
@@ -23266,8 +23266,8 @@ public class Packet_ServerEntitySerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntity instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -23503,25 +23503,25 @@ public class Packet_ServerEntityDrawAreaSerializer
     public static void Serialize(CitoStream stream, Packet_ServerEntityDrawArea instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Z);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Sizex);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.Sizey);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.Sizez);
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.VisibleToClientId);
     }
 
@@ -23536,8 +23536,8 @@ public class Packet_ServerEntityDrawAreaSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawArea instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -23751,23 +23751,23 @@ public class Packet_ServerEntityAnimatedModelSerializer
         if (instance.Model_ != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Model_));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Model_));
         }
         if (instance.Texture_ != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Texture_));
+            stream.WriteByte(18);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Texture_));
         }
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.EyeHeight);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.ModelHeight);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.DownloadSkin);
     }
 
@@ -23782,8 +23782,8 @@ public class Packet_ServerEntityAnimatedModelSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityAnimatedModel instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -23985,20 +23985,20 @@ public class Packet_ServerEntityDrawNameSerializer
         if (instance.Name != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Name));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Name));
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteBool(stream, instance.OnlyWhenSelected);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteBool(stream, instance.ClientAutoComplete);
         if (instance.Color != null)
         {
             // Key for field: 4, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(34));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Color));
+            stream.WriteByte(34);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Color));
         }
     }
 
@@ -24013,8 +24013,8 @@ public class Packet_ServerEntityDrawNameSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawName instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -24252,26 +24252,26 @@ public class Packet_ServerEntityDrawTextSerializer
         if (instance.Text != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Text));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Text));
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Dx);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Dy);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Dz);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.Rotx);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.Roty);
         // Key for field: 7, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(56));
+        stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.Rotz);
     }
 
@@ -24286,8 +24286,8 @@ public class Packet_ServerEntityDrawTextSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawText instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -24451,7 +24451,7 @@ public class Packet_ServerEntityDrawBlockSerializer
     public static void Serialize(CitoStream stream, Packet_ServerEntityDrawBlock instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.BlockType);
     }
 
@@ -24466,8 +24466,8 @@ public class Packet_ServerEntityDrawBlockSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawBlock instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -24631,7 +24631,7 @@ public class Packet_ServerEntityPushSerializer
     public static void Serialize(CitoStream stream, Packet_ServerEntityPush instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.RangeFloat);
     }
 
@@ -24646,8 +24646,8 @@ public class Packet_ServerEntityPushSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityPush instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -24823,10 +24823,10 @@ public class Packet_IntIntSerializer
     public static void Serialize(CitoStream stream, Packet_IntInt instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Key_);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Value_);
     }
 
@@ -24841,8 +24841,8 @@ public class Packet_IntIntSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_IntInt instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -25032,7 +25032,7 @@ public class Packet_ServerAmmoSerializer
             {
                 Packet_IntInt i1 = instance.TotalAmmo[k];
                 // Key for field: 1, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(10));
+                stream.WriteByte(10);
                 CitoMemoryStream ms1 = new CitoMemoryStream();
 
                 Packet_IntIntSerializer.Serialize(ms1, i1);
@@ -25061,8 +25061,8 @@ public class Packet_ServerAmmoSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerAmmo instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -25228,7 +25228,7 @@ public class Packet_ServerChunkPartSerializer
         if (instance.CompressedChunkPart != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
+            stream.WriteByte(10);
             ProtocolParser.WriteBytes(stream, instance.CompressedChunkPart);
         }
     }
@@ -25244,8 +25244,8 @@ public class Packet_ServerChunkPartSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerChunkPart instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -25469,22 +25469,22 @@ public class Packet_ServerChunkSerializer
     public static void Serialize(CitoStream stream, Packet_ServerChunk instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Z);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.SizeX);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.SizeY);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.SizeZ);
     }
 
@@ -25499,8 +25499,8 @@ public class Packet_ServerChunkSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerChunk instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -25712,21 +25712,21 @@ public class Packet_ServerHeightmapChunkSerializer
     public static void Serialize(CitoStream stream, Packet_ServerHeightmapChunk instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.SizeX);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.SizeY);
         if (instance.CompressedHeightmap != null)
         {
             // Key for field: 5, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(42));
+            stream.WriteByte(42);
             ProtocolParser.WriteBytes(stream, instance.CompressedHeightmap);
         }
     }
@@ -25742,8 +25742,8 @@ public class Packet_ServerHeightmapChunkSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerHeightmapChunk instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -25918,7 +25918,7 @@ public class Packet_ServerInventorySerializer
         if (instance.Inventory != null)
         {
             // Key for field: 4, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(34));
+            stream.WriteByte(34);
             CitoMemoryStream ms4 = new CitoMemoryStream();
 
             Packet_InventorySerializer.Serialize(ms4, instance.Inventory);
@@ -25946,8 +25946,8 @@ public class Packet_ServerInventorySerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerInventory instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -26147,16 +26147,16 @@ public class Packet_ServerPlayerStatsSerializer
     public static void Serialize(CitoStream stream, Packet_ServerPlayerStats instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.CurrentHealth);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.MaxHealth);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.CurrentOxygen);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.MaxOxygen);
     }
 
@@ -26171,8 +26171,8 @@ public class Packet_ServerPlayerStatsSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerPlayerStats instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -26362,7 +26362,7 @@ public class Packet_ServerMonstersSerializer
             {
                 Packet_ServerMonster i1 = instance.Monsters[k];
                 // Key for field: 1, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(10));
+                stream.WriteByte(10);
                 CitoMemoryStream ms1 = new CitoMemoryStream();
 
                 Packet_ServerMonsterSerializer.Serialize(ms1, i1);
@@ -26391,8 +26391,8 @@ public class Packet_ServerMonstersSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerMonsters instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -26601,15 +26601,15 @@ public class Packet_ServerMonsterSerializer
     public static void Serialize(CitoStream stream, Packet_ServerMonster instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Id);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.MonsterType);
         if (instance.PositionAndOrientation != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
+            stream.WriteByte(26);
             CitoMemoryStream ms3 = new CitoMemoryStream();
 
             Packet_PositionAndOrientationSerializer.Serialize(ms3, instance.PositionAndOrientation);
@@ -26625,7 +26625,7 @@ public class Packet_ServerMonsterSerializer
 
         }
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Health);
     }
 
@@ -26640,8 +26640,8 @@ public class Packet_ServerMonsterSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerMonster instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -26829,13 +26829,13 @@ public class Packet_ServerSeasonSerializer
     public static void Serialize(CitoStream stream, Packet_ServerSeason instance)
     {
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Hour);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.DayNightCycleSpeedup);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Moon);
     }
 
@@ -26850,8 +26850,8 @@ public class Packet_ServerSeasonSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerSeason instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -27038,13 +27038,13 @@ public class Packet_ServerDialogSerializer
         if (instance.DialogId != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.DialogId));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.DialogId));
         }
         if (instance.Dialog != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_DialogSerializer.Serialize(ms2, instance.Dialog);
@@ -27072,8 +27072,8 @@ public class Packet_ServerDialogSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerDialog instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -27219,8 +27219,8 @@ public class Packet_ServerPingSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerPing instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -27396,10 +27396,10 @@ public class Packet_ServerPlayerPingSerializer
     public static void Serialize(CitoStream stream, Packet_ServerPlayerPing instance)
     {
         // Key for field: 1, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(8));
+        stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.ClientId);
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Ping);
     }
 
@@ -27414,8 +27414,8 @@ public class Packet_ServerPlayerPingSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerPlayerPing instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -27605,20 +27605,20 @@ public class Packet_ServerTranslatedStringSerializer
         if (instance.Lang != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Lang));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Lang));
         }
         if (instance.Id != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Id));
+            stream.WriteByte(18);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Id));
         }
         if (instance.Translation != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Translation));
+            stream.WriteByte(26);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Translation));
         }
     }
 
@@ -27633,8 +27633,8 @@ public class Packet_ServerTranslatedStringSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerTranslatedString instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -27959,7 +27959,7 @@ public class Packet_InventorySerializer
         if (instance.MainArmor != null)
         {
             // Key for field: 3, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(26));
+            stream.WriteByte(26);
             CitoMemoryStream ms3 = new CitoMemoryStream();
 
             Packet_ItemSerializer.Serialize(ms3, instance.MainArmor);
@@ -27977,7 +27977,7 @@ public class Packet_InventorySerializer
         if (instance.Boots != null)
         {
             // Key for field: 4, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(34));
+            stream.WriteByte(34);
             CitoMemoryStream ms4 = new CitoMemoryStream();
 
             Packet_ItemSerializer.Serialize(ms4, instance.Boots);
@@ -27995,7 +27995,7 @@ public class Packet_InventorySerializer
         if (instance.Helmet != null)
         {
             // Key for field: 5, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(42));
+            stream.WriteByte(42);
             CitoMemoryStream ms5 = new CitoMemoryStream();
 
             Packet_ItemSerializer.Serialize(ms5, instance.Helmet);
@@ -28013,7 +28013,7 @@ public class Packet_InventorySerializer
         if (instance.Gauntlet != null)
         {
             // Key for field: 6, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(50));
+            stream.WriteByte(50);
             CitoMemoryStream ms6 = new CitoMemoryStream();
 
             Packet_ItemSerializer.Serialize(ms6, instance.Gauntlet);
@@ -28034,7 +28034,7 @@ public class Packet_InventorySerializer
             {
                 Packet_PositionItem i7 = instance.Items[k];
                 // Key for field: 7, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(58));
+                stream.WriteByte(58);
                 CitoMemoryStream ms7 = new CitoMemoryStream();
 
                 Packet_PositionItemSerializer.Serialize(ms7, i7);
@@ -28053,7 +28053,7 @@ public class Packet_InventorySerializer
         if (instance.DragDropItem != null)
         {
             // Key for field: 8, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(66));
+            stream.WriteByte(66);
             CitoMemoryStream ms8 = new CitoMemoryStream();
 
             Packet_ItemSerializer.Serialize(ms8, instance.DragDropItem);
@@ -28074,7 +28074,7 @@ public class Packet_InventorySerializer
             {
                 Packet_Item i9 = instance.RightHand[k];
                 // Key for field: 9, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(74));
+                stream.WriteByte(74);
                 CitoMemoryStream ms9 = new CitoMemoryStream();
 
                 Packet_ItemSerializer.Serialize(ms9, i9);
@@ -28103,8 +28103,8 @@ public class Packet_InventorySerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_Inventory instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -28309,20 +28309,20 @@ public class Packet_ItemSerializer
         if (instance.ItemClass != Packet_ItemClassEnum.Block)
         {
             // Key for field: 1, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(8));
+            stream.WriteByte(8);
             ProtocolParser.WriteUInt64(stream, instance.ItemClass);
         }
         if (instance.ItemId != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.ItemId));
+            stream.WriteByte(18);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.ItemId));
         }
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.BlockId);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.BlockCount);
     }
 
@@ -28337,8 +28337,8 @@ public class Packet_ItemSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_Item instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -28549,13 +28549,13 @@ public class Packet_PositionItemSerializer
         if (instance.Key_ != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Key_));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Key_));
         }
         if (instance.Value_ != null)
         {
             // Key for field: 2, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(18));
+            stream.WriteByte(18);
             CitoMemoryStream ms2 = new CitoMemoryStream();
 
             Packet_ItemSerializer.Serialize(ms2, instance.Value_);
@@ -28571,10 +28571,10 @@ public class Packet_PositionItemSerializer
 
         }
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Y);
     }
 
@@ -28589,8 +28589,8 @@ public class Packet_PositionItemSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_PositionItem instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -28816,7 +28816,7 @@ public class Packet_DialogSerializer
             {
                 Packet_Widget i1 = instance.Widgets[k];
                 // Key for field: 1, LengthDelimited
-                stream.WriteByte(ProtoPlatform.IntToByte(10));
+                stream.WriteByte(10);
                 CitoMemoryStream ms1 = new CitoMemoryStream();
 
                 Packet_WidgetSerializer.Serialize(ms1, i1);
@@ -28833,13 +28833,13 @@ public class Packet_DialogSerializer
             }
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Width);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Height_);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.IsModal);
     }
 
@@ -28854,8 +28854,8 @@ public class Packet_DialogSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_Dialog instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -29165,46 +29165,46 @@ public class Packet_WidgetSerializer
         if (instance.Id != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Id));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Id));
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Click);
         // Key for field: 3, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(24));
+        stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.X);
         // Key for field: 4, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(32));
+        stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Y);
         // Key for field: 5, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(40));
+        stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.Width);
         // Key for field: 6, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(48));
+        stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.Height_);
         if (instance.Text != null)
         {
             // Key for field: 7, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(58));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Text));
+            stream.WriteByte(58);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Text));
         }
         // Key for field: 8, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(64));
+        stream.WriteByte(64);
         ProtocolParser.WriteUInt64(stream, instance.ClickKey);
         if (instance.Image != null)
         {
             // Key for field: 9, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(74));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.Image));
+            stream.WriteByte(74);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Image));
         }
         // Key for field: 10, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(80));
+        stream.WriteByte(80);
         ProtocolParser.WriteUInt64(stream, instance.Color);
         if (instance.Font != null)
         {
             // Key for field: 11, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(90));
+            stream.WriteByte(90);
             CitoMemoryStream ms11 = new CitoMemoryStream();
 
             Packet_DialogFontSerializer.Serialize(ms11, instance.Font);
@@ -29222,7 +29222,7 @@ public class Packet_WidgetSerializer
         if (instance.Type != Packet_WidgetTypeEnum.Image)
         {
             // Key for field: 12, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(96));
+            stream.WriteByte(96);
             ProtocolParser.WriteUInt64(stream, instance.Type);
         }
     }
@@ -29238,8 +29238,8 @@ public class Packet_WidgetSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_Widget instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -29432,16 +29432,16 @@ public class Packet_DialogFontSerializer
         if (instance.FamilyName != null)
         {
             // Key for field: 1, LengthDelimited
-            stream.WriteByte(ProtoPlatform.IntToByte(10));
-            ProtocolParser.WriteBytes(stream, ProtoPlatform.StringToBytes(instance.FamilyName));
+            stream.WriteByte(10);
+            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.FamilyName));
         }
         // Key for field: 2, Varint
-        stream.WriteByte(ProtoPlatform.IntToByte(16));
+        stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.SizeFloat);
         if (instance.FontStyle != Packet_DialogFontStyleEnum.Regular)
         {
             // Key for field: 3, Varint
-            stream.WriteByte(ProtoPlatform.IntToByte(24));
+            stream.WriteByte(24);
             ProtocolParser.WriteUInt64(stream, instance.FontStyle);
         }
     }
@@ -29457,7 +29457,7 @@ public class Packet_DialogFontSerializer
     public static void SerializeLengthDelimited(CitoStream stream, Packet_DialogFont instance)
     {
         byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, ProtoPlatform.ArrayLength(data));
-        stream.Write(data, 0, ProtoPlatform.ArrayLength(data));
+        ProtocolParser.WriteUInt32_(stream, data.Length);
+        stream.Write(data, 0, data.Length);
     }
 }

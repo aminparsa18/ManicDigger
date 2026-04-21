@@ -1,9 +1,11 @@
-﻿public class ProtocolParser
+﻿using System.Text;
+
+public class ProtocolParser
 {
     public static string ReadString(CitoStream stream)
     {
         byte[] bytes = ReadBytes(stream);
-        return ProtoPlatform.BytesToString(bytes, 0);
+        return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
     }
 
     /// <summary>
@@ -36,8 +38,8 @@
     /// </summary>
     public static void WriteBytes(CitoStream stream, byte[] val)
     {
-        WriteUInt32_(stream, ProtoPlatform.ArrayLength(val));
-        stream.Write(val, 0, ProtoPlatform.ArrayLength(val));
+        WriteUInt32_(stream, val.Length);
+        stream.Write(val, 0, val.Length);
     }
    
     public static Key ReadKey_(byte firstByte, CitoStream stream)
@@ -225,7 +227,7 @@
 #else
             buffer[count] = (val & 0x7F).LowByte;
 #endif
-            val = ProtoPlatform.logical_right_shift(val, 7);
+            val = val >>> 7;
             if (val == 0)
                 break;
 

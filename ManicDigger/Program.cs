@@ -86,8 +86,8 @@ public class Program
     public void ServerThreadStart()
     {
         Log.Debug("Single-player server thread started");
-        try
-        {
+        //try
+        //{
             DummyNetServer netServer = new(dummyNetwork);
 
             Server server = new()
@@ -119,11 +119,11 @@ public class Program
 
             exit.SetExit(false);
             Log.Debug("Single-player server thread stopped cleanly");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Server thread crashed");
-            MessageBox.Show(ex.ToString(), "Server Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+        //}
+        //catch (Exception ex)
+        //{
+        //    Log.Error(ex, "Server thread crashed");
+        //    MessageBox.Show(ex.ToString(), "Server Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //}
     }
 }

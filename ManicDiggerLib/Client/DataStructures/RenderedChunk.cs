@@ -5,15 +5,30 @@
 /// </summary>
 public class RenderedChunk
 {
-    /// <summary>OpenGL buffer object IDs allocated for this chunk's geometry.</summary>
+    internal bool Dirty;
     internal int[] Ids;
-
-    /// <summary>Number of valid entries in <see cref="Ids"/>.</summary>
     internal int IdsCount;
-
-    /// <summary>Whether this chunk's render buffers need to be rebuilt before the next draw.</summary>
-    internal bool Dirty = true;
-
-    /// <summary>Per-block light values used when building the chunk's vertex data.</summary>
     internal byte[] Light;
+
+    /// <summary>
+    /// True when <see cref="Light"/> was rented from <see cref="System.Buffers.ArrayPool{T}.Shared"/>
+    /// by <c>ModDrawTerrain.CalculateShadows</c> and must be returned to the pool
+    /// rather than simply nulled when this chunk is unloaded.
+    /// </summary>
+    internal bool LightRented;
+
+    /// <summary>
+    /// Returns <see cref="Light"/> to <see cref="System.Buffers.ArrayPool{T}.Shared"/>
+    /// if it was rented, then nulls the reference. Safe to call when Light is null.
+    /// </summary>
+    internal void ReleaseLight()
+    {
+        if (Light == null) return;
+        if (LightRented)
+        {
+            System.Buffers.ArrayPool<byte>.Shared.Return(Light);
+            LightRented = false;
+        }
+        Light = null;
+    }
 }

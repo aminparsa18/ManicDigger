@@ -1,12 +1,17 @@
 System.OutOfMemoryException: Exception of type 'System.OutOfMemoryException' was thrown.
-   at CompressionGzip.Decompress(Byte[] fi)
-   at GamePlatformNative.GzipDecompress(Byte[] compressed, Int32 compressedLength, Byte[] ret)
-   at ManicDigger.Mods.ModNetworkProcess.ProcessInBackground(Packet_Server packet)
-   at ManicDigger.Mods.ModNetworkProcess.TryReadPacket(Byte[] data, Int32 dataLength)
-   at ManicDigger.Mods.ModNetworkProcess.NetworkProcess()
-   at ManicDigger.Mods.ModNetworkProcess.OnReadOnlyBackgroundThread(Game game_, Single dt)
-   at TaskScheduler.<>c__DisplayClass10_0.<CreateBackgroundAction>b__0()
-   at GamePlatformNative.<>c__DisplayClass49_0.<QueueUserWorkItem>b__0(Object a)
+   at System.GC.AllocateNewArray(IntPtr typeHandlePtr, Int32 length, GC_ALLOC_FLAGS flags, ObjectHandleOnStack ret)
+   at System.GC.AllocateNewArray(IntPtr typeHandlePtr, Int32 length, GC_ALLOC_FLAGS flags, ObjectHandleOnStack ret)
+   at System.GC.<AllocateUninitializedArray>g__AllocateNewArrayWorker|77_0[T](Int32 length, Boolean pinned)
+   at System.Buffers.SharedArrayPool`1.Rent(Int32 minimumLength)
+   at VoxelMap.GetChunk_(Int32 cx, Int32 cy, Int32 cz) in C:\Users\aminp\source\repos\manicdigger\ManicDiggerLib\Client\DataStructures\VoxelMap.cs:line 78
+   at VoxelMap.GetChunk(Int32 x, Int32 y, Int32 z) in C:\Users\aminp\source\repos\manicdigger\ManicDiggerLib\Client\DataStructures\VoxelMap.cs:line 56
+   at VoxelMap.SetMapPortion(Int32 x, Int32 y, Int32 z, Int32[] chunk, Int32 sizeX, Int32 sizeY, Int32 sizeZ) in C:\Users\aminp\source\repos\manicdigger\ManicDiggerLib\Client\DataStructures\VoxelMap.cs:line 295
+   at ManicDigger.Mods.ModNetworkProcess.ProcessInBackground(Packet_Server packet) in C:\Users\aminp\source\repos\manicdigger\ManicDiggerLib\Client\Mods\NetworkProcess.ci.cs:line 147
+   at ManicDigger.Mods.ModNetworkProcess.TryReadPacket(Byte[] data, Int32 dataLength) in C:\Users\aminp\source\repos\manicdigger\ManicDiggerLib\Client\Mods\NetworkProcess.ci.cs:line 93
+   at ManicDigger.Mods.ModNetworkProcess.NetworkProcess() in C:\Users\aminp\source\repos\manicdigger\ManicDiggerLib\Client\Mods\NetworkProcess.ci.cs:line 76
+   at ManicDigger.Mods.ModNetworkProcess.OnReadOnlyBackgroundThread(Game game_, Single dt) in C:\Users\aminp\source\repos\manicdigger\ManicDiggerLib\Client\Mods\NetworkProcess.ci.cs:line 46
+   at TaskScheduler.<>c__DisplayClass10_0.<CreateBackgroundAction>b__0() in C:\Users\aminp\source\repos\manicdigger\ManicDiggerLib\Client\Misc\TaskScheduler.ci.cs:line 150
+   at GamePlatformNative.<>c__DisplayClass49_0.<QueueUserWorkItem>b__0(Object a) in C:\Users\aminp\source\repos\manicdigger\ManicDiggerLib\Client\Misc\PlatformNative.cs:line 412
    at System.Threading.QueueUserWorkItemCallbackDefaultContext.Execute()
    at System.Threading.ThreadPoolWorkQueue.Dispatch()
    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()

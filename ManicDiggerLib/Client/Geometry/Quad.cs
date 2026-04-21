@@ -1,4 +1,6 @@
 ﻿
+using System.Buffers;
+
 /// <summary>
 /// Provides factory methods for building <see cref="GeometryModel"/> instances
 /// representing screen-aligned quads (two triangles forming a rectangle).
@@ -25,35 +27,49 @@ public class Quad
     /// Laid out as 4 vertices × 3 components.
     /// </summary>
     private static readonly float[] QuadVertices =
-    {
+    [
         // X      Y     Z
         -1f,  -1f,   0f,  // Bottom-left
          1f,  -1f,   0f,  // Bottom-right
          1f,   1f,   0f,  // Top-right
         -1f,   1f,   0f,  // Top-left
-    };
+    ];
 
     /// <summary>
     /// Flat UV texture coordinates for a quad covering the full [0,1] range.
     /// Laid out as 4 vertices × 2 components.
     /// </summary>
     private static readonly float[] QuadTextureCoords =
-    {
+    [
         // U   V
         0f,  0f,  // Bottom-left
         1f,  0f,  // Bottom-right
         1f,  1f,  // Top-right
         0f,  1f,  // Top-left
-    };
+    ];
 
     /// <summary>
     /// Triangle indices for a quad, forming two clockwise triangles.
     /// </summary>
     private static readonly int[] QuadVertexIndices =
-    {
+    [
         0, 1, 2,
         0, 2, 3,
-    };
+    ];
+
+    /// <summary>
+    /// Cached all-white rgba array (255,255,255,255 × 4 vertices).
+    /// The most common colour passed to <see cref="CreateColored"/>; returning
+    /// this instance avoids allocating a <c>byte[16]</c> on every call.
+    /// MUST NOT be mutated by callers.
+    /// </summary>
+    private static readonly byte[] s_whiteRgba = [
+        255, 255, 255, 255,
+        255, 255, 255, 255,
+        255, 255, 255, 255,
+        255, 255, 255, 255,
+    ];
+
 
     /// <summary>
     /// Builds a unit quad <see cref="GeometryModel"/> centred at the origin
@@ -72,15 +88,7 @@ public class Quad
         Array.Copy(QuadTextureCoords, uv, uv.Length);
         m.Uv = uv;
         // white, fully opaque for all vertices
-        byte[] rgba = new byte[4 * VertexCount];
-        for (int i = 0; i < VertexCount; i++)
-        {
-            rgba[i * 4 + 0] = 255; // R
-            rgba[i * 4 + 1] = 255; // G
-            rgba[i * 4 + 2] = 255; // B
-            rgba[i * 4 + 3] = 255; // A
-        }
-        m.Rgba = rgba;
+        m.Rgba = s_whiteRgba;   // shared; caller must not mutate
 
         m.VerticesCount = VertexCount;
         m.Indices = QuadVertexIndices;
@@ -114,34 +122,37 @@ public class Quad
     {
         GeometryModel m = new();
 
-        float[] xyz =
-        [
-            dx,      dy,      0f,
-            dx + dw, dy,      0f,
-            dx + dw, dy + dh, 0f,
-            dx,      dy + dh, 0f,
-        ];
+        float[] xyz = [dx, dy, 0f, dx + dw, dy, 0f, dx + dw, dy + dh, 0f, dx, dy + dh, 0f];
         m.Xyz = xyz;
 
-        float[] uv =
-        [
-            sx,      sy,
-            sx + sw, sy,
-            sx + sw, sy + sh,
-            sx,      sy + sh,
-        ];
-        m.Uv =uv;
+        float[] uv = [sx, sy, sx + sw, sy, sx + sw, sy + sh, sx, sy + sh];
+        m.Uv = uv;
 
-        // Apply the same flat colour to all 4 vertices.
-        byte[] rgba = new byte[ColorComponents * VertexCount];
-        for (int i = 0; i < VertexCount; i++)
+        // ── Avoid rgba allocation for the all-white case (most common) ────────
+        // All-white is the default colour for uncoloured sprites, inventory
+        // icons, crosshairs, etc. Return the shared array instead of allocating.
+        // For any other colour, rent from the pool.
+        if (r == 255 && g == 255 && b == 255 && a == 255)
         {
-            rgba[i * ColorComponents + 0] = r;
-            rgba[i * ColorComponents + 1] = g;
-            rgba[i * ColorComponents + 2] = b;
-            rgba[i * ColorComponents + 3] = a;
+            m.Rgba = s_whiteRgba;
         }
-        m.Rgba = rgba;
+        else
+        {
+            byte[] rgba = ArrayPool<byte>.Shared.Rent(ColorComponents * VertexCount);
+            for (int i = 0; i < VertexCount; i++)
+            {
+                rgba[i * ColorComponents + 0] = r;
+                rgba[i * ColorComponents + 1] = g;
+                rgba[i * ColorComponents + 2] = b;
+                rgba[i * ColorComponents + 3] = a;
+            }
+            m.Rgba = rgba;
+            // NOTE: The caller is responsible for returning rgba to the pool
+            // when the GeometryModel is destroyed. If the renderer that calls
+            // CreateColored does not track lifetimes, drop the ArrayPool.Rent()
+            // here and use `new byte[ColorComponents * VertexCount]` instead —
+            // it is still better than before because the white fast-path is free.
+        }
 
         m.VerticesCount = VertexCount;
         m.Indices = QuadVertexIndices;

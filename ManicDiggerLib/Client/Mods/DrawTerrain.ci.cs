@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using System.Buffers;
+using OpenTK.Mathematics;
 
 /// <summary>
 /// Client-side mod responsible for tessellating, lighting, and drawing the voxel terrain.
@@ -105,19 +106,25 @@ public class ModDrawTerrain : ModBase
 
     /// <summary>Total number of chunk tessellations performed since startup.</summary>
     private int _chunkUpdates;
-
-    /// <summary>
-    /// Timestamp (ms from start) of the last performance-info display update.
-    /// </summary>
     private int _lastPerfUpdateMs;
-
-    /// <summary>Value of <see cref="_chunkUpdates"/> at the previous performance-info update.</summary>
     private int _lastChunkUpdatesSnapshot;
 
+    // ── Pre-allocated scratch objects (avoid per-frame heap pressure) ─────────
+
     /// <summary>
-    /// Allocates all fixed-size buffers. Call order: constructor → <see cref="Start"/>
-    /// (via <see cref="ModBase"/>) → <see cref="StartTerrain"/> (deferred until first redraw).
+    /// Reused output array for <see cref="BlocksAround7"/>.
+    /// Written in-place; never returned to callers who hold references across
+    /// calls — only used within <see cref="RedrawChunksAroundLastPlacedBlock"/>.
     /// </summary>
+    private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
+
+    /// <summary>
+    /// Reused set for deduplicating chunk coordinates inside
+    /// <see cref="RedrawChunksAroundLastPlacedBlock"/>.
+    /// Allocated once, cleared before each use.
+    /// </summary>
+    private readonly HashSet<Vector3i> _chunksToRedrawSet = new();
+
     public ModDrawTerrain()
     {
         _currentChunk = new int[BufferedChunkVolume];
@@ -150,13 +157,11 @@ public class ModDrawTerrain : ModBase
     public override void OnNewFrameDraw3d(Game game, float _)
     {
         _game = game;
-
         if (_game.shouldRedrawAllBlocks)
         {
             _game.shouldRedrawAllBlocks = false;
             RedrawAllBlocks();
         }
-
         DrawTerrain();
         UpdatePerformanceInfo();
     }
@@ -169,11 +174,7 @@ public class ModDrawTerrain : ModBase
         game_.QueueActionCommit(MainThreadCommit);
     }
 
-    /// <inheritdoc/>
-    public override void Dispose(Game game_)
-    {
-        Clear();
-    }
+    public override void Dispose(Game game_) => Clear();
 
     /// <summary>
     /// Initialises the tessellator and caches frequently used chunk-size values.
@@ -196,7 +197,7 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     public void RedrawAllBlocks()
     {
-        if (!_terrainStarted)
+        if (!_terrainStarted) 
         {
             StartTerrain();
         }
@@ -204,16 +205,13 @@ public class ModDrawTerrain : ModBase
         int chunksLength = InvertChunk(_game.VoxelMap.MapSizeX)
                          * InvertChunk(_game.VoxelMap.MapSizeY)
                          * InvertChunk(_game.VoxelMap.MapSizeZ);
-
         unchecked
         {
             for (int i = 0; i < chunksLength; i++)
             {
                 Chunk c = _game.VoxelMap.chunks[i];
-                if (c == null) { continue; }
-
+                if (c == null) continue;
                 c.rendered ??= new RenderedChunk();
-
                 c.rendered.Dirty = true;
                 c.baseLightDirty = true;
             }
@@ -227,18 +225,13 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     public void UpdateTerrain()
     {
-        if (!_terrainStarted) { return; }
-
+        if (!_terrainStarted) return;
         unchecked
         {
             RedrawChunksAroundLastPlacedBlock();
-
-            // Pick one more dirty chunk per pass (nearest to the player).
             NearestDirty(_tempNearestPos);
             if (_tempNearestPos[0] != NoChunk)
-            {
                 RedrawChunk(_tempNearestPos[0], _tempNearestPos[1], _tempNearestPos[2]);
-            }
         }
     }
 
@@ -262,15 +255,22 @@ public class ModDrawTerrain : ModBase
         int mapsizexchunks = MapsizeXChunks();
         int mapsizeychunks = MapsizeYChunks();
 
-        HashSet<Vector3i> chunksToRedraw = [];
-        Vector3i[] around = BlocksAround7(new(_game.lastplacedblockX, _game.lastplacedblockY, _game.lastplacedblockZ));
+        // ── Reuse the pre-allocated set and buffer ────────────────────────────
+        // Old code: `HashSet<Vector3i> chunksToRedraw = []`  (new per call)
+        //           `Vector3i[] around = BlocksAround7(...)`  (new per call)
+        // New code: fill _blocksAround7Buffer in-place, clear _chunksToRedrawSet.
+        _chunksToRedrawSet.Clear();
+        BlocksAround7Inplace(
+            new(_game.lastplacedblockX, _game.lastplacedblockY, _game.lastplacedblockZ),
+            _blocksAround7Buffer);
+
         for (int i = 0; i < 7; i++)
         {
-            Vector3i a = around[i];
-            chunksToRedraw.Add(new(InvertChunk(a.X), InvertChunk(a.Y), InvertChunk(a.Z)));
+            Vector3i a = _blocksAround7Buffer[i];
+            _chunksToRedrawSet.Add(new(InvertChunk(a.X), InvertChunk(a.Y), InvertChunk(a.Z)));
         }
 
-        foreach (Vector3i chunk3 in chunksToRedraw)
+        foreach (Vector3i chunk3 in _chunksToRedrawSet)
         {
             int xx = chunk3.X, yy = chunk3.Y, zz = chunk3.Z;
             if (xx < 0 || yy < 0 || zz < 0
@@ -278,14 +278,9 @@ public class ModDrawTerrain : ModBase
             {
                 continue;
             }
-
             Chunk chunk = _game.VoxelMap.chunks[Index3d(xx, yy, zz, mapsizexchunks, mapsizeychunks)];
-            if (chunk?.rendered == null) { continue; }
-
-            if (chunk.rendered.Dirty)
-            {
-                RedrawChunk(xx, yy, zz);
-            }
+            if (chunk?.rendered == null) continue;
+            if (chunk.rendered.Dirty) RedrawChunk(xx, yy, zz);
         }
 
         _game.lastplacedblockX = NoChunk;
@@ -294,11 +289,25 @@ public class ModDrawTerrain : ModBase
     }
 
     /// <summary>
-    /// Returns the block position and its six axis-aligned neighbours (7 total).
-    /// Used to determine which chunks may be affected by a single block change.
+    /// Fills <paramref name="buffer"/> with the block at <paramref name="pos"/> and its
+    /// six axis-aligned neighbours. Zero allocation — the caller owns the buffer.
     /// </summary>
-    /// <param name="pos">The changed block position in world block coordinates.</param>
-    /// <returns>Array of 7 positions: the block itself followed by its six neighbours.</returns>
+    private static void BlocksAround7Inplace(Vector3i pos, Vector3i[] buffer)
+    {
+        buffer[0] = pos;
+        buffer[1] = new(pos.X + 1, pos.Y, pos.Z);
+        buffer[2] = new(pos.X - 1, pos.Y, pos.Z);
+        buffer[3] = new(pos.X, pos.Y + 1, pos.Z);
+        buffer[4] = new(pos.X, pos.Y - 1, pos.Z);
+        buffer[5] = new(pos.X, pos.Y, pos.Z + 1);
+        buffer[6] = new(pos.X, pos.Y, pos.Z - 1);
+    }
+
+    /// <summary>
+    /// Returns the block position and its six axis-aligned neighbours (7 total).
+    /// Kept for callers outside this class (<see cref="VoxelMap.SetBlockDirty"/> etc.).
+    /// Internal callers should prefer <see cref="BlocksAround7Inplace"/>.
+    /// </summary>
     public static Vector3i[] BlocksAround7(Vector3i pos) =>
     [
         pos,
@@ -345,7 +354,7 @@ public class ModDrawTerrain : ModBase
                     for (int z = startZ; z <= endZ; z++)
                     {
                         Chunk c = _game.VoxelMap.chunks[Index3d(x, y, z, mapsizexchunks, mapsizeychunks)];
-                        if (c?.rendered == null || !c.rendered.Dirty) { continue; }
+                        if (c?.rendered == null || !c.rendered.Dirty) continue;
 
                         int dx = px - x, dy = py - y, dz = pz - z;
                         int dist = dx * dx + dy * dy + dz * dz;
@@ -360,24 +369,29 @@ public class ModDrawTerrain : ModBase
         }
     }
 
-    /// <summary>
-    /// Uploads all pending chunk geometry from <see cref="_redrawQueue"/> to the GPU.
-    /// Must be called on the main (render) thread.
-    /// </summary>
+    // ── Main-thread commit ────────────────────────────────────────────────────
+
     public void MainThreadCommit()
     {
         for (int i = 0; i < _redrawQueueCount; i++)
         {
             DoRedraw(_redrawQueue[i]);
+
+            // ── Return the rented wrapper array to the pool ───────────────────
+            // RedrawChunk rented _redrawQueue[i].Data from ArrayPool.
+            // DoRedraw is now done with it; return it immediately.
+            if (_redrawQueue[i].DataRented)
+                ArrayPool<VerticesIndicesToLoad>.Shared.Return(_redrawQueue[i].Data);
         }
         _redrawQueueCount = 0;
     }
 
     /// <summary>
     /// Removes the old batcher entries for the chunk described by <paramref name="r"/>,
-    /// then uploads the new geometry and stores the resulting batcher IDs on the chunk.
+    /// uploads the new geometry, and stores the resulting batcher IDs on the chunk.
+    /// Rented geometry arrays inside each sub-mesh are returned to the pool immediately
+    /// after the GPU upload so no CPU-side copy survives past this method.
     /// </summary>
-    /// <param name="r">Redraw descriptor produced by <see cref="RedrawChunk"/>.</param>
     private void DoRedraw(TerrainRendererRedraw r)
     {
         unchecked
@@ -385,20 +399,22 @@ public class ModDrawTerrain : ModBase
             _batcherIdsCount = 0;
             RenderedChunk rendered = r.Chunk.rendered;
 
-            // Remove previous geometry for this chunk from the batcher.
+            // Remove previous geometry from the batcher.
             if (rendered.Ids != null)
             {
                 for (int i = 0; i < rendered.IdsCount; i++)
-                {
                     _game.d_Batcher.Remove(rendered.Ids[i]);
-                }
             }
 
-            // Upload each non-empty sub-mesh and record the new batcher ID.
             for (int i = 0; i < r.DataCount; i++)
             {
                 VerticesIndicesToLoad submesh = r.Data[i];
-                if (submesh.modelData.IndicesCount == 0) { continue; }
+                if (submesh.modelData.IndicesCount == 0)
+                {
+                    // Still need to return rented arrays for empty sub-meshes.
+                    ReturnModelArrays(submesh.modelData);
+                    continue;
+                }
 
                 float cx = submesh.positionX + chunksize * 0.5f;
                 float cy = submesh.positionZ + chunksize * 0.5f;
@@ -408,27 +424,49 @@ public class ModDrawTerrain : ModBase
                 _batcherIds[_batcherIdsCount++] = _game.d_Batcher.Add(
                     submesh.modelData, submesh.transparent, submesh.texture,
                     cx, cy, cz, radius);
+
+                // ── Return CPU geometry arrays now that the GPU has the data ──
+                // CloneModelData rented these from ArrayPool. They are dead
+                // weight on the CPU after Add() — return them immediately.
+                ReturnModelArrays(submesh.modelData);
             }
 
-            // Write the new IDs back onto the chunk.
-            int[] idsArr = new int[_batcherIdsCount];
-            for (int i = 0; i < _batcherIdsCount; i++) { idsArr[i] = _batcherIds[i]; }
-            rendered.Ids = idsArr;
+            // ── Reuse rendered.Ids if the array is already the right size ─────
+            // Old code: `rendered.Ids = new int[_batcherIdsCount]` every commit.
+            // New code: only allocate when the count changes.
+            if (rendered.Ids == null || rendered.Ids.Length != _batcherIdsCount)
+                rendered.Ids = new int[_batcherIdsCount];
+
+            for (int i = 0; i < _batcherIdsCount; i++)
+                rendered.Ids[i] = _batcherIds[i];
+
             rendered.IdsCount = _batcherIdsCount;
         }
     }
 
     /// <summary>
-    /// Tessellates the chunk at (<paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>)
-    /// in chunk coordinates and enqueues the result for GPU upload.
-    /// Skips tessellation entirely for chunks where every block is the same (solid-fill optimisation).
+    /// Returns the four geometry arrays of <paramref name="model"/> to their respective
+    /// <see cref="ArrayPool{T}"/> buckets and nulls the references so the model cannot
+    /// accidentally be used after return.
+    /// Only called for models whose arrays were rented by <see cref="CloneModelData"/>.
     /// </summary>
+    private static void ReturnModelArrays(GeometryModel model)
+    {
+        if (model.Xyz != null) { ArrayPool<float>.Shared.Return(model.Xyz); model.Xyz = null; }
+        if (model.Uv != null) { ArrayPool<float>.Shared.Return(model.Uv); model.Uv = null; }
+        if (model.Rgba != null) { ArrayPool<byte>.Shared.Return(model.Rgba); model.Rgba = null; }
+        if (model.Indices != null) { ArrayPool<int>.Shared.Return(model.Indices); model.Indices = null; }
+    }
+
+    // ── Background-thread tessellation ───────────────────────────────────────
+
     private void RedrawChunk(int x, int y, int z)
     {
         unchecked
         {
-            Chunk c = _game.VoxelMap.chunks[VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(), MapsizeYChunks())];
-            if (c == null) { return; }
+            Chunk c = _game.VoxelMap.chunks[
+                VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(), MapsizeYChunks())];
+            if (c == null) return;
 
             c.rendered ??= new RenderedChunk();
             c.rendered.Dirty = false;
@@ -436,8 +474,9 @@ public class ModDrawTerrain : ModBase
 
             GetExtendedChunk(x, y, z);
 
-            VerticesIndicesToLoad[] meshData = Array.Empty<VerticesIndicesToLoad>();
             int meshCount = 0;
+            VerticesIndicesToLoad[] meshData = null;
+            bool dataRented = false;
 
             if (!IsSolidChunk(_currentChunk, BufferedChunkVolume))
             {
@@ -446,14 +485,27 @@ public class ModDrawTerrain : ModBase
                     x, y, z, _currentChunk, _currentChunkShadows,
                     _game.mLightLevels, out meshCount);
 
-                meshData = new VerticesIndicesToLoad[meshCount];
-                for (int i = 0; i < meshCount; i++)
+                if (meshCount > 0)
                 {
-                    meshData[i] = CloneVerticesIndicesToLoad(meshes[i]);
+                    // ── Rent the wrapper array instead of allocating ──────────
+                    // Old code: `meshData = new VerticesIndicesToLoad[meshCount]`
+                    // New code: rent from pool; returned in MainThreadCommit.
+                    meshData = ArrayPool<VerticesIndicesToLoad>.Shared.Rent(meshCount);
+                    dataRented = true;
+
+                    for (int i = 0; i < meshCount; i++)
+                        meshData[i] = CloneVerticesIndicesToLoad(meshes[i]);
                 }
             }
 
-            _redrawQueue[_redrawQueueCount++] = new(c, meshData, meshCount);
+            // Fall back to an empty non-rented array when there is nothing to draw.
+            if (meshData == null)
+            {
+                meshData = Array.Empty<VerticesIndicesToLoad>();
+                dataRented = false;
+            }
+
+            _redrawQueue[_redrawQueueCount++] = new(c, meshData, meshCount, dataRented);
         }
     }
 
@@ -485,9 +537,7 @@ public class ModDrawTerrain : ModBase
         unchecked
         {
             for (int i = 1; i < length; i++)
-            {
-                if (chunk[i] != first) { return false; }
-            }
+                if (chunk[i] != first) return false;
         }
         return true;
     }
@@ -503,15 +553,13 @@ public class ModDrawTerrain : ModBase
     {
         unchecked
         {
-            // Pre-fetch per-block-type lighting properties to avoid repeated lookups.
             for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
             {
-                if (_game.blocktypes[i] == null) { continue; }
+                if (_game.blocktypes[i] == null) continue;
                 _shadowLightRadius[i] = _game.blocktypes[i].LightRadius;
                 _shadowIsTransparent[i] = IsTransparentForLight(i);
             }
 
-            // Ensure base light is fresh for all 27 chunks in the 3×3×3 neighbourhood.
             for (int xx = 0; xx < 3; xx++)
                 for (int yy = 0; yy < 3; yy++)
                     for (int zz = 0; zz < 3; zz++)
@@ -519,9 +567,10 @@ public class ModDrawTerrain : ModBase
                         int cx1 = cx + xx - 1;
                         int cy1 = cy + yy - 1;
                         int cz1 = cz + zz - 1;
-                        if (!_game.VoxelMap.IsValidChunkPos(cx1, cy1, cz1)) { continue; }
+                        if (!_game.VoxelMap.IsValidChunkPos(cx1, cy1, cz1)) continue;
 
-                        Chunk neighbour = _game.VoxelMap.GetChunk(cx1 * chunksize, cy1 * chunksize, cz1 * chunksize);
+                        Chunk neighbour = _game.VoxelMap.GetChunk(
+                            cx1 * chunksize, cy1 * chunksize, cz1 * chunksize);
                         if (neighbour.baseLightDirty)
                         {
                             _lightBase.CalculateChunkBaseLight(
@@ -531,22 +580,25 @@ public class ModDrawTerrain : ModBase
                         }
                     }
 
-            // Initialise the chunk's light buffer to full brightness on first use.
-            RenderedChunk rendered = _game.VoxelMap.GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).rendered;
+            RenderedChunk rendered = _game.VoxelMap
+                .GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).rendered;
+
+            // ── Rent the light buffer from the pool instead of allocating ─────
+            // Old code: `rendered.Light = new byte[BufferedChunkVolume]`
+            // New code: rent; returned by UnloadRendererChunks via
+            //           RenderedChunk.ReleaseLight() when the chunk unloads.
             if (rendered.Light == null)
             {
-                rendered.Light = new byte[BufferedChunkVolume];
-                for (int i = 0; i < BufferedChunkVolume; i++) { rendered.Light[i] = 15; }
+                rendered.Light = ArrayPool<byte>.Shared.Rent(BufferedChunkVolume);
+                rendered.LightRented = true;
+                rendered.Light.AsSpan(0, BufferedChunkVolume).Fill(15); // full brightness
             }
 
             _lightBetweenChunks.CalculateLightBetweenChunks(
                 _game, cx, cy, cz, _shadowLightRadius, _shadowIsTransparent);
 
-            // Copy the computed light values into the per-frame scratch buffer.
-            for (int i = 0; i < BufferedChunkVolume; i++)
-            {
-                _currentChunkShadows[i] = rendered.Light[i];
-            }
+            rendered.Light.AsSpan(0, BufferedChunkVolume)
+                          .CopyTo(_currentChunkShadows.AsSpan(0, BufferedChunkVolume));
         }
     }
 
@@ -584,11 +636,9 @@ public class ModDrawTerrain : ModBase
     {
         const float MsToSeconds = 1f / 1000f;
         float elapsed = (_game.platform.TimeMillisecondsFromStart - _lastPerfUpdateMs) * MsToSeconds;
-
-        if (elapsed < 1f) { return; }
+        if (elapsed < 1f) return;
 
         _lastPerfUpdateMs = _game.platform.TimeMillisecondsFromStart;
-
         int updatesThisPeriod = _chunkUpdates - _lastChunkUpdatesSnapshot;
         _lastChunkUpdatesSnapshot = _chunkUpdates;
 
@@ -635,26 +685,35 @@ public class ModDrawTerrain : ModBase
         };
 
     /// <summary>
-    /// Performs a deep copy of a <see cref="GeometryModel"/> instance, duplicating all
-    /// vertex position, UV, colour, and index arrays.
-    /// Required because the background thread writes into shared tessellator buffers
-    /// that are overwritten on the next pass.
+    /// Deep-copies a <see cref="GeometryModel"/>, renting all four arrays from
+    /// <see cref="ArrayPool{T}.Shared"/> instead of allocating.
+    /// The returned model's arrays MUST be returned to the pool via
+    /// <see cref="ReturnModelArrays"/> once the GPU upload is complete.
     /// </summary>
     private static GeometryModel CloneModelData(GeometryModel source)
     {
         GeometryModel dest = new();
         unchecked
         {
-            dest.Xyz = new float[source.XyzCount];
-            for (int i = 0; i < source.XyzCount; i++) { dest.Xyz[i] = source.Xyz[i]; }
+            // ── Rent from pool, copy only the live elements ───────────────────
+            // The pool may return a larger array than requested; we only copy
+            // source.*Count elements. Array.Length must NOT be used as the
+            // logical size on rented arrays — always use the Count properties.
 
-            dest.Uv = new float[source.UvCount];
-            for (int i = 0; i < source.UvCount; i++) { dest.Uv[i] = source.Uv[i]; }
-            dest.Rgba = new byte[source.RgbaCount];
-            for (int i = 0; i < source.RgbaCount; i++) { dest.Rgba[i] = source.Rgba[i]; }
+            dest.Xyz = ArrayPool<float>.Shared.Rent(source.XyzCount);
+            source.Xyz.AsSpan(0, source.XyzCount).CopyTo(dest.Xyz);
 
-            dest.Indices = new int[source.IndicesCount];
-            for (int i = 0; i < source.IndicesCount; i++) { dest.Indices[i] = source.Indices[i]; }
+            dest.Uv = ArrayPool<float>.Shared.Rent(source.UvCount);
+            source.Uv.AsSpan(0, source.UvCount).CopyTo(dest.Uv);
+
+            dest.Rgba = ArrayPool<byte>.Shared.Rent(source.RgbaCount);
+            source.Rgba.AsSpan(0, source.RgbaCount).CopyTo(dest.Rgba);
+
+            dest.Indices = ArrayPool<int>.Shared.Rent(source.IndicesCount);
+            source.Indices.AsSpan(0, source.IndicesCount).CopyTo(dest.Indices);
+
+            // XyzCount / UvCount / RgbaCount are computed from VerticesCount,
+            // so setting VerticesCount is sufficient — no separate assignment needed.
             dest.VerticesCount = source.VerticesCount;
             dest.IndicesCount = source.IndicesCount;
         }
@@ -669,7 +728,13 @@ public class ModDrawTerrain : ModBase
 /// <param name="Chunk">The chunk whose geometry was tessellated.</param>
 /// <param name="Data">Array of sub-meshes produced by the tessellator.</param>
 /// <param name="DataCount">Number of valid entries in <see cref="Data"/>.</param>
+/// <param name="DataRented">
+/// <see langword="true"/> when <see cref="Data"/> was rented from
+/// <see cref="ArrayPool{T}.Shared"/> and must be returned by
+/// <see cref="ModDrawTerrain.MainThreadCommit"/> after the upload.
+/// </param>
 internal readonly record struct TerrainRendererRedraw(
     Chunk Chunk,
     VerticesIndicesToLoad[] Data,
-    int DataCount);
+    int DataCount,
+    bool DataRented);

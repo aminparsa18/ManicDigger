@@ -75,7 +75,7 @@ public class ModUnloadRendererChunks : ModBase
                 }
                 rendered.Ids = null;
                 rendered.Dirty = true;
-                rendered.Light = null;
+                rendered.ReleaseLight();  // ← returns rented array to pool
             }
 
             // ── CPU block data ────────────────────────────────────────────────

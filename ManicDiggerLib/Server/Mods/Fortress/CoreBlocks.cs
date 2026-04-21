@@ -14,6 +14,7 @@ public class CoreBlocks : IMod
     {
         m.RequireMod("Core");
     }
+
     public void Start(IModManager manager)
     {
         m = manager;

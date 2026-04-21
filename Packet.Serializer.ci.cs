@@ -6092,145 +6092,11 @@ public class Packet_ClientIdentificationSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientIdentification DeserializeBuffer(byte[] buffer, int length, Packet_ClientIdentification instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientIdentification Deserialize(CitoStream stream, Packet_ClientIdentification instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.MdProtocolVersion = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Username = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.VerificationKey = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    instance.ServerPassword = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.RequestPosition == null)
-                        instance.RequestPosition = Packet_PositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_PositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.RequestPosition);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientIdentification DeserializeLengthDelimited(CitoStream stream, Packet_ClientIdentification instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.MdProtocolVersion = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Username = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.VerificationKey = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    instance.ServerPassword = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.RequestPosition == null)
-                        instance.RequestPosition = Packet_PositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_PositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.RequestPosition);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientIdentification DeserializeLength(CitoStream stream, int length, Packet_ClientIdentification instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -6337,24 +6203,7 @@ public class Packet_ClientIdentificationSerializer
             ProtocolParser.WriteUInt32_(stream, ms5Length);
 
             stream.Write(ms5.GetBuffer(), 0, ms5Length);
-
-
         }
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientIdentification instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientIdentification instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -6367,114 +6216,12 @@ public class Packet_ClientRequestBlobSerializer
         DeserializeLengthDelimited(stream, instance);
         return instance;
     }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientRequestBlob DeserializeBuffer(byte[] buffer, int length, Packet_ClientRequestBlob instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientRequestBlob Deserialize(CitoStream stream, Packet_ClientRequestBlob instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    if (instance.RequestedMd5 == null)
-                        instance.RequestedMd5 = Packet_StringListSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_StringListSerializer.DeserializeLengthDelimited(stream, instance.RequestedMd5);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
+   
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientRequestBlob DeserializeLengthDelimited(CitoStream stream, Packet_ClientRequestBlob instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    if (instance.RequestedMd5 == null)
-                        instance.RequestedMd5 = Packet_StringListSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_StringListSerializer.DeserializeLengthDelimited(stream, instance.RequestedMd5);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientRequestBlob DeserializeLength(CitoStream stream, int length, Packet_ClientRequestBlob instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -6545,21 +6292,6 @@ public class Packet_ClientRequestBlobSerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientRequestBlob instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientRequestBlob instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientSetBlockSerializer
@@ -6572,150 +6304,12 @@ public class Packet_ClientSetBlockSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientSetBlock DeserializeBuffer(byte[] buffer, int length, Packet_ClientSetBlock instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientSetBlock Deserialize(CitoStream stream, Packet_ClientSetBlock instance)
-    {
-        instance.Mode = Packet_BlockSetModeEnum.Destroy;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Mode = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.MaterialSlot = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientSetBlock DeserializeLengthDelimited(CitoStream stream, Packet_ClientSetBlock instance)
     {
         instance.Mode = Packet_BlockSetModeEnum.Destroy;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Mode = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.MaterialSlot = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientSetBlock DeserializeLength(CitoStream stream, int length, Packet_ClientSetBlock instance)
-    {
-        instance.Mode = Packet_BlockSetModeEnum.Destroy;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -6806,21 +6400,6 @@ public class Packet_ClientSetBlockSerializer
         stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.MaterialSlot);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientSetBlock instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientSetBlock instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientFillAreaSerializer
@@ -6833,163 +6412,11 @@ public class Packet_ClientFillAreaSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientFillArea DeserializeBuffer(byte[] buffer, int length, Packet_ClientFillArea instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientFillArea Deserialize(CitoStream stream, Packet_ClientFillArea instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.X2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Y1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Y2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Z1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Z2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.MaterialSlot = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientFillArea DeserializeLengthDelimited(CitoStream stream, Packet_ClientFillArea instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.X2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Y1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Y2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Z1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Z2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.MaterialSlot = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientFillArea DeserializeLength(CitoStream stream, int length, Packet_ClientFillArea instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -7091,21 +6518,6 @@ public class Packet_ClientFillAreaSerializer
         stream.WriteByte(64);
         ProtocolParser.WriteUInt64(stream, instance.MaterialSlot);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientFillArea instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientFillArea instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientPositionAndOrientationSerializer
@@ -7118,155 +6530,11 @@ public class Packet_ClientPositionAndOrientationSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientPositionAndOrientation DeserializeBuffer(byte[] buffer, int length, Packet_ClientPositionAndOrientation instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientPositionAndOrientation Deserialize(CitoStream stream, Packet_ClientPositionAndOrientation instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.PlayerId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Heading = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Pitch = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.Stance = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientPositionAndOrientation DeserializeLengthDelimited(CitoStream stream, Packet_ClientPositionAndOrientation instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.PlayerId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Heading = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Pitch = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.Stance = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientPositionAndOrientation DeserializeLength(CitoStream stream, int length, Packet_ClientPositionAndOrientation instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -7361,21 +6629,6 @@ public class Packet_ClientPositionAndOrientationSerializer
         stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.Stance);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientPositionAndOrientation instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientPositionAndOrientation instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientMessageSerializer
@@ -7388,115 +6641,11 @@ public class Packet_ClientMessageSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientMessage DeserializeBuffer(byte[] buffer, int length, Packet_ClientMessage instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientMessage Deserialize(CitoStream stream, Packet_ClientMessage instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Message = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.IsTeamchat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientMessage DeserializeLengthDelimited(CitoStream stream, Packet_ClientMessage instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Message = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.IsTeamchat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientMessage DeserializeLength(CitoStream stream, int length, Packet_ClientMessage instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -7559,21 +6708,6 @@ public class Packet_ClientMessageSerializer
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.IsTeamchat);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientMessage instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientMessage instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientInventoryActionSerializer
@@ -7586,138 +6720,12 @@ public class Packet_ClientInventoryActionSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientInventoryAction DeserializeBuffer(byte[] buffer, int length, Packet_ClientInventoryAction instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientInventoryAction Deserialize(CitoStream stream, Packet_ClientInventoryAction instance)
-    {
-        instance.Action = Packet_InventoryActionTypeEnum.Click;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Action = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.A == null)
-                        instance.A = Packet_InventoryPositionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_InventoryPositionSerializer.DeserializeLengthDelimited(stream, instance.A);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.B == null)
-                        instance.B = Packet_InventoryPositionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_InventoryPositionSerializer.DeserializeLengthDelimited(stream, instance.B);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientInventoryAction DeserializeLengthDelimited(CitoStream stream, Packet_ClientInventoryAction instance)
     {
         instance.Action = Packet_InventoryActionTypeEnum.Click;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Action = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.A == null)
-                        instance.A = Packet_InventoryPositionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_InventoryPositionSerializer.DeserializeLengthDelimited(stream, instance.A);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.B == null)
-                        instance.B = Packet_InventoryPositionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_InventoryPositionSerializer.DeserializeLengthDelimited(stream, instance.B);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientInventoryAction DeserializeLength(CitoStream stream, int length, Packet_ClientInventoryAction instance)
-    {
-        instance.Action = Packet_InventoryActionTypeEnum.Click;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -7823,21 +6831,6 @@ public class Packet_ClientInventoryActionSerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientInventoryAction instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientInventoryAction instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_InventoryPositionSerializer
@@ -7850,174 +6843,12 @@ public class Packet_InventoryPositionSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_InventoryPosition DeserializeBuffer(byte[] buffer, int length, Packet_InventoryPosition instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_InventoryPosition Deserialize(CitoStream stream, Packet_InventoryPosition instance)
-    {
-        instance.Type = Packet_InventoryPositionTypeEnum.MainArea;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Type = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.AreaX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.AreaY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.MaterialId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.WearPlace = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.ActiveMaterial = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.GroundPositionX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.GroundPositionY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.GroundPositionZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_InventoryPosition DeserializeLengthDelimited(CitoStream stream, Packet_InventoryPosition instance)
     {
         instance.Type = Packet_InventoryPositionTypeEnum.MainArea;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Type = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.AreaX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.AreaY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.MaterialId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.WearPlace = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.ActiveMaterial = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.GroundPositionX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.GroundPositionY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.GroundPositionZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_InventoryPosition DeserializeLength(CitoStream stream, int length, Packet_InventoryPosition instance)
-    {
-        instance.Type = Packet_InventoryPositionTypeEnum.MainArea;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -8129,21 +6960,6 @@ public class Packet_InventoryPositionSerializer
         stream.WriteByte(72);
         ProtocolParser.WriteUInt64(stream, instance.GroundPositionZ);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_InventoryPosition instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_InventoryPosition instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_PositionAndOrientationSerializer
@@ -8156,147 +6972,11 @@ public class Packet_PositionAndOrientationSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_PositionAndOrientation DeserializeBuffer(byte[] buffer, int length, Packet_PositionAndOrientation instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_PositionAndOrientation Deserialize(CitoStream stream, Packet_PositionAndOrientation instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Heading = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Pitch = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Stance = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_PositionAndOrientation DeserializeLengthDelimited(CitoStream stream, Packet_PositionAndOrientation instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Heading = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Pitch = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Stance = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_PositionAndOrientation DeserializeLength(CitoStream stream, int length, Packet_PositionAndOrientation instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -8384,21 +7064,6 @@ public class Packet_PositionAndOrientationSerializer
         stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.Stance);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_PositionAndOrientation instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_PositionAndOrientation instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientReloadSerializer
@@ -8408,43 +7073,6 @@ public class Packet_ClientReloadSerializer
     {
         Packet_ClientReload instance = new Packet_ClientReload();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientReload DeserializeBuffer(byte[] buffer, int length, Packet_ClientReload instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientReload Deserialize(CitoStream stream, Packet_ClientReload instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -8488,63 +7116,9 @@ public class Packet_ClientReloadSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientReload DeserializeLength(CitoStream stream, int length, Packet_ClientReload instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ClientReload instance)
     {
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientReload instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientReload instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -8558,110 +7132,12 @@ public class Packet_ClientLeaveSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientLeave DeserializeBuffer(byte[] buffer, int length, Packet_ClientLeave instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientLeave Deserialize(CitoStream stream, Packet_ClientLeave instance)
-    {
-        instance.Reason = Packet_LeaveReasonEnum.Leave;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Reason = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientLeave DeserializeLengthDelimited(CitoStream stream, Packet_ClientLeave instance)
     {
         instance.Reason = Packet_LeaveReasonEnum.Leave;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Reason = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientLeave DeserializeLength(CitoStream stream, int length, Packet_ClientLeave instance)
-    {
-        instance.Reason = Packet_LeaveReasonEnum.Leave;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -8717,21 +7193,6 @@ public class Packet_ClientLeaveSerializer
             ProtocolParser.WriteUInt64(stream, instance.Reason);
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientLeave instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientLeave instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientHealthSerializer
@@ -8741,53 +7202,6 @@ public class Packet_ClientHealthSerializer
     {
         Packet_ClientHealth instance = new Packet_ClientHealth();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientHealth DeserializeBuffer(byte[] buffer, int length, Packet_ClientHealth instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientHealth Deserialize(CitoStream stream, Packet_ClientHealth instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.CurrentHealth = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -8841,76 +7255,12 @@ public class Packet_ClientHealthSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientHealth DeserializeLength(CitoStream stream, int length, Packet_ClientHealth instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.CurrentHealth = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ClientHealth instance)
     {
         // Key for field: 1, Varint
         stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.CurrentHealth);
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientHealth instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientHealth instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -8921,53 +7271,6 @@ public class Packet_ClientOxygenSerializer
     {
         Packet_ClientOxygen instance = new Packet_ClientOxygen();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientOxygen DeserializeBuffer(byte[] buffer, int length, Packet_ClientOxygen instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientOxygen Deserialize(CitoStream stream, Packet_ClientOxygen instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.CurrentOxygen = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -9021,76 +7324,12 @@ public class Packet_ClientOxygenSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientOxygen DeserializeLength(CitoStream stream, int length, Packet_ClientOxygen instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.CurrentOxygen = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ClientOxygen instance)
     {
         // Key for field: 1, Varint
         stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.CurrentOxygen);
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientOxygen instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientOxygen instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -9101,64 +7340,6 @@ public class Packet_ClientDialogClickSerializer
     {
         Packet_ClientDialogClick instance = new Packet_ClientDialogClick();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientDialogClick DeserializeBuffer(byte[] buffer, int length, Packet_ClientDialogClick instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientDialogClick Deserialize(CitoStream stream, Packet_ClientDialogClick instance)
-    {
-        if (instance.TextBoxValue == null)
-        {
-            instance.TextBoxValue = new string[1];
-            instance.TextBoxValueCount = 0;
-            instance.TextBoxValueLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.WidgetId = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    // repeated
-                    instance.TextBoxValueAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -9173,66 +7354,6 @@ public class Packet_ClientDialogClickSerializer
         }
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.WidgetId = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    // repeated
-                    instance.TextBoxValueAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientDialogClick DeserializeLength(CitoStream stream, int length, Packet_ClientDialogClick instance)
-    {
-        if (instance.TextBoxValue == null)
-        {
-            instance.TextBoxValue = new string[1];
-            instance.TextBoxValueCount = 0;
-            instance.TextBoxValueLength = 1;
-        }
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -9303,21 +7424,6 @@ public class Packet_ClientDialogClickSerializer
             }
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientDialogClick instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientDialogClick instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientPingReplySerializer
@@ -9327,43 +7433,6 @@ public class Packet_ClientPingReplySerializer
     {
         Packet_ClientPingReply instance = new Packet_ClientPingReply();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientPingReply DeserializeBuffer(byte[] buffer, int length, Packet_ClientPingReply instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientPingReply Deserialize(CitoStream stream, Packet_ClientPingReply instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -9407,63 +7476,9 @@ public class Packet_ClientPingReplySerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientPingReply DeserializeLength(CitoStream stream, int length, Packet_ClientPingReply instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ClientPingReply instance)
     {
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientPingReply instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientPingReply instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -9477,131 +7492,11 @@ public class Packet_ClientCraftSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientCraft DeserializeBuffer(byte[] buffer, int length, Packet_ClientCraft instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientCraft Deserialize(CitoStream stream, Packet_ClientCraft instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.RecipeId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientCraft DeserializeLengthDelimited(CitoStream stream, Packet_ClientCraft instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.RecipeId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientCraft DeserializeLength(CitoStream stream, int length, Packet_ClientCraft instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -9675,21 +7570,6 @@ public class Packet_ClientCraftSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.RecipeId);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientCraft instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientCraft instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientShotSerializer
@@ -9702,179 +7582,11 @@ public class Packet_ClientShotSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientShot DeserializeBuffer(byte[] buffer, int length, Packet_ClientShot instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientShot Deserialize(CitoStream stream, Packet_ClientShot instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.FromX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.FromY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.FromZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.ToX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.ToY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.ToZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.WeaponBlock = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.HitPlayer = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.IsHitHead = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 10 Varint
-                case 80:
-                    instance.ExplodesAfter = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientShot DeserializeLengthDelimited(CitoStream stream, Packet_ClientShot instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.FromX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.FromY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.FromZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.ToX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.ToY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.ToZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.WeaponBlock = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.HitPlayer = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.IsHitHead = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 10 Varint
-                case 80:
-                    instance.ExplodesAfter = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientShot DeserializeLength(CitoStream stream, int length, Packet_ClientShot instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -9990,21 +7702,6 @@ public class Packet_ClientShotSerializer
         stream.WriteByte(80);
         ProtocolParser.WriteUInt64(stream, instance.ExplodesAfter);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientShot instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientShot instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientSpecialKeySerializer
@@ -10017,110 +7714,12 @@ public class Packet_ClientSpecialKeySerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientSpecialKey DeserializeBuffer(byte[] buffer, int length, Packet_ClientSpecialKey instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientSpecialKey Deserialize(CitoStream stream, Packet_ClientSpecialKey instance)
-    {
-        instance.Key_ = Packet_SpecialKeyEnum.Respawn;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Key_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientSpecialKey DeserializeLengthDelimited(CitoStream stream, Packet_ClientSpecialKey instance)
     {
         instance.Key_ = Packet_SpecialKeyEnum.Respawn;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Key_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientSpecialKey DeserializeLength(CitoStream stream, int length, Packet_ClientSpecialKey instance)
-    {
-        instance.Key_ = Packet_SpecialKeyEnum.Respawn;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -10176,21 +7775,6 @@ public class Packet_ClientSpecialKeySerializer
             ProtocolParser.WriteUInt64(stream, instance.Key_);
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientSpecialKey instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientSpecialKey instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientActiveMaterialSlotSerializer
@@ -10200,53 +7784,6 @@ public class Packet_ClientActiveMaterialSlotSerializer
     {
         Packet_ClientActiveMaterialSlot instance = new Packet_ClientActiveMaterialSlot();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientActiveMaterialSlot DeserializeBuffer(byte[] buffer, int length, Packet_ClientActiveMaterialSlot instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientActiveMaterialSlot Deserialize(CitoStream stream, Packet_ClientActiveMaterialSlot instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.ActiveMaterialSlot = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -10300,76 +7837,12 @@ public class Packet_ClientActiveMaterialSlotSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientActiveMaterialSlot DeserializeLength(CitoStream stream, int length, Packet_ClientActiveMaterialSlot instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.ActiveMaterialSlot = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ClientActiveMaterialSlot instance)
     {
         // Key for field: 1, Varint
         stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.ActiveMaterialSlot);
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientActiveMaterialSlot instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientActiveMaterialSlot instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -10383,118 +7856,12 @@ public class Packet_ClientDeathSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientDeath DeserializeBuffer(byte[] buffer, int length, Packet_ClientDeath instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientDeath Deserialize(CitoStream stream, Packet_ClientDeath instance)
-    {
-        instance.Reason = Packet_DeathReasonEnum.FallDamage;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Reason = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.SourcePlayer = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientDeath DeserializeLengthDelimited(CitoStream stream, Packet_ClientDeath instance)
     {
         instance.Reason = Packet_DeathReasonEnum.FallDamage;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Reason = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.SourcePlayer = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientDeath DeserializeLength(CitoStream stream, int length, Packet_ClientDeath instance)
-    {
-        instance.Reason = Packet_DeathReasonEnum.FallDamage;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -10557,21 +7924,6 @@ public class Packet_ClientDeathSerializer
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.SourcePlayer);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientDeath instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientDeath instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientServerQuerySerializer
@@ -10581,43 +7933,6 @@ public class Packet_ClientServerQuerySerializer
     {
         Packet_ClientServerQuery instance = new Packet_ClientServerQuery();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientServerQuery DeserializeBuffer(byte[] buffer, int length, Packet_ClientServerQuery instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientServerQuery Deserialize(CitoStream stream, Packet_ClientServerQuery instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -10661,63 +7976,9 @@ public class Packet_ClientServerQuerySerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientServerQuery DeserializeLength(CitoStream stream, int length, Packet_ClientServerQuery instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ClientServerQuery instance)
     {
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientServerQuery instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientServerQuery instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -10731,115 +7992,11 @@ public class Packet_ClientGameResolutionSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientGameResolution DeserializeBuffer(byte[] buffer, int length, Packet_ClientGameResolution instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientGameResolution Deserialize(CitoStream stream, Packet_ClientGameResolution instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Width = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Height = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientGameResolution DeserializeLengthDelimited(CitoStream stream, Packet_ClientGameResolution instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Width = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Height = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientGameResolution DeserializeLength(CitoStream stream, int length, Packet_ClientGameResolution instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -10899,33 +8056,10 @@ public class Packet_ClientGameResolutionSerializer
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Height);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientGameResolution instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientGameResolution instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientSerializer
 {
-    /// <summary>Helper: create a new instance to deserializing into</summary>
-    public static Packet_Client DeserializeLengthDelimitedNew(CitoStream stream)
-    {
-        Packet_Client instance = new Packet_Client();
-        DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
     /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
     public static Packet_Client DeserializeBuffer(byte[] buffer, int length, Packet_Client instance)
     {
@@ -10943,415 +8077,6 @@ public class Packet_ClientSerializer
             int keyByte = stream.ReadByte();
             if (keyByte == -1)
                 break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Identification == null)
-                        instance.Identification = Packet_ClientIdentificationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientIdentificationSerializer.DeserializeLengthDelimited(stream, instance.Identification);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.SetBlock == null)
-                        instance.SetBlock = Packet_ClientSetBlockSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientSetBlockSerializer.DeserializeLengthDelimited(stream, instance.SetBlock);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.PositionAndOrientation == null)
-                        instance.PositionAndOrientation = Packet_ClientPositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientPositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.PositionAndOrientation);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.Message == null)
-                        instance.Message = Packet_ClientMessageSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientMessageSerializer.DeserializeLengthDelimited(stream, instance.Message);
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    if (instance.Craft == null)
-                        instance.Craft = Packet_ClientCraftSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientCraftSerializer.DeserializeLengthDelimited(stream, instance.Craft);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    if (instance.RequestBlob == null)
-                        instance.RequestBlob = Packet_ClientRequestBlobSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientRequestBlobSerializer.DeserializeLengthDelimited(stream, instance.RequestBlob);
-                    continue;
-                // Field 8 LengthDelimited
-                case 66:
-                    if (instance.InventoryAction == null)
-                        instance.InventoryAction = Packet_ClientInventoryActionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientInventoryActionSerializer.DeserializeLengthDelimited(stream, instance.InventoryAction);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    if (instance.Health == null)
-                        instance.Health = Packet_ClientHealthSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientHealthSerializer.DeserializeLengthDelimited(stream, instance.Health);
-                    continue;
-                // Field 10 LengthDelimited
-                case 82:
-                    if (instance.PingReply == null)
-                        instance.PingReply = Packet_ClientPingReplySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientPingReplySerializer.DeserializeLengthDelimited(stream, instance.PingReply);
-                    continue;
-                // Field 11 LengthDelimited
-                case 90:
-                    if (instance.DialogClick_ == null)
-                        instance.DialogClick_ = Packet_ClientDialogClickSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientDialogClickSerializer.DeserializeLengthDelimited(stream, instance.DialogClick_);
-                    continue;
-                // Field 12 LengthDelimited
-                case 98:
-                    if (instance.Shot == null)
-                        instance.Shot = Packet_ClientShotSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientShotSerializer.DeserializeLengthDelimited(stream, instance.Shot);
-                    continue;
-                // Field 13 LengthDelimited
-                case 106:
-                    if (instance.SpecialKey_ == null)
-                        instance.SpecialKey_ = Packet_ClientSpecialKeySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientSpecialKeySerializer.DeserializeLengthDelimited(stream, instance.SpecialKey_);
-                    continue;
-                // Field 14 LengthDelimited
-                case 114:
-                    if (instance.ActiveMaterialSlot == null)
-                        instance.ActiveMaterialSlot = Packet_ClientActiveMaterialSlotSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientActiveMaterialSlotSerializer.DeserializeLengthDelimited(stream, instance.ActiveMaterialSlot);
-                    continue;
-                // Field 15 LengthDelimited
-                case 122:
-                    if (instance.Leave == null)
-                        instance.Leave = Packet_ClientLeaveSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientLeaveSerializer.DeserializeLengthDelimited(stream, instance.Leave);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                case 31:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.FillArea == null)
-                        instance.FillArea = Packet_ClientFillAreaSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientFillAreaSerializer.DeserializeLengthDelimited(stream, instance.FillArea);
-                    continue;
-                case 16:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Reload == null)
-                        instance.Reload = Packet_ClientReloadSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientReloadSerializer.DeserializeLengthDelimited(stream, instance.Reload);
-                    continue;
-                case 17:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Oxygen == null)
-                        instance.Oxygen = Packet_ClientOxygenSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientOxygenSerializer.DeserializeLengthDelimited(stream, instance.Oxygen);
-                    continue;
-                case 18:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Death == null)
-                        instance.Death = Packet_ClientDeathSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientDeathSerializer.DeserializeLengthDelimited(stream, instance.Death);
-                    continue;
-                case 19:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Query == null)
-                        instance.Query = Packet_ClientServerQuerySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientServerQuerySerializer.DeserializeLengthDelimited(stream, instance.Query);
-                    continue;
-                case 20:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.GameResolution == null)
-                        instance.GameResolution = Packet_ClientGameResolutionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientGameResolutionSerializer.DeserializeLengthDelimited(stream, instance.GameResolution);
-                    continue;
-                case 21:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.EntityInteraction == null)
-                        instance.EntityInteraction = Packet_ClientEntityInteractionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientEntityInteractionSerializer.DeserializeLengthDelimited(stream, instance.EntityInteraction);
-                    continue;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_Client DeserializeLengthDelimited(CitoStream stream, Packet_Client instance)
-    {
-        instance.Id = Packet_ClientIdEnum.PlayerIdentification;
-        int limit = ProtocolParser.ReadUInt32(stream);
-        limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Identification == null)
-                        instance.Identification = Packet_ClientIdentificationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientIdentificationSerializer.DeserializeLengthDelimited(stream, instance.Identification);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.SetBlock == null)
-                        instance.SetBlock = Packet_ClientSetBlockSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientSetBlockSerializer.DeserializeLengthDelimited(stream, instance.SetBlock);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.PositionAndOrientation == null)
-                        instance.PositionAndOrientation = Packet_ClientPositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientPositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.PositionAndOrientation);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.Message == null)
-                        instance.Message = Packet_ClientMessageSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientMessageSerializer.DeserializeLengthDelimited(stream, instance.Message);
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    if (instance.Craft == null)
-                        instance.Craft = Packet_ClientCraftSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientCraftSerializer.DeserializeLengthDelimited(stream, instance.Craft);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    if (instance.RequestBlob == null)
-                        instance.RequestBlob = Packet_ClientRequestBlobSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientRequestBlobSerializer.DeserializeLengthDelimited(stream, instance.RequestBlob);
-                    continue;
-                // Field 8 LengthDelimited
-                case 66:
-                    if (instance.InventoryAction == null)
-                        instance.InventoryAction = Packet_ClientInventoryActionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientInventoryActionSerializer.DeserializeLengthDelimited(stream, instance.InventoryAction);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    if (instance.Health == null)
-                        instance.Health = Packet_ClientHealthSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientHealthSerializer.DeserializeLengthDelimited(stream, instance.Health);
-                    continue;
-                // Field 10 LengthDelimited
-                case 82:
-                    if (instance.PingReply == null)
-                        instance.PingReply = Packet_ClientPingReplySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientPingReplySerializer.DeserializeLengthDelimited(stream, instance.PingReply);
-                    continue;
-                // Field 11 LengthDelimited
-                case 90:
-                    if (instance.DialogClick_ == null)
-                        instance.DialogClick_ = Packet_ClientDialogClickSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientDialogClickSerializer.DeserializeLengthDelimited(stream, instance.DialogClick_);
-                    continue;
-                // Field 12 LengthDelimited
-                case 98:
-                    if (instance.Shot == null)
-                        instance.Shot = Packet_ClientShotSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientShotSerializer.DeserializeLengthDelimited(stream, instance.Shot);
-                    continue;
-                // Field 13 LengthDelimited
-                case 106:
-                    if (instance.SpecialKey_ == null)
-                        instance.SpecialKey_ = Packet_ClientSpecialKeySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientSpecialKeySerializer.DeserializeLengthDelimited(stream, instance.SpecialKey_);
-                    continue;
-                // Field 14 LengthDelimited
-                case 114:
-                    if (instance.ActiveMaterialSlot == null)
-                        instance.ActiveMaterialSlot = Packet_ClientActiveMaterialSlotSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientActiveMaterialSlotSerializer.DeserializeLengthDelimited(stream, instance.ActiveMaterialSlot);
-                    continue;
-                // Field 15 LengthDelimited
-                case 122:
-                    if (instance.Leave == null)
-                        instance.Leave = Packet_ClientLeaveSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientLeaveSerializer.DeserializeLengthDelimited(stream, instance.Leave);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                case 31:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.FillArea == null)
-                        instance.FillArea = Packet_ClientFillAreaSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientFillAreaSerializer.DeserializeLengthDelimited(stream, instance.FillArea);
-                    continue;
-                case 16:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Reload == null)
-                        instance.Reload = Packet_ClientReloadSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientReloadSerializer.DeserializeLengthDelimited(stream, instance.Reload);
-                    continue;
-                case 17:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Oxygen == null)
-                        instance.Oxygen = Packet_ClientOxygenSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientOxygenSerializer.DeserializeLengthDelimited(stream, instance.Oxygen);
-                    continue;
-                case 18:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Death == null)
-                        instance.Death = Packet_ClientDeathSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientDeathSerializer.DeserializeLengthDelimited(stream, instance.Death);
-                    continue;
-                case 19:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Query == null)
-                        instance.Query = Packet_ClientServerQuerySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientServerQuerySerializer.DeserializeLengthDelimited(stream, instance.Query);
-                    continue;
-                case 20:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.GameResolution == null)
-                        instance.GameResolution = Packet_ClientGameResolutionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientGameResolutionSerializer.DeserializeLengthDelimited(stream, instance.GameResolution);
-                    continue;
-                case 21:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.EntityInteraction == null)
-                        instance.EntityInteraction = Packet_ClientEntityInteractionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ClientEntityInteractionSerializer.DeserializeLengthDelimited(stream, instance.EntityInteraction);
-                    continue;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_Client DeserializeLength(CitoStream stream, int length, Packet_Client instance)
-    {
-        instance.Id = Packet_ClientIdEnum.PlayerIdentification;
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
             // Optimized reading of known fields with field ID < 16
             switch (keyByte)
             {
@@ -11932,21 +8657,6 @@ public class Packet_ClientSerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_Client instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_Client instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ClientEntityInteractionSerializer
@@ -11959,118 +8669,12 @@ public class Packet_ClientEntityInteractionSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ClientEntityInteraction DeserializeBuffer(byte[] buffer, int length, Packet_ClientEntityInteraction instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientEntityInteraction Deserialize(CitoStream stream, Packet_ClientEntityInteraction instance)
-    {
-        instance.InteractionType = Packet_EntityInteractionTypeEnum.Use;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.EntityId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.InteractionType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientEntityInteraction DeserializeLengthDelimited(CitoStream stream, Packet_ClientEntityInteraction instance)
     {
         instance.InteractionType = Packet_EntityInteractionTypeEnum.Use;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.EntityId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.InteractionType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ClientEntityInteraction DeserializeLength(CitoStream stream, int length, Packet_ClientEntityInteraction instance)
-    {
-        instance.InteractionType = Packet_EntityInteractionTypeEnum.Use;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -12133,21 +8737,6 @@ public class Packet_ClientEntityInteractionSerializer
             ProtocolParser.WriteUInt64(stream, instance.InteractionType);
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ClientEntityInteraction instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ClientEntityInteraction instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_SoundSetSerializer
@@ -12157,126 +8746,6 @@ public class Packet_SoundSetSerializer
     {
         Packet_SoundSet instance = new Packet_SoundSet();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_SoundSet DeserializeBuffer(byte[] buffer, int length, Packet_SoundSet instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_SoundSet Deserialize(CitoStream stream, Packet_SoundSet instance)
-    {
-        if (instance.Walk == null)
-        {
-            instance.Walk = new string[1];
-            instance.WalkCount = 0;
-            instance.WalkLength = 1;
-        }
-        if (instance.Break1 == null)
-        {
-            instance.Break1 = new string[1];
-            instance.Break1Count = 0;
-            instance.Break1Length = 1;
-        }
-        if (instance.Build == null)
-        {
-            instance.Build = new string[1];
-            instance.BuildCount = 0;
-            instance.BuildLength = 1;
-        }
-        if (instance.Clone == null)
-        {
-            instance.Clone = new string[1];
-            instance.CloneCount = 0;
-            instance.CloneLength = 1;
-        }
-        if (instance.Shoot == null)
-        {
-            instance.Shoot = new string[1];
-            instance.ShootCount = 0;
-            instance.ShootLength = 1;
-        }
-        if (instance.ShootEnd == null)
-        {
-            instance.ShootEnd = new string[1];
-            instance.ShootEndCount = 0;
-            instance.ShootEndLength = 1;
-        }
-        if (instance.Reload == null)
-        {
-            instance.Reload = new string[1];
-            instance.ReloadCount = 0;
-            instance.ReloadLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.WalkAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    // repeated
-                    instance.Break1Add(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    // repeated
-                    instance.BuildAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    // repeated
-                    instance.CloneAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    // repeated
-                    instance.ShootAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    // repeated
-                    instance.ShootEndAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    // repeated
-                    instance.ReloadAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -12327,128 +8796,6 @@ public class Packet_SoundSetSerializer
         }
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.WalkAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    // repeated
-                    instance.Break1Add(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    // repeated
-                    instance.BuildAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    // repeated
-                    instance.CloneAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    // repeated
-                    instance.ShootAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    // repeated
-                    instance.ShootEndAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    // repeated
-                    instance.ReloadAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_SoundSet DeserializeLength(CitoStream stream, int length, Packet_SoundSet instance)
-    {
-        if (instance.Walk == null)
-        {
-            instance.Walk = new string[1];
-            instance.WalkCount = 0;
-            instance.WalkLength = 1;
-        }
-        if (instance.Break1 == null)
-        {
-            instance.Break1 = new string[1];
-            instance.Break1Count = 0;
-            instance.Break1Length = 1;
-        }
-        if (instance.Build == null)
-        {
-            instance.Build = new string[1];
-            instance.BuildCount = 0;
-            instance.BuildLength = 1;
-        }
-        if (instance.Clone == null)
-        {
-            instance.Clone = new string[1];
-            instance.CloneCount = 0;
-            instance.CloneLength = 1;
-        }
-        if (instance.Shoot == null)
-        {
-            instance.Shoot = new string[1];
-            instance.ShootCount = 0;
-            instance.ShootLength = 1;
-        }
-        if (instance.ShootEnd == null)
-        {
-            instance.ShootEnd = new string[1];
-            instance.ShootEndCount = 0;
-            instance.ShootEndLength = 1;
-        }
-        if (instance.Reload == null)
-        {
-            instance.Reload = new string[1];
-            instance.ReloadCount = 0;
-            instance.ReloadLength = 1;
-        }
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -12599,21 +8946,6 @@ public class Packet_SoundSetSerializer
             }
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_SoundSet instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_SoundSet instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_BlockTypeSerializer
@@ -12626,265 +8958,6 @@ public class Packet_BlockTypeSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_BlockType DeserializeBuffer(byte[] buffer, int length, Packet_BlockType instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_BlockType Deserialize(CitoStream stream, Packet_BlockType instance)
-    {
-        instance.DrawType = Packet_DrawTypeEnum.Empty;
-        instance.WalkableType = Packet_WalkableTypeEnum.Empty;
-        instance.PistolType = Packet_PistolTypeEnum.Normal;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.TextureIdTop = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.TextureIdBottom = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.TextureIdFront = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    instance.TextureIdBack = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    instance.TextureIdLeft = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    instance.TextureIdRight = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    instance.TextureIdForInventory = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.DrawType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.WalkableType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 10 Varint
-                case 80:
-                    instance.Rail = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 11 Varint
-                case 88:
-                    instance.WalkSpeedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 12 Varint
-                case 96:
-                    instance.IsSlipperyWalk = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 13 LengthDelimited
-                case 106:
-                    if (instance.Sounds == null)
-                        instance.Sounds = Packet_SoundSetSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_SoundSetSerializer.DeserializeLengthDelimited(stream, instance.Sounds);
-                    continue;
-                // Field 14 Varint
-                case 112:
-                    instance.LightRadius = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 15 Varint
-                case 120:
-                    instance.StartInventoryAmount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                case 16:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.Strength = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 17:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                case 18:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IsBuildable = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 19:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IsUsable = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 20:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IsTool = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 21:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    instance.Handimage = ProtocolParser.ReadString(stream);
-                    continue;
-                case 22:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IsPistol = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 23:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.AimRadiusFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 24:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.RecoilFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 25:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.DelayFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 26:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.BulletsPerShotFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 27:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.WalkSpeedWhenUsedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 28:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IronSightsEnabled = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 29:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IronSightsMoveSpeedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 30:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    instance.IronSightsImage = ProtocolParser.ReadString(stream);
-                    continue;
-                case 31:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IronSightsAimRadiusFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 32:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IronSightsFovFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 33:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.AmmoMagazine = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 34:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.AmmoTotal = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 35:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ReloadDelayFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 36:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ExplosionRangeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 37:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ExplosionTimeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 38:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ProjectileSpeedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 39:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ProjectileBounce = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 40:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.DamageBodyFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 41:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.DamageHeadFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 42:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.PistolType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 43:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.DamageToPlayer = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 44:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.WhenPlacedGetsConvertedTo = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 45:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.PickDistanceWhenUsedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_BlockType DeserializeLengthDelimited(CitoStream stream, Packet_BlockType instance)
     {
@@ -12893,267 +8966,6 @@ public class Packet_BlockTypeSerializer
         instance.PistolType = Packet_PistolTypeEnum.Normal;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.TextureIdTop = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.TextureIdBottom = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.TextureIdFront = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    instance.TextureIdBack = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    instance.TextureIdLeft = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    instance.TextureIdRight = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    instance.TextureIdForInventory = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.DrawType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.WalkableType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 10 Varint
-                case 80:
-                    instance.Rail = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 11 Varint
-                case 88:
-                    instance.WalkSpeedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 12 Varint
-                case 96:
-                    instance.IsSlipperyWalk = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 13 LengthDelimited
-                case 106:
-                    if (instance.Sounds == null)
-                        instance.Sounds = Packet_SoundSetSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_SoundSetSerializer.DeserializeLengthDelimited(stream, instance.Sounds);
-                    continue;
-                // Field 14 Varint
-                case 112:
-                    instance.LightRadius = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 15 Varint
-                case 120:
-                    instance.StartInventoryAmount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                case 16:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.Strength = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 17:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                case 18:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IsBuildable = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 19:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IsUsable = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 20:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IsTool = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 21:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    instance.Handimage = ProtocolParser.ReadString(stream);
-                    continue;
-                case 22:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IsPistol = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 23:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.AimRadiusFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 24:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.RecoilFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 25:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.DelayFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 26:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.BulletsPerShotFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 27:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.WalkSpeedWhenUsedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 28:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IronSightsEnabled = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 29:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IronSightsMoveSpeedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 30:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    instance.IronSightsImage = ProtocolParser.ReadString(stream);
-                    continue;
-                case 31:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IronSightsAimRadiusFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 32:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.IronSightsFovFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 33:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.AmmoMagazine = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 34:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.AmmoTotal = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 35:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ReloadDelayFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 36:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ExplosionRangeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 37:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ExplosionTimeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 38:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ProjectileSpeedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 39:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.ProjectileBounce = ProtocolParser.ReadBool(stream);
-                    continue;
-                case 40:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.DamageBodyFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 41:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.DamageHeadFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 42:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.PistolType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 43:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.DamageToPlayer = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 44:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.WhenPlacedGetsConvertedTo = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 45:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.PickDistanceWhenUsedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_BlockType DeserializeLength(CitoStream stream, int length, Packet_BlockType instance)
-    {
-        instance.DrawType = Packet_DrawTypeEnum.Empty;
-        instance.WalkableType = Packet_WalkableTypeEnum.Empty;
-        instance.PistolType = Packet_PistolTypeEnum.Normal;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -13631,21 +9443,6 @@ public class Packet_BlockTypeSerializer
         stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.PickDistanceWhenUsedFloat);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_BlockType instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_BlockType instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerIdentificationSerializer
@@ -13658,207 +9455,11 @@ public class Packet_ServerIdentificationSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerIdentification DeserializeBuffer(byte[] buffer, int length, Packet_ServerIdentification instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerIdentification Deserialize(CitoStream stream, Packet_ServerIdentification instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.MdProtocolVersion = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.AssignedClientId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.ServerName = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    instance.ServerMotd = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.MapSizeX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.MapSizeY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.MapSizeZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 11 Varint
-                case 88:
-                    instance.DisableShadows = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 12 Varint
-                case 96:
-                    instance.PlayerAreaSize = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 13 Varint
-                case 104:
-                    instance.RenderHint_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 14 LengthDelimited
-                case 114:
-                    if (instance.RequiredBlobMd5 == null)
-                        instance.RequiredBlobMd5 = Packet_StringListSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_StringListSerializer.DeserializeLengthDelimited(stream, instance.RequiredBlobMd5);
-                    continue;
-                // Field 15 LengthDelimited
-                case 122:
-                    if (instance.RequiredBlobName == null)
-                        instance.RequiredBlobName = Packet_StringListSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_StringListSerializer.DeserializeLengthDelimited(stream, instance.RequiredBlobName);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerIdentification DeserializeLengthDelimited(CitoStream stream, Packet_ServerIdentification instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.MdProtocolVersion = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.AssignedClientId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.ServerName = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    instance.ServerMotd = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.MapSizeX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.MapSizeY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.MapSizeZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 11 Varint
-                case 88:
-                    instance.DisableShadows = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 12 Varint
-                case 96:
-                    instance.PlayerAreaSize = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 13 Varint
-                case 104:
-                    instance.RenderHint_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 14 LengthDelimited
-                case 114:
-                    if (instance.RequiredBlobMd5 == null)
-                        instance.RequiredBlobMd5 = Packet_StringListSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_StringListSerializer.DeserializeLengthDelimited(stream, instance.RequiredBlobMd5);
-                    continue;
-                // Field 15 LengthDelimited
-                case 122:
-                    if (instance.RequiredBlobName == null)
-                        instance.RequiredBlobName = Packet_StringListSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_StringListSerializer.DeserializeLengthDelimited(stream, instance.RequiredBlobName);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerIdentification DeserializeLength(CitoStream stream, int length, Packet_ServerIdentification instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -14033,21 +9634,6 @@ public class Packet_ServerIdentificationSerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerIdentification instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerIdentification instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_StringListSerializer
@@ -14057,60 +9643,6 @@ public class Packet_StringListSerializer
     {
         Packet_StringList instance = new Packet_StringList();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_StringList DeserializeBuffer(byte[] buffer, int length, Packet_StringList instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_StringList Deserialize(CitoStream stream, Packet_StringList instance)
-    {
-        if (instance.Items == null)
-        {
-            instance.Items = new string[1];
-            instance.ItemsCount = 0;
-            instance.ItemsLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.ItemsAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -14171,62 +9703,6 @@ public class Packet_StringListSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_StringList DeserializeLength(CitoStream stream, int length, Packet_StringList instance)
-    {
-        if (instance.Items == null)
-        {
-            instance.Items = new string[1];
-            instance.ItemsCount = 0;
-            instance.ItemsLength = 1;
-        }
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.ItemsAdd(ProtocolParser.ReadString(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_StringList instance)
     {
@@ -14241,219 +9717,6 @@ public class Packet_StringListSerializer
             }
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_StringList instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_StringList instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
-}
-
-public class Packet_IntStringSerializer
-{
-    /// <summary>Helper: create a new instance to deserializing into</summary>
-    public static Packet_IntString DeserializeLengthDelimitedNew(CitoStream stream)
-    {
-        Packet_IntString instance = new Packet_IntString();
-        DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_IntString DeserializeBuffer(byte[] buffer, int length, Packet_IntString instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_IntString Deserialize(CitoStream stream, Packet_IntString instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Key_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Value_ = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_IntString DeserializeLengthDelimited(CitoStream stream, Packet_IntString instance)
-    {
-        int limit = ProtocolParser.ReadUInt32(stream);
-        limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Key_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Value_ = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_IntString DeserializeLength(CitoStream stream, int length, Packet_IntString instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Key_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Value_ = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Serialize the instance into the stream</summary>
-    public static void Serialize(CitoStream stream, Packet_IntString instance)
-    {
-        // Key for field: 1, Varint
-        stream.WriteByte(8);
-        ProtocolParser.WriteUInt64(stream, instance.Key_);
-        if (instance.Value_ != null)
-        {
-            // Key for field: 2, LengthDelimited
-            stream.WriteByte(18);
-            ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Value_));
-        }
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_IntString instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_IntString instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerPlayerSpawnPositionSerializer
@@ -14466,123 +9729,11 @@ public class Packet_ServerPlayerSpawnPositionSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerPlayerSpawnPosition DeserializeBuffer(byte[] buffer, int length, Packet_ServerPlayerSpawnPosition instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerPlayerSpawnPosition Deserialize(CitoStream stream, Packet_ServerPlayerSpawnPosition instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerPlayerSpawnPosition DeserializeLengthDelimited(CitoStream stream, Packet_ServerPlayerSpawnPosition instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerPlayerSpawnPosition DeserializeLength(CitoStream stream, int length, Packet_ServerPlayerSpawnPosition instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -14649,21 +9800,6 @@ public class Packet_ServerPlayerSpawnPositionSerializer
         stream.WriteByte(24);
         ProtocolParser.WriteUInt64(stream, instance.Z);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerPlayerSpawnPosition instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerPlayerSpawnPosition instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerLevelInitializeSerializer
@@ -14673,43 +9809,6 @@ public class Packet_ServerLevelInitializeSerializer
     {
         Packet_ServerLevelInitialize instance = new Packet_ServerLevelInitialize();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerLevelInitialize DeserializeBuffer(byte[] buffer, int length, Packet_ServerLevelInitialize instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerLevelInitialize Deserialize(CitoStream stream, Packet_ServerLevelInitialize instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -14753,63 +9852,9 @@ public class Packet_ServerLevelInitializeSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerLevelInitialize DeserializeLength(CitoStream stream, int length, Packet_ServerLevelInitialize instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerLevelInitialize instance)
     {
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerLevelInitialize instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerLevelInitialize instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -14823,115 +9868,11 @@ public class Packet_ServerBlobInitializeSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerBlobInitialize DeserializeBuffer(byte[] buffer, int length, Packet_ServerBlobInitialize instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlobInitialize Deserialize(CitoStream stream, Packet_ServerBlobInitialize instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.Md5 = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerBlobInitialize DeserializeLengthDelimited(CitoStream stream, Packet_ServerBlobInitialize instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.Md5 = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlobInitialize DeserializeLength(CitoStream stream, int length, Packet_ServerBlobInitialize instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -14997,21 +9938,6 @@ public class Packet_ServerBlobInitializeSerializer
             ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Md5));
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerBlobInitialize instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlobInitialize instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerBlobPartSerializer
@@ -15024,115 +9950,11 @@ public class Packet_ServerBlobPartSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerBlobPart DeserializeBuffer(byte[] buffer, int length, Packet_ServerBlobPart instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlobPart Deserialize(CitoStream stream, Packet_ServerBlobPart instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Data = ProtocolParser.ReadBytes(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Islastpart = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerBlobPart DeserializeLengthDelimited(CitoStream stream, Packet_ServerBlobPart instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Data = ProtocolParser.ReadBytes(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Islastpart = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlobPart DeserializeLength(CitoStream stream, int length, Packet_ServerBlobPart instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -15195,21 +10017,6 @@ public class Packet_ServerBlobPartSerializer
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Islastpart);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerBlobPart instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlobPart instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerBlobFinalizeSerializer
@@ -15219,43 +10026,6 @@ public class Packet_ServerBlobFinalizeSerializer
     {
         Packet_ServerBlobFinalize instance = new Packet_ServerBlobFinalize();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerBlobFinalize DeserializeBuffer(byte[] buffer, int length, Packet_ServerBlobFinalize instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlobFinalize Deserialize(CitoStream stream, Packet_ServerBlobFinalize instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -15299,63 +10069,9 @@ public class Packet_ServerBlobFinalizeSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlobFinalize DeserializeLength(CitoStream stream, int length, Packet_ServerBlobFinalize instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerBlobFinalize instance)
     {
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerBlobFinalize instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlobFinalize instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -15366,43 +10082,6 @@ public class Packet_ServerBlockTypesSerializer
     {
         Packet_ServerBlockTypes instance = new Packet_ServerBlockTypes();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerBlockTypes DeserializeBuffer(byte[] buffer, int length, Packet_ServerBlockTypes instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlockTypes Deserialize(CitoStream stream, Packet_ServerBlockTypes instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -15446,63 +10125,9 @@ public class Packet_ServerBlockTypesSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlockTypes DeserializeLength(CitoStream stream, int length, Packet_ServerBlockTypes instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerBlockTypes instance)
     {
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerBlockTypes instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlockTypes instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -15516,121 +10141,11 @@ public class Packet_ServerBlockTypeSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerBlockType DeserializeBuffer(byte[] buffer, int length, Packet_ServerBlockType instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlockType Deserialize(CitoStream stream, Packet_ServerBlockType instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Blocktype == null)
-                        instance.Blocktype = Packet_BlockTypeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_BlockTypeSerializer.DeserializeLengthDelimited(stream, instance.Blocktype);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerBlockType DeserializeLengthDelimited(CitoStream stream, Packet_ServerBlockType instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Blocktype == null)
-                        instance.Blocktype = Packet_BlockTypeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_BlockTypeSerializer.DeserializeLengthDelimited(stream, instance.Blocktype);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBlockType DeserializeLength(CitoStream stream, int length, Packet_ServerBlockType instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -15704,24 +10219,7 @@ public class Packet_ServerBlockTypeSerializer
             ProtocolParser.WriteUInt32_(stream, ms2Length);
 
             stream.Write(ms2.GetBuffer(), 0, ms2Length);
-
-
         }
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerBlockType instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBlockType instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -15732,60 +10230,6 @@ public class Packet_ServerSunLevelsSerializer
     {
         Packet_ServerSunLevels instance = new Packet_ServerSunLevels();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerSunLevels DeserializeBuffer(byte[] buffer, int length, Packet_ServerSunLevels instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerSunLevels Deserialize(CitoStream stream, Packet_ServerSunLevels instance)
-    {
-        if (instance.Sunlevels == null)
-        {
-            instance.Sunlevels = new int[1];
-            instance.SunlevelsCount = 0;
-            instance.SunlevelsLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    // repeated
-                    instance.SunlevelsAdd(ProtocolParser.ReadUInt64(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -15846,62 +10290,6 @@ public class Packet_ServerSunLevelsSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerSunLevels DeserializeLength(CitoStream stream, int length, Packet_ServerSunLevels instance)
-    {
-        if (instance.Sunlevels == null)
-        {
-            instance.Sunlevels = new int[1];
-            instance.SunlevelsCount = 0;
-            instance.SunlevelsLength = 1;
-        }
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    // repeated
-                    instance.SunlevelsAdd(ProtocolParser.ReadUInt64(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerSunLevels instance)
     {
@@ -15916,21 +10304,6 @@ public class Packet_ServerSunLevelsSerializer
             }
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerSunLevels instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerSunLevels instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerLightLevelsSerializer
@@ -15940,60 +10313,6 @@ public class Packet_ServerLightLevelsSerializer
     {
         Packet_ServerLightLevels instance = new Packet_ServerLightLevels();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerLightLevels DeserializeBuffer(byte[] buffer, int length, Packet_ServerLightLevels instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerLightLevels Deserialize(CitoStream stream, Packet_ServerLightLevels instance)
-    {
-        if (instance.Lightlevels == null)
-        {
-            instance.Lightlevels = new int[1];
-            instance.LightlevelsCount = 0;
-            instance.LightlevelsLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    // repeated
-                    instance.LightlevelsAdd(ProtocolParser.ReadUInt64(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -16054,62 +10373,6 @@ public class Packet_ServerLightLevelsSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerLightLevels DeserializeLength(CitoStream stream, int length, Packet_ServerLightLevels instance)
-    {
-        if (instance.Lightlevels == null)
-        {
-            instance.Lightlevels = new int[1];
-            instance.LightlevelsCount = 0;
-            instance.LightlevelsLength = 1;
-        }
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    // repeated
-                    instance.LightlevelsAdd(ProtocolParser.ReadUInt64(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerLightLevels instance)
     {
@@ -16124,21 +10387,6 @@ public class Packet_ServerLightLevelsSerializer
             }
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerLightLevels instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerLightLevels instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerCraftingRecipesSerializer
@@ -16148,60 +10396,6 @@ public class Packet_ServerCraftingRecipesSerializer
     {
         Packet_ServerCraftingRecipes instance = new Packet_ServerCraftingRecipes();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerCraftingRecipes DeserializeBuffer(byte[] buffer, int length, Packet_ServerCraftingRecipes instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerCraftingRecipes Deserialize(CitoStream stream, Packet_ServerCraftingRecipes instance)
-    {
-        if (instance.CraftingRecipes == null)
-        {
-            instance.CraftingRecipes = new Packet_CraftingRecipe[1];
-            instance.CraftingRecipesCount = 0;
-            instance.CraftingRecipesLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.CraftingRecipesAdd(Packet_CraftingRecipeSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -16216,62 +10410,6 @@ public class Packet_ServerCraftingRecipesSerializer
         }
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.CraftingRecipesAdd(Packet_CraftingRecipeSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerCraftingRecipes DeserializeLength(CitoStream stream, int length, Packet_ServerCraftingRecipes instance)
-    {
-        if (instance.CraftingRecipes == null)
-        {
-            instance.CraftingRecipes = new Packet_CraftingRecipe[1];
-            instance.CraftingRecipesCount = 0;
-            instance.CraftingRecipesLength = 1;
-        }
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -16344,21 +10482,6 @@ public class Packet_ServerCraftingRecipesSerializer
             }
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerCraftingRecipes instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerCraftingRecipes instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_IngredientSerializer
@@ -16371,115 +10494,11 @@ public class Packet_IngredientSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_Ingredient DeserializeBuffer(byte[] buffer, int length, Packet_Ingredient instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_Ingredient Deserialize(CitoStream stream, Packet_Ingredient instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Type = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Amount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_Ingredient DeserializeLengthDelimited(CitoStream stream, Packet_Ingredient instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Type = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Amount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_Ingredient DeserializeLength(CitoStream stream, int length, Packet_Ingredient instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -16539,21 +10558,6 @@ public class Packet_IngredientSerializer
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Amount);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_Ingredient instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_Ingredient instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_CraftingRecipeSerializer
@@ -16563,67 +10567,6 @@ public class Packet_CraftingRecipeSerializer
     {
         Packet_CraftingRecipe instance = new Packet_CraftingRecipe();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_CraftingRecipe DeserializeBuffer(byte[] buffer, int length, Packet_CraftingRecipe instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_CraftingRecipe Deserialize(CitoStream stream, Packet_CraftingRecipe instance)
-    {
-        if (instance.Ingredients == null)
-        {
-            instance.Ingredients = new Packet_Ingredient[1];
-            instance.IngredientsCount = 0;
-            instance.IngredientsLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.IngredientsAdd(Packet_IngredientSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Output == null)
-                        instance.Output = Packet_IngredientSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_IngredientSerializer.DeserializeLengthDelimited(stream, instance.Output);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -16638,69 +10581,6 @@ public class Packet_CraftingRecipeSerializer
         }
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.IngredientsAdd(Packet_IngredientSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Output == null)
-                        instance.Output = Packet_IngredientSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_IngredientSerializer.DeserializeLengthDelimited(stream, instance.Output);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_CraftingRecipe DeserializeLength(CitoStream stream, int length, Packet_CraftingRecipe instance)
-    {
-        if (instance.Ingredients == null)
-        {
-            instance.Ingredients = new Packet_Ingredient[1];
-            instance.IngredientsCount = 0;
-            instance.IngredientsLength = 1;
-        }
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -16798,21 +10678,6 @@ public class Packet_CraftingRecipeSerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_CraftingRecipe instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_CraftingRecipe instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerLevelProgressSerializer
@@ -16825,123 +10690,11 @@ public class Packet_ServerLevelProgressSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerLevelProgress DeserializeBuffer(byte[] buffer, int length, Packet_ServerLevelProgress instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerLevelProgress Deserialize(CitoStream stream, Packet_ServerLevelProgress instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 2 Varint
-                case 16:
-                    instance.PercentComplete = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.Status = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.PercentCompleteSubitem = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerLevelProgress DeserializeLengthDelimited(CitoStream stream, Packet_ServerLevelProgress instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 2 Varint
-                case 16:
-                    instance.PercentComplete = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.Status = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.PercentCompleteSubitem = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerLevelProgress DeserializeLength(CitoStream stream, int length, Packet_ServerLevelProgress instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -17011,21 +10764,6 @@ public class Packet_ServerLevelProgressSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.PercentCompleteSubitem);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerLevelProgress instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerLevelProgress instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerLevelFinalizeSerializer
@@ -17035,43 +10773,6 @@ public class Packet_ServerLevelFinalizeSerializer
     {
         Packet_ServerLevelFinalize instance = new Packet_ServerLevelFinalize();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerLevelFinalize DeserializeBuffer(byte[] buffer, int length, Packet_ServerLevelFinalize instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerLevelFinalize Deserialize(CitoStream stream, Packet_ServerLevelFinalize instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -17115,63 +10816,9 @@ public class Packet_ServerLevelFinalizeSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerLevelFinalize DeserializeLength(CitoStream stream, int length, Packet_ServerLevelFinalize instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerLevelFinalize instance)
     {
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerLevelFinalize instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerLevelFinalize instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -17185,131 +10832,11 @@ public class Packet_ServerSetBlockSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerSetBlock DeserializeBuffer(byte[] buffer, int length, Packet_ServerSetBlock instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerSetBlock Deserialize(CitoStream stream, Packet_ServerSetBlock instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerSetBlock DeserializeLengthDelimited(CitoStream stream, Packet_ServerSetBlock instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerSetBlock DeserializeLength(CitoStream stream, int length, Packet_ServerSetBlock instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -17383,21 +10910,6 @@ public class Packet_ServerSetBlockSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.BlockType);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerSetBlock instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerSetBlock instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerFillAreaSerializer
@@ -17410,163 +10922,11 @@ public class Packet_ServerFillAreaSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerFillArea DeserializeBuffer(byte[] buffer, int length, Packet_ServerFillArea instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerFillArea Deserialize(CitoStream stream, Packet_ServerFillArea instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.X2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Y1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Y2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Z1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Z2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.BlockCount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerFillArea DeserializeLengthDelimited(CitoStream stream, Packet_ServerFillArea instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.X2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Y1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Y2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Z1 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Z2 = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.BlockCount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerFillArea DeserializeLength(CitoStream stream, int length, Packet_ServerFillArea instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -17668,21 +11028,6 @@ public class Packet_ServerFillAreaSerializer
         stream.WriteByte(64);
         ProtocolParser.WriteUInt64(stream, instance.BlockCount);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerFillArea instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerFillArea instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerFillAreaLimitSerializer
@@ -17692,53 +11037,6 @@ public class Packet_ServerFillAreaLimitSerializer
     {
         Packet_ServerFillAreaLimit instance = new Packet_ServerFillAreaLimit();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerFillAreaLimit DeserializeBuffer(byte[] buffer, int length, Packet_ServerFillAreaLimit instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerFillAreaLimit Deserialize(CitoStream stream, Packet_ServerFillAreaLimit instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Limit = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -17792,76 +11090,12 @@ public class Packet_ServerFillAreaLimitSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerFillAreaLimit DeserializeLength(CitoStream stream, int length, Packet_ServerFillAreaLimit instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Limit = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerFillAreaLimit instance)
     {
         // Key for field: 1, Varint
         stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Limit);
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerFillAreaLimit instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerFillAreaLimit instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -17872,53 +11106,6 @@ public class Packet_ServerFreemoveSerializer
     {
         Packet_ServerFreemove instance = new Packet_ServerFreemove();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerFreemove DeserializeBuffer(byte[] buffer, int length, Packet_ServerFreemove instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerFreemove Deserialize(CitoStream stream, Packet_ServerFreemove instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.IsEnabled = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -17972,76 +11159,12 @@ public class Packet_ServerFreemoveSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerFreemove DeserializeLength(CitoStream stream, int length, Packet_ServerFreemove instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.IsEnabled = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerFreemove instance)
     {
         // Key for field: 1, Varint
         stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.IsEnabled);
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerFreemove instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerFreemove instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -18055,107 +11178,11 @@ public class Packet_ServerMessageSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerMessage DeserializeBuffer(byte[] buffer, int length, Packet_ServerMessage instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerMessage Deserialize(CitoStream stream, Packet_ServerMessage instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Message = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerMessage DeserializeLengthDelimited(CitoStream stream, Packet_ServerMessage instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Message = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerMessage DeserializeLength(CitoStream stream, int length, Packet_ServerMessage instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -18211,21 +11238,6 @@ public class Packet_ServerMessageSerializer
             ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Message));
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerMessage instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerMessage instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerDisconnectPlayerSerializer
@@ -18238,107 +11250,11 @@ public class Packet_ServerDisconnectPlayerSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerDisconnectPlayer DeserializeBuffer(byte[] buffer, int length, Packet_ServerDisconnectPlayer instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerDisconnectPlayer Deserialize(CitoStream stream, Packet_ServerDisconnectPlayer instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.DisconnectReason = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerDisconnectPlayer DeserializeLengthDelimited(CitoStream stream, Packet_ServerDisconnectPlayer instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.DisconnectReason = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerDisconnectPlayer DeserializeLength(CitoStream stream, int length, Packet_ServerDisconnectPlayer instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -18394,21 +11310,6 @@ public class Packet_ServerDisconnectPlayerSerializer
             ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.DisconnectReason));
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerDisconnectPlayer instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerDisconnectPlayer instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerSoundSerializer
@@ -18421,131 +11322,11 @@ public class Packet_ServerSoundSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerSound DeserializeBuffer(byte[] buffer, int length, Packet_ServerSound instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerSound Deserialize(CitoStream stream, Packet_ServerSound instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerSound DeserializeLengthDelimited(CitoStream stream, Packet_ServerSound instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerSound DeserializeLength(CitoStream stream, int length, Packet_ServerSound instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -18622,21 +11403,6 @@ public class Packet_ServerSoundSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Z);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerSound instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerSound instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerFollowSerializer
@@ -18649,115 +11415,11 @@ public class Packet_ServerFollowSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerFollow DeserializeBuffer(byte[] buffer, int length, Packet_ServerFollow instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerFollow Deserialize(CitoStream stream, Packet_ServerFollow instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Client = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Tpp = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerFollow DeserializeLengthDelimited(CitoStream stream, Packet_ServerFollow instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Client = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Tpp = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerFollow DeserializeLength(CitoStream stream, int length, Packet_ServerFollow instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -18820,21 +11482,6 @@ public class Packet_ServerFollowSerializer
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Tpp);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerFollow instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerFollow instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerBulletSerializer
@@ -18847,155 +11494,11 @@ public class Packet_ServerBulletSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerBullet DeserializeBuffer(byte[] buffer, int length, Packet_ServerBullet instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBullet Deserialize(CitoStream stream, Packet_ServerBullet instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.FromXFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.FromYFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.FromZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.ToXFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.ToYFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.ToZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.SpeedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerBullet DeserializeLengthDelimited(CitoStream stream, Packet_ServerBullet instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.FromXFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.FromYFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.FromZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.ToXFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.ToYFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.ToZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.SpeedFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerBullet DeserializeLength(CitoStream stream, int length, Packet_ServerBullet instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -19090,21 +11593,6 @@ public class Packet_ServerBulletSerializer
         stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.SpeedFloat);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerBullet instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerBullet instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerProjectileSerializer
@@ -19117,171 +11605,11 @@ public class Packet_ServerProjectileSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerProjectile DeserializeBuffer(byte[] buffer, int length, Packet_ServerProjectile instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerProjectile Deserialize(CitoStream stream, Packet_ServerProjectile instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.FromXFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.FromYFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.FromZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.VelocityXFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.VelocityYFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.VelocityZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.BlockId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.ExplodesAfterFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.SourcePlayerID = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerProjectile DeserializeLengthDelimited(CitoStream stream, Packet_ServerProjectile instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.FromXFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.FromYFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.FromZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.VelocityXFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.VelocityYFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.VelocityZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.BlockId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.ExplodesAfterFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 Varint
-                case 72:
-                    instance.SourcePlayerID = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerProjectile DeserializeLength(CitoStream stream, int length, Packet_ServerProjectile instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -19390,21 +11718,6 @@ public class Packet_ServerProjectileSerializer
         stream.WriteByte(72);
         ProtocolParser.WriteUInt64(stream, instance.SourcePlayerID);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerProjectile instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerProjectile instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerExplosionSerializer
@@ -19417,147 +11730,11 @@ public class Packet_ServerExplosionSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerExplosion DeserializeBuffer(byte[] buffer, int length, Packet_ServerExplosion instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerExplosion Deserialize(CitoStream stream, Packet_ServerExplosion instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.XFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.YFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.ZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.IsRelativeToPlayerPosition = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.RangeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.TimeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerExplosion DeserializeLengthDelimited(CitoStream stream, Packet_ServerExplosion instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.XFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.YFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.ZFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.IsRelativeToPlayerPosition = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.RangeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.TimeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerExplosion DeserializeLength(CitoStream stream, int length, Packet_ServerExplosion instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -19645,21 +11822,6 @@ public class Packet_ServerExplosionSerializer
         stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.TimeFloat);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerExplosion instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerExplosion instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerQueryAnswerSerializer
@@ -19672,211 +11834,11 @@ public class Packet_ServerQueryAnswerSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerQueryAnswer DeserializeBuffer(byte[] buffer, int length, Packet_ServerQueryAnswer instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerQueryAnswer Deserialize(CitoStream stream, Packet_ServerQueryAnswer instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.MOTD = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.PlayerCount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.MaxPlayers = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    instance.PlayerList = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Port = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    instance.GameMode = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.Password = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    instance.PublicHash = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 10 LengthDelimited
-                case 82:
-                    instance.ServerVersion = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 11 Varint
-                case 88:
-                    instance.MapSizeX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 12 Varint
-                case 96:
-                    instance.MapSizeY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 13 Varint
-                case 104:
-                    instance.MapSizeZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 14 LengthDelimited
-                case 114:
-                    instance.ServerThumbnail = ProtocolParser.ReadBytes(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerQueryAnswer DeserializeLengthDelimited(CitoStream stream, Packet_ServerQueryAnswer instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.MOTD = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.PlayerCount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.MaxPlayers = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    instance.PlayerList = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Port = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    instance.GameMode = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.Password = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    instance.PublicHash = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 10 LengthDelimited
-                case 82:
-                    instance.ServerVersion = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 11 Varint
-                case 88:
-                    instance.MapSizeX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 12 Varint
-                case 96:
-                    instance.MapSizeY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 13 Varint
-                case 104:
-                    instance.MapSizeZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 14 LengthDelimited
-                case 114:
-                    instance.ServerThumbnail = ProtocolParser.ReadBytes(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerQueryAnswer DeserializeLength(CitoStream stream, int length, Packet_ServerQueryAnswer instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -20041,21 +12003,6 @@ public class Packet_ServerQueryAnswerSerializer
             ProtocolParser.WriteBytes(stream, instance.ServerThumbnail);
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerQueryAnswer instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerQueryAnswer instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerRedirectSerializer
@@ -20068,115 +12015,11 @@ public class Packet_ServerRedirectSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerRedirect DeserializeBuffer(byte[] buffer, int length, Packet_ServerRedirect instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerRedirect Deserialize(CitoStream stream, Packet_ServerRedirect instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.IP = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Port = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerRedirect DeserializeLengthDelimited(CitoStream stream, Packet_ServerRedirect instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.IP = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Port = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerRedirect DeserializeLength(CitoStream stream, int length, Packet_ServerRedirect instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -20239,33 +12082,10 @@ public class Packet_ServerRedirectSerializer
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Port);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerRedirect instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerRedirect instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerSerializer
 {
-    /// <summary>Helper: create a new instance to deserializing into</summary>
-    public static Packet_Server DeserializeLengthDelimitedNew(CitoStream stream)
-    {
-        Packet_Server instance = new Packet_Server();
-        DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
     /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
     public static Packet_Server DeserializeBuffer(byte[] buffer, int length, Packet_Server instance)
     {
@@ -20283,741 +12103,6 @@ public class Packet_ServerSerializer
             int keyByte = stream.ReadByte();
             if (keyByte == -1)
                 break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    if (instance.Identification == null)
-                        instance.Identification = Packet_ServerIdentificationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerIdentificationSerializer.DeserializeLengthDelimited(stream, instance.Identification);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.LevelInitialize == null)
-                        instance.LevelInitialize = Packet_ServerLevelInitializeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerLevelInitializeSerializer.DeserializeLengthDelimited(stream, instance.LevelInitialize);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.LevelDataChunk == null)
-                        instance.LevelDataChunk = Packet_ServerLevelProgressSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerLevelProgressSerializer.DeserializeLengthDelimited(stream, instance.LevelDataChunk);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.LevelFinalize == null)
-                        instance.LevelFinalize = Packet_ServerLevelFinalizeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerLevelFinalizeSerializer.DeserializeLengthDelimited(stream, instance.LevelFinalize);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.SetBlock == null)
-                        instance.SetBlock = Packet_ServerSetBlockSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerSetBlockSerializer.DeserializeLengthDelimited(stream, instance.SetBlock);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    if (instance.Message == null)
-                        instance.Message = Packet_ServerMessageSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerMessageSerializer.DeserializeLengthDelimited(stream, instance.Message);
-                    continue;
-                // Field 10 LengthDelimited
-                case 82:
-                    if (instance.DisconnectPlayer == null)
-                        instance.DisconnectPlayer = Packet_ServerDisconnectPlayerSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerDisconnectPlayerSerializer.DeserializeLengthDelimited(stream, instance.DisconnectPlayer);
-                    continue;
-                // Field 11 LengthDelimited
-                case 90:
-                    if (instance.Chunk_ == null)
-                        instance.Chunk_ = Packet_ServerChunkSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerChunkSerializer.DeserializeLengthDelimited(stream, instance.Chunk_);
-                    continue;
-                // Field 12 LengthDelimited
-                case 98:
-                    if (instance.Inventory == null)
-                        instance.Inventory = Packet_ServerInventorySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerInventorySerializer.DeserializeLengthDelimited(stream, instance.Inventory);
-                    continue;
-                // Field 13 LengthDelimited
-                case 106:
-                    if (instance.Season == null)
-                        instance.Season = Packet_ServerSeasonSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerSeasonSerializer.DeserializeLengthDelimited(stream, instance.Season);
-                    continue;
-                // Field 14 LengthDelimited
-                case 114:
-                    if (instance.BlobInitialize == null)
-                        instance.BlobInitialize = Packet_ServerBlobInitializeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlobInitializeSerializer.DeserializeLengthDelimited(stream, instance.BlobInitialize);
-                    continue;
-                // Field 15 LengthDelimited
-                case 122:
-                    if (instance.BlobPart == null)
-                        instance.BlobPart = Packet_ServerBlobPartSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlobPartSerializer.DeserializeLengthDelimited(stream, instance.BlobPart);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                case 90:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 51:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.FillArea == null)
-                        instance.FillArea = Packet_ServerFillAreaSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerFillAreaSerializer.DeserializeLengthDelimited(stream, instance.FillArea);
-                    continue;
-                case 52:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.FillAreaLimit == null)
-                        instance.FillAreaLimit = Packet_ServerFillAreaLimitSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerFillAreaLimitSerializer.DeserializeLengthDelimited(stream, instance.FillAreaLimit);
-                    continue;
-                case 53:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Freemove == null)
-                        instance.Freemove = Packet_ServerFreemoveSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerFreemoveSerializer.DeserializeLengthDelimited(stream, instance.Freemove);
-                    continue;
-                case 16:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.BlobFinalize == null)
-                        instance.BlobFinalize = Packet_ServerBlobFinalizeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlobFinalizeSerializer.DeserializeLengthDelimited(stream, instance.BlobFinalize);
-                    continue;
-                case 17:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.HeightmapChunk == null)
-                        instance.HeightmapChunk = Packet_ServerHeightmapChunkSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerHeightmapChunkSerializer.DeserializeLengthDelimited(stream, instance.HeightmapChunk);
-                    continue;
-                case 18:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Ping == null)
-                        instance.Ping = Packet_ServerPingSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPingSerializer.DeserializeLengthDelimited(stream, instance.Ping);
-                    continue;
-                case 181:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.PlayerPing == null)
-                        instance.PlayerPing = Packet_ServerPlayerPingSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPlayerPingSerializer.DeserializeLengthDelimited(stream, instance.PlayerPing);
-                    continue;
-                case 19:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Sound == null)
-                        instance.Sound = Packet_ServerSoundSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerSoundSerializer.DeserializeLengthDelimited(stream, instance.Sound);
-                    continue;
-                case 20:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.PlayerStats == null)
-                        instance.PlayerStats = Packet_ServerPlayerStatsSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPlayerStatsSerializer.DeserializeLengthDelimited(stream, instance.PlayerStats);
-                    continue;
-                case 21:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Monster == null)
-                        instance.Monster = Packet_ServerMonstersSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerMonstersSerializer.DeserializeLengthDelimited(stream, instance.Monster);
-                    continue;
-                case 22:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.PlayerSpawnPosition == null)
-                        instance.PlayerSpawnPosition = Packet_ServerPlayerSpawnPositionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPlayerSpawnPositionSerializer.DeserializeLengthDelimited(stream, instance.PlayerSpawnPosition);
-                    continue;
-                case 23:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.BlockTypes == null)
-                        instance.BlockTypes = Packet_ServerBlockTypesSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlockTypesSerializer.DeserializeLengthDelimited(stream, instance.BlockTypes);
-                    continue;
-                case 24:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.SunLevels == null)
-                        instance.SunLevels = Packet_ServerSunLevelsSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerSunLevelsSerializer.DeserializeLengthDelimited(stream, instance.SunLevels);
-                    continue;
-                case 25:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.LightLevels == null)
-                        instance.LightLevels = Packet_ServerLightLevelsSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerLightLevelsSerializer.DeserializeLengthDelimited(stream, instance.LightLevels);
-                    continue;
-                case 26:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.CraftingRecipes == null)
-                        instance.CraftingRecipes = Packet_ServerCraftingRecipesSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerCraftingRecipesSerializer.DeserializeLengthDelimited(stream, instance.CraftingRecipes);
-                    continue;
-                case 27:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Dialog == null)
-                        instance.Dialog = Packet_ServerDialogSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerDialogSerializer.DeserializeLengthDelimited(stream, instance.Dialog);
-                    continue;
-                case 28:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Follow == null)
-                        instance.Follow = Packet_ServerFollowSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerFollowSerializer.DeserializeLengthDelimited(stream, instance.Follow);
-                    continue;
-                case 29:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Bullet == null)
-                        instance.Bullet = Packet_ServerBulletSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBulletSerializer.DeserializeLengthDelimited(stream, instance.Bullet);
-                    continue;
-                case 30:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Ammo == null)
-                        instance.Ammo = Packet_ServerAmmoSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerAmmoSerializer.DeserializeLengthDelimited(stream, instance.Ammo);
-                    continue;
-                case 31:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.BlockType == null)
-                        instance.BlockType = Packet_ServerBlockTypeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlockTypeSerializer.DeserializeLengthDelimited(stream, instance.BlockType);
-                    continue;
-                case 32:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.ChunkPart == null)
-                        instance.ChunkPart = Packet_ServerChunkPartSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerChunkPartSerializer.DeserializeLengthDelimited(stream, instance.ChunkPart);
-                    continue;
-                case 33:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Explosion == null)
-                        instance.Explosion = Packet_ServerExplosionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerExplosionSerializer.DeserializeLengthDelimited(stream, instance.Explosion);
-                    continue;
-                case 34:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Projectile == null)
-                        instance.Projectile = Packet_ServerProjectileSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerProjectileSerializer.DeserializeLengthDelimited(stream, instance.Projectile);
-                    continue;
-                case 35:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Translation == null)
-                        instance.Translation = Packet_ServerTranslatedStringSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerTranslatedStringSerializer.DeserializeLengthDelimited(stream, instance.Translation);
-                    continue;
-                case 36:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.QueryAnswer == null)
-                        instance.QueryAnswer = Packet_ServerQueryAnswerSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerQueryAnswerSerializer.DeserializeLengthDelimited(stream, instance.QueryAnswer);
-                    continue;
-                case 37:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Redirect == null)
-                        instance.Redirect = Packet_ServerRedirectSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerRedirectSerializer.DeserializeLengthDelimited(stream, instance.Redirect);
-                    continue;
-                case 39:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.EntitySpawn == null)
-                        instance.EntitySpawn = Packet_ServerEntitySpawnSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntitySpawnSerializer.DeserializeLengthDelimited(stream, instance.EntitySpawn);
-                    continue;
-                case 40:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.EntityPosition == null)
-                        instance.EntityPosition = Packet_ServerEntityPositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityPositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.EntityPosition);
-                    continue;
-                case 41:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.EntityDespawn == null)
-                        instance.EntityDespawn = Packet_ServerEntityDespawnSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDespawnSerializer.DeserializeLengthDelimited(stream, instance.EntityDespawn);
-                    continue;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_Server DeserializeLengthDelimited(CitoStream stream, Packet_Server instance)
-    {
-        instance.Id = Packet_ServerIdEnum.ServerIdentification;
-        int limit = ProtocolParser.ReadUInt32(stream);
-        limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    if (instance.Identification == null)
-                        instance.Identification = Packet_ServerIdentificationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerIdentificationSerializer.DeserializeLengthDelimited(stream, instance.Identification);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.LevelInitialize == null)
-                        instance.LevelInitialize = Packet_ServerLevelInitializeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerLevelInitializeSerializer.DeserializeLengthDelimited(stream, instance.LevelInitialize);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.LevelDataChunk == null)
-                        instance.LevelDataChunk = Packet_ServerLevelProgressSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerLevelProgressSerializer.DeserializeLengthDelimited(stream, instance.LevelDataChunk);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.LevelFinalize == null)
-                        instance.LevelFinalize = Packet_ServerLevelFinalizeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerLevelFinalizeSerializer.DeserializeLengthDelimited(stream, instance.LevelFinalize);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.SetBlock == null)
-                        instance.SetBlock = Packet_ServerSetBlockSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerSetBlockSerializer.DeserializeLengthDelimited(stream, instance.SetBlock);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    if (instance.Message == null)
-                        instance.Message = Packet_ServerMessageSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerMessageSerializer.DeserializeLengthDelimited(stream, instance.Message);
-                    continue;
-                // Field 10 LengthDelimited
-                case 82:
-                    if (instance.DisconnectPlayer == null)
-                        instance.DisconnectPlayer = Packet_ServerDisconnectPlayerSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerDisconnectPlayerSerializer.DeserializeLengthDelimited(stream, instance.DisconnectPlayer);
-                    continue;
-                // Field 11 LengthDelimited
-                case 90:
-                    if (instance.Chunk_ == null)
-                        instance.Chunk_ = Packet_ServerChunkSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerChunkSerializer.DeserializeLengthDelimited(stream, instance.Chunk_);
-                    continue;
-                // Field 12 LengthDelimited
-                case 98:
-                    if (instance.Inventory == null)
-                        instance.Inventory = Packet_ServerInventorySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerInventorySerializer.DeserializeLengthDelimited(stream, instance.Inventory);
-                    continue;
-                // Field 13 LengthDelimited
-                case 106:
-                    if (instance.Season == null)
-                        instance.Season = Packet_ServerSeasonSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerSeasonSerializer.DeserializeLengthDelimited(stream, instance.Season);
-                    continue;
-                // Field 14 LengthDelimited
-                case 114:
-                    if (instance.BlobInitialize == null)
-                        instance.BlobInitialize = Packet_ServerBlobInitializeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlobInitializeSerializer.DeserializeLengthDelimited(stream, instance.BlobInitialize);
-                    continue;
-                // Field 15 LengthDelimited
-                case 122:
-                    if (instance.BlobPart == null)
-                        instance.BlobPart = Packet_ServerBlobPartSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlobPartSerializer.DeserializeLengthDelimited(stream, instance.BlobPart);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                case 90:
-                    if (key.GetWireType() != Wire.Varint)
-                        break;
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                case 51:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.FillArea == null)
-                        instance.FillArea = Packet_ServerFillAreaSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerFillAreaSerializer.DeserializeLengthDelimited(stream, instance.FillArea);
-                    continue;
-                case 52:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.FillAreaLimit == null)
-                        instance.FillAreaLimit = Packet_ServerFillAreaLimitSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerFillAreaLimitSerializer.DeserializeLengthDelimited(stream, instance.FillAreaLimit);
-                    continue;
-                case 53:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Freemove == null)
-                        instance.Freemove = Packet_ServerFreemoveSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerFreemoveSerializer.DeserializeLengthDelimited(stream, instance.Freemove);
-                    continue;
-                case 16:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.BlobFinalize == null)
-                        instance.BlobFinalize = Packet_ServerBlobFinalizeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlobFinalizeSerializer.DeserializeLengthDelimited(stream, instance.BlobFinalize);
-                    continue;
-                case 17:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.HeightmapChunk == null)
-                        instance.HeightmapChunk = Packet_ServerHeightmapChunkSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerHeightmapChunkSerializer.DeserializeLengthDelimited(stream, instance.HeightmapChunk);
-                    continue;
-                case 18:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Ping == null)
-                        instance.Ping = Packet_ServerPingSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPingSerializer.DeserializeLengthDelimited(stream, instance.Ping);
-                    continue;
-                case 181:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.PlayerPing == null)
-                        instance.PlayerPing = Packet_ServerPlayerPingSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPlayerPingSerializer.DeserializeLengthDelimited(stream, instance.PlayerPing);
-                    continue;
-                case 19:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Sound == null)
-                        instance.Sound = Packet_ServerSoundSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerSoundSerializer.DeserializeLengthDelimited(stream, instance.Sound);
-                    continue;
-                case 20:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.PlayerStats == null)
-                        instance.PlayerStats = Packet_ServerPlayerStatsSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPlayerStatsSerializer.DeserializeLengthDelimited(stream, instance.PlayerStats);
-                    continue;
-                case 21:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Monster == null)
-                        instance.Monster = Packet_ServerMonstersSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerMonstersSerializer.DeserializeLengthDelimited(stream, instance.Monster);
-                    continue;
-                case 22:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.PlayerSpawnPosition == null)
-                        instance.PlayerSpawnPosition = Packet_ServerPlayerSpawnPositionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPlayerSpawnPositionSerializer.DeserializeLengthDelimited(stream, instance.PlayerSpawnPosition);
-                    continue;
-                case 23:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.BlockTypes == null)
-                        instance.BlockTypes = Packet_ServerBlockTypesSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlockTypesSerializer.DeserializeLengthDelimited(stream, instance.BlockTypes);
-                    continue;
-                case 24:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.SunLevels == null)
-                        instance.SunLevels = Packet_ServerSunLevelsSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerSunLevelsSerializer.DeserializeLengthDelimited(stream, instance.SunLevels);
-                    continue;
-                case 25:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.LightLevels == null)
-                        instance.LightLevels = Packet_ServerLightLevelsSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerLightLevelsSerializer.DeserializeLengthDelimited(stream, instance.LightLevels);
-                    continue;
-                case 26:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.CraftingRecipes == null)
-                        instance.CraftingRecipes = Packet_ServerCraftingRecipesSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerCraftingRecipesSerializer.DeserializeLengthDelimited(stream, instance.CraftingRecipes);
-                    continue;
-                case 27:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Dialog == null)
-                        instance.Dialog = Packet_ServerDialogSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerDialogSerializer.DeserializeLengthDelimited(stream, instance.Dialog);
-                    continue;
-                case 28:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Follow == null)
-                        instance.Follow = Packet_ServerFollowSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerFollowSerializer.DeserializeLengthDelimited(stream, instance.Follow);
-                    continue;
-                case 29:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Bullet == null)
-                        instance.Bullet = Packet_ServerBulletSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBulletSerializer.DeserializeLengthDelimited(stream, instance.Bullet);
-                    continue;
-                case 30:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Ammo == null)
-                        instance.Ammo = Packet_ServerAmmoSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerAmmoSerializer.DeserializeLengthDelimited(stream, instance.Ammo);
-                    continue;
-                case 31:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.BlockType == null)
-                        instance.BlockType = Packet_ServerBlockTypeSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerBlockTypeSerializer.DeserializeLengthDelimited(stream, instance.BlockType);
-                    continue;
-                case 32:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.ChunkPart == null)
-                        instance.ChunkPart = Packet_ServerChunkPartSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerChunkPartSerializer.DeserializeLengthDelimited(stream, instance.ChunkPart);
-                    continue;
-                case 33:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Explosion == null)
-                        instance.Explosion = Packet_ServerExplosionSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerExplosionSerializer.DeserializeLengthDelimited(stream, instance.Explosion);
-                    continue;
-                case 34:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Projectile == null)
-                        instance.Projectile = Packet_ServerProjectileSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerProjectileSerializer.DeserializeLengthDelimited(stream, instance.Projectile);
-                    continue;
-                case 35:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Translation == null)
-                        instance.Translation = Packet_ServerTranslatedStringSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerTranslatedStringSerializer.DeserializeLengthDelimited(stream, instance.Translation);
-                    continue;
-                case 36:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.QueryAnswer == null)
-                        instance.QueryAnswer = Packet_ServerQueryAnswerSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerQueryAnswerSerializer.DeserializeLengthDelimited(stream, instance.QueryAnswer);
-                    continue;
-                case 37:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.Redirect == null)
-                        instance.Redirect = Packet_ServerRedirectSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerRedirectSerializer.DeserializeLengthDelimited(stream, instance.Redirect);
-                    continue;
-                case 39:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.EntitySpawn == null)
-                        instance.EntitySpawn = Packet_ServerEntitySpawnSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntitySpawnSerializer.DeserializeLengthDelimited(stream, instance.EntitySpawn);
-                    continue;
-                case 40:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.EntityPosition == null)
-                        instance.EntityPosition = Packet_ServerEntityPositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityPositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.EntityPosition);
-                    continue;
-                case 41:
-                    if (key.GetWireType() != Wire.LengthDelimited)
-                        break;
-                    if (instance.EntityDespawn == null)
-                        instance.EntityDespawn = Packet_ServerEntityDespawnSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDespawnSerializer.DeserializeLengthDelimited(stream, instance.EntityDespawn);
-                    continue;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_Server DeserializeLength(CitoStream stream, int length, Packet_Server instance)
-    {
-        instance.Id = Packet_ServerIdEnum.ServerIdentification;
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
             // Optimized reading of known fields with field ID < 16
             switch (keyByte)
             {
@@ -22152,13 +13237,6 @@ public class Packet_ServerSerializer
         Serialize(ms, instance);
         return ms.ToArray();
     }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_Server instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerEntitySpawnSerializer
@@ -22171,121 +13249,11 @@ public class Packet_ServerEntitySpawnSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntitySpawn DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntitySpawn instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntitySpawn Deserialize(CitoStream stream, Packet_ServerEntitySpawn instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Entity_ == null)
-                        instance.Entity_ = Packet_ServerEntitySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntitySerializer.DeserializeLengthDelimited(stream, instance.Entity_);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerEntitySpawn DeserializeLengthDelimited(CitoStream stream, Packet_ServerEntitySpawn instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Entity_ == null)
-                        instance.Entity_ = Packet_ServerEntitySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntitySerializer.DeserializeLengthDelimited(stream, instance.Entity_);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntitySpawn DeserializeLength(CitoStream stream, int length, Packet_ServerEntitySpawn instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -22363,21 +13331,6 @@ public class Packet_ServerEntitySpawnSerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntitySpawn instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntitySpawn instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerEntityPositionAndOrientationSerializer
@@ -22390,121 +13343,11 @@ public class Packet_ServerEntityPositionAndOrientationSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntityPositionAndOrientation DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntityPositionAndOrientation instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityPositionAndOrientation Deserialize(CitoStream stream, Packet_ServerEntityPositionAndOrientation instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.PositionAndOrientation == null)
-                        instance.PositionAndOrientation = Packet_PositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_PositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.PositionAndOrientation);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerEntityPositionAndOrientation DeserializeLengthDelimited(CitoStream stream, Packet_ServerEntityPositionAndOrientation instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.PositionAndOrientation == null)
-                        instance.PositionAndOrientation = Packet_PositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_PositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.PositionAndOrientation);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityPositionAndOrientation DeserializeLength(CitoStream stream, int length, Packet_ServerEntityPositionAndOrientation instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -22582,21 +13425,6 @@ public class Packet_ServerEntityPositionAndOrientationSerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntityPositionAndOrientation instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityPositionAndOrientation instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerEntityDespawnSerializer
@@ -22606,53 +13434,6 @@ public class Packet_ServerEntityDespawnSerializer
     {
         Packet_ServerEntityDespawn instance = new Packet_ServerEntityDespawn();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntityDespawn DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntityDespawn instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDespawn Deserialize(CitoStream stream, Packet_ServerEntityDespawn instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -22706,76 +13487,12 @@ public class Packet_ServerEntityDespawnSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDespawn DeserializeLength(CitoStream stream, int length, Packet_ServerEntityDespawn instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerEntityDespawn instance)
     {
         // Key for field: 1, Varint
         stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.Id);
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntityDespawn instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDespawn instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -22789,219 +13506,11 @@ public class Packet_ServerEntitySerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntity DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntity instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntity Deserialize(CitoStream stream, Packet_ServerEntity instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    if (instance.Position == null)
-                        instance.Position = Packet_PositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_PositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.Position);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.DrawModel == null)
-                        instance.DrawModel = Packet_ServerEntityAnimatedModelSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityAnimatedModelSerializer.DeserializeLengthDelimited(stream, instance.DrawModel);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.DrawName_ == null)
-                        instance.DrawName_ = Packet_ServerEntityDrawNameSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDrawNameSerializer.DeserializeLengthDelimited(stream, instance.DrawName_);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.DrawText == null)
-                        instance.DrawText = Packet_ServerEntityDrawTextSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDrawTextSerializer.DeserializeLengthDelimited(stream, instance.DrawText);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.DrawBlock == null)
-                        instance.DrawBlock = Packet_ServerEntityDrawBlockSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDrawBlockSerializer.DeserializeLengthDelimited(stream, instance.DrawBlock);
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    if (instance.Push == null)
-                        instance.Push = Packet_ServerEntityPushSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityPushSerializer.DeserializeLengthDelimited(stream, instance.Push);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.Usable = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 8 LengthDelimited
-                case 66:
-                    if (instance.PlayerStats == null)
-                        instance.PlayerStats = Packet_ServerPlayerStatsSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPlayerStatsSerializer.DeserializeLengthDelimited(stream, instance.PlayerStats);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    if (instance.DrawArea == null)
-                        instance.DrawArea = Packet_ServerEntityDrawAreaSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDrawAreaSerializer.DeserializeLengthDelimited(stream, instance.DrawArea);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerEntity DeserializeLengthDelimited(CitoStream stream, Packet_ServerEntity instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    if (instance.Position == null)
-                        instance.Position = Packet_PositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_PositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.Position);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.DrawModel == null)
-                        instance.DrawModel = Packet_ServerEntityAnimatedModelSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityAnimatedModelSerializer.DeserializeLengthDelimited(stream, instance.DrawModel);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.DrawName_ == null)
-                        instance.DrawName_ = Packet_ServerEntityDrawNameSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDrawNameSerializer.DeserializeLengthDelimited(stream, instance.DrawName_);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.DrawText == null)
-                        instance.DrawText = Packet_ServerEntityDrawTextSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDrawTextSerializer.DeserializeLengthDelimited(stream, instance.DrawText);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.DrawBlock == null)
-                        instance.DrawBlock = Packet_ServerEntityDrawBlockSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDrawBlockSerializer.DeserializeLengthDelimited(stream, instance.DrawBlock);
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    if (instance.Push == null)
-                        instance.Push = Packet_ServerEntityPushSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityPushSerializer.DeserializeLengthDelimited(stream, instance.Push);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.Usable = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 8 LengthDelimited
-                case 66:
-                    if (instance.PlayerStats == null)
-                        instance.PlayerStats = Packet_ServerPlayerStatsSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerPlayerStatsSerializer.DeserializeLengthDelimited(stream, instance.PlayerStats);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    if (instance.DrawArea == null)
-                        instance.DrawArea = Packet_ServerEntityDrawAreaSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ServerEntityDrawAreaSerializer.DeserializeLengthDelimited(stream, instance.DrawArea);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntity DeserializeLength(CitoStream stream, int length, Packet_ServerEntity instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -23254,21 +13763,6 @@ public class Packet_ServerEntitySerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntity instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntity instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerEntityDrawAreaSerializer
@@ -23281,155 +13775,11 @@ public class Packet_ServerEntityDrawAreaSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntityDrawArea DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntityDrawArea instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDrawArea Deserialize(CitoStream stream, Packet_ServerEntityDrawArea instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Sizex = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Sizey = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Sizez = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.VisibleToClientId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerEntityDrawArea DeserializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawArea instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Sizex = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Sizey = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Sizez = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.VisibleToClientId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDrawArea DeserializeLength(CitoStream stream, int length, Packet_ServerEntityDrawArea instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -23524,21 +13874,6 @@ public class Packet_ServerEntityDrawAreaSerializer
         stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.VisibleToClientId);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntityDrawArea instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawArea instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerEntityAnimatedModelSerializer
@@ -23551,139 +13886,11 @@ public class Packet_ServerEntityAnimatedModelSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntityAnimatedModel DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntityAnimatedModel instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityAnimatedModel Deserialize(CitoStream stream, Packet_ServerEntityAnimatedModel instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Model_ = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Texture_ = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.EyeHeight = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.ModelHeight = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.DownloadSkin = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerEntityAnimatedModel DeserializeLengthDelimited(CitoStream stream, Packet_ServerEntityAnimatedModel instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Model_ = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Texture_ = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.EyeHeight = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.ModelHeight = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.DownloadSkin = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityAnimatedModel DeserializeLength(CitoStream stream, int length, Packet_ServerEntityAnimatedModel instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -23770,21 +13977,6 @@ public class Packet_ServerEntityAnimatedModelSerializer
         stream.WriteByte(40);
         ProtocolParser.WriteUInt64(stream, instance.DownloadSkin);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntityAnimatedModel instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityAnimatedModel instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerEntityDrawNameSerializer
@@ -23797,131 +13989,11 @@ public class Packet_ServerEntityDrawNameSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntityDrawName DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntityDrawName instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDrawName Deserialize(CitoStream stream, Packet_ServerEntityDrawName instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.OnlyWhenSelected = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.ClientAutoComplete = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    instance.Color = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerEntityDrawName DeserializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawName instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Name = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.OnlyWhenSelected = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.ClientAutoComplete = ProtocolParser.ReadBool(stream);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    instance.Color = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDrawName DeserializeLength(CitoStream stream, int length, Packet_ServerEntityDrawName instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -24001,21 +14073,6 @@ public class Packet_ServerEntityDrawNameSerializer
             ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Color));
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntityDrawName instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawName instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerEntityDrawTextSerializer
@@ -24028,155 +14085,11 @@ public class Packet_ServerEntityDrawTextSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntityDrawText DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntityDrawText instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDrawText Deserialize(CitoStream stream, Packet_ServerEntityDrawText instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Text = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Dx = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Dy = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Dz = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Rotx = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Roty = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.Rotz = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerEntityDrawText DeserializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawText instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Text = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Dx = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Dy = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Dz = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Rotx = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Roty = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 Varint
-                case 56:
-                    instance.Rotz = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDrawText DeserializeLength(CitoStream stream, int length, Packet_ServerEntityDrawText instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -24274,21 +14187,6 @@ public class Packet_ServerEntityDrawTextSerializer
         stream.WriteByte(56);
         ProtocolParser.WriteUInt64(stream, instance.Rotz);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntityDrawText instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawText instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerEntityDrawBlockSerializer
@@ -24298,53 +14196,6 @@ public class Packet_ServerEntityDrawBlockSerializer
     {
         Packet_ServerEntityDrawBlock instance = new Packet_ServerEntityDrawBlock();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntityDrawBlock DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntityDrawBlock instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDrawBlock Deserialize(CitoStream stream, Packet_ServerEntityDrawBlock instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -24398,76 +14249,12 @@ public class Packet_ServerEntityDrawBlockSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityDrawBlock DeserializeLength(CitoStream stream, int length, Packet_ServerEntityDrawBlock instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.BlockType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerEntityDrawBlock instance)
     {
         // Key for field: 1, Varint
         stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.BlockType);
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntityDrawBlock instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityDrawBlock instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -24478,53 +14265,6 @@ public class Packet_ServerEntityPushSerializer
     {
         Packet_ServerEntityPush instance = new Packet_ServerEntityPush();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerEntityPush DeserializeBuffer(byte[] buffer, int length, Packet_ServerEntityPush instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityPush Deserialize(CitoStream stream, Packet_ServerEntityPush instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.RangeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -24578,76 +14318,12 @@ public class Packet_ServerEntityPushSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerEntityPush DeserializeLength(CitoStream stream, int length, Packet_ServerEntityPush instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.RangeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerEntityPush instance)
     {
         // Key for field: 1, Varint
         stream.WriteByte(8);
         ProtocolParser.WriteUInt64(stream, instance.RangeFloat);
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerEntityPush instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerEntityPush instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -24661,115 +14337,11 @@ public class Packet_IntIntSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_IntInt DeserializeBuffer(byte[] buffer, int length, Packet_IntInt instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_IntInt Deserialize(CitoStream stream, Packet_IntInt instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Key_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Value_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_IntInt DeserializeLengthDelimited(CitoStream stream, Packet_IntInt instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Key_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Value_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_IntInt DeserializeLength(CitoStream stream, int length, Packet_IntInt instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -24829,21 +14401,6 @@ public class Packet_IntIntSerializer
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Value_);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_IntInt instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_IntInt instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerAmmoSerializer
@@ -24853,60 +14410,6 @@ public class Packet_ServerAmmoSerializer
     {
         Packet_ServerAmmo instance = new Packet_ServerAmmo();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerAmmo DeserializeBuffer(byte[] buffer, int length, Packet_ServerAmmo instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerAmmo Deserialize(CitoStream stream, Packet_ServerAmmo instance)
-    {
-        if (instance.TotalAmmo == null)
-        {
-            instance.TotalAmmo = new Packet_IntInt[1];
-            instance.TotalAmmoCount = 0;
-            instance.TotalAmmoLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.TotalAmmoAdd(Packet_IntIntSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -24921,62 +14424,6 @@ public class Packet_ServerAmmoSerializer
         }
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.TotalAmmoAdd(Packet_IntIntSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerAmmo DeserializeLength(CitoStream stream, int length, Packet_ServerAmmo instance)
-    {
-        if (instance.TotalAmmo == null)
-        {
-            instance.TotalAmmo = new Packet_IntInt[1];
-            instance.TotalAmmoCount = 0;
-            instance.TotalAmmoLength = 1;
-        }
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -25049,21 +14496,6 @@ public class Packet_ServerAmmoSerializer
             }
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerAmmo instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerAmmo instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerChunkPartSerializer
@@ -25076,107 +14508,11 @@ public class Packet_ServerChunkPartSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerChunkPart DeserializeBuffer(byte[] buffer, int length, Packet_ServerChunkPart instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerChunkPart Deserialize(CitoStream stream, Packet_ServerChunkPart instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.CompressedChunkPart = ProtocolParser.ReadBytes(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerChunkPart DeserializeLengthDelimited(CitoStream stream, Packet_ServerChunkPart instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.CompressedChunkPart = ProtocolParser.ReadBytes(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerChunkPart DeserializeLength(CitoStream stream, int length, Packet_ServerChunkPart instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -25232,21 +14568,6 @@ public class Packet_ServerChunkPartSerializer
             ProtocolParser.WriteBytes(stream, instance.CompressedChunkPart);
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerChunkPart instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerChunkPart instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerChunkSerializer
@@ -25259,147 +14580,11 @@ public class Packet_ServerChunkSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerChunk DeserializeBuffer(byte[] buffer, int length, Packet_ServerChunk instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerChunk Deserialize(CitoStream stream, Packet_ServerChunk instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.SizeX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.SizeY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.SizeZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerChunk DeserializeLengthDelimited(CitoStream stream, Packet_ServerChunk instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Z = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.SizeX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.SizeY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.SizeZ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerChunk DeserializeLength(CitoStream stream, int length, Packet_ServerChunk instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -25487,21 +14672,6 @@ public class Packet_ServerChunkSerializer
         stream.WriteByte(48);
         ProtocolParser.WriteUInt64(stream, instance.SizeZ);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerChunk instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerChunk instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerHeightmapChunkSerializer
@@ -25514,139 +14684,11 @@ public class Packet_ServerHeightmapChunkSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerHeightmapChunk DeserializeBuffer(byte[] buffer, int length, Packet_ServerHeightmapChunk instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerHeightmapChunk Deserialize(CitoStream stream, Packet_ServerHeightmapChunk instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.SizeX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.SizeY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    instance.CompressedHeightmap = ProtocolParser.ReadBytes(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerHeightmapChunk DeserializeLengthDelimited(CitoStream stream, Packet_ServerHeightmapChunk instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.SizeX = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.SizeY = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    instance.CompressedHeightmap = ProtocolParser.ReadBytes(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerHeightmapChunk DeserializeLength(CitoStream stream, int length, Packet_ServerHeightmapChunk instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -25730,21 +14772,6 @@ public class Packet_ServerHeightmapChunkSerializer
             ProtocolParser.WriteBytes(stream, instance.CompressedHeightmap);
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerHeightmapChunk instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerHeightmapChunk instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerInventorySerializer
@@ -25757,113 +14784,11 @@ public class Packet_ServerInventorySerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerInventory DeserializeBuffer(byte[] buffer, int length, Packet_ServerInventory instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerInventory Deserialize(CitoStream stream, Packet_ServerInventory instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.Inventory == null)
-                        instance.Inventory = Packet_InventorySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_InventorySerializer.DeserializeLengthDelimited(stream, instance.Inventory);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerInventory DeserializeLengthDelimited(CitoStream stream, Packet_ServerInventory instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.Inventory == null)
-                        instance.Inventory = Packet_InventorySerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_InventorySerializer.DeserializeLengthDelimited(stream, instance.Inventory);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerInventory DeserializeLength(CitoStream stream, int length, Packet_ServerInventory instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -25934,21 +14859,6 @@ public class Packet_ServerInventorySerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerInventory instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerInventory instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerPlayerStatsSerializer
@@ -25961,131 +14871,11 @@ public class Packet_ServerPlayerStatsSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerPlayerStats DeserializeBuffer(byte[] buffer, int length, Packet_ServerPlayerStats instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerPlayerStats Deserialize(CitoStream stream, Packet_ServerPlayerStats instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.CurrentHealth = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.MaxHealth = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.CurrentOxygen = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.MaxOxygen = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerPlayerStats DeserializeLengthDelimited(CitoStream stream, Packet_ServerPlayerStats instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.CurrentHealth = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.MaxHealth = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.CurrentOxygen = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.MaxOxygen = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerPlayerStats DeserializeLength(CitoStream stream, int length, Packet_ServerPlayerStats instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -26159,21 +14949,6 @@ public class Packet_ServerPlayerStatsSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.MaxOxygen);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerPlayerStats instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerPlayerStats instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerMonstersSerializer
@@ -26183,60 +14958,6 @@ public class Packet_ServerMonstersSerializer
     {
         Packet_ServerMonsters instance = new Packet_ServerMonsters();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerMonsters DeserializeBuffer(byte[] buffer, int length, Packet_ServerMonsters instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerMonsters Deserialize(CitoStream stream, Packet_ServerMonsters instance)
-    {
-        if (instance.Monsters == null)
-        {
-            instance.Monsters = new Packet_ServerMonster[1];
-            instance.MonstersCount = 0;
-            instance.MonstersLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.MonstersAdd(Packet_ServerMonsterSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -26251,62 +14972,6 @@ public class Packet_ServerMonstersSerializer
         }
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.MonstersAdd(Packet_ServerMonsterSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerMonsters DeserializeLength(CitoStream stream, int length, Packet_ServerMonsters instance)
-    {
-        if (instance.Monsters == null)
-        {
-            instance.Monsters = new Packet_ServerMonster[1];
-            instance.MonstersCount = 0;
-            instance.MonstersLength = 1;
-        }
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -26379,21 +15044,6 @@ public class Packet_ServerMonstersSerializer
             }
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerMonsters instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerMonsters instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerMonsterSerializer
@@ -26406,137 +15056,11 @@ public class Packet_ServerMonsterSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerMonster DeserializeBuffer(byte[] buffer, int length, Packet_ServerMonster instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerMonster Deserialize(CitoStream stream, Packet_ServerMonster instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.MonsterType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.PositionAndOrientation == null)
-                        instance.PositionAndOrientation = Packet_PositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_PositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.PositionAndOrientation);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Health = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerMonster DeserializeLengthDelimited(CitoStream stream, Packet_ServerMonster instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.Id = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.MonsterType = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.PositionAndOrientation == null)
-                        instance.PositionAndOrientation = Packet_PositionAndOrientationSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_PositionAndOrientationSerializer.DeserializeLengthDelimited(stream, instance.PositionAndOrientation);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Health = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerMonster DeserializeLength(CitoStream stream, int length, Packet_ServerMonster instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -26628,21 +15152,6 @@ public class Packet_ServerMonsterSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Health);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerMonster instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerMonster instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerSeasonSerializer
@@ -26655,123 +15164,11 @@ public class Packet_ServerSeasonSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerSeason DeserializeBuffer(byte[] buffer, int length, Packet_ServerSeason instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerSeason Deserialize(CitoStream stream, Packet_ServerSeason instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 2 Varint
-                case 16:
-                    instance.Hour = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.DayNightCycleSpeedup = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Moon = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerSeason DeserializeLengthDelimited(CitoStream stream, Packet_ServerSeason instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 2 Varint
-                case 16:
-                    instance.Hour = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.DayNightCycleSpeedup = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Moon = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerSeason DeserializeLength(CitoStream stream, int length, Packet_ServerSeason instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -26838,21 +15235,6 @@ public class Packet_ServerSeasonSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Moon);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerSeason instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerSeason instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerDialogSerializer
@@ -26865,121 +15247,11 @@ public class Packet_ServerDialogSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerDialog DeserializeBuffer(byte[] buffer, int length, Packet_ServerDialog instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerDialog Deserialize(CitoStream stream, Packet_ServerDialog instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.DialogId = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Dialog == null)
-                        instance.Dialog = Packet_DialogSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_DialogSerializer.DeserializeLengthDelimited(stream, instance.Dialog);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerDialog DeserializeLengthDelimited(CitoStream stream, Packet_ServerDialog instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.DialogId = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Dialog == null)
-                        instance.Dialog = Packet_DialogSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_DialogSerializer.DeserializeLengthDelimited(stream, instance.Dialog);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerDialog DeserializeLength(CitoStream stream, int length, Packet_ServerDialog instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -27060,21 +15332,6 @@ public class Packet_ServerDialogSerializer
 
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerDialog instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerDialog instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerPingSerializer
@@ -27084,43 +15341,6 @@ public class Packet_ServerPingSerializer
     {
         Packet_ServerPing instance = new Packet_ServerPing();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerPing DeserializeBuffer(byte[] buffer, int length, Packet_ServerPing instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerPing Deserialize(CitoStream stream, Packet_ServerPing instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -27164,63 +15384,9 @@ public class Packet_ServerPingSerializer
         return instance;
     }
 
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerPing DeserializeLength(CitoStream stream, int length, Packet_ServerPing instance)
-    {
-        int limit = stream.Position() + length;
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(CitoStream stream, Packet_ServerPing instance)
     {
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerPing instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerPing instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }
 
@@ -27234,115 +15400,11 @@ public class Packet_ServerPlayerPingSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerPlayerPing DeserializeBuffer(byte[] buffer, int length, Packet_ServerPlayerPing instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerPlayerPing Deserialize(CitoStream stream, Packet_ServerPlayerPing instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.ClientId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Ping = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ServerPlayerPing DeserializeLengthDelimited(CitoStream stream, Packet_ServerPlayerPing instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.ClientId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Ping = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerPlayerPing DeserializeLength(CitoStream stream, int length, Packet_ServerPlayerPing instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -27402,21 +15464,6 @@ public class Packet_ServerPlayerPingSerializer
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.Ping);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerPlayerPing instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerPlayerPing instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ServerTranslatedStringSerializer
@@ -27426,61 +15473,6 @@ public class Packet_ServerTranslatedStringSerializer
     {
         Packet_ServerTranslatedString instance = new Packet_ServerTranslatedString();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_ServerTranslatedString DeserializeBuffer(byte[] buffer, int length, Packet_ServerTranslatedString instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_ServerTranslatedString Deserialize(CitoStream stream, Packet_ServerTranslatedString instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Lang = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.Id = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 LengthDelimited
-                case 26:
-                    instance.Translation = ProtocolParser.ReadString(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -27621,21 +15613,6 @@ public class Packet_ServerTranslatedStringSerializer
             ProtocolParser.WriteBytes(stream, Encoding.UTF8.GetBytes(instance.Translation));
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_ServerTranslatedString instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_ServerTranslatedString instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_InventorySerializer
@@ -27645,106 +15622,6 @@ public class Packet_InventorySerializer
     {
         Packet_Inventory instance = new Packet_Inventory();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_Inventory DeserializeBuffer(byte[] buffer, int length, Packet_Inventory instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_Inventory Deserialize(CitoStream stream, Packet_Inventory instance)
-    {
-        if (instance.Items == null)
-        {
-            instance.Items = new Packet_PositionItem[1];
-            instance.ItemsCount = 0;
-            instance.ItemsLength = 1;
-        }
-        if (instance.RightHand == null)
-        {
-            instance.RightHand = new Packet_Item[1];
-            instance.RightHandCount = 0;
-            instance.RightHandLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.MainArmor == null)
-                        instance.MainArmor = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.MainArmor);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.Boots == null)
-                        instance.Boots = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.Boots);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.Helmet == null)
-                        instance.Helmet = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.Helmet);
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    if (instance.Gauntlet == null)
-                        instance.Gauntlet = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.Gauntlet);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    // repeated
-                    instance.ItemsAdd(Packet_PositionItemSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                // Field 8 LengthDelimited
-                case 66:
-                    if (instance.DragDropItem == null)
-                        instance.DragDropItem = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.DragDropItem);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    // repeated
-                    instance.RightHandAdd(Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -27765,108 +15642,6 @@ public class Packet_InventorySerializer
         }
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 3 LengthDelimited
-                case 26:
-                    if (instance.MainArmor == null)
-                        instance.MainArmor = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.MainArmor);
-                    continue;
-                // Field 4 LengthDelimited
-                case 34:
-                    if (instance.Boots == null)
-                        instance.Boots = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.Boots);
-                    continue;
-                // Field 5 LengthDelimited
-                case 42:
-                    if (instance.Helmet == null)
-                        instance.Helmet = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.Helmet);
-                    continue;
-                // Field 6 LengthDelimited
-                case 50:
-                    if (instance.Gauntlet == null)
-                        instance.Gauntlet = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.Gauntlet);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    // repeated
-                    instance.ItemsAdd(Packet_PositionItemSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                // Field 8 LengthDelimited
-                case 66:
-                    if (instance.DragDropItem == null)
-                        instance.DragDropItem = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.DragDropItem);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    // repeated
-                    instance.RightHandAdd(Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_Inventory DeserializeLength(CitoStream stream, int length, Packet_Inventory instance)
-    {
-        if (instance.Items == null)
-        {
-            instance.Items = new Packet_PositionItem[1];
-            instance.ItemsCount = 0;
-            instance.ItemsLength = 1;
-        }
-        if (instance.RightHand == null)
-        {
-            instance.RightHand = new Packet_Item[1];
-            instance.RightHandCount = 0;
-            instance.RightHandLength = 1;
-        }
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -28091,21 +15866,6 @@ public class Packet_InventorySerializer
             }
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_Inventory instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_Inventory instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_ItemSerializer
@@ -28118,134 +15878,12 @@ public class Packet_ItemSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_Item DeserializeBuffer(byte[] buffer, int length, Packet_Item instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_Item Deserialize(CitoStream stream, Packet_Item instance)
-    {
-        instance.ItemClass = Packet_ItemClassEnum.Block;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.ItemClass = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.ItemId = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.BlockId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.BlockCount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_Item DeserializeLengthDelimited(CitoStream stream, Packet_Item instance)
     {
         instance.ItemClass = Packet_ItemClassEnum.Block;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 Varint
-                case 8:
-                    instance.ItemClass = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    instance.ItemId = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.BlockId = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.BlockCount = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_Item DeserializeLength(CitoStream stream, int length, Packet_Item instance)
-    {
-        instance.ItemClass = Packet_ItemClassEnum.Block;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -28325,21 +15963,6 @@ public class Packet_ItemSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.BlockCount);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_Item instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_Item instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_PositionItemSerializer
@@ -28352,137 +15975,11 @@ public class Packet_PositionItemSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_PositionItem DeserializeBuffer(byte[] buffer, int length, Packet_PositionItem instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_PositionItem Deserialize(CitoStream stream, Packet_PositionItem instance)
-    {
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Key_ = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Value_ == null)
-                        instance.Value_ = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.Value_);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_PositionItem DeserializeLengthDelimited(CitoStream stream, Packet_PositionItem instance)
     {
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Key_ = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 LengthDelimited
-                case 18:
-                    if (instance.Value_ == null)
-                        instance.Value_ = Packet_ItemSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_ItemSerializer.DeserializeLengthDelimited(stream, instance.Value_);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_PositionItem DeserializeLength(CitoStream stream, int length, Packet_PositionItem instance)
-    {
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -28577,21 +16074,6 @@ public class Packet_PositionItemSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.Y);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_PositionItem instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_PositionItem instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_DialogSerializer
@@ -28601,72 +16083,6 @@ public class Packet_DialogSerializer
     {
         Packet_Dialog instance = new Packet_Dialog();
         DeserializeLengthDelimited(stream, instance);
-        return instance;
-    }
-
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_Dialog DeserializeBuffer(byte[] buffer, int length, Packet_Dialog instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_Dialog Deserialize(CitoStream stream, Packet_Dialog instance)
-    {
-        if (instance.Widgets == null)
-        {
-            instance.Widgets = new Packet_Widget[1];
-            instance.WidgetsCount = 0;
-            instance.WidgetsLength = 1;
-        }
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.WidgetsAdd(Packet_WidgetSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Width = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Height_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.IsModal = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
         return instance;
     }
 
@@ -28681,74 +16097,6 @@ public class Packet_DialogSerializer
         }
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    // repeated
-                    instance.WidgetsAdd(Packet_WidgetSerializer.DeserializeLengthDelimitedNew(stream));
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Width = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.Height_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.IsModal = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_Dialog DeserializeLength(CitoStream stream, int length, Packet_Dialog instance)
-    {
-        if (instance.Widgets == null)
-        {
-            instance.Widgets = new Packet_Widget[1];
-            instance.WidgetsCount = 0;
-            instance.WidgetsLength = 1;
-        }
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -28842,21 +16190,6 @@ public class Packet_DialogSerializer
         stream.WriteByte(32);
         ProtocolParser.WriteUInt64(stream, instance.IsModal);
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_Dialog instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_Dialog instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_WidgetSerializer
@@ -28869,204 +16202,12 @@ public class Packet_WidgetSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_Widget DeserializeBuffer(byte[] buffer, int length, Packet_Widget instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_Widget Deserialize(CitoStream stream, Packet_Widget instance)
-    {
-        instance.Type = Packet_WidgetTypeEnum.Image;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Id = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Click = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Width = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Height_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    instance.Text = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.ClickKey = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    instance.Image = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 10 Varint
-                case 80:
-                    instance.Color = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 11 LengthDelimited
-                case 90:
-                    if (instance.Font == null)
-                        instance.Font = Packet_DialogFontSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_DialogFontSerializer.DeserializeLengthDelimited(stream, instance.Font);
-                    continue;
-                // Field 12 Varint
-                case 96:
-                    instance.Type = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_Widget DeserializeLengthDelimited(CitoStream stream, Packet_Widget instance)
     {
         instance.Type = Packet_WidgetTypeEnum.Image;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.Id = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.Click = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.X = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 4 Varint
-                case 32:
-                    instance.Y = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 5 Varint
-                case 40:
-                    instance.Width = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 6 Varint
-                case 48:
-                    instance.Height_ = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 7 LengthDelimited
-                case 58:
-                    instance.Text = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 8 Varint
-                case 64:
-                    instance.ClickKey = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 9 LengthDelimited
-                case 74:
-                    instance.Image = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 10 Varint
-                case 80:
-                    instance.Color = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 11 LengthDelimited
-                case 90:
-                    if (instance.Font == null)
-                        instance.Font = Packet_DialogFontSerializer.DeserializeLengthDelimitedNew(stream);
-                    else
-                        Packet_DialogFontSerializer.DeserializeLengthDelimited(stream, instance.Font);
-                    continue;
-                // Field 12 Varint
-                case 96:
-                    instance.Type = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_Widget DeserializeLength(CitoStream stream, int length, Packet_Widget instance)
-    {
-        instance.Type = Packet_WidgetTypeEnum.Image;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -29226,21 +16367,6 @@ public class Packet_WidgetSerializer
             ProtocolParser.WriteUInt64(stream, instance.Type);
         }
     }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_Widget instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_Widget instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
-    }
 }
 
 public class Packet_DialogFontSerializer
@@ -29253,126 +16379,12 @@ public class Packet_DialogFontSerializer
         return instance;
     }
 
-    /// <summary>Helper: put the buffer into a MemoryStream before deserializing</summary>
-    public static Packet_DialogFont DeserializeBuffer(byte[] buffer, int length, Packet_DialogFont instance)
-    {
-        CitoMemoryStream ms = CitoMemoryStream.Create(buffer, length);
-        Deserialize(ms, instance);
-        return instance;
-    }
-
-    /// <summary>Takes the remaining content of the stream and deserialze it into the instance.</summary>
-    public static Packet_DialogFont Deserialize(CitoStream stream, Packet_DialogFont instance)
-    {
-        instance.FontStyle = Packet_DialogFontStyleEnum.Regular;
-        while (true)
-        {
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                break;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.FamilyName = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.SizeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.FontStyle = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_DialogFont DeserializeLengthDelimited(CitoStream stream, Packet_DialogFont instance)
     {
         instance.FontStyle = Packet_DialogFontStyleEnum.Regular;
         int limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position();
-        while (true)
-        {
-            if (stream.Position() >= limit)
-            {
-                if (stream.Position() == limit)
-                    break;
-                else
-                    //throw new InvalidOperationException("Read past max limit");
-                    return null;
-            }
-            int keyByte = stream.ReadByte();
-            if (keyByte == -1)
-                //throw new System.IO.EndOfStreamException();
-                return null;
-            // Optimized reading of known fields with field ID < 16
-            switch (keyByte)
-            {
-                // Field 1 LengthDelimited
-                case 10:
-                    instance.FamilyName = ProtocolParser.ReadString(stream);
-                    continue;
-                // Field 2 Varint
-                case 16:
-                    instance.SizeFloat = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                // Field 3 Varint
-                case 24:
-                    instance.FontStyle = ProtocolParser.ReadUInt64(stream);
-                    continue;
-                default: break;
-            }
-
-#if CITO
-             Key key = ProtocolParser.ReadKey_(keyByte.LowByte, stream);
-#else
-            Key key = ProtocolParser.ReadKey_((byte)keyByte, stream);
-#endif
-
-            // Reading field ID > 16 and unknown field ID/wire type combinations
-            switch (key.GetField())
-            {
-                case 0:
-                    //throw new InvalidDataException("Invalid field id: 0, something went wrong in the stream");
-                    return null;
-                default:
-                    ProtocolParser.SkipKey(stream, key);
-                    break;
-            }
-        }
-
-        return instance;
-    }
-
-    /// <summary>Read the given number of bytes from the stream and deserialze it into the instance.</summary>
-    public static Packet_DialogFont DeserializeLength(CitoStream stream, int length, Packet_DialogFont instance)
-    {
-        instance.FontStyle = Packet_DialogFontStyleEnum.Regular;
-        int limit = stream.Position() + length;
         while (true)
         {
             if (stream.Position() >= limit)
@@ -29444,20 +16456,5 @@ public class Packet_DialogFontSerializer
             stream.WriteByte(24);
             ProtocolParser.WriteUInt64(stream, instance.FontStyle);
         }
-    }
-
-    /// <summary>Helper: Serialize into a MemoryStream and return its byte array</summary>
-    public static byte[] SerializeToBytes(Packet_DialogFont instance)
-    {
-        CitoMemoryStream ms = new CitoMemoryStream();
-        Serialize(ms, instance);
-        return ms.ToArray();
-    }
-    /// <summary>Helper: Serialize with a varint length prefix</summary>
-    public static void SerializeLengthDelimited(CitoStream stream, Packet_DialogFont instance)
-    {
-        byte[] data = SerializeToBytes(instance);
-        ProtocolParser.WriteUInt32_(stream, data.Length);
-        stream.Write(data, 0, data.Length);
     }
 }

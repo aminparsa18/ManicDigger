@@ -385,7 +385,7 @@ public class ScriptCharacterPhysics : IEntityScript
             return true;
         }
         Packet_BlockType blocktype = game.blocktypes[block];
-        return blocktype.WalkableType == Packet_WalkableTypeEnum.Fluid
+        return blocktype.WalkableType == WalkableType.Fluid
             || Game.IsEmptyForPhysics(blocktype)
             || IsRail(blocktype);
     }

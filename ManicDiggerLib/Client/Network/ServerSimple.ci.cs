@@ -516,7 +516,7 @@ public class BlockTypeSimple
     }
 
     public void SetDrawType(DrawType p) => block.DrawType = p;
-    public void SetWalkableType(int p) => block.WalkableType = p;
+    public void SetWalkableType(WalkableType p) => block.WalkableType = p;
     public void SetName(string name) => block.Name = name;
     public void SetTextureTop(string p) => block.TextureIdTop = p;
     public void SetTextureBack(string p) => block.TextureIdBack = p;
@@ -534,11 +534,11 @@ public class ModSimpleDefault : ModSimple
     {
         _m = manager;
 
-        Add("Empty", DrawType.Empty, Packet_WalkableTypeEnum.Empty);
+        Add("Empty", DrawType.Empty, WalkableType.Empty);
         AddTextured("Stone", "Stone");
         AddTextured("Dirt", "Dirt");
 
-        BlockTypeSimple grass = Add("Grass", DrawType.Solid, Packet_WalkableTypeEnum.Solid);
+        BlockTypeSimple grass = Add("Grass", DrawType.Solid, WalkableType.Solid);
         grass.SetTextureTop("Grass");
         grass.SetTextureFront("GrassSide"); grass.SetTextureBack("GrassSide");
         grass.SetTextureLeft("GrassSide"); grass.SetTextureRight("GrassSide");
@@ -564,7 +564,7 @@ public class ModSimpleDefault : ModSimple
         manager.CreateBlockType("Rail0");
     }
 
-    private BlockTypeSimple Add(string name, DrawType drawType, int walkableType)
+    private BlockTypeSimple Add(string name, DrawType drawType, WalkableType walkableType)
     {
         BlockTypeSimple b = _m.CreateBlockType(name);
         b.SetDrawType(drawType);
@@ -574,7 +574,7 @@ public class ModSimpleDefault : ModSimple
 
     private void AddTextured(string name, string texture)
     {
-        BlockTypeSimple b = Add(name, DrawType.Solid, Packet_WalkableTypeEnum.Solid);
+        BlockTypeSimple b = Add(name, DrawType.Solid, WalkableType.Solid);
         b.SetAllTextures(texture);
     }
 

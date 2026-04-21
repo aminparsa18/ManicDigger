@@ -3449,7 +3449,7 @@ public partial class Server : ICurrentTime, IDropItem
         Packet_DialogFont f = new()
         {
             FamilyName = dialogFont.FamilyName,
-            FontStyle = (int)dialogFont.FontStyle,
+            FontStyle = dialogFont.FontStyle,
             SizeFloat = SerializeFloat(dialogFont.Size)
         };
         return f;
@@ -4034,7 +4034,7 @@ public class BlockTypeConverter
             IsUsable = block.IsUsable,
             LightRadius = block.LightRadius,
             Name = block.Name,
-            PistolType = (int)block.PistolType,
+            PistolType = block.PistolType,
             ProjectileBounce = block.ProjectileBounce,
             ProjectileSpeedFloat = Server.SerializeFloat(block.ProjectileSpeed),
             Rail = block.Rail,
@@ -4050,7 +4050,7 @@ public class BlockTypeConverter
             TextureIdLeft = block.TextureIdLeft,
             TextureIdRight = block.TextureIdRight,
             TextureIdTop = block.TextureIdTop,
-            WalkableType = (int)block.WalkableType,
+            WalkableType = block.WalkableType,
             WalkSpeedFloat = Server.SerializeFloat(block.WalkSpeed),
             WalkSpeedWhenUsedFloat = Server.SerializeFloat(block.WalkSpeedWhenUsed),
             WhenPlacedGetsConvertedTo = block.WhenPlayerPlacesGetsConvertedTo,

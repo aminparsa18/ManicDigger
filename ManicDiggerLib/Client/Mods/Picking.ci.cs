@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 
 /// <summary>
 /// Handles block and entity picking (ray-casting from the player's view),
@@ -108,7 +109,7 @@ public class ModPicking : ModBase
 
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
         bool isPistol = item != null && game.blocktypes[item.BlockId].IsPistol;
-        bool isGrenade = isPistol && game.blocktypes[item.BlockId].PistolType == Packet_PistolTypeEnum.Grenade;
+        bool isGrenade = isPistol && game.blocktypes[item.BlockId].PistolType == PistolType.Grenade;
         bool isPistolShoot = isPistol && left;
         if (isPistol && isGrenade) { isPistolShoot = game.mouseleftdeclick; }
 

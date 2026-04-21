@@ -264,7 +264,7 @@ public class Packet_ClientShot
 
 public class Packet_ClientSpecialKey
 {
-    internal PacketSpecialKey Key_;
+    internal SpecialKey Key_;
 }
 
 public class Packet_ClientActiveMaterialSlot
@@ -533,7 +533,7 @@ public class Packet_BlockType
 
     internal DrawType DrawType;
 
-    internal int WalkableType;
+    internal WalkableType WalkableType;
 
     internal int Rail;
 
@@ -602,7 +602,7 @@ public class Packet_BlockType
 
     internal int DamageHeadFloat;
 
-    internal int PistolType;
+    internal PistolType PistolType;
 
     internal int DamageToPlayer;
 
@@ -1507,7 +1507,7 @@ public class Packet_DialogFont
 
     internal int SizeFloat;
 
-    internal int FontStyle;
+    internal DialogFontStyle FontStyle;
 }
 
 public enum PacketType
@@ -1566,31 +1566,10 @@ public enum PacketLeaveReason
     Crash = 1
 }
 
-public enum PacketSpecialKey
-{
-    Respawn = 0,
-    SetSpawn = 1,
-    TabPlayerList = 2,
-    SelectTeam = 3
-}
-
 public enum PacketEntityInteractionType
 {
     Use = 0,
     Hit = 1
-}
-
-public class Packet_WalkableTypeEnum
-{
-    public const int Empty = 0;
-    public const int Fluid = 1;
-    public const int Solid = 2;
-}
-
-public class Packet_PistolTypeEnum
-{
-    public const int Normal = 0;
-    public const int Grenade = 1;
 }
 
 public class Packet_ServerIdEnum
@@ -1659,15 +1638,6 @@ public class Packet_WidgetTypeEnum
     public const int Image = 0;
     public const int Text = 1;
     public const int TextBox = 2;
-}
-
-public class Packet_DialogFontStyleEnum
-{
-    public const int Regular = 0;
-    public const int Bold = 1;
-    public const int Italic = 2;
-    public const int Underline = 4;
-    public const int Strikeout = 8;
 }
 
 // This is the backend code for reading and writing
@@ -3190,7 +3160,7 @@ public class Packet_ClientSpecialKeySerializer
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_ClientSpecialKey DeserializeLengthDelimited(Stream stream, Packet_ClientSpecialKey instance)
     {
-        instance.Key_ = PacketSpecialKey.Respawn;
+        instance.Key_ = SpecialKey.Respawn;
         long limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position;
         while (true)
@@ -3211,7 +3181,7 @@ public class Packet_ClientSpecialKeySerializer
             switch (keyByte)
             {                // Field 1 Varint
                 case 8:
-                    instance.Key_ = (PacketSpecialKey)ProtocolParser.ReadUInt64(stream);
+                    instance.Key_ = (SpecialKey)ProtocolParser.ReadUInt64(stream);
                     continue;
                 default: break;
             }
@@ -3236,7 +3206,7 @@ public class Packet_ClientSpecialKeySerializer
     /// <summary>Serialize the instance into the stream</summary>
     public static void Serialize(Stream stream, Packet_ClientSpecialKey instance)
     {
-        if (instance.Key_ != PacketSpecialKey.Respawn)
+        if (instance.Key_ != SpecialKey.Respawn)
         {            // Key for field: 1, Varint
             stream.WriteByte(8);
             ProtocolParser.WriteUInt64(stream, (int)instance.Key_);
@@ -4318,8 +4288,8 @@ public class Packet_BlockTypeSerializer
     public static Packet_BlockType DeserializeLengthDelimited(Stream stream, Packet_BlockType instance)
     {
         instance.DrawType = DrawType.Empty;
-        instance.WalkableType = Packet_WalkableTypeEnum.Empty;
-        instance.PistolType = Packet_PistolTypeEnum.Normal;
+        instance.WalkableType = WalkableType.Empty;
+        instance.PistolType = PistolType.Normal;
         long limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position;
         while (true)
@@ -4372,7 +4342,7 @@ public class Packet_BlockTypeSerializer
                     continue;
                 // Field 9 Varint
                 case 72:
-                    instance.WalkableType = ProtocolParser.ReadUInt64(stream);
+                    instance.WalkableType = (WalkableType)ProtocolParser.ReadUInt64(stream);
                     continue;
                 // Field 10 Varint
                 case 80:
@@ -4545,7 +4515,7 @@ public class Packet_BlockTypeSerializer
                 case 42:
                     if (key.WireType != Wire.Varint)
                         break;
-                    instance.PistolType = ProtocolParser.ReadUInt64(stream);
+                    instance.PistolType = (PistolType)ProtocolParser.ReadUInt64(stream);
                     continue;
                 case 43:
                     if (key.WireType != Wire.Varint)
@@ -4614,10 +4584,10 @@ public class Packet_BlockTypeSerializer
             stream.WriteByte(64);
             ProtocolParser.WriteUInt64(stream, (int)instance.DrawType);
         }
-        if (instance.WalkableType != Packet_WalkableTypeEnum.Empty)
+        if (instance.WalkableType != WalkableType.Empty)
         {            // Key for field: 9, Varint
             stream.WriteByte(72);
-            ProtocolParser.WriteUInt64(stream, instance.WalkableType);
+            ProtocolParser.WriteUInt64(stream, (int)instance.WalkableType);
         }
         // Key for field: 10, Varint
         stream.WriteByte(80);
@@ -4760,11 +4730,11 @@ public class Packet_BlockTypeSerializer
         stream.WriteByte(200);
         stream.WriteByte(2);
         ProtocolParser.WriteUInt64(stream, instance.DamageHeadFloat);
-        if (instance.PistolType != Packet_PistolTypeEnum.Normal)
+        if (instance.PistolType != PistolType.Normal)
         {            // Key for field: 42, Varint
             stream.WriteByte(208);
             stream.WriteByte(2);
-            ProtocolParser.WriteUInt64(stream, instance.PistolType);
+            ProtocolParser.WriteUInt64(stream, (int)instance.PistolType);
         }
         // Key for field: 43, Varint
         stream.WriteByte(216);
@@ -11160,7 +11130,7 @@ public class Packet_DialogFontSerializer
     /// <summary>Read the VarInt length prefix and the given number of bytes from the stream and deserialze it into the instance.</summary>
     public static Packet_DialogFont DeserializeLengthDelimited(Stream stream, Packet_DialogFont instance)
     {
-        instance.FontStyle = Packet_DialogFontStyleEnum.Regular;
+        instance.FontStyle = DialogFontStyle.Regular;
         long limit = ProtocolParser.ReadUInt32(stream);
         limit += stream.Position;
         while (true)
@@ -11189,7 +11159,7 @@ public class Packet_DialogFontSerializer
                     continue;
                 // Field 3 Varint
                 case 24:
-                    instance.FontStyle = ProtocolParser.ReadUInt64(stream);
+                    instance.FontStyle = (DialogFontStyle)ProtocolParser.ReadUInt64(stream);
                     continue;
                 default: break;
             }
@@ -11222,10 +11192,10 @@ public class Packet_DialogFontSerializer
         // Key for field: 2, Varint
         stream.WriteByte(16);
         ProtocolParser.WriteUInt64(stream, instance.SizeFloat);
-        if (instance.FontStyle != Packet_DialogFontStyleEnum.Regular)
+        if (instance.FontStyle != DialogFontStyle.Regular)
         {            // Key for field: 3, Varint
             stream.WriteByte(24);
-            ProtocolParser.WriteUInt64(stream, instance.FontStyle);
+            ProtocolParser.WriteUInt64(stream, (int)instance.FontStyle);
         }
     }
 }

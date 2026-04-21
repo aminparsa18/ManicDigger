@@ -38,14 +38,14 @@ public partial class Game
     {
         int eyesBlock = GetPlayerEyesBlock();
         if (eyesBlock == -1) return true;
-        return d_Data.WalkableType1()[eyesBlock] == Packet_WalkableTypeEnum.Fluid;
+        return d_Data.WalkableType1()[eyesBlock] == WalkableType.Fluid;
     }
 
     internal bool SwimmingBody()
     {
         int block = VoxelMap.GetBlock((int)player.position.x, (int)player.position.z, (int)(player.position.y + 1));
         if (block == -1) return true;
-        return d_Data.WalkableType1()[block] == Packet_WalkableTypeEnum.Fluid;
+        return d_Data.WalkableType1()[block] == WalkableType.Fluid;
     }
 
     internal bool WaterSwimmingEyes()

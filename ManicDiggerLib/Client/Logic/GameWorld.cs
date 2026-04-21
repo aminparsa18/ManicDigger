@@ -8,8 +8,8 @@ public partial class Game
 
     public static bool IsEmptyForPhysics(Packet_BlockType block) =>
         block.DrawType == DrawType.Ladder
-        || (block.WalkableType != Packet_WalkableTypeEnum.Solid
-            && block.WalkableType != Packet_WalkableTypeEnum.Fluid);
+        || (block.WalkableType != WalkableType.Solid
+            && block.WalkableType != WalkableType.Fluid);
 
     public static bool IsTransparentForLight(Packet_BlockType b) =>
         b.DrawType != DrawType.Solid

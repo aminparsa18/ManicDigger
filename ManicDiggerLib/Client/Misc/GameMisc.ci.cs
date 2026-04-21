@@ -994,7 +994,7 @@ public class GameData
         mStartInventoryAmount = new int[count];
         mStrength = new float[count];
         mDamageToPlayer = new int[count];
-        mWalkableType = new int[count];
+        mWalkableType = new WalkableType[count];
 
         mDefaultMaterialSlots = new int[10];
     }
@@ -1012,7 +1012,7 @@ public class GameData
     public int[] StartInventoryAmount() { return mStartInventoryAmount; }
     public float[] Strength() { return mStrength; }
     public int[] DamageToPlayer() { return mDamageToPlayer; }
-    public int[] WalkableType1() { return mWalkableType; }
+    public WalkableType[] WalkableType1() { return mWalkableType; }
 
     public int[] DefaultMaterialSlots() { return mDefaultMaterialSlots; }
 
@@ -1029,7 +1029,7 @@ public class GameData
     private int[] mStartInventoryAmount;
     private float[] mStrength;
     private int[] mDamageToPlayer;
-    private int[] mWalkableType;
+    private WalkableType[] mWalkableType;
 
     private int[] mDefaultMaterialSlots;
 

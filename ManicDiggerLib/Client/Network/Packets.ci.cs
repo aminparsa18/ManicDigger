@@ -122,7 +122,7 @@ public class ClientPackets
             p.Id = PacketType.SpecialKey;
             p.SpecialKey_ = new Packet_ClientSpecialKey
             {
-                Key_ = PacketSpecialKey.Respawn
+                Key_ = SpecialKey.Respawn
             };
         }
         return p;
@@ -304,7 +304,7 @@ public class ClientPackets
             Id = PacketType.SpecialKey,
             SpecialKey_ = new Packet_ClientSpecialKey
             {
-                Key_ = PacketSpecialKey.TabPlayerList
+                Key_ = SpecialKey.TabPlayerList
             }
         };
         return p;
@@ -317,7 +317,7 @@ public class ClientPackets
             p.Id = PacketType.SpecialKey;
             p.SpecialKey_ = new Packet_ClientSpecialKey
             {
-                Key_ = PacketSpecialKey.SelectTeam
+                Key_ = SpecialKey.SelectTeam
             };
         }
         return p;
@@ -330,7 +330,7 @@ public class ClientPackets
             p.Id = PacketType.SpecialKey;
             p.SpecialKey_ = new Packet_ClientSpecialKey
             {
-                Key_ = PacketSpecialKey.SetSpawn
+                Key_ = SpecialKey.SetSpawn
             };
         }
         return p;

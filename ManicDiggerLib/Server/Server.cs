@@ -4356,19 +4356,6 @@ public class EntityHeading
     }
 }
 
-
-public abstract class ServerSystem
-{
-    public ServerSystem()
-    {
-        one = 1;
-    }
-    internal float one;
-    public virtual void Update(Server server, float dt) { }
-    public virtual void OnRestart(Server server) { }
-    public virtual bool OnCommand(Server server, int sourceClientId, string command, string argument) { return false; }
-}
-
 public abstract class ServerPlatform
 {
     public abstract void QueueUserWorkItem(Action action);

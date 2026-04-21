@@ -1,150 +1,165 @@
 ﻿using System.Net.Http.Headers;
 
+/// <summary>
+/// Sends a heartbeat to the public server list every 60 seconds when the server
+/// is configured as public. The first heartbeat fires immediately on startup by
+/// initialising the elapsed timer to the interval.
+/// The received server hash is printed to the console once on first successful contact.
+/// </summary>
 public class ServerSystemHeartbeat : ServerSystem
 {
+    private const float HeartbeatInterval = 60f;
+    private const string HashPrefix = "server=";
+
     private float elapsed;
-    private readonly ServerHeartbeat d_Heartbeat;
-    private bool writtenServerKey = false;
-    public string hashPrefix = "server=";
+    private bool hashPrinted;
+    private readonly ServerHeartbeat heartbeat = new();
 
     public ServerSystemHeartbeat()
     {
-        d_Heartbeat = new ServerHeartbeat();
-        elapsed = 60;
+        // Pre-fill the timer so the first heartbeat fires on the first tick
+        elapsed = HeartbeatInterval;
     }
 
-    internal static Action CreateSendHeartbeatAction(ServerSystemHeartbeat s, Server server)
-    {
-        return async () => await s.SendHeartbeat(server);
-    }
+    // -------------------------------------------------------------------------
+    // Lifecycle
+    // -------------------------------------------------------------------------
 
-    public override void Update(Server server, float dt)
+    /// <inheritdoc/>
+    protected override void OnUpdate(Server server, float dt)
     {
         elapsed += dt;
-        while (elapsed >= 60)
+        while (elapsed >= HeartbeatInterval)
         {
-            elapsed -= 60;
+            elapsed -= HeartbeatInterval;
             if (server.Public && server.config.Public)
             {
-                d_Heartbeat.GameMode = server.gameMode;
-                server.serverPlatform.QueueUserWorkItem(CreateSendHeartbeatAction(this, server));
+                heartbeat.GameMode = server.gameMode;
+                server.serverPlatform.QueueUserWorkItem(async () => await SendHeartbeat(server));
             }
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Heartbeat
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Populates the heartbeat payload from the current server state and dispatches
+    /// it asynchronously. Bot players are excluded from the player list.
+    /// Errors are logged briefly in release builds and in full in debug builds.
+    /// </summary>
     public async Task SendHeartbeat(Server server)
     {
-        if (server.config == null)
-        {
-            return;
-        }
-        if (server.config.Key == null)
-        {
-            return;
-        }
-        d_Heartbeat.Name = server.config.Name;
-        d_Heartbeat.MaxClients = server.config.MaxClients;
-        d_Heartbeat.PasswordProtected = server.config.IsPasswordProtected();
-        d_Heartbeat.AllowGuests = server.config.AllowGuests;
-        d_Heartbeat.Port = server.config.Port;
-        d_Heartbeat.Version = GameVersion.Version;
-        d_Heartbeat.Key = server.config.Key;
-        d_Heartbeat.Motd = server.config.Motd;
-        List<string> playernames = [];
+        if (server.config?.Key == null) return;
+
+        heartbeat.Name = server.config.Name;
+        heartbeat.MaxClients = server.config.MaxClients;
+        heartbeat.PasswordProtected = server.config.IsPasswordProtected();
+        heartbeat.AllowGuests = server.config.AllowGuests;
+        heartbeat.Port = server.config.Port;
+        heartbeat.Version = GameVersion.Version;
+        heartbeat.Key = server.config.Key;
+        heartbeat.Motd = server.config.Motd;
+
+        var playerNames = new List<string>();
         lock (server.clients)
         {
-            foreach (var k in server.clients)
+            foreach (var (_, client) in server.clients)
             {
-                if (k.Value.IsBot)
-                {
-                    //Exclude bot players from appearing on server list
-                    continue;
-                }
-                playernames.Add(k.Value.playername);
+                if (!client.IsBot)
+                    playerNames.Add(client.playername);
             }
         }
-        d_Heartbeat.Players = playernames;
-        d_Heartbeat.UsersCount = playernames.Count;
+        heartbeat.Players = playerNames;
+        heartbeat.UsersCount = playerNames.Count;
+
         try
         {
-            await d_Heartbeat.SendHeartbeatAsync();
-            server.ReceivedKey = d_Heartbeat.ReceivedKey;
-            if (!writtenServerKey)
+            await heartbeat.SendHeartbeatAsync();
+            server.ReceivedKey = heartbeat.ReceivedKey;
+
+            if (!hashPrinted)
             {
-                Console.WriteLine($"hash: {GetHash(d_Heartbeat.ReceivedKey)}");
-                writtenServerKey = true;
+                Console.WriteLine($"hash: {StripHashPrefix(heartbeat.ReceivedKey)}");
+                hashPrinted = true;
             }
+
             Console.WriteLine(server.language.ServerHeartbeatSent());
         }
         catch (Exception e)
         {
-            #if DEBUG
-                // Only display full error message when running in Debug mode
-                Console.WriteLine(e.ToString());
-            #endif
-            // Short error output when running normally
+#if DEBUG
+            Console.WriteLine(e.ToString());
+#endif
             Console.WriteLine("{0} ({1})", server.language.ServerHeartbeatError(), e.Message);
         }
     }
 
-    private string GetHash(string hash)
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Strips the <c>"server="</c> prefix from the received key string, returning
+    /// only the hash value. Returns an empty string if parsing fails.
+    /// </summary>
+    private static string StripHashPrefix(string hash)
     {
         try
         {
-            if (hash.Contains(hashPrefix))
-            {
-                hash = hash.Substring(hash.IndexOf(hashPrefix) + hashPrefix.Length);
-            }
+            int idx = hash?.IndexOf(HashPrefix) ?? -1;
+            return idx >= 0 ? hash[(idx + HashPrefix.Length)..] : hash ?? "";
         }
         catch
         {
             return "";
         }
-        return hash;
     }
 }
 
+// =============================================================================
+
+/// <summary>
+/// Encapsulates the heartbeat payload and the HTTP logic for posting it to the
+/// public server list. The list URL is fetched once and cached for the lifetime
+/// of the instance.
+/// </summary>
 public class ServerHeartbeat
 {
-    public ServerHeartbeat()
-    {
-        this.Name = "";
-        this.Key = Guid.NewGuid().ToString();
-        this.MaxClients = 16;
-        this.Public = true;
-        this.AllowGuests = true;
-        this.Port = 25565;
-        this.Version = "Unknown";
-        this.Players = new List<string>();
-        this.UsersCount = 0;
-        this.Motd = "";
-    }
-
-    private string fListUrl = null;
-
-    public string Name { get; set; }
-    public string Key { get; set; }
-    public int MaxClients { get; set; }
-    public bool Public { get; set; }
+    public string Name { get; set; } = "";
+    public string Key { get; set; } = Guid.NewGuid().ToString();
+    public int MaxClients { get; set; } = 16;
+    public bool Public { get; set; } = true;
     public bool PasswordProtected { get; set; }
-    public bool AllowGuests { get; set; }
-    public int Port { get; set; }
-    public string Version { get; set; }
-    public List<string> Players { get; set; }
+    public bool AllowGuests { get; set; } = true;
+    public int Port { get; set; } = 25565;
+    public string Version { get; set; } = "Unknown";
+    public List<string> Players { get; set; } = [];
     public int UsersCount { get; set; }
-    public string Motd { get; set; }
+    public string Motd { get; set; } = "";
     public string GameMode { get; set; }
     public string ReceivedKey { get; set; }
 
-    private static readonly HttpClient _httpClient = new()
+    private string listUrl;
+
+    private static readonly HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(15),
-        DefaultRequestHeaders = { CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true } }
+        DefaultRequestHeaders =
+        {
+            CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true }
+        }
     };
 
+    /// <summary>
+    /// Posts the current heartbeat payload to the server list. The list endpoint
+    /// URL is resolved once on first call and cached. <see cref="ReceivedKey"/>
+    /// is populated with the server's response after a successful post.
+    /// </summary>
     public async Task SendHeartbeatAsync()
     {
-        fListUrl ??= await _httpClient.GetStringAsync("http://manicdigger.sourceforge.net/heartbeat.txt");
+        listUrl ??= await HttpClient.GetStringAsync("http://manicdigger.sourceforge.net/heartbeat.txt");
 
         var formData = new Dictionary<string, string>
         {
@@ -154,7 +169,7 @@ public class ServerHeartbeat
             ["passwordProtected"] = PasswordProtected.ToString(),
             ["allowGuests"] = AllowGuests.ToString(),
             ["port"] = Port.ToString(),
-            ["version"] = Version.ToString(),
+            ["version"] = Version,
             ["fingerprint"] = Key.Replace("-", ""),
             ["users"] = UsersCount.ToString(),
             ["motd"] = Motd,
@@ -163,7 +178,7 @@ public class ServerHeartbeat
         };
 
         using var content = new FormUrlEncodedContent(formData);
-        using var response = await _httpClient.PostAsync(fListUrl, content);
+        using var response = await HttpClient.PostAsync(listUrl, content);
         response.EnsureSuccessStatusCode();
         ReceivedKey = await response.Content.ReadAsStringAsync();
     }

@@ -2,162 +2,199 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-//The main function for loading, unloading and sending chunks to players.
+/// <summary>
+/// The main system for loading, unloading, and streaming map chunks to players.
+/// Each tick it finds the nearest unseen chunk for every connected client and
+/// sends it, continuing until either all dirty chunks are resolved or 10 ms of
+/// wall time has elapsed to avoid blocking the server loop.
+/// </summary>
 public class ServerSystemNotifyMap : ServerSystem
 {
-    private const int intMaxValue = 2147483647;
+    // -------------------------------------------------------------------------
+    // Lifecycle
+    // -------------------------------------------------------------------------
 
-    public override void Update(Server server, float dt)
+    /// <inheritdoc/>
+    protected override void OnUpdate(Server server, float dt)
     {
-        Stopwatch s = new();
-        s.Start();
-        int[] retNearest = new int[3];
-        bool loaded = true;
-        while (loaded && (s.ElapsedMilliseconds < 10))
+        var stopwatch = Stopwatch.StartNew();
+        bool sentAny = true;
+
+        while (sentAny && stopwatch.ElapsedMilliseconds < 10)
         {
-            loaded = false;
-            foreach (var k in server.clients)
+            sentAny = false;
+            foreach (var (clientId, client) in server.clients)
             {
-                if (k.Value.state == ClientStateOnServer.Connecting)
-                {
-                    continue;
-                }
-                Vector3i playerpos = Server.PlayerBlockPosition(k.Value);
+                if (client.state == ClientStateOnServer.Connecting) continue;
 
-                NearestDirty(server, k.Key, playerpos.X, playerpos.Y, playerpos.Z, retNearest);
+                Vector3i playerPos = Server.PlayerBlockPosition(client);
+                Vector3i? nearest = FindNearestDirtyChunk(server, clientId, playerPos);
 
-                if (retNearest[0] != -1)
-                {
-                    LoadAndSendChunk(server, k.Key, retNearest[0], retNearest[1], retNearest[2], s);
-                    loaded = true;
-                }
+                if (nearest == null) continue;
+
+                LoadAndSendChunk(server, clientId, nearest.Value, stopwatch);
+                sentAny = true;
             }
         }
     }
 
-    private static void NearestDirty(Server server, int clientid, int playerx, int playery, int playerz, int[] retNearest)
+    // -------------------------------------------------------------------------
+    // Chunk discovery
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Searches the area around <paramref name="playerPos"/> for the nearest
+    /// chunk that has not yet been sent to <paramref name="clientId"/>.
+    /// The search area is bounded by the configured draw distance.
+    /// </summary>
+    /// <returns>
+    /// The chunk-space coordinates of the nearest unseen chunk,
+    /// or <c>null</c> if all chunks in range have already been sent.
+    /// </returns>
+    private static Vector3i? FindNearestDirtyChunk(Server server, int clientId, Vector3i playerPos)
     {
-        int nearestdist = intMaxValue;
-        retNearest[0] = -1;
-        retNearest[1] = -1;
-        retNearest[2] = -1;
-        int px = playerx / Server.chunksize;
-        int py = playery / Server.chunksize;
-        int pz = playerz / Server.chunksize;
+        int px = playerPos.X / Server.chunksize;
+        int py = playerPos.Y / Server.chunksize;
+        int pz = playerPos.Z / Server.chunksize;
 
-        int chunksxy = MapAreaSize(server) / Server.chunksize / 2;
-        int chunksz = MapAreaSizeZ(server) / Server.chunksize / 2;
+        int halfXY = MapAreaSize(server) / Server.chunksize / 2;
+        int halfZ = MapAreaSizeZ(server) / Server.chunksize / 2;
 
-        int startx = px - chunksxy;
-        int endx = px + chunksxy;
-        int starty = py - chunksxy;
-        int endy = py + chunksxy;
-        int startz = pz - chunksz;
-        int endz = pz + chunksz;
+        int startX = Math.Max(0, px - halfXY);
+        int startY = Math.Max(0, py - halfXY);
+        int startZ = Math.Max(0, pz - halfZ);
+        int endX = Math.Min(server.mapsizexchunks() - 1, px + halfXY);
+        int endY = Math.Min(server.mapsizeychunks() - 1, py + halfXY);
+        int endZ = Math.Min(server.mapsizezchunks() - 1, pz + halfZ);
 
-        if (startx < 0) { startx = 0; }
-        if (starty < 0) { starty = 0; }
-        if (startz < 0) { startz = 0; }
-        if (endx >= server.mapsizexchunks()) { endx = server.mapsizexchunks() - 1; }
-        if (endy >= server.mapsizeychunks()) { endy = server.mapsizeychunks() - 1; }
-        if (endz >= server.mapsizezchunks()) { endz = server.mapsizezchunks() - 1; }
+        int nearestDist = int.MaxValue;
+        Vector3i? nearest = null;
 
-        for (int x = startx; x <= endx; x++)
-        {
-            for (int y = starty; y <= endy; y++)
-            {
-                for (int z = startz; z <= endz; z++)
+        for (int x = startX; x <= endX; x++)
+            for (int y = startY; y <= endY; y++)
+                for (int z = startZ; z <= endZ; z++)
                 {
-                    if (server.ClientSeenChunk(clientid, x, y, z))
+                    if (server.ClientSeenChunk(clientId, x, y, z)) continue;
+
+                    int dx = px - x;
+                    int dy = py - y;
+                    int dz = pz - z;
+                    int dist = dx * dx + dy * dy + dz * dz;
+
+                    if (dist < nearestDist)
                     {
-                        continue;
-                    }
-                    {
-                        int dx = px - x;
-                        int dy = py - y;
-                        int dz = pz - z;
-                        int dist = dx * dx + dy * dy + dz * dz;
-                        if (dist < nearestdist)
-                        {
-                            nearestdist = dist;
-                            retNearest[0] = x;
-                            retNearest[1] = y;
-                            retNearest[2] = z;
-                        }
+                        nearestDist = dist;
+                        nearest = new Vector3i(x, y, z);
                     }
                 }
-            }
-        }
+
+        return nearest;
     }
 
-    private static void LoadAndSendChunk(Server server, int clientid, int vx, int vy, int vz, Stopwatch s)
+    // -------------------------------------------------------------------------
+    // Chunk loading and sending
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Loads the chunk at chunk-space position <paramref name="chunkPos"/> and
+    /// sends it to <paramref name="clientId"/> if it has not already been sent.
+    /// </summary>
+    private static void LoadAndSendChunk(Server server, int clientId, Vector3i chunkPos, Stopwatch stopwatch)
     {
-        //load
-        server.LoadChunk(vx, vy, vz);
-        //send
-        if (!server.ClientSeenChunk(clientid, vx, vy, vz))
+        server.LoadChunk(chunkPos.X, chunkPos.Y, chunkPos.Z);
+
+        if (!server.ClientSeenChunk(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z))
         {
-            // only send chunks that haven't been sent yet
-            SendChunk(server, clientid, new Vector3i(vx * Server.chunksize, vy * Server.chunksize, vz * Server.chunksize), new Vector3i(vx, vy, vz));
+            var globalPos = new Vector3i(
+                chunkPos.X * Server.chunksize,
+                chunkPos.Y * Server.chunksize,
+                chunkPos.Z * Server.chunksize);
+
+            SendChunk(server, clientId, globalPos, chunkPos);
         }
     }
 
-    public static void SendChunk(Server server, int clientid, Vector3i globalpos, Vector3i chunkpos)
+    /// <summary>
+    /// Sends a chunk and its associated heightmap data to a client.
+    /// <list type="bullet">
+    ///   <item>Empty chunks (solid air) are skipped — only the heightmap is sent.</item>
+    ///   <item>Non-empty chunks are compressed and split into 1 KB parts before sending.</item>
+    ///   <item>A final <c>Chunk_</c> packet is always sent to signal chunk completion.</item>
+    /// </list>
+    /// </summary>
+    /// <param name="server">The running server instance.</param>
+    /// <param name="clientId">The client to send the chunk to.</param>
+    /// <param name="globalPos">Block-space origin of the chunk.</param>
+    /// <param name="chunkPos">Chunk-space coordinates of the chunk.</param>
+    public static void SendChunk(Server server, int clientId, Vector3i globalPos, Vector3i chunkPos)
     {
-        ClientOnServer c = server.clients[clientid];
-        ServerChunk chunk = server.d_Map.GetChunk(globalpos.X, globalpos.Y, globalpos.Z);
-        server.ClientSeenChunkSet(clientid, chunkpos.X, chunkpos.Y, chunkpos.Z, server.simulationcurrentframe);
-        //sent++;
-        byte[] compressedchunk;
-        if (MapUtil.IsSolidChunk(chunk.data) && chunk.data[0] == 0)
+        ClientOnServer client = server.clients[clientId];
+        ServerChunk chunk = server.d_Map.GetChunk(globalPos.X, globalPos.Y, globalPos.Z);
+        server.ClientSeenChunkSet(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z, server.simulationcurrentframe);
+
+        byte[] compressedChunk = null;
+
+        if (!MapUtil.IsSolidChunk(chunk.data) || chunk.data[0] != 0)
         {
-            //don't send empty chunk.
-            compressedchunk = null;
-        }
-        else
-        {
-            compressedchunk = server.CompressChunkNetwork(chunk.data);
-            //todo!
-            //commented because it was being sent too early, before full column was generated.
-            //if (!c.heightmapchunksseen.ContainsKey(new Vector2i(v.x, v.y)))
+            // Compress and queue block data for sending
+            compressedChunk = server.CompressChunkNetwork(chunk.data);
+
+            // Send heightmap for this column
+            ReadOnlySpan<byte> heightmapBytes = MemoryMarshal.AsBytes(
+                server.d_Map.GetHeightmapChunk(globalPos.X, globalPos.Y).AsSpan());
+
+            var heightmapPacket = new Packet_ServerHeightmapChunk
             {
-                ReadOnlySpan<byte> heightmapchunk = MemoryMarshal.AsBytes(server.d_Map.GetHeightmapChunk(globalpos.X, globalpos.Y).AsSpan());
-                byte[] compressedHeightmapChunk = server.d_NetworkCompression.Compress(heightmapchunk);
-                Packet_ServerHeightmapChunk p1 = new()
+                X = globalPos.X,
+                Y = globalPos.Y,
+                SizeX = Server.chunksize,
+                SizeY = Server.chunksize,
+                CompressedHeightmap = server.d_NetworkCompression.Compress(heightmapBytes)
+            };
+            server.SendPacket(clientId, Server.Serialize(new Packet_Server
+            {
+                Id = Packet_ServerIdEnum.HeightmapChunk,
+                HeightmapChunk = heightmapPacket
+            }));
+            client.heightmapchunksseen[new Vector2i(globalPos.X, globalPos.Y)] = server.simulationcurrentframe;
+        }
+
+        // Send block data in 1 KB parts
+        if (compressedChunk != null)
+        {
+            foreach (byte[] part in Server.Parts(compressedChunk, 1024))
+            {
+                server.SendPacket(clientId, Server.Serialize(new Packet_Server
                 {
-                    X = globalpos.X,
-                    Y = globalpos.Y,
-                    SizeX = Server.chunksize,
-                    SizeY = Server.chunksize,
-                    CompressedHeightmap = compressedHeightmapChunk,
-                };
-                server.SendPacket(clientid, Server.Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.HeightmapChunk, HeightmapChunk = p1 }));
-                c.heightmapchunksseen[new Vector2i(globalpos.X, globalpos.Y)] = server.simulationcurrentframe;
+                    Id = Packet_ServerIdEnum.ChunkPart,
+                    ChunkPart = new Packet_ServerChunkPart { CompressedChunkPart = part }
+                }));
             }
         }
-        if (compressedchunk != null)
+
+        // Signal chunk completion
+        server.SendPacket(clientId, Server.Serialize(new Packet_Server
         {
-            foreach (byte[] part in Server.Parts(compressedchunk, 1024))
+            Id = Packet_ServerIdEnum.Chunk_,
+            Chunk_ = new Packet_ServerChunk
             {
-                Packet_ServerChunkPart p1 = new()
-                {
-                    CompressedChunkPart = part,
-                };
-                server.SendPacket(clientid, Server.Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.ChunkPart, ChunkPart = p1 }));
+                X = globalPos.X,
+                Y = globalPos.Y,
+                Z = globalPos.Z,
+                SizeX = Server.chunksize,
+                SizeY = Server.chunksize,
+                SizeZ = Server.chunksize
             }
-        }
-        Packet_ServerChunk p = new()
-        {
-            X = globalpos.X,
-            Y = globalpos.Y,
-            Z = globalpos.Z,
-            SizeX = Server.chunksize,
-            SizeY = Server.chunksize,
-            SizeZ = Server.chunksize,
-        };
-        server.SendPacket(clientid, Server.Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.Chunk_, Chunk_ = p }));
+        }));
     }
 
-    public static int MapAreaSize(Server server) { return server.chunkdrawdistance * Server.chunksize * 2; }
-    public static int MapAreaSizeZ(Server server) { return MapAreaSize(server); }
+    // -------------------------------------------------------------------------
+    // Area size helpers
+    // -------------------------------------------------------------------------
+
+    /// <summary>Returns the XY map streaming area size in blocks based on the configured draw distance.</summary>
+    public static int MapAreaSize(Server server) => server.chunkdrawdistance * Server.chunksize * 2;
+
+    /// <summary>Returns the Z map streaming area size in blocks. Currently mirrors the XY area.</summary>
+    public static int MapAreaSizeZ(Server server) => MapAreaSize(server);
 }

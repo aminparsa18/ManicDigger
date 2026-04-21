@@ -1,19 +1,11 @@
-﻿namespace ManicDigger;
-
+﻿/// <summary>
+/// The first <see cref="ServerSystem"/> to run on startup. Use <see cref="Initialize"/>
+/// to register anything that must be in place before all other systems initialize.
+/// </summary>
 public class ServerSystemLoadFirst : ServerSystem
 {
-    private bool loaded;
-
-    public override void Update(Server server, float dt)
-    {
-        if (!loaded)
-        {
-            loaded = true;
-            LoadFirstEvent(server);
-        }
-    }
-
-    private static void LoadFirstEvent(Server server)
+    /// <inheritdoc/>
+    protected override void Initialize(Server server)
     {
         // Add things that need to be done prior to all other systems here.
     }

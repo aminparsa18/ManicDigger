@@ -1,40 +1,40 @@
-﻿//Sends ping to all clients and disconnects timed-out players
+﻿/// <summary>
+/// Sends a ping packet to every connected client once per second and disconnects
+/// any client that fails to respond within the timeout window.
+/// Half-dropped connections (where the TCP socket appears open but the client is
+/// unresponsive) are detected this way.
+/// </summary>
 public class ServerSystemNotifyPing : ServerSystem
 {
-    private readonly Timer pingtimer = new() { INTERVAL = 1, MaxDeltaTime = 5 };
+    private readonly Timer pingTimer = new() { INTERVAL = 1, MaxDeltaTime = 5 };
 
-    public override void Update(Server server, float dt)
+    /// <inheritdoc/>
+    protected override void OnUpdate(Server server, float dt)
     {
-        pingtimer.Update(
-        delegate
+        pingTimer.Update(() =>
         {
-            if (server.exit.GetExit())
+            if (server.exit.GetExit()) return;
+
+            var timedOut = new List<int>();
+
+            foreach (var (clientId, client) in server.clients)
             {
-                //Instantly return if server wants to exit
-                return;
-            }
-            List<int> keysToDelete = new();
-            foreach (var k in server.clients)
-            {
-                // Check if client is alive. Detect half-dropped connections.
-                if (!k.Value.Ping.Send(server.platform.TimeMillisecondsFromStart)/*&& k.Value.state == ClientStateOnServer.Playing*/)
+                if (!client.Ping.Send(server.platform.TimeMillisecondsFromStart))
                 {
-                    if (k.Value.Ping.CheckTimeout(server.platform.TimeMillisecondsFromStart))
+                    if (client.Ping.CheckTimeout(server.platform.TimeMillisecondsFromStart))
                     {
-                        Console.WriteLine(k.Key + ": ping timeout. Disconnecting...");
-                        keysToDelete.Add(k.Key);
+                        Console.WriteLine($"{clientId}: ping timeout. Disconnecting...");
+                        timedOut.Add(clientId);
                     }
                 }
                 else
                 {
-                    server.SendPacket(k.Key, ServerPackets.Ping());
+                    server.SendPacket(clientId, ServerPackets.Ping());
                 }
             }
 
-            foreach (int key in keysToDelete)
-            {
-                server.KillPlayer(key);
-            }
+            foreach (int clientId in timedOut)
+                server.KillPlayer(clientId);
         });
     }
 }

@@ -1,73 +1,106 @@
-﻿//Unload chunks currently not seen by players
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 
+/// <summary>
+/// Iterates through all map chunks and unloads those no longer within any human
+/// player's view. Up to 100 chunks are inspected per tick; at most one chunk is
+/// actually unloaded per tick to spread the I/O cost of saving dirty chunks.
+/// <para>
+/// The unload distance is 1.8× the configured draw distance to add a hysteresis
+/// buffer — chunks are loaded in a square pattern but unloaded in a larger area,
+/// preventing them from being unloaded and immediately reloaded at view-distance
+/// edges.
+/// </para>
+/// </summary>
 public class ServerSystemUnloadUnusedChunks : ServerSystem
 {
-    private Vector3i chunkpos;
-    private int CompressUnusedIteration = 0;
+    private int iterationIndex;
 
-    public ServerSystemUnloadUnusedChunks()
+    // Ratio of unload distance to draw distance — larger than 1 to prevent
+    // oscillation at the boundary between loaded and unloaded chunks.
+    private const float UnloadDistanceMultiplier = 1.8f;
+
+    // Chunks inspected per tick. Kept small to avoid stalling the server loop.
+    private const int InspectionsPerTick = 100;
+
+    // -------------------------------------------------------------------------
+    // Lifecycle
+    // -------------------------------------------------------------------------
+
+    /// <inheritdoc/>
+    protected override void OnUpdate(Server server, float dt)
     {
-        chunkpos = new Vector3i();
-    }
+        int totalChunks = server.mapsizexchunks() * server.mapsizeychunks() * server.mapsizezchunks();
+        int chunksX = server.mapsizexchunks();
+        int chunksY = server.mapsizeychunks();
 
-    public override void Update(Server server, float dt)
-    {
-        int sizexchunks = server.mapsizexchunks();
-        int sizeychunks = server.mapsizeychunks();
-        int sizezchunks = server.mapsizezchunks();
-
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < InspectionsPerTick; i++)
         {
-            VectorIndexUtil.PosInt(CompressUnusedIteration, sizexchunks, sizeychunks, ref chunkpos);
-            ServerChunk c = server.d_Map.GetChunkValid(chunkpos.X, chunkpos.Y, chunkpos.Z);
-            bool stop = false;
-            if (c != null)
+            var chunkPos = new Vector3i();
+            VectorIndexUtil.PosInt(iterationIndex, chunksX, chunksY, ref chunkPos);
+
+            ServerChunk chunk = server.d_Map.GetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z);
+
+            if (chunk != null && ShouldUnload(server, chunkPos))
             {
-                var globalpos = new Vector3i(chunkpos.X * Server.chunksize, chunkpos.Y * Server.chunksize, chunkpos.Z * Server.chunksize);
-                bool unload = true;
-                foreach (var k in server.clients)
-                {
-                    if (k.Value.IsBot)
-                    {
-                        // don't hold chunks in memory for bots
-                        continue;
-                    }
-                    // unload distance = view distance + 60% (prevents chunks from being unloaded too early (square loading vs. circular unloading))
-                    int viewdist = (int)(server.chunkdrawdistance * Server.chunksize * 1.8f);
-                    if (Server.DistanceSquared(Server.PlayerBlockPosition(k.Value), globalpos) <= viewdist * viewdist)
-                    {
-                        //System.Console.WriteLine("No Unload:   {0},{1},{2}", chunkpos.X, chunkpos.Y, chunkpos.Z);
-                        unload = false;
-                    }
-                }
-                if (unload)
-                {
-                    // unload if chunk isn't seen by anyone
-                    if (c.DirtyForSaving)
-                    {
-                        // save changes to disk if necessary
-                        server.DoSaveChunk(chunkpos.X, chunkpos.Y, chunkpos.Z, c);
-                    }
-                    server.d_Map.SetChunkValid(chunkpos.X, chunkpos.Y, chunkpos.Z, null);
-                    foreach (var client in server.clients)
-                    {
-                        // mark chunks unseen for all players
-                        server.ClientSeenChunkRemove(client.Key, chunkpos.X, chunkpos.Y, chunkpos.Z);
-                    }
-                    stop = true;
-                }
+                UnloadChunk(server, chunkPos, chunk);
+                return; // one unload per tick
             }
-            CompressUnusedIteration++;
-            if (CompressUnusedIteration >= sizexchunks * sizeychunks * sizezchunks)
-            {
-                CompressUnusedIteration = 0;
-            }
-            if (stop)
-            {
-                // only unload one chunk at a time
-                return;
-            }
+
+            iterationIndex = (iterationIndex + 1) % totalChunks;
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Unload decision
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns <c>true</c> if no human player is within the unload distance of
+    /// <paramref name="chunkPos"/>. Bot players are ignored — they do not keep
+    /// chunks resident.
+    /// </summary>
+    private static bool ShouldUnload(Server server, Vector3i chunkPos)
+    {
+        var globalPos = ChunkToGlobalPos(chunkPos);
+        int unloadDist = (int)(server.chunkdrawdistance * Server.chunksize * UnloadDistanceMultiplier);
+        int unloadDistSq = unloadDist * unloadDist;
+
+        foreach (var (_, client) in server.clients)
+        {
+            if (client.IsBot) continue;
+            if (Server.DistanceSquared(Server.PlayerBlockPosition(client), globalPos) <= unloadDistSq)
+                return false;
+        }
+        return true;
+    }
+
+    // -------------------------------------------------------------------------
+    // Unload execution
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Saves the chunk to disk if it has unsaved changes, then evicts it from
+    /// memory and marks it unseen for all connected clients so it will be
+    /// re-sent if a player re-enters the area.
+    /// </summary>
+    private static void UnloadChunk(Server server, Vector3i chunkPos, ServerChunk chunk)
+    {
+        if (chunk.DirtyForSaving)
+            server.DoSaveChunk(chunkPos.X, chunkPos.Y, chunkPos.Z, chunk);
+
+        server.d_Map.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);
+
+        foreach (var (clientId, _) in server.clients)
+            server.ClientSeenChunkRemove(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    /// <summary>Converts chunk-space coordinates to block-space (global) coordinates.</summary>
+    private static Vector3i ChunkToGlobalPos(Vector3i chunkPos) =>
+        new(chunkPos.X * Server.chunksize,
+            chunkPos.Y * Server.chunksize,
+            chunkPos.Z * Server.chunksize);
 }

@@ -1,41 +1,38 @@
 ﻿namespace ManicDigger;
 
+/// <summary>
+/// The last <see cref="ServerSystem"/> to run on startup. Use <see cref="Initialize"/>
+/// to register anything that must execute after all other systems have initialized.
+/// </summary>
 public class ServerSystemLoadLast : ServerSystem
 {
-    private bool loaded;
-
-    public override void Update(Server server, float dt)
+    /// <inheritdoc/>
+    protected override void Initialize(Server server)
     {
-        if (!loaded)
-        {
-            loaded = true;
-            LoadLastEvent(server);
-        }
+        CallModOnLoad(server);
     }
 
-    private static void LoadLastEvent(Server server)
+    /// <summary>
+    /// Fires all mod load callbacks in registration order.
+    /// <para>
+    /// <see cref="Server.onload"/> handlers are called directly — errors there are
+    /// considered fatal. <c>onloadworld</c> handlers are wrapped individually so a
+    /// single bad mod cannot abort the rest of the load sequence.
+    /// </para>
+    /// </summary>
+    private static void CallModOnLoad(Server server)
     {
-        // Add things that need to be done after all other systems here
-
-        // Mod OnLoad needs to be called after all other systems as some functions rely on stuff loaded after ModLoader
-        Call_ModOnLoad(server);
-    }
-
-    private static void Call_ModOnLoad(Server server)
-    {
-        // Create dictionary to hold Mod data if none has been loaded in savegame
+        // Ensure mod data storage exists even if nothing was loaded from a savegame
         server.moddata ??= [];
-        // Execute all methods registered using RegisterOnLoad(). This will fail if they contain errors.
-        for (int i = 0; i < server.onload.Count; i++)
-        {
-            server.onload[i]();
-        }
-        // Try to execute all methods registered using RegisterOnLoadWorld().
-        for (int i = 0; i < server.modEventHandlers.onloadworld.Count; i++)
+
+        foreach (var handler in server.onload)
+            handler();
+
+        foreach (var handler in server.modEventHandlers.onloadworld)
         {
             try
             {
-                server.modEventHandlers.onloadworld[i]();
+                handler();
             }
             catch (Exception ex)
             {

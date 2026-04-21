@@ -43,7 +43,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\LibNoise\LibNoise.csproj" />
 		<ProjectReference Include="..\ScriptingApi\ScriptingApi.csproj" />
 	</ItemGroup>
 

@@ -418,7 +418,7 @@ public partial class Game
 
             if (IsUsableBlock(blocktype))
             {
-                if (d_Data.IsRailTile(blocktype))
+                if (BlockRegistry.IsRailTile(blocktype))
                 {
                     player.position.x = posX + (one / 2);
                     player.position.y = posZ + 1;

@@ -42,7 +42,7 @@ public class ModWalkSound : ModBase
     internal static string[] CurrentWalkSounds(Game game)
     {
         int b = game.BlockUnderPlayer();
-        return game.d_Data.WalkSound[b != -1 ? b : 0];
+        return game.BlockRegistry.WalkSound[b != -1 ? b : 0];
     }
 
     internal static int GetSoundCount(string[] sounds)

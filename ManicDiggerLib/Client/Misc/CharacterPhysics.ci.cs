@@ -6,9 +6,7 @@ using OpenTK.Mathematics;
 /// </summary>
 public interface IEntityScript
 {
-    /// <summary>
-    /// Called once per fixed physics tick for the given <paramref name="entity"/>.
-    /// </summary>
+    /// <summary>Called once per fixed physics tick for the given <paramref name="entity"/>.</summary>
     void OnNewFrameFixed(Game game, int entity, float dt);
 }
 
@@ -18,41 +16,28 @@ public interface IEntityScript
 /// </summary>
 public class ScriptCharacterPhysics : IEntityScript
 {
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+    // ── Constructor ───────────────────────────────────────────────────────────
 
     public ScriptCharacterPhysics()
     {
-        movedz = 0;
-        curspeed = new Vector3();
-        jumpacceleration = 0;
-        isplayeronground = false;
-        acceleration = new Acceleration();
-        jumpstartacceleration = 0;
-        jumpstartaccelerationhalf = 0;
-        movespeednow = 0;
-
-        tmpPlayerPosition = Vector3.Zero;
-
+        // Only non-default values need explicit initialisation.
+        // (movedz, curspeed, jumpacceleration, isplayeronground, etc. are
+        //  already zero/false by C# default for their types.)
+        acceleration.SetDefault();
         constGravity = 0.3f;
         constWaterGravityMultiplier = 3;
         constEnableAcceleration = true;
         constJump = 2.1f;
     }
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    // ── Dependencies ──────────────────────────────────────────────────────────
 
     /// <summary>Reference to the active game instance, assigned at the start of each tick.</summary>
     internal Game game;
 
-    // -------------------------------------------------------------------------
-    // Per-frame physics state
-    // -------------------------------------------------------------------------
+    // ── Per-frame physics state ───────────────────────────────────────────────
 
-    /// <summary>Current vertical velocity component (positive = upward). Modified by gravity and jumps each tick.</summary>
+    /// <summary>Current vertical velocity (positive = upward). Modified by gravity and jumps each tick.</summary>
     internal float movedz;
 
     /// <summary>Current XYZ movement speed vector, attenuated by <see cref="acceleration"/> each tick.</summary>
@@ -64,40 +49,33 @@ public class ScriptCharacterPhysics : IEntityScript
     /// <summary>True when the player is standing on solid ground this tick.</summary>
     internal bool isplayeronground;
 
-    /// <summary>Tunable acceleration parameters (drag, ramp-up, max-force) for the current tick.</summary>
+    /// <summary>Tunable acceleration parameters (drag, friction, responsiveness) for the current tick.</summary>
     internal Acceleration acceleration;
 
     /// <summary>Full-height jump initial acceleration, derived from <see cref="constGravity"/> each tick.</summary>
     internal float jumpstartacceleration;
 
-    /// <summary>Half-height jump initial acceleration (crouch-jump / swim surfacing), derived from <see cref="constGravity"/> each tick.</summary>
+    /// <summary>Half-height jump initial acceleration (crouch-jump / swim surfacing).</summary>
     internal float jumpstartaccelerationhalf;
 
     /// <summary>Effective movement speed this tick, sourced from <see cref="Game.MoveSpeedNow"/>.</summary>
     internal float movespeednow;
 
-    // -------------------------------------------------------------------------
-    // Tunable constants
-    // -------------------------------------------------------------------------
+    // ── Tunable constants ─────────────────────────────────────────────────────
 
-    /// <summary>Base gravitational acceleration applied each tick. Increase to make the player fall faster.</summary>
+    /// <summary>Base gravitational acceleration applied each tick.</summary>
     internal float constGravity;
 
-    /// <summary>
-    /// Factor by which gravity is multiplied while swimming.
-    /// Higher values make the player sink faster in water.
-    /// </summary>
+    /// <summary>Factor by which gravity is multiplied while swimming.</summary>
     internal float constWaterGravityMultiplier;
 
-    /// <summary>When false, <see cref="curspeed"/> is set directly from input rather than being ramped via <see cref="acceleration"/>.</summary>
+    /// <summary>When false, <see cref="curspeed"/> is set directly from input rather than ramped.</summary>
     internal bool constEnableAcceleration;
 
     /// <summary>Multiplier applied to <see cref="jumpacceleration"/> each tick to produce upward displacement.</summary>
     internal float constJump;
 
-    // -------------------------------------------------------------------------
-    // IEntityScript
-    // -------------------------------------------------------------------------
+    // ── IEntityScript ─────────────────────────────────────────────────────────
 
     /// <summary>
     /// Entry point called by the entity system each fixed timestep.
@@ -107,31 +85,36 @@ public class ScriptCharacterPhysics : IEntityScript
     public void OnNewFrameFixed(Game game_, int entity, float dt)
     {
         game = game_;
-        if (game.guistate == GuiState.MapLoading)
-        {
-            return;
-        }
+        if (game.guistate == GuiState.MapLoading) return;
+
         movespeednow = game.MoveSpeedNow();
         game.controls.movedx = Math.Clamp(game.controls.movedx, -1, 1);
         game.controls.movedy = Math.Clamp(game.controls.movedy, -1, 1);
-        Controls move = game.controls;
-        jumpstartacceleration = 13.333f * constGravity; // default
-        jumpstartaccelerationhalf = 9 * constGravity;
+
+        jumpstartacceleration = 13.333f * constGravity;
+        jumpstartaccelerationhalf = 9f * constGravity;
         acceleration.SetDefault();
-        game.soundnow = new bool();
-        if (game.FollowId() != null && game.FollowId() == game.LocalPlayerId)
+        game.soundnow = false; // was `new bool()` — Cito-ism for false
+
+        // ── Follow mode: suppress local input ────────────────────────────────
+        // FollowId() does a linear entity scan — call once and cache.
+        int? followId = game.FollowId();
+        Controls move = game.controls;
+        if (followId != null && followId == game.LocalPlayerId)
         {
             move.movedx = 0;
             move.movedy = 0;
             move.moveup = false;
             move.wantsjump = false;
         }
-        Update(game.player.position, move, dt, out game.soundnow, new Vector3(game.pushX, game.pushY, game.pushZ), game.entities[game.LocalPlayerId].drawModel.ModelHeight);
+
+        Update(game.player.position, move, dt,
+            out game.soundnow,
+            new Vector3(game.pushX, game.pushY, game.pushZ),
+            game.entities[game.LocalPlayerId].drawModel.ModelHeight);
     }
 
-    // -------------------------------------------------------------------------
-    // Core physics update
-    // -------------------------------------------------------------------------
+    // ── Core physics update ───────────────────────────────────────────────────
 
     /// <summary>
     /// Applies gravity, input forces, acceleration, collision response, and jump logic
@@ -143,7 +126,8 @@ public class ScriptCharacterPhysics : IEntityScript
     /// <param name="soundnow">Set to true when the player initiates a jump (footstep sound cue).</param>
     /// <param name="push">External impulse vector (e.g. explosions, conveyors).</param>
     /// <param name="modelheight">Entity model height in blocks; values ≥ 2 enable tall-player collision.</param>
-    public void Update(EntityPosition_ stateplayerposition, Controls move, float dt, out bool soundnow, Vector3 push, float modelheight)
+    public void Update(EntityPosition_ stateplayerposition, Controls move, float dt,
+        out bool soundnow, Vector3 push, float modelheight)
     {
         if (game.stopPlayerMove)
         {
@@ -151,7 +135,11 @@ public class ScriptCharacterPhysics : IEntityScript
             game.stopPlayerMove = false;
         }
 
-        // Reduce air control: high drag + low ramp-up while airborne.
+        // ── Cache per-tick queries called multiple times ───────────────────────
+        bool swimmingBody = game.SwimmingBody();
+        int blockUnder = game.BlockUnderPlayer();
+
+        // ── Air control: high drag + low ramp-up while airborne ───────────────
         if (!isplayeronground)
         {
             acceleration.acceleration1 = 0.99f;
@@ -159,41 +147,39 @@ public class ScriptCharacterPhysics : IEntityScript
             acceleration.acceleration3 = 70;
         }
 
-        // Trampoline block: force a super-jump when landing on it.
+        // ── Trampoline: force a super-jump on landing ─────────────────────────
+        if (blockUnder != -1
+            && blockUnder == game.BlockRegistry.BlockIdTrampoline
+            && !isplayeronground
+            && !game.controls.shiftkeydown)
         {
-            int blockunderplayer = game.BlockUnderPlayer();
-            if (blockunderplayer != -1 && blockunderplayer == game.d_Data.BlockIdTrampoline
-                && (!isplayeronground) && !game.controls.shiftkeydown)
-            {
-                game.controls.wantsjump = true;
-                jumpstartacceleration = 20.666f * constGravity;
-            }
+            game.controls.wantsjump = true;
+            jumpstartacceleration = 20.666f * constGravity;
         }
 
-        // Ice and water share the same slippery acceleration profile.
+        // ── Ice / water: slippery acceleration profile ────────────────────────
+        if ((blockUnder != -1 && game.BlockRegistry.IsSlipperyWalk[blockUnder]) || swimmingBody)
         {
-            int blockunderplayer = game.BlockUnderPlayer();
-            if ((blockunderplayer != -1 && game.d_Data.IsSlipperyWalk[blockunderplayer]) || game.SwimmingBody())
-            {
-                acceleration.acceleration1 = 0.99f;
-                acceleration.acceleration2 = 0.2f;
-                acceleration.acceleration3 = 70;
-            }
+            acceleration.acceleration1 = 0.99f;
+            acceleration.acceleration2 = 0.2f;
+            acceleration.acceleration3 = 70;
         }
 
         soundnow = false;
 
-        // Convert input axes from local-player space to world space.
+        // ── Convert input from player-local to world space ────────────────────
         Vector3 diff1 = new();
         VectorUtils.ToVectorInFixedSystem(
             move.movedx * movespeednow * dt,
             0,
-            move.movedy * movespeednow * dt, stateplayerposition.rotx, stateplayerposition.roty, ref diff1);
+            move.movedy * movespeednow * dt,
+            stateplayerposition.rotx, stateplayerposition.roty, ref diff1);
 
-        // Apply normalised external push.
-        if (push.Length > 0.01f)
+        // ── Apply normalised external push ────────────────────────────────────
+        // Use LengthSquared to avoid sqrt for the magnitude check.
+        if (push.LengthSquared > 0.0001f) // equivalent to Length > 0.01f
         {
-            Vector3.Normalize(in push, out push);
+            push = Vector3.Normalize(push);
             push.X *= 5;
             push.Y *= 5;
             push.Z *= 5;
@@ -202,35 +188,30 @@ public class ScriptCharacterPhysics : IEntityScript
         diff1.Y += push.Y * dt;
         diff1.Z += push.Z * dt;
 
-        // Gravity is only applied once the chunk under the player has been received from the server.
+        // ── Gravity: only after the chunk under the player has arrived ─────────
         bool loaded = false;
         int cx = (int)(game.player.position.x / Game.chunksize);
         int cy = (int)(game.player.position.z / Game.chunksize);
         int cz = (int)(game.player.position.y / Game.chunksize);
         if (game.VoxelMap.IsValidChunkPos(cx, cy, cz))
         {
-            if (game.VoxelMap.chunks[VectorIndexUtil.Index3d(cx, cy, cz,
-                game.VoxelMap.MapSizeX / Game.chunksize,
-                game.VoxelMap.MapSizeY / Game.chunksize)] != null)
-            {
+            // Use cached chunk-count properties instead of recomputing / Game.chunksize.
+            if (game.VoxelMap.chunks[VectorIndexUtil.Index3d(
+                    cx, cy, cz,
+                    game.VoxelMap.Mapsizexchunks,
+                    game.VoxelMap.Mapsizeychunks)] != null)
                 loaded = true;
-            }
         }
         else
         {
             loaded = true;
         }
 
-        if ((!move.freemove) && loaded)
+        if (!move.freemove && loaded)
         {
-            if (!game.SwimmingBody())
-            {
-                movedz += -constGravity;
-            }
-            else
-            {
-                movedz += -constGravity * constWaterGravityMultiplier;
-            }
+            movedz += swimmingBody
+                ? -constGravity * constWaterGravityMultiplier
+                : -constGravity;
         }
         game.movedz = movedz;
 
@@ -240,7 +221,7 @@ public class ScriptCharacterPhysics : IEntityScript
             curspeed.X *= acceleration.acceleration1;
             curspeed.Y *= acceleration.acceleration1;
             curspeed.Z *= acceleration.acceleration1;
-            // Friction (independent of frame rate)
+            // Friction (frame-rate independent)
             curspeed.X = MakeCloserToZero(curspeed.X, acceleration.acceleration2 * dt);
             curspeed.Y = MakeCloserToZero(curspeed.Y, acceleration.acceleration2 * dt);
             curspeed.Z = MakeCloserToZero(curspeed.Z, acceleration.acceleration2 * dt);
@@ -251,10 +232,10 @@ public class ScriptCharacterPhysics : IEntityScript
             curspeed.X += diff1.X * acceleration.acceleration3 * dt;
             curspeed.Y += diff1.Y * acceleration.acceleration3 * dt;
             curspeed.Z += diff1.Z * acceleration.acceleration3 * dt;
-            // Clamp to max speed
-            if (curspeed.Length > movespeednow)
+            // Clamp to max speed — LengthSquared avoids sqrt for the comparison.
+            if (curspeed.LengthSquared > movespeednow * movespeednow)
             {
-                Vector3.Normalize(in curspeed, out curspeed);
+                curspeed = Vector3.Normalize(curspeed);
                 curspeed.X *= movespeednow;
                 curspeed.Y *= movespeednow;
                 curspeed.Z *= movespeednow;
@@ -263,10 +244,10 @@ public class ScriptCharacterPhysics : IEntityScript
         else
         {
             // Instant response: no ramp-up.
-            if (diff1.Length > 0)
-            {
-                Vector3.Normalize(in diff1, out diff1);
-            }
+            // LengthSquared avoids sqrt for the zero-check.
+            if (diff1.LengthSquared > 0)
+                diff1 = Vector3.Normalize(diff1);
+
             curspeed.X = diff1.X * movespeednow;
             curspeed.Y = diff1.Y * movespeednow;
             curspeed.Z = diff1.Z * movespeednow;
@@ -278,24 +259,21 @@ public class ScriptCharacterPhysics : IEntityScript
             newposition.X = stateplayerposition.x + curspeed.X;
             newposition.Y = stateplayerposition.y + curspeed.Y;
             newposition.Z = stateplayerposition.z + curspeed.Z;
-            // Horizontal-only movement when not swimming (Y handled by movedz).
-            if (!game.SwimmingBody())
-            {
+            // Horizontal-only movement when not swimming (vertical handled by movedz).
+            if (!swimmingBody)
                 newposition.Y = stateplayerposition.y;
-            }
+
             // Re-normalise horizontal displacement then scale by actual speed.
             float diffx = newposition.X - stateplayerposition.x;
             float diffy = newposition.Y - stateplayerposition.y;
             float diffz = newposition.Z - stateplayerposition.z;
-            float difflength = new Vector3(diffx, diffy, diffz).Length;
+            float difflength = MathF.Sqrt(diffx * diffx + diffy * diffy + diffz * diffz);
             if (difflength > 0)
             {
-                diffx /= difflength;
-                diffy /= difflength;
-                diffz /= difflength;
-                diffx *= curspeed.Length;
-                diffy *= curspeed.Length;
-                diffz *= curspeed.Length;
+                float inv = curspeed.Length / difflength;
+                diffx *= inv;
+                diffy *= inv;
+                diffz *= inv;
             }
             newposition.X = stateplayerposition.x + diffx * dt;
             newposition.Y = stateplayerposition.y + diffy * dt;
@@ -313,7 +291,7 @@ public class ScriptCharacterPhysics : IEntityScript
 
         if (!move.noclip)
         {
-            var v = WallSlide(
+            Vector3 v = WallSlide(
                 new Vector3(stateplayerposition.x, stateplayerposition.y, stateplayerposition.z),
                 newposition,
                 modelheight);
@@ -330,21 +308,26 @@ public class ScriptCharacterPhysics : IEntityScript
 
         if (!move.freemove)
         {
-            if (isplayeronground || game.SwimmingBody())
+            if (isplayeronground || swimmingBody)
             {
                 jumpacceleration = 0;
                 movedz = 0;
             }
-            if ((move.wantsjump || move.wantsjumphalf) && ((jumpacceleration == 0 && isplayeronground) || game.SwimmingBody()) && loaded && (!game.SwimmingEyes()))
+            if ((move.wantsjump || move.wantsjumphalf)
+                && (jumpacceleration == 0 && isplayeronground || swimmingBody)
+                && loaded
+                && !game.SwimmingEyes())
             {
-                jumpacceleration = move.wantsjumphalf ? jumpstartaccelerationhalf : jumpstartacceleration;
+                jumpacceleration = move.wantsjumphalf
+                    ? jumpstartaccelerationhalf
+                    : jumpstartacceleration;
                 soundnow = true;
             }
 
             if (jumpacceleration > 0)
             {
                 isplayeronground = false;
-                jumpacceleration = jumpacceleration / 2;
+                jumpacceleration /= 2;
             }
 
             movedz += jumpacceleration * constJump;
@@ -353,12 +336,11 @@ public class ScriptCharacterPhysics : IEntityScript
         {
             isplayeronground = true;
         }
+
         game.isplayeronground = isplayeronground;
     }
 
-    // -------------------------------------------------------------------------
-    // Collision helpers
-    // -------------------------------------------------------------------------
+    // ── Collision helpers ─────────────────────────────────────────────────────
 
     /// <summary>
     /// Returns true when the block at the given block-space coordinates does not
@@ -366,31 +348,20 @@ public class ScriptCharacterPhysics : IEntityScript
     /// </summary>
     public bool IsTileEmptyForPhysics(int x, int y, int z)
     {
-        if (z >= game.VoxelMap.MapSizeZ)
-        {
-            return true;
-        }
-        bool enableFreemove = false;
-        if (x < 0 || y < 0 || z < 0)
-        {
-            return enableFreemove;
-        }
-        if (x >= game.VoxelMap.MapSizeX || y >= game.VoxelMap.MapSizeY)
-        {
-            return enableFreemove;
-        }
+        if (z >= game.VoxelMap.MapSizeZ) return true;
+        if (x < 0 || y < 0 || z < 0) return false;
+        if (x >= game.VoxelMap.MapSizeX || y >= game.VoxelMap.MapSizeY) return false;
+
         int block = game.VoxelMap.GetBlockValid(x, y, z);
-        if (block == 0)
-        {
-            return true;
-        }
+        if (block == 0) return true;
+
         Packet_BlockType blocktype = game.blocktypes[block];
         return blocktype.WalkableType == WalkableType.Fluid
             || Game.IsEmptyForPhysics(blocktype)
             || IsRail(blocktype);
     }
 
-    /// <summary>Reusable scratch vector used inside <see cref="WallSlide"/> to avoid allocation.</summary>
+    /// <summary>Reusable scratch vector used inside <see cref="WallSlide"/> to avoid stack allocation per call.</summary>
     private Vector3 tmpPlayerPosition;
 
     /// <summary>
@@ -398,15 +369,10 @@ public class ScriptCharacterPhysics : IEntityScript
     /// one axis at a time, stopping each axis independently on collision.
     /// Also detects ground contact, walls for auto-jump, and half-block step-ups.
     /// </summary>
-    /// <param name="oldposition">Confirmed valid position from the previous tick.</param>
-    /// <param name="newposition">Desired position after input and gravity this tick.</param>
-    /// <param name="modelheight">Entity height in blocks; tall models require an extra empty block check.</param>
-    /// <returns>The furthest collision-safe position reachable from <paramref name="oldposition"/>.</returns>
     public Vector3 WallSlide(Vector3 oldposition, Vector3 newposition, float modelheight)
     {
         bool high = modelheight >= 2;
 
-        // Temporarily raise Y by wallDistance so ground collision uses the feet offset.
         oldposition.Y += game.constWallDistance;
         newposition.Y += game.constWallDistance;
 
@@ -429,16 +395,14 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(newposition.X, tmpPlayerPosition.Y + 0.5f, tmpPlayerPosition.Z, out _))
             {
                 game.reachedwall_1blockhigh = true;
-                if (game.blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) { game.reachedHalfBlock = true; }
-                if (StandingOnHalfBlock(newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z)) { game.reachedHalfBlock = true; }
+                if (game.blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
+                if (StandingOnHalfBlock(newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z)) game.reachedHalfBlock = true;
             }
         }
 
         // Y axis
-        if (IsEmptySpaceForPlayer(high, tmpPlayerPosition.X, newposition.Y, tmpPlayerPosition.Z, out tmpBlockingBlockType))
-        {
+        if (IsEmptySpaceForPlayer(high, tmpPlayerPosition.X, newposition.Y, tmpPlayerPosition.Z, out _))
             tmpPlayerPosition.Y = newposition.Y;
-        }
 
         // Z axis
         if (IsEmptySpaceForPlayer(high, tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z, out tmpBlockingBlockType))
@@ -451,32 +415,24 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(tmpPlayerPosition.X, tmpPlayerPosition.Y + 0.5f, newposition.Z, out _))
             {
                 game.reachedwall_1blockhigh = true;
-                if (game.blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) { game.reachedHalfBlock = true; }
-                if (StandingOnHalfBlock(tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z)) { game.reachedHalfBlock = true; }
+                if (game.blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
+                if (StandingOnHalfBlock(tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z)) game.reachedHalfBlock = true;
             }
         }
 
         // Ground detection: Y did not advance toward the desired lower position.
-        isplayeronground = (tmpPlayerPosition.Y == oldposition.Y) && (newposition.Y < oldposition.Y);
+        isplayeronground = tmpPlayerPosition.Y == oldposition.Y && newposition.Y < oldposition.Y;
 
         tmpPlayerPosition.Y -= game.constWallDistance;
         return tmpPlayerPosition;
     }
 
-    /// <summary>
-    /// Returns true when the block directly beneath the given XZ position is a half-height block,
-    /// used to determine whether a step-up should be treated as a half-block climb.
-    /// </summary>
     private bool StandingOnHalfBlock(float x, float y, float z)
     {
         int under = game.VoxelMap.GetBlock((int)x, (int)z, (int)y);
         return game.blocktypes[under].DrawType == DrawType.HalfHeight;
     }
 
-    /// <summary>
-    /// Returns true when the column at (<paramref name="x"/>, <paramref name="z"/>) is passable
-    /// for a player of the given height: checks 2 blocks (3 for tall models) via <see cref="IsEmptyPoint"/>.
-    /// </summary>
     private bool IsEmptySpaceForPlayer(bool high, float x, float y, float z, out int blockingBlockType)
     {
         return IsEmptyPoint(x, y, z, out blockingBlockType)
@@ -484,27 +440,18 @@ public class ScriptCharacterPhysics : IEntityScript
             && (!high || IsEmptyPoint(x, y + 2, z, out blockingBlockType));
     }
 
-    /// <summary>
-    /// Returns true when no solid block exists within <see cref="Game.constWallDistance"/> of the point.
-    /// Tests a 3×3×3 neighbourhood and uses Chebyshev distance against each block's bounding box.
-    /// </summary>
-    /// <param name="blockingBlocktype">Set to the block type that caused rejection, or 0 if empty.</param>
     private bool IsEmptyPoint(float x, float y, float z, out int blockingBlocktype)
     {
         for (int xx = 0; xx < 3; xx++)
-        {
             for (int yy = 0; yy < 3; yy++)
-            {
                 for (int zz = 0; zz < 3; zz++)
                 {
                     if (!IsTileEmptyForPhysics((int)(x + xx - 1), (int)(z + zz - 1), (int)(y + yy - 1)))
                     {
-                        float minX = x + xx - 1;
+                        float minX = x + xx - 1, maxX = minX + 1;
                         float minY = y + yy - 1;
-                        float minZ = z + zz - 1;
-                        float maxX = minX + 1;
                         float maxY = minY + game.Getblockheight((int)(x + xx - 1), (int)(z + zz - 1), (int)(y + yy - 1));
-                        float maxZ = minZ + 1;
+                        float minZ = z + zz - 1, maxZ = minZ + 1;
 
                         if (BoxPointDistance(minX, minY, minZ, maxX, maxY, maxZ, x, y, z) < game.constWallDistance)
                         {
@@ -513,22 +460,20 @@ public class ScriptCharacterPhysics : IEntityScript
                         }
                     }
                 }
-            }
-        }
         blockingBlocktype = 0;
         return true;
     }
 
-    // -------------------------------------------------------------------------
-    // Static helpers
-    // -------------------------------------------------------------------------
+    // ── Static helpers ────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Returns the Chebyshev distance between point (<paramref name="pX"/>, <paramref name="pY"/>, <paramref name="pZ"/>)
-    /// and the axis-aligned box defined by its min/max corners.
+    /// Returns the Chebyshev distance between a point and an AABB.
     /// Returns 0 when the point is inside the box.
     /// </summary>
-    public static float BoxPointDistance(float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float pX, float pY, float pZ)
+    public static float BoxPointDistance(
+        float minX, float minY, float minZ,
+        float maxX, float maxY, float maxZ,
+        float pX, float pY, float pZ)
     {
         float dx = Max3(minX - pX, 0, pX - maxX);
         float dy = Max3(minY - pY, 0, pY - maxY);
@@ -538,52 +483,33 @@ public class ScriptCharacterPhysics : IEntityScript
 
     /// <summary>
     /// Moves <paramref name="a"/> toward zero by at most <paramref name="b"/>, never crossing zero.
-    /// Used for friction: decelerates a speed component without reversing it.
+    /// Used for friction — decelerates a speed component without reversing it.
     /// </summary>
     public static float MakeCloserToZero(float a, float b)
     {
-        if (a > 0)
-        {
-            float c = a - b;
-            if (c < 0) { c = 0; }
-            return c;
-        }
-        else
-        {
-            float c = a + b;
-            if (c > 0) { c = 0; }
-            return c;
-        }
+        if (a > 0) return Math.Max(a - b, 0);
+        else return Math.Min(a + b, 0);
     }
 
     /// <summary>Returns the largest of three float values.</summary>
-    private static float Max3(float a, float b, float c)
-    {
-        return Math.Max(Math.Max(a, b), c);
-    }
+    private static float Max3(float a, float b, float c) => Math.Max(Math.Max(a, b), c);
 
-    /// <summary>Returns true when <paramref name="block"/> has a non-zero rail value (excludes unplaceable Rail0).</summary>
-    public static bool IsRail(Packet_BlockType block)
-    {
-        return block.Rail > 0;
-    }
+    /// <summary>Returns true when <paramref name="block"/> has a non-zero rail value.</summary>
+    public static bool IsRail(Packet_BlockType block) => block.Rail > 0;
 }
 
 /// <summary>
-/// Tunable acceleration parameters governing how quickly the player ramps up, brakes, and is pushed.
-/// Reset to defaults each physics tick before surface/air overrides are applied.
+/// Tunable acceleration parameters governing drag, friction, and movement responsiveness.
+/// Stored as a struct — embedded directly in <see cref="ScriptCharacterPhysics"/> with
+/// no separate heap allocation. Reset to defaults each physics tick before
+/// surface/air overrides are applied.
 /// </summary>
-public class Acceleration
+public struct Acceleration
 {
-    public Acceleration()
-    {
-        SetDefault();
-    }
-
     /// <summary>Per-tick velocity multiplier (drag). Values below 1 bleed off speed over time.</summary>
     internal float acceleration1;
 
-    /// <summary>Flat per-second deceleration applied toward zero (friction), scaled by dt.</summary>
+    /// <summary>Flat per-second deceleration toward zero (friction), scaled by dt.</summary>
     internal float acceleration2;
 
     /// <summary>Force multiplier applied to input direction, scaled by dt (movement responsiveness).</summary>
@@ -596,16 +522,18 @@ public class Acceleration
     public void SetDefault()
     {
         acceleration1 = 0.9f;
-        acceleration2 = 2;
-        acceleration3 = 700;
+        acceleration2 = 2f;
+        acceleration3 = 700f;
     }
 }
 
 /// <summary>
 /// Snapshot of player input for a single physics tick.
-/// Populated by input-handling mods and consumed by <see cref="ScriptCharacterPhysics"/>.
+/// Stored as a struct so that <c>Controls move = game.controls</c> produces
+/// a cheap copy — local modifications (e.g. zeroing movement in follow mode)
+/// do not affect the original <c>game.controls</c> state.
 /// </summary>
-public class Controls
+public struct Controls
 {
     /// <summary>Lateral strafe input in [-1, 1] (negative = left, positive = right).</summary>
     internal float movedx;
@@ -616,7 +544,7 @@ public class Controls
     /// <summary>True when the player pressed the jump key this tick.</summary>
     internal bool wantsjump;
 
-    /// <summary>True when a reduced-height jump was requested (e.g. crouch-jump binding).</summary>
+    /// <summary>True when a reduced-height jump was requested (e.g. crouch-jump).</summary>
     internal bool wantsjumphalf;
 
     /// <summary>True while the fly/swim ascend key is held.</summary>

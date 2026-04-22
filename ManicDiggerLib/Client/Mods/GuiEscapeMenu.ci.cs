@@ -532,6 +532,7 @@ public class ModGuiEscapeMenu : ModBase
     {
         return fonts[game.options.Font];
     }
+
     private void ToggleFont()
     {
         GameOption options = game.options;
@@ -542,10 +543,13 @@ public class ModGuiEscapeMenu : ModBase
         }
         game.Font = fontValues[options.Font];
         game.UpdateTextRendererFont();
-        for (int i = 0; i < game.cachedTextTextures.Count; i++)
-        {
-            game.cachedTextTextures[i] = null;
-        }
+
+        // Release all cached text textures — they were rendered with the old font
+        // and are now invalid. Previously set list entries to null (leaking GPU
+        // handles). Now explicitly delete each texture before clearing the dictionary.
+        foreach (CachedTexture ct in game.cachedTextTextures.Values)
+            game.platform.GLDeleteTexture(ct.textureId);
+        game.cachedTextTextures.Clear();
     }
 
     private string KeyName(int key)

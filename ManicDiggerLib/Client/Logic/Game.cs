@@ -4,254 +4,361 @@ using Vector3 = OpenTK.Mathematics.Vector3;
 
 public partial class Game
 {
+    // ── Map loading ───────────────────────────────────────────────────────────
+
+    /// <summary>Enters map-loading state, locks the mouse, and initialises progress tracking.</summary>
     public void MapLoadingStart()
     {
         guistate = GuiState.MapLoading;
-        SetFreeMouse(true);
         maploadingprogress = new MapLoadingProgressEventArgs();
         fontMapLoading = new Font("Arial", 14, FontStyle.Regular);
+        SetFreeMouse(true);
     }
 
-    internal int Xcenter(float width)
+    /// <summary>
+    /// Updates the map-loading progress in-place rather than allocating a new
+    /// <see cref="MapLoadingProgressEventArgs"/> on every incoming chunk.
+    /// </summary>
+    internal void InvokeMapLoadingProgress(int progressPercent, int progressBytes, string status)
     {
-        return platform.GetCanvasWidth() / 2 - (int)width / 2;
+        maploadingprogress.ProgressPercent = progressPercent;
+        maploadingprogress.ProgressBytes = progressBytes;
+        maploadingprogress.ProgressStatus = status;
     }
 
-    internal int Ycenter(float height)
-    {
-        return platform.GetCanvasHeight() / 2 - (int)height / 2;
-    }
+    // ── Screen / layout helpers ───────────────────────────────────────────────
 
-    public int Width()
-    {
-        return platform.GetCanvasWidth();
-    }
+    /// <summary>Returns the X coordinate that centres a region of <paramref name="width"/> pixels.</summary>
+    internal int Xcenter(float width) => platform.GetCanvasWidth() / 2 - (int)width / 2;
 
-    public int Height()
-    {
-        return platform.GetCanvasHeight();
-    }
+    /// <summary>Returns the Y coordinate that centres a region of <paramref name="height"/> pixels.</summary>
+    internal int Ycenter(float height) => platform.GetCanvasHeight() / 2 - (int)height / 2;
 
+    /// <summary>Current canvas width in pixels.</summary>
+    public int Width() => platform.GetCanvasWidth();
+
+    /// <summary>Current canvas height in pixels.</summary>
+    public int Height() => platform.GetCanvasHeight();
+
+    /// <summary>
+    /// UI scale factor. Returns a width-relative scale on small screens
+    /// (mobile) and 1 on desktop.
+    /// </summary>
+    public float Scale() =>
+        platform.IsSmallScreen() ? Width() / 1280f : 1f;
+
+    // ── Projection ────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Builds a perspective projection matrix from <paramref name="fov"/> and
+    /// <paramref name="zfar"/>, uploads it to the GPU, and caches it in
+    /// <see cref="CameraMatrix"/>.
+    /// </summary>
     public void Set3dProjection(float zfar, float fov)
     {
-        float aspect_ratio = 1f * Width() / Height();
-        Matrix4.CreatePerspectiveFieldOfView(fov, aspect_ratio, znear, zfar, out Matrix4 projection);
+        float aspect = Width() / (float)Height();
+        Matrix4.CreatePerspectiveFieldOfView(fov, aspect, znear, zfar, out Matrix4 projection);
         CameraMatrix.LastProjectionMatrix = projection;
         GLMatrixModeProjection();
         GLLoadMatrix(projection);
         SetMatrixUniformProjection();
     }
 
-    internal float Zfar()
-    {
-        if (d_Config3d.viewdistance >= 256)
-        {
-            return d_Config3d.viewdistance * 2;
-        }
-        return ENABLE_ZFAR ? d_Config3d.viewdistance : 99999;
-    }
+    /// <summary>Returns the far-clip distance for the current view distance setting.</summary>
+    internal float Zfar() =>
+        d_Config3d.viewdistance >= 256
+            ? d_Config3d.viewdistance * 2
+            : ENABLE_ZFAR ? d_Config3d.viewdistance : 99999;
 
-    internal float DecodeFixedPoint(int value)
-    {
-        return one * value / 32;
-    }
+    /// <summary>Sets the 3D projection using the current far-clip and FOV.</summary>
+    internal void Set3dProjection1(float zfar_) => Set3dProjection(zfar_, CurrentFov());
 
-    public static int EncodeFixedPoint(float p)
-    {
-        return (int)(p * 32);
-    }
+    /// <summary>Sets the 3D projection using <see cref="Zfar"/> and the current FOV.</summary>
+    internal void Set3dProjection2() => Set3dProjection1(Zfar());
 
-    public void Draw2dBitmapFile(string filename, float x, float y, float w, float h)
-    {
-        Draw2dTexture(GetTexture(filename), x, y, w, h, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
-    }
+    // ── Fixed-point encoding ──────────────────────────────────────────────────
 
-    internal string ValidFont(string family)
-    {
-        return AllowedFonts.Contains(family) ? family : AllowedFonts.First();
-    }
+    /// <summary>Decodes a Q5 fixed-point integer (value / 32) to a float.</summary>
+    internal float DecodeFixedPoint(int value) => value / 32f;
 
-    public int MaterialSlots_(int i)
-    {
-        Packet_Item item = d_Inventory.RightHand[i];
-        int m = d_Data.BlockIdDirt;
-        if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
-        {
-            m = d_Inventory.RightHand[i].BlockId;
-        }
-        return m;
-    }
+    /// <summary>Encodes a float to Q5 fixed-point (value × 32).</summary>
+    public static int EncodeFixedPoint(float p) => (int)(p * 32);
 
-    internal int DialogsCount => dialogs.Count(d => d != null);
+    // ── Orientation encoding ──────────────────────────────────────────────────
 
-    internal int GetDialogId(string name)
-    {
-        for (int i = 0; i < dialogs.Length; i++)
-        {
-            if (dialogs[i] == null)
-            {
-                continue;
-            }
-            if (dialogs[i].key == name)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    internal static bool EnablePlayerUpdatePosition(int kKey)
-    {
-        return true;
-    }
-
-    internal static bool EnablePlayerUpdatePositionContainsKey(int kKey)
-    {
-        return false;
-    }
-
+    /// <summary>Encodes a yaw angle (radians) as a 0–255 byte.</summary>
     public static byte HeadingByte(float orientationX, float orientationY, float orientationZ) =>
-     (byte)(int)(orientationY % (2 * MathF.PI) / (2 * MathF.PI) * 256);
+        (byte)(int)(orientationY % (2 * MathF.PI) / (2 * MathF.PI) * 256);
 
+    /// <summary>Encodes a pitch angle (radians) as a 0–255 byte.</summary>
     public static byte PitchByte(float orientationX, float orientationY, float orientationZ)
     {
         float xx = (orientationX + MathF.PI) % (2 * MathF.PI);
         return (byte)(int)(xx / (2 * MathF.PI) * 256);
     }
 
-    internal void InvokeMapLoadingProgress(int progressPercent, int progressBytes, string status)
+    // ── Texture helpers ───────────────────────────────────────────────────────
+
+    /// <summary>Draws a full-size 2D quad using a named PNG asset.</summary>
+    public void Draw2dBitmapFile(string filename, float x, float y, float w, float h) =>
+        Draw2dTexture(GetTexture(filename), x, y, w, h, null, 0,
+            ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
+
+    /// <summary>
+    /// Returns <paramref name="family"/> if it is in the allowed font list,
+    /// otherwise falls back to the first allowed font.
+    /// Uses index access instead of <c>First()</c> to avoid allocating an enumerator.
+    /// </summary>
+    internal string ValidFont(string family) =>
+        AllowedFonts.Contains(family) ? family : AllowedFonts[0];
+
+    // ── Inventory ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the block ID in the given hotbar slot, or
+    /// <see cref="BlockRegistry.BlockIdDirt"/> when the slot is empty.
+    /// </summary>
+    public int MaterialSlots_(int i)
     {
-        maploadingprogress = new MapLoadingProgressEventArgs
+        Packet_Item item = d_Inventory.RightHand[i];
+        if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
+            return item.BlockId;
+        return BlockRegistry.BlockIdDirt;
+    }
+
+    /// <summary>Replaces the active inventory with the server-sent packet and notifies the util layer.</summary>
+    internal void UseInventory(Packet_Inventory packet_Inventory)
+    {
+        d_Inventory = packet_Inventory;
+        d_InventoryUtil.UpdateInventory(packet_Inventory);
+    }
+
+    // ── Dialog helpers ────────────────────────────────────────────────────────
+
+    /// <summary>Number of currently active (non-null) dialogs.</summary>
+    internal int DialogsCount => dialogs.Count(d => d != null);
+
+    /// <summary>
+    /// Returns the index of the dialog with key <paramref name="name"/>,
+    /// or -1 if no such dialog is active.
+    /// </summary>
+    internal int GetDialogId(string name)
+    {
+        for (int i = 0; i < dialogs.Length; i++)
         {
-            ProgressPercent = progressPercent,
-            ProgressBytes = progressBytes,
-            ProgressStatus = status
-        };
+            if (dialogs[i]?.key == name)
+                return i;
+        }
+        return -1;
     }
 
-    internal void Log(string p)
-    {
-        AddChatline(p);
-    }
+    // ── Entity helpers ────────────────────────────────────────────────────────
 
+    /// <summary>Appends <paramref name="entity"/> to the local entity list.</summary>
+    internal void EntityAddLocal(Entity entity) => entities.Add(entity);
+
+    /// <summary>
+    /// Returns the entity index of the followed player, or
+    /// <see langword="null"/> when no follow target is set or found.
+    /// </summary>
     internal int? FollowId()
     {
-        if (Follow == null)
-        {
-            return null;
-        }
+        if (Follow == null) return null;
+
         for (int i = 0; i < entities.Count; i++)
         {
-            if (entities[i] == null)
-            {
-                continue;
-            }
-            if (entities[i].drawName == null)
-            {
-                continue;
-            }
-            DrawName p = entities[i].drawName;
-            if (p.Name == Follow)
-            {
+            if (entities[i]?.drawName?.Name == Follow)
                 return i;
-            }
         }
         return null;
     }
 
+    /// <summary>Creates a bullet entity travelling from <paramref name="fromX/Y/Z"/> to <paramref name="toX/Y/Z"/>.</summary>
+    internal static Entity CreateBulletEntity(
+        float fromX, float fromY, float fromZ,
+        float toX, float toY, float toZ,
+        float speed)
+    {
+        return new Entity
+        {
+            bullet = new Bullet
+            {
+                fromX = fromX,
+                fromY = fromY,
+                fromZ = fromZ,
+                toX = toX,
+                toY = toY,
+                toZ = toZ,
+                speed = speed,
+            },
+            sprite = new Sprite
+            {
+                image = "Sponge.png",
+                size = 4,
+                animationcount = 0,
+            },
+        };
+    }
+
+    // ── Lighting / colour ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the ambient terrain tint colour for the current camera position
+    /// (blue underwater, orange in lava, white normally).
+    /// </summary>
+    internal int Terraincolor()
+    {
+        if (WaterSwimmingCamera()) return ColorUtils.ColorFromArgb(255, 78, 95, 140);
+        if (LavaSwimmingCamera()) return ColorUtils.ColorFromArgb(255, 222, 101, 46);
+        return ColorUtils.ColorFromArgb(255, 255, 255, 255);
+    }
+
+    /// <summary>Uploads <paramref name="color"/> as the OpenGL ambient light value.</summary>
+    internal void SetAmbientLight(int color) =>
+        platform.GlLightModelAmbient(
+            ColorUtils.ColorR(color),
+            ColorUtils.ColorG(color),
+            ColorUtils.ColorB(color));
+
+    // ── Sky clear colour ──────────────────────────────────────────────────────
+
+    // These are compile-time constants (black sky, full alpha).
+    // UpdateClearColor in GameLoop uses them; the compiler folds the / 255f
+    // divisions to 0f / 0f / 0f / 1f at JIT time.
+    public const int clearcolorR = 0;
+    public const int clearcolorG = 0;
+    public const int clearcolorB = 0;
+    public const int clearcolorA = 255;
+
+    // ── VSync / lag simulation ────────────────────────────────────────────────
+
+    /// <summary>Applies the current VSync setting (disabled only when lag simulation is active).</summary>
+    internal void UseVsync() => platform.SetVSync(ENABLE_LAG != 1);
+
+    /// <summary>Cycles through lag-simulation modes (0 = off, 1 = no vsync, 2 = spin-wait).</summary>
+    internal void ToggleVsync()
+    {
+        ENABLE_LAG = (ENABLE_LAG + 1) % 3;
+        UseVsync();
+    }
+
+    // ── GUI state ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// When <see langword="true"/>, the next <see cref="OnResize"/> call will
+    /// send the current resolution to the server.
+    /// Set to <see langword="true"/> in <c>ProcessServerIdentification</c> once
+    /// the connection is established.
+    /// </summary>
+    private bool sendResize;
+
+    /// <summary>Returns to in-game GUI state and releases the free mouse.</summary>
+    internal void GuiStateBackToGame()
+    {
+        guistate = GuiState.Normal;
+        SetFreeMouse(false);
+    }
+
+    /// <summary>Opens the escape menu and releases the mouse pointer lock.</summary>
+    public void EscapeMenuStart()
+    {
+        guistate = GuiState.EscapeMenu;
+        menustate = new MenuState();
+        escapeMenuRestart = true;
+        platform.ExitMousePointerLock();
+    }
+
+    /// <summary>Shows the escape menu in free-mouse mode.</summary>
+    public void ShowEscapeMenu()
+    {
+        guistate = GuiState.EscapeMenu;
+        menustate = new MenuState();
+        SetFreeMouse(true);
+    }
+
+    /// <summary>Opens the inventory screen in free-mouse mode.</summary>
+    public void ShowInventory()
+    {
+        guistate = GuiState.Inventory;
+        menustate = new MenuState();
+        SetFreeMouse(true);
+    }
+
+    // ── Text measurement ──────────────────────────────────────────────────────
+
+    /// <summary>Returns the rendered width of <paramref name="s"/> at the given point size.</summary>
     internal int TextSizeWidth(string s, int size)
     {
         platform.TextSize(s, size, out int width, out _);
         return width;
     }
 
+    /// <summary>Returns the rendered height of <paramref name="s"/> at the given point size.</summary>
     internal int TextSizeHeight(string s, int size)
     {
         platform.TextSize(s, size, out _, out int height);
         return height;
     }
 
-    internal void EntityAddLocal(Entity entity)
+    // ── Chat log ──────────────────────────────────────────────────────────────
+
+    /// <summary>Adds <paramref name="p"/> as a chat line (alias for <see cref="AddChatline"/>).</summary>
+    internal void Log(string p) => AddChatline(p);
+
+    // ── Platform access ───────────────────────────────────────────────────────
+
+    /// <summary>Returns the active platform instance.</summary>
+    public IGamePlatform GetPlatform() => platform;
+
+    /// <summary>Replaces the active platform instance.</summary>
+    public void SetPlatform(IGamePlatform value) => platform = value;
+
+    // ── Action queue ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Enqueues <paramref name="action"/> for execution on the main thread at
+    /// the end of the next frame. Thread-safe — see <see cref="ConcurrentQueue{T}"/>.
+    /// </summary>
+    public void QueueActionCommit(Action action) => commitActions.Enqueue(action);
+
+    // ── Draw dispatch ─────────────────────────────────────────────────────────
+
+    /// <summary>Sets the model-view matrix uniform and draws <paramref name="model"/>.</summary>
+    public void DrawModel(GeometryModel model)
     {
-        entities.Add(entity);
+        SetMatrixUniformModelView();
+        platform.DrawModel(model);
     }
 
-    internal static Entity CreateBulletEntity(float fromX, float fromY, float fromZ, float toX, float toY, float toZ, float speed)
+    /// <summary>Sets the model-view matrix uniform and draws a list of models.</summary>
+    public void DrawModels(List<GeometryModel> model, int count)
     {
-        Entity entity = new();
-
-        Bullet bullet = new()
-        {
-            fromX = fromX,
-            fromY = fromY,
-            fromZ = fromZ,
-            toX = toX,
-            toY = toY,
-            toZ = toZ,
-            speed = speed
-        };
-        entity.bullet = bullet;
-
-        entity.sprite = new Sprite
-        {
-            image = "Sponge.png",
-            size = 4,
-            animationcount = 0
-        };
-
-        return entity;
+        SetMatrixUniformModelView();
+        platform.DrawModels(model, count);
     }
 
-    internal int Terraincolor()
+    /// <summary>Sets the model-view matrix uniform and draws raw geometry data.</summary>
+    public void DrawModelData(GeometryModel data)
     {
-        if (WaterSwimmingCamera())
-        {
-            return ColorUtils.ColorFromArgb(255, 78, 95, 140);
-        }
-        else if (LavaSwimmingCamera())
-        {
-            return ColorUtils.ColorFromArgb(255, 222, 101, 46);
-        }
-        else
-        {
-            return ColorUtils.ColorFromArgb(255, 255, 255, 255);
-        }
+        SetMatrixUniformModelView();
+        platform.DrawModelData(data);
     }
 
-    internal void SetAmbientLight(int color)
+    // ── Per-frame update ──────────────────────────────────────────────────────
+
+    /// <summary>Calls the read-only main-thread hook on all registered mods.</summary>
+    public void Update(float dt)
     {
-        int r = ColorUtils.ColorR(color);
-        int g = ColorUtils.ColorG(color);
-        int b = ColorUtils.ColorB(color);
-        platform.GlLightModelAmbient(r, g, b);
+        for (int i = 0; i < clientmods.Count; i++)
+            clientmods[i]?.OnNewFrameReadOnlyMainThread(this, dt);
     }
 
-    internal void UseVsync()
-    {
-        platform.SetVSync((ENABLE_LAG == 1) ? false : true);
-    }
+    // ── Block picking ─────────────────────────────────────────────────────────
 
-    internal void ToggleVsync()
-    {
-        ENABLE_LAG++;
-        ENABLE_LAG = ENABLE_LAG % 3;
-        UseVsync();
-    }
-
-    internal void GuiStateBackToGame()
-    {
-        guistate = GuiState.Normal;
-        SetFreeMouse(false);
-    }
-    
-    public const int clearcolorR = 0;
-    public const int clearcolorG = 0;
-    public const int clearcolorB = 0;
-    public const int clearcolorA = 255;
-
+    /// <summary>Returns the nearest <see cref="BlockPosSide"/> to <paramref name="target"/>.</summary>
     internal BlockPosSide Nearest(ArraySegment<BlockPosSide> pick2, int pick2Count, Vector3 target)
     {
-        float minDist = 1000 * 1000;
+        float minDist = float.MaxValue;
         BlockPosSide nearest = null;
         for (int i = 0; i < pick2Count; i++)
         {
@@ -267,95 +374,39 @@ public partial class Game
 
     internal BlockOctreeSearcher s;
 
-    internal void UseInventory(Packet_Inventory packet_Inventory)
-    {
-        d_Inventory = packet_Inventory;
-        d_InventoryUtil.UpdateInventory(packet_Inventory);
-    }
-
-    internal void Set3dProjection1(float zfar_)
-    {
-        Set3dProjection(zfar_, CurrentFov());
-    }
-
-    internal void Set3dProjection2()
-    {
-        Set3dProjection1(Zfar());
-    }
-
-    private bool sendResize;
-
-    public void EscapeMenuStart()
-    {
-        guistate = GuiState.EscapeMenu;
-        menustate = new MenuState();
-        platform.ExitMousePointerLock();
-        escapeMenuRestart = true;
-    }
-
-    public void ShowEscapeMenu()
-    {
-        guistate = GuiState.EscapeMenu;
-        menustate = new MenuState();
-        SetFreeMouse(true);
-    }
-
-    public void ShowInventory()
-    {
-        guistate = GuiState.Inventory;
-        menustate = new MenuState();
-        SetFreeMouse(true);
-    }
-
-    public void Update(float dt)
-    {
-        for (int i = 0; i < clientmods.Count; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].OnNewFrameReadOnlyMainThread(this, dt);
-        }
-    }
-
+    /// <summary>
+    /// Performs a ray–block intersection for <paramref name="line"/>, returning
+    /// the hit blocks sorted by distance from the ray origin.
+    /// </summary>
     public ArraySegment<BlockPosSide> Pick(BlockOctreeSearcher s_, Line3D line, out int retCount)
     {
-        int minX = (int)Math.Min(line.Start[0], line.End[0]);
-        int minY = (int)Math.Min(line.Start[1], line.End[1]);
-        int minZ = (int)Math.Min(line.Start[2], line.End[2]);
+        int minX = Math.Max((int)Math.Min(line.Start[0], line.End[0]), 0);
+        int minY = Math.Max((int)Math.Min(line.Start[1], line.End[1]), 0);
+        int minZ = Math.Max((int)Math.Min(line.Start[2], line.End[2]), 0);
 
-        if (minX < 0) { minX = 0; }
-        if (minY < 0) { minY = 0; }
-        if (minZ < 0) { minZ = 0; }
-
-        int maxX = (int)Math.Max(line.Start[0], line.End[0]);
-        int maxY = (int)Math.Max(line.Start[1], line.End[1]);
-        int maxZ = (int)Math.Max(line.Start[2], line.End[2]);
-
-        if (maxX > VoxelMap.MapSizeX) { maxX = VoxelMap.MapSizeX; }
-        if (maxY > VoxelMap.MapSizeZ) { maxY = VoxelMap.MapSizeZ; }
-        if (maxZ > VoxelMap.MapSizeY) { maxZ = VoxelMap.MapSizeY; }
-
-        int sizex = maxX - minX + 1;
-        int sizey = maxY - minY + 1;
-        int sizez = maxZ - minZ + 1;
+        int maxX = Math.Min((int)Math.Max(line.Start[0], line.End[0]), VoxelMap.MapSizeX);
+        int maxY = Math.Min((int)Math.Max(line.Start[1], line.End[1]), VoxelMap.MapSizeZ);
+        int maxZ = Math.Min((int)Math.Max(line.Start[2], line.End[2]), VoxelMap.MapSizeY);
 
         int size = (int)BitOperations.RoundUpToPowerOf2(
-            (uint)Math.Max(sizex, Math.Max(sizey, sizez))
-        );
+            (uint)Math.Max(maxX - minX + 1, Math.Max(maxY - minY + 1, maxZ - minZ + 1)));
 
-        s_.StartBox = new Box3(new Vector3(minX, minY, minZ), new Vector3(minX + size, minY + size, minZ + size));
+        s_.StartBox = new Box3(
+            new Vector3(minX, minY, minZ),
+            new Vector3(minX + size, minY + size, minZ + size));
 
-        var pick2 = s_.LineIntersection(
-            IsTileEmptyForPhysics,
-            Getblockheight,
-            line,
-            out retCount
-        );
+        ArraySegment<BlockPosSide> pick2 = s_.LineIntersection(
+            IsTileEmptyForPhysics, Getblockheight, line, out retCount);
 
         PickSort(pick2, retCount, line.Start);
-
         return pick2;
     }
 
+    /// <summary>
+    /// Sorts <paramref name="pick"/> by ascending distance from <paramref name="start"/>
+    /// using bubble sort. Suitable for the small result sets (typically &lt;10) produced
+    /// by block picking; replace with <c>Span.Sort</c> if larger sets arise.
+    /// </summary>
     private void PickSort(ArraySegment<BlockPosSide> pick, int pickCount, Vector3 start)
     {
         bool changed;
@@ -364,90 +415,45 @@ public partial class Game
             changed = false;
             for (int i = 0; i < pickCount - 1; i++)
             {
-                float dist = Vector3.Distance(pick[i].blockPos, start);
-                float distNext = Vector3.Distance(pick[i + 1].blockPos, start);
-                if (dist > distNext)
+                if (Vector3.Distance(pick[i].blockPos, start) >
+                    Vector3.Distance(pick[i + 1].blockPos, start))
                 {
+                    (pick[i], pick[i + 1]) = (pick[i + 1], pick[i]);
                     changed = true;
-
-                    BlockPosSide swapTemp = pick[i];
-                    pick[i] = pick[i + 1];
-                    pick[i + 1] = swapTemp;
                 }
             }
         }
         while (changed);
     }
 
-    public IGamePlatform GetPlatform()
-    {
-        return platform;
-    }
+    // ── Dispose ───────────────────────────────────────────────────────────────
 
-    public void SetPlatform(IGamePlatform value)
-    {
-        platform = value;
-    }
-
-    public float Scale()
-    {
-        //Only scale things on mobile devices
-        if (platform.IsSmallScreen())
-        {
-            float scale = one * Width() / 1280;
-            return scale;
-        }
-        else
-        {
-            return one;
-        }
-    }
-  
-    public void QueueActionCommit(Action action)
-    {
-        commitActions.Enqueue(action);
-    }
-
-    public void DrawModel(GeometryModel model)
-    {
-        SetMatrixUniformModelView();
-        platform.DrawModel(model);
-    }
-
-    public void DrawModels(List<GeometryModel> model, int count)
-    {
-        SetMatrixUniformModelView();
-        platform.DrawModels(model, count);
-    }
-
-    public void DrawModelData(GeometryModel data)
-    {
-        SetMatrixUniformModelView();
-        platform.DrawModelData(data);
-    }
-
+    /// <summary>
+    /// Disposes all mods and releases all cached GPU texture handles.
+    /// </summary>
     public void Dispose()
     {
         for (int i = 0; i < clientmods.Count; i++)
-        {
-            if (clientmods[i] == null) { continue; }
-            clientmods[i].Dispose(this);
-        }
+            clientmods[i]?.Dispose(this);
+
         foreach (int id in textures.Values)
-        {
             platform.GLDeleteTexture(id);
-        }
-        for (int i = 0; i < cachedTextTextures.Count; i++)
-        {
-            if (cachedTextTextures[i] == null)
-            {
-                continue;
-            }
-            if (cachedTextTextures[i].texture == null)
-            {
-                continue;
-            }
-            platform.GLDeleteTexture(cachedTextTextures[i].texture.textureId);
-        }
+
+        foreach (CachedTexture ct in cachedTextTextures.Values)
+            platform.GLDeleteTexture(ct.textureId);
     }
+
+    // ── Stubs (candidates for removal) ───────────────────────────────────────
+
+    /// <remarks>
+    /// Cito stub — always returns <see langword="true"/>.
+    /// All call sites can be replaced with a literal <c>true</c> and this method removed.
+    /// </remarks>
+    internal static bool EnablePlayerUpdatePosition(int kKey) => true;
+
+    /// <remarks>
+    /// Cito stub — always returns <see langword="false"/>.
+    /// All call sites can be replaced with a literal <c>false</c> and this method removed.
+    /// </remarks>
+    internal static bool EnablePlayerUpdatePositionContainsKey(int kKey) => false;
 }

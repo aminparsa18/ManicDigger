@@ -70,7 +70,7 @@ public class ModGuiCrafting : ModBase
         d_CraftingTableTool ??= new CraftingTableTool
         {
             d_Map = new MapStorage(game.VoxelMap, game.SetBlock),
-            d_Data = game.d_Data
+            d_Data = game.BlockRegistry
         };
 
         // Register the packet handler once, not every frame.
@@ -101,7 +101,7 @@ public class ModGuiCrafting : ModBase
         int posY = game.SelectedBlockPositionZ;
         int posZ = game.SelectedBlockPositionY;
 
-        if (game.VoxelMap.GetBlock(posX, posY, posZ) != game.d_Data.BlockIdCraftingTable) return;
+        if (game.VoxelMap.GetBlock(posX, posY, posZ) != game.BlockRegistry.BlockIdCraftingTable) return;
 
         // GetTable / GetOnTable return references to CraftingTableTool's internal
         // reusable buffers. CraftingRecipesStart copies the on-table data into

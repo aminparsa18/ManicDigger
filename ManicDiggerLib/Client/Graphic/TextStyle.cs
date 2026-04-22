@@ -27,4 +27,7 @@ public class TextStyle
         && Color == other.Color
         && FontFamily == other.FontFamily
         && FontStyle == other.FontStyle;
+
+    public override int GetHashCode()
+        => HashCode.Combine(Text, Color, FontSize, FontFamily, FontStyle);
 }

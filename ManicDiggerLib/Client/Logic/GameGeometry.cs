@@ -365,14 +365,11 @@ public partial class Game
 
         // Cache lookup — retrieve once and reuse rather than calling
         // GetCachedTextTexture twice (check-null then retrieve).
-        CachedTexture cached = GetCachedTextTexture(t);
-        if (cached == null)
+        if (!cachedTextTextures.TryGetValue(t, out CachedTexture cached))
         {
-            CachedTexture ct = MakeTextTexture(t);
-            if (ct == null) return;
-
-            cachedTextTextures.Add(new CachedTextTexture { text = t, texture = ct });
-            cached = ct;
+            cached = MakeTextTexture(t);
+            if (cached == null) return;
+            cachedTextTextures[t] = cached;
         }
 
         cached.lastuseMilliseconds = platform.TimeMillisecondsFromStart;

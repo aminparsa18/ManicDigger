@@ -849,7 +849,7 @@ public class TextureAtlasCi
     }
 }
 
-public class CachedTexture
+internal sealed class CachedTexture
 {
     internal int textureId;
     internal float sizeX;
@@ -857,19 +857,11 @@ public class CachedTexture
     internal int lastuseMilliseconds;
 }
 
-public class CachedTextTexture
-{
-    internal TextStyle text;
-    internal CachedTexture texture;
-}
-
 public class TextPart
 {
     internal int color;
     internal string text;
 }
-
-
 
 public class GameDataMonsters
 {

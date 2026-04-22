@@ -38,14 +38,14 @@ public partial class Game
     {
         int eyesBlock = GetPlayerEyesBlock();
         if (eyesBlock == -1) return true;
-        return d_Data.WalkableType[eyesBlock] == WalkableType.Fluid;
+        return BlockRegistry.WalkableType[eyesBlock] == WalkableType.Fluid;
     }
 
     internal bool SwimmingBody()
     {
         int block = VoxelMap.GetBlock((int)player.position.x, (int)player.position.z, (int)(player.position.y + 1));
         if (block == -1) return true;
-        return d_Data.WalkableType[block] == WalkableType.Fluid;
+        return BlockRegistry.WalkableType[block] == WalkableType.Fluid;
     }
 
     internal bool WaterSwimmingEyes()
@@ -86,7 +86,7 @@ public partial class Game
         int blockUnder = BlockUnderPlayer();
         if (blockUnder != -1)
         {
-            float floorSpeed = d_Data.WalkSpeed[blockUnder];
+            float floorSpeed = BlockRegistry.WalkSpeed[blockUnder];
             if (floorSpeed != 0) speed *= floorSpeed;
         }
 

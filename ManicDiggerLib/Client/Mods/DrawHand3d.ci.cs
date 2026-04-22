@@ -200,9 +200,9 @@ public class ModDrawHand3d : ModBase
             // Empty hand — use the designated empty-hand block texture.
             if (side == TileSide.Top)
             {
-                return game.TextureId[game.d_Data.BlockIdEmptyHand][(int)TileSide.Top];
+                return game.TextureId[game.BlockRegistry.BlockIdEmptyHand][(int)TileSide.Top];
             }
-            return game.TextureId[game.d_Data.BlockIdEmptyHand][(int)TileSide.Front];
+            return game.TextureId[game.BlockRegistry.BlockIdEmptyHand][(int)TileSide.Front];
         }
 
         if (item.ItemClass == Packet_ItemClassEnum.Block)
@@ -246,7 +246,7 @@ public class ModDrawHand3d : ModBase
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
         return item != null
             && item.ItemClass == Packet_ItemClassEnum.Block
-            && item.BlockId == game.d_Data.BlockIdCompass;
+            && item.BlockId == game.BlockRegistry.BlockIdCompass;
     }
 
     /// <summary>
@@ -367,7 +367,7 @@ public class ModDrawHand3d : ModBase
             // a normal torch shape, and a real torch uses its own texture on the same shape.
             d_BlockRendererTorch.TopTexture = GetWeaponTextureId(TileSide.Top);
             d_BlockRendererTorch.SideTexture = GetWeaponTextureId(TileSide.Front);
-            d_BlockRendererTorch.AddTorch(game.d_Data, game, _modelData, x, y, z, TorchType.Normal);
+            d_BlockRendererTorch.AddTorch(game.BlockRegistry, game, _modelData, x, y, z, TorchType.Normal);
         }
         else
         {

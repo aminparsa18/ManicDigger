@@ -63,7 +63,7 @@ public partial class Game
     internal bool handSetAttackDestroy;
 
     internal int whitetexture;
-    internal List<CachedTextTexture> cachedTextTextures;
+    internal Dictionary<TextStyle, CachedTexture> cachedTextTextures = [];
     internal Dictionary<string, int> textures;
     internal List<string> AllowedFonts;
 
@@ -297,7 +297,7 @@ public partial class Game
     internal SunMoonRenderer d_SunMoonRenderer;
     internal InventoryUtilClient d_InventoryUtil;
     internal ModDrawParticleEffectBlockBreak particleEffectBlockBreak;
-    internal BlockTypeRegistry d_Data;
+    internal BlockTypeRegistry BlockRegistry;
     internal GameDataMonsters d_DataMonsters;
     internal Packet_Inventory d_Inventory;
 

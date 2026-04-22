@@ -34,7 +34,7 @@ public partial class Game
         // ── Core data / config ────────────────────────────────────────────────
         BlockTypeRegistry gamedata = new();
         gamedata.Start();
-        d_Data = gamedata;
+        BlockRegistry = gamedata;
         d_DataMonsters = new GameDataMonsters();
 
         Config3d config3d = new();

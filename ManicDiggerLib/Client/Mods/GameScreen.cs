@@ -72,7 +72,7 @@ public class GameScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w == null || w.type != WidgetType.Textbox || !w.editing) { continue; }
+            if (w == null || w.type != UIWidgetType.Textbox || !w.editing) { continue; }
 
             int key = e.KeyChar;
 
@@ -117,13 +117,13 @@ public class GameScreen : ModBase
 
             bool hit = VectorUtils.PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey);
 
-            if (w.type == WidgetType.Button)
+            if (w.type == UIWidgetType.Button)
             {
                 w.pressed = hit;
                 if (hit) { handled = true; }
             }
 
-            if (w.type == WidgetType.Textbox)
+            if (w.type == UIWidgetType.Textbox)
             {
                 w.pressed = hit;
                 if (hit) { handled = true; }
@@ -162,7 +162,7 @@ public class GameScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w == null || w.type != WidgetType.Button) { continue; }
+            if (w == null || w.type != UIWidgetType.Button) { continue; }
 
             if (VectorUtils.PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey))
             {
@@ -204,7 +204,7 @@ public class GameScreen : ModBase
                 text = string.Concat(game.platform, "&2", text);
             }
 
-            if (w.type == WidgetType.Button)
+            if (w.type == UIWidgetType.Button)
             {
                 if (w.buttonStyle != ButtonStyle.Text)
                 {
@@ -221,14 +221,14 @@ public class GameScreen : ModBase
                 // ButtonStyle.Text rendering is not yet implemented.
             }
 
-            if (w.type == WidgetType.Textbox)
+            if (w.type == UIWidgetType.Textbox)
             {
                 if (w.password) { text = new string('*', w.text.Length); }
                 if (w.editing) { text = string.Concat(game.platform, text, "_"); }
                 game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, null, false);
             }
 
-            if (w.type == WidgetType.Label)
+            if (w.type == UIWidgetType.Label)
             {
                 game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, ColorUtils.ColorFromArgb(255, 0, 0, 0), false);
             }

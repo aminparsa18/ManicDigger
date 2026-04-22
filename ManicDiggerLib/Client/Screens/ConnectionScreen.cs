@@ -26,10 +26,10 @@ public class ConnectionScreen : ScreenBase
 
     public ConnectionScreen()
     {
-        buttonConnect = new MenuWidget { text = "Connect", type = WidgetType.Button, nextWidget = 3 };
-        textboxIp = new MenuWidget { text = "", type = WidgetType.Textbox, description = "IP", nextWidget = 2 };
-        textboxPort = new MenuWidget { text = "", type = WidgetType.Textbox, description = "Port", nextWidget = 0 };
-        buttonBack = new MenuWidget { text = "Back", type = WidgetType.Button, nextWidget = 1 };
+        buttonConnect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
+        textboxIp = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "IP", nextWidget = 2 };
+        textboxPort = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Port", nextWidget = 0 };
+        buttonBack = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
 
         title = "Connect to IP";
 

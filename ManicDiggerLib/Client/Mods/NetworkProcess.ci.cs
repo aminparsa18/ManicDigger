@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using MemoryPack;
+using System.Buffers;
 using System.Runtime.InteropServices;
 
 namespace ManicDigger.Mods;
@@ -87,8 +88,7 @@ public class ModNetworkProcess : ModBase
 
     public void TryReadPacket(byte[] data, int dataLength)
     {
-        Packet_Server packet = new();
-        Packet_ServerSerializer.DeserializeBuffer(data, dataLength, packet);
+        Packet_Server packet = MemoryPackSerializer.Deserialize<Packet_Server>(data.AsSpan(0, dataLength));
 
         ProcessInBackground(packet);
 
@@ -203,7 +203,7 @@ public class ModNetworkProcess : ModBase
 
     internal static void ProcessPacket(Packet_Server packet)
     {
-        game.packetHandlers[packet.Id]?.Handle(game, packet);
+        game.packetHandlers[(int)packet.Id]?.Handle(game, packet);
         switch (packet.Id)
         {
             case Packet_ServerIdEnum.ServerIdentification:
@@ -416,7 +416,7 @@ public class ModNetworkProcess : ModBase
                 game.NightLevels = packet.SunLevels.Sunlevels;
                 break;
             case Packet_ServerIdEnum.LightLevels:
-                for (int i = 0; i < packet.LightLevels.LightlevelsCount; i++)
+                for (int i = 0; i < packet.LightLevels.Lightlevels.Length; i++)
                 {
                     game.mLightLevels[i] = game.DecodeFixedPoint(packet.LightLevels.Lightlevels[i]);
                 }
@@ -449,7 +449,7 @@ public class ModNetworkProcess : ModBase
                     if (!game.ammostarted)
                     {
                         game.ammostarted = true;
-                        for (int i = 0; i < packet.Ammo.TotalAmmoCount; i++)
+                        for (int i = 0; i < packet.Ammo.TotalAmmo.Length; i++)
                         {
                             Packet_IntInt k = packet.Ammo.TotalAmmo[i];
                             game.LoadedAmmo[k.Key_] = Math.Min(k.Value_, game.blocktypes[k.Key_].AmmoMagazine);
@@ -464,7 +464,7 @@ public class ModNetworkProcess : ModBase
                     else
                         Array.Clear(game.TotalAmmo, 0, GlobalVar.MAX_BLOCKTYPES);
 
-                    for (int i = 0; i < packet.Ammo.TotalAmmoCount; i++)
+                    for (int i = 0; i < packet.Ammo.TotalAmmo.Length; i++)
                     {
                         game.TotalAmmo[packet.Ammo.TotalAmmo[i].Key_] = packet.Ammo.TotalAmmo[i].Value_;
                     }

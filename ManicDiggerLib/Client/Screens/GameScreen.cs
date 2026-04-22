@@ -125,7 +125,7 @@ public class ScreenGame : ScreenBase
         // NOTE: This is a deliberate sync-over-async call on the render thread;
         // the game loop is already stopped at this point so blocking is acceptable.
         var (qresult, message) = Task.Run(() =>
-            new QueryClient(platform).QueryAsync(redirect.GetIP(), redirect.GetPort())
+            new QueryClient(platform).QueryAsync(redirect.IP, redirect.Port)
         ).GetAwaiter().GetResult();
 
         if (qresult == null)

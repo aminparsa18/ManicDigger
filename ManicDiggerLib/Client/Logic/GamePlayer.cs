@@ -70,7 +70,7 @@ public partial class Game
     internal int? BlockInHand()
     {
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-        return item != null && item.ItemClass == Packet_ItemClassEnum.Block ? item.BlockId : null;
+        return item != null && item.ItemClass == ItemClass.Block ? item.BlockId : null;
     }
 
     internal bool IsWearingWeapon() => d_Inventory.RightHand[ActiveMaterial] != null;
@@ -94,7 +94,7 @@ public partial class Game
             speed *= one * 2 / 10;
 
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-        if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
+        if (item != null && item.ItemClass == ItemClass.Block)
         {
             float itemSpeed = DecodeFixedPoint(blocktypes[item.BlockId].WalkSpeedWhenUsedFloat);
             if (itemSpeed != 0) speed *= itemSpeed;
@@ -118,7 +118,7 @@ public partial class Game
         if (IronSights)
         {
             Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-            if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
+            if (item != null && item.ItemClass == ItemClass.Block)
             {
                 float ironFov = DecodeFixedPoint(blocktypes[item.BlockId].IronSightsFovFloat);
                 if (ironFov != 0) return fov * ironFov;
@@ -130,14 +130,14 @@ public partial class Game
     internal float CurrentRecoil()
     {
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != Packet_ItemClassEnum.Block) return 0;
+        if (item == null || item.ItemClass != ItemClass.Block) return 0;
         return DecodeFixedPoint(blocktypes[item.BlockId].RecoilFloat);
     }
 
     internal float CurrentAimRadius()
     {
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != Packet_ItemClassEnum.Block) return 0;
+        if (item == null || item.ItemClass != ItemClass.Block) return 0;
 
         float radius = IronSights
             ? DecodeFixedPoint(blocktypes[item.BlockId].IronSightsAimRadiusFloat) / 800 * Width()

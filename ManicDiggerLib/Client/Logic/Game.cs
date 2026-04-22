@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 using System.Numerics;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
@@ -121,7 +122,7 @@ public partial class Game
     public int MaterialSlots_(int i)
     {
         Packet_Item item = d_Inventory.RightHand[i];
-        if (item != null && item.ItemClass == Packet_ItemClassEnum.Block)
+        if (item != null && item.ItemClass == ItemClass.Block)
             return item.BlockId;
         return BlockRegistry.BlockIdDirt;
     }

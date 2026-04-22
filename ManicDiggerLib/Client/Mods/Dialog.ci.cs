@@ -12,7 +12,7 @@ public class ModDialog : ModBase
 
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {
-        game.packetHandlers[Packet_ServerIdEnum.Dialog] = packetHandler;
+        game.packetHandlers[(int)Packet_ServerIdEnum.Dialog] = packetHandler;
         DrawDialogs(game);
     }
 
@@ -41,7 +41,7 @@ public class ModDialog : ModBase
             VisibleDialog d = game.dialogs[k];
             if (d == null) continue;
 
-            for (int i = 0; i < d.value.WidgetsCount; i++)
+            for (int i = 0; i < d.value.Widgets.Length; i++)
             {
                 Packet_Widget w = d.value.Widgets[i];
                 if (w == null) continue;

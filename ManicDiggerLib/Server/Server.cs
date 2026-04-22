@@ -1,4 +1,5 @@
 using ManicDigger;
+using MemoryPack;
 using OpenTK.Mathematics;
 using ProtoBuf;
 using System.Diagnostics;
@@ -875,8 +876,6 @@ public partial class Server : ICurrentTime, IDropItem
                 // todo
                 //p.Inventory.Items = inv.Inventory.Items;
                 Items = new Packet_PositionItem[inv.Inventory.Items.Count],
-                ItemsCount = inv.Inventory.Items.Count,
-                ItemsLength = inv.Inventory.Items.Count
             };
             {
                 int i = 0;
@@ -894,8 +893,6 @@ public partial class Server : ICurrentTime, IDropItem
             }
             p.Inventory.MainArmor = ConvertItem(inv.Inventory.MainArmor);
             p.Inventory.RightHand = new Packet_Item[10];
-            p.Inventory.RightHandCount = 10;
-            p.Inventory.RightHandLength = 10;
             for (int i = 0; i < inv.Inventory.RightHand.Length; i++)
             {
                 if (inv.Inventory.RightHand[i] == null)
@@ -926,7 +923,7 @@ public partial class Server : ICurrentTime, IDropItem
         {
             BlockCount = item.BlockCount,
             BlockId = item.BlockId,
-            ItemClass = (int)item.ItemClass,
+            ItemClass = item.ItemClass,
             ItemId = item.ItemId
         };
         return p;
@@ -1159,8 +1156,7 @@ public partial class Server : ICurrentTime, IDropItem
     {
         ClientOnServer c = clients[clientid];
         //PacketClient packet = Serializer.Deserialize<PacketClient>(new MemoryStream(data));
-        Packet_Client packet = new();
-        Packet_ClientSerializer.DeserializeBuffer(data, data.Length, packet);
+        Packet_Client packet = MemoryPackSerializer.Deserialize<Packet_Client>(data.AsSpan(0, data.Length));
         if (c.queryClient)
         {
             if (!(packet.Id == PacketType.ServerQuery || packet.Id == PacketType.PlayerIdentification))
@@ -1842,10 +1838,10 @@ public partial class Server : ICurrentTime, IDropItem
         {
             PermissionArgs args = new()
             {
-                Player = (player),
-                X = (x),
-                Y = (y),
-                Z = (z)
+                Player = player,
+                X = x,
+                Y = y,
+                Z = z
             };
             server.modEventHandlers.onpermission[i](args);
             if (args.Allowed)
@@ -2780,11 +2776,12 @@ public partial class Server : ICurrentTime, IDropItem
         }
         return blocktypea == blocktypeb;
     }
+
     public static byte[] Serialize(Packet_Server p)
     {
-        byte[] data = Packet_ServerSerializer.SerializeToBytes(p);
-        return data;
+        return MemoryPackSerializer.Serialize(p);
     }
+
     private string GenerateUsername(string name)
     {
         string defaultname = name;
@@ -2928,39 +2925,17 @@ public partial class Server : ICurrentTime, IDropItem
         return compressedchunk;
     }
 
-    private Packet_StringList GetRequiredBlobMd5()
-    {
-        Packet_StringList p = new();
-        List<string> list = new();
+    private string[] GetRequiredBlobMd5()
+    => [.. assets.Select(a => a.md5)];
 
-        for (int i = 0; i < assets.Count; i++)
-        {
-            list.Add(assets[i].md5);
-        }
-
-        p.SetItems(list.ToArray(), list.Count, list.Count);
-        return p;
-    }
-
-    private Packet_StringList GetRequiredBlobName()
-    {
-        Packet_StringList p = new();
-        List<string> list = new();
-
-        for (int i = 0; i < assets.Count; i++)
-        {
-            list.Add(assets[i].name);
-        }
-
-        p.SetItems(list.ToArray(), list.Count, list.Count);
-        return p;
-    }
+    private string[] GetRequiredBlobName()
+        => [.. assets.Select(a => a.name)];
 
     private AssetLoader assetLoader;
     private List<Asset> assets = new();
 
     private readonly int BlobPartLength = 1024 * 1;
-    private void SendBlobs(int clientid, Packet_StringList list)
+    private void SendBlobs(int clientid, string[] requestedMd5)
     {
         SendPacket(clientid, ServerPackets.LevelInitialize());
         LoadAssets();
@@ -2969,9 +2944,9 @@ public partial class Server : ICurrentTime, IDropItem
         for (int i = 0; i < assets.Count; i++)
         {
             Asset f = assets[i];
-            for (int k = 0; k < list.ItemsCount; k++)
+            for (int k = 0; k < requestedMd5.Length; k++)
             {
-                if (f.md5 == list.Items[k])
+                if (f.md5 == requestedMd5[k])
                 {
                     tosend.Add(f);
                 }
@@ -2988,7 +2963,8 @@ public partial class Server : ICurrentTime, IDropItem
             {
                 SendLevelProgress(clientid,
                     (int)(((float)i / tosend.Count
-                                         + (float)totalsent / blob.Length / tosend.Count) * 100), language.ServerProgressDownloadingData());
+                        + (float)totalsent / blob.Length / tosend.Count) * 100),
+                    language.ServerProgressDownloadingData());
                 SendBlobPart(clientid, part);
                 totalsent += part.Length;
             }
@@ -3078,7 +3054,7 @@ public partial class Server : ICurrentTime, IDropItem
     private void SendSunLevels(int clientid)
     {
         Packet_ServerSunLevels p = new();
-        p.SetSunlevels(sunlevels, sunlevels.Length, sunlevels.Length);
+        p.Sunlevels = sunlevels;
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.SunLevels, SunLevels = p }));
     }
     private void SendLightLevels(int clientid)
@@ -3089,7 +3065,7 @@ public partial class Server : ICurrentTime, IDropItem
         {
             l[i] = SerializeFloat(lightlevels[i]);
         }
-        p.SetLightlevels(l, l.Length, l.Length);
+        p.Lightlevels = l;
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.LightLevels, LightLevels = p }));
     }
     private void SendCraftingRecipes(int clientid)
@@ -3100,7 +3076,7 @@ public partial class Server : ICurrentTime, IDropItem
             recipes[i] = ConvertCraftingRecipe(craftingrecipes[i]);
         }
         Packet_ServerCraftingRecipes p = new();
-        p.SetCraftingRecipes(recipes, recipes.Length, recipes.Length);
+        p.CraftingRecipes = recipes;
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.CraftingRecipes, CraftingRecipes = p }));
     }
 
@@ -3118,8 +3094,6 @@ public partial class Server : ICurrentTime, IDropItem
             {
                 r.Ingredients[i] = ConvertIngredient(craftingRecipe.ingredients[i]);
             }
-            r.IngredientsCount = r.Ingredients.Length;
-            r.IngredientsLength = r.Ingredients.Length;
         }
         if (craftingRecipe.output != null)
         {
@@ -3411,7 +3385,7 @@ public partial class Server : ICurrentTime, IDropItem
             {
                 widgets[i] = ConvertWidget(dialog.Widgets[i]);
             }
-            p.SetWidgets(widgets, widgets.Length, widgets.Length);
+            p.Widgets = widgets;
         }
         p.Width = dialog.Width;
         return p;
@@ -3433,7 +3407,7 @@ public partial class Server : ICurrentTime, IDropItem
             Id = widget.Id,
             Image = widget.Image,
             Text = widget.Text,
-            Type = (int)widget.Type,
+            Type = widget.Type,
             Width = widget.Width,
             X = widget.X,
             Y = widget.Y
@@ -3531,8 +3505,6 @@ public partial class Server : ICurrentTime, IDropItem
         {
             t[i++] = new Packet_IntInt() { Key_ = k.Key, Value_ = k.Value };
         }
-        p.TotalAmmoCount = totalAmmo.Count;
-        p.TotalAmmoLength = totalAmmo.Count;
         p.TotalAmmo = t;
         SendPacket(playerid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.Ammo, Ammo = p }));
     }
@@ -4066,14 +4038,16 @@ public class BlockTypeConverter
         {
             return null;
         }
-        Packet_SoundSet p = new();
-        p.SetBreak1(soundSet.Break, soundSet.Break.Length, soundSet.Break.Length);
-        p.SetBuild(soundSet.Build, soundSet.Build.Length, soundSet.Build.Length);
-        p.SetClone(soundSet.Clone, soundSet.Clone.Length, soundSet.Clone.Length);
-        p.SetReload(soundSet.Reload, soundSet.Reload.Length, soundSet.Reload.Length);
-        p.SetShoot(soundSet.Shoot, soundSet.Shoot.Length, soundSet.Shoot.Length);
-        p.SetShootEnd(soundSet.ShootEnd, soundSet.ShootEnd.Length, soundSet.ShootEnd.Length);
-        p.SetWalk(soundSet.Walk, soundSet.Walk.Length, soundSet.Walk.Length);
+        Packet_SoundSet p = new()
+        {
+            Break1 = soundSet.Break,
+            Build = soundSet.Build,
+            Clone = soundSet.Clone,
+            Reload = soundSet.Reload,
+            Shoot = soundSet.Shoot,
+            ShootEnd = soundSet.ShootEnd,
+            Walk = soundSet.Walk
+        };
         return p;
     }
 }

@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using ManicDigger;
+
+/// <summary>
 /// Handles weapon reload timing and the R key reload trigger.
 /// </summary>
 public class ModReloadAmmo : ModBase
@@ -23,12 +25,12 @@ public class ModReloadAmmo : ModBase
         if (args.KeyChar != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R)) return;
 
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
-        if (item == null || item.ItemClass != Packet_ItemClassEnum.Block) return;
+        if (item == null || item.ItemClass != ItemClass.Block) return;
         if (!game.blocktypes[item.BlockId].IsPistol) return;
         if (game.reloadstartMilliseconds != 0) return;
 
         var sounds = game.blocktypes[item.BlockId].Sounds;
-        int sound = game.rnd.Next() % sounds.ReloadCount;
+        int sound = game.rnd.Next() % sounds.Reload.Length;
         game.PlayAudio(sounds.Reload[sound] + ".ogg");
         game.reloadstartMilliseconds = game.platform.TimeMillisecondsFromStart;
         game.reloadblock = item.BlockId;

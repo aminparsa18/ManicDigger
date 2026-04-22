@@ -13,7 +13,7 @@ public class ModifyWorldScreen : ScreenBase
         buttonBack = new MenuWidget
         {
             text = "Back",
-            type = WidgetType.Button
+            type = UIWidgetType.Button
         };
 
         widgets.Add(buttonBack);

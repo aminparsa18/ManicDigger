@@ -38,12 +38,12 @@ public class SingleplayerScreen : ScreenBase
         back = new MenuWidget
         {
             text = "Back",
-            type = WidgetType.Button
+            type = UIWidgetType.Button
         };
         open = new MenuWidget
         {
             text = "Create or open...",
-            type = WidgetType.Button
+            type = UIWidgetType.Button
         };
 
         title = "Singleplayer";

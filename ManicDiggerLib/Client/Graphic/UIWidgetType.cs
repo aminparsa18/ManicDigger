@@ -1,4 +1,4 @@
-﻿public enum WidgetType
+﻿public enum UIWidgetType
 {
     Button,
     Textbox,

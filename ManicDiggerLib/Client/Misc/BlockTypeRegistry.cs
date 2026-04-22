@@ -211,10 +211,10 @@ public class BlockTypeRegistry
             // ── Bug fix: the original code passed `platform` as the first argument
             // to string.Concat, prepending its ToString() to every sound filename.
             // Sound paths should just be the name + ".wav".
-            for (int i = 0; i < b.Sounds.WalkCount; i++) WalkSound[id][i] = b.Sounds.Walk[i] + ".wav";
-            for (int i = 0; i < b.Sounds.Break1Count; i++) BreakSound[id][i] = b.Sounds.Break1[i] + ".wav";
-            for (int i = 0; i < b.Sounds.BuildCount; i++) BuildSound[id][i] = b.Sounds.Build[i] + ".wav";
-            for (int i = 0; i < b.Sounds.CloneCount; i++) CloneSound[id][i] = b.Sounds.Clone[i] + ".wav";
+            for (int i = 0; i < b.Sounds.Walk.Length; i++) WalkSound[id][i] = b.Sounds.Walk[i] + ".wav";
+            for (int i = 0; i < b.Sounds.Break1.Length; i++) BreakSound[id][i] = b.Sounds.Break1[i] + ".wav";
+            for (int i = 0; i < b.Sounds.Build.Length; i++) BuildSound[id][i] = b.Sounds.Build[i] + ".wav";
+            for (int i = 0; i < b.Sounds.Clone.Length; i++) CloneSound[id][i] = b.Sounds.Clone[i] + ".wav";
         }
 
         LightRadius[id] = b.LightRadius;

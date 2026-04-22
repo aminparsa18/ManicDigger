@@ -1510,7 +1510,7 @@ public class TerrainChunkTesselatorCi
             }
             istransparent[i] = (b.DrawType != DrawType.Solid) && (b.DrawType != DrawType.Fluid);
 
-            if((b.DrawType == DrawType.HalfHeight) || (b.DrawType == DrawType.Flat) || (b.GetRail() != 0))
+            if((b.DrawType == DrawType.HalfHeight) || (b.DrawType == DrawType.Flat) || (b.Rail != 0))
             {
                 isLowered[i] = true;
             }

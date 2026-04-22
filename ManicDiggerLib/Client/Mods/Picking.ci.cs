@@ -118,7 +118,7 @@ public class ModPicking : ModBase
         if (game.mouseleftclick)
         {
             game.grenadecookingstartMilliseconds = game.platform.TimeMillisecondsFromStart;
-            if (isPistol && isGrenade && game.blocktypes[item.BlockId].Sounds.ShootCount > 0)
+            if (isPistol && isGrenade && game.blocktypes[item.BlockId].Sounds.Shoot.Length > 0)
             {
                 game.PlayAudio(string.Format("{0}.ogg", game.blocktypes[item.BlockId].Sounds.Shoot[0]));
             }
@@ -369,7 +369,7 @@ public class ModPicking : ModBase
         bool found = false;
         for (int i = 0; i < 10; i++)
         {
-            if (game.d_Inventory.RightHand[i]?.ItemClass == Packet_ItemClassEnum.Block
+            if (game.d_Inventory.RightHand[i]?.ItemClass == ItemClass.Block
              && game.d_Inventory.RightHand[i].BlockId == cloneSource2)
             {
                 game.ActiveMaterial = i;
@@ -381,11 +381,11 @@ public class ModPicking : ModBase
         {
             int freeHand = game.d_InventoryUtil.FreeHand(game.ActiveMaterial) ?? -1;
 
-            for (int i = 0; i < game.d_Inventory.ItemsCount; i++)
+            for (int i = 0; i < game.d_Inventory.Items.Length; i++)
             {
                 Packet_PositionItem k = game.d_Inventory.Items[i];
                 if (k == null) { continue; }
-                if (k.Value_.ItemClass != Packet_ItemClassEnum.Block || k.Value_.BlockId != cloneSource2) { continue; }
+                if (k.Value_.ItemClass != ItemClass.Block || k.Value_.BlockId != cloneSource2) { continue; }
 
                 if (freeHand != -1)
                 {
@@ -394,7 +394,7 @@ public class ModPicking : ModBase
                     break;
                 }
 
-                if (game.d_Inventory.RightHand[game.ActiveMaterial]?.ItemClass == Packet_ItemClassEnum.Block)
+                if (game.d_Inventory.RightHand[game.ActiveMaterial]?.ItemClass == ItemClass.Block)
                 {
                     game.MoveToInventory(InventoryPositionMaterialSelector(game.ActiveMaterial));
                     game.WearItem(InventoryPositionMainArea(k.X, k.Y),
@@ -448,9 +448,9 @@ public class ModPicking : ModBase
 
         game.SendPacketClient(new Packet_Client { Id = PacketType.Shot, Shot = shot });
 
-        if (game.blocktypes[item.BlockId].Sounds.ShootEndCount > 0)
+        if (game.blocktypes[item.BlockId].Sounds.ShootEnd.Length > 0)
         {
-            game.pistolcycle = game.rnd.Next() % game.blocktypes[item.BlockId].Sounds.ShootEndCount;
+            game.pistolcycle = game.rnd.Next() % game.blocktypes[item.BlockId].Sounds.ShootEnd.Length;
             game.PlayAudio(string.Format("{0}.ogg", game.blocktypes[item.BlockId].Sounds.ShootEnd[game.pistolcycle]));
         }
 
@@ -833,7 +833,7 @@ public class ModPicking : ModBase
     {
         float defaultDelay = 0.95f / game.basemovespeed;
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
-        if (item == null || item.ItemClass != Packet_ItemClassEnum.Block) { return defaultDelay; }
+        if (item == null || item.ItemClass != ItemClass.Block) { return defaultDelay; }
 
         float delay = game.DecodeFixedPoint(game.blocktypes[item.BlockId].DelayFloat);
         return delay == 0 ? defaultDelay : delay;

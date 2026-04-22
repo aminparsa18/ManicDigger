@@ -206,7 +206,7 @@ public class InventoryUtilClient
     {
         _cellToItemOrigin.Clear();
 
-        for (int i = 0; i < _inventory.ItemsCount; i++)
+        for (int i = 0; i < _inventory.Items.Length; i++)
         {
             Packet_PositionItem posItem = _inventory.Items[i];
             Packet_Item item = posItem.Value_;

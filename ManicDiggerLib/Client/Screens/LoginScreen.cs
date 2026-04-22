@@ -54,15 +54,15 @@ public class LoginScreen : ScreenBase
     {
         // Tab chain (by list index):
         // [1] Username → [2] Password → [3] RememberMe → [0] Login → [8] Back → [1] Username
-        buttonLogin = new MenuWidget { text = "Login", type = WidgetType.Button, nextWidget = 8 };
-        textboxUsername = new MenuWidget { text = "", type = WidgetType.Textbox, description = "Username", nextWidget = 2 };
-        textboxPassword = new MenuWidget { text = "", type = WidgetType.Textbox, description = "Password", password = true, nextWidget = 3 };
-        buttonRememberMe = new MenuWidget { text = "Yes", type = WidgetType.Button, description = "Remember me", nextWidget = 0 };
-        buttonCreateAccount = new MenuWidget { text = "Create account", type = WidgetType.Button };
-        textboxCreateUsername = new MenuWidget { text = "", type = WidgetType.Textbox, description = "Username" };
-        textboxCreatePassword = new MenuWidget { text = "", type = WidgetType.Textbox, description = "Password", password = true };
-        buttonCreateRememberMe = new MenuWidget { text = "Yes", type = WidgetType.Button, description = "Remember me" };
-        buttonBack = new MenuWidget { text = "Back", type = WidgetType.Button, nextWidget = 1 };
+        buttonLogin = new MenuWidget { text = "Login", type = UIWidgetType.Button, nextWidget = 8 };
+        textboxUsername = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Username", nextWidget = 2 };
+        textboxPassword = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Password", password = true, nextWidget = 3 };
+        buttonRememberMe = new MenuWidget { text = "Yes", type = UIWidgetType.Button, description = "Remember me", nextWidget = 0 };
+        buttonCreateAccount = new MenuWidget { text = "Create account", type = UIWidgetType.Button };
+        textboxCreateUsername = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Username" };
+        textboxCreatePassword = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Password", password = true };
+        buttonCreateRememberMe = new MenuWidget { text = "Yes", type = UIWidgetType.Button, description = "Remember me" };
+        buttonBack = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
 
         title = "Login";
 

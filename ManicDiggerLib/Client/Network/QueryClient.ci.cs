@@ -3,6 +3,8 @@
 //
 // The query is async with a real timeout — no busy-wait spin loop.
 
+using MemoryPack;
+
 public sealed class QueryClient
 {
     private readonly IGamePlatform _platform;
@@ -41,9 +43,8 @@ public sealed class QueryClient
 
     private static void SendRequest(NetClient client)
     {
-        MemoryStream ms = new();
-        Packet_ClientSerializer.Serialize(ms, ClientPackets.ServerQuery());
-        client.SendMessage(ms.ToArray().AsMemory(0, (int)ms.Length), MyNetDeliveryMethod.ReliableOrdered);
+        var packet = MemoryPackSerializer.Serialize(ClientPackets.ServerQuery());
+        client.SendMessage(packet.AsMemory(0, packet.Length), MyNetDeliveryMethod.ReliableOrdered);
     }
 
     private static async Task<(QueryResult? result, string serverMessage)> ReadResponseAsync(
@@ -63,10 +64,7 @@ public sealed class QueryClient
                     continue;
                 }
 
-                Packet_Server packet = new();
-                Packet_ServerSerializer.DeserializeBuffer(
-                    msg.Payload.ToArray(), msg.Payload.Length, packet);
-
+                Packet_Server packet = MemoryPackSerializer.Deserialize<Packet_Server>(msg.Payload.Span);
                 switch (packet.Id)
                 {
                     case Packet_ServerIdEnum.QueryAnswer:

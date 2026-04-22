@@ -63,11 +63,11 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
     {
         DialogScreen s = new()
         {
-            widgets = new MenuWidget[p.WidgetsCount],
-            WidgetCount = p.WidgetsCount,
+            widgets = new MenuWidget[p.Widgets.Length],
+            WidgetCount = p.Widgets.Length,
         };
 
-        for (int i = 0; i < p.WidgetsCount; i++)
+        for (int i = 0; i < p.Widgets.Length; i++)
         {
             Packet_Widget a = p.Widgets[i];
             MenuWidget b = new();
@@ -75,9 +75,9 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
             // ── Single switch instead of four sequential if-blocks ────────────
             b.type = a.Type switch
             {
-                Packet_WidgetTypeEnum.Text => WidgetType.Label,
-                Packet_WidgetTypeEnum.Image => WidgetType.Button,
-                Packet_WidgetTypeEnum.TextBox => WidgetType.Textbox,
+                ManicDigger.WidgetType.Text => UIWidgetType.Label,
+                ManicDigger.WidgetType.Image => UIWidgetType.Button,
+                ManicDigger.WidgetType.TextBox => UIWidgetType.Textbox,
                 _ => b.type,
             };
 
@@ -120,7 +120,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         // Auto-focus the first textbox widget.
         for (int i = 0; i < s.WidgetCount; i++)
         {
-            if (s.widgets[i]?.type == WidgetType.Textbox)
+            if (s.widgets[i]?.type == UIWidgetType.Textbox)
             {
                 s.widgets[i].editing = true;
                 break;

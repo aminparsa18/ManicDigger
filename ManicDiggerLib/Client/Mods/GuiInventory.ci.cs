@@ -1,4 +1,5 @@
-﻿using OpenTK.Windowing.Common;
+﻿using ManicDigger;
+using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
@@ -363,7 +364,7 @@ public class ModGuiInventory : ModBase
             drawsizeY = CellDrawSize * sizey;
         }
 
-        if (item.ItemClass == Packet_ItemClassEnum.Block)
+        if (item.ItemClass == ItemClass.Block)
         {
             if (item.BlockId == 0) { return; }
 
@@ -420,7 +421,7 @@ public class ModGuiInventory : ModBase
     /// <summary>Draws all items currently visible in the scrolled inventory grid.</summary>
     private void DrawInventoryItems()
     {
-        for (int i = 0; i < game.d_Inventory.ItemsCount; i++)
+        for (int i = 0; i < game.d_Inventory.Items.Length; i++)
         {
             Packet_PositionItem k = game.d_Inventory.Items[i];
             if (k == null) { continue; }
@@ -632,7 +633,7 @@ public class ModGuiInventory : ModBase
     /// </summary>
     private static Packet_Item GetItem(Packet_Inventory inventory, int x, int y)
     {
-        for (int i = 0; i < inventory.ItemsCount; i++)
+        for (int i = 0; i < inventory.Items.Length; i++)
         {
             if (inventory.Items[i].X == x && inventory.Items[i].Y == y)
             {

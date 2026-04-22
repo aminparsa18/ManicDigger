@@ -1,4 +1,5 @@
 ﻿using ManicDigger;
+using MemoryPack;
 
 public class ClientPackets
 {
@@ -227,8 +228,7 @@ public class ClientPackets
         Packet_ClientRequestBlob p = new(); //{ RequestBlobMd5 = needed };
         if (GameVersionHelper.ServerVersionAtLeast(game.serverGameVersion, 2014, 4, 13))
         {
-            p.RequestedMd5 = new Packet_StringList();
-            p.RequestedMd5.SetItems(required, requiredCount, requiredCount);
+            p.RequestedMd5 = (required);
         }
         Packet_Client pp = new()
         {
@@ -278,7 +278,7 @@ public class ClientPackets
                 WidgetId = widgetId
             }
         };
-        p.DialogClick_.SetTextBoxValue(textValues, textValuesCount, textValuesCount);
+        p.DialogClick_.TextBoxValue = (textValues);
         return p;
     }
 
@@ -448,103 +448,6 @@ public class ServerPackets
         return p;
     }
 
-    public static Packet_Server Identification(int assignedClientId, int mapSizeX, int mapSizeY, int mapSizeZ, string version)
-    {
-        Packet_Server p = new()
-        {
-            Id = Packet_ServerIdEnum.ServerIdentification,
-            Identification = new Packet_ServerIdentification
-            {
-                AssignedClientId = assignedClientId,
-                MapSizeX = mapSizeX,
-                MapSizeY = mapSizeY,
-                MapSizeZ = mapSizeZ,
-                ServerName = "Simple",
-                MdProtocolVersion = version
-            }
-        };
-        return p;
-    }
-    public static byte[] Serialize(Packet_Server packet, out int retLength)
-    {
-        MemoryStream ms = new();
-        Packet_ServerSerializer.Serialize(ms, packet);
-        byte[] data = ms.ToArray();
-        retLength = (int)ms.Length;
-        return data;
-    }
-
-    public static Packet_Server BlockType(int id, Packet_BlockType blockType)
-    {
-        Packet_Server p = new()
-        {
-            Id = Packet_ServerIdEnum.BlockType,
-            BlockType = new Packet_ServerBlockType
-            {
-                Id = id,
-                Blocktype = blockType
-            }
-        };
-        return p;
-    }
-
-    public static Packet_Server BlockTypes()
-    {
-        Packet_Server p = new()
-        {
-            Id = Packet_ServerIdEnum.BlockTypes,
-            BlockTypes = new Packet_ServerBlockTypes()
-        };
-        return p;
-    }
-
-    public static Packet_Server Chunk_(int x, int y, int z, int chunksize)
-    {
-        Packet_Server p = new()
-        {
-            Id = Packet_ServerIdEnum.Chunk_,
-            Chunk_ = new Packet_ServerChunk
-            {
-                X = x,
-                Y = y,
-                Z = z,
-                SizeX = chunksize,
-                SizeY = chunksize,
-                SizeZ = chunksize
-            }
-        };
-        return p;
-    }
-
-    public static Packet_Server ChunkPart(byte[] compressedChunkPart)
-    {
-        Packet_Server p = new()
-        {
-            Id = Packet_ServerIdEnum.ChunkPart,
-            ChunkPart = new Packet_ServerChunkPart
-            {
-                CompressedChunkPart = compressedChunkPart
-            }
-        };
-        return p;
-    }
-
-    internal static Packet_Server SetBlock(int x, int y, int z, int block)
-    {
-        Packet_Server p = new()
-        {
-            Id = Packet_ServerIdEnum.SetBlock,
-            SetBlock = new Packet_ServerSetBlock
-            {
-                X = x,
-                Y = y,
-                Z = z,
-                BlockType = block
-            }
-        };
-        return p;
-    }
-
     internal static Packet_Server PlayerStats(int health, int maxHealth, int oxygen, int maxOxygen)
     {
         Packet_Server p = new()
@@ -556,19 +459,6 @@ public class ServerPackets
                 MaxHealth = maxHealth,
                 CurrentOxygen = oxygen,
                 MaxOxygen = maxOxygen
-            }
-        };
-        return p;
-    }
-
-    internal static Packet_Server Inventory(Packet_Inventory inventory)
-    {
-        Packet_Server p = new()
-        {
-            Id = Packet_ServerIdEnum.FiniteInventory,
-            Inventory = new Packet_ServerInventory
-            {
-                Inventory = inventory
             }
         };
         return p;

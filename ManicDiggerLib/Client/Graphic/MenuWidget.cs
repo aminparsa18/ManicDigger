@@ -11,7 +11,7 @@
     public void GetFocus()
     {
         hasKeyboardFocus = true;
-        if (type == WidgetType.Textbox)
+        if (type == UIWidgetType.Textbox)
         {
             editing = true;
         }
@@ -20,7 +20,7 @@
     public void LoseFocus()
     {
         hasKeyboardFocus = false;
-        if (type == WidgetType.Textbox)
+        if (type == UIWidgetType.Textbox)
         {
             editing = false;
         }
@@ -33,7 +33,7 @@
     internal float sizey;
     internal bool pressed;
     internal bool hover;
-    internal WidgetType type;
+    internal UIWidgetType type;
     internal bool editing;
     internal bool visible;
     internal float fontSize;

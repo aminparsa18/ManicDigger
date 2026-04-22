@@ -76,7 +76,7 @@ public class ModGuiCrafting : ModBase
         // Register the packet handler once, not every frame.
         if (!_handlerRegistered)
         {
-            game.packetHandlers[Packet_ServerIdEnum.CraftingRecipes] = handler;
+            game.packetHandlers[(int)Packet_ServerIdEnum.CraftingRecipes] = handler;
             _handlerRegistered = true;
         }
 
@@ -133,7 +133,7 @@ public class ModGuiCrafting : ModBase
             if (r == null) continue;
 
             bool canCraft = true;
-            for (int k = 0; k < r.IngredientsCount; k++)
+            for (int k = 0; k < r.Ingredients.Length; k++)
             {
                 Packet_Ingredient ing = r.Ingredients[k];
                 if (ing == null) continue;
@@ -166,7 +166,7 @@ public class ModGuiCrafting : ModBase
                 : ColorUtils.ColorFromArgb(255, 255, 255, 255);
             int white = ColorUtils.ColorFromArgb(255, 255, 255, 255);
 
-            for (int ii = 0; ii < r.IngredientsCount; ii++)
+            for (int ii = 0; ii < r.Ingredients.Length; ii++)
             {
                 Packet_Ingredient ing = r.Ingredients[ii];
                 int colX = menuX + 20 + ii * 130;

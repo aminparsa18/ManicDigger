@@ -59,7 +59,7 @@ public class ScreenBase
         {
             if (w.hasKeyboardFocus && (e.KeyChar == (int)Keys.Tab || e.KeyChar == (int)Keys.Enter))
             {
-                if (w.type == WidgetType.Button && e.KeyChar == (int)Keys.Enter)
+                if (w.type == UIWidgetType.Button && e.KeyChar == (int)Keys.Enter)
                 {
                     OnButton(w);
                     return;
@@ -72,7 +72,7 @@ public class ScreenBase
                 }
             }
 
-            if (w.type != WidgetType.Textbox || !w.editing) { continue; }
+            if (w.type != UIWidgetType.Textbox || !w.editing) { continue; }
 
             int key = e.KeyChar;
 
@@ -104,7 +104,7 @@ public class ScreenBase
     {
         foreach (MenuWidget w in widgets)
         {
-            if (w.type != WidgetType.Textbox || !w.editing) { continue; }
+            if (w.type != UIWidgetType.Textbox || !w.editing) { continue; }
 
             if (menu.p.IsValidTypingChar(e.KeyChar))
             {
@@ -127,7 +127,7 @@ public class ScreenBase
             bool hit = VectorUtils.PointInRect(x, y, w.x, w.y, w.sizex, w.sizey);
             w.pressed = hit;
 
-            if (w.type == WidgetType.Textbox)
+            if (w.type == UIWidgetType.Textbox)
             {
                 bool wasEditing = w.editing;
                 w.editing = hit;
@@ -174,7 +174,7 @@ public class ScreenBase
 
         foreach (MenuWidget w in widgets)
         {
-            if (w.type != WidgetType.Button) { continue; }
+            if (w.type != UIWidgetType.Button) { continue; }
 
             if (VectorUtils.PointInRect(x, y, w.x, w.y, w.sizex, w.sizey))
             {
@@ -199,7 +199,7 @@ public class ScreenBase
     }
 
     /// <summary>
-    /// Draws all visible widgets. Rendering varies by <see cref="WidgetType"/>
+    /// Draws all visible widgets. Rendering varies by <see cref="UIWidgetType"/>
     /// and <see cref="ButtonStyle"/>:
     /// <list type="bullet">
     ///   <item><description><see cref="ButtonStyle.Text"/> — draws an optional icon then text.</description></item>
@@ -216,11 +216,11 @@ public class ScreenBase
 
             string text = w.selected ? string.Concat("&2", w.text) : w.text;
 
-            if (w.type == WidgetType.Button)
+            if (w.type == UIWidgetType.Button)
             {
                 DrawButton(w, text);
             }
-            else if (w.type == WidgetType.Textbox)
+            else if (w.type == UIWidgetType.Textbox)
             {
                 DrawTextbox(w, text);
             }

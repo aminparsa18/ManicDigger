@@ -226,7 +226,7 @@ public partial class Game
         SendSetBlock(x, y, z, mode, material, ActiveMaterial);
 
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != Packet_ItemClassEnum.Block)
+        if (item == null || item.ItemClass != ItemClass.Block)
             return;
 
         int blockid = mode == PacketBlockSetMode.Destroy ? SpecialBlockId.Empty : material;

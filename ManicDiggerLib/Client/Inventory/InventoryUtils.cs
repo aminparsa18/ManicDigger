@@ -1,4 +1,6 @@
 ﻿
+using ManicDigger;
+
 /// <summary>
 /// Provides client-side metadata and operations for inventory items, including
 /// display names, grid sizes, stacking rules, and wear eligibility.
@@ -44,7 +46,7 @@ public class InventoryUtils
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
 
-        if (item.ItemClass == Packet_ItemClassEnum.Block)
+        if (item.ItemClass == ItemClass.Block)
         {
             string key = string.Concat("Block_", _game.blocktypes[item.BlockId].Name);
             return _game.language.Get(key);
@@ -67,7 +69,7 @@ public class InventoryUtils
 
         return item.ItemClass switch
         {
-            Packet_ItemClassEnum.Block => 1,
+            ItemClass.Block => 1,
             _ => throw new NotSupportedException($"ItemSizeX not implemented for ItemClass '{item.ItemClass}'.")
         };
     }
@@ -86,7 +88,7 @@ public class InventoryUtils
 
         return item.ItemClass switch
         {
-            Packet_ItemClassEnum.Block => 1,
+            ItemClass.Block => 1,
             _ => throw new NotSupportedException($"ItemSizeY not implemented for ItemClass '{item.ItemClass}'.")
         };
     }
@@ -109,8 +111,8 @@ public class InventoryUtils
         if (itemA == null || itemB == null)
             return null;
 
-        if (itemA.ItemClass == Packet_ItemClassEnum.Block
-            && itemB.ItemClass == Packet_ItemClassEnum.Block
+        if (itemA.ItemClass == ItemClass.Block
+            && itemB.ItemClass == ItemClass.Block
             && itemA.BlockId == itemB.BlockId)
         {
             return new Packet_Item
@@ -143,7 +145,7 @@ public class InventoryUtils
 
         return wearPlace switch
         {
-            WearPlace.RightHand => item.ItemClass == Packet_ItemClassEnum.Block,
+            WearPlace.RightHand => item.ItemClass == ItemClass.Block,
             WearPlace.MainArmor => false,
             WearPlace.Boots => false,
             WearPlace.Helmet => false,

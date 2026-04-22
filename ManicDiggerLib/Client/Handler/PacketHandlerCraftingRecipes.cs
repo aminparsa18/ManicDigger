@@ -4,6 +4,6 @@
     public override void Handle(Game game, Packet_Server packet)
     {
         mod.d_CraftingRecipes = packet.CraftingRecipes.CraftingRecipes;
-        mod.d_CraftingRecipesCount = packet.CraftingRecipes.CraftingRecipesCount;
+        mod.d_CraftingRecipesCount = packet.CraftingRecipes.CraftingRecipes.Length;
     }
 }

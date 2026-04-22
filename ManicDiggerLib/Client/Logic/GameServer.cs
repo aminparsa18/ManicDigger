@@ -14,29 +14,29 @@
         ServerInfo.ServerMotd = packet.Identification.ServerMotd;
         d_TerrainChunkTesselator.ENABLE_TEXTURE_TILING = packet.Identification.RenderHint_ == RenderHintEnum.Fast;
 
-        Packet_StringList requiredMd5 = packet.Identification.RequiredBlobMd5;
-        Packet_StringList requiredName = packet.Identification.RequiredBlobName;
+        var requiredMd5 = packet.Identification.RequiredBlobMd5;
+        var requiredName = packet.Identification.RequiredBlobName;
 
         ChatLog("[GAME] Processed server identification");
 
         int getCount = 0;
         if (requiredMd5 != null)
         {
-            ChatLog(string.Format("[GAME] Server has {0} assets", requiredMd5.ItemsCount));
-            for (int i = 0; i < requiredMd5.ItemsCount; i++)
+            ChatLog(string.Format("[GAME] Server has {0} assets", requiredMd5.Length));
+            for (int i = 0; i < requiredMd5.Length; i++)
             {
-                string md5 = requiredMd5.Items[i];
+                string md5 = requiredMd5[i];
                 if (platform.IsCached(md5))
                 {
                     Asset cachedAsset = platform.LoadAssetFromCache(md5);
-                    string name = requiredName != null ? requiredName.Items[i] : cachedAsset.name;
+                    string name = requiredName != null ? requiredName[i] : cachedAsset.name;
                     SetFile(name, cachedAsset.md5, cachedAsset.data, cachedAsset.dataLength);
                 }
                 else
                 {
                     if (requiredName != null)
                     {
-                        if (!HasAsset(md5, requiredName.Items[i]))
+                        if (!HasAsset(md5, requiredName[i]))
                             getAsset[getCount++] = md5;
                     }
                     else

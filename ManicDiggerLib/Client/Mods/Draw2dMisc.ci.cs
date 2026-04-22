@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 
 public class ModDraw2dMisc : ModBase
 {
@@ -142,7 +143,7 @@ public class ModDraw2dMisc : ModBase
     internal static void DrawAmmo(Game game)
     {
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
-        if (item == null || item.ItemClass != Packet_ItemClassEnum.Block) return;
+        if (item == null || item.ItemClass != ItemClass.Block) return;
         if (!game.blocktypes[item.BlockId].IsPistol) return;
 
         int loaded = game.LoadedAmmo[item.BlockId];

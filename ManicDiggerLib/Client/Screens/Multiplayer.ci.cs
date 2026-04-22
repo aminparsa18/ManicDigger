@@ -5,36 +5,36 @@ public class MultiplayerScreen : ScreenBase
     public MultiplayerScreen()
     {
         // Tab chain (by list index): [0] Back → [1] Connect → [3] ConnectToIp → [2] Refresh → [0] Back
-        back = new MenuWidget { text = "Back", type = WidgetType.Button, nextWidget = 1 };
-        connect = new MenuWidget { text = "Connect", type = WidgetType.Button, nextWidget = 3 };
-        connectToIp = new MenuWidget { text = "Connect to IP", type = WidgetType.Button, nextWidget = 2 };
-        refresh = new MenuWidget { text = "Refresh", type = WidgetType.Button, nextWidget = 0 };
+        back = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
+        connect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
+        connectToIp = new MenuWidget { text = "Connect to IP", type = UIWidgetType.Button, nextWidget = 2 };
+        refresh = new MenuWidget { text = "Refresh", type = UIWidgetType.Button, nextWidget = 0 };
 
         page = 0;
         pageUp = new MenuWidget
         {
             text = "",
-            type = WidgetType.Button,
+            type = UIWidgetType.Button,
             buttonStyle = ButtonStyle.Text,
             visible = false
         };
         pageDown = new MenuWidget
         {
             text = "",
-            type = WidgetType.Button,
+            type = UIWidgetType.Button,
             buttonStyle = ButtonStyle.Text,
             visible = false
         };
         loggedInName = new MenuWidget
         {
             text = "",
-            type = WidgetType.Button,
+            type = UIWidgetType.Button,
             buttonStyle = ButtonStyle.Text
         };
         logout = new MenuWidget
         {
             text = "",
-            type = WidgetType.Button,
+            type = UIWidgetType.Button,
             buttonStyle = ButtonStyle.Button
         };
 
@@ -60,7 +60,7 @@ public class MultiplayerScreen : ScreenBase
             MenuWidget b = new MenuWidget
             {
                 text = "Invalid",
-                type = WidgetType.Button,
+                type = UIWidgetType.Button,
                 visible = false,
                 image = "serverlist_entry_noimage.png"
             };

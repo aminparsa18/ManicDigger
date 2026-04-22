@@ -25,6 +25,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="ENet-CSharp" Version="2.4.8" />
+		<PackageReference Include="MemoryPack" Version="1.21.4" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" />
 		<PackageReference Include="NVorbis" Version="0.10.5" />
 		<PackageReference Include="OpenTK" Version="4.9.4" />

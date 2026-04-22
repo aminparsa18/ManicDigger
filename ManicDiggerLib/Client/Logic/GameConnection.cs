@@ -1,4 +1,6 @@
-﻿public partial class Game
+﻿using MemoryPack;
+
+public partial class Game
 {
     internal NetClient main;
     internal bool IsTeamchat;
@@ -11,9 +13,7 @@
 
     public static byte[] Serialize(Packet_Client packet)
     {
-        MemoryStream ms = new();
-        Packet_ClientSerializer.Serialize(ms, packet);
-        return ms.ToArray();
+        return MemoryPackSerializer.Serialize(packet);
     }
 
     public void SendPacket(byte[] packet)

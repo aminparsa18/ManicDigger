@@ -78,7 +78,6 @@ public class GamePlatformNative : IGamePlatform
         {
             byte[] data = c.DownloadData(args.url);
             args.response.Value = data;
-            args.response.ValueLength = data.Length;
             args.response.Done = true;
         }
         catch
@@ -278,7 +277,6 @@ public class GamePlatformNative : IGamePlatform
                 CopyTo(s, m);
             }
             d.response.Value = m.ToArray();
-            d.response.ValueLength = d.response.Value.Length;
             d.response.Done = true;
 
             request.Abort();

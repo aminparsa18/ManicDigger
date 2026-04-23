@@ -188,15 +188,10 @@ public class TerrainChunkTesselatorCi
 
     }
 
-
-#if CITO
-    macro Index3d(x, y, h, sizex, sizey) ((((((h) * (sizey)) + (y))) * (sizex)) + (x))
-#else
     private static int Index3d(int x, int y, int h, int sizex, int sizey)
     {
         return (h * sizey + y) * sizex + x;
     }
-#endif
 
     public void Start()
     {

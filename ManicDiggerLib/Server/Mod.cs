@@ -31,8 +31,8 @@ public class ModManager1 : IModManager
                 return i;
             }
         }
-        return -1;
-        //throw new Exception(name);
+        //return -1;
+        throw new Exception(name);
     }
 
     public void AddToCreativeInventory(string blockType)

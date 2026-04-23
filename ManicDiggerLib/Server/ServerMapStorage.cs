@@ -124,12 +124,20 @@ public class ServerMapStorage : IMapStorage
         y = InvertChunk(y);
         z = InvertChunk(z);
         ServerChunk chunk = GetChunkValid(x, y, z);
+        if (chunk != null)
+        {
+            bool allZero = true;
+            for (int i = 0; i < chunk.data?.Length; i++)
+                if (chunk.data[i] != 0) { allZero = false; break; }
+            Console.WriteLine($"[Chunk] ({x},{y},{z}) already existed, allZero={allZero}, IsPopulated={chunk.IsPopulated}");
+        }
         if (chunk == null)
         {
             wasChunkGenerated = true;
             unchecked
             {
                 byte[] serializedChunk = ChunkDb.GetChunk(d_ChunkDb, x, y, z);
+                Console.WriteLine($"[DB] ({x},{y},{z}) key={MapUtil.ToMapPos(x, y, z)} got={serializedChunk != null} len={serializedChunk?.Length}");
                 if (serializedChunk != null)
                 {
                     SetChunkValid(x, y, z, DeserializeChunk(serializedChunk));

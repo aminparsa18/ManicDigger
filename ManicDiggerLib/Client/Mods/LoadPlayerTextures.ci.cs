@@ -57,7 +57,7 @@ public class ModLoadPlayerTextures : ModBase
             if (_skinServerResponse.Done)
             {
                 skinserver = Encoding.UTF8.GetString(
-                    _skinServerResponse.Value, 0, _skinServerResponse.ValueLength);
+                    _skinServerResponse.Value, 0, _skinServerResponse.Value.Length);
             }
             else if (_skinServerResponse.Error)
             {
@@ -117,7 +117,7 @@ public class ModLoadPlayerTextures : ModBase
         // Download finished — decode and upload.
         Bitmap bmp = PixelBuffer.BitmapFromPng(
             e.drawModel.SkinDownloadResponse.Value,
-            e.drawModel.SkinDownloadResponse.ValueLength);
+            e.drawModel.SkinDownloadResponse.Value.Length);
 
         if (bmp != null)
         {

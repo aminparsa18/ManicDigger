@@ -13,9 +13,6 @@
 /// </remarks>
 public class Chunk
 {
-    /// <summary>Number of blocks in one dimension of a chunk.</summary>
-    private static int ChunkSide => Game.chunksize;
-
     /// <summary>Total number of blocks in a full chunk volume (ChunkSide³).</summary>
     private static int ChunkVolume => Game.chunksize * Game.chunksize * Game.chunksize;
 

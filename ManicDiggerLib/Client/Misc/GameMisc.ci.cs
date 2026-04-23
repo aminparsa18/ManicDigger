@@ -52,7 +52,7 @@ public class LoginClientCi
         }
         if (loginUrlResponse != null && loginUrlResponse.Done)
         {
-            loginUrl = Encoding.UTF8.GetString(loginUrlResponse.Value, 0, loginUrlResponse.ValueLength);
+            loginUrl = Encoding.UTF8.GetString(loginUrlResponse.Value, 0, loginUrlResponse.Value.Length);
             loginUrlResponse = null;
         }
 
@@ -69,7 +69,7 @@ public class LoginClientCi
             }
             if (loginResponse != null && loginResponse.Done)
             {
-                string responseString = Encoding.UTF8.GetString(loginResponse.Value, 0, loginResponse.ValueLength);
+                string responseString = Encoding.UTF8.GetString(loginResponse.Value, 0, loginResponse.Value.Length);
                 resultLoginData.PasswordCorrect = !(responseString.Contains("Wrong username") || responseString.Contains("Incorrect username"));
                 resultLoginData.ServerCorrect = !responseString.Contains("server");
                 if (resultLoginData.PasswordCorrect)

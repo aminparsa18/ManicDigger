@@ -23,8 +23,7 @@ public partial class Game
 
     public void SendPacketClient(Packet_Client packetClient)
     {
-        byte[] packet = Serialize(packetClient);
-        SendPacket(packet);
+        SendPacket(Serialize(packetClient));
     }
 
     // -------------------------------------------------------------------------

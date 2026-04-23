@@ -9,8 +9,6 @@ public class HttpResponse
     public bool Done { get; set; }
     public bool Error { get; set; }
     public byte[] Value { get; set; }
-    public int ValueLength { get; set; }
-
     public string GetString() =>
-        Encoding.UTF8.GetString(Value, 0, ValueLength);
+        Encoding.UTF8.GetString(Value, 0, Value.Length);
 }

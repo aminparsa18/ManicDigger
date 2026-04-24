@@ -2,9 +2,10 @@
 
 public class ModGuiChat : ModBase
 {
-    public ModGuiChat(IGameClient game)
+    public ModGuiChat(IGameClient game, IGamePlatform platform)
     {
         this.game = game;
+        this.platform = platform;
         ChatFontSize = 11;
         currentFontSize = ChatFontSize;
         ChatScreenExpireTimeSeconds = 20;
@@ -14,6 +15,8 @@ public class ModGuiChat : ModBase
     }
 
     private readonly IGameClient game;
+    private readonly IGamePlatform platform;
+
     internal float ChatFontSize;
     internal int ChatScreenExpireTimeSeconds;
     internal int ChatLinesMaxToDraw;
@@ -34,12 +37,12 @@ public class ModGuiChat : ModBase
         }
     }
 
-    public override void OnMouseDown(Game game_, MouseEventArgs args)
+    public override void OnMouseDown(MouseEventArgs args)
     {
         for (int i = 0; i < chatlines2Count; i++)
         {
             float dx = 20;
-            if (!game.Platform.IsMousePointerLocked())
+            if (!platform.IsMousePointerLocked())
             {
                 dx += 100;
             }
@@ -54,7 +57,7 @@ public class ModGuiChat : ModBase
                     //Mouse over chatline at position i
                     if (chatlines2[i].clickable)
                     {
-                        game.Platform.OpenLinkInBrowser(chatlines2[i].linkTarget);
+                        platform.OpenLinkInBrowser(chatlines2[i].linkTarget);
                     }
                 }
             }
@@ -66,7 +69,7 @@ public class ModGuiChat : ModBase
     public void DrawChatLines(bool all)
     {
         chatlines2Count = 0;
-        int timeNow = game.Platform.TimeMillisecondsFromStart;
+        int timeNow = platform.TimeMillisecondsFromStart;
         int scroll;
         if (!all)
         {
@@ -136,17 +139,17 @@ public class ModGuiChat : ModBase
         {
             s = string.Format("To team: {0}", s);
         }
-        if (game.Platform.IsSmallScreen())
+        if (platform.IsSmallScreen())
         {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (game.Platform.GetCanvasHeight() / 2) - 100 * game.Scale(), null, true);
+            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (platform.GetCanvasHeight() / 2) - 100 * game.Scale(), null, true);
         }
         else
         {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), game.Platform.GetCanvasHeight() - 100 * game.Scale(), null, true);
+            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), platform.GetCanvasHeight() - 100 * game.Scale(), null, true);
         }
     }
 
-    public override void OnKeyDown(Game game_, KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         if (game.GuiState != GuiState.Normal)
         {
@@ -186,7 +189,7 @@ public class ModGuiChat : ModBase
                 game.IsTyping = false;
 
                 game.GuiTyping = TypingState.None;
-                game.Platform.ShowKeyboard(false);
+                platform.ShowKeyboard(false);
             }
             else if (game.GuiTyping == TypingState.None)
             {
@@ -277,7 +280,7 @@ public class ModGuiChat : ModBase
         }
     }
 
-    public override void OnKeyPress(Game game_, KeyPressEventArgs args)
+    public override void OnKeyPress(KeyPressEventArgs args)
     {
         if (game.GuiState != GuiState.Normal)
         {
@@ -306,7 +309,7 @@ public class ModGuiChat : ModBase
         if (game.GuiTyping == TypingState.Typing)
         {
             int c = eKeyChar;
-            if (game.Platform.IsValidTypingChar(c))
+            if (platform.IsValidTypingChar(c))
             {
                 game.GuiTypingBuffer = string.Concat(game.GuiTypingBuffer, (char)c);
             }

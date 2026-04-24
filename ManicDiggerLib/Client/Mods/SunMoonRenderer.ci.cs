@@ -14,6 +14,12 @@ public class SunMoonRenderer : ModBase
     private float t;
     private int sunTexture = -1;
     private int moonTexture = -1;
+    private readonly IGameClient game;
+
+    public SunMoonRenderer(IGameClient game)
+    {
+        this.game = game;
+    }
 
     public int GetHour() => hour;
 
@@ -23,7 +29,7 @@ public class SunMoonRenderer : ModBase
         t = (hour - 6) / 24f * TwoPi;
     }
 
-    public override void OnNewFrameDraw3d(Game game, float dt)
+    public override void OnNewFrameDraw3d(float dt)
     {
         if (sunTexture == -1)
         {
@@ -31,32 +37,28 @@ public class SunMoonRenderer : ModBase
             moonTexture = game.GetTexture("moon.png");
         }
 
-        UpdateSunMoonPosition(dt, game);
+        UpdateSunMoonPosition(dt);
 
-        float bodyX = (game.isNight ? game.moonPositionX : game.sunPositionX) + game.Player.position.x;
-        float bodyY = (game.isNight ? game.moonPositionY : game.sunPositionY) + game.Player.position.y;
-        float bodyZ = (game.isNight ? game.moonPositionZ : game.sunPositionZ) + game.Player.position.z;
+        float bodyX = (game.isNight ? game.moonPosition.X : game.sunPosition.X) + game.Player.position.x;
+        float bodyY = (game.isNight ? game.moonPosition.Y : game.sunPosition.Y) + game.Player.position.y;
+        float bodyZ = (game.isNight ? game.moonPosition.Z : game.sunPosition.Z) + game.Player.position.z;
 
         game.GLMatrixModeModelView();
         game.GLPushMatrix();
         game.GLTranslate(bodyX, bodyY, bodyZ);
-        ModDrawSprites.Billboard(game);
+        new ModDrawSprites(game).Billboard();
         game.GLScale(SpriteScale, SpriteScale, SpriteScale);
         game.Draw2dTexture(game.isNight ? moonTexture : sunTexture, 0, 0, ImageSize, ImageSize, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
         game.GLPopMatrix();
     }
 
-    private void UpdateSunMoonPosition(float dt, Game game)
+    private void UpdateSunMoonPosition(float dt)
     {
         t += dt * TwoPi / day_length_in_seconds;
 
         game.isNight = (t + TwoPi) % TwoPi > MathF.PI;
 
-        game.sunPositionX = MathF.Cos(t) * OrbitRadius;
-        game.sunPositionY = MathF.Sin(t) * OrbitRadius;
-        game.sunPositionZ = MathF.Sin(t) * OrbitRadius;
-        game.moonPositionX = MathF.Cos(-t) * OrbitRadius;
-        game.moonPositionY = MathF.Sin(-t) * OrbitRadius;
-        game.moonPositionZ = MathF.Sin(t) * OrbitRadius;
+        game.sunPosition = new OpenTK.Mathematics.Vector3(MathF.Cos(t) * OrbitRadius, MathF.Sin(t) * OrbitRadius, MathF.Sin(t) * OrbitRadius);
+        game.moonPosition = new OpenTK.Mathematics.Vector3(MathF.Cos(-t) * OrbitRadius, MathF.Sin(-t) * OrbitRadius, MathF.Sin(t) * OrbitRadius);
     }
 }

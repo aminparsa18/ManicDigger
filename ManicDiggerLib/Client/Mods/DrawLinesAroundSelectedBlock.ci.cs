@@ -5,19 +5,26 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
 {
     private const float SelectionScale = 1.02f;
 
-    private readonly DrawWireframeCube lines = new();
+    private readonly DrawWireframeCube lines;
+    private readonly IGameClient game;
 
-    public override void OnNewFrameDraw3d(Game game, float deltaTime)
+    public ModDrawLinesAroundSelectedBlock(IGameClient game, IGamePlatform platform)
+    {
+        this.game = game;
+        lines = new DrawWireframeCube(platform);
+    }
+
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         if (!game.ENABLE_DRAW2D) return;
 
         if (game.SelectedEntityId != -1)
-            DrawEntityOutline(game);
+            DrawEntityOutline();
         else if (game.SelectedBlockPositionX != -1)
-            DrawBlockOutline(game);
+            DrawBlockOutline();
     }
 
-    private void DrawEntityOutline(Game game)
+    private void DrawEntityOutline()
     {
         Entity e = game.Entities[game.SelectedEntityId];
         if (e == null) return;
@@ -28,7 +35,7 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
             SelectionScale, SelectionScale * height, SelectionScale);
     }
 
-    private void DrawBlockOutline(Game game)
+    private void DrawBlockOutline()
     {
         int x = game.SelectedBlockPositionX;
         int y = game.SelectedBlockPositionY;
@@ -47,13 +54,19 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
 public class DrawWireframeCube
 {
     private GeometryModel wireframeCube;
+    private readonly IGamePlatform platform;
 
-    public void DrawWireframeCube_(Game game, float posX, float posY, float posZ, float scaleX, float scaleY, float scaleZ)
+    public DrawWireframeCube(IGamePlatform game)
     {
-        game.Platform.GLLineWidth(2);
-        game.Platform.BindTexture2d(0);
+        this.platform = game;
+    }
 
-        wireframeCube ??= game.Platform.CreateModel(WireframeCube.Create());
+    public void DrawWireframeCube_(IGameClient game, float posX, float posY, float posZ, float scaleX, float scaleY, float scaleZ)
+    {
+        platform.GLLineWidth(2);
+        platform.BindTexture2d(0);
+
+        wireframeCube ??= platform.CreateModel(WireframeCube.Create());
 
         game.GLPushMatrix();
         game.GLTranslate(posX, posY, posZ);

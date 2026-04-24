@@ -4,10 +4,12 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 public class ModGuiEscapeMenu : ModBase
 {
     private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public ModGuiEscapeMenu(IGameClient game)
+    public ModGuiEscapeMenu(IGameClient game, IGamePlatform platform)
     {
         this.game = game;
+        this.platform = platform;
         fonts = new string[4];
         fonts[0] = "Nice";
         fonts[1] = "Simple";
@@ -441,16 +443,16 @@ public class ModGuiEscapeMenu : ModBase
         {
             if (!changedResolution)
             {
-                originalResolutionWidth = game.Platform.GetDisplayResolutionDefault().Width;
-                originalResolutionHeight = game.Platform.GetDisplayResolutionDefault().Height;
+                originalResolutionWidth = platform.GetDisplayResolutionDefault().Width;
+                originalResolutionHeight = platform.GetDisplayResolutionDefault().Height;
                 changedResolution = true;
             }
-            game.Platform.SetWindowState(WindowState.Fullscreen);
+            platform.SetWindowState(WindowState.Fullscreen);
             UseResolution();
         }
         else
         {
-            game.Platform.SetWindowState(WindowState.Normal);
+            platform.SetWindowState(WindowState.Normal);
             RestoreResolution();
         }
     }
@@ -465,7 +467,7 @@ public class ModGuiEscapeMenu : ModBase
 
     private string ResolutionString()
     {
-        DisplayResolutionCi res = game.Platform.GetDisplayResolutions()[game.options.Resolution];
+        DisplayResolutionCi res = platform.GetDisplayResolutions()[game.options.Resolution];
         return string.Format("{0}x{1}, {2}, {3} Hz",
             res.Width.ToString(),
             res.Height.ToString(),
@@ -478,9 +480,9 @@ public class ModGuiEscapeMenu : ModBase
         GameOption options = game.options;
         options.Resolution++;
 
-        game.Platform.GetDisplayResolutions();
+        platform.GetDisplayResolutions();
 
-        if (options.Resolution >= game.Platform.GetDisplayResolutions().Count)
+        if (options.Resolution >= platform.GetDisplayResolutions().Count)
         {
             options.Resolution = 0;
         }
@@ -493,14 +495,14 @@ public class ModGuiEscapeMenu : ModBase
     {
         if (changedResolution)
         {
-            game.Platform.ChangeResolution(originalResolutionWidth, originalResolutionHeight, 32, -1);
+            platform.ChangeResolution(originalResolutionWidth, originalResolutionHeight, 32, -1);
             changedResolution = false;
         }
     }
     public void UseResolution()
     {
         GameOption options = game.options;
-        List<DisplayResolutionCi> resolutions = game.Platform.GetDisplayResolutions();
+        List<DisplayResolutionCi> resolutions = platform.GetDisplayResolutions();
 
         if (resolutions == null)
         {
@@ -512,11 +514,11 @@ public class ModGuiEscapeMenu : ModBase
             options.Resolution = 0;
         }
         DisplayResolutionCi res = resolutions[options.Resolution];
-        if (game.Platform.GetWindowState() == WindowState.Fullscreen)
+        if (platform.GetWindowState() == WindowState.Fullscreen)
         {
-            game.Platform.ChangeResolution(res.Width, res.Height, res.BitsPerPixel, res.RefreshRate);
-            game.Platform.SetWindowState(WindowState.Normal);
-            game.Platform.SetWindowState(WindowState.Fullscreen);
+            platform.ChangeResolution(res.Width, res.Height, res.BitsPerPixel, res.RefreshRate);
+            platform.SetWindowState(WindowState.Normal);
+            platform.SetWindowState(WindowState.Fullscreen);
         }
         else
         {
@@ -549,13 +551,13 @@ public class ModGuiEscapeMenu : ModBase
         // and are now invalid. Previously set list entries to null (leaking GPU
         // handles). Now explicitly delete each texture before clearing the dictionary.
         foreach (CachedTexture ct in game.CachedTextTextures.Values)
-            game.Platform.GLDeleteTexture(ct.textureId);
+            platform.GLDeleteTexture(ct.textureId);
         game.CachedTextTextures.Clear();
     }
 
     private string KeyName(int key)
     {
-        return game.Platform.KeyName(key);
+        return platform.KeyName(key);
     }
 
     private void MakeSimpleOptions(int fontsize, int textheight)
@@ -657,7 +659,7 @@ public class ModGuiEscapeMenu : ModBase
 
 
     private int keyselectid;
-    public override void OnKeyDown(Game game_, KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         int eKey = args.KeyChar;
         if (eKey == game.GetKey(Keys.Escape))
@@ -691,15 +693,15 @@ public class ModGuiEscapeMenu : ModBase
         }
         if (eKey == game.GetKey(Keys.F11))
         {
-            if (game.Platform.GetWindowState() == WindowState.Fullscreen)
+            if (platform.GetWindowState() == WindowState.Fullscreen)
             {
-                game.Platform.SetWindowState(WindowState.Normal);
+                platform.SetWindowState(WindowState.Normal);
                 RestoreResolution();
                 SaveOptions();
             }
             else
             {
-                game.Platform.SetWindowState(WindowState.Fullscreen);
+                platform.SetWindowState(WindowState.Fullscreen);
                 UseResolution();
                 SaveOptions();
             }
@@ -738,11 +740,11 @@ public class ModGuiEscapeMenu : ModBase
     private GameOption LoadOptions_()
     {
         GameOption options = new();
-        Preferences preferences = game.Platform.GetPreferences();
+        Preferences preferences = platform.GetPreferences();
                 
         options.Shadows = preferences.GetBool("Shadows", true);
         options.Font = preferences.GetInt("Font", 0);
-        options.DrawDistance = preferences.GetInt("DrawDistance", game.Platform.IsFastSystem() ? 128 : 32);
+        options.DrawDistance = preferences.GetInt("DrawDistance", platform.IsFastSystem() ? 128 : 32);
         options.UseServerTextures = preferences.GetBool("UseServerTextures", true);
         options.EnableSound = preferences.GetBool("EnableSound", true);
         options.EnableAutoJump = preferences.GetBool("EnableAutoJump", false);
@@ -781,7 +783,7 @@ public class ModGuiEscapeMenu : ModBase
             options.ClientLanguage = game.Language.OverrideLanguage;
         }
         options.Framerate = game.EnableLog;
-        options.Fullscreen = game.Platform.GetWindowState() == WindowState.Fullscreen;
+        options.Fullscreen = platform.GetWindowState() == WindowState.Fullscreen;
         options.Smoothshadows = game.TerrainChunkTesselator.EnableSmoothLight;
         options.EnableBlockShadow = game.TerrainChunkTesselator.option_DarkenBlockSides;
 
@@ -790,7 +792,7 @@ public class ModGuiEscapeMenu : ModBase
 
     private void SaveOptions_(GameOption options)
     {
-        Preferences preferences = game.Platform.GetPreferences();
+        Preferences preferences = platform.GetPreferences();
 
         preferences.SetBool("Shadows", options.Shadows);
         preferences.SetInt("Font", options.Font);
@@ -811,7 +813,7 @@ public class ModGuiEscapeMenu : ModBase
 
         for (int i = 0; i < 256; i++)
         {
-            int value = options.Keys[i];string preferencesKey = string.Concat(game.Platform, "Key", i.ToString());
+            int value = options.Keys[i];string preferencesKey = string.Concat(platform, "Key", i.ToString());
             if (value != 0)
             {
                 preferences.SetInt(preferencesKey, value);
@@ -822,7 +824,7 @@ public class ModGuiEscapeMenu : ModBase
             }
         }
 
-        game.Platform.SetPreferences(preferences);
+        platform.SetPreferences(preferences);
     }
 }
 

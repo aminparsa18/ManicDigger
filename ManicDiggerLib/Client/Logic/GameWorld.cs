@@ -58,7 +58,7 @@ public partial class Game
     /// Returns <see langword="true"/> when <paramref name="blocktype"/> is one of
     /// the fill/cuboid tool blocks that should not be treated as real terrain.
     /// </summary>
-    internal bool IsFillBlock(int blocktype) =>
+    public bool IsFillBlock(int blocktype) =>
         blocktype == BlockRegistry.BlockIdFillArea
         || blocktype == BlockRegistry.BlockIdFillStart
         || blocktype == BlockRegistry.BlockIdCuboid;
@@ -93,7 +93,7 @@ public partial class Game
     /// Caches the block value and block-type lookup to avoid the double
     /// <c>IsValidPos</c> + double <c>GetBlock</c> call in the original.
     /// </summary>
-    internal bool IsTileEmptyForPhysicsClose(int x, int y, int z)
+    public bool IsTileEmptyForPhysicsClose(int x, int y, int z)
     {
         if (IsTileEmptyForPhysics(x, y, z)) return true;
         if (!VoxelMap.IsValidPos(x, y, z)) return false;
@@ -126,7 +126,7 @@ public partial class Game
     }
 
     /// <summary>Marks the chunk containing the given block as dirty for re-tessellation.</summary>
-    internal void RedrawBlock(int x, int y, int z) => VoxelMap.SetBlockDirty(x, y, z);
+    public void RedrawBlock(int x, int y, int z) => VoxelMap.SetBlockDirty(x, y, z);
 
     /// <summary>Schedules a full-world re-tessellation on the next frame.</summary>
     public void RedrawAllBlocks() => ShouldRedrawAllBlocks = true;
@@ -221,7 +221,7 @@ public partial class Game
     /// The speculative change is reverted by <see cref="RevertSpeculative"/>
     /// if the server does not confirm it within <see cref="SpeculativeTimeoutSeconds"/>.
     /// </summary>
-    internal void SendSetBlockAndUpdateSpeculative(int material, int x, int y, int z, PacketBlockSetMode mode)
+    public void SendSetBlockAndUpdateSpeculative(int material, int x, int y, int z, PacketBlockSetMode mode)
     {
         SendSetBlock(x, y, z, mode, material, ActiveMaterial);
 
@@ -308,7 +308,7 @@ public partial class Game
     /// Fog is disabled at maximum draw distance.
     /// At night (and with full shadows enabled) the fog colour is black.
     /// </summary>
-    internal void SetFog()
+    public void SetFog()
     {
         if (Config3d.ViewDistance >= 512) return;
 

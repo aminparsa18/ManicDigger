@@ -13,20 +13,20 @@ public partial class Game
             case CameraType.Fpp:
                 CameraType = CameraType.Fpp;
                 SetFreeMouse(false);
-                ENABLE_TPP_VIEW = false;
+                EnableTppView = false;
                 OverheadCamera = false;
                 break;
 
             case CameraType.Tpp:
                 CameraType = CameraType.Tpp;
-                ENABLE_TPP_VIEW = true;
+                EnableTppView = true;
                 break;
 
             default: // Overhead
                 CameraType = CameraType.Overhead;
                 OverheadCamera = true;
                 SetFreeMouse(true);
-                ENABLE_TPP_VIEW = true;
+                EnableTppView = true;
                 PlayerDestination = new Vector3(Player.position.x, Player.position.y, Player.position.z);
                 break;
         }
@@ -42,21 +42,21 @@ public partial class Game
         {
             case CameraType.Fpp:
                 CameraType = CameraType.Tpp;
-                ENABLE_TPP_VIEW = true;
+                EnableTppView = true;
                 break;
 
             case CameraType.Tpp:
                 CameraType = CameraType.Overhead;
                 OverheadCamera = true;
                 SetFreeMouse(true);
-                ENABLE_TPP_VIEW = true;
+                EnableTppView = true;
                 PlayerDestination = new Vector3(Player.position.x, Player.position.y, Player.position.z);
                 break;
 
             case CameraType.Overhead:
                 CameraType = CameraType.Fpp;
                 SetFreeMouse(false);
-                ENABLE_TPP_VIEW = false;
+                EnableTppView = false;
                 OverheadCamera = false;
                 break;
 
@@ -75,9 +75,9 @@ public partial class Game
 
     private int GetCameraBlock()
     {
-        int bx = (int)MathF.Floor(CameraEyeX);
-        int by = (int)MathF.Floor(CameraEyeZ);
-        int bz = (int)MathF.Floor(CameraEyeY);
+        int bx = (int)MathF.Floor(CameraEye.X);
+        int by = (int)MathF.Floor(CameraEye.Z);
+        int bz = (int)MathF.Floor(CameraEye.Y);
 
         return VoxelMap.IsValidPos(bx, by, bz) ? VoxelMap.GetBlockValid(bx, by, bz) : 0;
     }

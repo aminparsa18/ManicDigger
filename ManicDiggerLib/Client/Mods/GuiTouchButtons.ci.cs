@@ -47,7 +47,7 @@ public class ModGuiTouchButtons : GameScreen
     private readonly IGamePlatform platform;
 
     /// <summary>Initialises all four touch buttons and assigns them to widget slots 0–3.</summary>
-    public ModGuiTouchButtons(IGameClient game, IGamePlatform platform)
+    public ModGuiTouchButtons(IGameClient game, IGamePlatform platform) : base(game, platform)
     {
         this.game = game;
         this.platform = platform;
@@ -82,7 +82,7 @@ public class ModGuiTouchButtons : GameScreen
         LayoutButton(_buttonTalk, 2, buttonSize, scale);
         LayoutButton(_buttonCamera, 3, buttonSize, scale);
 
-        if (!game.Platform.IsMousePointerLocked())
+        if (!platform.IsMousePointerLocked())
         {
             if (game.CameraType == CameraType.Fpp || game.CameraType == CameraType.Tpp)
             {
@@ -105,24 +105,24 @@ public class ModGuiTouchButtons : GameScreen
             if (game.GuiTyping == TypingState.None)
             {
                 game.StartTyping();
-                game.Platform.ShowKeyboard(true);
+                platform.ShowKeyboard(true);
             }
             else
             {
                 game.StopTyping();
-                game.Platform.ShowKeyboard(false);
+                platform.ShowKeyboard(false);
             }
         }
     }
 
     /// <inheritdoc/>
-    public override void OnTouchStart(Game game_, TouchEventArgs e)
+    public override void OnTouchStart(TouchEventArgs e)
     {
         // First touch activates the button overlay.
         _touchButtonsEnabled = true;
 
         // Let the base class handle widget hit-testing via the overridden OnTouchStart.
-        base.OnTouchStart(game_, e);
+        base.OnTouchStart(e);
         if (e.GetHandled()) { return; }
 
         bool isLeftSide = e.GetX() <= platform.GetCanvasWidth() / 2;
@@ -146,14 +146,14 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnTouchMove(Game game, TouchEventArgs e)
+    public override void OnTouchMove(TouchEventArgs e)
     {
         if (e.GetId() == _touchIdMove)
         {
             game.TouchMoveDx = e.GetX() - _touchMoveStartX;
             game.TouchMoveDy = -(e.GetY() - 1 - _touchMoveStartY);
 
-            if (e.GetY() < game.Height() * 50 / 100)
+            if (e.GetY() < platform.GetCanvasHeight() * 50 / 100)
             {
                 // Upper half of screen — lock to forward movement only.
                 game.TouchMoveDx = 0;
@@ -172,7 +172,7 @@ public class ModGuiTouchButtons : GameScreen
 
         if (e.GetId() == _touchIdRotate)
         {
-            float sensitivity = game.Width() / 40f;
+            float sensitivity = platform.GetCanvasWidth() / 40f;
             game.TouchOrientationDx += (e.GetX() - _touchRotateStartX) / sensitivity;
             game.TouchOrientationDy += (e.GetY() - _touchRotateStartY) / sensitivity;
             _touchRotateStartX = e.GetX();
@@ -181,9 +181,9 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnTouchEnd(Game game_, TouchEventArgs e)
+    public override void OnTouchEnd(TouchEventArgs e)
     {
-        base.OnTouchEnd(game_, e);
+        base.OnTouchEnd(e);
         if (e.GetHandled()) { return; }
 
         if (e.GetId() == _touchIdMove)

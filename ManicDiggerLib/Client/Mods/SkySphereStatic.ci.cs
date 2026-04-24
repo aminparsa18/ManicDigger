@@ -10,20 +10,28 @@ public class ModSkySphereStatic : ModBase
     private int skySphereTexture = -1;
     private int skySphereNightTexture = -1;
     private GeometryModel skyModel;
+    private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public override void OnNewFrameDraw3d(Game game, float deltaTime)
+    public ModSkySphereStatic(IGameClient game, IGamePlatform platform)
     {
-        game.Platform.GlDisableFog();
-        DrawSkySphere(game);
+        this.game = game;
+        this.platform = platform;
+    }
+
+    public override void OnNewFrameDraw3d(float deltaTime)
+    {
+        platform.GlDisableFog();
+        DrawSkySphere();
         game.SetFog();
     }
 
-    internal void DrawSkySphere(Game game)
+    internal void DrawSkySphere()
     {
         if (skySphereTexture == -1)
         {
-            skySphereTexture = LoadTexture(game, "skysphere.png");
-            skySphereNightTexture = LoadTexture(game, "skyspherenight.png");
+            skySphereTexture = LoadTexture("skysphere.png");
+            skySphereNightTexture = LoadTexture("skyspherenight.png");
         }
 
         // Simple shadows always use the day texture
@@ -31,30 +39,30 @@ public class ModSkySphereStatic : ModBase
             ? skySphereTexture
             : skySphereNightTexture;
 
-        Draw(game, game.CurrentFov());
+        Draw(game.CurrentFov());
     }
 
-    public void Draw(Game game, float fov)
+    public void Draw(float fov)
     {
         if (SkyTexture == -1)
             throw new InvalidOperationException($"error in {nameof(ModSkySphereStatic)} - {nameof(DrawSkySphere)}");
 
-        skyModel ??= game.Platform.CreateModel(Sphere.Create(SphereSize, SphereSize, SphereSegments, SphereSegments));
+        skyModel ??= platform.CreateModel(Sphere.Create(SphereSize, SphereSize, SphereSegments, SphereSegments));
 
         game.Set3dProjection(SphereSize * 2, fov);
         game.GLMatrixModeModelView();
         game.GLPushMatrix();
         game.GLTranslate(game.Player.position.x, game.Player.position.y, game.Player.position.z);
-        game.Platform.BindTexture2d(SkyTexture);
+        platform.BindTexture2d(SkyTexture);
         game.DrawModel(skyModel);
         game.GLPopMatrix();
         game.Set3dProjection(game.Zfar(), fov);
     }
 
-    private static int LoadTexture(Game game, string filename)
+    private int LoadTexture(string filename)
     {
         Bitmap bmp = PixelBuffer.BitmapFromPng(game.GetAssetFile(filename), game.GetAssetFileLength(filename));
-        int texture = game.Platform.LoadTextureFromBitmap(bmp);
+        int texture = platform.LoadTextureFromBitmap(bmp);
         bmp.Dispose();
         return texture;
     }

@@ -67,7 +67,7 @@ public partial class Game
         return VoxelMap.GetBlock((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1);
     }
 
-    internal int? BlockInHand()
+    public int? BlockInHand()
     {
         Packet_Item item = Inventory.RightHand[ActiveMaterial];
         return item != null && item.ItemClass == ItemClass.Block ? item.BlockId : null;
@@ -129,7 +129,7 @@ public partial class Game
         return fov;
     }
 
-    internal float CurrentRecoil()
+    public float CurrentRecoil()
     {
         Packet_Item item = Inventory.RightHand[ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) return 0;
@@ -147,8 +147,6 @@ public partial class Game
 
         return radius + RadiusWhenMoving * radius * Math.Min(playervelocity.Length / MoveSpeed, 1);
     }
-
-    public float WeaponAttackStrength() => rnd.Next(2, 4);
 
     // -------------------------------------------------------------------------
     // Damage
@@ -174,7 +172,7 @@ public partial class Game
     // Player/entity collision
     // -------------------------------------------------------------------------
 
-    internal bool IsAnyPlayerInPos(int blockposX, int blockposY, int blockposZ)
+    public bool IsAnyPlayerInPos(int blockposX, int blockposY, int blockposZ)
     {
         for (int i = 0; i < Entities.Count; i++)
         {

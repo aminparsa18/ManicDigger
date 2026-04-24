@@ -48,7 +48,7 @@ public class ModNetworkProcess : ModBase
 
     public void NetworkProcess()
     {
-        _game.CurrentTimeMilliseconds = _game.Platform.TimeMillisecondsFromStart;
+        _game.CurrentTimeMilliseconds = _platform.TimeMillisecondsFromStart;
         if (_game.NetClient == null)
         {
             return;
@@ -200,10 +200,10 @@ public class ModNetworkProcess : ModBase
                 {
                     string invalidversionstr = _game.Language.InvalidVersionConnectAnyway();
                     _game.ServerGameVersion = packet.Identification.MdProtocolVersion;
-                    if (_game.ServerGameVersion != _game.Platform.GetGameVersion())
+                    if (_game.ServerGameVersion != _platform.GetGameVersion())
                     {
                         _game.ChatLog("[GAME] Different game versions");
-                        string q = string.Format(invalidversionstr, _game.Platform.GetGameVersion(), _game.ServerGameVersion);
+                        string q = string.Format(invalidversionstr, _platform.GetGameVersion(), _game.ServerGameVersion);
                         _game.InvalidVersionDrawMessage = q;
                         _game.InvalidVersionPacketIdentification = packet;
                     }
@@ -217,12 +217,12 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.Ping:
                 {
                     _game.SendPingReply();
-                    _game.ServerInfo.ServerPing.Send(_game.Platform.TimeMillisecondsFromStart);
+                    _game.ServerInfo.ServerPing.Send(_platform.TimeMillisecondsFromStart);
                     break;
                 }
             case Packet_ServerIdEnum.PlayerPing:
                 {
-                    _game.ServerInfo.ServerPing.Receive(_game.Platform);
+                    _game.ServerInfo.ServerPing.Receive(_platform);
                     break;
                 }
             case Packet_ServerIdEnum.LevelInitialize:
@@ -319,11 +319,11 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.DisconnectPlayer:
                 {
                     _game.ChatLog(string.Format("[GAME] Disconnected by the server ({0})", packet.DisconnectPlayer.DisconnectReason));
-                    if (_game.Platform.IsMousePointerLocked())
+                    if (_platform.IsMousePointerLocked())
                     {
-                        _game.Platform.ExitMousePointerLock();
+                        _platform.ExitMousePointerLock();
                     }
-                    _game.Platform.MessageBoxShowError(packet.DisconnectPlayer.DisconnectReason, "Disconnected from server");
+                    _platform.MessageBoxShowError(packet.DisconnectPlayer.DisconnectReason, "Disconnected from server");
                     _game.ExitToMainMenu();
                     break;
                 }
@@ -535,7 +535,7 @@ public class ModNetworkProcess : ModBase
                         }
                     }
 
-                    _game.BlockRegistry.UseBlockTypes(_game.Platform, _game.BlockTypes, GlobalVar.MAX_BLOCKTYPES);
+                    _game.BlockRegistry.UseBlockTypes(_platform, _game.BlockTypes, GlobalVar.MAX_BLOCKTYPES);
                     for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
                     {
                         Packet_BlockType b = _game.BlockTypes[i];

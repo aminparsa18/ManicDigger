@@ -32,7 +32,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
                 value = d.Dialog,
             };
             d2.screen = ConvertDialog(game, d2.value);
-            d2.screen.game = (Game)game;
+            d2.screen.SetGame(game);
 
             if (dialogIdx == -1)
             {
@@ -59,9 +59,9 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         }
     }
 
-    private static GameScreen ConvertDialog(IGameClient game, Packet_Dialog p)
+    private GameScreen ConvertDialog(IGameClient game, Packet_Dialog p)
     {
-        DialogScreen s = new()
+        DialogScreen s = new(game, default)
         {
             widgets = new MenuWidget[p.Widgets.Length],
             WidgetCount = p.Widgets.Length,

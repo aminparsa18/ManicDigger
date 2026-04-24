@@ -6,8 +6,14 @@
 public class ModDrawSprites : ModBase
 {
     private const float SpriteScale = 0.02f;
+    private readonly IGameClient game;
 
-    public override void OnNewFrameDraw3d(Game game, float deltaTime)
+    public ModDrawSprites(IGameClient game)
+    {
+        this.game = game;
+    }
+
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         for (int i = 0; i < game.Entities.Count; i++)
         {
@@ -25,7 +31,7 @@ public class ModDrawSprites : ModBase
             game.GLMatrixModeModelView();
             game.GLPushMatrix();
             game.GLTranslate(b.positionX, b.positionY, b.positionZ);
-            Billboard(game);
+            Billboard();
             game.GLScale(SpriteScale, SpriteScale, SpriteScale);
             game.GLTranslate(-b.size / 2, -b.size / 2, 0);
             game.Draw2dTexture(game.GetTexture(b.image), 0, 0, b.size, b.size, frame, b.animationcount, ColorUtils.ColorFromArgb(255, 255, 255, 255), true);
@@ -38,7 +44,7 @@ public class ModDrawSprites : ModBase
     /// making the object always face the camera (cylindrical billboard).
     /// See: http://stackoverflow.com/a/5487981
     /// </summary>
-    public static void Billboard(Game game)
+    public void Billboard()
     {
         Matrix4 m = game.mvMatrix.Peek();
 

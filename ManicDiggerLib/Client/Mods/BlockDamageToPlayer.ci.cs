@@ -90,6 +90,13 @@ public class ModBlockDamageToPlayer : ModBase
 
 public class DialogScreen : GameScreen
 {
+    private readonly IGameClient game;
+
+    public DialogScreen(IGameClient game, IGamePlatform _) : base(game, _)
+    {
+        this.game = game;
+    }
+
     public override void OnButton(MenuWidget w)
     {
         if (w.isbutton)

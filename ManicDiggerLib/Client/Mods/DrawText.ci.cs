@@ -9,8 +9,14 @@ public class ModDrawText : ModBase
     private const float TextDrawDistance = 20f;
 
     private static readonly Font Font = new("Arial", 14, FontStyle.Regular);
+    private readonly IGameClient game;
 
-    public override void OnNewFrameDraw3d(Game game, float deltaTime)
+    public ModDrawText(IGameClient game)
+    {
+        this.game = game;
+    }
+
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         for (int i = 0; i < game.Entities.Count; i++)
         {
@@ -27,11 +33,11 @@ public class ModDrawText : ModBase
             bool altHeld = game.KeyboardState[Game.KeyAltLeft] || game.KeyboardState[Game.KeyAltRight];
             if (!nearEnough && !altHeld) continue;
 
-            DrawText(game, e, p, posX, posY, posZ);
+            DrawText(e, p, posX, posY, posZ);
         }
     }
 
-    private static void DrawText(Game game, Entity e, EntityDrawText p, float posX, float posY, float posZ)
+    private void DrawText(Entity e, EntityDrawText p, float posX, float posY, float posZ)
     {
         game.GLPushMatrix();
         game.GLTranslate(posX, posY, posZ);

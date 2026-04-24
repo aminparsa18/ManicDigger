@@ -7,11 +7,14 @@ public class ModAudio : ModBase
 {
     private readonly Dictionary<string, AudioData> audioData = new();
     private readonly IGameClient game;
+    private readonly IGamePlatform platform;
+
     private bool wasLoaded;
 
-    public ModAudio(IGameClient game)
+    public ModAudio(IGameClient game, IGamePlatform gamePlatform)
     {
         this.game = game;
+        this.platform = gamePlatform;
     }
 
     public override void OnNewFrame(float args)
@@ -48,10 +51,10 @@ public class ModAudio : ModBase
         if (sound.audio != null) return;
 
         AudioData data = GetAudioData(sound.name);
-        if (game.Platform.AudioDataLoaded(data))
+        if (platform.AudioDataLoaded(data))
         {
-            sound.audio = game.Platform.AudioCreate(data);
-            game.Platform.AudioPlay(sound.audio);
+            sound.audio = platform.AudioCreate(data);
+            platform.AudioPlay(sound.audio);
         }
     }
 
@@ -59,14 +62,14 @@ public class ModAudio : ModBase
     private void TryUpdatePosition(Sound sound)
     {
         if (sound.audio == null) return;
-        game.Platform.AudioSetPosition(sound.audio, sound.x, sound.y, sound.z);
+        platform.AudioSetPosition(sound.audio, sound.x, sound.y, sound.z);
     }
 
     /// <summary>Deletes and nulls out any sound marked for stopping.</summary>
     private void TryStop(int i, Sound sound)
     {
         if (sound.audio == null || !sound.stop) return;
-        game.Platform.AudioDelete(sound.audio);
+        platform.AudioDelete(sound.audio);
         game.Audio.sounds[i] = null;
     }
 
@@ -74,15 +77,15 @@ public class ModAudio : ModBase
     private void TryLoopOrFinish(int i, Sound sound)
     {
         if (sound.audio == null) return;
-        if (!game.Platform.AudioFinished(sound.audio)) return;
+        if (!platform.AudioFinished(sound.audio)) return;
 
         if (sound.loop)
         {
             AudioData data = GetAudioData(sound.name);
-            if (game.Platform.AudioDataLoaded(data))
+            if (platform.AudioDataLoaded(data))
             {
-                sound.audio = game.Platform.AudioCreate(data);
-                game.Platform.AudioPlay(sound.audio);
+                sound.audio = platform.AudioCreate(data);
+                platform.AudioPlay(sound.audio);
             }
         }
         else
@@ -108,7 +111,7 @@ public class ModAudio : ModBase
     {
         if (!audioData.TryGetValue(sound, out AudioData data))
         {
-            data = game.Platform.AudioDataCreate(game.GetAssetFile(sound), game.GetAssetFileLength(sound));
+            data = platform.AudioDataCreate(game.GetAssetFile(sound), game.GetAssetFileLength(sound));
             audioData[sound] = data;
         }
         return data;

@@ -8,12 +8,19 @@ public class ModCamera : ModBase
     private static readonly Vector3 Up = Vector3.UnitY;
     private Vector3 overheadCameraEye;
 
-    public override void OnBeforeNewFrameDraw3d(Game game, float deltaTime)
+    private readonly IGameClient game;
+
+    public ModCamera(IGameClient game)
     {
-        game.camera = game.OverheadCamera ? OverheadCamera(game) : FppCamera(game);
+        this.game = game;
     }
 
-    internal Matrix4 OverheadCamera(Game game)
+    public override void OnBeforeNewFrameDraw3d(float deltaTime)
+    {
+        game.Camera = game.OverheadCamera ? OverheadCamera() : FppCamera();
+    }
+
+    internal Matrix4 OverheadCamera()
     {
         game.OverheadCameraK.GetPosition(ref overheadCameraEye);
         Vector3 eye = overheadCameraEye;
@@ -22,12 +29,12 @@ public class ModCamera : ModBase
             game.OverheadCameraK.Center.Y + game.GetCharacterEyesHeight(),
             game.OverheadCameraK.Center.Z);
 
-        game.OverHeadCameraDistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, game.OverHeadCameraDistance);
-        SetCameraEye(game, eye);
+        game.OverHeadCameraDistance = LimitThirdPersonCameraToWalls(ref eye, ref target, game.OverHeadCameraDistance);
+        SetCameraEye(eye);
         return Matrix4.LookAt(eye, target, Up);
     }
 
-    internal static Matrix4 FppCamera(Game game)
+    internal Matrix4 FppCamera()
     {
         Vector3 forward = new();
         VectorUtils.ToVectorInFixedSystem(0, 0, 1, game.Player.position.rotx, game.Player.position.roty, ref forward);
@@ -38,21 +45,21 @@ public class ModCamera : ModBase
 
         Vector3 eye, target;
 
-        if (!game.ENABLE_TPP_VIEW)
+        if (!game.EnableTppView)
         {
             eye = new Vector3(eyeX, eyeY, eyeZ);
             target = new Vector3(eyeX + forward.X, eyeY + forward.Y, eyeZ + forward.Z);
         }
         else
         {
-            eye = new Vector3(eyeX + forward.X * -game.tppcameradistance,
-                                 eyeY + forward.Y * -game.tppcameradistance,
-                                 eyeZ + forward.Z * -game.tppcameradistance);
+            eye = new Vector3(eyeX + forward.X * -game.TppCameraDistance,
+                                 eyeY + forward.Y * -game.TppCameraDistance,
+                                 eyeZ + forward.Z * -game.TppCameraDistance);
             target = new Vector3(eyeX, eyeY, eyeZ);
-            game.tppcameradistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, game.tppcameradistance);
+            game.TppCameraDistance = LimitThirdPersonCameraToWalls(ref eye, ref target, game.TppCameraDistance);
         }
 
-        SetCameraEye(game, eye);
+        SetCameraEye(eye);
         return Matrix4.LookAt(eye, target, Up);
     }
 
@@ -60,7 +67,7 @@ public class ModCamera : ModBase
     /// Casts a ray from the camera target toward the eye and pulls the camera
     /// in if terrain blocks the view, with a minimum distance of 0.3 units.
     /// </summary>
-    internal static float LimitThirdPersonCameraToWalls(Game game, ref Vector3 eye, ref Vector3 target, float distance)
+    internal float LimitThirdPersonCameraToWalls(ref Vector3 eye, ref Vector3 target, float distance)
     {
         const float MinDistance = 0.3f;
 
@@ -68,14 +75,14 @@ public class ModCamera : ModBase
         float dirLength = dir.Length;
         dir /= dirLength;
 
-        Vector3 rayEnd = target + dir * (game.tppcameradistance + 1);
+        Vector3 rayEnd = target + dir * (game.TppCameraDistance + 1);
         Line3D pick = new()
         {
             Start = target,
             End = rayEnd
         };
 
-        ArraySegment<BlockPosSide> hits = game.Pick(game.s, pick, out int hitCount);
+        ArraySegment<BlockPosSide> hits = game.Pick(game.BlockOctreeSearcher, pick, out int hitCount);
         if (hitCount > 0)
         {
             BlockPosSide nearest = game.Nearest(hits, hitCount, target);
@@ -88,10 +95,8 @@ public class ModCamera : ModBase
     }
 
     /// <summary>Writes the eye position back to the game for other systems to use.</summary>
-    private static void SetCameraEye(Game game, Vector3 eye)
+    private void SetCameraEye(Vector3 eye)
     {
-        game.CameraEyeX = eye.X;
-        game.CameraEyeY = eye.Y;
-        game.CameraEyeZ = eye.Z;
+        game.CameraEye = eye;
     }
 }

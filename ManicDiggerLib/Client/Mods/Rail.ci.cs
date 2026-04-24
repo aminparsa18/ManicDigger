@@ -63,13 +63,15 @@ public class ModRail : ModBase
     private int _lastRailSoundIndex;
 
     private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
     /// <summary>Returns the height of the minecart seat above the rail block origin.</summary>
     internal float MinecartHeight() => 1f / 2;
 
-    public ModRail(IGameClient game)
+    public ModRail(IGameClient game, IGamePlatform platform)
     {
         this.game = game;
+        this.platform = platform;
         _railHeight = 0.3f;
     }
 
@@ -392,11 +394,11 @@ public class ModRail : ModBase
 
         if (!railriding || soundRate <= 0) { return; }
 
-        if ((game.Platform.TimeMillisecondsFromStart - _lastRailSoundTimeMs) > 1000 / soundRate)
+        if ((platform.TimeMillisecondsFromStart - _lastRailSoundTimeMs) > 1000 / soundRate)
         {
             _lastRailSoundIndex = (_lastRailSoundIndex + 1) % 4;
             game.PlayAudio(string.Format("rail{0}.wav", _lastRailSoundIndex.ToString()));
-            _lastRailSoundTimeMs = game.Platform.TimeMillisecondsFromStart;
+            _lastRailSoundTimeMs = platform.TimeMillisecondsFromStart;
         }
     }
 

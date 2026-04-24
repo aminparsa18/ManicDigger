@@ -18,18 +18,26 @@ public class ModDrawMinecarts : ModBase
     private const float HeightOffset = -0.3f;
 
     private int minecartTexture = -1;
+    private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public override void OnNewFrameDraw3d(Game game, float deltaTime)
+    public ModDrawMinecarts(IGameClient game, IGamePlatform platform)
+    {
+        this.game = game;
+        this.platform = platform;
+    }
+
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         for (int i = 0; i < game.Entities.Count; i++)
         {
             Minecart m = game.Entities[i]?.minecart;
             if (m == null || !m.enabled) continue;
-            Draw(game, m);
+            Draw(m);
         }
     }
 
-    private void Draw(Game game, Minecart m)
+    private void Draw(Minecart m)
     {
         minecartTexture = minecartTexture == -1 ? game.GetTexture("minecart.png") : minecartTexture;
 
@@ -44,7 +52,7 @@ public class ModDrawMinecarts : ModBase
         game.GLPushMatrix();
         game.GLTranslate(m.positionX, m.positionY + VerticalOffset, m.positionZ);
         game.GLRotate(-rot - 90, 0, 1, 0);
-        game.Platform.BindTexture2d(minecartTexture);
+        platform.BindTexture2d(minecartTexture);
         CuboidRenderer.DrawCuboidWorld(game, HalfSize, HeightOffset, HalfSize, 1, 1, 1, cc, 1);
         game.GLPopMatrix();
     }

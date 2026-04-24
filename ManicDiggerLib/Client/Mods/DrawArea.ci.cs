@@ -3,9 +3,16 @@
 /// </summary>
 public class ModDrawArea : ModBase
 {
-    private readonly DrawWireframeCube lines = new();
+    private readonly DrawWireframeCube lines;
+    private readonly IGameClient game;
 
-    public override void OnNewFrameDraw3d(Game game, float deltaTime)
+    public ModDrawArea(IGameClient game, IGamePlatform platform)
+    {
+        this.game = game;
+        lines = new DrawWireframeCube(platform);
+    }
+
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         if (!game.ENABLE_DRAW2D) return;
 
@@ -22,7 +29,7 @@ public class ModDrawArea : ModBase
         }
     }
 
-    public override void OnHitEntity(Game game, OnUseEntityArgs e)
+    public override void OnHitEntity(OnUseEntityArgs e)
     {
         var area = game.Entities[e.entityId]?.drawArea;
         if (area == null) return;

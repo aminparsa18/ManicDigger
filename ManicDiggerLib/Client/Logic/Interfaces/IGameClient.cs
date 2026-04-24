@@ -1,6 +1,7 @@
 ﻿
 using ManicDigger;
 using OpenTK.Mathematics;
+using System.Collections.Concurrent;
 
 /// <summary>
 /// Provides mods with controlled access to game state, rendering, chat,
@@ -423,4 +424,66 @@ public interface IGameClient
     Dictionary<TextStyle, CachedTexture> CachedTextTextures { get; set; }
     bool EscapeMenuRestart { get; set; }
     void UseVsync();
+
+    Matrix4 Camera { get; set; }
+    bool EnableTppView { get; set; }
+    float TppCameraDistance { get; set; }
+    ArraySegment<BlockPosSide> Pick(BlockOctreeSearcher s_, Line3D line, out int retCount);
+    BlockOctreeSearcher BlockOctreeSearcher { get; set; }
+    BlockPosSide Nearest(ArraySegment<BlockPosSide> pick2, int pick2Count, Vector3 target);
+    Vector3 CameraEye { get; set; }
+    MenuState MenuState { get; set; }
+    bool mouseLeft { get; set; }
+    bool mouseMiddle { get; set; }
+    bool mouseRight { get; set; }
+    bool leftpressedpicking { get; set; }
+    bool mouseleftdeclick { get; set; }
+    int grenadecookingstartMilliseconds { get; set; }
+    int grenadetime { get; set; }
+    bool mouserightclick { get; set; }
+    int lastironsightschangeMilliseconds { get; set; }
+
+    bool IronSights { get; set; }
+    bool handSetAttackBuild { get; set; }
+    bool handSetAttackDestroy { get; set; }
+    bool IsTileEmptyForPhysicsClose(int x, int y, int z);
+    int? BlockInHand();
+    Dictionary<(int x, int y, int z), float> blockHealth { get; set; }
+    int pistolcycle { get; set; }
+    float CurrentRecoil();
+    bool IsAnyPlayerInPos(int blockposX, int blockposY, int blockposZ);
+    void SendSetBlock(int x, int y, int z, PacketBlockSetMode mode, int type, int materialslot);
+    int SelectedEntityId { get; set; }
+    List<ModBase> ClientMods { get; set; }
+    bool IsFillBlock(int blocktype);
+    void RedrawBlock(int x, int y, int z);
+    void SendFillArea(int startx, int starty, int startz, int endx, int endy, int endz, int blockType);
+    void SendSetBlockAndUpdateSpeculative(int material, int x, int y, int z, PacketBlockSetMode mode);
+
+    Stack<Matrix4> mvMatrix { get; set; }
+    Stack<Matrix4> pMatrix { get; set; }
+    float PICK_DISTANCE { get; set; }
+    bool isNight { get; set; }
+    Vector3 sunPosition { get; set; }
+    Vector3 moonPosition { get; set; }
+    void GLMatrixModeModelView();
+    void GLScale(float x, float y, float z);
+    void GLLoadMatrix(Matrix4 m);
+    void GLLoadIdentity();
+
+    bool shadowssimple { get; set; }
+    void SetFog();
+    void Set3dProjection(float zfar, float fov);
+    void DrawModel(GeometryModel model);
+    float Zfar();
+    bool fancySkysphere { get; set; }
+    void DrawModelData(GeometryModel data);
+    FrustumCulling FrustumCulling { get; set; }
+    Vector3 playervelocity { get; set; }
+    int GetLight(int x, int y, int z);
+    bool ENABLE_DRAW2D { get; set; }
+    float Getblockheight(int x, int y, int z);
+    int handTexture { get; set; }
+
+    ConcurrentQueue<Action> commitActions { get; set; }
 }

@@ -20,9 +20,11 @@ public class ModGuiTextEditor : GameScreen
     private int cursorColumn;
     private int cursorLine;
     private bool visible;
+    private readonly IGameClient game;
 
-    public ModGuiTextEditor()
+    public ModGuiTextEditor(IGameClient game, IGamePlatform _) :base(game, _)
     {
+        this.game = game;
         for (int i = 0; i < MaxLines; i++)
             buffer[i] = new int[MaxColumns];
     }
@@ -44,7 +46,7 @@ public class ModGuiTextEditor : GameScreen
         game.Draw2dText(cursorRow, Font, StartX, StartY + cursorLine * CharSize, null, false);
     }
 
-    public override void OnKeyDown(Game game_, KeyEventArgs e)
+    public override void OnKeyDown(KeyEventArgs e)
     {
         int key = e.KeyChar;
 
@@ -80,7 +82,7 @@ public class ModGuiTextEditor : GameScreen
         e.Handled = true;
     }
 
-    public override void OnKeyPress(Game game_, KeyPressEventArgs e)
+    public override void OnKeyPress(KeyPressEventArgs e)
     {
         if (!visible) return;
         if (e.KeyChar == 8) return; // backspace handled in OnKeyDown

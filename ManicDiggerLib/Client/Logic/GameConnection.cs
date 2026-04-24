@@ -39,12 +39,12 @@ public partial class Game
         SendPacketClient(ClientPackets.PingReply());
     }
 
-    internal void SendSetBlock(int x, int y, int z, PacketBlockSetMode mode, int type, int materialslot)
+    public void SendSetBlock(int x, int y, int z, PacketBlockSetMode mode, int type, int materialslot)
     {
         SendPacketClient(ClientPackets.SetBlock(x, y, z, mode, type, materialslot));
     }
 
-    internal void SendFillArea(int startx, int starty, int startz, int endx, int endy, int endz, int blockType)
+    public void SendFillArea(int startx, int starty, int startz, int endx, int endy, int endz, int blockType)
     {
         SendPacketClient(ClientPackets.FillArea(startx, starty, startz, endx, endy, endz, blockType, ActiveMaterial));
     }

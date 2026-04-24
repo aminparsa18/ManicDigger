@@ -26,14 +26,9 @@ public class ModDrawHand3d : ModBase
     /// </summary>
     private const float BobRange = 7f / 100f;
 
-    /// <summary>
-    /// Floating-point literal <c>1.0f</c> stored in a field to prevent the Cito
-    /// transpiler from truncating integer-division expressions to integer arithmetic.
-    /// </summary>
-    private readonly float _one;
-
     /// <summary>Reference to the current game instance, set each frame in <see cref="OnNewFrameDraw3d"/>.</summary>
-    internal Game game;
+    private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
     /// <summary>Torch block renderer used to draw held torches and the empty-hand model.</summary>
     internal BlockRendererTorch d_BlockRendererTorch;
@@ -126,9 +121,10 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Initialises all animation parameters and creates the torch renderer dependency.
     /// </summary>
-    public ModDrawHand3d()
+    public ModDrawHand3d(IGameClient game, IGamePlatform platform)
     {
-        _one = 1;
+        this.game = game;
+        this.platform = platform;
         _attack = -1;
         _attackOffset = 0;
         _buildOffset = 0;
@@ -139,43 +135,51 @@ public class ModDrawHand3d : ModBase
 
         // Rest-pose transform constants — tweak these to reposition the hand on screen.
         _restRotateX = -27f;
-        _restRotateY = _one * -137f / 10f;    // -13.7 degrees
-        _restOffsetY = _one * -2f / 10f;     // -0.2 units
-        _bobOffsetX = _one * -4f / 10f;     // -0.4 units (initial rest)
+        _restRotateY = -137f / 10f;    // -13.7 degrees
+        _restOffsetY = -2f / 10f;     // -0.2 units
+        _bobOffsetX = -4f / 10f;     // -0.4 units (initial rest)
 
         d_BlockRendererTorch = new BlockRendererTorch();
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw3d(Game game_, float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
-        if (!ModDrawHand2d.ShouldDrawHand(game_))
-        {
-            return;
-        }
 
-        // A 2-D hand image overrides the 3-D model entirely.
-        string img = ModDrawHand2d.HandImage2d(game_);
-        if (img != null)
+        if (!game.EnableTppView && game.ENABLE_DRAW2D)
         {
-            return;
-        }
+            // A 2-D hand image overrides the 3-D model entirely.
+            string img = HandImage2d();
+            if (img != null)
+            {
+                return;
+            }
 
-        game = game_;
+            // Consume pending swing triggers set by the game engine.
+            if (game.handSetAttackBuild)
+            {
+                SetAttack(isAttack: true, isBuild: true);
+                game.handSetAttackBuild = false;
+            }
+            if (game.handSetAttackDestroy)
+            {
+                SetAttack(isAttack: true, isBuild: false);
+                game.handSetAttackDestroy = false;
+            }
 
-        // Consume pending swing triggers set by the game engine.
-        if (game.handSetAttackBuild)
-        {
-            SetAttack(isAttack: true, isBuild: true);
-            game.handSetAttackBuild = false;
+            DrawWeapon(deltaTime);
         }
-        if (game.handSetAttackDestroy)
-        {
-            SetAttack(isAttack: true, isBuild: false);
-            game.handSetAttackDestroy = false;
-        }
+    }
 
-        DrawWeapon(deltaTime);
+    /// <summary>Returns the appropriate hand image path for the currently held item, or null if none.</summary>
+    private string HandImage2d()
+    {
+        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
+        if (item == null) return null;
+
+        return game.IronSights
+            ? game.BlockTypes[item.BlockId].IronSightsImage
+            : game.BlockTypes[item.BlockId].Handimage;
     }
 
     /// <summary>Returns the OpenGL texture ID of the terrain texture atlas.</summary>
@@ -224,7 +228,7 @@ public class ModDrawHand3d : ModBase
         float posy = game.Player.position.y;
         float posz = game.Player.position.z;
         int light = game.GetLight((int)posx, (int)posz, (int)posy);
-        return _one * light / MaxLight;
+        return 1f * light / MaxLight;
     }
 
     /// <summary>
@@ -294,7 +298,7 @@ public class ModDrawHand3d : ModBase
     {
         int lightByte = IsTorch() ? 255 : Math.Clamp((int)(Light() * 256), 0, 255);
 
-        game.Platform.BindTexture2d(TerrainTexture);
+        platform.BindTexture2d(TerrainTexture);
 
         Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
 
@@ -308,7 +312,7 @@ public class ModDrawHand3d : ModBase
         if (curMaterial != _cachedMaterial || curLight != _cachedLight || _modelData == null || game.HandRedraw)
         {
             RebuildHandModel(lightByte);
-            game.Platform.UpdateModel(_modelData); // sync rebuilt geometry to GPU
+            platform.UpdateModel(_modelData); // sync rebuilt geometry to GPU
             game.HandRedraw = false;
         }
 
@@ -317,25 +321,25 @@ public class ModDrawHand3d : ModBase
 
         // Push an isolated model-view matrix for the hand so it always renders in
         // front of the world geometry regardless of camera distance.
-        game.Platform.GlClearDepthBuffer();
+        platform.GlClearDepthBuffer();
         game.GLMatrixModeModelView();
         game.GLPushMatrix();
         game.GLLoadIdentity();
 
         // Position and orient the hand in view space.
         game.GLTranslate(
-            (_one * 3 / 10) + _bobOffsetZ - _attackOffset * 5,
-            -(_one * 15 / 10) + _bobOffsetX - _buildOffset * 10,
-            -(_one * 15 / 10) + _restOffsetY);
+            (0.3f) + _bobOffsetZ - _attackOffset * 5,
+            -(1f * 15 / 10) + _bobOffsetX - _buildOffset * 10,
+            -(1f * 15 / 10) + _restOffsetY);
 
         game.GLRotate(30 + _restRotateX - _attackOffset * 300, 1, 0, 0);
         game.GLRotate(60 + _restRotateY, 0, 1, 0);
-        game.GLScale(_one * 8 / 10, _one * 8 / 10, _one * 8 / 10);
+        game.GLScale(1f * 8 / 10, 1f * 8 / 10, 1f * 8 / 10);
 
         AdvanceBobAnimation(dt);
         AdvanceSwingAnimation(dt);
 
-        game.Platform.BindTexture2d(TerrainTexture);
+        platform.BindTexture2d(TerrainTexture);
         game.DrawModelData(_modelData);
 
         game.GLPopMatrix();
@@ -668,7 +672,7 @@ public class BlockRendererTorch
     /// <param name="y">Block-grid Y origin of the torch.</param>
     /// <param name="z">Block-grid Z (vertical) origin of the torch.</param>
     /// <param name="type">Mount type that determines the tilt direction.</param>
-    public void AddTorch(BlockTypeRegistry d_Data, Game d_TerrainRenderer, GeometryModel m,
+    public void AddTorch(BlockTypeRegistry d_Data, IGameClient d_TerrainRenderer, GeometryModel m,
                          int x, int y, int z, TorchType type)
     {
         // --- Compute top-cap corners ---

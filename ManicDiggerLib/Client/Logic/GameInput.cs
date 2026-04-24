@@ -23,10 +23,10 @@ public partial class Game
             mouseRight = true; mouserightclick = true; 
         }
 
-        for (int i = 0; i < clientmods.Count; i++)
+        for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (clientmods[i] == null) continue;
-            clientmods[i].OnMouseDown(this, args);
+            if (ClientMods[i] == null) continue;
+            ClientMods[i].OnMouseDown(args);
         }
 
         if (mousePointerLockShouldBe)
@@ -47,10 +47,10 @@ public partial class Game
         if (btn == (int)MouseButton.Middle) mouseMiddle = false;
         if (btn == (int)MouseButton.Right) { mouseRight = false; mouserightdeclick = true; }
 
-        for (int i = 0; i < clientmods.Count; i++)
+        for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (clientmods[i] == null) continue;
-            clientmods[i].OnMouseUp(this, args);
+            if (ClientMods[i] == null) continue;
+            ClientMods[i].OnMouseUp(args);
         }
     }
 
@@ -73,10 +73,10 @@ public partial class Game
             mouseDeltaY += e.GetMovementY();
         }
 
-        for (int i = 0; i < clientmods.Count; i++)
+        for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (clientmods[i] == null) continue;
-            clientmods[i].OnMouseMove(this, e);
+            if (ClientMods[i] == null) continue;
+            ClientMods[i].OnMouseMove(e);
         }
     }
 
@@ -90,13 +90,13 @@ public partial class Game
                 OverHeadCameraDistance = Math.Clamp(OverHeadCameraDistance - delta, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
 
             if (CameraType == CameraType.Tpp)
-                tppcameradistance = Math.Clamp(tppcameradistance - delta, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
+                TppCameraDistance = Math.Clamp(TppCameraDistance - delta, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
         }
 
-        for (int i = 0; i < clientmods.Count; i++)
+        for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (clientmods[i] == null) continue;
-            clientmods[i].OnMouseWheelChanged(this, e);
+            if (ClientMods[i] == null) continue;
+            ClientMods[i].OnMouseWheelChanged(e);
         }
     }
 
@@ -174,20 +174,20 @@ public partial class Game
         MouseCurrentY = e.GetY();
         MouseLeftClick = true;
 
-        for (int i = 0; i < clientmods.Count; i++)
+        for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (clientmods[i] == null) continue;
-            clientmods[i].OnTouchStart(this, e);
+            if (ClientMods[i] == null) continue;
+            ClientMods[i].OnTouchStart(e);
             if (e.GetHandled()) return;
         }
     }
 
     public void OnTouchMove(TouchEventArgs e)
     {
-        for (int i = 0; i < clientmods.Count; i++)
+        for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (clientmods[i] == null) continue;
-            clientmods[i].OnTouchMove(this, e);
+            if (ClientMods[i] == null) continue;
+            ClientMods[i].OnTouchMove(e);
             if (e.GetHandled()) return;
         }
     }
@@ -197,10 +197,10 @@ public partial class Game
         MouseCurrentX = 0;
         MouseCurrentY = 0;
 
-        for (int i = 0; i < clientmods.Count; i++)
+        for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (clientmods[i] == null) continue;
-            clientmods[i].OnTouchEnd(this, e);
+            if (ClientMods[i] == null) continue;
+            ClientMods[i].OnTouchEnd(e);
             if (e.GetHandled()) return;
         }
     }
@@ -215,9 +215,9 @@ public partial class Game
     {
         KeyboardStateRaw[eKey.KeyChar] = false;
 
-        for (int i = 0; i < clientmods.Count; i++)
+        for (int i = 0; i < ClientMods.Count; i++)
         {
-            clientmods[i].OnKeyUp(this, eKey);
+            ClientMods[i].OnKeyUp(eKey);
             if (eKey.Handled) return;
         }
 
@@ -229,10 +229,10 @@ public partial class Game
 
     internal void KeyPress(KeyPressEventArgs eKeyChar)
     {
-        for (int i = 0; i < clientmods.Count; i++)
+        for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (clientmods[i] == null) continue;
-            clientmods[i].OnKeyPress(this, eKeyChar);
+            if (ClientMods[i] == null) continue;
+            ClientMods[i].OnKeyPress(eKeyChar);
             if (eKeyChar.Handled) return;
         }
     }
@@ -243,9 +243,9 @@ public partial class Game
 
         if (GuiState != GuiState.MapLoading)
         {
-            for (int i = 0; i < clientmods.Count; i++)
+            for (int i = 0; i < ClientMods.Count; i++)
             {
-                clientmods[i].OnKeyDown(this, eKey);
+                ClientMods[i].OnKeyDown(eKey);
                 if (eKey.Handled) return;
             }
         }
@@ -347,16 +347,16 @@ public partial class Game
         if (eKey == GetKey(Keys.Equal))
         {
             if (CameraType == CameraType.Overhead) OverHeadCameraDistance -= 1;
-            else if (CameraType == CameraType.Tpp) tppcameradistance -= 1;
+            else if (CameraType == CameraType.Tpp) TppCameraDistance -= 1;
         }
         if (eKey == GetKey(Keys.Minus) || eKey == GetKey(Keys.KeyPadSubtract))
         {
             if (CameraType == CameraType.Overhead) OverHeadCameraDistance += 1;
-            else if (CameraType == CameraType.Tpp) tppcameradistance += 1;
+            else if (CameraType == CameraType.Tpp) TppCameraDistance += 1;
         }
 
         OverHeadCameraDistance = Math.Clamp(OverHeadCameraDistance, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
-        tppcameradistance = Math.Clamp(tppcameradistance, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
+        TppCameraDistance = Math.Clamp(TppCameraDistance, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
 
         if (eKey == GetKey(Keys.F6))
             RedrawAllBlocks();
@@ -435,10 +435,10 @@ public partial class Game
         if (CurrentlyAttackedEntity != -1 && Entities[CurrentlyAttackedEntity].usable)
         {
             OnUseEntityArgs args = new() { entityId = CurrentlyAttackedEntity };
-            for (int i = 0; i < clientmods.Count; i++)
+            for (int i = 0; i < ClientMods.Count; i++)
             {
-                if (clientmods[i] == null) continue;
-                clientmods[i].OnUseEntity(this, args);
+                if (ClientMods[i] == null) continue;
+                ClientMods[i].OnUseEntity(args);
             }
             SendPacketClient(ClientPackets.UseEntity(CurrentlyAttackedEntity));
         }

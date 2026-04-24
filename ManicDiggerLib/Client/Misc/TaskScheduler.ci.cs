@@ -13,6 +13,14 @@ public class TaskScheduler
     /// Per-mod background task state. Initialised once via <see cref="Initialise"/>.
     /// </summary>
     private BackgroundAction[] _actions;
+    private readonly IGameClient game;
+    private readonly IGamePlatform platform;
+
+    public TaskScheduler(IGameClient game, IGamePlatform platform)
+    {
+        this.game = game;
+        this.platform = platform;
+    }
 
     // -------------------------------------------------------------------------
     // Public API
@@ -23,10 +31,10 @@ public class TaskScheduler
     /// Must be called once before the first <see cref="Update"/> call.
     /// </summary>
     /// <param name="game">The active game instance.</param>
-    public void Initialise(Game game)
+    public void Initialise()
     {
-        _actions = new BackgroundAction[game.clientmods.Count];
-        for (int i = 0; i < game.clientmods.Count; i++)
+        _actions = new BackgroundAction[game.ClientMods.Count];
+        for (int i = 0; i < game.ClientMods.Count; i++)
             _actions[i] = new BackgroundAction();
     }
 
@@ -39,12 +47,12 @@ public class TaskScheduler
     /// </summary>
     /// <param name="game">The active game instance.</param>
     /// <param name="dt">Delta time in seconds since the last frame.</param>
-    public void Update(Game game, float dt)
+    public void Update(float dt)
     {
-        if (game.Platform.MultithreadingAvailable())
-            UpdateMultithreaded(game, dt);
+        if (platform.MultithreadingAvailable())
+            UpdateMultithreaded(dt);
         else
-            UpdateSingleThreaded(game, dt);
+            UpdateSingleThreaded(dt);
     }
 
     // -------------------------------------------------------------------------
@@ -56,39 +64,39 @@ public class TaskScheduler
     /// previous frame are done — flushes commit actions, runs read-write hooks,
     /// and dispatches new background tasks.
     /// </summary>
-    private void UpdateMultithreaded(Game game, float dt)
+    private void UpdateMultithreaded(float dt)
     {
-        RunReadOnlyMainThread(game, dt);
+        RunReadOnlyMainThread(dt);
 
-        if (!AllBackgroundTasksFinished(game))
+        if (!AllBackgroundTasksFinished())
             return;
 
-        RunReadWriteMainThread(game, dt);
-        FlushCommitActions(game);
-        DispatchBackgroundTasks(game, dt);
+        RunReadWriteMainThread(dt);
+        FlushCommitActions();
+        DispatchBackgroundTasks(dt);
     }
 
     /// <summary>
     /// Runs all mod hooks sequentially on the main thread:
     /// read-only main, read-only background, then read-write main.
     /// </summary>
-    private static void UpdateSingleThreaded(Game game, float dt)
+    private void UpdateSingleThreaded(float dt)
     {
-        RunReadOnlyMainThread(game, dt);
+        RunReadOnlyMainThread(dt);
 
-        for (int i = 0; i < game.clientmods.Count; i++)
-            game.clientmods[i].OnReadOnlyBackgroundThread(dt);
+        for (int i = 0; i < game.ClientMods.Count; i++)
+            game.ClientMods[i].OnReadOnlyBackgroundThread(dt);
 
-        RunReadWriteMainThread(game, dt);
-        FlushCommitActions(game);
+        RunReadWriteMainThread(dt);
+        FlushCommitActions();
     }
 
     /// <summary>
     /// Returns <c>true</c> if no background task is still active and unfinished.
     /// </summary>
-    private bool AllBackgroundTasksFinished(Game game)
+    private bool AllBackgroundTasksFinished()
     {
-        for (int i = 0; i < game.clientmods.Count; i++)
+        for (int i = 0; i < game.ClientMods.Count; i++)
         {
             BackgroundAction action = _actions[i];
             if (action.Active && !action.Finished)
@@ -100,34 +108,34 @@ public class TaskScheduler
     /// <summary>
     /// Marks each background slot as active and queues its work item on the thread pool.
     /// </summary>
-    private void DispatchBackgroundTasks(Game game, float dt)
+    private void DispatchBackgroundTasks(float dt)
     {
-        for (int i = 0; i < game.clientmods.Count; i++)
+        for (int i = 0; i < game.ClientMods.Count; i++)
         {
             int captured = i;
             _actions[captured].Active = true;
             _actions[captured].Finished = false;
             game.Platform.QueueUserWorkItem(
-                CreateBackgroundAction(game, captured, dt, () => _actions[captured].Finished = true));
+                CreateBackgroundAction(captured, dt, () => _actions[captured].Finished = true));
         }
     }
 
     /// <summary>Calls <c>OnReadOnlyMainThread</c> on every registered client mod.</summary>
-    private static void RunReadOnlyMainThread(Game game, float dt)
+    private void RunReadOnlyMainThread(float dt)
     {
-        for (int i = 0; i < game.clientmods.Count; i++)
-            game.clientmods[i].OnReadOnlyMainThread(dt);
+        for (int i = 0; i < game.ClientMods.Count; i++)
+            game.ClientMods[i].OnReadOnlyMainThread(dt);
     }
 
     /// <summary>Calls <c>OnReadWriteMainThread</c> on every registered client mod.</summary>
-    private static void RunReadWriteMainThread(Game game, float dt)
+    private void RunReadWriteMainThread(float dt)
     {
-        for (int i = 0; i < game.clientmods.Count; i++)
-            game.clientmods[i].OnReadWriteMainThread(game, dt);
+        for (int i = 0; i < game.ClientMods.Count; i++)
+            game.ClientMods[i].OnReadWriteMainThread(dt);
     }
 
     /// <summary>Executes all pending commit actions then clears the queue.</summary>
-    private static void FlushCommitActions(Game game)
+    private void FlushCommitActions()
     {
         foreach (Action action in game.commitActions)
             action();
@@ -143,11 +151,11 @@ public class TaskScheduler
     /// <param name="dt">Delta time passed through to the background hook.</param>
     /// <param name="onFinished">Callback invoked on the worker thread when the hook returns.</param>
     /// <returns>A self-contained <see cref="Action"/> safe to queue on the thread pool.</returns>
-    private static Action CreateBackgroundAction(Game game, int modIndex, float dt, Action onFinished)
+    private Action CreateBackgroundAction(int modIndex, float dt, Action onFinished)
     {
         return () =>
         {
-            game.clientmods[modIndex].OnReadOnlyBackgroundThread(dt);
+            game.ClientMods[modIndex].OnReadOnlyBackgroundThread(dt);
             onFinished();
         };
     }

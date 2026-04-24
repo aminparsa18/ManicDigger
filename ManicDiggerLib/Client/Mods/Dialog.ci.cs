@@ -37,12 +37,12 @@ public class ModDialog : ModBase
         }
     }
 
-    public override void OnKeyPress(Game game, KeyPressEventArgs args)
+    public override void OnKeyPress(KeyPressEventArgs args)
     {
         if (game.GuiState != GuiState.ModalDialog && game.GuiState != GuiState.Normal) return;
         if (game.IsTyping) return;
 
-        ForEachDialog(game, d => d.screen.OnKeyPress(game, args));
+        ForEachDialog(d => d.screen.OnKeyPress(args));
 
         for (int k = 0; k < game.Dialogs.Length; k++)
         {
@@ -64,9 +64,9 @@ public class ModDialog : ModBase
         }
     }
 
-    public override void OnKeyDown(Game game, KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
-        ForEachDialog(game, d => d.screen.OnKeyDown(game, args));
+        ForEachDialog(d => d.screen.OnKeyDown(args));
 
         bool isEsc = args.KeyChar == (int)Keys.Escape;
 
@@ -109,17 +109,16 @@ public class ModDialog : ModBase
         }
     }
 
-    public override void OnKeyUp(Game game, KeyEventArgs args) =>
-        ForEachDialog(game, d => d.screen.OnKeyUp(game, args));
+    public override void OnKeyUp(KeyEventArgs args) =>
+        ForEachDialog(d => d.screen.OnKeyUp(args));
 
-    public override void OnMouseDown(Game game, MouseEventArgs args) =>
-        ForEachDialog(game, d => d.screen.OnMouseDown(game, args));
-
-    public override void OnMouseUp(Game game, MouseEventArgs args) =>
-        ForEachDialog(game, d => d.screen.OnMouseUp(game, args));
+    public override void OnMouseDown(MouseEventArgs args) =>
+        ForEachDialog(d => d.screen.OnMouseDown(args));
+    public override void OnMouseUp(MouseEventArgs args) =>
+        ForEachDialog(d => d.screen.OnMouseUp(args));
 
     /// <summary>Iterates all non-null dialogs and applies an action to each.</summary>
-    private static void ForEachDialog(Game game, Action<VisibleDialog> action)
+    private void ForEachDialog(Action<VisibleDialog> action)
     {
         for (int i = 0; i < game.Dialogs.Length; i++)
         {

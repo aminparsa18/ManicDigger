@@ -66,7 +66,7 @@ public partial class Game : IMeshDrawer, IGameClient
     }
 
     /// <summary>Returns the far-clip distance for the current view distance setting.</summary>
-    internal float Zfar() =>
+    public float Zfar() =>
         Config3d.ViewDistance >= 256
             ? Config3d.ViewDistance * 2
             : ENABLE_ZFAR ? Config3d.ViewDistance : 99999;
@@ -295,7 +295,7 @@ public partial class Game : IMeshDrawer, IGameClient
     public void EscapeMenuStart()
     {
         GuiState = GuiState.EscapeMenu;
-        menustate = new MenuState();
+        MenuState = new MenuState();
         EscapeMenuRestart = true;
         Platform.ExitMousePointerLock();
     }
@@ -304,7 +304,7 @@ public partial class Game : IMeshDrawer, IGameClient
     public void ShowEscapeMenu()
     {
         GuiState = GuiState.EscapeMenu;
-        menustate = new MenuState();
+        MenuState = new MenuState();
         SetFreeMouse(true);
     }
 
@@ -312,7 +312,7 @@ public partial class Game : IMeshDrawer, IGameClient
     public void ShowInventory()
     {
         GuiState = GuiState.Inventory;
-        menustate = new MenuState();
+        MenuState = new MenuState();
         SetFreeMouse(true);
     }
 
@@ -368,14 +368,14 @@ public partial class Game : IMeshDrawer, IGameClient
     /// <summary>Calls the read-only main-thread hook on all registered mods.</summary>
     public void Update(float dt)
     {
-        for (int i = 0; i < clientmods.Count; i++)
-            clientmods[i]?.OnNewFrameReadOnlyMainThread(this, dt);
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.OnNewFrameReadOnlyMainThread(dt);
     }
 
     // ── Block picking ─────────────────────────────────────────────────────────
 
     /// <summary>Returns the nearest <see cref="BlockPosSide"/> to <paramref name="target"/>.</summary>
-    internal BlockPosSide Nearest(ArraySegment<BlockPosSide> pick2, int pick2Count, Vector3 target)
+    public BlockPosSide Nearest(ArraySegment<BlockPosSide> pick2, int pick2Count, Vector3 target)
     {
         float minDist = float.MaxValue;
         BlockPosSide nearest = null;
@@ -391,7 +391,7 @@ public partial class Game : IMeshDrawer, IGameClient
         return nearest;
     }
 
-    internal BlockOctreeSearcher s;
+    public BlockOctreeSearcher BlockOctreeSearcher { get; set; }
 
     /// <summary>
     /// Performs a ray–block intersection for <paramref name="line"/>, returning
@@ -452,8 +452,8 @@ public partial class Game : IMeshDrawer, IGameClient
     /// </summary>
     public void Dispose()
     {
-        for (int i = 0; i < clientmods.Count; i++)
-            clientmods[i]?.Dispose(this);
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.Dispose();
 
         foreach (int id in textures.Values)
             Platform.GLDeleteTexture(id);

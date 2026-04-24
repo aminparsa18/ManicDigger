@@ -267,8 +267,8 @@ public partial class Game
 
         OrthoMode(Width(), Height());
 
-        for (int i = 0; i < clientmods.Count; i++)
-            clientmods[i]?.OnNewFrameDraw2d(dt);
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.OnNewFrameDraw2d(dt);
 
         PerspectiveMode();
     }

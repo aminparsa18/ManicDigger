@@ -36,7 +36,8 @@ public class ModDrawTerrain : ModBase
     private const int BufferedChunkVolume = BufferedChunkEdge * BufferedChunkEdge * BufferedChunkEdge;
 
     /// <summary>Reference to the current game instance, refreshed every frame.</summary>
-    public IGameClient _game { get; set; }
+    private readonly IGameClient _game;
+    private readonly IGamePlatform platform;
 
     /// <summary>Reusable lighting helper for computing per-block base light within a chunk.</summary>
     private readonly LightBase _lightBase;
@@ -126,9 +127,10 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     private readonly HashSet<Vector3i> _chunksToRedrawSet = new();
 
-    public ModDrawTerrain(IGameClient game)
+    public ModDrawTerrain(IGameClient game, IGamePlatform platform)
     {
         _game = game;
+        this.platform = platform;
         _currentChunk = new int[BufferedChunkVolume];
         _currentChunkShadows = new byte[BufferedChunkVolume];
         _tempNearestPos = new int[3];
@@ -156,9 +158,8 @@ public class ModDrawTerrain : ModBase
     internal int InvertChunk(int num) => (int)(num * invertedChunkSize);
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw3d(Game game, float _)
+    public override void OnNewFrameDraw3d(float _)
     {
-        _game = game;
         if (_game.ShouldRedrawAllBlocks)
         {
             _game.ShouldRedrawAllBlocks = false;
@@ -175,7 +176,7 @@ public class ModDrawTerrain : ModBase
         _game.QueueActionCommit(MainThreadCommit);
     }
 
-    public override void Dispose(Game game_) => Clear();
+    public override void Dispose() => Clear();
 
     /// <summary>
     /// Initialises the tessellator and caches frequently used chunk-size values.
@@ -648,10 +649,10 @@ public class ModDrawTerrain : ModBase
     internal void UpdatePerformanceInfo()
     {
         const float MsToSeconds = 1f / 1000f;
-        float elapsed = (_game.Platform.TimeMillisecondsFromStart - _lastPerfUpdateMs) * MsToSeconds;
+        float elapsed = (platform.TimeMillisecondsFromStart - _lastPerfUpdateMs) * MsToSeconds;
         if (elapsed < 1f) return;
 
-        _lastPerfUpdateMs = _game.Platform.TimeMillisecondsFromStart;
+        _lastPerfUpdateMs = platform.TimeMillisecondsFromStart;
         int updatesThisPeriod = _chunkUpdates - _lastChunkUpdatesSnapshot;
         _lastChunkUpdatesSnapshot = _chunkUpdates;
 

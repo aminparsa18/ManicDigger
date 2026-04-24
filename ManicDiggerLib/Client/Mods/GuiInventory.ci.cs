@@ -118,7 +118,7 @@ public class ModGuiInventory : ModBase
     private int ScrollDownButtonY() => CellsStartY() + (_cellCountInPageY - 1) * CellDrawSize;
 
     /// <inheritdoc/>
-    public override void OnKeyPress(Game game_, KeyPressEventArgs args)
+    public override void OnKeyPress(KeyPressEventArgs args)
     {
         if (game.GuiState != GuiState.Inventory) { return; }
 
@@ -129,7 +129,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnMouseDown(Game game_, MouseEventArgs args)
+    public override void OnMouseDown(MouseEventArgs args)
     {
         if (game.GuiState != GuiState.Inventory) { return; }
 
@@ -202,7 +202,7 @@ public class ModGuiInventory : ModBase
         if (HitTest(mouse, ScrollUpButtonX(), ScrollUpButtonY(), ScrollButtonSize(), ScrollButtonSize()))
         {
             ScrollUp();
-            _scrollingUpTimeMs = game.Platform.TimeMillisecondsFromStart;
+            _scrollingUpTimeMs = platform.TimeMillisecondsFromStart;
             args.SetHandled(true);
             return;
         }
@@ -211,7 +211,7 @@ public class ModGuiInventory : ModBase
         if (HitTest(mouse, ScrollDownButtonX(), ScrollDownButtonY(), ScrollButtonSize(), ScrollButtonSize()))
         {
             ScrollDown();
-            _scrollingDownTimeMs = game.Platform.TimeMillisecondsFromStart;
+            _scrollingDownTimeMs = platform.TimeMillisecondsFromStart;
             args.SetHandled(true);
             return;
         }
@@ -220,17 +220,17 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnTouchStart(Game game_, TouchEventArgs e)
+    public override void OnTouchStart(TouchEventArgs e)
     {
         MouseEventArgs args = new();
         args.SetX(e.GetX());
         args.SetY(e.GetY());
-        OnMouseDown(game_, args);
+        OnMouseDown(args);
         e.SetHandled(args.GetHandled());
     }
 
     /// <inheritdoc/>
-    public override void OnMouseUp(Game game_, MouseEventArgs args)
+    public override void OnMouseUp(MouseEventArgs args)
     {
         if (game != null && game.GuiState != GuiState.Inventory) { return; }
         _scrollingUpTimeMs = 0;
@@ -238,17 +238,17 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnMouseWheelChanged(Game game_, MouseWheelEventArgs args)
+    public override void OnMouseWheelChanged(MouseWheelEventArgs args)
     {
         float delta = args.OffsetY;
-        bool shiftHeld = game_.KeyboardState[game_.GetKey(Keys.LeftShift)];
+        bool shiftHeld = game.KeyboardState[game.GetKey(Keys.LeftShift)];
 
-        bool inNormalOrOutsideCells = game_.GuiState == GuiState.Normal
-            || (game_.GuiState == GuiState.Inventory && !IsMouseOverCells());
+        bool inNormalOrOutsideCells = game.GuiState == GuiState.Normal
+            || (game.GuiState == GuiState.Inventory && !IsMouseOverCells());
 
         if (inNormalOrOutsideCells && !shiftHeld)
         {
-            game_.ActiveMaterial = ((game_.ActiveMaterial - (int)delta) % 10 + 10) % 10;
+            game.ActiveMaterial = ((game.ActiveMaterial - (int)delta) % 10 + 10) % 10;
         }
 
         if (IsMouseOverCells() && game.GuiState == GuiState.Inventory)
@@ -544,7 +544,7 @@ public class ModGuiInventory : ModBase
     /// </summary>
     private void AdvanceAutoScroll()
     {
-        int now = game.Platform.TimeMillisecondsFromStart;
+        int now = platform.TimeMillisecondsFromStart;
         if (_scrollingUpTimeMs != 0 && now - _scrollingUpTimeMs > 250)
         {
             _scrollingUpTimeMs = now;

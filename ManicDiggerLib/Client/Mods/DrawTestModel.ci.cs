@@ -2,24 +2,26 @@
 
 public class ModDrawTestModel : ModBase
 {
-    private readonly IGameClient _game;
+    private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public ModDrawTestModel(IGameClient game)
+    public ModDrawTestModel(IGameClient game, IGamePlatform platform)
     {
-        _game = game;
+        this.game = game;
+        this.platform = platform;
     }
 
-    public override void OnNewFrameDraw3d(Game game, float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         if (game.GuiState == GuiState.MapLoading)
         {
             return;
         }
 
-        DrawTestModel(game, deltaTime);
+        DrawTestModel(deltaTime);
     }
 
-    private void DrawTestModel(Game game, float deltaTime)
+    private void DrawTestModel(float deltaTime)
     {
         if (!game.EnableDrawTestCharacter)
         {
@@ -36,7 +38,7 @@ public class ModDrawTestModel : ModBase
         }
         game.GLPushMatrix();
         game.GLTranslate(game.VoxelMap.MapSizeX / 2, game.Blockheight(game.VoxelMap.MapSizeX / 2, game.VoxelMap.MapSizeY / 2 - 2, 128), game.VoxelMap.MapSizeY / 2 - 2);
-        game.Platform.BindTexture2d(game.GetTexture("mineplayer.png"));
+        platform.BindTexture2d(game.GetTexture("mineplayer.png"));
         testmodel.Render(deltaTime, 0, true, true, 1);
         game.GLPopMatrix();
     }
@@ -46,7 +48,7 @@ public class ModDrawTestModel : ModBase
     {
         if (args.command == "testmodel")
         {
-            _game.EnableDrawTestCharacter = _game.BoolCommandArgument(args.arguments);
+            game.EnableDrawTestCharacter = game.BoolCommandArgument(args.arguments);
             return true;
         }
         return false;

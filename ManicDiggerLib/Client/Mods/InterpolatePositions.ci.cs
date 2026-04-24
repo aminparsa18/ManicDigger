@@ -7,10 +7,12 @@ public class ModInterpolatePositions : ModBase
     private const int MinDelayMs = 100;
 
     private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public ModInterpolatePositions(IGameClient game)
+    public ModInterpolatePositions(IGameClient game, IGamePlatform platform)
     {
         this.game = game;
+        this.platform = platform;
     }
 
     public override void OnNewFrame(float args)
@@ -44,7 +46,7 @@ public class ModInterpolatePositions : ModBase
 
         e.playerDrawInfo.interpolation = new NetworkInterpolation
         {
-            req = new PlayerInterpolate { platform = game.Platform },
+            req = new PlayerInterpolate { platform = platform },
             DELAYMILLISECONDS = 500,
             EXTRAPOLATE = false,
             EXTRAPOLATION_TIMEMILLISECONDS = ExtrapolationTimeMs
@@ -76,7 +78,7 @@ public class ModInterpolatePositions : ModBase
         }
 
         PlayerInterpolationState cur =
-            game.Platform.CastToPlayerInterpolationState(info.interpolation.InterpolatedState(game.TotalTimeMilliseconds))
+            platform.CastToPlayerInterpolationState(info.interpolation.InterpolatedState(game.TotalTimeMilliseconds))
             ?? new PlayerInterpolationState();
 
         // Bypass interpolation if the game world is controlling this entity's position

@@ -8,10 +8,12 @@ public class ModCameraKeys : ModBase
 {
     private const float OverheadCameraSpeed = 3f;
     private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public ModCameraKeys(IGameClient game)
+    public ModCameraKeys(IGameClient game, IGamePlatform platform)
     {
         this.game = game;
+        this.platform = platform;
     }
 
     public override void OnNewFrameFixed(float args)
@@ -57,7 +59,7 @@ public class ModCameraKeys : ModBase
     /// <summary>Triggers auto-jump when the player walks into a climbable wall or half-block.</summary>
     private void UpdateAutoJump()
     {
-        if (game.ReachedWall1BlockHigh && (game.AutoJumpEnabled || !game.Platform.IsMousePointerLocked()))
+        if (game.ReachedWall1BlockHigh && (game.AutoJumpEnabled || !platform.IsMousePointerLocked()))
             game.Controls.wantsjump = true;
 
         if (game.ReachedHalfBlock)

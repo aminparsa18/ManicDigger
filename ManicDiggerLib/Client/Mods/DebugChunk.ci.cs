@@ -5,7 +5,14 @@
 public class ModDebugChunk : ModBase
 {
     private bool draw;
-    private readonly DrawWireframeCube lines = new();
+    private readonly DrawWireframeCube lines;
+    private readonly IGameClient game;
+
+    public ModDebugChunk(IGameClient game, IGamePlatform platform)
+    {
+        this.game = game;
+        lines = new DrawWireframeCube(platform);
+    }
 
     public override bool OnClientCommand(ClientCommandArgs args)
     {
@@ -14,7 +21,7 @@ public class ModDebugChunk : ModBase
         return true;
     }
 
-    public override void OnNewFrameDraw3d(Game game, float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         if (!draw) return;
 

@@ -93,7 +93,7 @@ public class ModGuiCrafting : ModBase
             CraftingMouse();
     }
 
-    public override void OnKeyDown(Game game, KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         if (args.KeyChar != game.GetKey(Keys.E) || game.GuiTyping != TypingState.None) return;
         if (game.SelectedBlockPositionX == -1
@@ -113,8 +113,7 @@ public class ModGuiCrafting : ModBase
         Vector3i[] table = d_CraftingTableTool.GetTable(posX, posY, posZ, out int tableCount);
         int[] onTable = d_CraftingTableTool.GetOnTable(table, tableCount, out int onTableCount);
 
-        CraftingRecipesStart(game,
-            d_CraftingRecipes, d_CraftingRecipesCount,
+        CraftingRecipesStart(d_CraftingRecipes, d_CraftingRecipesCount,
             onTable, onTableCount,
             posX, posY, posZ);
 
@@ -215,8 +214,7 @@ public class ModGuiCrafting : ModBase
 
     // ── Session management ────────────────────────────────────────────────────
 
-    internal void CraftingRecipesStart(Game game,
-        Packet_CraftingRecipe[] recipes, int recipesCount,
+    internal void CraftingRecipesStart(Packet_CraftingRecipe[] recipes, int recipesCount,
         int[] blocks, int blocksCount,
         int posX, int posY, int posZ)
     {
@@ -245,7 +243,7 @@ public class ModGuiCrafting : ModBase
         }
 
         game.GuiState = GuiState.CraftingRecipes;
-        game.menustate = new MenuState();
+        game.MenuState = new MenuState();
         game.SetFreeMouse(true);
     }
 }

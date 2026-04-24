@@ -16,17 +16,18 @@ public class ModGuiMapLoading : ModBase
     ];
 
     private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public ModGuiMapLoading(IGameClient game)
+    public ModGuiMapLoading(IGameClient game, IGamePlatform platform)
     {
         this.game = game;
+        this.platform = platform;
     }
 
     public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (game.GuiState != GuiState.MapLoading) return;
 
-        IGamePlatform platform = game.Platform;
         int width = platform.GetCanvasWidth();
         int height = platform.GetCanvasHeight();
         int centerY = height / 2;

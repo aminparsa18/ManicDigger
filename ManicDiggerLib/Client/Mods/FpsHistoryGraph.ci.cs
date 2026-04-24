@@ -41,7 +41,7 @@ public class ModFpsHistoryGraph : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnKeyDown(Game game, KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         if (args.KeyChar == (int)Keys.F7)
         {

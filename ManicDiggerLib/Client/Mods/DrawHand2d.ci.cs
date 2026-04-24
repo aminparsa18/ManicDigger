@@ -4,15 +4,23 @@
 public class ModDrawHand2d : ModBase
 {
     private string lastHandImage;
+    private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public override void OnNewFrameDraw3d(Game game, float deltaTime)
+    public ModDrawHand2d(IGameClient game, IGamePlatform platform)
     {
-        if (!ShouldDrawHand(game)) return;
+        this.game = game;
+        this.platform = platform;
+    }
 
-        string img = HandImage2d(game);
+    public override void OnNewFrameDraw3d(float deltaTime)
+    {
+        if (!ShouldDrawHand()) return;
+
+        string img = HandImage2d();
         if (img == null) return;
 
-        game.OrthoMode(game.Width(), game.Height());
+        game.OrthoMode(platform.GetCanvasWidth(), platform.GetCanvasHeight());
 
         if (lastHandImage != img)
         {
@@ -21,20 +29,20 @@ public class ModDrawHand2d : ModBase
             Bitmap bmp = PixelBuffer.BitmapFromPng(file, file.Length);
             if (bmp != null)
             {
-                game.handTexture = game.Platform.LoadTextureFromBitmap(bmp);
+                game.handTexture = platform.LoadTextureFromBitmap(bmp);
                 bmp.Dispose();
             }
         }
 
-        game.Draw2dTexture(game.handTexture, game.Width() / 2, game.Height() - 512, 512, 512, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
+        game.Draw2dTexture(game.handTexture, platform.GetCanvasWidth() / 2, platform.GetCanvasHeight() - 512, 512, 512, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
         game.PerspectiveMode();
     }
 
     /// <summary>Returns true if the hand should be drawn (first-person view with 2D enabled).</summary>
-    public static bool ShouldDrawHand(Game game) => !game.ENABLE_TPP_VIEW && game.ENABLE_DRAW2D;
+    public bool ShouldDrawHand() => !game.EnableTppView && game.ENABLE_DRAW2D;
 
     /// <summary>Returns the appropriate hand image path for the currently held item, or null if none.</summary>
-    public static string HandImage2d(Game game)
+    public string HandImage2d()
     {
         Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
         if (item == null) return null;

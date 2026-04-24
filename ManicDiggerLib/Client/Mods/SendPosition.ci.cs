@@ -5,18 +5,20 @@ public class ModSendPosition : ModBase
 {
     private const int SendIntervalMs = 100;
     private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public ModSendPosition(IGameClient game)
+    public ModSendPosition(IGameClient game, IGamePlatform platform)
     {
         this.game = game;
+        this.platform = platform;
     }
 
     public override void OnNewFrame(float args)
     {
         if (!game.Spawned) return;
-        if (game.Platform.TimeMillisecondsFromStart - game.LastPositionSentMilliseconds <= SendIntervalMs) return;
+        if (platform.TimeMillisecondsFromStart - game.LastPositionSentMilliseconds <= SendIntervalMs) return;
 
-        game.LastPositionSentMilliseconds = game.Platform.TimeMillisecondsFromStart;
+        game.LastPositionSentMilliseconds = platform.TimeMillisecondsFromStart;
 
         var pos = game.Player.position;
         game.SendPacketClient(ClientPackets.PositionAndOrientation(

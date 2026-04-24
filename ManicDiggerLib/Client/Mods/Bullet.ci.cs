@@ -12,7 +12,7 @@ public class ModBullet : ModBase
         _game = game;
     }
 
-    public override void OnNewFrameDraw3d(Game game, float dt)
+    public override void OnNewFrameDraw3d(float dt)
     {
         for (int i = 0; i < _game.Entities.Count; i++)
         {

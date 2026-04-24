@@ -9,7 +9,8 @@
 public class GameScreen : ModBase
 {
     /// <summary>Reference to the current game instance.</summary>
-    internal Game game;
+    private IGameClient game;
+    private readonly IGamePlatform platform;
 
     /// <summary>Maximum number of widgets this screen can hold.</summary>
     internal int WidgetCount;
@@ -24,30 +25,37 @@ public class GameScreen : ModBase
     internal int screeny;
 
     /// <summary>Initialises the widget pool with a capacity of 64.</summary>
-    public GameScreen()
+    public GameScreen(IGameClient game, IGamePlatform platform)
     {
+        this.game = game;
+        this.platform = platform;
         WidgetCount = 64;
         widgets = new MenuWidget[WidgetCount];
     }
 
-    /// <inheritdoc/>
-    public override void OnKeyPress(Game game_, KeyPressEventArgs args) => KeyPress(args);
+    public void SetGame(IGameClient game)
+    {
+        this.game = game;
+    }
 
     /// <inheritdoc/>
-    public override void OnTouchStart(Game game_, TouchEventArgs e)
+    public override void OnKeyPress(KeyPressEventArgs args) => KeyPress(args);
+
+    /// <inheritdoc/>
+    public override void OnTouchStart(TouchEventArgs e)
         => e.SetHandled(MouseDown(e.GetX(), e.GetY()));
 
     /// <inheritdoc/>
-    public override void OnTouchEnd(Game game_, TouchEventArgs e) => MouseUp(e.GetX(), e.GetY());
+    public override void OnTouchEnd(TouchEventArgs e) => MouseUp(e.GetX(), e.GetY());
 
     /// <inheritdoc/>
-    public override void OnMouseDown(Game game_, MouseEventArgs args) => MouseDown(args.GetX(), args.GetY());
+    public override void OnMouseDown(MouseEventArgs args) => MouseDown(args.GetX(), args.GetY());
 
     /// <inheritdoc/>
-    public override void OnMouseUp(Game game_, MouseEventArgs args) => MouseUp(args.GetX(), args.GetY());
+    public override void OnMouseUp(MouseEventArgs args) => MouseUp(args.GetX(), args.GetY());
 
     /// <inheritdoc/>
-    public override void OnMouseMove(Game game_, MouseEventArgs args) => MouseMove(args);
+    public override void OnMouseMove(MouseEventArgs args) => MouseMove(args);
 
     /// <summary>Called when the hardware back button is pressed. Override to handle navigation.</summary>
     public virtual void OnBackPressed() { }
@@ -90,7 +98,7 @@ public class GameScreen : ModBase
                 if (Clipboard.ContainsText()) { w.text = string.Concat(w.text, Clipboard.GetText()); }
                 return;
             }
-            if (game.Platform.IsValidTypingChar(key))
+            if (platform.IsValidTypingChar(key))
             {
                 w.text = string.Concat(w.text, ((char)key).ToString());
             }
@@ -133,12 +141,12 @@ public class GameScreen : ModBase
 
                 if (w.editing && !wasEditing)
                 {
-                    game.Platform.ShowKeyboard(true);
+                    platform.ShowKeyboard(true);
                     editingChange = true;
                 }
                 if (!w.editing && wasEditing && !editingChange)
                 {
-                    game.Platform.ShowKeyboard(false);
+                    platform.ShowKeyboard(false);
                 }
             }
         }
@@ -201,7 +209,7 @@ public class GameScreen : ModBase
             string text = w.text;
             if (w.selected)
             {
-                text = string.Concat(game.Platform, "&2", text);
+                text = string.Concat(platform, "&2", text);
             }
 
             if (w.type == UIWidgetType.Button)
@@ -224,7 +232,7 @@ public class GameScreen : ModBase
             if (w.type == UIWidgetType.Textbox)
             {
                 if (w.password) { text = new string('*', w.text.Length); }
-                if (w.editing) { text = string.Concat(game.Platform, text, "_"); }
+                if (w.editing) { text = string.Concat(platform, text, "_"); }
                 game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, null, false);
             }
 

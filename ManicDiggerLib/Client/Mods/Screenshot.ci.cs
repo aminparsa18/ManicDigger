@@ -38,7 +38,7 @@ public class ModScreenshot : ModBase
         }
     }
 
-    public override void OnKeyDown(Game game, KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         if (args.KeyChar != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.F12)) return;
         takeScreenshot = true;
@@ -47,7 +47,7 @@ public class ModScreenshot : ModBase
 
     internal void DrawScreenshotFlash()
     {
-        game.Draw2dTexture(game.WhiteTexture(), 0, 0, game.Platform.GetCanvasWidth(), game.Platform.GetCanvasHeight(), null, 0, White, false);
+        game.Draw2dTexture(game.WhiteTexture(), 0, 0, platform.GetCanvasWidth(), platform.GetCanvasHeight(), null, 0, White, false);
         TextRenderer.TextSize(ScreenshotText, FlashFontSize, out int textWidth, out int textHeight);
         game.Draw2dText(ScreenshotText, FlashFont, game.Xcenter(textWidth), game.Ycenter(textHeight), null, false);
     }

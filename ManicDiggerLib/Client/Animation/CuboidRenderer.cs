@@ -84,7 +84,7 @@ public static class CuboidRenderer
     /// </summary>
     /// <param name="game">The game instance used for GL draw calls.</param>
     /// <param name="data">The model data with all vertices already written.</param>
-    private static void SubmitCuboid(Game game, GeometryModel data)
+    private static void SubmitCuboid(IGameClient game, GeometryModel data)
     {
         data.Indices = new int[FaceCount * IndicesPerFace];
         for (int i = 0; i < FaceCount; i++)
@@ -129,7 +129,7 @@ public static class CuboidRenderer
     /// Draws a cuboid using world-space winding order, where the front face
     /// is at minimum X. Used for static world geometry.
     /// </summary>
-    public static void DrawCuboidWorld(Game game, float posX, float posY, float posZ,
+    public static void DrawCuboidWorld(IGameClient game, float posX, float posY, float posZ,
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {
@@ -186,7 +186,7 @@ public static class CuboidRenderer
     /// is at maximum Z. Used for animated model nodes rendered by
     /// <see cref="AnimatedModelRenderer"/>.
     /// </summary>
-    public static void DrawCuboidModel(Game game, float posX, float posY, float posZ,
+    public static void DrawCuboidModel(IGameClient game, float posX, float posY, float posZ,
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {

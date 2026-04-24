@@ -54,10 +54,10 @@ public partial class Game : IGameClient
     internal static int TexturesPacked => GlobalVar.MAX_BLOCKTYPES_SQRT; // 16x16
     internal static int Atlas2DTiles => GlobalVar.MAX_BLOCKTYPES_SQRT;   // 16x16
 
-    internal int handTexture;
+    public int handTexture { get; set; }
     public bool HandRedraw { get; set; }
-    internal bool handSetAttackBuild;
-    internal bool handSetAttackDestroy;
+    public bool handSetAttackBuild { get; set; }    
+    public bool handSetAttackDestroy {  get; set; }
 
     internal int whitetexture;
     public Dictionary<TextStyle, CachedTexture> CachedTextTextures { get; set; } = [];
@@ -125,23 +125,23 @@ public partial class Game : IGameClient
     public int LocalPlayerId { get; set; }
     public int CurrentlyAttackedEntity {  get; set; }
     internal int selectedmodelid;
-    internal Vector3 playervelocity;
+    public Vector3 playervelocity { get; set; }
     internal float RadiusWhenMoving;
     public float Basemovespeed { get; set; }
     public float MoveSpeed { get; set; }
     internal float rotationspeed;
-    internal float PICK_DISTANCE;
-    internal int grenadetime;
+    public float PICK_DISTANCE { get; set; }
+    public int grenadetime { get; set; }
     internal int PlayerPushDistance;
     public bool AudioEnabled { get; set; }
     public bool AutoJumpEnabled { get; set; }
     public int[] TotalAmmo { get; set; }
     public int[] LoadedAmmo { get; set; }
-    internal Dictionary<(int x, int y, int z), float> blockHealth = new();
+    public Dictionary<(int x, int y, int z), float> blockHealth { get; set; } = new();
     public VisibleDialog[] Dialogs { get; set; }
     public List<string> TypingLog { get; set;}
 
-    internal bool IronSights;
+    public bool IronSights { get; set; }
     internal Random rnd;
     public Vector3i? CurrentAttackedBlock {  get; set; }
     public int CurrentTimeMilliseconds { get; set; }
@@ -149,13 +149,13 @@ public partial class Game : IGameClient
     public int ReceivedMapLength { get; set; }
     internal int maxdrawdistance;
 
-    internal bool leftpressedpicking;
-    internal int pistolcycle;
-    internal int lastironsightschangeMilliseconds;
-    internal int grenadecookingstartMilliseconds;
+    public bool leftpressedpicking { get; set; }
+    public int pistolcycle { get; set; }
+    public int lastironsightschangeMilliseconds { get; set; }
+    public int grenadecookingstartMilliseconds { get; set; }
     public int LastPositionSentMilliseconds {  get; set; }
 
-    internal bool shadowssimple;
+    public bool shadowssimple { get; set; }
     public bool ShouldRedrawAllBlocks { get; set; }
     public bool EscapeMenuRestart {  get; set; }
 
@@ -163,24 +163,22 @@ public partial class Game : IGameClient
     // Fields — camera
     // -------------------------------------------------------------------------
 
-    internal Matrix4 camera;
-    internal float CameraEyeX;
-    internal float CameraEyeY;
-    internal float CameraEyeZ;
+    public Matrix4 Camera { get; set; }
+    public Vector3 CameraEye { get; set; }
 
     internal bool currentMatrixModeProjection;
-    internal Stack<Matrix4> mvMatrix;
-    internal Stack<Matrix4> pMatrix;
+    public Stack<Matrix4> mvMatrix { get; set; }
+    public Stack<Matrix4> pMatrix { get; set; }
 
     internal CameraMatrixProvider CameraMatrix;
     internal float fov;
     public CameraType CameraType { get; set; }
-    internal bool ENABLE_TPP_VIEW;
+    public bool EnableTppView {  get; set; }
     internal float znear;
     internal bool ENABLE_ZFAR;
     public float OverHeadCameraDistance { get; set; }
     public Camera OverheadCameraK {  get; set; }
-    internal float tppcameradistance;
+    public float TppCameraDistance { get; set; }
     internal float TPP_CAMERA_DISTANCE_MIN;
     internal float TPP_CAMERA_DISTANCE_MAX;
     internal bool enableCameraControl;
@@ -196,14 +194,10 @@ public partial class Game : IGameClient
     public int Sunlight { get; set; }
     public int[] NightLevels { get; set; }
 
-    internal float sunPositionX;
-    internal float sunPositionY;
-    internal float sunPositionZ;
-    internal float moonPositionX;
-    internal float moonPositionY;
-    internal float moonPositionZ;
-    internal bool isNight;
-    internal bool fancySkysphere;
+    public Vector3 sunPosition { get; set; }
+    public Vector3 moonPosition { get; set; }
+    public bool isNight {  get; set; }
+    public bool fancySkysphere { get; set; }
     public bool SkySphereNight { get; set; }
     internal ModSkySphereStatic skysphere;
 
@@ -214,17 +208,17 @@ public partial class Game : IGameClient
     public Controls Controls { get; set; }
     internal bool mouseSmoothing;
     public bool MouseLeftClick { get; set; }
-    internal bool mouseleftdeclick;
+    public bool mouseleftdeclick {  get; set; }
     internal bool wasmouseleft;
-    internal bool mouserightclick;
+    public bool mouserightclick { get; set; }
     internal bool mouserightdeclick;
     internal bool wasmouseright;
     public bool[] KeyboardState { get; set; }
     public bool[] KeyboardStateRaw { get; set; }
 
-    internal bool mouseLeft;
-    internal bool mouseMiddle;
-    internal bool mouseRight;
+    public bool mouseLeft { get; set; }
+    public bool mouseMiddle { get; set; }
+    public bool mouseRight { get; set; }
 
     public int MouseCurrentX { get; set; }
     public int MouseCurrentY { get; set; }
@@ -281,11 +275,11 @@ public partial class Game : IGameClient
     // Fields — subsystems
     // -------------------------------------------------------------------------
 
-    internal List<ModBase> clientmods;
+    public List<ModBase> ClientMods {  get; set; }
 
     public IGamePlatform Platform { get; set; }
     public Language Language { get; set; }
-    internal FrustumCulling FrustumCulling;
+    public FrustumCulling FrustumCulling { get; set; }
     public TerrainChunkTesselator TerrainChunkTesselator { get; set; }
     public MeshBatcher Batcher { get; set; }
     public SunMoonRenderer SunMoonRenderer { get; set; }
@@ -303,10 +297,10 @@ public partial class Game : IGameClient
 
     public bool EnableDrawTestCharacter { get; set; }
     public bool EnableDrawPosition { get; set; }
-    internal bool ENABLE_DRAW2D;
+    public bool ENABLE_DRAW2D { get; set; }
     public int EnableLog {  get; set; }
     public bool AllowFreeMove { get; set; }
-    internal MenuState menustate;
+    public MenuState MenuState { get; set; }
     public ServerInformation ServerInfo { get; set; }
     public GameOption options { get; set; }
     internal Dictionary<string, string> performanceinfo;
@@ -334,12 +328,12 @@ public partial class Game : IGameClient
     private float accumulator;
     private TaskScheduler taskScheduler;
 
-    internal ConcurrentQueue<Action> commitActions;
+    public ConcurrentQueue<Action> commitActions {  get; set; }
 
     public int SelectedBlockPositionX { get; set; }
     public int SelectedBlockPositionY { get; set; }
     public int SelectedBlockPositionZ { get; set; }
-    internal int SelectedEntityId;
+    public int SelectedEntityId { get; set; }
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -376,7 +370,7 @@ public partial class Game : IGameClient
         identityMatrix = Matrix4.Identity;
         Set3dProjectionTempMat4 = Matrix4.Identity;
         PlayerStats = new Packet_ServerPlayerStats();
-        taskScheduler = new TaskScheduler();
+        taskScheduler = new TaskScheduler(this, Platform);
         commitActions = new();
         Entities = [];
     }
@@ -443,25 +437,23 @@ public partial class Game : IGameClient
 
     private void InitCamera()
     {
-        camera = Matrix4.Identity;
+        Camera = Matrix4.Identity;
         mvMatrix = new();
         pMatrix = new();
         mvMatrix.Push(Matrix4.Identity);
         pMatrix.Push(Matrix4.Identity);
 
-        CameraEyeX = -1;
-        CameraEyeY = -1;
-        CameraEyeZ = -1;
+        CameraEye = Vector3.Zero;
 
         CameraMatrix = new CameraMatrixProvider();
         fov = MathF.PI / 3;
         CameraType = CameraType.Fpp;
-        ENABLE_TPP_VIEW = false;
+        EnableTppView = false;
         znear = 1f / 10;
         ENABLE_ZFAR = true;
         OverHeadCameraDistance = 10;
         OverheadCameraK = new Camera();
-        tppcameradistance = 3;
+        TppCameraDistance = 3;
         TPP_CAMERA_DISTANCE_MIN = 1;
         TPP_CAMERA_DISTANCE_MAX = 10;
         enableCameraControl = true;
@@ -501,7 +493,7 @@ public partial class Game : IGameClient
         ENABLE_DRAW2D = true;
         EnableLog = 0;
         AllowFreeMove = true;
-        menustate = new MenuState();
+        MenuState = new MenuState();
     }
 
     private void InitNetworking()

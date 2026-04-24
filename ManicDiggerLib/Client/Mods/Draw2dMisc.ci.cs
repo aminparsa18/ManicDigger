@@ -201,12 +201,12 @@ public class ModDraw2dMisc : ModBase
     private void DrawDisconnected()
     {
         float lagSeconds =
-            (game.Platform.TimeMillisecondsFromStart - game.LastReceivedMilliseconds) / 1000f;
+            (platform.TimeMillisecondsFromStart - game.LastReceivedMilliseconds) / 1000f;
 
         if (lagSeconds < Game.DISCONNECTED_ICON_AFTER_SECONDS) return;
         if (lagSeconds >= 60 * 60 * 24) return;
         if (game.InvalidVersionDrawMessage != null) return;
-        if (game.IsSinglePlayer && !game.Platform.SinglePlayerServerLoaded()) return;
+        if (game.IsSinglePlayer && !platform.SinglePlayerServerLoaded()) return;
 
         game.Draw2dBitmapFile("disconnected.png", platform.GetCanvasWidth() - 100, 50, 50, 50);
 

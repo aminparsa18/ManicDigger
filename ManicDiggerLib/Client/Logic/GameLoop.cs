@@ -20,7 +20,7 @@
     /// </summary>
     public void OnRenderFrame(float deltaTime)
     {
-        taskScheduler.Update(this, deltaTime);
+        taskScheduler.Update(deltaTime);
     }
 
     /// <summary>
@@ -60,17 +60,17 @@
         Platform.GlClearColorBufferAndDepthBuffer();
         Platform.BindTexture2d(TerrainTexture);
 
-        for (int i = 0; i < clientmods.Count; i++)
-            clientmods[i]?.OnBeforeNewFrameDraw3d(this, deltaTime);
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.OnBeforeNewFrameDraw3d(deltaTime);
 
         GLMatrixModeModelView();
-        GLLoadMatrix(camera);
-        CameraMatrix.LastModelViewMatrix = camera;
+        GLLoadMatrix(Camera);
+        CameraMatrix.LastModelViewMatrix = Camera;
         FrustumCulling.CalcFrustumEquations();
 
         Platform.GlEnableDepthTest();
-        for (int i = 0; i < clientmods.Count; i++)
-            clientmods[i]?.OnNewFrameDraw3d(this, deltaTime);
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.OnNewFrameDraw3d(deltaTime);
 
         GotoDraw2d(deltaTime);
     }
@@ -84,8 +84,8 @@
     /// </summary>
     internal void FrameTick(float dt)
     {
-        for (int i = 0; i < clientmods.Count; i++)
-            clientmods[i].OnNewFrameFixed(dt);
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i].OnNewFrameFixed(dt);
 
         for (int i = 0; i < Entities.Count; i++)
         {
@@ -107,9 +107,10 @@
             orientationX, 0, orientationZ);
 
         // Estimate velocity in world units/second from per-tick displacement.
-        playervelocity.X = (Player.position.x - lastplayerpositionX) * FixedTickRate;
-        playervelocity.Y = (Player.position.y - lastplayerpositionY) * FixedTickRate;
-        playervelocity.Z = (Player.position.z - lastplayerpositionZ) * FixedTickRate;
+        playervelocity = new OpenTK.Mathematics.Vector3((Player.position.x - lastplayerpositionX) * FixedTickRate,
+            (Player.position.y - lastplayerpositionY) * FixedTickRate,
+            (Player.position.z - lastplayerpositionZ) * FixedTickRate);
+
         lastplayerpositionX = Player.position.x;
         lastplayerpositionY = Player.position.y;
         lastplayerpositionZ = Player.position.z;
@@ -126,8 +127,8 @@
         SetAmbientLight(ColorUtils.ColorFromArgb(255, 255, 255, 255));
         Draw2d(dt);
 
-        for (int i = 0; i < clientmods.Count; i++)
-            clientmods[i]?.OnNewFrame(dt);
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.OnNewFrame(dt);
 
         MouseLeftClick = mouserightclick = false;
         mouseleftdeclick = mouserightdeclick = false;

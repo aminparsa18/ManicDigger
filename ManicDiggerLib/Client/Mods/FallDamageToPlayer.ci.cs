@@ -10,10 +10,12 @@ public class ModFallDamageToPlayer : ModBase
     private bool fallSoundPlaying;
     private int lastFallDamageTimeMilliseconds;
     private readonly IGameClient game;
+    private readonly IGamePlatform platform;
 
-    public ModFallDamageToPlayer(IGameClient game)
+    public ModFallDamageToPlayer(IGameClient game, IGamePlatform platform)
     {
         this.game = game;
+        this.platform = platform;
     }
 
     public override void OnNewFrameFixed(float args)
@@ -63,7 +65,7 @@ public class ModFallDamageToPlayer : ModBase
             _ => 1.0f
         };
 
-        int now = game.Platform.TimeMillisecondsFromStart;
+        int now = platform.TimeMillisecondsFromStart;
         if ((now - lastFallDamageTimeMilliseconds) / 1000f < FallDamageCooldownSeconds) return;
 
         lastFallDamageTimeMilliseconds = now;

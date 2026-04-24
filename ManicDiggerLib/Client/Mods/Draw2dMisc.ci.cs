@@ -51,7 +51,7 @@ public class ModDraw2dMisc : ModBase
             float progress = health / game.BlockRegistry.Strength[blocktype];
 
             // Cache the translated name — used in up to two calls below.
-            string name = game.Language.Get("Block_" + game.Blocktypes[blocktype].Name);
+            string name = game.Language.Get("Block_" + game.BlockTypes[blocktype].Name);
 
             if (game.IsUsableBlock(blocktype))
                 DrawEnemyHealthUseInfo(game, name, progress, useInfo: true);
@@ -144,7 +144,7 @@ public class ModDraw2dMisc : ModBase
     {
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) return;
-        if (!game.Blocktypes[item.BlockId].IsPistol) return;
+        if (!game.BlockTypes[item.BlockId].IsPistol) return;
 
         int loaded = game.LoadedAmmo[item.BlockId];
         int total = game.TotalAmmo[item.BlockId];

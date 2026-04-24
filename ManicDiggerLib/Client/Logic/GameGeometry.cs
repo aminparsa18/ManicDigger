@@ -76,9 +76,9 @@ public partial class Game
             return 1f;
 
         int block = VoxelMap.GetBlock(x, y, z);
-        if (Blocktypes[block].Rail != 0) return RailBlockHeight;
-        if (Blocktypes[block].DrawType == DrawType.HalfHeight) return 0.5f;
-        if (Blocktypes[block].DrawType == DrawType.Flat) return 0.05f;
+        if (BlockTypes[block].Rail != 0) return RailBlockHeight;
+        if (BlockTypes[block].DrawType == DrawType.HalfHeight) return 0.5f;
+        if (BlockTypes[block].DrawType == DrawType.Flat) return 0.05f;
         return 1f;
     }
 

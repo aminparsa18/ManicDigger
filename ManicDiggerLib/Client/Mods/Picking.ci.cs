@@ -108,8 +108,8 @@ public class ModPicking : ModBase
         if (!left) { game.currentAttackedBlock = null; }
 
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
-        bool isPistol = item != null && game.Blocktypes[item.BlockId].IsPistol;
-        bool isGrenade = isPistol && game.Blocktypes[item.BlockId].PistolType == PistolType.Grenade;
+        bool isPistol = item != null && game.BlockTypes[item.BlockId].IsPistol;
+        bool isGrenade = isPistol && game.BlockTypes[item.BlockId].PistolType == PistolType.Grenade;
         bool isPistolShoot = isPistol && left;
         if (isPistol && isGrenade) { isPistolShoot = game.mouseleftdeclick; }
 
@@ -118,9 +118,9 @@ public class ModPicking : ModBase
         if (game.mouseleftclick)
         {
             game.grenadecookingstartMilliseconds = game.Platform.TimeMillisecondsFromStart;
-            if (isPistol && isGrenade && game.Blocktypes[item.BlockId].Sounds.Shoot.Length > 0)
+            if (isPistol && isGrenade && game.BlockTypes[item.BlockId].Sounds.Shoot.Length > 0)
             {
-                game.PlayAudio(string.Format("{0}.ogg", game.Blocktypes[item.BlockId].Sounds.Shoot[0]));
+                game.PlayAudio(string.Format("{0}.ogg", game.BlockTypes[item.BlockId].Sounds.Shoot[0]));
             }
         }
 
@@ -436,7 +436,7 @@ public class ModPicking : ModBase
         game.LoadedAmmo[item.BlockId]--;
         game.TotalAmmo[item.BlockId]--;
 
-        float projectileSpeed = game.DecodeFixedPoint(game.Blocktypes[item.BlockId].ProjectileSpeedFloat);
+        float projectileSpeed = game.DecodeFixedPoint(game.BlockTypes[item.BlockId].ProjectileSpeedFloat);
         if (projectileSpeed == 0)
         {
             game.EntityAddLocal(Game.CreateBulletEntity(pick.Start[0], pick.Start[1], pick.Start[2], toX, toY, toZ, 150));
@@ -448,10 +448,10 @@ public class ModPicking : ModBase
 
         game.SendPacketClient(new Packet_Client { Id = PacketType.Shot, Shot = shot });
 
-        if (game.Blocktypes[item.BlockId].Sounds.ShootEnd.Length > 0)
+        if (game.BlockTypes[item.BlockId].Sounds.ShootEnd.Length > 0)
         {
-            game.pistolcycle = game.rnd.Next() % game.Blocktypes[item.BlockId].Sounds.ShootEnd.Length;
-            game.PlayAudio(string.Format("{0}.ogg", game.Blocktypes[item.BlockId].Sounds.ShootEnd[game.pistolcycle]));
+            game.pistolcycle = game.rnd.Next() % game.BlockTypes[item.BlockId].Sounds.ShootEnd.Length;
+            game.PlayAudio(string.Format("{0}.ogg", game.BlockTypes[item.BlockId].Sounds.ShootEnd[game.pistolcycle]));
         }
 
         // Apply recoil.
@@ -460,7 +460,7 @@ public class ModPicking : ModBase
 
         // Burst fire.
         bulletsShot++;
-        if (bulletsShot < game.DecodeFixedPoint(game.Blocktypes[item.BlockId].BulletsPerShotFloat))
+        if (bulletsShot < game.DecodeFixedPoint(game.BlockTypes[item.BlockId].BulletsPerShotFloat))
         {
             NextBullet(game, bulletsShot);
         }
@@ -617,7 +617,7 @@ public class ModPicking : ModBase
 
         if (mode == PacketBlockSetMode.Create)
         {
-            if (game.Blocktypes[activeMaterial].IsTool)
+            if (game.BlockTypes[activeMaterial].IsTool)
             {
                 OnPickUseWithTool(game, blockposX, blockposY, blockposZ);
                 return;
@@ -670,7 +670,7 @@ public class ModPicking : ModBase
         }
         else
         {
-            if (game.Blocktypes[activeMaterial].IsTool)
+            if (game.BlockTypes[activeMaterial].IsTool)
             {
                 OnPickUseWithTool(game, blockposX, blockposY, blockposOldZ);
                 return;
@@ -835,7 +835,7 @@ public class ModPicking : ModBase
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) { return defaultDelay; }
 
-        float delay = game.DecodeFixedPoint(game.Blocktypes[item.BlockId].DelayFloat);
+        float delay = game.DecodeFixedPoint(game.BlockTypes[item.BlockId].DelayFloat);
         return delay == 0 ? defaultDelay : delay;
     }
 
@@ -918,9 +918,9 @@ public class ModPicking : ModBase
         float distance = game.PICK_DISTANCE;
         int? inHand = game.BlockInHand();
 
-        if (inHand.HasValue && game.Blocktypes[inHand.Value].PickDistanceWhenUsedFloat > 0)
+        if (inHand.HasValue && game.BlockTypes[inHand.Value].PickDistanceWhenUsedFloat > 0)
         {
-            distance = game.DecodeFixedPoint(game.Blocktypes[inHand.Value].PickDistanceWhenUsedFloat);
+            distance = game.DecodeFixedPoint(game.BlockTypes[inHand.Value].PickDistanceWhenUsedFloat);
         }
 
         if (game.cameratype == CameraType.Tpp)

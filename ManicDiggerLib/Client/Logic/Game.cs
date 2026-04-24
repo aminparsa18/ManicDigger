@@ -143,8 +143,6 @@ public partial class Game : IMeshDrawer, IGameClient
     public int MapSizeY => VoxelMap.MapSizeY;
     public int MapSizeZ => VoxelMap.MapSizeZ;
     public int TerrainTexturesPerAtlas { get; set; }
-    public Packet_BlockType[] BlockTypes { get; set; }
-
     public float LocalPositionX { get => Player.position.x; set => Player.position.x = value; }
     public float LocalPositionY { get => Player.position.y; set => Player.position.y = value; }
     public float LocalPositionZ { get => Player.position.z; set => Player.position.z = value; }

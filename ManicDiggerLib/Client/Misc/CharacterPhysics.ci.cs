@@ -355,7 +355,7 @@ public class ScriptCharacterPhysics : IEntityScript
         int block = game.VoxelMap.GetBlockValid(x, y, z);
         if (block == 0) return true;
 
-        Packet_BlockType blocktype = game.Blocktypes[block];
+        Packet_BlockType blocktype = game.BlockTypes[block];
         return blocktype.WalkableType == WalkableType.Fluid
             || Game.IsEmptyForPhysics(blocktype)
             || IsRail(blocktype);
@@ -395,7 +395,7 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(newposition.X, tmpPlayerPosition.Y + 0.5f, tmpPlayerPosition.Z, out _))
             {
                 game.reachedwall_1blockhigh = true;
-                if (game.Blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
+                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
                 if (StandingOnHalfBlock(newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z)) game.reachedHalfBlock = true;
             }
         }
@@ -415,7 +415,7 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(tmpPlayerPosition.X, tmpPlayerPosition.Y + 0.5f, newposition.Z, out _))
             {
                 game.reachedwall_1blockhigh = true;
-                if (game.Blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
+                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
                 if (StandingOnHalfBlock(tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z)) game.reachedHalfBlock = true;
             }
         }
@@ -430,7 +430,7 @@ public class ScriptCharacterPhysics : IEntityScript
     private bool StandingOnHalfBlock(float x, float y, float z)
     {
         int under = game.VoxelMap.GetBlock((int)x, (int)z, (int)y);
-        return game.Blocktypes[under].DrawType == DrawType.HalfHeight;
+        return game.BlockTypes[under].DrawType == DrawType.HalfHeight;
     }
 
     private bool IsEmptySpaceForPlayer(bool high, float x, float y, float z, out int blockingBlockType)

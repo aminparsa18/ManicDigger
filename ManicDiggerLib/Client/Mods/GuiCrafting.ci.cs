@@ -173,7 +173,7 @@ public class ModGuiCrafting : ModBase
                 game.Draw2dTexture(game.terrainTexture,
                     colX, rowY, 32, 32,
                     game.TextureIdForInventory[ing.Type], Game.TexturesPacked, white, false);
-                game.Draw2dText1($"{ing.Amount} {game.Blocktypes[ing.Type].Name}",
+                game.Draw2dText1($"{ing.Amount} {game.BlockTypes[ing.Type].Name}",
                     colX + 50, rowY, FontSize, color, false);
             }
 
@@ -181,7 +181,7 @@ public class ModGuiCrafting : ModBase
             game.Draw2dTexture(game.terrainTexture,
                 outX, rowY, 32, 32,
                 game.TextureIdForInventory[r.Output.Type], Game.TexturesPacked, white, false);
-            game.Draw2dText1($"{r.Output.Amount} {game.Blocktypes[r.Output.Type].Name}",
+            game.Draw2dText1($"{r.Output.Amount} {game.BlockTypes[r.Output.Type].Name}",
                 outX + 50, rowY, FontSize, color, false);
         }
     }

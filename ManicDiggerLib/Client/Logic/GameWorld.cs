@@ -39,7 +39,7 @@ public partial class Game
     /// <remarks>TODO: replace name-based check with a dedicated block property.</remarks>
     internal bool IsWater(int blockType)
     {
-        string name = Blocktypes[blockType].Name;
+        string name = BlockTypes[blockType].Name;
         return name != null && name.Contains("Water");
     }
 
@@ -47,12 +47,12 @@ public partial class Game
     /// <remarks>TODO: replace name-based check with a dedicated block property.</remarks>
     internal bool IsLava(int blockType)
     {
-        string name = Blocktypes[blockType].Name;
+        string name = BlockTypes[blockType].Name;
         return name != null && name.Contains("Lava");
     }
 
     /// <summary>Returns <see langword="true"/> when the block at this ID has a name assigned.</summary>
-    internal bool IsValid(int blocktype) => Blocktypes[blocktype].Name != null;
+    internal bool IsValid(int blocktype) => BlockTypes[blocktype].Name != null;
 
     /// <summary>
     /// Returns <see langword="true"/> when <paramref name="blocktype"/> is one of
@@ -68,7 +68,7 @@ public partial class Game
     /// (rail tiles or blocks with the <c>IsUsable</c> flag).
     /// </summary>
     internal bool IsUsableBlock(int blocktype) =>
-        BlockRegistry.IsRailTile(blocktype) || Blocktypes[blocktype].IsUsable;
+        BlockRegistry.IsRailTile(blocktype) || BlockTypes[blocktype].IsUsable;
 
     /// <summary>
     /// Returns <see langword="true"/> when the tile at the given position does
@@ -98,7 +98,7 @@ public partial class Game
         if (IsTileEmptyForPhysics(x, y, z)) return true;
         if (!VoxelMap.IsValidPos(x, y, z)) return false;
 
-        Packet_BlockType bt = Blocktypes[VoxelMap.GetBlock(x, y, z)];
+        Packet_BlockType bt = BlockTypes[VoxelMap.GetBlock(x, y, z)];
         return bt.DrawType == DrawType.HalfHeight || IsEmptyForPhysics(bt);
     }
 
@@ -162,7 +162,7 @@ public partial class Game
         for (int i = VoxelMap.MapSizeZ - 1; i >= 0; i--)
         {
             height = i;
-            if (!IsTransparentForLight(Blocktypes[VoxelMap.GetBlock(x, y, i)]))
+            if (!IsTransparentForLight(BlockTypes[VoxelMap.GetBlock(x, y, i)]))
                 break;
         }
         Heightmap.SetBlock(x, y, height);

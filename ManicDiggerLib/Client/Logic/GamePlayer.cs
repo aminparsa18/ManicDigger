@@ -98,12 +98,12 @@ public partial class Game
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
         if (item != null && item.ItemClass == ItemClass.Block)
         {
-            float itemSpeed = DecodeFixedPoint(Blocktypes[item.BlockId].WalkSpeedWhenUsedFloat);
+            float itemSpeed = DecodeFixedPoint(BlockTypes[item.BlockId].WalkSpeedWhenUsedFloat);
             if (itemSpeed != 0) speed *= itemSpeed;
 
             if (IronSights)
             {
-                float ironSpeed = DecodeFixedPoint(Blocktypes[item.BlockId].IronSightsMoveSpeedFloat);
+                float ironSpeed = DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsMoveSpeedFloat);
                 if (ironSpeed != 0) speed *= ironSpeed;
             }
         }
@@ -122,7 +122,7 @@ public partial class Game
             Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
             if (item != null && item.ItemClass == ItemClass.Block)
             {
-                float ironFov = DecodeFixedPoint(Blocktypes[item.BlockId].IronSightsFovFloat);
+                float ironFov = DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsFovFloat);
                 if (ironFov != 0) return fov * ironFov;
             }
         }
@@ -133,7 +133,7 @@ public partial class Game
     {
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) return 0;
-        return DecodeFixedPoint(Blocktypes[item.BlockId].RecoilFloat);
+        return DecodeFixedPoint(BlockTypes[item.BlockId].RecoilFloat);
     }
 
     internal float CurrentAimRadius()
@@ -142,8 +142,8 @@ public partial class Game
         if (item == null || item.ItemClass != ItemClass.Block) return 0;
 
         float radius = IronSights
-            ? DecodeFixedPoint(Blocktypes[item.BlockId].IronSightsAimRadiusFloat) / 800 * Width()
-            : DecodeFixedPoint(Blocktypes[item.BlockId].AimRadiusFloat) / 800 * Width();
+            ? DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsAimRadiusFloat) / 800 * Width()
+            : DecodeFixedPoint(BlockTypes[item.BlockId].AimRadiusFloat) / 800 * Width();
 
         return radius + RadiusWhenMoving * radius * Math.Min(playervelocity.Length / MoveSpeed, 1);
     }

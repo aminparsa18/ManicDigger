@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 /// for the core Game state. Fields owned by other subsystem partials are
 /// initialized via their own partial-class initializer methods called from here.
 /// </summary>
-public partial class Game
+public partial class Game : IGameClient
 {
     // -------------------------------------------------------------------------
     // Constants
@@ -257,7 +257,7 @@ public partial class Game
 
     public bool AmmoStarted { get; set; }
     public Packet_BlockType[] NewBlockTypes { get; set; }
-    public Packet_BlockType[] Blocktypes { get; }
+    public Packet_BlockType[] BlockTypes { get; set; }
 
     public string BlobDownloadName { get; set; }
     public string BlobDownloadMd5 { get; set; }

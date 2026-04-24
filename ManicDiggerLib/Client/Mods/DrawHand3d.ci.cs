@@ -235,7 +235,7 @@ public class ModDrawHand3d : ModBase
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
         return item != null
             && item.ItemClass == ItemClass.Block
-            && game.Blocktypes[item.BlockId].DrawType == DrawType.Torch;
+            && game.BlockTypes[item.BlockId].DrawType == DrawType.Torch;
     }
 
     /// <summary>

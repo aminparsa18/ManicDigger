@@ -48,7 +48,7 @@ public class InventoryUtils
 
         if (item.ItemClass == ItemClass.Block)
         {
-            string key = string.Concat("Block_", _game.Blocktypes[item.BlockId].Name);
+            string key = string.Concat("Block_", _game.BlockTypes[item.BlockId].Name);
             return _game.Language.Get(key);
         }
 

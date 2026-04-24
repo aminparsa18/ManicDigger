@@ -49,7 +49,7 @@ public class ModNetworkProcess : ModBase
 
     public void NetworkProcess()
     {
-        game.currentTimeMilliseconds = game.platform.TimeMillisecondsFromStart;
+        game.currentTimeMilliseconds = game.Platform.TimeMillisecondsFromStart;
         if (game.main == null)
         {
             return;
@@ -135,7 +135,7 @@ public class ModNetworkProcess : ModBase
                     {
                         try
                         {
-                            game.platform.GzipDecompress(CurrentChunk, compressedLength, decompressedchunk);
+                            game.Platform.GzipDecompress(CurrentChunk, compressedLength, decompressedchunk);
                         }
                         catch (Exception ex)
                         {
@@ -176,7 +176,7 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.HeightmapChunk:
                 {
                     Packet_ServerHeightmapChunk p = packet.HeightmapChunk;
-                    game.platform.GzipDecompress(p.CompressedHeightmap, p.CompressedHeightmap.Length, decompressedchunk);
+                    game.Platform.GzipDecompress(p.CompressedHeightmap, p.CompressedHeightmap.Length, decompressedchunk);
                     ReadOnlySpan<ushort> decompressedchunk1 = MemoryMarshal.Cast<byte, ushort>(
                         decompressedchunk.AsSpan(0, p.SizeX * p.SizeY * 2));
                     for (int xx = 0; xx < p.SizeX; xx++)
@@ -210,10 +210,10 @@ public class ModNetworkProcess : ModBase
                 {
                     string invalidversionstr = game.language.InvalidVersionConnectAnyway();
                     game.serverGameVersion = packet.Identification.MdProtocolVersion;
-                    if (game.serverGameVersion != game.platform.GetGameVersion())
+                    if (game.serverGameVersion != game.Platform.GetGameVersion())
                     {
                         game.ChatLog("[GAME] Different game versions");
-                        string q = string.Format(invalidversionstr, game.platform.GetGameVersion(), game.serverGameVersion);
+                        string q = string.Format(invalidversionstr, game.Platform.GetGameVersion(), game.serverGameVersion);
                         game.invalidVersionDrawMessage = q;
                         game.invalidVersionPacketIdentification = packet;
                     }
@@ -227,12 +227,12 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.Ping:
                 {
                     game.SendPingReply();
-                    game.ServerInfo.ServerPing.Send(game.platform.TimeMillisecondsFromStart);
+                    game.ServerInfo.ServerPing.Send(game.Platform.TimeMillisecondsFromStart);
                     break;
                 }
             case Packet_ServerIdEnum.PlayerPing:
                 {
-                    game.ServerInfo.ServerPing.Receive(game.platform);
+                    game.ServerInfo.ServerPing.Receive(game.Platform);
                     break;
                 }
             case Packet_ServerIdEnum.LevelInitialize:
@@ -329,11 +329,11 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.DisconnectPlayer:
                 {
                     game.ChatLog(string.Format("[GAME] Disconnected by the server ({0})", packet.DisconnectPlayer.DisconnectReason));
-                    if (game.platform.IsMousePointerLocked())
+                    if (game.Platform.IsMousePointerLocked())
                     {
-                        game.platform.ExitMousePointerLock();
+                        game.Platform.ExitMousePointerLock();
                     }
-                    game.platform.MessageBoxShowError(packet.DisconnectPlayer.DisconnectReason, "Disconnected from server");
+                    game.Platform.MessageBoxShowError(packet.DisconnectPlayer.DisconnectReason, "Disconnected from server");
                     game.ExitToMainMenu_();
                     break;
                 }
@@ -545,7 +545,7 @@ public class ModNetworkProcess : ModBase
                         }
                     }
 
-                    game.BlockRegistry.UseBlockTypes(game.platform, game.blocktypes, GlobalVar.MAX_BLOCKTYPES);
+                    game.BlockRegistry.UseBlockTypes(game.Platform, game.blocktypes, GlobalVar.MAX_BLOCKTYPES);
                     for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
                     {
                         Packet_BlockType b = game.blocktypes[i];

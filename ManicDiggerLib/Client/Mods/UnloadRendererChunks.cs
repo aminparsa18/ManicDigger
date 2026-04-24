@@ -115,7 +115,7 @@ public class ModUnloadRendererChunks : ModBase
         int totalChunks = _mapSizeXChunks * _mapSizeYChunks * _mapSizeZChunks;
 
         // Fast systems check more chunks per tick to keep unloading responsive.
-        int checksPerTick = game_.platform.IsFastSystem() ? 1000 : 250;
+        int checksPerTick = game_.Platform.IsFastSystem() ? 1000 : 250;
 
         for (int i = 0; i < checksPerTick; i++)
         {
@@ -174,7 +174,7 @@ public class ModUnloadRendererChunks : ModBase
     }
 
     /// <summary>View-distance-based side length of the active area in blocks.</summary>
-    private int MapAreaSize() => (int)_game.d_Config3d.viewdistance * 2;
+    private int MapAreaSize() => (int)_game.d_Config3d.ViewDistance * 2;
 
     /// <summary>Vertical counterpart of <see cref="MapAreaSize"/>.</summary>
     private int MapAreaSizeZ() => MapAreaSize();

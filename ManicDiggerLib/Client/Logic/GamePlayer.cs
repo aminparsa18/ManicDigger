@@ -91,7 +91,9 @@ public partial class Game
         }
 
         if (keyboardState[GetKey(Keys.LeftShift)])
-            speed *= one * 2 / 10;
+        {
+            speed *=  2 / 10;
+        }
 
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
         if (item != null && item.ItemClass == ItemClass.Block)

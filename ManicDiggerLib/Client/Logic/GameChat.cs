@@ -15,7 +15,7 @@
 
         string linkTarget = ExtractLink(s);
         bool containsLink = linkTarget != null;
-        int now = platform.TimeMillisecondsFromStart;
+        int now = Platform.TimeMillisecondsFromStart;
 
         if (s.Length > ChatLines.Count && ChatLines.Count > 0)
         {
@@ -183,7 +183,7 @@
                 int foglevel = int.Parse(arguments);
                 foglevel = Math.Min(foglevel, 1024);
                 if (foglevel % 2 == 0) foglevel--;
-                d_Config3d.viewdistance = foglevel;
+                d_Config3d.ViewDistance = foglevel;
                 OnResize();
                 break;
 
@@ -195,7 +195,7 @@
                     Log(string.Format("Valid field of view: {0}-{1}", minfov, maxfov));
                 else
                 {
-                    fov = 2 * MathF.PI * (one * arg / 360);
+                    fov = 2 * MathF.PI * (arg / 360);
                     OnResize();
                 }
                 break;
@@ -216,7 +216,7 @@
                 string[] split = arguments.Split(':');
                 if (split.Length == 2)
                 {
-                    var (result, message) = Task.Run(() => new QueryClient(platform).QueryAsync(split[0], int.Parse(split[1]))).GetAwaiter().GetResult();
+                    var (result, message) = Task.Run(() => new QueryClient(Platform).QueryAsync(split[0], int.Parse(split[1]))).GetAwaiter().GetResult();
 
                     if (result != null)
                     {

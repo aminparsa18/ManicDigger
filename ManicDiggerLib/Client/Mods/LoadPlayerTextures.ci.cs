@@ -31,7 +31,7 @@ public class ModLoadPlayerTextures : ModBase
             if (!game.issingleplayer)
             {
                 _skinServerResponse = new HttpResponse();
-                game.platform.WebClientDownloadDataAsync(
+                game.Platform.WebClientDownloadDataAsync(
                     "http://manicdigger.sourceforge.net/skinserver.txt",
                     _skinServerResponse);
             }
@@ -107,7 +107,7 @@ public class ModLoadPlayerTextures : ModBase
         {
             e.drawModel.SkinDownloadResponse = new HttpResponse();
             string url = string.Concat(skinserver, e.drawName.Name[2..], ".png");
-            game.platform.WebClientDownloadDataAsync(url, e.drawModel.SkinDownloadResponse);
+            game.Platform.WebClientDownloadDataAsync(url, e.drawModel.SkinDownloadResponse);
             return true; // still downloading
         }
 

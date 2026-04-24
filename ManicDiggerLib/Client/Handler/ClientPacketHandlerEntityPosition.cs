@@ -44,7 +44,7 @@ public class ClientPacketHandlerEntityPosition : ClientPacketHandler
             entity.networkPosition.rotx = ClientPacketHandlerEntitySpawn.Angle256ToRad(raw.Pitch);
             entity.networkPosition.roty = ClientPacketHandlerEntitySpawn.Angle256ToRad(raw.Heading);
             entity.networkPosition.PositionLoaded = true;
-            entity.networkPosition.LastUpdateMilliseconds = game.platform.TimeMillisecondsFromStart;
+            entity.networkPosition.LastUpdateMilliseconds = game.Platform.TimeMillisecondsFromStart;
         }
     }
 }

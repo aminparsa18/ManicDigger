@@ -236,7 +236,7 @@ public partial class Game
             y = y,
             z = z,
             blocktype = VoxelMap.GetBlock(x, y, z),
-            timeMilliseconds = platform.TimeMillisecondsFromStart,
+            timeMilliseconds = Platform.TimeMillisecondsFromStart,
         });
         SetBlock(x, y, z, blockid);
         RedrawBlock(x, y, z);
@@ -266,7 +266,7 @@ public partial class Game
     /// </summary>
     internal void RevertSpeculative(float dt)
     {
-        int now = platform.TimeMillisecondsFromStart;
+        int now = Platform.TimeMillisecondsFromStart;
         for (int i = 0; i < speculativeCount; i++)
         {
             Speculative s_ = speculative[i];
@@ -292,14 +292,14 @@ public partial class Game
         int count = FogDrawDistances.Count(d => d <= maxdrawdistance || d == 32);
         for (int i = 0; i < count; i++)
         {
-            if (d_Config3d.viewdistance == FogDrawDistances[i])
+            if (d_Config3d.ViewDistance == FogDrawDistances[i])
             {
-                d_Config3d.viewdistance = FogDrawDistances[(i + 1) % count];
+                d_Config3d.ViewDistance = FogDrawDistances[(i + 1) % count];
                 RedrawAllBlocks();
                 return;
             }
         }
-        d_Config3d.viewdistance = FogDrawDistances[0];
+        d_Config3d.ViewDistance = FogDrawDistances[0];
         RedrawAllBlocks();
     }
 
@@ -310,7 +310,7 @@ public partial class Game
     /// </summary>
     internal void SetFog()
     {
-        if (d_Config3d.viewdistance >= 512) return;
+        if (d_Config3d.ViewDistance >= 512) return;
 
         const float density = 0.0025f; // 25 / 10000
 
@@ -328,9 +328,9 @@ public partial class Game
             fogA = clearcolorA;
         }
 
-        platform.GlEnableFog();
-        platform.GlFogFogColor(fogR, fogG, fogB, fogA);
-        platform.GlFogFogDensity(density);
+        Platform.GlEnableFog();
+        Platform.GlFogFogColor(fogR, fogG, fogB, fogA);
+        Platform.GlFogFogDensity(density);
     }
 
     // ── Map events ────────────────────────────────────────────────────────────

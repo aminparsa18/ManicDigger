@@ -21,7 +21,7 @@ public class ModDrawHand2d : ModBase
             Bitmap bmp = PixelBuffer.BitmapFromPng(file, file.Length);
             if (bmp != null)
             {
-                game.handTexture = game.platform.LoadTextureFromBitmap(bmp);
+                game.handTexture = game.Platform.LoadTextureFromBitmap(bmp);
                 bmp.Dispose();
             }
         }

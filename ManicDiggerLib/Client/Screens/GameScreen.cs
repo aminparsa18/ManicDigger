@@ -9,9 +9,8 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
     : ScreenBase(renderer, navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
-    private readonly Game game = new();
+    private readonly Game game = new(platform);
 
-    private IGamePlatform platform;
     private ConnectionData connectData;
     private bool singleplayer;
     private string singleplayerSavePath;
@@ -20,40 +19,37 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
     /// Initialises the game with the given connection parameters and starts the
     /// network session. Must be called before the screen becomes active.
     /// </summary>
-    /// <param name="platform_">Host platform abstraction.</param>
     /// <param name="singleplayer_">
     /// <see langword="true"/> to start an embedded singleplayer session;
     /// <see langword="false"/> to connect to a remote server via <paramref name="connectData_"/>.
     /// </param>
     /// <param name="singleplayerSavePath_">Path to the singleplayer save directory.</param>
     /// <param name="connectData_">Remote server address and credentials (multiplayer only).</param>
-    public void Start(IGamePlatform platform_, bool singleplayer_, string singleplayerSavePath_, ConnectionData connectData_)
+    public void Start(bool singleplayer_, string singleplayerSavePath_, ConnectionData connectData_)
     {
-        platform = platform_;
         singleplayer = singleplayer_;
         singleplayerSavePath = singleplayerSavePath_;
         connectData = connectData_;
 
-        game.platform = platform;
         game.issingleplayer = singleplayer;
         game.assets = Renderer.Assets;
         game.assetsLoadProgress = Renderer.AssetsLoadProgress;
 
         game.Start();
-        Connect(platform);
+        Connect();
     }
 
     /// <summary>
     /// Sets up the network transport and, for singleplayer, the embedded server.
     /// </summary>
-    private void Connect(IGamePlatform platform)
+    private void Connect()
     {
         if (singleplayer)
         {
-            DummyNetwork network = platform.SinglePlayerServerGetNetwork();
+            DummyNetwork network = Platform.SinglePlayerServerGetNetwork();
 
             // Platform provides its own singleplayer server (e.g. mobile).
-            platform.SinglePlayerServerStart(singleplayerSavePath);
+            Platform.SinglePlayerServerStart(singleplayerSavePath);
 
             // Prime the server inbox so the handshake starts immediately.
             network.ServerInbox.Enqueue([]);
@@ -63,7 +59,7 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
         else
         {
             game.connectdata = connectData;
-            game.main = CreateNetClient(platform)
+            game.main = CreateNetClient()
                 ?? throw new InvalidOperationException("No network transport available.");
         }
     }
@@ -73,11 +69,11 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
     /// the platform, in priority order: TCP → ENet → WebSocket.
     /// Returns <see langword="null"/> if no transport is available.
     /// </summary>
-    private static NetClient? CreateNetClient(IGamePlatform platform)
+    private NetClient? CreateNetClient()
     {
-        if (platform.TcpAvailable()) return new TcpNetClient();
-        if (platform.EnetAvailable()) return new EnetNetClient(platform);
-        if (platform.WebSocketAvailable()) return new WebSocketNetClient();
+        if (Platform.TcpAvailable()) return new TcpNetClient();
+        if (Platform.EnetAvailable()) return new EnetNetClient(Platform);
+        if (Platform.WebSocketAvailable()) return new WebSocketNetClient();
         return null;
     }
 
@@ -169,7 +165,7 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
     /// Returns <see langword="true"/> when the platform window has focus.
     /// Mouse events are suppressed while focus is lost to avoid unintended actions.
     /// </summary>
-    private bool IsFocused() => game.platform.Focused();
+    private bool IsFocused => Platform.Focused();
 
     public override void OnKeyDown(KeyEventArgs e) => game.KeyDown(e);
     public override void OnKeyUp(KeyEventArgs e) => game.KeyUp(e);
@@ -182,16 +178,16 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
 
     public override void OnMouseDown(MouseEventArgs e)
     {
-        if (IsFocused()) { game.MouseDown(e); }
+        if (IsFocused) { game.MouseDown(e); }
     }
 
     public override void OnMouseMove(MouseEventArgs e)
     {
-        if (IsFocused()) { game.MouseMove(e); }
+        if (IsFocused) { game.MouseMove(e); }
     }
 
     public override void OnMouseUp(MouseEventArgs e)
     {
-        if (IsFocused()) { game.MouseUp(e); }
+        if (IsFocused) { game.MouseUp(e); }
     }
 }

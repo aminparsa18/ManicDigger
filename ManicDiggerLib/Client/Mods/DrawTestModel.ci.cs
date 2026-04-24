@@ -29,7 +29,7 @@ public class ModDrawTestModel : ModBase
         }
         game.GLPushMatrix();
         game.GLTranslate(game.VoxelMap.MapSizeX / 2, game.Blockheight(game.VoxelMap.MapSizeX / 2, game.VoxelMap.MapSizeY / 2 - 2, 128), game.VoxelMap.MapSizeY / 2 - 2);
-        game.platform.BindTexture2d(game.GetTexture("mineplayer.png"));
+        game.Platform.BindTexture2d(game.GetTexture("mineplayer.png"));
         testmodel.Render(deltaTime, 0, true, true, 1);
         game.GLPopMatrix();
     }

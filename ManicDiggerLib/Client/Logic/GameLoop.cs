@@ -35,7 +35,7 @@
         UpdateMouseSmoothing(deltaTime);
 
         // Required in Mono for running the terrain background thread.
-        platform.ApplicationDoEvents();
+        Platform.ApplicationDoEvents();
 
         // Fixed-timestep accumulator — capped at 1 s to prevent a spiral of death
         // when the renderer stalls (e.g. window resize, focus loss).
@@ -54,11 +54,11 @@
         }
 
         if (ENABLE_LAG == 2)
-            platform.ThreadSpinWait(20_000_000); // simulate ~20 ms frame lag
+            Platform.ThreadSpinWait(20_000_000); // simulate ~20 ms frame lag
 
         SetAmbientLight(Terraincolor());
-        platform.GlClearColorBufferAndDepthBuffer();
-        platform.BindTexture2d(d_TerrainTextures.TerrainTexture);
+        Platform.GlClearColorBufferAndDepthBuffer();
+        Platform.BindTexture2d(terrainTexture);
 
         for (int i = 0; i < clientmods.Count; i++)
             clientmods[i]?.OnBeforeNewFrameDraw3d(this, deltaTime);
@@ -66,9 +66,9 @@
         GLMatrixModeModelView();
         GLLoadMatrix(camera);
         CameraMatrix.LastModelViewMatrix = camera;
-        d_FrustumCulling.CalcFrustumEquations();
+        FrustumCulling.CalcFrustumEquations();
 
-        platform.GlEnableDepthTest();
+        Platform.GlEnableDepthTest();
         for (int i = 0; i < clientmods.Count; i++)
             clientmods[i]?.OnNewFrameDraw3d(this, deltaTime);
 
@@ -102,7 +102,7 @@
 
         float orientationX = MathF.Sin(player.position.roty);
         float orientationZ = -MathF.Cos(player.position.roty);
-        platform.AudioUpdateListener(
+        Platform.AudioUpdateListener(
             EyesPosX(), EyesPosY(), EyesPosZ(),
             orientationX, 0, orientationZ);
 
@@ -133,8 +133,8 @@
         mouseleftdeclick = mouserightdeclick = false;
 
         if (!issingleplayer
-         || platform.SinglePlayerServerLoaded()
-         || !platform.SinglePlayerServerAvailable())
+         || Platform.SinglePlayerServerLoaded()
+         || !Platform.SinglePlayerServerAvailable())
         {
             if (!startedconnecting)
             {
@@ -152,8 +152,8 @@
     /// </summary>
     private void UpdateResize()
     {
-        int w = platform.GetCanvasWidth();
-        int h = platform.GetCanvasHeight();
+        int w = Platform.GetCanvasWidth();
+        int h = Platform.GetCanvasHeight();
         if (lastWidth == w && lastHeight == h) return;
 
         lastWidth = w;
@@ -164,7 +164,7 @@
     /// <summary>Updates the OpenGL viewport and projection matrix after a resize.</summary>
     internal void OnResize()
     {
-        platform.GlViewport(0, 0, Width(), Height());
+        Platform.GlViewport(0, 0, Width(), Height());
         Set3dProjection2();
         if (sendResize)
             SendGameResolution();
@@ -180,11 +180,11 @@
     {
         if (guistate == GuiState.MapLoading)
         {
-            platform.GlClearColorRgbaf(0, 0, 0, 1);
+            Platform.GlClearColorRgbaf(0, 0, 0, 1);
         }
         else
         {
-            platform.GlClearColorRgbaf(
+            Platform.GlClearColorRgbaf(
                 clearcolorR / 255f,
                 clearcolorG / 255f,
                 clearcolorB / 255f,

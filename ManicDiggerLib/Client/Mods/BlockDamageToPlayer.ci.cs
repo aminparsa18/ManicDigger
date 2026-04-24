@@ -50,7 +50,7 @@ public class ModBlockDamageToPlayer : ModBase
     /// <summary>Drains oxygen while underwater and applies drowning damage when oxygen is depleted.</summary>
     private static void UpdateDrowning(Game game)
     {
-        int deltaMs = game.platform.TimeMillisecondsFromStart - game.lastOxygenTickMilliseconds;
+        int deltaMs = game.Platform.TimeMillisecondsFromStart - game.lastOxygenTickMilliseconds;
         if (deltaMs < 1000) return;
 
         if (game.WaterSwimmingEyes())
@@ -71,7 +71,7 @@ public class ModBlockDamageToPlayer : ModBase
         if (GameVersionHelper.ServerVersionAtLeast(game.serverGameVersion, 2014, 3, 31))
             game.SendPacketClient(ClientPackets.Oxygen(game.PlayerStats.CurrentOxygen));
 
-        game.lastOxygenTickMilliseconds = game.platform.TimeMillisecondsFromStart;
+        game.lastOxygenTickMilliseconds = game.Platform.TimeMillisecondsFromStart;
     }
 
     private static int GetBlockAt(Game game, float x, float y, float z)

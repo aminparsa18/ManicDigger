@@ -31,7 +31,7 @@ public partial class Game
 
         if (mousePointerLockShouldBe)
         {
-            platform.RequestMousePointerLock();
+            Platform.RequestMousePointerLock();
             mouseDeltaX = 0;
             mouseDeltaY = 0;
         }
@@ -116,21 +116,21 @@ public partial class Game
             mouseSmoothingVelY = mouseDeltaY;
         }
 
-        if (guistate == GuiState.Normal && enableCameraControl && platform.Focused())
+        if (guistate == GuiState.Normal && enableCameraControl && Platform.Focused())
         {
-            if (!overheadcamera && platform.IsMousePointerLocked())
+            if (!overheadcamera && Platform.IsMousePointerLocked())
             {
                 float rotScale = rotationspeed / 75f;
                 player.position.roty += mouseSmoothingVelX * rotScale;
                 player.position.rotx += mouseSmoothingVelY * rotScale;
                 player.position.rotx = Math.Clamp(player.position.rotx,
-                    MathF.PI / 2 + (one * 15 / 1000),
-                    MathF.PI / 2 + MathF.PI - (one * 15 / 1000));
+                    MathF.PI / 2 + (15 / 1000),
+                    MathF.PI / 2 + MathF.PI - (15 / 1000));
             }
 
             if (!overheadcamera)
             {
-                float touchScale = constRotationSpeed * (one / 75);
+                float touchScale = constRotationSpeed * (1f / 75);
                 player.position.rotx += touchOrientationDy * touchScale;
                 player.position.roty += touchOrientationDx * touchScale;
                 touchOrientationDx = 0;
@@ -152,15 +152,15 @@ public partial class Game
     // Free mouse / pointer lock
     // -------------------------------------------------------------------------
 
-    public bool GetFreeMouse() => overheadcamera || !platform.IsMousePointerLocked();
+    public bool GetFreeMouse() => overheadcamera || !Platform.IsMousePointerLocked();
 
     public void SetFreeMouse(bool value)
     {
         mousePointerLockShouldBe = !value;
         if (value)
-            platform.ExitMousePointerLock();
+            Platform.ExitMousePointerLock();
         else
-            platform.RequestMousePointerLock();
+            Platform.RequestMousePointerLock();
     }
 
     // -------------------------------------------------------------------------
@@ -259,7 +259,7 @@ public partial class Game
         // F6 outside of Normal state: reconnect if lagging or map loading.
         if (eKey.KeyChar == GetKey(Keys.F6))
         {
-            float lagSeconds = one * (platform.TimeMillisecondsFromStart - LastReceivedMilliseconds) / 1000;
+            float lagSeconds = (Platform.TimeMillisecondsFromStart - LastReceivedMilliseconds) / 1000;
             if (lagSeconds >= DISCONNECTED_ICON_AFTER_SECONDS || guistate == GuiState.MapLoading)
                 Reconnect();
         }
@@ -387,14 +387,14 @@ public partial class Game
             playerPositionSpawnX = player.position.x;
             playerPositionSpawnY = player.position.y;
             playerPositionSpawnZ = player.position.z;
-            player.position.x = (int)player.position.x + one / 2;
-            player.position.z = (int)player.position.z + one / 2;
+            player.position.x = (int)player.position.x + 1f / 2;
+            player.position.z = (int)player.position.z + 1f / 2;
         }
 
         if (eKey == GetKey(Keys.F))
         {
             ToggleFog();
-            Log(string.Format(language.FogDistance(), ((int)d_Config3d.viewdistance).ToString()));
+            Log(string.Format(language.FogDistance(), ((int)d_Config3d.ViewDistance).ToString()));
             OnResize();
         }
 
@@ -420,9 +420,9 @@ public partial class Game
             {
                 if (BlockRegistry.IsRailTile(blocktype))
                 {
-                    player.position.x = posX + (one / 2);
+                    player.position.x = posX + (1f / 2);
                     player.position.y = posZ + 1;
-                    player.position.z = posY + (one / 2);
+                    player.position.z = posY + (1f / 2);
                     controls.freemove = false;
                 }
                 else

@@ -41,7 +41,7 @@ public class TaskScheduler
     /// <param name="dt">Delta time in seconds since the last frame.</param>
     public void Update(Game game, float dt)
     {
-        if (game.platform.MultithreadingAvailable())
+        if (game.Platform.MultithreadingAvailable())
             UpdateMultithreaded(game, dt);
         else
             UpdateSingleThreaded(game, dt);
@@ -107,7 +107,7 @@ public class TaskScheduler
             int captured = i;
             _actions[captured].Active = true;
             _actions[captured].Finished = false;
-            game.platform.QueueUserWorkItem(
+            game.Platform.QueueUserWorkItem(
                 CreateBackgroundAction(game, captured, dt, () => _actions[captured].Finished = true));
         }
     }

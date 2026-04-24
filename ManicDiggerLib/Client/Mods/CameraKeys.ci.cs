@@ -51,7 +51,7 @@ public class ModCameraKeys : ModBase
     /// <summary>Triggers auto-jump when the player walks into a climbable wall or half-block.</summary>
     private static void UpdateAutoJump(Game game)
     {
-        if (game.reachedwall_1blockhigh && (game.AutoJumpEnabled || !game.platform.IsMousePointerLocked()))
+        if (game.reachedwall_1blockhigh && (game.AutoJumpEnabled || !game.Platform.IsMousePointerLocked()))
             game.controls.wantsjump = true;
 
         if (game.reachedHalfBlock)

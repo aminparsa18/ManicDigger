@@ -44,7 +44,7 @@ public class ModDrawMinecarts : ModBase
         game.GLPushMatrix();
         game.GLTranslate(m.positionX, m.positionY + VerticalOffset, m.positionZ);
         game.GLRotate(-rot - 90, 0, 1, 0);
-        game.platform.BindTexture2d(minecartTexture);
+        game.Platform.BindTexture2d(minecartTexture);
         CuboidRenderer.DrawCuboidWorld(game, HalfSize, HeightOffset, HalfSize, 1, 1, 1, cc, 1);
         game.GLPopMatrix();
     }

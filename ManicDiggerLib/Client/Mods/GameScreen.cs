@@ -90,7 +90,7 @@ public class GameScreen : ModBase
                 if (Clipboard.ContainsText()) { w.text = string.Concat(w.text, Clipboard.GetText()); }
                 return;
             }
-            if (game.platform.IsValidTypingChar(key))
+            if (game.Platform.IsValidTypingChar(key))
             {
                 w.text = string.Concat(w.text, ((char)key).ToString());
             }
@@ -133,12 +133,12 @@ public class GameScreen : ModBase
 
                 if (w.editing && !wasEditing)
                 {
-                    game.platform.ShowKeyboard(true);
+                    game.Platform.ShowKeyboard(true);
                     editingChange = true;
                 }
                 if (!w.editing && wasEditing && !editingChange)
                 {
-                    game.platform.ShowKeyboard(false);
+                    game.Platform.ShowKeyboard(false);
                 }
             }
         }
@@ -201,7 +201,7 @@ public class GameScreen : ModBase
             string text = w.text;
             if (w.selected)
             {
-                text = string.Concat(game.platform, "&2", text);
+                text = string.Concat(game.Platform, "&2", text);
             }
 
             if (w.type == UIWidgetType.Button)
@@ -224,7 +224,7 @@ public class GameScreen : ModBase
             if (w.type == UIWidgetType.Textbox)
             {
                 if (w.password) { text = new string('*', w.text.Length); }
-                if (w.editing) { text = string.Concat(game.platform, text, "_"); }
+                if (w.editing) { text = string.Concat(game.Platform, text, "_"); }
                 game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, null, false);
             }
 

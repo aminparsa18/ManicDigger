@@ -42,10 +42,10 @@ public class ModAudio : ModBase
         if (sound.audio != null) return;
 
         AudioData data = GetAudioData(game, sound.name);
-        if (game.platform.AudioDataLoaded(data))
+        if (game.Platform.AudioDataLoaded(data))
         {
-            sound.audio = game.platform.AudioCreate(data);
-            game.platform.AudioPlay(sound.audio);
+            sound.audio = game.Platform.AudioCreate(data);
+            game.Platform.AudioPlay(sound.audio);
         }
     }
 
@@ -53,14 +53,14 @@ public class ModAudio : ModBase
     private static void TryUpdatePosition(Game game, Sound sound)
     {
         if (sound.audio == null) return;
-        game.platform.AudioSetPosition(sound.audio, sound.x, sound.y, sound.z);
+        game.Platform.AudioSetPosition(sound.audio, sound.x, sound.y, sound.z);
     }
 
     /// <summary>Deletes and nulls out any sound marked for stopping.</summary>
     private static void TryStop(Game game, int i, Sound sound)
     {
         if (sound.audio == null || !sound.stop) return;
-        game.platform.AudioDelete(sound.audio);
+        game.Platform.AudioDelete(sound.audio);
         game.audio.sounds[i] = null;
     }
 
@@ -68,15 +68,15 @@ public class ModAudio : ModBase
     private void TryLoopOrFinish(Game game, int i, Sound sound)
     {
         if (sound.audio == null) return;
-        if (!game.platform.AudioFinished(sound.audio)) return;
+        if (!game.Platform.AudioFinished(sound.audio)) return;
 
         if (sound.loop)
         {
             AudioData data = GetAudioData(game, sound.name);
-            if (game.platform.AudioDataLoaded(data))
+            if (game.Platform.AudioDataLoaded(data))
             {
-                sound.audio = game.platform.AudioCreate(data);
-                game.platform.AudioPlay(sound.audio);
+                sound.audio = game.Platform.AudioCreate(data);
+                game.Platform.AudioPlay(sound.audio);
             }
         }
         else
@@ -102,7 +102,7 @@ public class ModAudio : ModBase
     {
         if (!audioData.TryGetValue(sound, out AudioData data))
         {
-            data = game.platform.AudioDataCreate(game.GetAssetFile(sound), game.GetAssetFileLength(sound));
+            data = game.Platform.AudioDataCreate(game.GetAssetFile(sound), game.GetAssetFileLength(sound));
             audioData[sound] = data;
         }
         return data;

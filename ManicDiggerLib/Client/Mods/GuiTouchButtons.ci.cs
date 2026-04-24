@@ -79,7 +79,7 @@ public class ModGuiTouchButtons : GameScreen
         LayoutButton(_buttonTalk, 2, buttonSize, scale);
         LayoutButton(_buttonCamera, 3, buttonSize, scale);
 
-        if (!game.platform.IsMousePointerLocked())
+        if (!game.Platform.IsMousePointerLocked())
         {
             if (game.cameratype == CameraType.Fpp || game.cameratype == CameraType.Tpp)
             {
@@ -102,12 +102,12 @@ public class ModGuiTouchButtons : GameScreen
             if (game.GuiTyping == TypingState.None)
             {
                 game.StartTyping();
-                game.platform.ShowKeyboard(true);
+                game.Platform.ShowKeyboard(true);
             }
             else
             {
                 game.StopTyping();
-                game.platform.ShowKeyboard(false);
+                game.Platform.ShowKeyboard(false);
             }
         }
     }

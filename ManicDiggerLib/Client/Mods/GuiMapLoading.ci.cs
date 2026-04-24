@@ -19,7 +19,7 @@ public class ModGuiMapLoading : ModBase
     {
         if (game.guistate != GuiState.MapLoading) return;
 
-        IGamePlatform platform = game.platform;
+        IGamePlatform platform = game.Platform;
         int width = platform.GetCanvasWidth();
         int height = platform.GetCanvasHeight();
         int centerY = height / 2;

@@ -294,7 +294,7 @@ public class ModDrawHand3d : ModBase
     {
         int lightByte = IsTorch() ? 255 : Math.Clamp((int)(Light() * 256), 0, 255);
 
-        game.platform.BindTexture2d(TerrainTexture);
+        game.Platform.BindTexture2d(TerrainTexture);
 
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
 
@@ -308,7 +308,7 @@ public class ModDrawHand3d : ModBase
         if (curMaterial != _cachedMaterial || curLight != _cachedLight || _modelData == null || game.handRedraw)
         {
             RebuildHandModel(lightByte);
-            game.platform.UpdateModel(_modelData); // sync rebuilt geometry to GPU
+            game.Platform.UpdateModel(_modelData); // sync rebuilt geometry to GPU
             game.handRedraw = false;
         }
 
@@ -317,7 +317,7 @@ public class ModDrawHand3d : ModBase
 
         // Push an isolated model-view matrix for the hand so it always renders in
         // front of the world geometry regardless of camera distance.
-        game.platform.GlClearDepthBuffer();
+        game.Platform.GlClearDepthBuffer();
         game.GLMatrixModeModelView();
         game.GLPushMatrix();
         game.GLLoadIdentity();
@@ -335,7 +335,7 @@ public class ModDrawHand3d : ModBase
         AdvanceBobAnimation(dt);
         AdvanceSwingAnimation(dt);
 
-        game.platform.BindTexture2d(TerrainTexture);
+        game.Platform.BindTexture2d(TerrainTexture);
         game.DrawModelData(_modelData);
 
         game.GLPopMatrix();

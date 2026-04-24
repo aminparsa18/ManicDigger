@@ -141,7 +141,8 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
         _platform.SetTitle(_lang.GameName());
 
         TextColorRenderer = new TextColorRenderer();
-        Assets = _platform.LoadAssetsAsyc(out float progress);
+        var assetLoader = new AssetLoader([Path.Combine(Path.Combine(Path.Combine("..", ".."), ".."), "data"), "data"]);
+        Assets = assetLoader.LoadAssetsAsync(out float progress);
         AssetsLoadProgress = progress;
 
         overlap = 200;
@@ -581,7 +582,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
         ScreenGame screenGame = new(this, this, _platform);
-        screenGame.Start(_platform, singleplayer, singleplayerSavePath, connectData);
+        screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }
 

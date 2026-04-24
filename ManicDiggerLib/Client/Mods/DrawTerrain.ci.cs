@@ -648,10 +648,10 @@ public class ModDrawTerrain : ModBase
     internal void UpdatePerformanceInfo()
     {
         const float MsToSeconds = 1f / 1000f;
-        float elapsed = (_game.platform.TimeMillisecondsFromStart - _lastPerfUpdateMs) * MsToSeconds;
+        float elapsed = (_game.Platform.TimeMillisecondsFromStart - _lastPerfUpdateMs) * MsToSeconds;
         if (elapsed < 1f) return;
 
-        _lastPerfUpdateMs = _game.platform.TimeMillisecondsFromStart;
+        _lastPerfUpdateMs = _game.Platform.TimeMillisecondsFromStart;
         int updatesThisPeriod = _chunkUpdates - _lastChunkUpdatesSnapshot;
         _lastChunkUpdatesSnapshot = _chunkUpdates;
 
@@ -662,7 +662,7 @@ public class ModDrawTerrain : ModBase
     }
 
     /// <summary>View-distance-based side length of the active map area in blocks.</summary>
-    private int MapAreaSize() => (int)_game.d_Config3d.viewdistance * 2;
+    private int MapAreaSize() => (int)_game.d_Config3d.ViewDistance * 2;
 
     /// <summary>Vertical counterpart of <see cref="MapAreaSize"/>.</summary>
     private int MapAreaSizeZ() => MapAreaSize();

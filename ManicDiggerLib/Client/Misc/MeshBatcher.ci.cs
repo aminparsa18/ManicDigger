@@ -16,11 +16,8 @@ public class MeshBatcher
     /// <summary>Maximum number of distinct textures that can be batched.</summary>
     private const int MaxTextures = 10;
 
-    /// <summary>Core game reference used for platform calls and draw dispatch.</summary>
-    internal Game game;
-
-    /// <summary>Frustum culler used to skip models outside the camera's view.</summary>
-    internal FrustumCulling d_FrustumCulling;
+    private readonly IGamePlatform _platform;
+    private readonly IMeshDrawer _drawer;
 
     /// <summary>
     /// When <c>true</c>, <see cref="Draw"/> will bind each texture before issuing
@@ -52,8 +49,10 @@ public class MeshBatcher
     /// <summary>
     /// Initialises a new <see cref="MeshBatcher"/> with pre-allocated model slots.
     /// </summary>
-    public MeshBatcher()
+    public MeshBatcher(IGamePlatform platform, IMeshDrawer drawer)
     {
+        _platform = platform;
+        _drawer = drawer;
         _models = new BatchEntry[ModelsMax];
         for (int i = 0; i < ModelsMax; i++)
             _models[i] = new BatchEntry();
@@ -92,7 +91,7 @@ public class MeshBatcher
             ? _freeSlots.Pop()
             : _modelsCount++;
 
-        GeometryModel model = game.platform.CreateModel(modelData);
+        GeometryModel model = _platform.CreateModel(modelData);
 
         BatchEntry slot = _models[id];
         slot.IndicesCount = modelData.IndicesCount;
@@ -115,7 +114,7 @@ public class MeshBatcher
     /// <param name="id">The slot ID previously returned by <see cref="Add"/>.</param>
     public void Remove(int id)
     {
-        game.platform.DeleteModel(_models[id].Model);
+        _platform.DeleteModel(_models[id].Model);
         _models[id].Empty = true;
         _freeSlots.Push(id);
     }
@@ -138,23 +137,23 @@ public class MeshBatcher
             if (tocallSolid[i].Count == 0) continue;
 
             if (BindTexture)
-                game.platform.BindTexture2d(_glTextures[i]);
+                _platform.BindTexture2d(_glTextures[i]);
 
-            game.DrawModels(tocallSolid[i], tocallSolid[i].Count);
+            _drawer.DrawModels(tocallSolid[i], tocallSolid[i].Count);
         }
 
         // --- Transparent pass: back-face culling disabled so water surfaces etc. render correctly.
-        game.platform.GlDisableCullFace();
+        _platform.GlDisableCullFace();
         for (int i = 0; i < MaxTextures; i++)
         {
             if (tocallTransparent[i].Count == 0) continue;
 
             if (BindTexture)
-                game.platform.BindTexture2d(_glTextures[i]);
+                _platform.BindTexture2d(_glTextures[i]);
 
-            game.DrawModels(tocallTransparent[i], tocallTransparent[i].Count);
+            _drawer.DrawModels(tocallTransparent[i], tocallTransparent[i].Count);
         }
-        game.platform.GlEnableCullFace();
+        _platform.GlEnableCullFace();
     }
 
     /// <summary>
@@ -287,4 +286,10 @@ internal class BatchEntry
 
     /// <summary>The GPU model handle issued by the platform layer.</summary>
     internal GeometryModel Model;
+}
+
+public interface IMeshDrawer
+{
+    /// <summary>Dispatches draw calls for a list of models in a single batch.</summary>
+    void DrawModels(List<GeometryModel> models, int count);
 }

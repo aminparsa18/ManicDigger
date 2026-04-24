@@ -101,11 +101,11 @@ public static class CuboidRenderer
 
         // Sync all CPU buffers (xyz, rgba, uv, indices) to GPU.
         // CreateModel is called on first use; BufferSubData on subsequent frames.
-        game.platform.UpdateModel(data);
+        game.Platform.UpdateModel(data);
 
-        game.platform.GlDisableCullFace();
+        game.Platform.GlDisableCullFace();
         game.DrawModelData(data);
-        game.platform.GlEnableCullFace();
+        game.Platform.GlEnableCullFace();
     }
 
     /// <summary>

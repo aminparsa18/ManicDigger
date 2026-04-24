@@ -16,7 +16,7 @@ public class FrustumCulling
     private const int Near = 5;
 
     /// <summary>Provides the current modelview and projection matrices from the camera.</summary>
-    internal ICameraMatrixProvider d_GetCameraMatrix;
+    public ICameraMatrixProvider? CameraMatrix { get; set; }
 
     /// <summary>
     /// The 6 normalized frustum plane equations (A, B, C, D) where XYZ is the
@@ -60,8 +60,8 @@ public class FrustumCulling
     /// </remarks>
     public void CalcFrustumEquations()
     {
-        Matrix4 matModelView = d_GetCameraMatrix.GetModelViewMatrix();
-        Matrix4 matProjection = d_GetCameraMatrix.GetProjectionMatrix();
+        Matrix4 matModelView = CameraMatrix.GetModelViewMatrix();
+        Matrix4 matProjection = CameraMatrix.GetProjectionMatrix();
         Matrix4.Mult(in matModelView, in matProjection, out Matrix4 m);
 
         frustumPlanes[Right] = NormalizePlane(m.Row0.W - m.Row0.X, m.Row1.W - m.Row1.X, m.Row2.W - m.Row2.X, m.Row3.W - m.Row3.X);
@@ -77,7 +77,7 @@ public class FrustumCulling
     /// by the magnitude of the normal (A, B, C), so that D represents the
     /// true signed distance from the origin to the plane.
     /// </summary>
-    private Vector4 NormalizePlane(float a, float b, float c, float d)
+    private static Vector4 NormalizePlane(float a, float b, float c, float d)
     {
         float magnitude = MathF.Sqrt(a * a + b * b + c * c);
         return new Vector4(a / magnitude, b / magnitude, c / magnitude, d / magnitude);

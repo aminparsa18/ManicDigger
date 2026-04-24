@@ -18,7 +18,7 @@ public class ModScreenshot : ModBase
         if (takeScreenshot)
         {
             takeScreenshot = false;
-            game.platform.SaveScreenshot(); // Must be done after rendering, before SwapBuffers
+            game.Platform.SaveScreenshot(); // Must be done after rendering, before SwapBuffers
             screenshotFlashFramesLeft = FlashFrames;
         }
 
@@ -38,7 +38,7 @@ public class ModScreenshot : ModBase
 
     internal static void DrawScreenshotFlash(Game game)
     {
-        game.Draw2dTexture(game.WhiteTexture(), 0, 0, game.platform.GetCanvasWidth(), game.platform.GetCanvasHeight(), null, 0, White, false);
+        game.Draw2dTexture(game.WhiteTexture(), 0, 0, game.Platform.GetCanvasWidth(), game.Platform.GetCanvasHeight(), null, 0, White, false);
         TextRenderer.TextSize(ScreenshotText, FlashFontSize, out int textWidth, out int textHeight);
         game.Draw2dText(ScreenshotText, FlashFont, game.Xcenter(textWidth), game.Ycenter(textHeight), null, false);
     }

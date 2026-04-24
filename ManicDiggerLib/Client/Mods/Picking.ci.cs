@@ -117,14 +117,14 @@ public class ModPicking : ModBase
         // TODO: fix instant explosion when closing ESC menu.
         if (game.mouseleftclick)
         {
-            game.grenadecookingstartMilliseconds = game.platform.TimeMillisecondsFromStart;
+            game.grenadecookingstartMilliseconds = game.Platform.TimeMillisecondsFromStart;
             if (isPistol && isGrenade && game.blocktypes[item.BlockId].Sounds.Shoot.Length > 0)
             {
                 game.PlayAudio(string.Format("{0}.ogg", game.blocktypes[item.BlockId].Sounds.Shoot[0]));
             }
         }
 
-        float cookWait = (game.platform.TimeMillisecondsFromStart - game.grenadecookingstartMilliseconds) / 1000f;
+        float cookWait = (game.Platform.TimeMillisecondsFromStart - game.grenadecookingstartMilliseconds) / 1000f;
 
         if (isGrenade && left)
         {
@@ -142,10 +142,10 @@ public class ModPicking : ModBase
 
         // Iron sights toggle (right-click with pistol, 500 ms cooldown).
         if (isPistol && game.mouserightclick
-         && (game.platform.TimeMillisecondsFromStart - game.lastironsightschangeMilliseconds) >= 500)
+         && (game.Platform.TimeMillisecondsFromStart - game.lastironsightschangeMilliseconds) >= 500)
         {
             game.IronSights = !game.IronSights;
-            game.lastironsightschangeMilliseconds = game.platform.TimeMillisecondsFromStart;
+            game.lastironsightschangeMilliseconds = game.Platform.TimeMillisecondsFromStart;
         }
 
         Line3D pick = new();
@@ -214,7 +214,7 @@ public class ModPicking : ModBase
             return;
         }
 
-        bool buildDelayElapsed = (game.platform.TimeMillisecondsFromStart - lastbuildMilliseconds) / 1000f >= BuildDelay(game);
+        bool buildDelayElapsed = (game.Platform.TimeMillisecondsFromStart - lastbuildMilliseconds) / 1000f >= BuildDelay(game);
         if (!buildDelayElapsed && !isNextShot) { PickingEnd(left, right, middle, isPistol); return; }
 
         if (left && game.d_Inventory.RightHand[game.ActiveMaterial] == null)
@@ -224,11 +224,11 @@ public class ModPicking : ModBase
 
         if ((left || right || middle) && !isGrenade)
         {
-            lastbuildMilliseconds = game.platform.TimeMillisecondsFromStart;
+            lastbuildMilliseconds = game.Platform.TimeMillisecondsFromStart;
         }
         if (isGrenade && game.mouseleftdeclick)
         {
-            lastbuildMilliseconds = game.platform.TimeMillisecondsFromStart;
+            lastbuildMilliseconds = game.Platform.TimeMillisecondsFromStart;
         }
 
         if (game.reloadstartMilliseconds != 0)
@@ -929,7 +929,7 @@ public class ModPicking : ModBase
         }
         if (game.cameratype == CameraType.Overhead)
         {
-            distance = game.platform.IsFastSystem() ? 100 : game.overheadcameradistance * 2;
+            distance = game.Platform.IsFastSystem() ? 100 : game.overheadcameradistance * 2;
         }
 
         return distance;

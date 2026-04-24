@@ -39,16 +39,14 @@ public partial class Game
     internal List<Asset> assets;
     internal float assetsLoadProgress;
     internal TextRenderer textRenderer;
-    internal TextColorRenderer textColorRenderer;
 
     /// <summary>Texture IDs indexed by [blockId][TileSide].</summary>
-    internal int[][] TextureId;
+    public int[][] TextureId { get; set; }
     internal int[] TextureIdForInventory;
 
     internal int terrainTexturesPerAtlas;
     internal int terrainTexture;
     internal int[] terrainTextures1d;
-    internal ITerrainTextures d_TerrainTextures;
 
     /// <summary>Maximum texture size detected at runtime.</summary>
     internal int maxTextureSize;
@@ -282,23 +280,18 @@ public partial class Game
     // Fields — subsystems
     // -------------------------------------------------------------------------
 
-    // TODO: clarify purpose of `one` — appears to be a typed 1f stand-in, possibly
-    // a legacy Cito transpiler artifact where float literals needed to go through a variable.
-    internal float one;
-
     internal List<ModBase> clientmods;
 
-    internal IGamePlatform platform;
+    public IGamePlatform Platform { get; set; }
     internal Language language;
     internal ClientModManager modmanager;
-    internal FrustumCulling d_FrustumCulling;
+    internal FrustumCulling FrustumCulling;
     internal TerrainChunkTesselatorCi d_TerrainChunkTesselator;
     internal MeshBatcher d_Batcher;
     internal SunMoonRenderer d_SunMoonRenderer;
     internal InventoryUtilClient d_InventoryUtil;
     internal ModDrawParticleEffectBlockBreak particleEffectBlockBreak;
     internal BlockTypeRegistry BlockRegistry;
-    internal GameDataMonsters d_DataMonsters;
     internal Packet_Inventory d_Inventory;
 
     internal int[] materialSlots;
@@ -354,10 +347,9 @@ public partial class Game
     // Constructor
     // -------------------------------------------------------------------------
 
-    public Game()
+    public Game(IGamePlatform platform)
     {
-        one = 1;
-
+        Platform = platform;
         InitCore();
         InitMap();
         InitTextures();
@@ -379,7 +371,7 @@ public partial class Game
     {
         performanceinfo = new();
         language = new Language();
-        modmanager = new ClientModManager();
+        modmanager = new ClientModManager(this);
         particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
         ServerInfo = new ServerInformation();
         options = new GameOption();
@@ -424,18 +416,18 @@ public partial class Game
         selectedmodelid = -1;
         playertexturedefault = -1;
 
-        playerPositionSpawnX = 15 + one / 2;
+        playerPositionSpawnX = 15.5f;
         playerPositionSpawnY = 64;
-        playerPositionSpawnZ = 15 + one / 2;
+        playerPositionSpawnZ = 15.5f;
 
         playervelocity = new Vector3();
         movedz = 0;
         constWallDistance = 0.3f;
-        constRotationSpeed = one * 180 / 20;
-        RadiusWhenMoving = one * 3 / 10;
+        constRotationSpeed = 180 / 20;
+        RadiusWhenMoving = 3f / 10;
         basemovespeed = 5;
         movespeed = 5;
-        rotationspeed = one * 15 / 100;
+        rotationspeed = 15f / 100;
         PICK_DISTANCE = 4.1f;
         grenadetime = 3;
         PlayerPushDistance = 2;
@@ -468,7 +460,7 @@ public partial class Game
         fov = MathF.PI / 3;
         cameratype = CameraType.Fpp;
         ENABLE_TPP_VIEW = false;
-        znear = one / 10;
+        znear = 1f / 10;
         ENABLE_ZFAR = true;
         overheadcameradistance = 10;
         overheadcameraK = new Camera();
@@ -483,7 +475,7 @@ public partial class Game
         sunlight_ = 15;
         mLightLevels = new float[16];
         for (int i = 0; i < 16; i++)
-            mLightLevels[i] = one * i / 15;
+            mLightLevels[i] = 0.15f;
     }
 
     private void InitInput()

@@ -26,9 +26,9 @@
             for (int i = 0; i < requiredMd5.Length; i++)
             {
                 string md5 = requiredMd5[i];
-                if (platform.IsCached(md5))
+                if (Platform.IsCached(md5))
                 {
-                    Asset cachedAsset = platform.LoadAssetFromCache(md5);
+                    Asset cachedAsset = Platform.LoadAssetFromCache(md5);
                     string name = requiredName != null ? requiredName[i] : cachedAsset.name;
                     SetFile(name, cachedAsset.md5, cachedAsset.data, cachedAsset.dataLength);
                 }
@@ -88,7 +88,7 @@
     internal void ExitAndSwitchServer(Packet_ServerRedirect newServer)
     {
         if (issingleplayer)
-            platform.SinglePlayerServerExit();
+            Platform.SinglePlayerServerExit();
 
         redirectTo = newServer;
         exitToMainMenu = true;
@@ -97,7 +97,7 @@
     internal void ExitToMainMenu_()
     {
         if (issingleplayer)
-            platform.SinglePlayerServerExit();
+            Platform.SinglePlayerServerExit();
 
         redirectTo = null;
         exitToMainMenu = true;
@@ -111,7 +111,7 @@
 
     internal void ChatLog(string p)
     {
-        if (!platform.ChatLog(ServerInfo.ServerName, p))
+        if (!Platform.ChatLog(ServerInfo.ServerName, p))
             Console.WriteLine(string.Format(language.CannotWriteChatLog(), ServerInfo.ServerName));
     }
 }

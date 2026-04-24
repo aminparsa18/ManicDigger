@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 using System.Numerics;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
-public partial class Game
+public partial class Game : IMeshDrawer, ITerrainData, IGameClient
 {
     // ── Map loading ───────────────────────────────────────────────────────────
 
@@ -30,23 +30,23 @@ public partial class Game
     // ── Screen / layout helpers ───────────────────────────────────────────────
 
     /// <summary>Returns the X coordinate that centres a region of <paramref name="width"/> pixels.</summary>
-    internal int Xcenter(float width) => platform.GetCanvasWidth() / 2 - (int)width / 2;
+    internal int Xcenter(float width) => Platform.GetCanvasWidth() / 2 - (int)width / 2;
 
     /// <summary>Returns the Y coordinate that centres a region of <paramref name="height"/> pixels.</summary>
-    internal int Ycenter(float height) => platform.GetCanvasHeight() / 2 - (int)height / 2;
+    internal int Ycenter(float height) => Platform.GetCanvasHeight() / 2 - (int)height / 2;
 
     /// <summary>Current canvas width in pixels.</summary>
-    public int Width() => platform.GetCanvasWidth();
+    public int Width() => Platform.GetCanvasWidth();
 
     /// <summary>Current canvas height in pixels.</summary>
-    public int Height() => platform.GetCanvasHeight();
+    public int Height() => Platform.GetCanvasHeight();
 
     /// <summary>
     /// UI scale factor. Returns a width-relative scale on small screens
     /// (mobile) and 1 on desktop.
     /// </summary>
     public float Scale() =>
-        platform.IsSmallScreen() ? Width() / 1280f : 1f;
+        Platform.IsSmallScreen() ? Width() / 1280f : 1f;
 
     // ── Projection ────────────────────────────────────────────────────────────
 
@@ -67,9 +67,9 @@ public partial class Game
 
     /// <summary>Returns the far-clip distance for the current view distance setting.</summary>
     internal float Zfar() =>
-        d_Config3d.viewdistance >= 256
-            ? d_Config3d.viewdistance * 2
-            : ENABLE_ZFAR ? d_Config3d.viewdistance : 99999;
+        d_Config3d.ViewDistance >= 256
+            ? d_Config3d.ViewDistance * 2
+            : ENABLE_ZFAR ? d_Config3d.ViewDistance : 99999;
 
     /// <summary>Sets the 3D projection using the current far-clip and FOV.</summary>
     internal void Set3dProjection1(float zfar_) => Set3dProjection(zfar_, CurrentFov());
@@ -138,6 +138,39 @@ public partial class Game
 
     /// <summary>Number of currently active (non-null) dialogs.</summary>
     internal int DialogsCount => dialogs.Count(d => d != null);
+
+    public int MapSizeX => VoxelMap.MapSizeX;
+    public int MapSizeY => VoxelMap.MapSizeY;
+    public int MapSizeZ => VoxelMap.MapSizeZ;
+    public int TerrainTexturesPerAtlas => terrainTexturesPerAtlas;
+    public int[] TerrainTextures1d => terrainTextures1d;
+    public Packet_BlockType[] BlockTypes => blocktypes;
+
+    public float LocalPositionX { get => player.position.x; set => player.position.x = value; }
+    public float LocalPositionY { get => player.position.y; set => player.position.y = value; }
+    public float LocalPositionZ { get => player.position.z; set => player.position.z = value; }
+    public float LocalOrientationX { get => player.position.rotx; set => player.position.rotx = value; }
+    public float LocalOrientationY { get => player.position.roty; set => player.position.roty = value; }
+    public float LocalOrientationZ { get => player.position.rotz; set => player.position.rotz = value; }
+    public int FreemoveLevel
+    {
+        get
+        {
+            if (!controls.freemove) return FreemoveLevelEnum.None;
+            return controls.noclip ? FreemoveLevelEnum.Noclip : FreemoveLevelEnum.Freemove;
+        }
+        set
+        {
+            controls.freemove = value != FreemoveLevelEnum.None;
+            controls.noclip = value == FreemoveLevelEnum.Noclip;
+        }
+    }
+
+    public bool IsFreemoveAllowed => AllowFreemove;
+    public bool EnableDraw2d { get => ENABLE_DRAW2D; set => ENABLE_DRAW2D = value; }
+    public bool EnableCameraControl { set => enableCameraControl = value; }
+
+    public Dictionary<string, string> PerformanceInfo => performanceinfo;
 
     /// <summary>
     /// Returns the index of the dialog with key <paramref name="name"/>,
@@ -216,7 +249,7 @@ public partial class Game
 
     /// <summary>Uploads <paramref name="color"/> as the OpenGL ambient light value.</summary>
     internal void SetAmbientLight(int color) =>
-        platform.GlLightModelAmbient(
+        Platform.GlLightModelAmbient(
             ColorUtils.ColorR(color),
             ColorUtils.ColorG(color),
             ColorUtils.ColorB(color));
@@ -234,7 +267,7 @@ public partial class Game
     // ── VSync / lag simulation ────────────────────────────────────────────────
 
     /// <summary>Applies the current VSync setting (disabled only when lag simulation is active).</summary>
-    internal void UseVsync() => platform.SetVSync(ENABLE_LAG != 1);
+    internal void UseVsync() => Platform.SetVSync(ENABLE_LAG != 1);
 
     /// <summary>Cycles through lag-simulation modes (0 = off, 1 = no vsync, 2 = spin-wait).</summary>
     internal void ToggleVsync()
@@ -266,7 +299,7 @@ public partial class Game
         guistate = GuiState.EscapeMenu;
         menustate = new MenuState();
         escapeMenuRestart = true;
-        platform.ExitMousePointerLock();
+        Platform.ExitMousePointerLock();
     }
 
     /// <summary>Shows the escape menu in free-mouse mode.</summary>
@@ -306,14 +339,6 @@ public partial class Game
     /// <summary>Adds <paramref name="p"/> as a chat line (alias for <see cref="AddChatline"/>).</summary>
     internal void Log(string p) => AddChatline(p);
 
-    // ── Platform access ───────────────────────────────────────────────────────
-
-    /// <summary>Returns the active platform instance.</summary>
-    public IGamePlatform GetPlatform() => platform;
-
-    /// <summary>Replaces the active platform instance.</summary>
-    public void SetPlatform(IGamePlatform value) => platform = value;
-
     // ── Action queue ──────────────────────────────────────────────────────────
 
     /// <summary>
@@ -328,21 +353,21 @@ public partial class Game
     public void DrawModel(GeometryModel model)
     {
         SetMatrixUniformModelView();
-        platform.DrawModel(model);
+        Platform.DrawModel(model);
     }
 
     /// <summary>Sets the model-view matrix uniform and draws a list of models.</summary>
     public void DrawModels(List<GeometryModel> model, int count)
     {
         SetMatrixUniformModelView();
-        platform.DrawModels(model, count);
+        Platform.DrawModels(model, count);
     }
 
     /// <summary>Sets the model-view matrix uniform and draws raw geometry data.</summary>
     public void DrawModelData(GeometryModel data)
     {
         SetMatrixUniformModelView();
-        platform.DrawModelData(data);
+        Platform.DrawModelData(data);
     }
 
     // ── Per-frame update ──────────────────────────────────────────────────────
@@ -438,10 +463,10 @@ public partial class Game
             clientmods[i]?.Dispose(this);
 
         foreach (int id in textures.Values)
-            platform.GLDeleteTexture(id);
+            Platform.GLDeleteTexture(id);
 
         foreach (CachedTexture ct in cachedTextTextures.Values)
-            platform.GLDeleteTexture(ct.textureId);
+            Platform.GLDeleteTexture(ct.textureId);
     }
 
     // ── Stubs (candidates for removal) ───────────────────────────────────────
@@ -457,4 +482,24 @@ public partial class Game
     /// All call sites can be replaced with a literal <c>false</c> and this method removed.
     /// </remarks>
     internal static bool EnablePlayerUpdatePositionContainsKey(int kKey) => false;
+
+    public void AddChatLine(string message)
+    {
+        throw new NotImplementedException();
+    }
+
+    void IGameClient.SendChat(string message)
+    {
+        SendChat(message);
+    }
+
+    public void Draw2dTexture(int textureid, int x, int y, int width, int height, int inAtlasId, int atlasIndex, int color, bool blend)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Draw2dText(string text, Font font, float x, float y, object extra, bool shadow)
+    {
+        throw new NotImplementedException();
+    }
 }

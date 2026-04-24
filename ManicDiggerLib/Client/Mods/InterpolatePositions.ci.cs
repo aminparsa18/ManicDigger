@@ -37,7 +37,7 @@ public class ModInterpolatePositions : ModBase
 
         e.playerDrawInfo.interpolation = new NetworkInterpolation
         {
-            req = new PlayerInterpolate { platform = game.platform },
+            req = new PlayerInterpolate { platform = game.Platform },
             DELAYMILLISECONDS = 500,
             EXTRAPOLATE = false,
             EXTRAPOLATION_TIMEMILLISECONDS = ExtrapolationTimeMs
@@ -69,7 +69,7 @@ public class ModInterpolatePositions : ModBase
         }
 
         PlayerInterpolationState cur =
-            game.platform.CastToPlayerInterpolationState(info.interpolation.InterpolatedState(game.totaltimeMilliseconds))
+            game.Platform.CastToPlayerInterpolationState(info.interpolation.InterpolatedState(game.totaltimeMilliseconds))
             ?? new PlayerInterpolationState();
 
         // Bypass interpolation if the game world is controlling this entity's position

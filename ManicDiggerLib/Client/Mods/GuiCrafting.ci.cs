@@ -170,7 +170,7 @@ public class ModGuiCrafting : ModBase
             {
                 Packet_Ingredient ing = r.Ingredients[ii];
                 int colX = menuX + 20 + ii * 130;
-                game.Draw2dTexture(game.d_TerrainTextures.TerrainTexture,
+                game.Draw2dTexture(game.terrainTexture,
                     colX, rowY, 32, 32,
                     game.TextureIdForInventory[ing.Type], Game.TexturesPacked, white, false);
                 game.Draw2dText1($"{ing.Amount} {game.blocktypes[ing.Type].Name}",
@@ -178,7 +178,7 @@ public class ModGuiCrafting : ModBase
             }
 
             int outX = menuX + 20 + OutputColumnOffset;
-            game.Draw2dTexture(game.d_TerrainTextures.TerrainTexture,
+            game.Draw2dTexture(game.terrainTexture,
                 outX, rowY, 32, 32,
                 game.TextureIdForInventory[r.Output.Type], Game.TexturesPacked, white, false);
             game.Draw2dText1($"{r.Output.Amount} {game.blocktypes[r.Output.Type].Name}",

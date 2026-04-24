@@ -1,184 +1,156 @@
-﻿public class ClientModManager : IModManager
+﻿/// <summary>
+/// Implements <see cref="IModManager"/> by delegating to <see cref="IGameClient"/>
+/// and <see cref="IGamePlatform"/>. Mods never hold a reference to <see cref="Game"/>
+/// directly — all access is mediated through these two interfaces.
+/// </summary>
+public class ClientModManager : IModManager
 {
-    internal Game game;
+    private readonly IGameClient _game;
+    private readonly IGamePlatform _platform;
 
-    public void MakeScreenshot()
+    /// <param name="game">The game client implementation (typically <see cref="Game"/>).</param>
+    public ClientModManager(IGameClient game)
     {
-        game.platform.SaveScreenshot();
+        _game = game;
+        _platform = game.Platform;
     }
 
-    public void SetLocalPosition(float glx, float gly, float glz)
+    // -------------------------------------------------------------------------
+    // Platform
+    // -------------------------------------------------------------------------
+
+    /// <inheritdoc/>
+    public IGamePlatform GetPlatform() => _platform;
+
+    /// <inheritdoc/>
+    public int GetWindowWidth() => _platform.GetCanvasWidth();
+
+    /// <inheritdoc/>
+    public int GetWindowHeight() => _platform.GetCanvasHeight();
+
+    /// <inheritdoc/>
+    public Bitmap GrabScreenshot() => _platform.GrabScreenshot();
+
+    /// <inheritdoc/>
+    public void MakeScreenshot() => _platform.SaveScreenshot();
+
+    // -------------------------------------------------------------------------
+    // Player position
+    // -------------------------------------------------------------------------
+
+    /// <inheritdoc/>
+    public void SetLocalPosition(float x, float y, float z)
     {
-        game.player.position.x = glx;
-        game.player.position.y = gly;
-        game.player.position.z = glz;
+        _game.LocalPositionX = x;
+        _game.LocalPositionY = y;
+        _game.LocalPositionZ = z;
     }
 
-    public float GetLocalPositionX()
+    /// <inheritdoc/>
+    public float GetLocalPositionX() => _game.LocalPositionX;
+
+    /// <inheritdoc/>
+    public float GetLocalPositionY() => _game.LocalPositionY;
+
+    /// <inheritdoc/>
+    public float GetLocalPositionZ() => _game.LocalPositionZ;
+
+    // -------------------------------------------------------------------------
+    // Player orientation
+    // -------------------------------------------------------------------------
+
+    /// <inheritdoc/>
+    public void SetLocalOrientation(float x, float y, float z)
     {
-        return game.player.position.x;
+        _game.LocalOrientationX = x;
+        _game.LocalOrientationY = y;
+        _game.LocalOrientationZ = z;
     }
 
-    public float GetLocalPositionY()
-    {
-        return game.player.position.y;
-    }
+    /// <inheritdoc/>
+    public float GetLocalOrientationX() => _game.LocalOrientationX;
 
-    public float GetLocalPositionZ()
-    {
-        return game.player.position.z;
-    }
+    /// <inheritdoc/>
+    public float GetLocalOrientationY() => _game.LocalOrientationY;
 
-    public void SetLocalOrientation(float glx, float gly, float glz)
-    {
-        game.player.position.rotx = glx;
-        game.player.position.roty = gly;
-        game.player.position.rotz = glz;
-    }
+    /// <inheritdoc/>
+    public float GetLocalOrientationZ() => _game.LocalOrientationZ;
 
-    public float GetLocalOrientationX()
-    {
-        return game.player.position.rotx;
-    }
+    // -------------------------------------------------------------------------
+    // Chat
+    // -------------------------------------------------------------------------
 
-    public float GetLocalOrientationY()
-    {
-        return game.player.position.roty;
-    }
+    /// <inheritdoc/>
+    public void DisplayNotification(string message) => _game.AddChatLine(message);
 
-    public float GetLocalOrientationZ()
-    {
-        return game.player.position.rotz;
-    }
+    /// <inheritdoc/>
+    public void SendChatMessage(string message) => _game.SendChat(message);
 
-    public void DisplayNotification(string message)
-    {
-        game.AddChatline(message);
-    }
+    // -------------------------------------------------------------------------
+    // GUI / camera
+    // -------------------------------------------------------------------------
 
-    public void SendChatMessage(string message)
-    {
-        game.SendChat(message);
-    }
+    /// <inheritdoc/>
+    public void ShowGui(int level) => _game.EnableDraw2d = level != 0;
 
-    public IGamePlatform GetPlatform()
-    {
-        return game.platform;
-    }
+    /// <inheritdoc/>
+    public void EnableCameraControl(bool enable) => _game.EnableCameraControl = enable;
 
-    public void ShowGui(int level)
-    {
-        if (level == 0)
-        {
-            game.ENABLE_DRAW2D = false;
-        }
-        else
-        {
-            game.ENABLE_DRAW2D = true;
-        }
-    }
+    // -------------------------------------------------------------------------
+    // Movement
+    // -------------------------------------------------------------------------
 
-    public void SetFreemove(int level)
-    {
-        if (level == FreemoveLevelEnum.None)
-        {
-            game.controls.freemove = false;
-            game.controls.noclip = false;
-        }
+    /// <inheritdoc/>
+    public bool IsFreemoveAllowed() => _game.IsFreemoveAllowed;
 
-        if (level == FreemoveLevelEnum.Freemove)
-        {
-            game.controls.freemove = true;
-            game.controls.noclip = false;
-        }
+    /// <inheritdoc/>
+    public void SetFreemove(int level) => _game.FreemoveLevel = level;
 
-        if (level == FreemoveLevelEnum.Noclip)
-        {
-            game.controls.freemove = true;
-            game.controls.noclip = true;
-        }
-    }
+    /// <inheritdoc/>
+    public int GetFreemove() => _game.FreemoveLevel;
 
-    public int GetFreemove()
-    {
-        if (!game.controls.freemove)
-        {
-            return FreemoveLevelEnum.None;
-        }
-        if (game.controls.noclip)
-        {
-            return FreemoveLevelEnum.Noclip;
-        }
-        else
-        {
-            return FreemoveLevelEnum.Freemove;
-        }
-    }
+    // -------------------------------------------------------------------------
+    // Rendering
+    // -------------------------------------------------------------------------
 
-    public Bitmap GrabScreenshot()
-    {
-        return game.platform.GrabScreenshot();
-    }
+    /// <inheritdoc/>
+    public int WhiteTexture() => _game.WhiteTexture();
 
-    public int GetWindowWidth()
-    {
-        return game.platform.GetCanvasWidth();
-    }
-
-    public int GetWindowHeight()
-    {
-        return game.platform.GetCanvasHeight();
-    }
-
-    public bool IsFreemoveAllowed()
-    {
-        return game.AllowFreemove;
-    }
-
-    public void EnableCameraControl(bool enable)
-    {
-        game.enableCameraControl = enable;
-    }
-
-    public int WhiteTexture()
-    {
-        return game.WhiteTexture();
-    }
-
+    /// <inheritdoc/>
     public void Draw2dTexture(int textureid, float x1, float y1, float width, float height, int inAtlasId, int color)
     {
-        int a = ColorUtils.ColorA(color);
-        int r = ColorUtils.ColorR(color);
-        int g = ColorUtils.ColorG(color);
-        int b = ColorUtils.ColorB(color);
-        game.Draw2dTexture(textureid, (int)x1, (int)y1,
+        _game.Draw2dTexture(
+            textureid,
+            (int)x1, (int)y1,
             (int)width, (int)height,
-             inAtlasId, 0, ColorUtils.ColorFromArgb(a, r, g, b), false);
+            inAtlasId, 0,
+            ColorUtils.ColorFromArgb(
+                ColorUtils.ColorA(color),
+                ColorUtils.ColorR(color),
+                ColorUtils.ColorG(color),
+                ColorUtils.ColorB(color)),
+            false);
     }
 
-    public void Draw2dTextures(Draw2dData[] todraw, int todrawLength, int textureId)
-    {
-        game.Draw2dTextures(todraw, todrawLength, textureId);
-    }
+    /// <inheritdoc/>
+    public void Draw2dTextures(Draw2dData[] todraw, int todrawLength, int textureId) =>
+        _game.Draw2dTextures(todraw, todrawLength, textureId);
 
-    public void Draw2dText(string text, float x, float y, float fontsize)
-    {
-        Font font = new("Arial", fontsize);
-        game.Draw2dText(text, font, x, y, null, false);
-    }
+    /// <inheritdoc/>
+    public void Draw2dText(string text, float x, float y, float fontsize) =>
+        _game.Draw2dText(text, new Font("Arial", fontsize), x, y, null, false);
 
-    public void OrthoMode()
-    {
-        game.OrthoMode(GetWindowWidth(), GetWindowHeight());
-    }
+    /// <inheritdoc/>
+    public void OrthoMode() =>
+        _game.OrthoMode(_platform.GetCanvasWidth(), _platform.GetCanvasHeight());
 
-    public void PerspectiveMode()
-    {
-        game.PerspectiveMode();
-    }
+    /// <inheritdoc/>
+    public void PerspectiveMode() => _game.PerspectiveMode();
 
-    public Dictionary<string, string> GetPerformanceInfo()
-    {
-        return game.performanceinfo;
-    }
+    // -------------------------------------------------------------------------
+    // Diagnostics
+    // -------------------------------------------------------------------------
+
+    /// <inheritdoc/>
+    public Dictionary<string, string> GetPerformanceInfo() => _game.PerformanceInfo;
 }

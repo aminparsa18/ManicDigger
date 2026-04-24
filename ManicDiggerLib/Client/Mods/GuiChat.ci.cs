@@ -41,7 +41,7 @@ public class ModGuiChat : ModBase
         for (int i = 0; i < chatlines2Count; i++)
         {
             float dx = 20;
-            if (!game.platform.IsMousePointerLocked())
+            if (!game.Platform.IsMousePointerLocked())
             {
                 dx += 100;
             }
@@ -56,7 +56,7 @@ public class ModGuiChat : ModBase
                     //Mouse over chatline at position i
                     if (chatlines2[i].clickable)
                     {
-                        game.platform.OpenLinkInBrowser(chatlines2[i].linkTarget);
+                        game.Platform.OpenLinkInBrowser(chatlines2[i].linkTarget);
                     }
                 }
             }
@@ -68,7 +68,7 @@ public class ModGuiChat : ModBase
     public void DrawChatLines(bool all)
     {
         chatlines2Count = 0;
-        int timeNow = game.platform.TimeMillisecondsFromStart;
+        int timeNow = game.Platform.TimeMillisecondsFromStart;
         int scroll;
         if (!all)
         {
@@ -100,7 +100,7 @@ public class ModGuiChat : ModBase
         font = new Font("Arial", currentFontSize, currentFontStyle);
 
         float dx = 20;
-        //if (!game.platform.IsMousePointerLocked())
+        //if (!game.Platform.IsMousePointerLocked())
         //{
         //    dx += 100;
         //}
@@ -138,13 +138,13 @@ public class ModGuiChat : ModBase
         {
             s = string.Format("To team: {0}", s);
         }
-        if (game.platform.IsSmallScreen())
+        if (game.Platform.IsSmallScreen())
         {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (game.platform.GetCanvasHeight() / 2) - 100 * game.Scale(), null, true);
+            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (game.Platform.GetCanvasHeight() / 2) - 100 * game.Scale(), null, true);
         }
         else
         {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), game.platform.GetCanvasHeight() - 100 * game.Scale(), null, true);
+            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), game.Platform.GetCanvasHeight() - 100 * game.Scale(), null, true);
         }
     }
 
@@ -188,7 +188,7 @@ public class ModGuiChat : ModBase
                 game.IsTyping = false;
 
                 game.GuiTyping = TypingState.None;
-                game.platform.ShowKeyboard(false);
+                game.Platform.ShowKeyboard(false);
             }
             else if (game.GuiTyping == TypingState.None)
             {
@@ -308,7 +308,7 @@ public class ModGuiChat : ModBase
         if (game.GuiTyping == TypingState.Typing)
         {
             int c = eKeyChar;
-            if (game.platform.IsValidTypingChar(c))
+            if (game.Platform.IsValidTypingChar(c))
             {
                 game.GuiTypingBuffer = string.Concat(game.GuiTypingBuffer, (char)c);
             }

@@ -30,7 +30,8 @@ public class TerrainChunkTesselatorCi
 
     internal bool EnableSmoothLight;
 
-    internal Game game;
+    private readonly ITerrainData _terrain;
+    private readonly IGamePlatform _platform;
 
     private const int chunksize = 16;
 
@@ -74,8 +75,10 @@ public class TerrainChunkTesselatorCi
     private readonly float[] ref_blockCornerHeight;
     private readonly int[] tmpnPos;
 
-    public TerrainChunkTesselatorCi()
+    public TerrainChunkTesselatorCi(ITerrainData terrain, IGamePlatform platform)
     {
+        _terrain = terrain;
+        _platform = platform;
         EnableSmoothLight = true;
         ENABLE_TEXTURE_TILING = true;
         //option_HardWaterTesselation = true;
@@ -199,9 +202,9 @@ public class TerrainChunkTesselatorCi
         currentChunkShadows18 = new byte[(chunksize + 2) * (chunksize + 2) * (chunksize + 2)];
         currentChunkDraw16 = new byte[chunksize * chunksize * chunksize];
         currentChunkDrawCount16Flat = new byte[chunksize * chunksize * chunksize * 6];
-        mapsizex = game.VoxelMap.MapSizeX;
-        mapsizey = game.VoxelMap.MapSizeY;
-        mapsizez = game.VoxelMap.MapSizeZ;
+        mapsizex = _terrain.MapSizeX;
+        mapsizey = _terrain.MapSizeY;
+        mapsizez = _terrain.MapSizeZ;
         started = true;
 
         istransparent = new bool[GlobalVar.MAX_BLOCKTYPES];
@@ -220,10 +223,10 @@ public class TerrainChunkTesselatorCi
             isFluid[i] = false;
         }
         maxlightInverse = 1f / maxlight;
-        terrainTexturesPerAtlas = game.terrainTexturesPerAtlas;
-        terrainTexturesPerAtlasInverse = 1f / game.terrainTexturesPerAtlas;
+        terrainTexturesPerAtlas = _terrain.TerrainTexturesPerAtlas;
+        terrainTexturesPerAtlasInverse = 1f / _terrain.TerrainTexturesPerAtlas;
 
-        if (game.platform.IsFastSystem())
+        if (_platform.IsFastSystem())
         {
             AtiArtifactFix = 1 / 32f * 0.25f;  // 32 pixels in block texture
         }
@@ -238,7 +241,7 @@ public class TerrainChunkTesselatorCi
         _texrecLeft = AtiArtifactFix;
         _texrecRight = _texrecLeft + _texrecWidth;
 
-        toreturnatlas1dLength = Max(1, GlobalVar.MAX_BLOCKTYPES / game.terrainTexturesPerAtlas);
+        toreturnatlas1dLength = Max(1, GlobalVar.MAX_BLOCKTYPES / _terrain.TerrainTexturesPerAtlas);
         toreturnatlas1d = new GeometryModel[toreturnatlas1dLength];
         toreturnatlas1dtransparent = new GeometryModel[toreturnatlas1dLength];
         for (int i = 0; i < toreturnatlas1dLength; i++)
@@ -566,7 +569,7 @@ public class TerrainChunkTesselatorCi
 
     public bool IsTransparentFully(int p)
     {
-        Packet_BlockType b = game.blocktypes[p];
+        Packet_BlockType b = _terrain.BlockTypes[p];
         return (b.DrawType != DrawType.Solid) && (b.DrawType != DrawType.Plant)
              && (b.DrawType != DrawType.OpenDoorLeft) && (b.DrawType != DrawType.OpenDoorRight) && (b.DrawType != DrawType.ClosedDoor);
     }
@@ -863,7 +866,7 @@ public class TerrainChunkTesselatorCi
             BuildBlockFace(x, y, z, tiletype, 0.05f, 0.5f, 0f, vScaleX, vScaleY, vScaleZ, currentChunk, TileSideEnum.Back);
             return;//done
         }
-        else if (game.blocktypes[tiletype].DrawType == DrawType.Cactus)
+        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Cactus)
         {
             //Cactus is thin
             float fScale = 0.875f;
@@ -895,8 +898,8 @@ public class TerrainChunkTesselatorCi
             //continue to draw top and bottom
             nToDraw = nToDraw & (TileSideFlagsEnum.Top | TileSideFlagsEnum.Bottom);
         }
-        else if (game.blocktypes[tiletype].DrawType == DrawType.OpenDoorLeft ||
-                 game.blocktypes[tiletype].DrawType == DrawType.OpenDoorRight)//TODO: is this one ever used?
+        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.OpenDoorLeft ||
+                 _terrain.BlockTypes[tiletype].DrawType == DrawType.OpenDoorRight)//TODO: is this one ever used?
         {
             bool blnDrawn = false;
             
@@ -924,8 +927,8 @@ public class TerrainChunkTesselatorCi
                 nToDraw = TileSideFlagsEnum.Front;//do not stuck in the wall
             }
         }
-        else if (game.blocktypes[tiletype].DrawType == DrawType.Fence ||
-                 game.blocktypes[tiletype].DrawType == DrawType.ClosedDoor) // fence tiles automatically when another fence is beside
+        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Fence ||
+                 _terrain.BlockTypes[tiletype].DrawType == DrawType.ClosedDoor) // fence tiles automatically when another fence is beside
         {
             bool blnSideDrawn = false;
 
@@ -947,7 +950,7 @@ public class TerrainChunkTesselatorCi
 
             return;
         }
-        else if (game.blocktypes[tiletype].DrawType == DrawType.Ladder) // try to fit ladder to best wall or existing ladder
+        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Ladder) // try to fit ladder to best wall or existing ladder
         {
             //bring it away from the wall
             vOffsetX = 0.025f;
@@ -983,19 +986,19 @@ public class TerrainChunkTesselatorCi
                 default: nToDraw |= TileSideFlagsEnum.Left; break;
             }
         }
-        else if (game.blocktypes[tiletype].DrawType == DrawType.HalfHeight)
+        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.HalfHeight)
         {
             vScaleX = 1;
             vScaleY = 1;
             vScaleZ = 0.5f;
         }
-        else if (game.blocktypes[tiletype].DrawType == DrawType.Flat)
+        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Flat)
         {
             vScaleX = 1;
             vScaleY = 1;
             vScaleZ = 0.05f;
         }
-        else if (game.blocktypes[tiletype].DrawType == DrawType.Torch)
+        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Torch)
         {
             int type = TorchTypeEnum.Normal;
             if (CanSupportTorch(currentChunk[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)])) { type = TorchTypeEnum.Front; }
@@ -1072,7 +1075,7 @@ public class TerrainChunkTesselatorCi
 
     public bool IsTransparentForLight(int block)
     {
-        Packet_BlockType b = game.blocktypes[block];
+        Packet_BlockType b = _terrain.BlockTypes[block];
         return b.DrawType != DrawType.Solid && b.DrawType != DrawType.ClosedDoor;
     }
     
@@ -1083,23 +1086,23 @@ public class TerrainChunkTesselatorCi
     {
         if (isFluid[tiletype] || (istransparent[tiletype] && !isLowered[tiletype]))
         {
-            return toreturnatlas1dtransparent[textureid / game.terrainTexturesPerAtlas];
+            return toreturnatlas1dtransparent[textureid / _terrain.TerrainTexturesPerAtlas];
         }
         else
         {
-            return toreturnatlas1d[textureid / game.terrainTexturesPerAtlas];
+            return toreturnatlas1d[textureid / _terrain.TerrainTexturesPerAtlas];
         }
     }
 
     public int TextureId(int tiletype, int side)
     {
-        return game.TextureId[tiletype][side];
+        return _terrain.TextureId[tiletype][side];
     }
 
     public bool CanSupportTorch(int blocktype)
     {
         return blocktype != 0
-            && game.blocktypes[blocktype].DrawType != DrawType.Torch;
+            && _terrain.BlockTypes[blocktype].DrawType != DrawType.Torch;
     }
 
     public static void AddVertex(GeometryModel model, float x, float y, float z, float u, float v, int color)
@@ -1173,17 +1176,17 @@ public class TerrainChunkTesselatorCi
 
     public int Rail(int tiletype)
     {
-        return game.blocktypes[tiletype].Rail;
+        return _terrain.BlockTypes[tiletype].Rail;
     }
 
     public bool IsFlower(int tiletype)
     {
-        return game.blocktypes[tiletype].DrawType == DrawType.Plant;
+        return _terrain.BlockTypes[tiletype].DrawType == DrawType.Plant;
     }
 
     public bool isvalid(int tt)
     {
-        return game.blocktypes[tt]?.Name != null;
+        return _terrain.BlockTypes[tt]?.Name != null;
     }
 
     public static int getBestLadderWall(int x, int y, int z, int[] currentChunk)
@@ -1465,7 +1468,7 @@ public class TerrainChunkTesselatorCi
                 v.positionX = posX;
                 v.positionY = posY;
                 v.positionZ = posZ;
-                v.texture = game.d_TerrainTextures.TerrainTextures1d[i % game.d_TerrainTextures.TerrainTexturesPerAtlas];
+                v.texture = _terrain.TerrainTextures1d[i % _terrain.TerrainTexturesPerAtlas];
                 v.transparent = false;
                 retCount++;
             }
@@ -1479,7 +1482,7 @@ public class TerrainChunkTesselatorCi
                 v.positionX = posX;
                 v.positionY = posY;
                 v.positionZ = posZ;
-                v.texture = game.d_TerrainTextures.TerrainTextures1d[i % game.d_TerrainTextures.TerrainTexturesPerAtlas];
+                v.texture = _terrain.TerrainTextures1d[i % _terrain.TerrainTexturesPerAtlas];
                 v.transparent = true;
                 retCount++;
             }
@@ -1498,7 +1501,7 @@ public class TerrainChunkTesselatorCi
 
         for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
         {
-            Packet_BlockType b = game.blocktypes[i];
+            Packet_BlockType b = _terrain.BlockTypes[i];
             if (b == null)
             {
                 continue;
@@ -1729,3 +1732,37 @@ public class CornerEnum
     public const int None = -1;
 }
 
+/// <summary>
+/// Provides the terrain tesselator with read-only access to world and block-type
+/// data needed to build chunk geometry. Implemented by <see cref="Game"/>.
+/// </summary>
+public interface ITerrainData
+{
+    /// <summary>X dimension of the voxel map in blocks.</summary>
+    int MapSizeX { get; }
+
+    /// <summary>Y dimension of the voxel map in blocks.</summary>
+    int MapSizeY { get; }
+
+    /// <summary>Z dimension of the voxel map in blocks.</summary>
+    int MapSizeZ { get; }
+
+    /// <summary>Number of terrain textures packed into a single atlas.</summary>
+    int TerrainTexturesPerAtlas { get; }
+
+    /// <summary>
+    /// OpenGL texture handles for each atlas slice, indexed by atlas index.
+    /// </summary>
+    int[] TerrainTextures1d { get; }
+
+    /// <summary>
+    /// Block type definitions indexed by block type ID.
+    /// May contain <c>null</c> entries for unregistered IDs.
+    /// </summary>
+    Packet_BlockType[] BlockTypes { get; }
+
+    /// <summary>
+    /// Per-block, per-side texture IDs. Indexed as <c>[blockTypeId][sideIndex]</c>.
+    /// </summary>
+    int[][] TextureId { get; }
+}

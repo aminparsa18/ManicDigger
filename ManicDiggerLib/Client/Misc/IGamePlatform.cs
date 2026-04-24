@@ -75,7 +75,6 @@ public interface IPlatformMisc
     void ExitMousePointerLock();
     bool MultithreadingAvailable();
     void QueueUserWorkItem(Action action);
-    List<Asset> LoadAssetsAsyc(out float progress);
     byte[] GzipCompress(byte[] data, int dataLength);
     bool IsDebuggerAttached();
     bool IsSmallScreen();

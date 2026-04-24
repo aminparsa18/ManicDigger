@@ -17,7 +17,7 @@ public class ModSkySphereAnimated : ModBase
     {
         game.SkySphereNight = false;
         stars.OnNewFrameDraw3d(game, deltaTime);
-        game.platform.GlDisableFog();
+        game.Platform.GlDisableFog();
         DrawSkySphere(game);
         game.SetFog();
     }
@@ -31,9 +31,9 @@ public class ModSkySphereAnimated : ModBase
             LoadPixels(game, "glow.png", ref glowPixels);
         }
 
-        game.platform.GlDisableDepthTest();
+        game.Platform.GlDisableDepthTest();
         Draw(game, game.CurrentFov());
-        game.platform.GlEnableDepthTest();
+        game.Platform.GlEnableDepthTest();
     }
 
     /// <summary>
@@ -55,15 +55,15 @@ public class ModSkySphereAnimated : ModBase
         int size = 1000;
         int segments = game.fancySkysphere ? FancySegments : NormalSegments;
 
-        skyModel = GetSphereModelData2(skyModel, game.platform, size, size, segments, segments,
+        skyModel = GetSphereModelData2(skyModel, game.Platform, size, size, segments, segments,
             skyPixels, glowPixels, game.sunPositionX, game.sunPositionY, game.sunPositionZ);
         
-        game.platform.UpdateModel(skyModel);
+        game.Platform.UpdateModel(skyModel);
         game.Set3dProjection(size * 2, fov);
         game.GLMatrixModeModelView();
         game.GLPushMatrix();
         game.GLTranslate(game.player.position.x, game.player.position.y, game.player.position.z);
-        game.platform.BindTexture2d(0);
+        game.Platform.BindTexture2d(0);
         game.DrawModelData(skyModel);
         game.GLPopMatrix();
         game.Set3dProjection(game.Zfar(), fov);

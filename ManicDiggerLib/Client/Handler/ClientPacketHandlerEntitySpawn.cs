@@ -60,7 +60,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
         {
             old.networkPosition = ToClientEntityPosition(entity.Position);
             old.networkPosition.PositionLoaded = true;
-            old.networkPosition.LastUpdateMilliseconds = game.platform.TimeMillisecondsFromStart;
+            old.networkPosition.LastUpdateMilliseconds = game.Platform.TimeMillisecondsFromStart;
             old.position = ToClientEntityPosition(entity.Position);
         }
 

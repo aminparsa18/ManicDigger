@@ -105,13 +105,13 @@ public partial class Game
     private void Draw2dTextureSimple(int textureid, float x1, float y1,
         float width, float height, bool enabledepthtest)
     {
-        platform.GlDisableCullFace();
-        platform.BindTexture2d(textureid);
+        Platform.GlDisableCullFace();
+        Platform.BindTexture2d(textureid);
 
         if (!enabledepthtest)
-            platform.GlDisableDepthTest();
+            Platform.GlDisableDepthTest();
 
-        _quadModel ??= platform.CreateModel(Quad.Create());
+        _quadModel ??= Platform.CreateModel(Quad.Create());
 
         GLPushMatrix();
         GLTranslate(x1, y1, 0);
@@ -122,9 +122,9 @@ public partial class Game
         GLPopMatrix();
 
         if (!enabledepthtest)
-            platform.GlEnableDepthTest();
+            Platform.GlEnableDepthTest();
 
-        platform.GlEnableCullFace();
+        Platform.GlEnableCullFace();
     }
 
     /// <summary>
@@ -142,15 +142,15 @@ public partial class Game
         FillAtlasQuadModel(rect.X, rect.Y, rect.Width, rect.Height,
             x1, y1, width, height, color);
 
-        platform.GlDisableCullFace();
-        platform.BindTexture2d(textureid);
-        if (!enabledepthtest) platform.GlDisableDepthTest();
+        Platform.GlDisableCullFace();
+        Platform.BindTexture2d(textureid);
+        if (!enabledepthtest) Platform.GlDisableDepthTest();
 
-        platform.UpdateModel(_atlasQuadModel);
+        Platform.UpdateModel(_atlasQuadModel);
         DrawModelData(_atlasQuadModel);
 
-        if (!enabledepthtest) platform.GlEnableDepthTest();
-        platform.GlEnableCullFace();
+        if (!enabledepthtest) Platform.GlEnableDepthTest();
+        Platform.GlEnableCullFace();
     }
 
     /// <summary>
@@ -165,15 +165,15 @@ public partial class Game
         FillAtlasQuadModel(0f, 0f, srcwidth, srcheight,
             dstx, dsty, dstwidth, dstheight, color);
 
-        platform.GlDisableCullFace();
-        platform.BindTexture2d(textureid);
-        if (!enabledepthtest) platform.GlDisableDepthTest();
+        Platform.GlDisableCullFace();
+        Platform.BindTexture2d(textureid);
+        if (!enabledepthtest) Platform.GlDisableDepthTest();
 
-        platform.UpdateModel(_atlasQuadModel);
+        Platform.UpdateModel(_atlasQuadModel);
         DrawModelData(_atlasQuadModel);
 
-        if (!enabledepthtest) platform.GlEnableDepthTest();
-        platform.GlEnableCullFace();
+        if (!enabledepthtest) Platform.GlEnableDepthTest();
+        Platform.GlEnableCullFace();
     }
 
     /// <summary>
@@ -251,13 +251,13 @@ public partial class Game
         GeometryModel combined = CombineModelData(_batchModelScratch, count);
         combined.Mode = (int)DrawMode.Triangles;
 
-        platform.GlDisableCullFace();
-        platform.BindTexture2d(textureid);
-        platform.GlDisableDepthTest();
-        platform.UpdateModel(combined);
+        Platform.GlDisableCullFace();
+        Platform.BindTexture2d(textureid);
+        Platform.GlDisableDepthTest();
+        Platform.UpdateModel(combined);
         DrawModelData(combined);
-        platform.GlEnableDepthTest();
-        platform.GlEnableCullFace();
+        Platform.GlEnableDepthTest();
+        Platform.GlEnableCullFace();
     }
 
     /// <summary>Runs the 2D draw pass for all registered mods.</summary>
@@ -372,7 +372,7 @@ public partial class Game
             cachedTextTextures[t] = cached;
         }
 
-        cached.lastuseMilliseconds = platform.TimeMillisecondsFromStart;
+        cached.lastuseMilliseconds = Platform.TimeMillisecondsFromStart;
         Draw2dTexture(cached.textureId, x, y, cached.sizeX, cached.sizeY,
             null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), enabledepthtest);
         DeleteUnusedCachedTextTextures();
@@ -419,7 +419,7 @@ public partial class Game
             _circleModelData.Xyz[i * 3 + 2] = 0f;
         }
 
-        platform.UpdateModel(_circleModelData);
+        Platform.UpdateModel(_circleModelData);
 
         GLPushMatrix();
         GLLoadIdentity();

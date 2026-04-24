@@ -50,10 +50,10 @@ public class DrawWireframeCube
 
     public void DrawWireframeCube_(Game game, float posX, float posY, float posZ, float scaleX, float scaleY, float scaleZ)
     {
-        game.platform.GLLineWidth(2);
-        game.platform.BindTexture2d(0);
+        game.Platform.GLLineWidth(2);
+        game.Platform.BindTexture2d(0);
 
-        wireframeCube ??= game.platform.CreateModel(WireframeCube.Create());
+        wireframeCube ??= game.Platform.CreateModel(WireframeCube.Create());
 
         game.GLPushMatrix();
         game.GLTranslate(posX, posY, posZ);

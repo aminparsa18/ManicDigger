@@ -13,7 +13,7 @@
             PixelBuffer buf = PixelBuffer.Create(1, 1);
             buf.SetPixel(0, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255));
             using Bitmap bmp = buf.ToBitmap();
-            whitetexture = platform.LoadTextureFromBitmap(bmp);
+            whitetexture = Platform.LoadTextureFromBitmap(bmp);
         }
         return whitetexture;
     }
@@ -35,7 +35,7 @@
     /// </summary>
     public void DeleteUnusedCachedTextTextures()
     {
-        int now = platform.TimeMillisecondsFromStart;
+        int now = Platform.TimeMillisecondsFromStart;
 
         // Collect keys to remove — cannot mutate a Dictionary while iterating it.
         List<TextStyle> toRemove = null;
@@ -51,7 +51,7 @@
         if (toRemove == null) return;
         foreach (TextStyle key in toRemove)
         {
-            platform.GLDeleteTexture(cachedTextTextures[key].textureId);
+            Platform.GLDeleteTexture(cachedTextTextures[key].textureId);
             cachedTextTextures.Remove(key);
         }
     }
@@ -76,7 +76,7 @@
         {
             sizeX = bmp.Width,
             sizeY = bmp.Height,
-            textureId = platform.LoadTextureFromBitmap(bmp),
+            textureId = Platform.LoadTextureFromBitmap(bmp),
         };
     }
 
@@ -94,7 +94,7 @@
         if (!textures.TryGetValue(p, out int id))
         {
             using Bitmap bmp = PixelBuffer.BitmapFromPng(GetAssetFile(p), GetAssetFileLength(p));
-            id = platform.LoadTextureFromBitmap(bmp);
+            id = Platform.LoadTextureFromBitmap(bmp);
             textures[p] = id;
         }
         return id;
@@ -110,7 +110,7 @@
     {
         if (!textures.TryGetValue(name, out int id))
         {
-            id = platform.LoadTextureFromBitmap(bmp);
+            id = Platform.LoadTextureFromBitmap(bmp);
             textures[name] = id;
         }
         return id;
@@ -125,7 +125,7 @@
         if (name != null && textures.TryGetValue(name, out int id))
         {
             textures.Remove(name);
-            platform.GLDeleteTexture(id);
+            Platform.GLDeleteTexture(id);
             return true;
         }
         return false;
@@ -139,14 +139,14 @@
     /// </summary>
     internal void UseTerrainTextureAtlas2d(Bitmap atlas2d, int atlas2dWidth)
     {
-        terrainTexture = platform.LoadTextureFromBitmap(atlas2d);
+        terrainTexture = Platform.LoadTextureFromBitmap(atlas2d);
         terrainTexturesPerAtlas = Atlas1dheight() / (atlas2dWidth / Atlas2DTiles);
 
         Bitmap[] atlases1d = PixelBuffer.Atlas2dInto1d(atlas2d, Atlas2DTiles, Atlas1dheight(), out int atlasesidCount);
         terrainTextures1d = new int[atlasesidCount];
         for (int i = 0; i < atlasesidCount; i++)
         {
-            terrainTextures1d[i] = platform.LoadTextureFromBitmap(atlases1d[i]);
+            terrainTextures1d[i] = Platform.LoadTextureFromBitmap(atlases1d[i]);
             atlases1d[i].Dispose();
         }
     }

@@ -108,14 +108,14 @@ public partial class Game
     {
         main.Start();
         main.Connect(serverAddress, port);
-        SendPacketClient(ClientPackets.CreateLoginPacket(platform, username, auth));
+        SendPacketClient(ClientPackets.CreateLoginPacket(Platform, username, auth));
     }
 
     internal void Connect_(string serverAddress, int port, string username, string auth, string serverPassword)
     {
         main.Start();
         main.Connect(serverAddress, port);
-        SendPacketClient(ClientPackets.CreateLoginPacket_(platform, username, auth, serverPassword));
+        SendPacketClient(ClientPackets.CreateLoginPacket_(Platform, username, auth, serverPassword));
     }
 
     internal void Reconnect()

@@ -13,7 +13,7 @@ public class ModSkySphereStatic : ModBase
 
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
-        game.platform.GlDisableFog();
+        game.Platform.GlDisableFog();
         DrawSkySphere(game);
         game.SetFog();
     }
@@ -39,13 +39,13 @@ public class ModSkySphereStatic : ModBase
         if (SkyTexture == -1)
             throw new InvalidOperationException($"error in {nameof(ModSkySphereStatic)} - {nameof(DrawSkySphere)}");
 
-        skyModel ??= game.platform.CreateModel(Sphere.Create(SphereSize, SphereSize, SphereSegments, SphereSegments));
+        skyModel ??= game.Platform.CreateModel(Sphere.Create(SphereSize, SphereSize, SphereSegments, SphereSegments));
 
         game.Set3dProjection(SphereSize * 2, fov);
         game.GLMatrixModeModelView();
         game.GLPushMatrix();
         game.GLTranslate(game.player.position.x, game.player.position.y, game.player.position.z);
-        game.platform.BindTexture2d(SkyTexture);
+        game.Platform.BindTexture2d(SkyTexture);
         game.DrawModel(skyModel);
         game.GLPopMatrix();
         game.Set3dProjection(game.Zfar(), fov);
@@ -54,7 +54,7 @@ public class ModSkySphereStatic : ModBase
     private static int LoadTexture(Game game, string filename)
     {
         Bitmap bmp = PixelBuffer.BitmapFromPng(game.GetAssetFile(filename), game.GetAssetFileLength(filename));
-        int texture = game.platform.LoadTextureFromBitmap(bmp);
+        int texture = game.Platform.LoadTextureFromBitmap(bmp);
         bmp.Dispose();
         return texture;
     }

@@ -776,39 +776,6 @@ public class Draw2dData
     internal int color;
 }
 
-public class ITerrainTextures
-{
-    internal Game game;
-
-    public int TexturesPacked => Game.TexturesPacked;
-    public int TerrainTexture => game.terrainTexture;
-    public int[] TerrainTextures1d => game.terrainTextures1d;
-    public int TerrainTexturesPerAtlas => game.terrainTexturesPerAtlas;
-}
-
-public class Config3d
-{
-    public Config3d()
-    {
-        ENABLE_BACKFACECULLING = true;
-        ENABLE_TRANSPARENCY = true;
-        ENABLE_MIPMAPS = true;
-        ENABLE_VISIBILITY_CULLING = false;
-        viewdistance = 128;
-    }
-    internal bool ENABLE_BACKFACECULLING;
-    internal bool ENABLE_TRANSPARENCY;
-    internal bool ENABLE_MIPMAPS;
-    internal bool ENABLE_VISIBILITY_CULLING;
-    internal float viewdistance;
-    public float GetViewDistance() { return viewdistance; }
-    public void SetViewDistance(float value) { viewdistance = value; }
-    public bool GetEnableTransparency() { return ENABLE_TRANSPARENCY; }
-    public void SetEnableTransparency(bool value) { ENABLE_TRANSPARENCY = value; }
-    public bool GetEnableMipmaps() { return ENABLE_MIPMAPS; }
-    public void SetEnableMipmaps(bool value) { ENABLE_MIPMAPS = value; }
-}
-
 public interface IAviWriter
 {
     void Open(string filename, int framerate, int width, int height);
@@ -861,35 +828,6 @@ public class TextPart
 {
     internal int color;
     internal string text;
-}
-
-public class GameDataMonsters
-{
-    public GameDataMonsters()
-    {
-        int n = 5;
-        MonsterCode = new string[n];
-        MonsterName = new string[n];
-        MonsterSkin = new string[n];
-        MonsterCode[0] = "imp.txt";
-        MonsterName[0] = "Imp";
-        MonsterSkin[0] = "imp.png";
-        MonsterCode[1] = "imp.txt";
-        MonsterName[1] = "Fire Imp";
-        MonsterSkin[1] = "impfire.png";
-        MonsterCode[2] = "dragon.txt";
-        MonsterName[2] = "Dragon";
-        MonsterSkin[2] = "dragon.png";
-        MonsterCode[3] = "zombie.txt";
-        MonsterName[3] = "Zombie";
-        MonsterSkin[3] = "zombie.png";
-        MonsterCode[4] = "cyclops.txt";
-        MonsterName[4] = "Cyclops";
-        MonsterSkin[4] = "cyclops.png";
-    }
-    internal string[] MonsterName;
-    internal string[] MonsterCode;
-    internal string[] MonsterSkin;
 }
 
 public enum GuiState

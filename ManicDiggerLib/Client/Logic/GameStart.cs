@@ -28,38 +28,28 @@ public partial class Game
     private void InitSubsystems()
     {
         // ── Text / language ───────────────────────────────────────────────────
-        textColorRenderer = new TextColorRenderer();
         language.LoadTranslations();
 
         // ── Core data / config ────────────────────────────────────────────────
         BlockTypeRegistry gamedata = new();
         gamedata.Start();
         BlockRegistry = gamedata;
-        d_DataMonsters = new GameDataMonsters();
 
-        Config3d config3d = new();
-        config3d.viewdistance = platform.IsFastSystem() ? ViewDistanceFast : ViewDistanceSlow;
+        Config3d config3d = new()
+        {
+            ViewDistance = Platform.IsFastSystem() ? ViewDistanceFast : ViewDistanceSlow
+        };
         d_Config3d = config3d;
 
         // ── Rendering subsystems ──────────────────────────────────────────────
-        ITerrainTextures terrainTextures = new() { game = this };
-        d_TerrainTextures = terrainTextures;
 
-        FrustumCulling frustumculling = new() { d_GetCameraMatrix = CameraMatrix };
-        d_FrustumCulling = frustumculling;
+        FrustumCulling = new() { CameraMatrix = CameraMatrix };
 
-        TerrainChunkTesselatorCi terrainchunktesselator = new();
-        terrainchunktesselator.game = this;
-        d_TerrainChunkTesselator = terrainchunktesselator;
+        d_TerrainChunkTesselator = new TerrainChunkTesselatorCi(this, Platform);
 
-        d_Batcher = new MeshBatcher
-        {
-            d_FrustumCulling = frustumculling,
-            game = this,
-        };
+        d_Batcher = new MeshBatcher(Platform, this);
 
-        SunMoonRenderer sunmoonrenderer = new();
-        d_SunMoonRenderer = sunmoonrenderer;
+        d_SunMoonRenderer = new();
 
         // ── World / map ───────────────────────────────────────────────────────
         VoxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);
@@ -73,7 +63,7 @@ public partial class Game
 
         // ── Misc ──────────────────────────────────────────────────────────────
         rnd = new Random();
-        platform.AddOnCrash(OnCrashHandlerLeave.Create(this));
+        Platform.AddOnCrash(OnCrashHandlerLeave.Create(this));
 
         // ── Mods ──────────────────────────────────────────────────────────────
         InitMods();
@@ -81,10 +71,10 @@ public partial class Game
         s = new();
 
         // Prevent the loading screen from immediately showing the lag symbol.
-        LastReceivedMilliseconds = platform.TimeMillisecondsFromStart;
-        ENABLE_DRAW_TEST_CHARACTER = platform.IsDebuggerAttached();
+        LastReceivedMilliseconds = Platform.TimeMillisecondsFromStart;
+        ENABLE_DRAW_TEST_CHARACTER = Platform.IsDebuggerAttached();
 
-        int detectedSize = platform.GlGetMaxTextureSize();
+        int detectedSize = Platform.GlGetMaxTextureSize();
         maxTextureSize = Math.Max(detectedSize, 1024);
 
         taskScheduler.Initialise(this);
@@ -94,7 +84,6 @@ public partial class Game
     private void InitMods()
     {
         clientmods = [];
-        modmanager.game = this;
 
         // ── Core loop ─────────────────────────────────────────────────────────
         AddMod(new ModDrawMain());
@@ -135,7 +124,7 @@ public partial class Game
         AddMod(new ModAudio());
 
         // ── Sky / environment (must precede terrain) ──────────────────────────
-        if (platform.IsFastSystem())
+        if (Platform.IsFastSystem())
             AddMod(new ModSkySphereAnimated());
         else
             AddMod(new ModSkySphereStatic());
@@ -182,20 +171,20 @@ public partial class Game
 
     private void InitRenderer()
     {
-        platform.GlClearColorRgbaf(0, 0, 0, 1);
+        Platform.GlClearColorRgbaf(0, 0, 0, 1);
 
-        if (d_Config3d.ENABLE_BACKFACECULLING)
+        if (d_Config3d.EnableBackfaceCulling)
         {
-            platform.GlDepthMask(true);
-            platform.GlEnableDepthTest();
-            platform.GlCullFaceBack();
-            platform.GlEnableCullFace();
+            Platform.GlDepthMask(true);
+            Platform.GlEnableDepthTest();
+            Platform.GlCullFaceBack();
+            Platform.GlEnableCullFace();
         }
 
-        platform.GlEnableLighting();
-        platform.GlEnableColorMaterial();
-        platform.GlColorMaterialFrontAndBackAmbientAndDiffuse();
-        platform.GlShadeModelSmooth();
+        Platform.GlEnableLighting();
+        Platform.GlEnableColorMaterial();
+        Platform.GlColorMaterialFrontAndBackAmbientAndDiffuse();
+        Platform.GlShadeModelSmooth();
     }
 
     public void AddMod(ModBase mod)
@@ -203,4 +192,103 @@ public partial class Game
         clientmods.Add(mod);
         mod.Start(modmanager);
     }
+}
+
+/// <summary>
+/// Provides mods with controlled access to game state, rendering, chat,
+/// and player controls. Implemented by <see cref="Game"/>.
+/// </summary>
+public interface IGameClient
+{
+    // -------------------------------------------------------------------------
+    // Platform
+    // -------------------------------------------------------------------------
+
+    /// <summary>The host platform abstraction (screenshot, canvas size, etc.).</summary>
+    IGamePlatform Platform { get; set; }
+
+    // -------------------------------------------------------------------------
+    // Player
+    // -------------------------------------------------------------------------
+
+    /// <summary>Local player's world-space X position.</summary>
+    float LocalPositionX { get; set; }
+
+    /// <summary>Local player's world-space Y position.</summary>
+    float LocalPositionY { get; set; }
+
+    /// <summary>Local player's world-space Z position.</summary>
+    float LocalPositionZ { get; set; }
+
+    /// <summary>Local player's X orientation (pitch/yaw/roll component).</summary>
+    float LocalOrientationX { get; set; }
+
+    /// <summary>Local player's Y orientation component.</summary>
+    float LocalOrientationY { get; set; }
+
+    /// <summary>Local player's Z orientation component.</summary>
+    float LocalOrientationZ { get; set; }
+
+    // -------------------------------------------------------------------------
+    // Movement
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets or sets the current freemove level.
+    /// See <see cref="FreemoveLevelEnum"/> for valid values.
+    /// </summary>
+    int FreemoveLevel { get; set; }
+
+    /// <summary>Whether freemove is permitted by the current server.</summary>
+    bool IsFreemoveAllowed { get; }
+
+    // -------------------------------------------------------------------------
+    // Camera / GUI
+    // -------------------------------------------------------------------------
+
+    /// <summary>When <c>false</c>, the 2-D HUD is hidden.</summary>
+    bool EnableDraw2d { get; set; }
+
+    /// <summary>Enables or disables player camera control.</summary>
+    bool EnableCameraControl { set; }
+
+    // -------------------------------------------------------------------------
+    // Chat
+    // -------------------------------------------------------------------------
+
+    /// <summary>Appends a message to the local chat log.</summary>
+    void AddChatLine(string message);
+
+    /// <summary>Sends a chat message to the server.</summary>
+    void SendChat(string message);
+
+    // -------------------------------------------------------------------------
+    // Rendering
+    // -------------------------------------------------------------------------
+
+    /// <summary>Returns the OpenGL ID of the engine's built-in white texture.</summary>
+    int WhiteTexture();
+
+    /// <inheritdoc cref="Game.Draw2dTexture"/>
+    void Draw2dTexture(int textureid, int x, int y, int width, int height,
+                       int inAtlasId, int atlasIndex, int color, bool blend);
+
+    /// <inheritdoc cref="Game.Draw2dTextures"/>
+    void Draw2dTextures(Draw2dData[] todraw, int todrawLength, int textureId);
+
+    /// <inheritdoc cref="Game.Draw2dText"/>
+    void Draw2dText(string text, Font font, float x, float y, object extra, bool shadow);
+
+    /// <summary>Switches the GL projection to orthographic for 2-D rendering.</summary>
+    void OrthoMode(int width, int height);
+
+    /// <summary>Restores the GL projection to perspective for 3-D rendering.</summary>
+    void PerspectiveMode();
+
+    // -------------------------------------------------------------------------
+    // Diagnostics
+    // -------------------------------------------------------------------------
+
+    /// <summary>Live performance counters exposed to mods for overlay display.</summary>
+    Dictionary<string, string> PerformanceInfo { get; }
 }

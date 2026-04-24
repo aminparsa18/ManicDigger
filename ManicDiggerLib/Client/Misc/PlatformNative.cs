@@ -27,14 +27,10 @@ public class GamePlatformNative : IGamePlatform
     {
         ThreadPool.SetMinThreads(32, 32);
         ThreadPool.SetMaxThreads(128, 128);
-        datapaths = [Path.Combine(Path.Combine(Path.Combine("..", ".."), ".."), "data"), "data"];
         start.Start();
     }
 
     public bool TouchTest = false;
-    private readonly string[] datapaths;
-
-    
 
     public static string PathSavegames => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
@@ -379,13 +375,6 @@ public class GamePlatformNative : IGamePlatform
     public void QueueUserWorkItem(Action action)
     {
         ThreadPool.QueueUserWorkItem((a) => { action(); });
-    }
-
-    private AssetLoader assetloader;
-    public List<Asset> LoadAssetsAsyc(out float progress)
-    {
-        assetloader ??= new AssetLoader(datapaths);
-        return assetloader.LoadAssetsAsync(out progress);
     }
 
     public bool IsSmallScreen()

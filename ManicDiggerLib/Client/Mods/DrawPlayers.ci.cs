@@ -8,7 +8,7 @@ public class ModDrawPlayers : ModBase
 {
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
-        game.totaltimeMilliseconds = game.platform.TimeMillisecondsFromStart;
+        game.totaltimeMilliseconds = game.Platform.TimeMillisecondsFromStart;
 
         for (int i = 0; i < game.entities.Count; i++)
         {
@@ -16,7 +16,7 @@ public class ModDrawPlayers : ModBase
             if (p?.drawModel == null) continue;
             if (i == game.LocalPlayerId && !game.ENABLE_TPP_VIEW) continue;
             if (p.networkPosition != null && !p.networkPosition.PositionLoaded) continue;
-            if (!game.d_FrustumCulling.SphereInFrustum(p.position.x, p.position.y, p.position.z, 3)) continue;
+            if (!game.FrustumCulling.SphereInFrustum(p.position.x, p.position.y, p.position.z, 3)) continue;
             if (p.drawModel.CurrentTexture == -1) continue;
 
             int cx = (int)p.position.x / Game.chunksize;
@@ -75,7 +75,7 @@ public class ModDrawPlayers : ModBase
         game.GLPushMatrix();
         game.GLTranslate(p.position.x, p.position.y, p.position.z);
         game.GLRotate(float.RadiansToDegrees(-p.position.roty + MathF.PI), 0, 1, 0);
-        game.platform.BindTexture2d(p.drawModel.CurrentTexture);
+        game.Platform.BindTexture2d(p.drawModel.CurrentTexture);
         p.drawModel.renderer.Render(dt, float.RadiansToDegrees(p.position.rotx + MathF.PI), true, p.playerDrawInfo.moves, shadow);
         game.GLPopMatrix();
     }

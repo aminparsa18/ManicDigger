@@ -114,7 +114,7 @@ public class ModDraw2dMisc : ModBase
         if (game.cameratype == CameraType.Overhead) return;
 
         const int AimSize = 32;
-        game.platform.BindTexture2d(0);
+        game.Platform.BindTexture2d(0);
 
         if (game.CurrentAimRadius() > 1)
         {
@@ -134,7 +134,7 @@ public class ModDraw2dMisc : ModBase
     internal static void DrawMouseCursor(Game game)
     {
         if (!game.GetFreeMouse()) return;
-        if (!game.platform.MouseCursorIsVisible())
+        if (!game.Platform.MouseCursorIsVisible())
             game.Draw2dBitmapFile("mousecursor.png", game.mouseCurrentX, game.mouseCurrentY, 32, 32);
     }
 
@@ -193,12 +193,12 @@ public class ModDraw2dMisc : ModBase
     private static void DrawDisconnected(Game game)
     {
         float lagSeconds =
-            (game.platform.TimeMillisecondsFromStart - game.LastReceivedMilliseconds) / 1000f;
+            (game.Platform.TimeMillisecondsFromStart - game.LastReceivedMilliseconds) / 1000f;
 
         if (lagSeconds < Game.DISCONNECTED_ICON_AFTER_SECONDS) return;
         if (lagSeconds >= 60 * 60 * 24) return;
         if (game.invalidVersionDrawMessage != null) return;
-        if (game.issingleplayer && !game.platform.SinglePlayerServerLoaded()) return;
+        if (game.issingleplayer && !game.Platform.SinglePlayerServerLoaded()) return;
 
         game.Draw2dBitmapFile("disconnected.png", game.Width() - 100, 50, 50, 50);
 

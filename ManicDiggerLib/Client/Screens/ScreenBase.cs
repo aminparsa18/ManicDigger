@@ -12,12 +12,12 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 /// </remarks>
 public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
 {
-    public IMenuRenderer Renderer { get; set; } = renderer;
-    public IMenuNavigator Navigator { get; set; } = navigator;
-    public IGamePlatform Platform { get; set; } = platform;
+    protected IMenuRenderer Renderer { get; set; } = renderer;
+    protected IMenuNavigator Navigator { get; set; } = navigator;
+    protected IGamePlatform Platform { get; set; } = platform;
 
     /// <summary>All widgets registered to this screen, in render and hit-test order.</summary>
-    public List<MenuWidget> Widgets { get; set; } = [];
+    protected List<MenuWidget> Widgets { get; set; } = [];
 
     /// <summary>Called once per frame. Override to render screen-specific content.</summary>
     /// <param name="dt">Elapsed time in seconds since the previous frame.</param>

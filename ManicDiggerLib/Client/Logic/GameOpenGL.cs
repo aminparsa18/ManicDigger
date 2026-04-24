@@ -17,20 +17,20 @@ public partial class Game
     {
         var p = pMatrix.Peek();
         var mv = mvMatrix.Peek();
-        platform.SetMatrixUniformProjection(ref p);
-        platform.SetMatrixUniformModelView(ref mv);
+        Platform.SetMatrixUniformProjection(ref p);
+        Platform.SetMatrixUniformModelView(ref mv);
     }
 
     public void SetMatrixUniformProjection()
     {
         var p = pMatrix.Peek();
-        platform.SetMatrixUniformProjection(ref p);
+        Platform.SetMatrixUniformProjection(ref p);
     }
 
     public void SetMatrixUniformModelView()
     {
         var mv = mvMatrix.Peek();
-        platform.SetMatrixUniformModelView(ref mv);
+        Platform.SetMatrixUniformModelView(ref mv);
     }
 
     // -------------------------------------------------------------------------

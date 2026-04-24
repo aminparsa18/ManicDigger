@@ -199,7 +199,7 @@ public class ModGuiInventory : ModBase
         if (HitTest(mouse, ScrollUpButtonX(), ScrollUpButtonY(), ScrollButtonSize(), ScrollButtonSize()))
         {
             ScrollUp();
-            _scrollingUpTimeMs = game.platform.TimeMillisecondsFromStart;
+            _scrollingUpTimeMs = game.Platform.TimeMillisecondsFromStart;
             args.SetHandled(true);
             return;
         }
@@ -208,7 +208,7 @@ public class ModGuiInventory : ModBase
         if (HitTest(mouse, ScrollDownButtonX(), ScrollDownButtonY(), ScrollButtonSize(), ScrollButtonSize()))
         {
             ScrollDown();
-            _scrollingDownTimeMs = game.platform.TimeMillisecondsFromStart;
+            _scrollingDownTimeMs = game.Platform.TimeMillisecondsFromStart;
             args.SetHandled(true);
             return;
         }
@@ -543,7 +543,7 @@ public class ModGuiInventory : ModBase
     /// </summary>
     private void AdvanceAutoScroll()
     {
-        int now = game.platform.TimeMillisecondsFromStart;
+        int now = game.Platform.TimeMillisecondsFromStart;
         if (_scrollingUpTimeMs != 0 && now - _scrollingUpTimeMs > 250)
         {
             _scrollingUpTimeMs = now;

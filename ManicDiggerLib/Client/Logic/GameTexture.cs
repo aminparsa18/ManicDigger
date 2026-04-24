@@ -89,7 +89,7 @@
     /// Returns the GPU texture ID for the named asset, loading and caching it
     /// on first access. Returns a fresh ID on every load for uncached names.
     /// </summary>
-    internal int GetTexture(string p)
+    public int GetTexture(string p)
     {
         if (!textures.TryGetValue(p, out int id))
         {
@@ -120,7 +120,7 @@
     /// Removes the named texture from the cache and releases its GPU handle.
     /// </summary>
     /// <returns><see langword="true"/> if the texture was found and deleted.</returns>
-    internal bool DeleteTexture(string name)
+    public bool DeleteTexture(string name)
     {
         if (name != null && textures.TryGetValue(name, out int id))
         {
@@ -140,13 +140,13 @@
     internal void UseTerrainTextureAtlas2d(Bitmap atlas2d, int atlas2dWidth)
     {
         terrainTexture = Platform.LoadTextureFromBitmap(atlas2d);
-        terrainTexturesPerAtlas = Atlas1dheight() / (atlas2dWidth / Atlas2DTiles);
+        TerrainTexturesPerAtlas = Atlas1dheight() / (atlas2dWidth / Atlas2DTiles);
 
         Bitmap[] atlases1d = PixelBuffer.Atlas2dInto1d(atlas2d, Atlas2DTiles, Atlas1dheight(), out int atlasesidCount);
-        terrainTextures1d = new int[atlasesidCount];
+        TerrainTextures1d = new int[atlasesidCount];
         for (int i = 0; i < atlasesidCount; i++)
         {
-            terrainTextures1d[i] = Platform.LoadTextureFromBitmap(atlases1d[i]);
+            TerrainTextures1d[i] = Platform.LoadTextureFromBitmap(atlases1d[i]);
             atlases1d[i].Dispose();
         }
     }
@@ -161,7 +161,7 @@
     /// Texture asset names (without <c>.png</c>). Null entries are skipped.
     /// </param>
     /// <param name="textureIdsCount">Number of valid entries to process.</param>
-    internal void UseTerrainTextures(string[] textureIds, int textureIdsCount)
+    public void UseTerrainTextures(string[] textureIds, int textureIdsCount)
     {
         // TODO: support tile sizes other than 32×32.
         const int tilesize = 32;

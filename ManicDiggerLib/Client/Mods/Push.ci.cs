@@ -12,13 +12,13 @@ public class ModPush : ModBase
         game.pushY = 0;
         game.pushZ = 0;
 
-        float pX = game.player.position.x;
-        float pY = game.player.position.y;
-        float pZ = game.player.position.z;
+        float pX = game.Player.position.x;
+        float pY = game.Player.position.y;
+        float pZ = game.Player.position.z;
 
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity entity = game.entities[i];
+            Entity entity = game.Entities[i];
             if (entity?.push == null) continue;
             if (entity.networkPosition != null && !entity.networkPosition.PositionLoaded) continue;
 

@@ -9,9 +9,9 @@ public class ModExpire : ModBase
     public override void OnNewFrameFixed(Game game, float args)
     {
         float dt = args;
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity entity = game.entities[i];
+            Entity entity = game.Entities[i];
             if (entity?.expires == null) continue;
 
             entity.expires.timeLeft -= dt;
@@ -20,16 +20,16 @@ public class ModExpire : ModBase
             if (entity.grenade != null)
                 GrenadeExplosion(game, i);
 
-            game.entities[i] = null;
+            game.Entities[i] = null;
         }
     }
 
     private static void GrenadeExplosion(Game game, int grenadeEntityId)
     {
-        Entity grenadeEntity = game.entities[grenadeEntityId];
+        Entity grenadeEntity = game.Entities[grenadeEntityId];
         Sprite sprite = grenadeEntity.sprite;
         Grenade grenade = grenadeEntity.grenade;
-        var blockType = game.blocktypes[grenade.block];
+        var blockType = game.BlockTypes[grenade.block];
 
         float posX = sprite.positionX;
         float posY = sprite.positionY;
@@ -71,7 +71,7 @@ public class ModExpire : ModBase
         });
 
         // Apply damage to local player based on distance
-        float dist = Vector3.Distance(new Vector3(game.player.position.x, game.player.position.y, game.player.position.z), new Vector3(posX, posY, posZ));
+        float dist = Vector3.Distance(new Vector3(game.Player.position.x, game.Player.position.y, game.Player.position.z), new Vector3(posX, posY, posZ));
         float dmg = (1f - dist / explosionRange) * game.DecodeFixedPoint(blockType.DamageBodyFloat);
         if (dmg > 0)
             game.ApplyDamageToPlayer((int)dmg, DeathReason.Explosion, grenade.sourcePlayer);

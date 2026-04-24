@@ -39,7 +39,7 @@ public partial class Game
     /// <remarks>TODO: replace name-based check with a dedicated block property.</remarks>
     internal bool IsWater(int blockType)
     {
-        string name = blocktypes[blockType].Name;
+        string name = BlockTypes[blockType].Name;
         return name != null && name.Contains("Water");
     }
 
@@ -47,12 +47,12 @@ public partial class Game
     /// <remarks>TODO: replace name-based check with a dedicated block property.</remarks>
     internal bool IsLava(int blockType)
     {
-        string name = blocktypes[blockType].Name;
+        string name = BlockTypes[blockType].Name;
         return name != null && name.Contains("Lava");
     }
 
     /// <summary>Returns <see langword="true"/> when the block at this ID has a name assigned.</summary>
-    internal bool IsValid(int blocktype) => blocktypes[blocktype].Name != null;
+    internal bool IsValid(int blocktype) => BlockTypes[blocktype].Name != null;
 
     /// <summary>
     /// Returns <see langword="true"/> when <paramref name="blocktype"/> is one of
@@ -68,7 +68,7 @@ public partial class Game
     /// (rail tiles or blocks with the <c>IsUsable</c> flag).
     /// </summary>
     internal bool IsUsableBlock(int blocktype) =>
-        BlockRegistry.IsRailTile(blocktype) || blocktypes[blocktype].IsUsable;
+        BlockRegistry.IsRailTile(blocktype) || BlockTypes[blocktype].IsUsable;
 
     /// <summary>
     /// Returns <see langword="true"/> when the tile at the given position does
@@ -78,8 +78,8 @@ public partial class Game
     internal bool IsTileEmptyForPhysics(int x, int y, int z)
     {
         if (z >= VoxelMap.MapSizeZ) return true;
-        if (x < 0 || y < 0 || z < 0) return controls.freemove;
-        if (x >= VoxelMap.MapSizeX || y >= VoxelMap.MapSizeY) return controls.freemove;
+        if (x < 0 || y < 0 || z < 0) return Controls.freemove;
+        if (x >= VoxelMap.MapSizeX || y >= VoxelMap.MapSizeY) return Controls.freemove;
 
         int block = VoxelMap.GetBlockValid(x, y, z);
         return block == SpecialBlockId.Empty
@@ -98,7 +98,7 @@ public partial class Game
         if (IsTileEmptyForPhysics(x, y, z)) return true;
         if (!VoxelMap.IsValidPos(x, y, z)) return false;
 
-        Packet_BlockType bt = blocktypes[VoxelMap.GetBlock(x, y, z)];
+        Packet_BlockType bt = BlockTypes[VoxelMap.GetBlock(x, y, z)];
         return bt.DrawType == DrawType.HalfHeight || IsEmptyForPhysics(bt);
     }
 
@@ -113,13 +113,13 @@ public partial class Game
         VoxelMap.SetBlockRaw(x, y, z, tileType);
         VoxelMap.SetChunkDirty(x / chunksize, y / chunksize, z / chunksize, true, true);
         ShadowsOnSetBlock(x, y, z);
-        lastplacedblockX = x;
-        lastplacedblockY = y;
-        lastplacedblockZ = z;
+        LastplacedblockX = x;
+        LastplacedblockY = y;
+        LastplacedblockZ = z;
     }
 
     /// <summary>Writes a block and immediately marks all affected neighbour chunks for redraw.</summary>
-    internal void SetTileAndUpdate(int x, int y, int z, int type)
+    public void SetTileAndUpdate(int x, int y, int z, int type)
     {
         SetBlock(x, y, z, type);
         RedrawBlock(x, y, z);
@@ -129,7 +129,7 @@ public partial class Game
     internal void RedrawBlock(int x, int y, int z) => VoxelMap.SetBlockDirty(x, y, z);
 
     /// <summary>Schedules a full-world re-tessellation on the next frame.</summary>
-    internal void RedrawAllBlocks() => shouldRedrawAllBlocks = true;
+    public void RedrawAllBlocks() => ShouldRedrawAllBlocks = true;
 
     // ── Lighting / shadows ────────────────────────────────────────────────────
 
@@ -145,8 +145,8 @@ public partial class Game
 
         if (x >= 0 && x < VoxelMap.MapSizeX
          && y >= 0 && y < VoxelMap.MapSizeY
-         && z >= d_Heightmap.GetBlock(x, y))
-            return sunlight_;
+         && z >= Heightmap.GetBlock(x, y))
+            return Sunlight;
 
         return minlight;
     }
@@ -162,10 +162,10 @@ public partial class Game
         for (int i = VoxelMap.MapSizeZ - 1; i >= 0; i--)
         {
             height = i;
-            if (!IsTransparentForLight(blocktypes[VoxelMap.GetBlock(x, y, i)]))
+            if (!IsTransparentForLight(BlockTypes[VoxelMap.GetBlock(x, y, i)]))
                 break;
         }
-        d_Heightmap.SetBlock(x, y, height);
+        Heightmap.SetBlock(x, y, height);
     }
 
     /// <summary>
@@ -175,9 +175,9 @@ public partial class Game
     /// </summary>
     internal void ShadowsOnSetBlock(int x, int y, int z)
     {
-        int oldheight = d_Heightmap.GetBlock(x, y);
+        int oldheight = Heightmap.GetBlock(x, y);
         UpdateColumnHeight(x, y);
-        int newheight = d_Heightmap.GetBlock(x, y);
+        int newheight = Heightmap.GetBlock(x, y);
 
         // Dirty chunks between the old and new heightmap values in this column.
         int min = Math.Min(oldheight, newheight);
@@ -292,14 +292,14 @@ public partial class Game
         int count = FogDrawDistances.Count(d => d <= maxdrawdistance || d == 32);
         for (int i = 0; i < count; i++)
         {
-            if (d_Config3d.ViewDistance == FogDrawDistances[i])
+            if (Config3d.ViewDistance == FogDrawDistances[i])
             {
-                d_Config3d.ViewDistance = FogDrawDistances[(i + 1) % count];
+                Config3d.ViewDistance = FogDrawDistances[(i + 1) % count];
                 RedrawAllBlocks();
                 return;
             }
         }
-        d_Config3d.ViewDistance = FogDrawDistances[0];
+        Config3d.ViewDistance = FogDrawDistances[0];
         RedrawAllBlocks();
     }
 
@@ -310,7 +310,7 @@ public partial class Game
     /// </summary>
     internal void SetFog()
     {
-        if (d_Config3d.ViewDistance >= 512) return;
+        if (Config3d.ViewDistance >= 512) return;
 
         const float density = 0.0025f; // 25 / 10000
 
@@ -340,15 +340,15 @@ public partial class Game
     /// Triggers a full redraw, resets the material bar, and records the
     /// initial spawn position.
     /// </summary>
-    internal void MapLoaded()
+    public void MapLoaded()
     {
         RedrawAllBlocks();
         materialSlots = BlockRegistry.DefaultMaterialSlots;
         GuiStateBackToGame();
 
-        playerPositionSpawnX = player.position.x;
-        playerPositionSpawnY = player.position.y;
-        playerPositionSpawnZ = player.position.z;
+        PlayerPositionSpawnX = Player.position.x;
+        PlayerPositionSpawnY = Player.position.y;
+        PlayerPositionSpawnZ = Player.position.z;
     }
 
     /// <summary>Returns the Z coordinate of the water surface (half the map height).</summary>

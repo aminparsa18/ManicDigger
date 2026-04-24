@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 /// for the core Game state. Fields owned by other subsystem partials are
 /// initialized via their own partial-class initializer methods called from here.
 /// </summary>
-public partial class Game
+public partial class Game : IGameClient
 {
     // -------------------------------------------------------------------------
     // Constants
@@ -42,11 +42,10 @@ public partial class Game
 
     /// <summary>Texture IDs indexed by [blockId][TileSide].</summary>
     public int[][] TextureId { get; set; }
-    internal int[] TextureIdForInventory;
+    public int[] TextureIdForInventory { get; set; }
 
-    internal int terrainTexturesPerAtlas;
     internal int terrainTexture;
-    internal int[] terrainTextures1d;
+    public int[] TerrainTextures1d { get; set; }
 
     /// <summary>Maximum texture size detected at runtime.</summary>
     internal int maxTextureSize;
@@ -56,7 +55,7 @@ public partial class Game
     internal static int Atlas2DTiles => GlobalVar.MAX_BLOCKTYPES_SQRT;   // 16x16
 
     internal int handTexture;
-    internal bool handRedraw;
+    public bool HandRedraw { get; set; }
     internal bool handSetAttackBuild;
     internal bool handSetAttackDestroy;
 
@@ -69,23 +68,23 @@ public partial class Game
     // Fields — world / map
     // -------------------------------------------------------------------------
 
-    internal VoxelMap VoxelMap;
-    internal ChunkedMap2d<int> d_Heightmap;
-    internal Config3d d_Config3d;
+    public VoxelMap VoxelMap { get; set; }
+    public ChunkedMap2d<int> Heightmap { get; set; }
+    public Config3d Config3d { get; set; }
 
-    internal int lastplacedblockX;
-    internal int lastplacedblockY;
-    internal int lastplacedblockZ;
+    public int LastplacedblockX { get; set; }
+    public int LastplacedblockY { get; set; }
+    public int LastplacedblockZ { get; set; }
 
     // -------------------------------------------------------------------------
     // Fields — player
     // -------------------------------------------------------------------------
 
-    internal Entity player;
+    public Entity Player { get; set; }
 
-    internal float playerPositionSpawnX;
-    internal float playerPositionSpawnY;
-    internal float playerPositionSpawnZ;
+    public float PlayerPositionSpawnX { get; set; }
+    public float PlayerPositionSpawnY { get; set; }
+    public float PlayerPositionSpawnZ { get; set; }
 
     internal bool isplayeronground;
 
@@ -108,10 +107,10 @@ public partial class Game
     internal bool enable_move;
 
     internal bool stopPlayerMove;
-    internal GuiState guistate;
+    public GuiState GuiState { get; set; }
 
     internal byte localstance;
-    internal bool spawned;
+    public bool Spawned {  get; set; }
     internal bool IsShiftPressed;
     internal int playertexturedefault;
     public const string playertexturedefaultfilename = "mineplayer.png";
@@ -119,33 +118,33 @@ public partial class Game
     internal int reloadblock;
     internal int reloadstartMilliseconds;
     internal int lastOxygenTickMilliseconds;
-    internal int LastReceivedMilliseconds;
+    public int LastReceivedMilliseconds { get; set; }
 
-    internal int LocalPlayerId;
+    public int LocalPlayerId { get; set; }
     internal int currentlyAttackedEntity;
     internal int selectedmodelid;
     internal Vector3 playervelocity;
     internal float RadiusWhenMoving;
-    internal float basemovespeed;
-    internal float movespeed;
+    public float Basemovespeed { get; set; }
+    public float MoveSpeed { get; set; }
     internal float rotationspeed;
     internal float PICK_DISTANCE;
     internal int grenadetime;
     internal int PlayerPushDistance;
     internal bool AudioEnabled;
     internal bool AutoJumpEnabled;
-    internal int[] TotalAmmo;
-    internal int[] LoadedAmmo;
+    public int[] TotalAmmo { get; set; }
+    public int[] LoadedAmmo { get; set; }
     internal Dictionary<(int x, int y, int z), float> blockHealth = new();
-    internal VisibleDialog[] dialogs;
+    public VisibleDialog[] Dialogs { get; set; }
     internal List<string> typinglog;
 
     internal bool IronSights;
     internal Random rnd;
     internal Vector3i? currentAttackedBlock;
-    internal int currentTimeMilliseconds;
+    public int CurrentTimeMilliseconds { get; set; }
     internal int totaltimeMilliseconds;
-    internal int ReceivedMapLength;
+    public int ReceivedMapLength { get; set; }
     internal int maxdrawdistance;
 
     internal bool leftpressedpicking;
@@ -155,7 +154,7 @@ public partial class Game
     internal int lastpositionsentMilliseconds;
 
     internal bool shadowssimple;
-    internal bool shouldRedrawAllBlocks;
+    public bool ShouldRedrawAllBlocks { get; set; }
     internal bool escapeMenuRestart;
 
     // -------------------------------------------------------------------------
@@ -191,9 +190,9 @@ public partial class Game
     // -------------------------------------------------------------------------
 
     /// <summary>Maps light level (0–15) to a GL color multiplier.</summary>
-    internal float[] mLightLevels;
-    internal int sunlight_;
-    internal int[] NightLevels;
+    public float[] LightLevels { get; set; }
+    public int Sunlight { get; set; }
+    public int[] NightLevels { get; set; }
 
     internal float sunPositionX;
     internal float sunPositionY;
@@ -203,14 +202,14 @@ public partial class Game
     internal float moonPositionZ;
     internal bool isNight;
     internal bool fancySkysphere;
-    internal bool SkySphereNight;
+    public bool SkySphereNight { get; set; }
     internal ModSkySphereStatic skysphere;
 
     // -------------------------------------------------------------------------
     // Fields — input
     // -------------------------------------------------------------------------
 
-    internal Controls controls;
+    public Controls Controls { get; set; }
     internal bool mouseSmoothing;
     internal bool mouseleftclick;
     internal bool mouseleftdeclick;
@@ -253,16 +252,16 @@ public partial class Game
     // Fields — networking / server
     // -------------------------------------------------------------------------
 
-    internal ClientPacketHandler[] packetHandlers;
-    internal string serverGameVersion;
+    public ClientPacketHandler[] PacketHandlers { get; set; }
+    public string ServerGameVersion { get; set; }
 
-    internal bool ammostarted;
-    internal Packet_BlockType[] NewBlockTypes;
-    internal Packet_BlockType[] blocktypes;
+    public bool AmmoStarted { get; set; }
+    public Packet_BlockType[] NewBlockTypes { get; set; }
+    public Packet_BlockType[] BlockTypes { get; set; }
 
-    internal string blobdownloadname;
-    internal string blobdownloadmd5;
-    internal MemoryStream blobdownload;
+    public string BlobDownloadName { get; set; }
+    public string BlobDownloadMd5 { get; set; }
+    public MemoryStream BlobDownload { get; set; }
 
     internal ConnectionData connectdata;
     internal bool issingleplayer;
@@ -283,14 +282,14 @@ public partial class Game
     internal List<ModBase> clientmods;
 
     public IGamePlatform Platform { get; set; }
-    internal Language language;
+    public Language Language { get; set; }
     internal FrustumCulling FrustumCulling;
-    internal TerrainChunkTesselator d_TerrainChunkTesselator;
-    internal MeshBatcher d_Batcher;
-    internal SunMoonRenderer d_SunMoonRenderer;
+    public TerrainChunkTesselator TerrainChunkTesselator { get; set; }
+    public MeshBatcher Batcher { get; set; }
+    public SunMoonRenderer SunMoonRenderer { get; set; }
     internal InventoryUtilClient d_InventoryUtil;
     internal ModDrawParticleEffectBlockBreak particleEffectBlockBreak;
-    internal BlockTypeRegistry BlockRegistry;
+    public BlockTypeRegistry BlockRegistry { get; set; }
     internal Packet_Inventory d_Inventory;
 
     internal int[] materialSlots;
@@ -304,28 +303,27 @@ public partial class Game
     internal bool ENABLE_DRAWPOSITION;
     internal bool ENABLE_DRAW2D;
     internal int ENABLE_LAG;
-    internal bool AllowFreemove;
+    public bool AllowFreeMove { get; set; }
     internal MenuState menustate;
-    internal ServerInformation ServerInfo;
+    public ServerInformation ServerInfo { get; set; }
     internal GameOption options;
     internal Dictionary<string, string> performanceinfo;
-    internal Packet_ServerPlayerStats PlayerStats;
+    public Packet_ServerPlayerStats PlayerStats { get; set; }
     internal string[] getAsset;
-    internal int fillAreaLimit;
+    public int FillAreaLimit { get; set; }
 
-    internal List<Entity> entities;
-    internal const int entitiesMax = 4096;
+    public List<Entity> Entities { get; set; }
 
     internal int ChatLinesMax;
     internal List<Chatline> ChatLines;
 
     internal MapLoadingProgressEventArgs maploadingprogress;
     internal Font fontMapLoading;
-    internal string invalidVersionDrawMessage;
-    internal Packet_Server invalidVersionPacketIdentification;
+    public string InvalidVersionDrawMessage { get; set; }
+    public Packet_Server InvalidVersionPacketIdentification { get; set;}
 
     internal Vector3 playerdestination;
-    internal string Follow;
+    public string Follow { get; set; }
     private bool startedconnecting;
 
     private int lastWidth;
@@ -368,7 +366,7 @@ public partial class Game
     private void InitCore()
     {
         performanceinfo = [];
-        language = new Language();
+        Language = new Language();
         particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
         ServerInfo = new ServerInformation();
         options = new GameOption();
@@ -378,16 +376,16 @@ public partial class Game
         PlayerStats = new Packet_ServerPlayerStats();
         taskScheduler = new TaskScheduler();
         commitActions = new();
-        entities = new List<Entity>(entitiesMax);
+        Entities = [];
     }
 
     private void InitMap()
     {
         VoxelMap = new VoxelMap();
-        lastplacedblockX = -1;
-        lastplacedblockY = -1;
-        lastplacedblockZ = -1;
-        fillAreaLimit = 200;
+        LastplacedblockX = -1;
+        LastplacedblockY = -1;
+        LastplacedblockZ = -1;
+        FillAreaLimit = 200;
     }
 
     private void InitTextures()
@@ -407,23 +405,23 @@ public partial class Game
 
     private void InitPlayer()
     {
-        player = new Entity { position = new EntityPosition_() };
+        Player = new Entity { position = new EntityPosition_() };
         LocalPlayerId = -1;
         currentlyAttackedEntity = -1;
         selectedmodelid = -1;
         playertexturedefault = -1;
 
-        playerPositionSpawnX = 15.5f;
-        playerPositionSpawnY = 64;
-        playerPositionSpawnZ = 15.5f;
+        PlayerPositionSpawnX = 15.5f;
+        PlayerPositionSpawnY = 64;
+        PlayerPositionSpawnZ = 15.5f;
 
         playervelocity = new Vector3();
         movedz = 0;
         constWallDistance = 0.3f;
         constRotationSpeed = 180 / 20;
         RadiusWhenMoving = 3f / 10;
-        basemovespeed = 5;
-        movespeed = 5;
+        Basemovespeed = 5;
+        MoveSpeed = 5;
         rotationspeed = 15f / 100;
         PICK_DISTANCE = 4.1f;
         grenadetime = 3;
@@ -437,7 +435,7 @@ public partial class Game
         TotalAmmo = new int[GlobalVar.MAX_BLOCKTYPES];
         LoadedAmmo = new int[GlobalVar.MAX_BLOCKTYPES];
         blockHealth = [];
-        dialogs = new VisibleDialog[512];
+        Dialogs = new VisibleDialog[512];
         typinglog = [];
     }
 
@@ -469,15 +467,15 @@ public partial class Game
 
     private void InitLighting()
     {
-        sunlight_ = 15;
-        mLightLevels = new float[16];
+        Sunlight = 15;
+        LightLevels = new float[16];
         for (int i = 0; i < 16; i++)
-            mLightLevels[i] = 0.15f;
+            LightLevels[i] = 0.15f;
     }
 
     private void InitInput()
     {
-        controls = new Controls();
+        Controls = new Controls();
         mouseSmoothing = true;
         mouseleftclick = false;
         mouseleftdeclick = false;
@@ -500,13 +498,13 @@ public partial class Game
     {
         ENABLE_DRAW2D = true;
         ENABLE_LAG = 0;
-        AllowFreemove = true;
+        AllowFreeMove = true;
         menustate = new MenuState();
     }
 
     private void InitNetworking()
     {
-        packetHandlers = new ClientPacketHandler[256];
+        PacketHandlers = new ClientPacketHandler[256];
         NewBlockTypes = new Packet_BlockType[GlobalVar.MAX_BLOCKTYPES];
         speculativeCount = 0;
         speculative = new Speculative[speculativeMax];

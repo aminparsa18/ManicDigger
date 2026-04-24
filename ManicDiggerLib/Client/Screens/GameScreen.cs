@@ -53,13 +53,13 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
 
             // Prime the server inbox so the handshake starts immediately.
             network.ServerInbox.Enqueue([]);
-            game.main = new DummyNetClient(network);
+            game.NetClient = new DummyNetClient(network);
             game.connectdata = connectData = new ConnectionData { Username = "Local" };
         }
         else
         {
             game.connectdata = connectData;
-            game.main = CreateNetClient()
+            game.NetClient = CreateNetClient()
                 ?? throw new InvalidOperationException("No network transport available.");
         }
     }

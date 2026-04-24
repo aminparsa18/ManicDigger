@@ -5,14 +5,11 @@
 /// </summary>
 public abstract class ModBase
 {
-    /// <summary>Called once when the mod is loaded by the mod manager.</summary>
-    public virtual void Start(IGameClient modManager, IGamePlatform platform) { }
-
     /// <summary>Called each tick on the main thread; game state is read-only.</summary>
-    public virtual void OnReadOnlyMainThread(Game game, float dt) { }
+    public virtual void OnReadOnlyMainThread(float dt) { }
 
     /// <summary>Called each tick on a background thread; game state is read-only.</summary>
-    public virtual void OnReadOnlyBackgroundThread(Game game, float dt) { }
+    public virtual void OnReadOnlyBackgroundThread(float dt) { }
 
     /// <summary>Called each tick on the main thread; game state may be modified.</summary>
     public virtual void OnReadWriteMainThread(Game game, float dt) { }

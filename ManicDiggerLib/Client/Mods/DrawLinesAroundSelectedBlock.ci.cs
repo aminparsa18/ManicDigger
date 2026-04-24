@@ -19,7 +19,7 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
 
     private void DrawEntityOutline(Game game)
     {
-        Entity e = game.entities[game.SelectedEntityId];
+        Entity e = game.Entities[game.SelectedEntityId];
         if (e == null) return;
 
         float height = e.drawModel.ModelHeight;

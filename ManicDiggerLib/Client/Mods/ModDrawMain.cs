@@ -11,9 +11,16 @@
 /// </remarks>
 public class ModDrawMain : ModBase
 {
-    /// <inheritdoc/>
-    public override void OnReadOnlyMainThread(Game game, float dt)
+    private readonly IGameClient _game;
+
+    public ModDrawMain(IGameClient game)
     {
-        game.MainThreadOnRenderFrame(dt);
+        _game = game;
+    }
+
+    /// <inheritdoc/>
+    public override void OnReadOnlyMainThread(float dt)
+    {
+        _game.MainThreadOnRenderFrame(dt);
     }
 }

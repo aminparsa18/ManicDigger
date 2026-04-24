@@ -6,13 +6,13 @@
     // Server identification
     // -------------------------------------------------------------------------
 
-    internal void ProcessServerIdentification(Packet_Server packet)
+    public void ProcessServerIdentification(Packet_Server packet)
     {
         LocalPlayerId = packet.Identification.AssignedClientId;
         ServerInfo.ConnectData = connectdata;
         ServerInfo.ServerName = packet.Identification.ServerName;
         ServerInfo.ServerMotd = packet.Identification.ServerMotd;
-        d_TerrainChunkTesselator.ENABLE_TEXTURE_TILING = packet.Identification.RenderHint_ == RenderHintEnum.Fast;
+        TerrainChunkTesselator.ENABLE_TEXTURE_TILING = packet.Identification.RenderHint_ == RenderHintEnum.Fast;
 
         var requiredMd5 = packet.Identification.RequiredBlobMd5;
         var requiredName = packet.Identification.RequiredBlobName;
@@ -62,7 +62,7 @@
             VoxelMap.Reset(packet.Identification.MapSizeX,
                 packet.Identification.MapSizeY,
                 packet.Identification.MapSizeZ);
-            d_Heightmap.Restart(packet.Identification.MapSizeX,
+            Heightmap.Restart(packet.Identification.MapSizeX,
                 packet.Identification.MapSizeY);
         }
 
@@ -73,11 +73,11 @@
 
     internal void InvalidVersionAllow()
     {
-        if (invalidVersionDrawMessage != null)
+        if (InvalidVersionDrawMessage != null)
         {
-            invalidVersionDrawMessage = null;
-            ProcessServerIdentification(invalidVersionPacketIdentification);
-            invalidVersionPacketIdentification = null;
+            InvalidVersionDrawMessage = null;
+            ProcessServerIdentification(InvalidVersionPacketIdentification);
+            InvalidVersionPacketIdentification = null;
         }
     }
 
@@ -85,7 +85,7 @@
     // Server redirect / exit
     // -------------------------------------------------------------------------
 
-    internal void ExitAndSwitchServer(Packet_ServerRedirect newServer)
+    public void ExitAndSwitchServer(Packet_ServerRedirect newServer)
     {
         if (issingleplayer)
             Platform.SinglePlayerServerExit();
@@ -94,7 +94,7 @@
         exitToMainMenu = true;
     }
 
-    internal void ExitToMainMenu_()
+    public void ExitToMainMenu()
     {
         if (issingleplayer)
             Platform.SinglePlayerServerExit();
@@ -109,9 +109,9 @@
     // Chat log
     // -------------------------------------------------------------------------
 
-    internal void ChatLog(string p)
+    public void ChatLog(string p)
     {
         if (!Platform.ChatLog(ServerInfo.ServerName, p))
-            Console.WriteLine(string.Format(language.CannotWriteChatLog(), ServerInfo.ServerName));
+            Console.WriteLine(string.Format(Language.CannotWriteChatLog(), ServerInfo.ServerName));
     }
 }

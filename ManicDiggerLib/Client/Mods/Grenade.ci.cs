@@ -12,9 +12,9 @@ public class ModGrenade : ModBase
     public override void OnNewFrameFixed(Game game, float args)
     {
         float dt = args;
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity entity = game.entities[i];
+            Entity entity = game.Entities[i];
             if (entity?.grenade == null) continue;
             UpdateGrenade(game, i, dt);
         }
@@ -22,7 +22,7 @@ public class ModGrenade : ModBase
 
     internal void UpdateGrenade(Game game, int grenadeEntityId, float dt)
     {
-        Entity grenadeEntity = game.entities[grenadeEntityId];
+        Entity grenadeEntity = game.Entities[grenadeEntityId];
         Sprite grenadeSprite = grenadeEntity.sprite;
         Grenade grenade = grenadeEntity.grenade;
 

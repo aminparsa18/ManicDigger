@@ -42,19 +42,19 @@ public class ModPicking : ModBase
     /// <inheritdoc/>
     public override void OnNewFrameReadOnlyMainThread(Game game, float deltaTime)
     {
-        if (game.guistate == GuiState.Normal) { UpdatePicking(game); }
+        if (game.GuiState == GuiState.Normal) { UpdatePicking(game); }
     }
 
     /// <inheritdoc/>
     public override void OnMouseUp(Game game, MouseEventArgs args)
     {
-        if (game.guistate == GuiState.Normal) { UpdatePicking(game); }
+        if (game.GuiState == GuiState.Normal) { UpdatePicking(game); }
     }
 
     /// <inheritdoc/>
     public override void OnMouseDown(Game game, MouseEventArgs args)
     {
-        if (game.guistate == GuiState.Normal)
+        if (game.GuiState == GuiState.Normal)
         {
             UpdatePicking(game);
             UpdateEntityHit(game);
@@ -108,8 +108,8 @@ public class ModPicking : ModBase
         if (!left) { game.currentAttackedBlock = null; }
 
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
-        bool isPistol = item != null && game.blocktypes[item.BlockId].IsPistol;
-        bool isGrenade = isPistol && game.blocktypes[item.BlockId].PistolType == PistolType.Grenade;
+        bool isPistol = item != null && game.BlockTypes[item.BlockId].IsPistol;
+        bool isGrenade = isPistol && game.BlockTypes[item.BlockId].PistolType == PistolType.Grenade;
         bool isPistolShoot = isPistol && left;
         if (isPistol && isGrenade) { isPistolShoot = game.mouseleftdeclick; }
 
@@ -118,9 +118,9 @@ public class ModPicking : ModBase
         if (game.mouseleftclick)
         {
             game.grenadecookingstartMilliseconds = game.Platform.TimeMillisecondsFromStart;
-            if (isPistol && isGrenade && game.blocktypes[item.BlockId].Sounds.Shoot.Length > 0)
+            if (isPistol && isGrenade && game.BlockTypes[item.BlockId].Sounds.Shoot.Length > 0)
             {
-                game.PlayAudio(string.Format("{0}.ogg", game.blocktypes[item.BlockId].Sounds.Shoot[0]));
+                game.PlayAudio(string.Format("{0}.ogg", game.BlockTypes[item.BlockId].Sounds.Shoot[0]));
             }
         }
 
@@ -172,9 +172,9 @@ public class ModPicking : ModBase
         }
 
         bool playerTileEmpty = game.IsTileEmptyForPhysics(
-            (int)game.player.position.x, (int)game.player.position.z, (int)(game.player.position.y + 0.5f));
+            (int)game.Player.position.x, (int)game.Player.position.z, (int)(game.Player.position.y + 0.5f));
         bool playerTileEmptyClose = game.IsTileEmptyForPhysicsClose(
-            (int)game.player.position.x, (int)game.player.position.z, (int)(game.player.position.y + 0.5f));
+            (int)game.Player.position.x, (int)game.Player.position.z, (int)(game.Player.position.y + 0.5f));
 
         BlockPosSide pick0 = new();
         if (pick2count > 0 && ((pickDistanceOk && (playerTileEmpty || playerTileEmptyClose)) || game.overheadcamera))
@@ -436,7 +436,7 @@ public class ModPicking : ModBase
         game.LoadedAmmo[item.BlockId]--;
         game.TotalAmmo[item.BlockId]--;
 
-        float projectileSpeed = game.DecodeFixedPoint(game.blocktypes[item.BlockId].ProjectileSpeedFloat);
+        float projectileSpeed = game.DecodeFixedPoint(game.BlockTypes[item.BlockId].ProjectileSpeedFloat);
         if (projectileSpeed == 0)
         {
             game.EntityAddLocal(Game.CreateBulletEntity(pick.Start[0], pick.Start[1], pick.Start[2], toX, toY, toZ, 150));
@@ -448,19 +448,19 @@ public class ModPicking : ModBase
 
         game.SendPacketClient(new Packet_Client { Id = PacketType.Shot, Shot = shot });
 
-        if (game.blocktypes[item.BlockId].Sounds.ShootEnd.Length > 0)
+        if (game.BlockTypes[item.BlockId].Sounds.ShootEnd.Length > 0)
         {
-            game.pistolcycle = game.rnd.Next() % game.blocktypes[item.BlockId].Sounds.ShootEnd.Length;
-            game.PlayAudio(string.Format("{0}.ogg", game.blocktypes[item.BlockId].Sounds.ShootEnd[game.pistolcycle]));
+            game.pistolcycle = game.rnd.Next() % game.BlockTypes[item.BlockId].Sounds.ShootEnd.Length;
+            game.PlayAudio(string.Format("{0}.ogg", game.BlockTypes[item.BlockId].Sounds.ShootEnd[game.pistolcycle]));
         }
 
         // Apply recoil.
-        game.player.position.rotx -= game.rnd.Next() * game.CurrentRecoil();
-        game.player.position.roty += game.rnd.Next() * game.CurrentRecoil() * 2 - game.CurrentRecoil();
+        game.Player.position.rotx -= game.rnd.Next() * game.CurrentRecoil();
+        game.Player.position.roty += game.rnd.Next() * game.CurrentRecoil() * 2 - game.CurrentRecoil();
 
         // Burst fire.
         bulletsShot++;
-        if (bulletsShot < game.DecodeFixedPoint(game.blocktypes[item.BlockId].BulletsPerShotFloat))
+        if (bulletsShot < game.DecodeFixedPoint(game.BlockTypes[item.BlockId].BulletsPerShotFloat))
         {
             NextBullet(game, bulletsShot);
         }
@@ -477,9 +477,9 @@ public class ModPicking : ModBase
     {
         float eyeX = game.EyesPosX(), eyeY = game.EyesPosY(), eyeZ = game.EyesPosZ();
 
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity entity = game.entities[i];
+            Entity entity = game.Entities[i];
             if (entity?.drawModel == null || entity.networkPosition == null) { continue; }
             if (!entity.networkPosition.PositionLoaded) { continue; }
 
@@ -617,7 +617,7 @@ public class ModPicking : ModBase
 
         if (mode == PacketBlockSetMode.Create)
         {
-            if (game.blocktypes[activeMaterial].IsTool)
+            if (game.BlockTypes[activeMaterial].IsTool)
             {
                 OnPickUseWithTool(game, blockposX, blockposY, blockposZ);
                 return;
@@ -670,7 +670,7 @@ public class ModPicking : ModBase
         }
         else
         {
-            if (game.blocktypes[activeMaterial].IsTool)
+            if (game.BlockTypes[activeMaterial].IsTool)
             {
                 OnPickUseWithTool(game, blockposX, blockposY, blockposOldZ);
                 return;
@@ -723,7 +723,7 @@ public class ModPicking : ModBase
             for (int y = startY; y <= endY; y++)
                 for (int z = startZ; z <= endZ; z++)
                 {
-                    if (fillarea.Count > game.fillAreaLimit) { ClearFillArea(game); return; }
+                    if (fillarea.Count > game.FillAreaLimit) { ClearFillArea(game); return; }
                     if (!game.IsFillBlock(game.VoxelMap.GetBlock(x, y, z)))
                     {
                         fillarea[(x, y, z)] = game.VoxelMap.GetBlock(x, y, z);
@@ -775,15 +775,15 @@ public class ModPicking : ModBase
 
         float eyeX = game.EyesPosX(), eyeY = game.EyesPosY(), eyeZ = game.EyesPosZ();
 
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity entity = game.entities[i];
+            Entity entity = game.Entities[i];
             if (entity?.drawModel == null || i == game.LocalPlayerId) { continue; }
             if (entity.networkPosition == null || !entity.networkPosition.PositionLoaded) { continue; }
             if (!entity.usable) { continue; }
 
             float fx = entity.position.x, fy = entity.position.y, fz = entity.position.z;
-            if (Vector3.Distance(new Vector3(fx, fy, fz), new Vector3(game.player.position.x, game.player.position.y, game.player.position.z)) > 5) { continue; }
+            if (Vector3.Distance(new Vector3(fx, fy, fz), new Vector3(game.Player.position.x, game.Player.position.y, game.Player.position.z)) > 5) { continue; }
 
             const float r = 0.35f;
             float h = entity.drawModel.ModelHeight;
@@ -831,11 +831,11 @@ public class ModPicking : ModBase
     /// </summary>
     internal static float BuildDelay(Game game)
     {
-        float defaultDelay = 0.95f / game.basemovespeed;
+        float defaultDelay = 0.95f / game.Basemovespeed;
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) { return defaultDelay; }
 
-        float delay = game.DecodeFixedPoint(game.blocktypes[item.BlockId].DelayFloat);
+        float delay = game.DecodeFixedPoint(game.BlockTypes[item.BlockId].DelayFloat);
         return delay == 0 ? defaultDelay : delay;
     }
 
@@ -918,9 +918,9 @@ public class ModPicking : ModBase
         float distance = game.PICK_DISTANCE;
         int? inHand = game.BlockInHand();
 
-        if (inHand.HasValue && game.blocktypes[inHand.Value].PickDistanceWhenUsedFloat > 0)
+        if (inHand.HasValue && game.BlockTypes[inHand.Value].PickDistanceWhenUsedFloat > 0)
         {
-            distance = game.DecodeFixedPoint(game.blocktypes[inHand.Value].PickDistanceWhenUsedFloat);
+            distance = game.DecodeFixedPoint(game.BlockTypes[inHand.Value].PickDistanceWhenUsedFloat);
         }
 
         if (game.cameratype == CameraType.Tpp)

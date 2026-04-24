@@ -395,13 +395,13 @@ public class RailMapUtil
     public RailSlope GetRailSlope(int x, int y, int z)
     {
         int tiletype = game.VoxelMap.GetBlock(x, y, z);
-        int railDirectionFlags = game.blocktypes[tiletype].Rail;
+        int railDirectionFlags = game.BlockTypes[tiletype].Rail;
         int blocknear;
         if (x < game.VoxelMap.MapSizeX - 1)
         {
             blocknear = game.VoxelMap.GetBlock(x + 1, y, z);
             if (railDirectionFlags == RailDirectionFlags.Horizontal &&
-                 blocknear != 0 && game.blocktypes[blocknear].Rail == 0)
+                 blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoRightRaised;
             }
@@ -410,7 +410,7 @@ public class RailMapUtil
         {
             blocknear = game.VoxelMap.GetBlock(x - 1, y, z);
             if (railDirectionFlags == RailDirectionFlags.Horizontal &&
-                 blocknear != 0 && game.blocktypes[blocknear].Rail == 0)
+                 blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoLeftRaised;
 
@@ -420,7 +420,7 @@ public class RailMapUtil
         {
             blocknear = game.VoxelMap.GetBlock(x, y - 1, z);
             if (railDirectionFlags == RailDirectionFlags.Vertical &&
-                  blocknear != 0 && game.blocktypes[blocknear].Rail == 0)
+                  blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoUpRaised;
             }
@@ -429,7 +429,7 @@ public class RailMapUtil
         {
             blocknear = game.VoxelMap.GetBlock(x, y + 1, z);
             if (railDirectionFlags == RailDirectionFlags.Vertical &&
-                  blocknear != 0 && game.blocktypes[blocknear].Rail == 0)
+                  blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoDownRaised;
             }

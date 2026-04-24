@@ -12,15 +12,15 @@ public class ModDialog : ModBase
 
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {
-        game.packetHandlers[(int)Packet_ServerIdEnum.Dialog] = packetHandler;
+        game.PacketHandlers[(int)Packet_ServerIdEnum.Dialog] = packetHandler;
         DrawDialogs(game);
     }
 
     internal static void DrawDialogs(Game game)
     {
-        for (int i = 0; i < game.dialogs.Length; i++)
+        for (int i = 0; i < game.Dialogs.Length; i++)
         {
-            VisibleDialog d = game.dialogs[i];
+            VisibleDialog d = game.Dialogs[i];
             if (d == null) continue;
 
             d.screen.screenx = game.Width() / 2 - d.value.Width / 2;
@@ -31,14 +31,14 @@ public class ModDialog : ModBase
 
     public override void OnKeyPress(Game game, KeyPressEventArgs args)
     {
-        if (game.guistate != GuiState.ModalDialog && game.guistate != GuiState.Normal) return;
+        if (game.GuiState != GuiState.ModalDialog && game.GuiState != GuiState.Normal) return;
         if (game.IsTyping) return;
 
         ForEachDialog(game, d => d.screen.OnKeyPress(game, args));
 
-        for (int k = 0; k < game.dialogs.Length; k++)
+        for (int k = 0; k < game.Dialogs.Length; k++)
         {
-            VisibleDialog d = game.dialogs[k];
+            VisibleDialog d = game.Dialogs[k];
             if (d == null) continue;
 
             for (int i = 0; i < d.value.Widgets.Length; i++)
@@ -62,15 +62,15 @@ public class ModDialog : ModBase
 
         bool isEsc = args.KeyChar == (int)Keys.Escape;
 
-        if (game.guistate == GuiState.Normal && isEsc)
+        if (game.GuiState == GuiState.Normal && isEsc)
         {
-            for (int i = 0; i < game.dialogs.Length; i++)
+            for (int i = 0; i < game.Dialogs.Length; i++)
             {
-                VisibleDialog d = game.dialogs[i];
+                VisibleDialog d = game.Dialogs[i];
                 if (d == null) continue;
                 if (d.value.IsModal != 0)
                 {
-                    game.dialogs[i] = null;
+                    game.Dialogs[i] = null;
                     return;
                 }
             }
@@ -79,15 +79,15 @@ public class ModDialog : ModBase
             return;
         }
 
-        if (game.guistate == GuiState.ModalDialog)
+        if (game.GuiState == GuiState.ModalDialog)
         {
             if (isEsc)
             {
                 // Close all modal dialogs
-                for (int i = 0; i < game.dialogs.Length; i++)
+                for (int i = 0; i < game.Dialogs.Length; i++)
                 {
-                    if (game.dialogs[i]?.value.IsModal != 0)
-                        game.dialogs[i] = null;
+                    if (game.Dialogs[i]?.value.IsModal != 0)
+                        game.Dialogs[i] = null;
                 }
                 game.SendPacketClient(ClientPackets.DialogClick("Esc", Empty, 0));
                 game.GuiStateBackToGame();
@@ -113,10 +113,10 @@ public class ModDialog : ModBase
     /// <summary>Iterates all non-null dialogs and applies an action to each.</summary>
     private static void ForEachDialog(Game game, Action<VisibleDialog> action)
     {
-        for (int i = 0; i < game.dialogs.Length; i++)
+        for (int i = 0; i < game.Dialogs.Length; i++)
         {
-            if (game.dialogs[i] != null)
-                action(game.dialogs[i]);
+            if (game.Dialogs[i] != null)
+                action(game.Dialogs[i]);
         }
     }
 }

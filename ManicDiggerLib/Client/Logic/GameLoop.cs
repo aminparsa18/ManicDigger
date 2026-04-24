@@ -28,7 +28,7 @@
     /// 3D and 2D draw hooks to all registered mods, and handles the map-loading
     /// screen as a fast-exit special case.
     /// </summary>
-    internal void MainThreadOnRenderFrame(float deltaTime)
+    public void MainThreadOnRenderFrame(float deltaTime)
     {
         UpdateResize();
         UpdateClearColor();
@@ -47,7 +47,7 @@
         }
 
         // During map loading only the 2D pass (progress bar, status text) runs.
-        if (guistate == GuiState.MapLoading)
+        if (GuiState == GuiState.MapLoading)
         {
             GotoDraw2d(deltaTime);
             return;
@@ -87,9 +87,9 @@
         for (int i = 0; i < clientmods.Count; i++)
             clientmods[i].OnNewFrameFixed(this, dt);
 
-        for (int i = 0; i < entities.Count; i++)
+        for (int i = 0; i < Entities.Count; i++)
         {
-            Entity e = entities[i];
+            Entity e = Entities[i];
             if (e == null) continue;
             for (int k = 0; k < e.scriptsCount; k++)
                 e.scripts[k].OnNewFrameFixed(this, i, dt);
@@ -97,22 +97,22 @@
 
         RevertSpeculative(dt);
 
-        if (guistate == GuiState.MapLoading)
+        if (GuiState == GuiState.MapLoading)
             return;
 
-        float orientationX = MathF.Sin(player.position.roty);
-        float orientationZ = -MathF.Cos(player.position.roty);
+        float orientationX = MathF.Sin(Player.position.roty);
+        float orientationZ = -MathF.Cos(Player.position.roty);
         Platform.AudioUpdateListener(
             EyesPosX(), EyesPosY(), EyesPosZ(),
             orientationX, 0, orientationZ);
 
         // Estimate velocity in world units/second from per-tick displacement.
-        playervelocity.X = (player.position.x - lastplayerpositionX) * FixedTickRate;
-        playervelocity.Y = (player.position.y - lastplayerpositionY) * FixedTickRate;
-        playervelocity.Z = (player.position.z - lastplayerpositionZ) * FixedTickRate;
-        lastplayerpositionX = player.position.x;
-        lastplayerpositionY = player.position.y;
-        lastplayerpositionZ = player.position.z;
+        playervelocity.X = (Player.position.x - lastplayerpositionX) * FixedTickRate;
+        playervelocity.Y = (Player.position.y - lastplayerpositionY) * FixedTickRate;
+        playervelocity.Z = (Player.position.z - lastplayerpositionZ) * FixedTickRate;
+        lastplayerpositionX = Player.position.x;
+        lastplayerpositionY = Player.position.y;
+        lastplayerpositionZ = Player.position.z;
     }
 
     // ── 2D pass + end-of-frame work ───────────────────────────────────────────
@@ -178,7 +178,7 @@
     /// </summary>
     private void UpdateClearColor()
     {
-        if (guistate == GuiState.MapLoading)
+        if (GuiState == GuiState.MapLoading)
         {
             Platform.GlClearColorRgbaf(0, 0, 0, 1);
         }

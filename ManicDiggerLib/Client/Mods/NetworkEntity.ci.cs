@@ -23,9 +23,9 @@ public class ModNetworkEntity : ModBase
         // Register once — previously wrote to the handler dictionary every frame.
         if (!_handlersRegistered)
         {
-            game.packetHandlers[(int)Packet_ServerIdEnum.EntitySpawn] = _spawn;
-            game.packetHandlers[(int)Packet_ServerIdEnum.EntityPosition] = _position;
-            game.packetHandlers[(int)Packet_ServerIdEnum.EntityDespawn] = _despawn;
+            game.PacketHandlers[(int)Packet_ServerIdEnum.EntitySpawn] = _spawn;
+            game.PacketHandlers[(int)Packet_ServerIdEnum.EntityPosition] = _position;
+            game.PacketHandlers[(int)Packet_ServerIdEnum.EntityDespawn] = _despawn;
             _handlersRegistered = true;
         }
     }

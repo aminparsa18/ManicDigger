@@ -23,7 +23,7 @@ public class ModLoadPlayerTextures : ModBase
     /// <inheritdoc/>
     public override void OnNewFrame(Game game, float args)
     {
-        if (game.guistate == GuiState.MapLoading) { return; }
+        if (game.GuiState == GuiState.MapLoading) { return; }
 
         if (!_started)
         {
@@ -70,9 +70,9 @@ public class ModLoadPlayerTextures : ModBase
             }
         }
 
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity e = game.entities[i];
+            Entity e = game.Entities[i];
             if (e?.drawModel == null) { continue; }
             if (e.drawModel.CurrentTexture != -1) { continue; }
 

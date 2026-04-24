@@ -9,9 +9,9 @@ public class ModDrawArea : ModBase
     {
         if (!game.ENABLE_DRAW2D) return;
 
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity e = game.entities[i];
+            Entity e = game.Entities[i];
             if (e?.drawArea == null || !e.drawArea.visible) continue;
 
             float cx = e.drawArea.x + e.drawArea.sizex / 2f;
@@ -24,7 +24,7 @@ public class ModDrawArea : ModBase
 
     public override void OnHitEntity(Game game, OnUseEntityArgs e)
     {
-        var area = game.entities[e.entityId]?.drawArea;
+        var area = game.Entities[e.entityId]?.drawArea;
         if (area == null) return;
         area.visible = !area.visible;
     }

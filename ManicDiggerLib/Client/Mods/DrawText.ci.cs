@@ -12,9 +12,9 @@ public class ModDrawText : ModBase
 
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity e = game.entities[i];
+            Entity e = game.Entities[i];
             if (e?.drawText == null) continue;
             if (e.networkPosition != null && !e.networkPosition.PositionLoaded) continue;
 
@@ -23,7 +23,7 @@ public class ModDrawText : ModBase
             float posY = p.dy + e.position.y;
             float posZ = MathF.Cos(e.position.roty) * p.dz + e.position.z;
 
-            bool nearEnough = Vector3.Distance(new Vector3(game.player.position.x, game.player.position.y, game.player.position.z), new Vector3(posX, posY, posZ)) < TextDrawDistance;
+            bool nearEnough = Vector3.Distance(new Vector3(game.Player.position.x, game.Player.position.y, game.Player.position.z), new Vector3(posX, posY, posZ)) < TextDrawDistance;
             bool altHeld = game.keyboardState[Game.KeyAltLeft] || game.keyboardState[Game.KeyAltRight];
             if (!nearEnough && !altHeld) continue;
 

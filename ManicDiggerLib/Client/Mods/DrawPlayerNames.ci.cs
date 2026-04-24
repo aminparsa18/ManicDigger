@@ -11,9 +11,9 @@ public class ModDrawPlayerNames : ModBase
 
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity e = game.entities[i];
+            Entity e = game.Entities[i];
             if (e?.drawName == null) continue;
             if (i == game.LocalPlayerId) continue;
             if (e.networkPosition != null && !e.networkPosition.PositionLoaded) continue;
@@ -24,7 +24,7 @@ public class ModDrawPlayerNames : ModBase
             float posX = p.TextX + e.position.x;
             float posY = p.TextY + e.position.y + e.drawModel.ModelHeight + NameTagHeightOffset;
             float posZ = p.TextZ + e.position.z;
-            bool nearEnough = Vector3.Distance(new(game.player.position.x, game.player.position.y, game.player.position.z), new(posX, posY, posZ)) < NameTagDrawDistance;
+            bool nearEnough = Vector3.Distance(new(game.Player.position.x, game.Player.position.y, game.Player.position.z), new(posX, posY, posZ)) < NameTagDrawDistance;
             bool altHeld = game.keyboardState[Game.KeyAltLeft] || game.keyboardState[Game.KeyAltRight];
             if (!nearEnough && !altHeld) continue;
 

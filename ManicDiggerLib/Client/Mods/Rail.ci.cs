@@ -147,13 +147,13 @@ public class ModRail : ModBase
     /// </summary>
     private void AdvanceRailRiding(Game game, float dt, bool turnLeft, bool turnRight)
     {
-        game.controls.freemove = true;
+        game.Controls.freemove = true;
         game.enable_move = false;
 
         Vector3 railPos = CurrentRailPos(game);
-        game.player.position.x = railPos.X;
-        game.player.position.y = railPos.Y;
-        game.player.position.z = railPos.Z;
+        game.Player.position.x = railPos.X;
+        game.Player.position.y = railPos.Y;
+        game.Player.position.z = railPos.Z;
 
         currentrailblockprogress += currentvehiclespeed * dt;
 
@@ -237,14 +237,14 @@ public class ModRail : ModBase
         bool ePressed = game.keyboardState[game.GetKey(Keys.E)] && game.GuiTyping != TypingState.Typing;
         if (wasepressed || !ePressed) { return; }
 
-        if (!railriding && !game.controls.freemove)
+        if (!railriding && !game.Controls.freemove)
         {
             TryEnterMinecart(game);
         }
         else if (railriding)
         {
             ExitVehicle(game);
-            game.player.position.y += _one * 7 / 10;
+            game.Player.position.y += _one * 7 / 10;
         }
     }
 
@@ -255,9 +255,9 @@ public class ModRail : ModBase
     /// </summary>
     private void TryEnterMinecart(Game game)
     {
-        currentrailblockX = (int)game.player.position.x;
-        currentrailblockY = (int)game.player.position.z;
-        currentrailblockZ = (int)game.player.position.y - 1;
+        currentrailblockX = (int)game.Player.position.x;
+        currentrailblockY = (int)game.Player.position.z;
+        currentrailblockZ = (int)game.Player.position.y - 1;
 
         if (!game.VoxelMap.IsValidPos(currentrailblockX, currentrailblockY, currentrailblockZ))
         {
@@ -306,7 +306,7 @@ public class ModRail : ModBase
     {
         game.SetCharacterEyesHeight(originalmodelheight);
         railriding = false;
-        game.controls.freemove = false;
+        game.Controls.freemove = false;
         game.enable_move = true;
     }
 

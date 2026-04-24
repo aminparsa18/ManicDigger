@@ -1,8 +1,15 @@
 ﻿public class ModUpdateMain : ModBase
 {
-    // Should use ReadWrite to be correct but that would be too slow
-    public override void OnReadOnlyMainThread(Game game, float dt)
+    private readonly IGameClient _game;
+
+    public ModUpdateMain(IGameClient game)
     {
-        game.Update(dt);
+        _game = game;
+    }
+
+    // Should use ReadWrite to be correct but that would be too slow
+    public override void OnReadOnlyMainThread(float dt)
+    {
+        _game.Update(dt);
     }
 }

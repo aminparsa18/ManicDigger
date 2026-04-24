@@ -12,9 +12,9 @@ public class ModFallDamageToPlayer : ModBase
 
     public override void OnNewFrameFixed(Game game, float args)
     {
-        if (game.guistate == GuiState.MapLoading) return;
+        if (game.GuiState == GuiState.MapLoading) return;
 
-        if (game.controls.freemove)
+        if (game.Controls.freemove)
         {
             if (fallSoundPlaying) SetFallSoundActive(game, false);
             return;
@@ -26,7 +26,7 @@ public class ModFallDamageToPlayer : ModBase
 
     internal void UpdateFallDamageToPlayer(Game game, float dt)
     {
-        float fallSpeed = game.movedz / -game.basemovespeed;
+        float fallSpeed = game.movedz / -game.Basemovespeed;
 
         int posX = game.GetPlayerEyesBlockX();
         int posY = game.GetPlayerEyesBlockY();

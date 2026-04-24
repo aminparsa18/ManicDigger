@@ -33,9 +33,9 @@ public class SunMoonRenderer : ModBase
 
         UpdateSunMoonPosition(dt, game);
 
-        float bodyX = (game.isNight ? game.moonPositionX : game.sunPositionX) + game.player.position.x;
-        float bodyY = (game.isNight ? game.moonPositionY : game.sunPositionY) + game.player.position.y;
-        float bodyZ = (game.isNight ? game.moonPositionZ : game.sunPositionZ) + game.player.position.z;
+        float bodyX = (game.isNight ? game.moonPositionX : game.sunPositionX) + game.Player.position.x;
+        float bodyY = (game.isNight ? game.moonPositionY : game.sunPositionY) + game.Player.position.y;
+        float bodyZ = (game.isNight ? game.moonPositionZ : game.sunPositionZ) + game.Player.position.z;
 
         game.GLMatrixModeModelView();
         game.GLPushMatrix();

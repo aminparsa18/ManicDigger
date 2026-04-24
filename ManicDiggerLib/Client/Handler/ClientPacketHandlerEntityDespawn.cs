@@ -4,10 +4,10 @@
 /// </summary>
 public class ClientPacketHandlerEntityDespawn : ClientPacketHandler
 {
-    public override void Handle(Game game, Packet_Server packet)
+    public override void Handle(IGameClient game, Packet_Server packet)
     {
         int id = packet.EntityDespawn.Id;
-        Entity entity = game.entities[id];
+        Entity entity = game.Entities[id];
 
         // Clean up a downloaded player skin if one was loaded for this entity.
         if (entity?.drawModel?.DownloadSkin == true)
@@ -20,6 +20,6 @@ public class ClientPacketHandlerEntityDespawn : ClientPacketHandler
             }
         }
 
-        game.entities[id] = null;
+        game.Entities[id] = null;
     }
 }

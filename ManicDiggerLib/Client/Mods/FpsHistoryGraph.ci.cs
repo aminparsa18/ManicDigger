@@ -23,8 +23,7 @@ public class ModFpsHistoryGraph : ModBase
     private bool drawFpsText;
     private bool drawFpsGraph;
 
-    /// <inheritdoc/>
-    public override void Start(IGameClient game, IGamePlatform platform)
+    public ModFpsHistoryGraph(IGameClient game, IGamePlatform platform)
     {
         _game = game;
         _platform = platform;
@@ -32,7 +31,7 @@ public class ModFpsHistoryGraph : ModBase
         for (int i = 0; i < MaxCount; i++)
             todraw[i] = new Draw2dData();
     }
-
+    
     /// <inheritdoc/>
     public override void OnNewFrame(Game game, float dt)
     {

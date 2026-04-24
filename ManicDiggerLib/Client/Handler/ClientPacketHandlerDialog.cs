@@ -4,7 +4,7 @@
 /// </summary>
 public class ClientPacketHandlerDialog : ClientPacketHandler
 {
-    public override void Handle(Game game, Packet_Server packet)
+    public override void Handle(IGameClient game, Packet_Server packet)
     {
         Packet_ServerDialog d = packet.Dialog;
 
@@ -14,13 +14,13 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         if (d.Dialog == null)
         {
             // Server is closing this dialog.
-            if (dialogIdx != -1 && game.dialogs[dialogIdx].value.IsModal != 0)
+            if (dialogIdx != -1 && game.Dialogs[dialogIdx].value.IsModal != 0)
                 game.GuiStateBackToGame();
 
             if (dialogIdx != -1)
-                game.dialogs[dialogIdx] = null;
+                game.Dialogs[dialogIdx] = null;
 
-            if (game.DialogsCount == 0)
+            if (game.Dialogs.Length == 0)
                 game.SetFreeMouse(false);
         }
         else
@@ -32,34 +32,34 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
                 value = d.Dialog,
             };
             d2.screen = ConvertDialog(game, d2.value);
-            d2.screen.game = game;
+            d2.screen.game = (Game)game;
 
             if (dialogIdx == -1)
             {
                 // Find the first empty slot.
-                for (int i = 0; i < game.dialogs.Count(); i++)
+                for (int i = 0; i < game.Dialogs.Length; i++)
                 {
-                    if (game.dialogs[i] == null)
+                    if (game.Dialogs[i] == null)
                     {
-                        game.dialogs[i] = d2;
+                        game.Dialogs[i] = d2;
                         break;
                     }
                 }
             }
             else
             {
-                game.dialogs[dialogIdx] = d2;
+                game.Dialogs[dialogIdx] = d2;
             }
 
             if (d.Dialog.IsModal != 0)
             {
-                game.guistate = GuiState.ModalDialog;
+                game.GuiState = GuiState.ModalDialog;
                 game.SetFreeMouse(true);
             }
         }
     }
 
-    private static GameScreen ConvertDialog(Game game, Packet_Dialog p)
+    private static GameScreen ConvertDialog(IGameClient game, Packet_Dialog p)
     {
         DialogScreen s = new()
         {

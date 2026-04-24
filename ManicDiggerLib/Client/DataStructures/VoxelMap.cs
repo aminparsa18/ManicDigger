@@ -8,7 +8,7 @@ using OpenTK.Mathematics;
 /// </summary>
 public class VoxelMap
 {
-    internal Chunk[] chunks;
+    public Chunk[] Chunks { get; private set; }
     internal int MapSizeX;
     internal int MapSizeY;
     internal int MapSizeZ;
@@ -33,14 +33,14 @@ public class VoxelMap
         int cy = y >> Game.chunksizebits;
         int cz = z >> Game.chunksizebits;
         int chunkpos = Index3d(cx, cy, cz, MapSizeX >> Game.chunksizebits, MapSizeY >> Game.chunksizebits);
-        if (chunks[chunkpos] == null)
+        if (Chunks[chunkpos] == null)
         {
             return 0;
         }
         else
         {
             int pos = Index3d(x & (Game.chunksize - 1), y & (Game.chunksize - 1), z & (Game.chunksize - 1), Game.chunksize, Game.chunksize);
-            return chunks[chunkpos].GetBlock(pos);
+            return Chunks[chunkpos].GetBlock(pos);
         }
     }
 
@@ -66,7 +66,7 @@ public class VoxelMap
         int mapsizexchunks = MapSizeX / Game.chunksize;
         int mapsizeychunks = MapSizeY / Game.chunksize;
         int flatIndex = Index3d(cx, cy, cz, mapsizexchunks, mapsizeychunks);
-        Chunk chunk = chunks[flatIndex];
+        Chunk chunk = Chunks[flatIndex];
 
         if (chunk == null)
         {
@@ -84,7 +84,7 @@ public class VoxelMap
                 data = data,
                 baseLight = baseLight
             };
-            chunks[flatIndex] = chunk;
+            Chunks[flatIndex] = chunk;
         }
 
         return chunk;
@@ -132,19 +132,19 @@ public class VoxelMap
     public void Reset(int sizex, int sizey, int sizez)
     {
         // Release pooled arrays from any existing chunks before discarding the array.
-        if (chunks != null)
+        if (Chunks != null)
         {
-            for (int i = 0; i < chunks.Length; i++)
+            for (int i = 0; i < Chunks.Length; i++)
             {
-                chunks[i]?.Release();
-                chunks[i] = null;
+                Chunks[i]?.Release();
+                Chunks[i] = null;
             }
         }
 
         MapSizeX = sizex;
         MapSizeY = sizey;
         MapSizeZ = sizez;
-        chunks = new Chunk[sizex / Game.chunksize * (sizey / Game.chunksize) * (sizez / Game.chunksize)];
+        Chunks = new Chunk[sizex / Game.chunksize * (sizey / Game.chunksize) * (sizez / Game.chunksize)];
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public class VoxelMap
                     {
                         continue;
                     }
-                    Chunk chunk = chunks[cpos];
+                    Chunk chunk = Chunks[cpos];
                     if (chunk == null || !chunk.HasData())
                     {
                         continue;
@@ -241,7 +241,7 @@ public class VoxelMap
         if (!IsValidChunkPos(cx, cy, cz))
             return;
 
-        Chunk c = chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
+        Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
         if (c == null)
             return;
 
@@ -343,7 +343,7 @@ public class VoxelMap
         int cz = z / Game.chunksize;
         if (IsValidPos(x, y, z) && IsValidChunkPos(cx, cy, cz))
         {
-            Chunk c = chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
+            Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
             if (c == null || c.rendered == null || c.rendered.Light == null)
             {
                 light = -1;
@@ -386,7 +386,7 @@ public class VoxelMap
     /// </summary>
     public bool IsChunkRendered(int cx, int cy, int cz)
     {
-        Chunk c = chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
+        Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
         if (c == null)
             return false;
         return c.rendered != null && c.rendered.Ids != null;

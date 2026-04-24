@@ -28,7 +28,7 @@ public class ModGuiEscapeMenu : ModBase
     private int widgetsCount;
     private void MainSet()
     {
-        Language language = game.language;
+        Language language = game.Language;
         buttonMainReturnToGame = new Button
         {
             Text = language.ReturnToGame()
@@ -61,7 +61,7 @@ public class ModGuiEscapeMenu : ModBase
         if (b == buttonMainExit)
         {
             game.SendLeave(PacketLeaveReason.Leave);
-            game.ExitToMainMenu_();
+            game.ExitToMainMenu();
         }
     }
 
@@ -71,7 +71,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button optionsReturnToMainMenu;
     private void OptionsSet()
     {
-        Language language = game.language;
+        Language language = game.Language;
         optionsGraphics = new Button
         {
             Text = language.Graphics()
@@ -128,7 +128,7 @@ public class ModGuiEscapeMenu : ModBase
     private void GraphicsSet()
     {
         GameOption options = game.options;
-        Language language = game.language;
+        Language language = game.Language;
         graphicsOptionSmoothShadows = new Button
         {
             Text = string.Format(language.OptionSmoothShadows(), options.Smoothshadows ? language.On() : language.Off())
@@ -139,7 +139,7 @@ public class ModGuiEscapeMenu : ModBase
         };
         graphicsViewDistanceOption = new Button
         {
-            Text = string.Format(language.ViewDistanceOption(), ((int)game.d_Config3d.ViewDistance).ToString())
+            Text = string.Format(language.ViewDistanceOption(), ((int)game.Config3d.ViewDistance).ToString())
         };
         graphicsOptionFramerate = new Button
         {
@@ -183,23 +183,23 @@ public class ModGuiEscapeMenu : ModBase
         if (b == graphicsOptionSmoothShadows)
         {
             options.Smoothshadows = !options.Smoothshadows;
-            game.d_TerrainChunkTesselator.EnableSmoothLight = options.Smoothshadows;
+            game.TerrainChunkTesselator.EnableSmoothLight = options.Smoothshadows;
             if (options.Smoothshadows)
             {
                 options.BlockShadowSave = one * 7 / 10;
-                game.d_TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
+                game.TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
             }
             else
             {
                 options.BlockShadowSave = one * 6 / 10;
-                game.d_TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
+                game.TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
             }
             game.RedrawAllBlocks();
         }
         if (b == graphicsOptionDarkenSides)
         {
             options.EnableBlockShadow = !options.EnableBlockShadow;
-            game.d_TerrainChunkTesselator.option_DarkenBlockSides = options.EnableBlockShadow;
+            game.TerrainChunkTesselator.option_DarkenBlockSides = options.EnableBlockShadow;
             game.RedrawAllBlocks();
         }
         if (b == graphicsViewDistanceOption)
@@ -240,7 +240,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button otherLanguageSetting;
     private void OtherSet()
     {
-        Language language = game.language;
+        Language language = game.Language;
 
         otherSoundOption = new Button
         {
@@ -279,7 +279,7 @@ public class ModGuiEscapeMenu : ModBase
         if (b == otherLanguageSetting)
         {
             //Switch language based on available languages
-            game.language.NextLanguage();
+            game.Language.NextLanguage();
         }
         if (b == otherReturnToOptionsMenu)
         {
@@ -295,7 +295,7 @@ public class ModGuiEscapeMenu : ModBase
     private const int keyButtonsCount = 1024;
     private void KeysSet()
     {
-        Language language = game.language;
+        Language language = game.Language;
 
         keyButtons = new Button[keyButtonsCount];
         for (int i = 0; i < keyButtonsCount; i++)
@@ -402,7 +402,7 @@ public class ModGuiEscapeMenu : ModBase
 
     private void SetEscapeMenuState(EscapeMenuState state)
     {
-        Language language = game.language;
+        Language language = game.Language;
         escapemenustate = state;
         WidgetsClear();
         if (state == EscapeMenuState.Main)
@@ -595,7 +595,7 @@ public class ModGuiEscapeMenu : ModBase
             game.escapeMenuRestart = false;
             SetEscapeMenuState(EscapeMenuState.Main);
         }
-        if (game.guistate != GuiState.EscapeMenu)
+        if (game.GuiState != GuiState.EscapeMenu)
         {
             return;
         }
@@ -616,7 +616,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             helps[i] = null;
         }
-        Language language = game.language;
+        Language language = game.Language;
         int count = 0;
         helps[count++] = KeyHelpCreate(language.KeyMoveFoward(), Keys.W);
         helps[count++] = KeyHelpCreate(language.KeyMoveBack(), Keys.S);
@@ -719,16 +719,16 @@ public class ModGuiEscapeMenu : ModBase
         game.Font = fontValues[options.Font];
         game.UpdateTextRendererFont();
         //game.d_CurrentShadows.ShadowsFull = options.Shadows;
-        game.d_Config3d.ViewDistance = options.DrawDistance;
+        game.Config3d.ViewDistance = options.DrawDistance;
         game.AudioEnabled = options.EnableSound;
         game.AutoJumpEnabled = options.EnableAutoJump;
         if (options.ClientLanguage != "")
         {
-            game.language.OverrideLanguage = options.ClientLanguage;
+            game.Language.OverrideLanguage = options.ClientLanguage;
         }
-        game.d_TerrainChunkTesselator.EnableSmoothLight = options.Smoothshadows;
-        game.d_TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
-        game.d_TerrainChunkTesselator.option_DarkenBlockSides = options.EnableBlockShadow;
+        game.TerrainChunkTesselator.EnableSmoothLight = options.Smoothshadows;
+        game.TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
+        game.TerrainChunkTesselator.option_DarkenBlockSides = options.EnableBlockShadow;
         game.ENABLE_LAG = options.Framerate;
         UseFullscreen();
         game.UseVsync();
@@ -773,17 +773,17 @@ public class ModGuiEscapeMenu : ModBase
 
         options.Font = game.Font;
         options.Shadows = true; // game.d_CurrentShadows.ShadowsFull;
-        options.DrawDistance = (int)game.d_Config3d.ViewDistance;
+        options.DrawDistance = (int)game.Config3d.ViewDistance;
         options.EnableSound = game.AudioEnabled;
         options.EnableAutoJump = game.AutoJumpEnabled;
-        if (game.language.OverrideLanguage != null)
+        if (game.Language.OverrideLanguage != null)
         {
-            options.ClientLanguage = game.language.OverrideLanguage;
+            options.ClientLanguage = game.Language.OverrideLanguage;
         }
         options.Framerate = game.ENABLE_LAG;
         options.Fullscreen = game.Platform.GetWindowState() == WindowState.Fullscreen;
-        options.Smoothshadows = game.d_TerrainChunkTesselator.EnableSmoothLight;
-        options.EnableBlockShadow = game.d_TerrainChunkTesselator.option_DarkenBlockSides;
+        options.Smoothshadows = game.TerrainChunkTesselator.EnableSmoothLight;
+        options.EnableBlockShadow = game.TerrainChunkTesselator.option_DarkenBlockSides;
 
         SaveOptions_(options);
     }

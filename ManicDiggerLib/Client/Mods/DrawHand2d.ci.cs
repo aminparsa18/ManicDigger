@@ -40,7 +40,7 @@ public class ModDrawHand2d : ModBase
         if (item == null) return null;
 
         return game.IronSights
-            ? game.blocktypes[item.BlockId].IronSightsImage
-            : game.blocktypes[item.BlockId].Handimage;
+            ? game.BlockTypes[item.BlockId].IronSightsImage
+            : game.BlockTypes[item.BlockId].Handimage;
     }
 }

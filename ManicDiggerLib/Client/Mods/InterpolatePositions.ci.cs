@@ -13,9 +13,9 @@ public class ModInterpolatePositions : ModBase
 
     internal static void InterpolatePositions(Game game, float dt)
     {
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity e = game.entities[i];
+            Entity e = game.Entities[i];
             if (e?.networkPosition == null) continue;
             if (i == game.LocalPlayerId) continue;
             if (!e.networkPosition.PositionLoaded) continue;

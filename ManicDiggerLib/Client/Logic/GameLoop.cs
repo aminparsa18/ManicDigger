@@ -85,7 +85,7 @@
     internal void FrameTick(float dt)
     {
         for (int i = 0; i < clientmods.Count; i++)
-            clientmods[i].OnNewFrameFixed(this, dt);
+            clientmods[i].OnNewFrameFixed(dt);
 
         for (int i = 0; i < Entities.Count; i++)
         {
@@ -127,12 +127,12 @@
         Draw2d(dt);
 
         for (int i = 0; i < clientmods.Count; i++)
-            clientmods[i]?.OnNewFrame(this, dt);
+            clientmods[i]?.OnNewFrame(dt);
 
-        mouseleftclick = mouserightclick = false;
+        MouseLeftClick = mouserightclick = false;
         mouseleftdeclick = mouserightdeclick = false;
 
-        if (!issingleplayer
+        if (!IsSinglePlayer
          || Platform.SinglePlayerServerLoaded()
          || !Platform.SinglePlayerServerAvailable())
         {

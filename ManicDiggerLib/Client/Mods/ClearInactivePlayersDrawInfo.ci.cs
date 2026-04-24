@@ -14,7 +14,7 @@ public class ModClearInactivePlayersDrawInfo : ModBase
         _platform = platform;
     }
 
-    public override void OnNewFrameFixed(Game game, float args)
+    public override void OnNewFrameFixed(float args)
     {
         int now = _platform.TimeMillisecondsFromStart;
 

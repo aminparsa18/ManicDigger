@@ -383,8 +383,8 @@ public class ModGuiEscapeMenu : ModBase
         for (int i = 0; i < widgetsCount; i++)
         {
             Button w = widgets[i];
-            w.selected = RectContains(w.x, w.y, w.width, w.height, game.mouseCurrentX, game.mouseCurrentY);
-            if (w.selected && game.mouseleftclick)
+            w.selected = RectContains(w.x, w.y, w.width, w.height, game.mouseCurrentX, game.MouseCurrentY);
+            if (w.selected && game.MouseLeftClick)
             {
                 HandleButtonClick(w);
                 break;

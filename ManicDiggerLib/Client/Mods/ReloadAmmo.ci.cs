@@ -5,18 +5,25 @@
 /// </summary>
 public class ModReloadAmmo : ModBase
 {
-    public override void OnNewFrameFixed(Game game, float args)
-    {
-        if (game.reloadstartMilliseconds == 0) return;
+    private readonly IGameClient game;
 
-        float elapsed = (game.Platform.TimeMillisecondsFromStart - game.reloadstartMilliseconds) / 1000f;
-        float reloadDelay = game.DecodeFixedPoint(game.BlockTypes[game.reloadblock].ReloadDelayFloat);
+    public ModReloadAmmo(IGameClient game)
+    {
+        this.game = game;
+    }
+
+    public override void OnNewFrameFixed(float args)
+    {
+        if (game.ReloadStartMilliseconds == 0) return;
+
+        float elapsed = (game.Platform.TimeMillisecondsFromStart - game.ReloadStartMilliseconds) / 1000f;
+        float reloadDelay = game.DecodeFixedPoint(game.BlockTypes[game.ReloadBlock].ReloadDelayFloat);
         if (elapsed <= reloadDelay) return;
 
-        int blockId = game.reloadblock;
+        int blockId = game.ReloadBlock;
         game.LoadedAmmo[blockId] = Math.Min(game.BlockTypes[blockId].AmmoMagazine, game.TotalAmmo[blockId]);
-        game.reloadstartMilliseconds = 0;
-        game.reloadblock = -1;
+        game.ReloadStartMilliseconds = 0;
+        game.ReloadBlock = -1;
     }
 
     public override void OnKeyDown(Game game, KeyEventArgs args)
@@ -24,16 +31,16 @@ public class ModReloadAmmo : ModBase
         if (game.GuiState != GuiState.Normal || game.GuiTyping != TypingState.None) return;
         if (args.KeyChar != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R)) return;
 
-        Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
+        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) return;
         if (!game.BlockTypes[item.BlockId].IsPistol) return;
-        if (game.reloadstartMilliseconds != 0) return;
+        if (game.ReloadStartMilliseconds != 0) return;
 
         var sounds = game.BlockTypes[item.BlockId].Sounds;
         int sound = game.rnd.Next() % sounds.Reload.Length;
         game.PlayAudio(sounds.Reload[sound] + ".ogg");
-        game.reloadstartMilliseconds = game.Platform.TimeMillisecondsFromStart;
-        game.reloadblock = item.BlockId;
+        game.ReloadStartMilliseconds = game.Platform.TimeMillisecondsFromStart;
+        game.ReloadBlock = item.BlockId;
         game.SendPacketClient(ClientPackets.Reload());
     }
 }

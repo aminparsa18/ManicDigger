@@ -19,7 +19,7 @@ public class ModBlockDamageToPlayer : ModBase
         blockDamageTimer = TimerCi.Create(BlockDamageToPlayerEvery, BlockDamageToPlayerEvery * 2);
     }
 
-    public override void OnNewFrameFixed(Game game, float args)
+    public override void OnNewFrameFixed(float args)
     {
         if (_client.GuiState == GuiState.MapLoading || _client.FollowId() != null)
             return;

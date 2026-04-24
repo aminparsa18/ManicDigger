@@ -363,7 +363,7 @@ public class ClientPackets
         return packet;
     }
 
-    public static Packet_Client PositionAndOrientation(Game game, int playerId,
+    public static Packet_Client PositionAndOrientation(int playerId,
      float positionX, float positionY, float positionZ,
      float orientationX, float orientationY, float orientationZ, byte stance)
     {

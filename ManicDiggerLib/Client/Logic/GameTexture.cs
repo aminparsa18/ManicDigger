@@ -106,7 +106,7 @@
     /// Uses a single <see cref="Dictionary{K,V}.TryGetValue"/> call instead of
     /// the previous <c>ContainsKey</c> + indexer double-lookup.
     /// </summary>
-    internal int GetTextureOrLoad(string name, Bitmap bmp)
+    public int GetTextureOrLoad(string name, Bitmap bmp)
     {
         if (!textures.TryGetValue(name, out int id))
         {

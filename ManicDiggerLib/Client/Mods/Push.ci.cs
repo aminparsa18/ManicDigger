@@ -6,11 +6,18 @@
 /// </summary>
 public class ModPush : ModBase
 {
-    public override void OnNewFrameFixed(Game game, float args)
+    private readonly IGameClient game;
+
+    public ModPush(IGameClient game)
     {
-        game.pushX = 0;
-        game.pushY = 0;
-        game.pushZ = 0;
+        this.game = game;
+    }
+
+    public override void OnNewFrameFixed(float args)
+    {
+        game.PushX = 0;
+        game.PushY = 0;
+        game.PushZ = 0;
 
         float pX = game.Player.position.x;
         float pY = game.Player.position.y;
@@ -35,9 +42,9 @@ public class ModPush : ModBase
 
             if (Vector3.Distance(new Vector3(kX, kY, kZ), new Vector3(pX, pY, pZ)) < game.DecodeFixedPoint(entity.push.RangeFloat))
             {
-                game.pushX += pX - kX;
-                game.pushY += pY - kY;
-                game.pushZ += pZ - kZ;
+                game.PushX += pX - kX;
+                game.PushY += pY - kY;
+                game.PushZ += pZ - kZ;
             }
         }
     }

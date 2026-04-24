@@ -6,42 +6,48 @@
 public class ModAudio : ModBase
 {
     private readonly Dictionary<string, AudioData> audioData = new();
+    private readonly IGameClient game;
     private bool wasLoaded;
 
-    public override void OnNewFrame(Game game, float args)
+    public ModAudio(IGameClient game)
     {
-        if (game.assetsLoadProgress != 1)
+        this.game = game;
+    }
+
+    public override void OnNewFrame(float args)
+    {
+        if (game.AssetsLoadProgress != 1)
             return;
 
         if (!wasLoaded)
         {
             wasLoaded = true;
-            Preload(game);
+            Preload();
         }
 
-        ProcessSounds(game);
+        ProcessSounds();
     }
 
-    private void ProcessSounds(Game game)
+    private void ProcessSounds()
     {
-        for (int i = 0; i < game.audio.soundsCount; i++)
+        for (int i = 0; i < game.Audio.soundsCount; i++)
         {
-            Sound sound = game.audio.sounds[i];
+            Sound sound = game.Audio.sounds[i];
             if (sound == null) continue;
 
-            TryLoad(game, i, sound);
-            TryUpdatePosition(game, sound);
-            TryStop(game, i, sound);
-            TryLoopOrFinish(game, i, sound);
+            TryLoad(i, sound);
+            TryUpdatePosition(sound);
+            TryStop(i, sound);
+            TryLoopOrFinish(i, sound);
         }
     }
 
     /// <summary>Attempts to create and play audio for a sound that hasn't been loaded yet.</summary>
-    private void TryLoad(Game game, int i, Sound sound)
+    private void TryLoad(int i, Sound sound)
     {
         if (sound.audio != null) return;
 
-        AudioData data = GetAudioData(game, sound.name);
+        AudioData data = GetAudioData(sound.name);
         if (game.Platform.AudioDataLoaded(data))
         {
             sound.audio = game.Platform.AudioCreate(data);
@@ -50,29 +56,29 @@ public class ModAudio : ModBase
     }
 
     /// <summary>Updates the 3D position of an active sound source.</summary>
-    private static void TryUpdatePosition(Game game, Sound sound)
+    private void TryUpdatePosition(Sound sound)
     {
         if (sound.audio == null) return;
         game.Platform.AudioSetPosition(sound.audio, sound.x, sound.y, sound.z);
     }
 
     /// <summary>Deletes and nulls out any sound marked for stopping.</summary>
-    private static void TryStop(Game game, int i, Sound sound)
+    private void TryStop(int i, Sound sound)
     {
         if (sound.audio == null || !sound.stop) return;
         game.Platform.AudioDelete(sound.audio);
-        game.audio.sounds[i] = null;
+        game.Audio.sounds[i] = null;
     }
 
     /// <summary>Loops finished looping sounds or clears finished one-shot sounds.</summary>
-    private void TryLoopOrFinish(Game game, int i, Sound sound)
+    private void TryLoopOrFinish(int i, Sound sound)
     {
         if (sound.audio == null) return;
         if (!game.Platform.AudioFinished(sound.audio)) return;
 
         if (sound.loop)
         {
-            AudioData data = GetAudioData(game, sound.name);
+            AudioData data = GetAudioData(sound.name);
             if (game.Platform.AudioDataLoaded(data))
             {
                 sound.audio = game.Platform.AudioCreate(data);
@@ -81,24 +87,24 @@ public class ModAudio : ModBase
         }
         else
         {
-            game.audio.sounds[i] = null;
+            game.Audio.sounds[i] = null;
         }
     }
 
     /// <summary>Preloads all .ogg assets found in the asset list.</summary>
-    private void Preload(Game game)
+    private void Preload()
     {
-        for (int k = 0; k < game.assets.Count; k++)
+        for (int k = 0; k < game.Assets.Count; k++)
         {
-            string name = game.assets[k].name;
+            string name = game.Assets[k].name;
             if (!name.EndsWith(".ogg")) 
                 continue;
-            GetAudioData(game, name);
+            GetAudioData(name);
         }
     }
 
     /// <summary>Returns cached audio data for the given sound name, loading it if necessary.</summary>
-    private AudioData GetAudioData(Game game, string sound)
+    private AudioData GetAudioData(string sound)
     {
         if (!audioData.TryGetValue(sound, out AudioData data))
         {

@@ -238,7 +238,7 @@ public class ModGuiInventory : ModBase
     public override void OnMouseWheelChanged(Game game_, MouseWheelEventArgs args)
     {
         float delta = args.OffsetY;
-        bool shiftHeld = game_.keyboardState[game_.GetKey(Keys.LeftShift)];
+        bool shiftHeld = game_.KeyboardState[game_.GetKey(Keys.LeftShift)];
 
         bool inNormalOrOutsideCells = game_.GuiState == GuiState.Normal
             || (game_.GuiState == GuiState.Inventory && !IsMouseOverCells());
@@ -264,7 +264,7 @@ public class ModGuiInventory : ModBase
         {
             dataItems = new InventoryUtils(game_);
             controller = ClientInventoryController.Create(game_);
-            inventoryUtil = game.d_InventoryUtil;
+            inventoryUtil = game.InventoryUtil;
         }
 
         if (game.GuiState == GuiState.MapLoading) { return; }
@@ -275,7 +275,7 @@ public class ModGuiInventory : ModBase
 
         AdvanceAutoScroll();
 
-        Point mouse = new(game.mouseCurrentX, game.mouseCurrentY);
+        Point mouse = new(game.mouseCurrentX, game.MouseCurrentY);
 
         game.Draw2dBitmapFile("inventory.png", InventoryStartX(), InventoryStartY(), 1024, 1024);
 
@@ -285,9 +285,9 @@ public class ModGuiInventory : ModBase
         DrawWearPlaceItems();
         DrawTooltips(mouse);
 
-        if (game.d_Inventory.DragDropItem != null)
+        if (game.Inventory.DragDropItem != null)
         {
-            DrawItem(mouse.X, mouse.Y, game.d_Inventory.DragDropItem, 0, 0);
+            DrawItem(mouse.X, mouse.Y, game.Inventory.DragDropItem, 0, 0);
         }
     }
 
@@ -296,7 +296,7 @@ public class ModGuiInventory : ModBase
     /// cell grid or its adjacent scroll buttons.
     /// </summary>
     public bool IsMouseOverCells()
-        => SelectedCellOrScrollbar(game.mouseCurrentX, game.mouseCurrentY);
+        => SelectedCellOrScrollbar(game.mouseCurrentX, game.MouseCurrentY);
 
     /// <summary>Scrolls the inventory grid up by one row, clamped to row 0.</summary>
     public void ScrollUp()
@@ -327,7 +327,7 @@ public class ModGuiInventory : ModBase
 
         for (int i = 0; i < 10; i++)
         {
-            Packet_Item item = game.d_Inventory.RightHand[i];
+            Packet_Item item = game.Inventory.RightHand[i];
             if (item != null)
             {
                 DrawItem(startX + i * cellSize, startY, item, cellSize, cellSize);
@@ -421,9 +421,9 @@ public class ModGuiInventory : ModBase
     /// <summary>Draws all items currently visible in the scrolled inventory grid.</summary>
     private void DrawInventoryItems()
     {
-        for (int i = 0; i < game.d_Inventory.Items.Length; i++)
+        for (int i = 0; i < game.Inventory.Items.Length; i++)
         {
-            Packet_PositionItem k = game.d_Inventory.Items[i];
+            Packet_PositionItem k = game.Inventory.Items[i];
             if (k == null) { continue; }
 
             int screenRow = k.Y - ScrollLine;
@@ -441,13 +441,13 @@ public class ModGuiInventory : ModBase
     /// </summary>
     private void DrawDragDropFeedback(Point mouse)
     {
-        if (game.d_Inventory.DragDropItem == null) { return; }
+        if (game.Inventory.DragDropItem == null) { return; }
 
         Point? cellInPage = SelectedCell(mouse);
         if (cellInPage != null)
         {
-            int sizex = dataItems.ItemSizeX(game.d_Inventory.DragDropItem);
-            int sizey = InventoryUtils.ItemSizeY(game.d_Inventory.DragDropItem);
+            int sizex = dataItems.ItemSizeX(game.Inventory.DragDropItem);
+            int sizey = InventoryUtils.ItemSizeY(game.Inventory.DragDropItem);
 
             if (cellInPage.Value.X + sizex <= _cellCountInPageX
              && cellInPage.Value.Y + sizey <= _cellCountInPageY)
@@ -474,7 +474,7 @@ public class ModGuiInventory : ModBase
                                _wearPlaceStart[wearSlot.Value].Y + InventoryStartY());
             Point cells = _wearPlaceCells[wearSlot.Value];
 
-            int color = InventoryUtils.CanWear((WearPlace)wearSlot.Value, game.d_Inventory.DragDropItem)
+            int color = InventoryUtils.CanWear((WearPlace)wearSlot.Value, game.Inventory.DragDropItem)
                 ? ColorUtils.ColorFromArgb(100, 0, 255, 0)   // green — can equip
                 : ColorUtils.ColorFromArgb(100, 255, 0, 0);  // red — cannot equip
 
@@ -488,11 +488,11 @@ public class ModGuiInventory : ModBase
     /// <summary>Draws the item currently equipped in each wear-place slot.</summary>
     private void DrawWearPlaceItems()
     {
-        DrawWearItem(WearPlace.RightHand, game.d_Inventory.RightHand[game.ActiveMaterial]);
-        DrawWearItem(WearPlace.MainArmor, game.d_Inventory.MainArmor);
-        DrawWearItem(WearPlace.Boots, game.d_Inventory.Boots);
-        DrawWearItem(WearPlace.Helmet, game.d_Inventory.Helmet);
-        DrawWearItem(WearPlace.Gauntlet, game.d_Inventory.Gauntlet);
+        DrawWearItem(WearPlace.RightHand, game.Inventory.RightHand[game.ActiveMaterial]);
+        DrawWearItem(WearPlace.MainArmor, game.Inventory.MainArmor);
+        DrawWearItem(WearPlace.Boots, game.Inventory.Boots);
+        DrawWearItem(WearPlace.Helmet, game.Inventory.Helmet);
+        DrawWearItem(WearPlace.Gauntlet, game.Inventory.Gauntlet);
     }
 
     /// <summary>Draws a single wear-place item at its configured slot origin.</summary>
@@ -517,7 +517,7 @@ public class ModGuiInventory : ModBase
             Point? itemOrigin = inventoryUtil.ItemAtCell(scrolledCell);
             if (itemOrigin != null)
             {
-                Packet_Item item = GetItem(game.d_Inventory, itemOrigin.Value.X, itemOrigin.Value.Y);
+                Packet_Item item = GetItem(game.Inventory, itemOrigin.Value.X, itemOrigin.Value.Y);
                 if (item != null) { DrawItemInfo(mouse.X, mouse.Y, item); }
             }
         }
@@ -532,7 +532,7 @@ public class ModGuiInventory : ModBase
         int? matSlot = SelectedMaterialSelectorSlot(mouse);
         if (matSlot != null)
         {
-            Packet_Item item = game.d_Inventory.RightHand[matSlot.Value];
+            Packet_Item item = game.Inventory.RightHand[matSlot.Value];
             if (item != null) { DrawItemInfo(mouse.X, mouse.Y, item); }
         }
     }

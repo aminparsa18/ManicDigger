@@ -31,9 +31,9 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
         singleplayerSavePath = singleplayerSavePath_;
         connectData = connectData_;
 
-        game.issingleplayer = singleplayer;
-        game.assets = Renderer.Assets;
-        game.assetsLoadProgress = Renderer.AssetsLoadProgress;
+        game.IsSinglePlayer = singleplayer;
+        game.Assets = Renderer.Assets;
+        game.AssetsLoadProgress = Renderer.AssetsLoadProgress;
 
         game.Start();
         Connect();

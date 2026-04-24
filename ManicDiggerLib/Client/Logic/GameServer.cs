@@ -87,7 +87,7 @@
 
     public void ExitAndSwitchServer(Packet_ServerRedirect newServer)
     {
-        if (issingleplayer)
+        if (IsSinglePlayer)
             Platform.SinglePlayerServerExit();
 
         redirectTo = newServer;
@@ -96,7 +96,7 @@
 
     public void ExitToMainMenu()
     {
-        if (issingleplayer)
+        if (IsSinglePlayer)
             Platform.SinglePlayerServerExit();
 
         redirectTo = null;

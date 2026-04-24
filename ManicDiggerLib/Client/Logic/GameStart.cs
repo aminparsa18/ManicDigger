@@ -58,8 +58,8 @@ public partial class Game
         // ── Inventory ─────────────────────────────────────────────────────────
         Packet_Inventory inventory = new() { RightHand = new Packet_Item[10] };
         InventoryUtils dataItems = new(this);
-        d_Inventory = inventory;
-        d_InventoryUtil = new InventoryUtilClient(inventory, dataItems);
+        Inventory = inventory;
+        InventoryUtil = new InventoryUtilClient(inventory, dataItems);
 
         // ── Misc ──────────────────────────────────────────────────────────────
         rnd = new Random();
@@ -72,7 +72,7 @@ public partial class Game
 
         // Prevent the loading screen from immediately showing the lag symbol.
         LastReceivedMilliseconds = Platform.TimeMillisecondsFromStart;
-        ENABLE_DRAW_TEST_CHARACTER = Platform.IsDebuggerAttached();
+        EnableDrawTestCharacter = Platform.IsDebuggerAttached();
 
         int detectedSize = Platform.GlGetMaxTextureSize();
         maxTextureSize = Math.Max(detectedSize, 1024);
@@ -89,39 +89,39 @@ public partial class Game
         AddMod(new ModDrawMain(this));
         AddMod(new ModUpdateMain(this));
         AddMod(new ModNetworkProcess(this, Platform));
-        AddMod(new ModNetworkEntity());
+        AddMod(new ModNetworkEntity(this));
         AddMod(new ModUnloadRendererChunks(this, Platform));
 
         // ── Camera ────────────────────────────────────────────────────────────
         AddMod(new ModAutoCamera(this, Platform));
-        AddMod(new ModCameraKeys());
+        AddMod(new ModCameraKeys(this));
         AddMod(new ModCamera());
 
         // ── Player logic ──────────────────────────────────────────────────────
-        AddMod(new ModFallDamageToPlayer());
+        AddMod(new ModFallDamageToPlayer(this));
         AddMod(new ModBlockDamageToPlayer(this, Platform));
-        AddMod(new ModLoadPlayerTextures());
-        AddMod(new ModSendPosition());
-        AddMod(new ModInterpolatePositions());
-        AddMod(new ModPush());
+        AddMod(new ModLoadPlayerTextures(this));
+        AddMod(new ModSendPosition(this));
+        AddMod(new ModInterpolatePositions(this));
+        AddMod(new ModPush(this));
 
         // ── Gameplay mechanics ────────────────────────────────────────────────
-        AddMod(new ModRail());
+        AddMod(new ModRail(this));
         AddMod(new ModCompass());
-        AddMod(new ModGrenade());
+        AddMod(new ModGrenade(this));
         AddMod(new ModBullet(this));
-        AddMod(new ModExpire());
+        AddMod(new ModExpire(this));
         AddMod(new ModPicking());
 
         // ── Inventory / ammo ──────────────────────────────────────────────────
-        AddMod(new ModReloadAmmo());
-        AddMod(new ModSendActiveMaterial());
-        AddMod(new ModGuiCrafting());
+        AddMod(new ModReloadAmmo(this));
+        AddMod(new ModSendActiveMaterial(this));
+        AddMod(new ModGuiCrafting(this));
         AddMod(new ModGuiInventory());
 
         // ── Audio ─────────────────────────────────────────────────────────────
-        AddMod(new ModWalkSound());
-        AddMod(new ModAudio());
+        AddMod(new ModWalkSound(this));
+        AddMod(new ModAudio(this));
 
         // ── Sky / environment (must precede terrain) ──────────────────────────
         if (Platform.IsFastSystem())
@@ -149,7 +149,7 @@ public partial class Game
         // ── Entity / player rendering ─────────────────────────────────────────
         AddMod(new ModDrawPlayers());
         AddMod(new ModDrawPlayerNames());
-        AddMod(new ModDrawTestModel());
+        AddMod(new ModDrawTestModel(this));
         AddMod(new ModClearInactivePlayersDrawInfo(this, Platform));
 
         // ── HUD / 2D overlay ──────────────────────────────────────────────────

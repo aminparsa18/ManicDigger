@@ -14,7 +14,7 @@ public partial class Game
 
         if (btn == (int)MouseButton.Left) 
         { 
-            mouseLeft = true; mouseleftclick = true;
+            mouseLeft = true; MouseLeftClick = true;
         }
         if (btn == (int)MouseButton.Middle) 
             mouseMiddle = true;
@@ -64,7 +64,7 @@ public partial class Game
         {
             // Set position only for real MouseMove events.
             mouseCurrentX = e.GetX();
-            mouseCurrentY = e.GetY();
+            MouseCurrentY = e.GetY();
         }
         if (e.GetEmulated() || e.GetForceUsage())
         {
@@ -84,10 +84,10 @@ public partial class Game
     {
         float delta = e.OffsetY;
 
-        if (keyboardState[GetKey(Keys.LeftShift)])
+        if (KeyboardState[GetKey(Keys.LeftShift)])
         {
             if (cameratype == CameraType.Overhead)
-                overheadcameradistance = Math.Clamp(overheadcameradistance - delta, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
+                OverHeadCameraDistance = Math.Clamp(OverHeadCameraDistance - delta, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
 
             if (cameratype == CameraType.Tpp)
                 tppcameradistance = Math.Clamp(tppcameradistance - delta, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
@@ -118,7 +118,7 @@ public partial class Game
 
         if (GuiState == GuiState.Normal && enableCameraControl && Platform.Focused())
         {
-            if (!overheadcamera && Platform.IsMousePointerLocked())
+            if (!OverheadCamera && Platform.IsMousePointerLocked())
             {
                 float rotScale = rotationspeed / 75f;
                 Player.position.roty += mouseSmoothingVelX * rotScale;
@@ -128,7 +128,7 @@ public partial class Game
                     MathF.PI / 2 + MathF.PI - (15 / 1000));
             }
 
-            if (!overheadcamera)
+            if (!OverheadCamera)
             {
                 float touchScale = constRotationSpeed * (1f / 75);
                 Player.position.rotx += touchOrientationDy * touchScale;
@@ -139,8 +139,8 @@ public partial class Game
 
             if (cameratype == CameraType.Overhead && (mouseMiddle || mouseRight))
             {
-                overheadcameraK.TurnLeft(mouseDeltaX / 70);
-                overheadcameraK.TurnUp(mouseDeltaY / 3);
+                OverheadCameraK.TurnLeft(mouseDeltaX / 70);
+                OverheadCameraK.TurnUp(mouseDeltaY / 3);
             }
         }
 
@@ -152,7 +152,7 @@ public partial class Game
     // Free mouse / pointer lock
     // -------------------------------------------------------------------------
 
-    public bool GetFreeMouse() => overheadcamera || !Platform.IsMousePointerLocked();
+    public bool GetFreeMouse() => OverheadCamera || !Platform.IsMousePointerLocked();
 
     public void SetFreeMouse(bool value)
     {
@@ -171,8 +171,8 @@ public partial class Game
     {
         InvalidVersionAllow();
         mouseCurrentX = e.GetX();
-        mouseCurrentY = e.GetY();
-        mouseleftclick = true;
+        MouseCurrentY = e.GetY();
+        MouseLeftClick = true;
 
         for (int i = 0; i < clientmods.Count; i++)
         {
@@ -195,7 +195,7 @@ public partial class Game
     public void OnTouchEnd(TouchEventArgs e)
     {
         mouseCurrentX = 0;
-        mouseCurrentY = 0;
+        MouseCurrentY = 0;
 
         for (int i = 0; i < clientmods.Count; i++)
         {
@@ -221,7 +221,7 @@ public partial class Game
             if (eKey.Handled) return;
         }
 
-        keyboardState[eKey.KeyChar] = false;
+        KeyboardState[eKey.KeyChar] = false;
 
         if (eKey.KeyChar == GetKey(Keys.LeftShift) || eKey.KeyChar == GetKey(Keys.RightShift))
             IsShiftPressed = false;
@@ -250,7 +250,7 @@ public partial class Game
             }
         }
 
-        keyboardState[eKey.KeyChar] = true;
+        KeyboardState[eKey.KeyChar] = true;
         InvalidVersionAllow();
 
         if (eKey.KeyChar == GetKey(Keys.LeftShift) || eKey.KeyChar == GetKey(Keys.RightShift))
@@ -346,16 +346,16 @@ public partial class Game
 
         if (eKey == GetKey(Keys.Equal))
         {
-            if (cameratype == CameraType.Overhead) overheadcameradistance -= 1;
+            if (cameratype == CameraType.Overhead) OverHeadCameraDistance -= 1;
             else if (cameratype == CameraType.Tpp) tppcameradistance -= 1;
         }
         if (eKey == GetKey(Keys.Minus) || eKey == GetKey(Keys.KeyPadSubtract))
         {
-            if (cameratype == CameraType.Overhead) overheadcameradistance += 1;
+            if (cameratype == CameraType.Overhead) OverHeadCameraDistance += 1;
             else if (cameratype == CameraType.Tpp) tppcameradistance += 1;
         }
 
-        overheadcameradistance = Math.Clamp(overheadcameradistance, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
+        OverHeadCameraDistance = Math.Clamp(OverHeadCameraDistance, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
         tppcameradistance = Math.Clamp(tppcameradistance, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
 
         if (eKey == GetKey(Keys.F6))
@@ -458,7 +458,7 @@ public partial class Game
         if (eKey == GetKey(Keys.KeyPad0)) { ActiveMaterial = 9; }
     }
 
-    internal int GetKey(Keys key)
+    public int GetKey(Keys key)
     {
         if (options == null)
         {

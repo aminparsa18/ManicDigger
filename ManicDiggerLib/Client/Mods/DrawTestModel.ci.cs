@@ -2,6 +2,13 @@
 
 public class ModDrawTestModel : ModBase
 {
+    private readonly IGameClient _game;
+
+    public ModDrawTestModel(IGameClient game)
+    {
+        _game = game;
+    }
+
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
         if (game.GuiState == GuiState.MapLoading)
@@ -14,7 +21,7 @@ public class ModDrawTestModel : ModBase
 
     private void DrawTestModel(Game game, float deltaTime)
     {
-        if (!game.ENABLE_DRAW_TEST_CHARACTER)
+        if (!game.EnableDrawTestCharacter)
         {
             return;
         }
@@ -35,11 +42,11 @@ public class ModDrawTestModel : ModBase
     }
     private AnimatedModelRenderer testmodel;
 
-    public override bool OnClientCommand(Game game, ClientCommandArgs args)
+    public override bool OnClientCommand(ClientCommandArgs args)
     {
         if (args.command == "testmodel")
         {
-            game.ENABLE_DRAW_TEST_CHARACTER = game.BoolCommandArgument(args.arguments);
+            _game.EnableDrawTestCharacter = _game.BoolCommandArgument(args.arguments);
             return true;
         }
         return false;

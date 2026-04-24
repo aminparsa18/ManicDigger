@@ -36,7 +36,7 @@ public class ModDrawHand2d : ModBase
     /// <summary>Returns the appropriate hand image path for the currently held item, or null if none.</summary>
     public static string HandImage2d(Game game)
     {
-        Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
+        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
         if (item == null) return null;
 
         return game.IronSights

@@ -36,8 +36,8 @@ public partial class Game : IGameClient
     // Fields — rendering / textures
     // -------------------------------------------------------------------------
 
-    internal List<Asset> assets;
-    internal float assetsLoadProgress;
+    public List<Asset> Assets { get; set; }
+    public float AssetsLoadProgress { get; set; }
     internal TextRenderer textRenderer;
 
     /// <summary>Texture IDs indexed by [blockId][TileSide].</summary>
@@ -64,6 +64,8 @@ public partial class Game : IGameClient
     internal Dictionary<string, int> textures;
     internal List<string> AllowedFonts;
 
+    public int ActiveMaterial { get; set; }
+
     // -------------------------------------------------------------------------
     // Fields — world / map
     // -------------------------------------------------------------------------
@@ -86,37 +88,37 @@ public partial class Game : IGameClient
     public float PlayerPositionSpawnY { get; set; }
     public float PlayerPositionSpawnZ { get; set; }
 
-    internal bool isplayeronground;
+    public bool IsPlayerOnGround { get; set; }
 
-    internal float pushX;
-    internal float pushY;
-    internal float pushZ;
+    public float PushX { get; set; }
+    public float PushY { get; set; }
+    public float PushZ { get; set; }
 
     private float lastplayerpositionX;
     private float lastplayerpositionY;
     private float lastplayerpositionZ;
 
-    internal bool reachedwall;
-    internal bool reachedwall_1blockhigh;
-    internal bool reachedHalfBlock;
-    internal float movedz;
+    public bool ReachedWall { get; set; }
+    public bool ReachedWall1BlockHigh { get; set; }
+    public bool ReachedHalfBlock { get; set; }
+    public float MovedZ {  get; set; }
 
     internal float constWallDistance;
     internal float constRotationSpeed;
-    internal AnimationHint localplayeranimationhint;
-    internal bool enable_move;
+    public AnimationHint LocalPlayerAnimationHint { get; set; }
+    public bool EnableMove { get; set; }
 
     internal bool stopPlayerMove;
     public GuiState GuiState { get; set; }
 
-    internal byte localstance;
+    public byte LocalStance { get; set; }
     public bool Spawned {  get; set; }
     internal bool IsShiftPressed;
     internal int playertexturedefault;
     public const string playertexturedefaultfilename = "mineplayer.png";
 
-    internal int reloadblock;
-    internal int reloadstartMilliseconds;
+    public int ReloadBlock {  get; set; }
+    public int ReloadStartMilliseconds {  get; set; }
     internal int lastOxygenTickMilliseconds;
     public int LastReceivedMilliseconds { get; set; }
 
@@ -132,7 +134,7 @@ public partial class Game : IGameClient
     internal int grenadetime;
     internal int PlayerPushDistance;
     internal bool AudioEnabled;
-    internal bool AutoJumpEnabled;
+    public bool AutoJumpEnabled { get; set; }
     public int[] TotalAmmo { get; set; }
     public int[] LoadedAmmo { get; set; }
     internal Dictionary<(int x, int y, int z), float> blockHealth = new();
@@ -143,7 +145,7 @@ public partial class Game : IGameClient
     internal Random rnd;
     internal Vector3i? currentAttackedBlock;
     public int CurrentTimeMilliseconds { get; set; }
-    internal int totaltimeMilliseconds;
+    public int TotalTimeMilliseconds { get; set; }
     public int ReceivedMapLength { get; set; }
     internal int maxdrawdistance;
 
@@ -151,7 +153,7 @@ public partial class Game : IGameClient
     internal int pistolcycle;
     internal int lastironsightschangeMilliseconds;
     internal int grenadecookingstartMilliseconds;
-    internal int lastpositionsentMilliseconds;
+    public int LastPositionSentMilliseconds {  get; set; }
 
     internal bool shadowssimple;
     public bool ShouldRedrawAllBlocks { get; set; }
@@ -176,8 +178,8 @@ public partial class Game : IGameClient
     internal bool ENABLE_TPP_VIEW;
     internal float znear;
     internal bool ENABLE_ZFAR;
-    internal float overheadcameradistance;
-    internal Camera overheadcameraK;
+    public float OverHeadCameraDistance { get; set; }
+    public Camera OverheadCameraK {  get; set; }
     internal float tppcameradistance;
     internal float TPP_CAMERA_DISTANCE_MIN;
     internal float TPP_CAMERA_DISTANCE_MAX;
@@ -211,13 +213,13 @@ public partial class Game : IGameClient
 
     public Controls Controls { get; set; }
     internal bool mouseSmoothing;
-    internal bool mouseleftclick;
+    public bool MouseLeftClick { get; set; }
     internal bool mouseleftdeclick;
     internal bool wasmouseleft;
     internal bool mouserightclick;
     internal bool mouserightdeclick;
     internal bool wasmouseright;
-    internal bool[] keyboardState;
+    public bool[] KeyboardState { get; set; }
     internal bool[] keyboardStateRaw;
 
     internal bool mouseLeft;
@@ -225,17 +227,17 @@ public partial class Game : IGameClient
     internal bool mouseRight;
 
     internal int mouseCurrentX;
-    internal int mouseCurrentY;
+    public int MouseCurrentY { get; set; }
     internal float mouseDeltaX;
     internal float mouseDeltaY;
     private float mouseSmoothingVelX;
     private float mouseSmoothingVelY;
     private float mouseSmoothingAccum;
     private bool mousePointerLockShouldBe;
-    internal bool overheadcamera;
+    public bool OverheadCamera { get; set; }
 
-    internal float touchMoveDx;
-    internal float touchMoveDy;
+    public float TouchMoveDx { get; set; }
+    public float TouchMoveDy { get; set; }
     internal float touchOrientationDx;
     internal float touchOrientationDy;
 
@@ -245,8 +247,8 @@ public partial class Game : IGameClient
     // Fields — audio
     // -------------------------------------------------------------------------
 
-    internal AudioControl audio;
-    internal bool soundnow;
+    public AudioControl Audio { get; set; }
+    public bool soundnow {  get; set; }
 
     // -------------------------------------------------------------------------
     // Fields — networking / server
@@ -264,7 +266,7 @@ public partial class Game : IGameClient
     public MemoryStream BlobDownload { get; set; }
 
     internal ConnectionData connectdata;
-    internal bool issingleplayer;
+    public bool IsSinglePlayer {  get; set; }
     internal bool reconnect;
     internal bool exitToMainMenu;
 
@@ -287,19 +289,19 @@ public partial class Game : IGameClient
     public TerrainChunkTesselator TerrainChunkTesselator { get; set; }
     public MeshBatcher Batcher { get; set; }
     public SunMoonRenderer SunMoonRenderer { get; set; }
-    internal InventoryUtilClient d_InventoryUtil;
+    public InventoryUtilClient InventoryUtil { get; set; }
     internal ModDrawParticleEffectBlockBreak particleEffectBlockBreak;
     public BlockTypeRegistry BlockRegistry { get; set; }
-    internal Packet_Inventory d_Inventory;
+    public Packet_Inventory Inventory { get; set; }
 
     internal int[] materialSlots;
     internal int Font;
     internal GameExit d_Exit;
 
     internal int typinglogpos;
-    internal TypingState GuiTyping;
+    public TypingState GuiTyping { get; set; }
 
-    internal bool ENABLE_DRAW_TEST_CHARACTER;
+    public bool EnableDrawTestCharacter { get; set; }
     internal bool ENABLE_DRAWPOSITION;
     internal bool ENABLE_DRAW2D;
     internal int ENABLE_LAG;
@@ -322,7 +324,7 @@ public partial class Game : IGameClient
     public string InvalidVersionDrawMessage { get; set; }
     public Packet_Server InvalidVersionPacketIdentification { get; set;}
 
-    internal Vector3 playerdestination;
+    public Vector3 PlayerDestination { get; set; }
     public string Follow { get; set; }
     private bool startedconnecting;
 
@@ -416,7 +418,7 @@ public partial class Game : IGameClient
         PlayerPositionSpawnZ = 15.5f;
 
         playervelocity = new Vector3();
-        movedz = 0;
+        MovedZ = 0;
         constWallDistance = 0.3f;
         constRotationSpeed = 180 / 20;
         RadiusWhenMoving = 3f / 10;
@@ -427,8 +429,8 @@ public partial class Game : IGameClient
         grenadetime = 3;
         PlayerPushDistance = 2;
 
-        localplayeranimationhint = new AnimationHint();
-        enable_move = true;
+        LocalPlayerAnimationHint = new AnimationHint();
+        EnableMove = true;
         AudioEnabled = true;
         AutoJumpEnabled = false;
 
@@ -457,8 +459,8 @@ public partial class Game : IGameClient
         ENABLE_TPP_VIEW = false;
         znear = 1f / 10;
         ENABLE_ZFAR = true;
-        overheadcameradistance = 10;
-        overheadcameraK = new Camera();
+        OverHeadCameraDistance = 10;
+        OverheadCameraK = new Camera();
         tppcameradistance = 3;
         TPP_CAMERA_DISTANCE_MIN = 1;
         TPP_CAMERA_DISTANCE_MAX = 10;
@@ -477,7 +479,7 @@ public partial class Game : IGameClient
     {
         Controls = new Controls();
         mouseSmoothing = true;
-        mouseleftclick = false;
+        MouseLeftClick = false;
         mouseleftdeclick = false;
         wasmouseleft = false;
         mouserightclick = false;
@@ -485,9 +487,9 @@ public partial class Game : IGameClient
         wasmouseright = false;
 
         const int KeysMax = 360;
-        keyboardState = new bool[KeysMax];
+        KeyboardState = new bool[KeysMax];
         for (int i = 0; i < KeysMax; i++)
-            keyboardState[i] = false;
+            KeyboardState[i] = false;
 
         keyboardStateRaw = new bool[KeysMax];
         for (int i = 0; i < KeysMax; i++)
@@ -518,6 +520,6 @@ public partial class Game : IGameClient
 
     private void InitAudio()
     {
-        audio = new AudioControl();
+        Audio = new AudioControl();
     }
 }

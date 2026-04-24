@@ -6,12 +6,19 @@ public class ModInterpolatePositions : ModBase
     private const int ExtrapolationTimeMs = 300;
     private const int MinDelayMs = 100;
 
-    public override void OnNewFrame(Game game, float args)
+    private readonly IGameClient game;
+
+    public ModInterpolatePositions(IGameClient game)
     {
-        InterpolatePositions(game, args);
+        this.game = game;
     }
 
-    internal static void InterpolatePositions(Game game, float dt)
+    public override void OnNewFrame(float args)
+    {
+        InterpolatePositions(args);
+    }
+
+    internal void InterpolatePositions(float dt)
     {
         for (int i = 0; i < game.Entities.Count; i++)
         {
@@ -21,17 +28,17 @@ public class ModInterpolatePositions : ModBase
             if (!e.networkPosition.PositionLoaded) continue;
 
             e.playerDrawInfo ??= new PlayerDrawInfo();
-            EnsureInterpolation(game, e);
+            EnsureInterpolation(e);
 
             e.playerDrawInfo.interpolation.DELAYMILLISECONDS =
                 Math.Max(MinDelayMs, game.ServerInfo.ServerPing.RoundtripMilliseconds);
 
-            UpdateInterpolation(game, i, e);
+            UpdateInterpolation(i, e);
         }
     }
 
     /// <summary>Initializes the network interpolation state for an entity if not already set up.</summary>
-    private static void EnsureInterpolation(Game game, Entity e)
+    private void EnsureInterpolation(Entity e)
     {
         if (e.playerDrawInfo.interpolation != null) return;
 
@@ -44,7 +51,7 @@ public class ModInterpolatePositions : ModBase
         };
     }
 
-    private static void UpdateInterpolation(Game game, int entityId, Entity e)
+    private void UpdateInterpolation(int entityId, Entity e)
     {
         PlayerDrawInfo info = e.playerDrawInfo;
         EntityPosition_ net = e.networkPosition;
@@ -65,11 +72,11 @@ public class ModInterpolatePositions : ModBase
                 rotx = net.rotx,
                 roty = net.roty,
                 rotz = net.rotz
-            }, game.totaltimeMilliseconds);
+            }, game.TotalTimeMilliseconds);
         }
 
         PlayerInterpolationState cur =
-            game.Platform.CastToPlayerInterpolationState(info.interpolation.InterpolatedState(game.totaltimeMilliseconds))
+            game.Platform.CastToPlayerInterpolationState(info.interpolation.InterpolatedState(game.TotalTimeMilliseconds))
             ?? new PlayerInterpolationState();
 
         // Bypass interpolation if the game world is controlling this entity's position

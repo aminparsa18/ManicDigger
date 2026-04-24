@@ -1,5 +1,6 @@
 ﻿
 using ManicDigger;
+using OpenTK.Mathematics;
 
 /// <summary>
 /// Provides mods with controlled access to game state, rendering, chat,
@@ -77,8 +78,8 @@ public interface IGameClient
     int WhiteTexture();
 
     /// <inheritdoc cref="Game.Draw2dTexture"/>
-    void Draw2dTexture(int textureid, int x, int y, int width, int height,
-                       int inAtlasId, int atlasIndex, int color, bool blend);
+    void Draw2dTexture(int textureid, float x, float y, float width, float height,
+                       int? inAtlasId, int atlasIndex, int color, bool blend);
 
     /// <inheritdoc cref="Game.Draw2dTextures"/>
     void Draw2dTextures(Draw2dData[] todraw, int todrawLength, int textureId);
@@ -255,6 +256,7 @@ public interface IGameClient
     MemoryStream BlobDownload { get; set; }
     void SetFile(string name, string md5, byte[] downloaded, int downloadedLength);
     void PlayAudio(string name, float x, float y, float z);
+    bool soundnow { get; set; }
     Packet_BlockType[] NewBlockTypes { get; set; }
     float DecodeFixedPoint(int value);
     string Follow { get; set; }
@@ -278,4 +280,71 @@ public interface IGameClient
     Entity Player { get; set; }
     bool Spawned { get; set; }
     void MapLoaded();
+
+    bool EnableDrawTestCharacter { get; set; }
+    bool BoolCommandArgument(string arguments);
+    float AssetsLoadProgress { get; set; }
+
+    AudioControl Audio { get; set; }
+    byte[] GetAssetFile(string p);
+    int GetAssetFileLength(string p);
+    List<Asset> Assets { get; set; }
+    int TotalTimeMilliseconds { get; set; }
+    bool IsSinglePlayer { get; set; }
+    int GetTextureOrLoad(string name, Bitmap bmp);
+    int LastPositionSentMilliseconds { get; set; }
+    byte LocalStance { get; set; }
+
+    TypingState GuiTyping { get; set; }
+    bool OverheadCamera { get; set; }
+    bool EnableMove { get; set; }
+    bool[] KeyboardState { get; set; }
+    int GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys key);
+    bool ReachedWall1BlockHigh { get; set; }
+    bool AutoJumpEnabled { get; set; }
+    bool ReachedHalfBlock { get; set; }
+    Camera OverheadCameraK { get; set; }
+    float OverHeadCameraDistance { get; set; }
+    Vector3 PlayerDestination { get; set; }
+    bool ReachedWall { get; set; }
+
+    AnimationHint LocalPlayerAnimationHint { get; set; }
+    float TouchMoveDx { get; set; }
+    float TouchMoveDy { get; set; }
+
+    bool SwimmingEyes();
+
+    void PlayAudioAt(string file, float x, float y, float z);
+    float MovedZ { get; set; }
+
+    int PlayerEyesBlockX { get; }
+
+    int PlayerEyesBlockY { get; }
+    int PlayerEyesBlockZ { get; }
+    void AudioPlayLoop(string file, bool play, bool restart);
+
+    int Blockheight(int x, int y, int z);
+    bool IsWater(int blockType);
+    bool IsTileEmptyForPhysics(int x, int y, int z);
+    int Ycenter(float height);
+
+    int MouseCurrentY { get; set; }
+    bool MouseLeftClick { get; set; }
+
+    float PushX { get; set; }
+    float PushY { get; set; }
+    float PushZ { get; set; }
+    void PlayAudio(string file);
+    void SetCharacterEyesHeight(float value);
+    float GetCharacterEyesHeight();
+
+    int ReloadStartMilliseconds { get; set; }
+
+    int ReloadBlock { get; set; }
+
+    Packet_Inventory Inventory { get; set; }
+    InventoryUtilClient InventoryUtil { get; set; }
+    int ActiveMaterial { get; set; }
+    bool IsPlayerOnGround { get; set; }
+    int BlockUnderPlayer();
 }

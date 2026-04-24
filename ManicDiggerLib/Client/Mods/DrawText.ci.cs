@@ -24,7 +24,7 @@ public class ModDrawText : ModBase
             float posZ = MathF.Cos(e.position.roty) * p.dz + e.position.z;
 
             bool nearEnough = Vector3.Distance(new Vector3(game.Player.position.x, game.Player.position.y, game.Player.position.z), new Vector3(posX, posY, posZ)) < TextDrawDistance;
-            bool altHeld = game.keyboardState[Game.KeyAltLeft] || game.keyboardState[Game.KeyAltRight];
+            bool altHeld = game.KeyboardState[Game.KeyAltLeft] || game.KeyboardState[Game.KeyAltRight];
             if (!nearEnough && !altHeld) continue;
 
             DrawText(game, e, p, posX, posY, posZ);

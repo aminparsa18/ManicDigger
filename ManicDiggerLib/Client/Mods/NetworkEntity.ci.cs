@@ -11,14 +11,17 @@ public class ModNetworkEntity : ModBase
     /// <summary>True once the three packet handlers have been registered.</summary>
     private bool _handlersRegistered;
 
-    public ModNetworkEntity()
+    private readonly IGameClient game;
+
+    public ModNetworkEntity(IGameClient game)
     {
+        this.game = game;
         _spawn = new ClientPacketHandlerEntitySpawn();
         _position = new ClientPacketHandlerEntityPosition();
         _despawn = new ClientPacketHandlerEntityDespawn();
     }
 
-    public override void OnNewFrame(Game game, float args)
+    public override void OnNewFrame(float args)
     {
         // Register once — previously wrote to the handler dictionary every frame.
         if (!_handlersRegistered)

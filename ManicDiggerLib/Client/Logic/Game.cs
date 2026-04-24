@@ -30,10 +30,10 @@ public partial class Game : IMeshDrawer, IGameClient
     // ── Screen / layout helpers ───────────────────────────────────────────────
 
     /// <summary>Returns the X coordinate that centres a region of <paramref name="width"/> pixels.</summary>
-    internal int Xcenter(float width) => Platform.GetCanvasWidth() / 2 - (int)width / 2;
+    public int Xcenter(float width) => Platform.GetCanvasWidth() / 2 - (int)width / 2;
 
     /// <summary>Returns the Y coordinate that centres a region of <paramref name="height"/> pixels.</summary>
-    internal int Ycenter(float height) => Platform.GetCanvasHeight() / 2 - (int)height / 2;
+    public int Ycenter(float height) => Platform.GetCanvasHeight() / 2 - (int)height / 2;
 
     /// <summary>Current canvas width in pixels.</summary>
     public int Width() => Platform.GetCanvasWidth();
@@ -121,7 +121,7 @@ public partial class Game : IMeshDrawer, IGameClient
     /// </summary>
     public int MaterialSlots_(int i)
     {
-        Packet_Item item = d_Inventory.RightHand[i];
+        Packet_Item item = Inventory.RightHand[i];
         if (item != null && item.ItemClass == ItemClass.Block)
             return item.BlockId;
         return BlockRegistry.BlockIdDirt;
@@ -130,8 +130,8 @@ public partial class Game : IMeshDrawer, IGameClient
     /// <summary>Replaces the active inventory with the server-sent packet and notifies the util layer.</summary>
     public void UseInventory(Packet_Inventory packet_Inventory)
     {
-        d_Inventory = packet_Inventory;
-        d_InventoryUtil.UpdateInventory(packet_Inventory);
+        Inventory = packet_Inventory;
+        InventoryUtil.UpdateInventory(packet_Inventory);
     }
 
     // ── Dialog helpers ────────────────────────────────────────────────────────
@@ -481,10 +481,7 @@ public partial class Game : IMeshDrawer, IGameClient
         SendChat(message);
     }
 
-    public void Draw2dTexture(int textureid, int x, int y, int width, int height, int inAtlasId, int atlasIndex, int color, bool blend)
-    {
-        throw new NotImplementedException();
-    }
+
 
     public void Draw2dText(string text, Font font, float x, float y, object extra, bool shadow)
     {

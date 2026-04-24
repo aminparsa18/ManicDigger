@@ -109,9 +109,11 @@ public class ScriptCharacterPhysics : IEntityScript
         }
 
         Update(game.Player.position, move, dt,
-            out game.soundnow,
-            new Vector3(game.pushX, game.pushY, game.pushZ),
+            out bool soundNow,
+            new Vector3(game.PushX, game.PushY, game.PushZ),
             game.Entities[game.LocalPlayerId].drawModel.ModelHeight);
+
+        game.soundnow = soundNow;
     }
 
     // ── Core physics update ───────────────────────────────────────────────────
@@ -213,7 +215,7 @@ public class ScriptCharacterPhysics : IEntityScript
                 ? -constGravity * constWaterGravityMultiplier
                 : -constGravity;
         }
-        game.movedz = movedz;
+        game.MovedZ = movedz;
 
         if (constEnableAcceleration)
         {
@@ -337,7 +339,7 @@ public class ScriptCharacterPhysics : IEntityScript
             isplayeronground = true;
         }
 
-        game.isplayeronground = isplayeronground;
+        game.IsPlayerOnGround = isplayeronground;
     }
 
     // ── Collision helpers ─────────────────────────────────────────────────────
@@ -376,9 +378,9 @@ public class ScriptCharacterPhysics : IEntityScript
         oldposition.Y += game.constWallDistance;
         newposition.Y += game.constWallDistance;
 
-        game.reachedwall = false;
-        game.reachedwall_1blockhigh = false;
-        game.reachedHalfBlock = false;
+        game.ReachedWall = false;
+        game.ReachedWall1BlockHigh = false;
+        game.ReachedHalfBlock = false;
 
         tmpPlayerPosition.X = oldposition.X;
         tmpPlayerPosition.Y = oldposition.Y;
@@ -391,12 +393,12 @@ public class ScriptCharacterPhysics : IEntityScript
         }
         else
         {
-            game.reachedwall = true;
+            game.ReachedWall = true;
             if (IsEmptyPoint(newposition.X, tmpPlayerPosition.Y + 0.5f, tmpPlayerPosition.Z, out _))
             {
-                game.reachedwall_1blockhigh = true;
-                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
-                if (StandingOnHalfBlock(newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z)) game.reachedHalfBlock = true;
+                game.ReachedWall1BlockHigh = true;
+                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.ReachedHalfBlock = true;
+                if (StandingOnHalfBlock(newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z)) game.ReachedHalfBlock = true;
             }
         }
 
@@ -411,12 +413,12 @@ public class ScriptCharacterPhysics : IEntityScript
         }
         else
         {
-            game.reachedwall = true;
+            game.ReachedWall = true;
             if (IsEmptyPoint(tmpPlayerPosition.X, tmpPlayerPosition.Y + 0.5f, newposition.Z, out _))
             {
-                game.reachedwall_1blockhigh = true;
-                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
-                if (StandingOnHalfBlock(tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z)) game.reachedHalfBlock = true;
+                game.ReachedWall1BlockHigh = true;
+                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.ReachedHalfBlock = true;
+                if (StandingOnHalfBlock(tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z)) game.ReachedHalfBlock = true;
             }
         }
 

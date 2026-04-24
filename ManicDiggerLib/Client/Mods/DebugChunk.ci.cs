@@ -7,7 +7,7 @@ public class ModDebugChunk : ModBase
     private bool draw;
     private readonly DrawWireframeCube lines = new();
 
-    public override bool OnClientCommand(Game game, ClientCommandArgs args)
+    public override bool OnClientCommand(ClientCommandArgs args)
     {
         if (args.command != "chunk") return false;
         draw = !draw;

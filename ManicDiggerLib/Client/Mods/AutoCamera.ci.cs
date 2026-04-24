@@ -72,7 +72,7 @@ public class ModAutoCamera : ModBase
     }
 
     /// <inheritdoc/>
-    public override bool OnClientCommand(Game game, ClientCommandArgs args)
+    public override bool OnClientCommand(ClientCommandArgs args)
     {
         if (args.command != "cam")
         {
@@ -126,7 +126,7 @@ public class ModAutoCamera : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame(Game game, float args)
+    public override void OnNewFrame(float args)
     {
         if (_playingTime == -1)
         {

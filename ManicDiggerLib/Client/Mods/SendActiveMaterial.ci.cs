@@ -4,10 +4,16 @@
 public class ModSendActiveMaterial : ModBase
 {
     private int previousActiveMaterialBlock;
+    private readonly IGameClient game;
 
-    public override void OnNewFrameFixed(Game game, float args)
+    public ModSendActiveMaterial(IGameClient game)
     {
-        int activeBlock = game.d_Inventory.RightHand[game.ActiveMaterial]?.BlockId ?? 0;
+        this.game = game;
+    }
+
+    public override void OnNewFrameFixed(float args)
+    {
+        int activeBlock = game.Inventory.RightHand[game.ActiveMaterial]?.BlockId ?? 0;
 
         if (activeBlock != previousActiveMaterialBlock)
             game.SendPacketClient(ClientPackets.ActiveMaterialSlot(game.ActiveMaterial));

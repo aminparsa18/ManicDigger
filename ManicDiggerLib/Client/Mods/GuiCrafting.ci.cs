@@ -57,8 +57,11 @@ public class ModGuiCrafting : ModBase
     /// </summary>
     private bool _handlerRegistered;
 
-    public ModGuiCrafting()
+    private IGameClient game;
+
+    public ModGuiCrafting(IGameClient game)
     {
+        this.game = game;
         handler = new PacketHandlerCraftingRecipes { mod = this };
     }
 
@@ -84,10 +87,10 @@ public class ModGuiCrafting : ModBase
             DrawCraftingRecipes(game);
     }
 
-    public override void OnNewFrameFixed(Game game, float args)
+    public override void OnNewFrameFixed(float args)
     {
         if (game.GuiState == GuiState.CraftingRecipes)
-            CraftingMouse(game);
+            CraftingMouse();
     }
 
     public override void OnKeyDown(Game game, KeyEventArgs args)
@@ -188,25 +191,25 @@ public class ModGuiCrafting : ModBase
 
     // ── Input ─────────────────────────────────────────────────────────────────
 
-    internal void CraftingMouse(Game game)
+    internal void CraftingMouse()
     {
         if (currentRecipesCount == 0) return;
 
         int menuY = game.Ycenter(currentRecipesCount * RecipeRowHeight);
 
-        if (game.mouseCurrentY >= menuY
-         && game.mouseCurrentY < menuY + currentRecipesCount * RecipeRowHeight)
+        if (game.MouseCurrentY >= menuY
+         && game.MouseCurrentY < menuY + currentRecipesCount * RecipeRowHeight)
         {
-            craftingSelectedRecipe = (game.mouseCurrentY - menuY) / RecipeRowHeight;
+            craftingSelectedRecipe = (game.MouseCurrentY - menuY) / RecipeRowHeight;
         }
 
-        if (!game.mouseleftclick) return;
+        if (!game.MouseLeftClick) return;
 
         game.SendPacketClient(ClientPackets.Craft(
             craftingTablePosX, craftingTablePosY, craftingTablePosZ,
             currentRecipes[craftingSelectedRecipe]));
 
-        game.mouseleftclick = false;
+        game.MouseLeftClick = false;
         game.GuiStateBackToGame();
     }
 

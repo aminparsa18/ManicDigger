@@ -11,12 +11,12 @@ public partial class Game
     public float EyesPosY() => Player.position.y + GetCharacterEyesHeight();
     public float EyesPosZ() => Player.position.z;
 
-    internal float GetCharacterEyesHeight() => Entities[LocalPlayerId].drawModel.eyeHeight;
-    internal void SetCharacterEyesHeight(float value) => Entities[LocalPlayerId].drawModel.eyeHeight = value;
+    public float GetCharacterEyesHeight() => Entities[LocalPlayerId].drawModel.eyeHeight;
+    public void SetCharacterEyesHeight(float value) => Entities[LocalPlayerId].drawModel.eyeHeight = value;
 
-    public int GetPlayerEyesBlockX() => (int)MathF.Floor(Player.position.x);
-    public int GetPlayerEyesBlockY() => (int)MathF.Floor(Player.position.z);
-    public int GetPlayerEyesBlockZ() => (int)MathF.Floor(Player.position.y + GetCharacterEyesHeight());
+    public int PlayerEyesBlockX => (int)MathF.Floor(Player.position.x);
+    public int PlayerEyesBlockY => (int)MathF.Floor(Player.position.z);
+    public int PlayerEyesBlockZ => (int)MathF.Floor(Player.position.y + GetCharacterEyesHeight());
 
     internal int GetPlayerEyesBlock()
     {
@@ -34,7 +34,7 @@ public partial class Game
     // Swimming state
     // -------------------------------------------------------------------------
 
-    internal bool SwimmingEyes()
+    public bool SwimmingEyes()
     {
         int eyesBlock = GetPlayerEyesBlock();
         if (eyesBlock == -1) return true;
@@ -59,7 +59,7 @@ public partial class Game
     // Block under / in hand
     // -------------------------------------------------------------------------
 
-    internal int BlockUnderPlayer()
+    public int BlockUnderPlayer()
     {
         if (!VoxelMap.IsValidPos((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1))
             return -1;
@@ -69,11 +69,11 @@ public partial class Game
 
     internal int? BlockInHand()
     {
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
+        Packet_Item item = Inventory.RightHand[ActiveMaterial];
         return item != null && item.ItemClass == ItemClass.Block ? item.BlockId : null;
     }
 
-    internal bool IsWearingWeapon() => d_Inventory.RightHand[ActiveMaterial] != null;
+    internal bool IsWearingWeapon() => Inventory.RightHand[ActiveMaterial] != null;
 
     // -------------------------------------------------------------------------
     // Movement speed
@@ -90,12 +90,12 @@ public partial class Game
             if (floorSpeed != 0) speed *= floorSpeed;
         }
 
-        if (keyboardState[GetKey(Keys.LeftShift)])
+        if (KeyboardState[GetKey(Keys.LeftShift)])
         {
             speed *=  2 / 10;
         }
 
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
+        Packet_Item item = Inventory.RightHand[ActiveMaterial];
         if (item != null && item.ItemClass == ItemClass.Block)
         {
             float itemSpeed = DecodeFixedPoint(BlockTypes[item.BlockId].WalkSpeedWhenUsedFloat);
@@ -119,7 +119,7 @@ public partial class Game
     {
         if (IronSights)
         {
-            Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
+            Packet_Item item = Inventory.RightHand[ActiveMaterial];
             if (item != null && item.ItemClass == ItemClass.Block)
             {
                 float ironFov = DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsFovFloat);
@@ -131,14 +131,14 @@ public partial class Game
 
     internal float CurrentRecoil()
     {
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
+        Packet_Item item = Inventory.RightHand[ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) return 0;
         return DecodeFixedPoint(BlockTypes[item.BlockId].RecoilFloat);
     }
 
     internal float CurrentAimRadius()
     {
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
+        Packet_Item item = Inventory.RightHand[ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) return 0;
 
         float radius = IronSights

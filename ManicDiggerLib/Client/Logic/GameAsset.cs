@@ -6,9 +6,9 @@
 
     private bool HasAsset(string md5, string name)
     {
-        for (int i = 0; i < assets.Count; i++)
+        for (int i = 0; i < Assets.Count; i++)
         {
-            Asset a = assets[i];
+            Asset a = Assets[i];
             // Check both MD5 and name as there might be files with same content.
             if (a.md5 == md5 && a.name == name)
                 return true;
@@ -16,24 +16,24 @@
         return false;
     }
 
-    internal byte[] GetAssetFile(string p)
+    public byte[] GetAssetFile(string p)
     {
         string pLower = p.ToLowerInvariant();
-        for (int i = 0; i < assets.Count; i++)
+        for (int i = 0; i < Assets.Count; i++)
         {
-            if (assets[i].name == pLower)
-                return assets[i].data;
+            if (Assets[i].name == pLower)
+                return Assets[i].data;
         }
         return null;
     }
 
-    internal int GetAssetFileLength(string p)
+    public int GetAssetFileLength(string p)
     {
         string pLower = p.ToLowerInvariant();
-        for (int i = 0; i < assets.Count; i++)
+        for (int i = 0; i < Assets.Count; i++)
         {
-            if (assets[i].name == pLower)
-                return assets[i].dataLength;
+            if (Assets[i].name == pLower)
+                return Assets[i].dataLength;
         }
         return 0;
     }
@@ -71,21 +71,21 @@
             md5 = md5
         };
 
-        for (int i = 0; i < assets.Count; i++)
+        for (int i = 0; i < Assets.Count; i++)
         {
-            if (assets[i] == null)
+            if (Assets[i] == null)
                 continue;
 
-            if (assets[i].name == nameLower)
+            if (Assets[i].name == nameLower)
             {
                 if (options.UseServerTextures)
-                    assets[i] = newAsset;
+                    Assets[i] = newAsset;
 
                 CacheAsset(newAsset);
                 return;
             }
         }
-        assets.Add(newAsset);
+        Assets.Add(newAsset);
         CacheAsset(newAsset);
     }
 }

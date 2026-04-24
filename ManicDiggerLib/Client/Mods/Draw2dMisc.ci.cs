@@ -135,14 +135,14 @@ public class ModDraw2dMisc : ModBase
     {
         if (!game.GetFreeMouse()) return;
         if (!game.Platform.MouseCursorIsVisible())
-            game.Draw2dBitmapFile("mousecursor.png", game.mouseCurrentX, game.mouseCurrentY, 32, 32);
+            game.Draw2dBitmapFile("mousecursor.png", game.mouseCurrentX, game.MouseCurrentY, 32, 32);
     }
 
     // ── Ammo counter ──────────────────────────────────────────────────────────
 
     internal static void DrawAmmo(Game game)
     {
-        Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
+        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) return;
         if (!game.BlockTypes[item.BlockId].IsPistol) return;
 
@@ -198,7 +198,7 @@ public class ModDraw2dMisc : ModBase
         if (lagSeconds < Game.DISCONNECTED_ICON_AFTER_SECONDS) return;
         if (lagSeconds >= 60 * 60 * 24) return;
         if (game.InvalidVersionDrawMessage != null) return;
-        if (game.issingleplayer && !game.Platform.SinglePlayerServerLoaded()) return;
+        if (game.IsSinglePlayer && !game.Platform.SinglePlayerServerLoaded()) return;
 
         game.Draw2dBitmapFile("disconnected.png", game.Width() - 100, 50, 50, 50);
 

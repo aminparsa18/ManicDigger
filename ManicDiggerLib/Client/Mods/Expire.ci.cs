@@ -6,7 +6,14 @@ using OpenTK.Mathematics;
 /// </summary>
 public class ModExpire : ModBase
 {
-    public override void OnNewFrameFixed(Game game, float args)
+    private readonly IGameClient game;
+
+    public ModExpire(IGameClient game)
+    {
+        this.game = game;
+    }
+
+    public override void OnNewFrameFixed(float args)
     {
         float dt = args;
         for (int i = 0; i < game.Entities.Count; i++)
@@ -18,13 +25,13 @@ public class ModExpire : ModBase
             if (entity.expires.timeLeft > 0) continue;
 
             if (entity.grenade != null)
-                GrenadeExplosion(game, i);
+                GrenadeExplosion(i);
 
             game.Entities[i] = null;
         }
     }
 
-    private static void GrenadeExplosion(Game game, int grenadeEntityId)
+    private void GrenadeExplosion(int grenadeEntityId)
     {
         Entity grenadeEntity = game.Entities[grenadeEntityId];
         Sprite sprite = grenadeEntity.sprite;

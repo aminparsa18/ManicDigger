@@ -15,13 +15,13 @@ public abstract class ModBase
     public virtual void OnReadWriteMainThread(Game game, float dt) { }
 
     /// <summary>Called when the player issues a client-side command. Return <see langword="true"/> to mark the command as handled.</summary>
-    public virtual bool OnClientCommand(Game game, ClientCommandArgs args) => false;
+    public virtual bool OnClientCommand(ClientCommandArgs args) => false;
 
     /// <summary>Called at the start of each frame.</summary>
-    public virtual void OnNewFrame(Game game, float args) { }
+    public virtual void OnNewFrame(float args) { }
 
     /// <summary>Called each fixed-timestep frame update.</summary>
-    public virtual void OnNewFrameFixed(Game game, float args) { }
+    public virtual void OnNewFrameFixed(float args) { }
 
     /// <summary>Called during the 2D draw pass of each frame.</summary>
     public virtual void OnNewFrameDraw2d(Game game, float deltaTime) { }

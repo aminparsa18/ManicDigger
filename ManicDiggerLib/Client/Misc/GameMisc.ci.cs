@@ -391,7 +391,7 @@ public class VisibleDialog
 
 public class RailMapUtil
 {
-    internal Game game;
+    internal IGameClient game;
     public RailSlope GetRailSlope(int x, int y, int z)
     {
         int tiletype = game.VoxelMap.GetBlock(x, y, z);

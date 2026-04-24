@@ -33,7 +33,7 @@ public class ModFpsHistoryGraph : ModBase
     }
     
     /// <inheritdoc/>
-    public override void OnNewFrame(Game game, float dt)
+    public override void OnNewFrame(float dt)
     {
         UpdateGraph(dt);
         UpdateTitleFps(dt);
@@ -51,7 +51,7 @@ public class ModFpsHistoryGraph : ModBase
     }
 
     /// <inheritdoc/>
-    public override bool OnClientCommand(Game game, ClientCommandArgs args)
+    public override bool OnClientCommand(ClientCommandArgs args)
     {
         if (args.command != "fps") return false;
 

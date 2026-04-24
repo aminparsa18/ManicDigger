@@ -171,7 +171,7 @@
         for (int i = 0; i < clientmods.Count; i++)
         {
             ClientCommandArgs args = new() { arguments = arguments, command = cmd };
-            clientmods[i].OnClientCommand(this, args);
+            clientmods[i].OnClientCommand(args);
         }
     }
 
@@ -189,7 +189,7 @@
 
             case "fov":
                 int arg = int.Parse(arguments);
-                int minfov = issingleplayer ? 1 : 60;
+                int minfov = IsSinglePlayer ? 1 : 60;
                 int maxfov = 179;
                 if (arg < minfov || arg > maxfov)
                     AddChatLine(string.Format("Valid field of view: {0}-{1}", minfov, maxfov));

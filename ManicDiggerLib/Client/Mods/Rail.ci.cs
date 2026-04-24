@@ -9,12 +9,6 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 public class ModRail : ModBase
 {
     /// <summary>
-    /// Floating-point literal <c>1.0f</c> stored in a field to prevent the Cito
-    /// transpiler from truncating integer-division expressions to integer arithmetic.
-    /// </summary>
-    private readonly float _one;
-
-    /// <summary>
     /// Height above the rail block at which the player sits inside the minecart
     /// (0.5 blocks by default, adjusted by <see cref="MinecartHeight"/>).
     /// </summary>
@@ -68,58 +62,60 @@ public class ModRail : ModBase
     /// <summary>Index (0–3) of the last rail clack sound played, cycled round-robin.</summary>
     private int _lastRailSoundIndex;
 
-    /// <summary>Returns the height of the minecart seat above the rail block origin.</summary>
-    internal float MinecartHeight() => _one / 2;
+    private readonly IGameClient game;
 
-    public ModRail()
+    /// <summary>Returns the height of the minecart seat above the rail block origin.</summary>
+    internal float MinecartHeight() => 1f / 2;
+
+    public ModRail(IGameClient game)
     {
-        _one = 1;
-        _railHeight = _one * 3 / 10;
+        this.game = game;
+        _railHeight = 0.3f;
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameFixed(Game game, float args)
+    public override void OnNewFrameFixed(float args)
     {
         d_RailMapUtil ??= new RailMapUtil { game = game };
-        RailOnNewFrame(game, args);
+        RailOnNewFrame(args);
     }
 
     /// <summary>
     /// Main per-fixed-frame update: syncs the minecart entity, handles player
     /// input, advances rail progress, and manages enter/exit logic.
     /// </summary>
-    internal void RailOnNewFrame(Game game, float dt)
+    internal void RailOnNewFrame(float dt)
     {
-        EnsureMinecartEntity(game);
+        EnsureMinecartEntity();
         SyncMinecartEntity();
 
-        game.localplayeranimationhint.InVehicle = railriding;
-        game.localplayeranimationhint.DrawFixX = 0;
-        game.localplayeranimationhint.DrawFixY = railriding ? -(_one * 7 / 10) : 0;
-        game.localplayeranimationhint.DrawFixZ = 0;
+        game.LocalPlayerAnimationHint.InVehicle = railriding;
+        game.LocalPlayerAnimationHint.DrawFixX = 0;
+        game.LocalPlayerAnimationHint.DrawFixY = railriding ? -0.07f : 0;
+        game.LocalPlayerAnimationHint.DrawFixZ = 0;
 
-        bool turnRight = game.keyboardState[game.GetKey(Keys.D)];
-        bool turnLeft = game.keyboardState[game.GetKey(Keys.A)];
+        bool turnRight = game.KeyboardState[game.GetKey(Keys.D)];
+        bool turnLeft = game.KeyboardState[game.GetKey(Keys.A)];
 
-        RailSound(game);
+        RailSound();
 
         if (railriding)
         {
-            AdvanceRailRiding(game, dt, turnLeft, turnRight);
+            AdvanceRailRiding(dt, turnLeft, turnRight);
         }
 
-        HandleSpeedInput(game, dt);
-        HandleReverseInput(game);
-        HandleEnterExitInput(game, turnLeft, turnRight);
+        HandleSpeedInput(dt);
+        HandleReverseInput();
+        HandleEnterExitInput(turnLeft, turnRight);
 
-        wasqpressed = game.keyboardState[game.GetKey(Keys.Q)] && game.GuiTyping != TypingState.Typing;
-        wasepressed = game.keyboardState[game.GetKey(Keys.E)] && game.GuiTyping != TypingState.Typing;
+        wasqpressed = game.KeyboardState[game.GetKey(Keys.Q)] && game.GuiTyping != TypingState.Typing;
+        wasepressed = game.KeyboardState[game.GetKey(Keys.E)] && game.GuiTyping != TypingState.Typing;
     }
 
     /// <summary>
     /// Creates the local minecart entity on the first frame if it does not yet exist.
     /// </summary>
-    private void EnsureMinecartEntity(Game game)
+    private void EnsureMinecartEntity()
     {
         if (localMinecart != null) { return; }
         localMinecart = new Entity { minecart = new Minecart() };
@@ -145,12 +141,12 @@ public class ModRail : ModBase
     /// Moves the player along the rail, advances block progress, and transitions
     /// to the next block when progress reaches 1.
     /// </summary>
-    private void AdvanceRailRiding(Game game, float dt, bool turnLeft, bool turnRight)
+    private void AdvanceRailRiding(float dt, bool turnLeft, bool turnRight)
     {
         game.Controls.freemove = true;
-        game.enable_move = false;
+        game.EnableMove = false;
 
-        Vector3 railPos = CurrentRailPos(game);
+        Vector3 railPos = CurrentRailPos();
         game.Player.position.x = railPos.X;
         game.Player.position.y = railPos.Y;
         game.Player.position.z = railPos.Z;
@@ -159,7 +155,7 @@ public class ModRail : ModBase
 
         if (currentrailblockprogress >= 1)
         {
-            AdvanceToNextBlock(game, turnLeft, turnRight);
+            AdvanceToNextBlock(turnLeft, turnRight);
         }
     }
 
@@ -167,7 +163,7 @@ public class ModRail : ModBase
     /// Moves the minecart into the next rail block, resolving slopes and turn
     /// direction. Reverses direction if no valid next block exists.
     /// </summary>
-    private void AdvanceToNextBlock(Game game, bool turnLeft, bool turnRight)
+    private void AdvanceToNextBlock(bool turnLeft, bool turnRight)
     {
         lastdirection = currentdirection;
         currentrailblockprogress = 0;
@@ -181,19 +177,19 @@ public class ModRail : ModBase
         TileEnterDirection enterDir = DirectionUtils.ResultEnter(DirectionUtils.ResultExit(currentdirection));
 
         // Slope: ascend if the current block ramps up in the exit direction.
-        if (GetUpDownMove(game, currentrailblockX, currentrailblockY, currentrailblockZ, enterDir) == UpDown.Up)
+        if (GetUpDownMove(currentrailblockX, currentrailblockY, currentrailblockZ, enterDir) == UpDown.Up)
         {
             newenter.BlockPositionZ++;
         }
         // Slope: descend if the next block ramps down in the enter direction.
-        if (GetUpDownMove(game, newenter.BlockPositionX, newenter.BlockPositionY, newenter.BlockPositionZ - 1, enterDir) == UpDown.Down)
+        if (GetUpDownMove(newenter.BlockPositionX, newenter.BlockPositionY, newenter.BlockPositionZ - 1, enterDir) == UpDown.Down)
         {
             newenter.BlockPositionZ--;
         }
 
         newenter.EnterDirection = enterDir;
 
-        VehicleDirection12 newDir = BestNewDirection(PossibleRails(game, newenter), turnLeft, turnRight, out bool found);
+        VehicleDirection12 newDir = BestNewDirection(PossibleRails(newenter), turnLeft, turnRight, out bool found);
         if (!found)
         {
             currentdirection = DirectionUtils.Reverse(currentdirection);
@@ -211,40 +207,40 @@ public class ModRail : ModBase
     /// Reads W/S keys to accelerate or brake the minecart.
     /// Speed is clamped to a minimum of zero.
     /// </summary>
-    private void HandleSpeedInput(Game game, float dt)
+    private void HandleSpeedInput(float dt)
     {
         if (game.GuiTyping == TypingState.Typing) { return; }
 
-        if (game.keyboardState[game.GetKey(Keys.W)]) { currentvehiclespeed += 1 * dt; }
-        if (game.keyboardState[game.GetKey(Keys.S)]) { currentvehiclespeed -= 5 * dt; }
+        if (game.KeyboardState[game.GetKey(Keys.W)]) { currentvehiclespeed += 1 * dt; }
+        if (game.KeyboardState[game.GetKey(Keys.S)]) { currentvehiclespeed -= 5 * dt; }
         if (currentvehiclespeed < 0) { currentvehiclespeed = 0; }
     }
 
     /// <summary>
     /// Edge-triggers the Q key to reverse the minecart's direction while riding.
     /// </summary>
-    private void HandleReverseInput(Game game)
+    private void HandleReverseInput()
     {
-        bool qPressed = game.keyboardState[game.GetKey(Keys.Q)] && game.GuiTyping != TypingState.Typing;
+        bool qPressed = game.KeyboardState[game.GetKey(Keys.Q)] && game.GuiTyping != TypingState.Typing;
         if (!wasqpressed && qPressed) { Reverse(); }
     }
 
     /// <summary>
     /// Edge-triggers the E key to enter an idle minecart or exit the current one.
     /// </summary>
-    private void HandleEnterExitInput(Game game, bool turnLeft, bool turnRight)
+    private void HandleEnterExitInput(bool turnLeft, bool turnRight)
     {
-        bool ePressed = game.keyboardState[game.GetKey(Keys.E)] && game.GuiTyping != TypingState.Typing;
+        bool ePressed = game.KeyboardState[game.GetKey(Keys.E)] && game.GuiTyping != TypingState.Typing;
         if (wasepressed || !ePressed) { return; }
 
         if (!railriding && !game.Controls.freemove)
         {
-            TryEnterMinecart(game);
+            TryEnterMinecart();
         }
         else if (railriding)
         {
-            ExitVehicle(game);
-            game.Player.position.y += _one * 7 / 10;
+            ExitVehicle();
+            game.Player.position.y += 0.7f;
         }
     }
 
@@ -253,7 +249,7 @@ public class ModRail : ModBase
     /// Sets the initial direction based on the rail type at that position.
     /// Exits immediately if no rail is found or the position is invalid.
     /// </summary>
-    private void TryEnterMinecart(Game game)
+    private void TryEnterMinecart()
     {
         currentrailblockX = (int)game.Player.position.x;
         currentrailblockY = (int)game.Player.position.z;
@@ -261,7 +257,7 @@ public class ModRail : ModBase
 
         if (!game.VoxelMap.IsValidPos(currentrailblockX, currentrailblockY, currentrailblockZ))
         {
-            ExitVehicle(game);
+            ExitVehicle();
             return;
         }
 
@@ -280,7 +276,7 @@ public class ModRail : ModBase
         else if ((railUnder & RailDirectionFlags.DownRight) != 0) { currentdirection = VehicleDirection12.DownRightRight; }
         else
         {
-            ExitVehicle(game);
+            ExitVehicle();
             return;
         }
 
@@ -302,12 +298,12 @@ public class ModRail : ModBase
     /// Exits the minecart: restores the player's original eye height, re-enables
     /// standard movement, and clears the rail-riding flag.
     /// </summary>
-    internal void ExitVehicle(Game game)
+    internal void ExitVehicle()
     {
         game.SetCharacterEyesHeight(originalmodelheight);
         railriding = false;
         game.Controls.freemove = false;
-        game.enable_move = true;
+        game.EnableMove = true;
     }
 
     /// <summary>
@@ -316,13 +312,13 @@ public class ModRail : ModBase
     /// The result is offset upward by <see cref="_railHeight"/> + 1 so the player
     /// sits above the rail block without clipping into it.
     /// </summary>
-    internal Vector3 CurrentRailPos(Game game)
+    internal Vector3 CurrentRailPos()
     {
         RailSlope slope = d_RailMapUtil.GetRailSlope(currentrailblockX, currentrailblockY, currentrailblockZ);
         float aX = currentrailblockX;
         float aY = currentrailblockY;
         float aZ = currentrailblockZ;
-        float half = _one / 2;
+        float half = 0.5f;
         float p = currentrailblockprogress;
         float xc = 0, yc = 0, zc = 0;
 
@@ -367,7 +363,7 @@ public class ModRail : ModBase
     /// entering the given rail block from the specified direction.
     /// </summary>
     /// <returns>One of <see cref="UpDown.Up"/>, <see cref="UpDown.Down"/>, or <see cref="UpDown.None"/>.</returns>
-    internal int GetUpDownMove(Game game, int railblockX, int railblockY, int railblockZ, TileEnterDirection dir)
+    internal int GetUpDownMove(int railblockX, int railblockY, int railblockZ, TileEnterDirection dir)
     {
         if (!game.VoxelMap.IsValidPos(railblockX, railblockY, railblockZ)) { return UpDown.None; }
 
@@ -389,10 +385,10 @@ public class ModRail : ModBase
     /// <summary>
     /// Plays looping rail noise and periodic clack sounds scaled to the current speed.
     /// </summary>
-    internal void RailSound(Game game)
+    internal void RailSound()
     {
         float soundRate = Math.Min(currentvehiclespeed, 10f);
-        game.AudioPlayLoop("railnoise.wav", railriding && soundRate > _one * 1 / 10, false);
+        game.AudioPlayLoop("railnoise.wav", railriding && soundRate > 0.1f, false);
 
         if (!railriding || soundRate <= 0) { return; }
 
@@ -429,7 +425,7 @@ public class ModRail : ModBase
     /// Returns a bitmask of the <see cref="VehicleDirection12"/> values that are
     /// valid exits from the block described by <paramref name="enter"/>.
     /// </summary>
-    internal static int PossibleRails(Game game, TileEnterData enter)
+    internal int PossibleRails(TileEnterData enter)
     {
         if (!game.VoxelMap.IsValidPos(enter.BlockPositionX, enter.BlockPositionY, enter.BlockPositionZ))
         {

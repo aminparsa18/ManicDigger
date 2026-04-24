@@ -22,7 +22,7 @@
 
     public void PlayAudioAt(string file, float x, float y, float z)
     {
-        if (file == null || !AudioEnabled || assetsLoadProgress != 1)
+        if (file == null || !AudioEnabled || AssetsLoadProgress != 1)
             return;
 
         string file_ = file.Replace(".wav", ".ogg");
@@ -32,7 +32,7 @@
             return;
         }
 
-        audio.Add(new Sound { name = file_, x = x, y = y, z = z });
+        Audio.Add(new Sound { name = file_, x = x, y = y, z = z });
     }
 
     // -------------------------------------------------------------------------
@@ -44,7 +44,7 @@
         if (!AudioEnabled && play)
             return;
 
-        if (assetsLoadProgress != 1)
+        if (AssetsLoadProgress != 1)
             return;
 
         string file_ = file.Replace(".wav", ".ogg");
@@ -60,7 +60,7 @@
             if (s == null)
             {
                 s = new Sound { name = file_, loop = true };
-                audio.Add(s);
+                Audio.Add(s);
             }
             s.x = EyesPosX();
             s.y = EyesPosY();
@@ -74,20 +74,20 @@
 
     private Sound FindLoopingSound(string file_)
     {
-        for (int i = 0; i < audio.soundsCount; i++)
+        for (int i = 0; i < Audio.soundsCount; i++)
         {
-            if (audio.sounds[i] != null && audio.sounds[i].name == file_)
-                return audio.sounds[i];
+            if (Audio.sounds[i] != null && Audio.sounds[i].name == file_)
+                return Audio.sounds[i];
         }
         return null;
     }
 
     private void StopLoopingSound(string file_)
     {
-        for (int i = 0; i < audio.soundsCount; i++)
+        for (int i = 0; i < Audio.soundsCount; i++)
         {
-            if (audio.sounds[i] != null && audio.sounds[i].name == file_)
-                audio.sounds[i].stop = true;
+            if (Audio.sounds[i] != null && Audio.sounds[i].name == file_)
+                Audio.sounds[i].stop = true;
         }
     }
 }

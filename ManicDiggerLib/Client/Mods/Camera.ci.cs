@@ -10,19 +10,19 @@ public class ModCamera : ModBase
 
     public override void OnBeforeNewFrameDraw3d(Game game, float deltaTime)
     {
-        game.camera = game.overheadcamera ? OverheadCamera(game) : FppCamera(game);
+        game.camera = game.OverheadCamera ? OverheadCamera(game) : FppCamera(game);
     }
 
     internal Matrix4 OverheadCamera(Game game)
     {
-        game.overheadcameraK.GetPosition(ref overheadCameraEye);
+        game.OverheadCameraK.GetPosition(ref overheadCameraEye);
         Vector3 eye = overheadCameraEye;
         Vector3 target = new(
-            game.overheadcameraK.Center.X,
-            game.overheadcameraK.Center.Y + game.GetCharacterEyesHeight(),
-            game.overheadcameraK.Center.Z);
+            game.OverheadCameraK.Center.X,
+            game.OverheadCameraK.Center.Y + game.GetCharacterEyesHeight(),
+            game.OverheadCameraK.Center.Z);
 
-        game.overheadcameradistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, game.overheadcameradistance);
+        game.OverHeadCameraDistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, game.OverHeadCameraDistance);
         SetCameraEye(game, eye);
         return Matrix4.LookAt(eye, target, Up);
     }

@@ -25,7 +25,7 @@ public class ModDrawPlayerNames : ModBase
             float posY = p.TextY + e.position.y + e.drawModel.ModelHeight + NameTagHeightOffset;
             float posZ = p.TextZ + e.position.z;
             bool nearEnough = Vector3.Distance(new(game.Player.position.x, game.Player.position.y, game.Player.position.z), new(posX, posY, posZ)) < NameTagDrawDistance;
-            bool altHeld = game.keyboardState[Game.KeyAltLeft] || game.keyboardState[Game.KeyAltRight];
+            bool altHeld = game.KeyboardState[Game.KeyAltLeft] || game.KeyboardState[Game.KeyAltRight];
             if (!nearEnough && !altHeld) continue;
 
             DrawNameTag(game, p, posX, posY, posZ);

@@ -129,8 +129,8 @@ public class ModGuiTouchButtons : GameScreen
             _touchIdMove = e.GetId();
             _touchMoveStartX = e.GetX();
             _touchMoveStartY = e.GetY();
-            game.touchMoveDx = 0;
-            game.touchMoveDy = e.GetY() < game.Height() * 50 / 100 ? 1 : 0;
+            game.TouchMoveDx = 0;
+            game.TouchMoveDy = e.GetY() < game.Height() * 50 / 100 ? 1 : 0;
         }
 
         bool isSecondFinger = _touchIdMove != -1 && e.GetId() != _touchIdMove;
@@ -147,22 +147,22 @@ public class ModGuiTouchButtons : GameScreen
     {
         if (e.GetId() == _touchIdMove)
         {
-            game.touchMoveDx = e.GetX() - _touchMoveStartX;
-            game.touchMoveDy = -(e.GetY() - 1 - _touchMoveStartY);
+            game.TouchMoveDx = e.GetX() - _touchMoveStartX;
+            game.TouchMoveDy = -(e.GetY() - 1 - _touchMoveStartY);
 
             if (e.GetY() < game.Height() * 50 / 100)
             {
                 // Upper half of screen — lock to forward movement only.
-                game.touchMoveDx = 0;
-                game.touchMoveDy = 1;
+                game.TouchMoveDx = 0;
+                game.TouchMoveDy = 1;
             }
             else
             {
-                float length = new Vector3(game.touchMoveDx, game.touchMoveDy, 0).Length;
+                float length = new Vector3(game.TouchMoveDx, game.TouchMoveDy, 0).Length;
                 if (length > 0)
                 {
-                    game.touchMoveDx /= length;
-                    game.touchMoveDy /= length;
+                    game.TouchMoveDx /= length;
+                    game.TouchMoveDy /= length;
                 }
             }
         }
@@ -186,8 +186,8 @@ public class ModGuiTouchButtons : GameScreen
         if (e.GetId() == _touchIdMove)
         {
             _touchIdMove = -1;
-            game.touchMoveDx = 0;
-            game.touchMoveDy = 0;
+            game.TouchMoveDx = 0;
+            game.TouchMoveDy = 0;
         }
 
         if (e.GetId() == _touchIdRotate)

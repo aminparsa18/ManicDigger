@@ -4,7 +4,6 @@ public partial class Game
 {
     public NetClient NetClient { get; set; }
     internal bool IsTeamchat;
-    internal int ActiveMaterial;
     private int packetLen;
 
     // -------------------------------------------------------------------------

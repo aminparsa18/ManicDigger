@@ -37,7 +37,7 @@ public partial class Game
 
     /// <summary>Returns <see langword="true"/> when the block name contains "Water".</summary>
     /// <remarks>TODO: replace name-based check with a dedicated block property.</remarks>
-    internal bool IsWater(int blockType)
+    public bool IsWater(int blockType)
     {
         string name = BlockTypes[blockType].Name;
         return name != null && name.Contains("Water");
@@ -75,7 +75,7 @@ public partial class Game
     /// not physically obstruct the player (air, fill-area blocks, water, or
     /// out-of-bounds positions when in freemove mode).
     /// </summary>
-    internal bool IsTileEmptyForPhysics(int x, int y, int z)
+    public bool IsTileEmptyForPhysics(int x, int y, int z)
     {
         if (z >= VoxelMap.MapSizeZ) return true;
         if (x < 0 || y < 0 || z < 0) return Controls.freemove;
@@ -225,7 +225,7 @@ public partial class Game
     {
         SendSetBlock(x, y, z, mode, material, ActiveMaterial);
 
-        Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
+        Packet_Item item = Inventory.RightHand[ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block)
             return;
 

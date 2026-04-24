@@ -14,7 +14,7 @@ public partial class Game
                 cameratype = CameraType.Fpp;
                 SetFreeMouse(false);
                 ENABLE_TPP_VIEW = false;
-                overheadcamera = false;
+                OverheadCamera = false;
                 break;
 
             case CameraType.Tpp:
@@ -24,10 +24,10 @@ public partial class Game
 
             default: // Overhead
                 cameratype = CameraType.Overhead;
-                overheadcamera = true;
+                OverheadCamera = true;
                 SetFreeMouse(true);
                 ENABLE_TPP_VIEW = true;
-                playerdestination = new Vector3(Player.position.x, Player.position.y, Player.position.z);
+                PlayerDestination = new Vector3(Player.position.x, Player.position.y, Player.position.z);
                 break;
         }
     }
@@ -47,17 +47,17 @@ public partial class Game
 
             case CameraType.Tpp:
                 cameratype = CameraType.Overhead;
-                overheadcamera = true;
+                OverheadCamera = true;
                 SetFreeMouse(true);
                 ENABLE_TPP_VIEW = true;
-                playerdestination = new Vector3(Player.position.x, Player.position.y, Player.position.z);
+                PlayerDestination = new Vector3(Player.position.x, Player.position.y, Player.position.z);
                 break;
 
             case CameraType.Overhead:
                 cameratype = CameraType.Fpp;
                 SetFreeMouse(false);
                 ENABLE_TPP_VIEW = false;
-                overheadcamera = false;
+                OverheadCamera = false;
                 break;
 
             default:

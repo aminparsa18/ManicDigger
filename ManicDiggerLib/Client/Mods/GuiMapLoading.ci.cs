@@ -50,7 +50,7 @@ public class ModGuiMapLoading : ModBase
     {
         if (game.maploadingprogress.ProgressStatus != null)
             return game.maploadingprogress.ProgressStatus;
-        if (game.issingleplayer && !platform.SinglePlayerServerLoaded())
+        if (game.IsSinglePlayer && !platform.SinglePlayerServerLoaded())
             return "Starting game...";
         return game.Language.Connecting();
     }

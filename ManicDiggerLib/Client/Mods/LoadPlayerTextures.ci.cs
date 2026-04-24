@@ -20,15 +20,22 @@ public class ModLoadPlayerTextures : ModBase
     /// <summary>Async HTTP response for the skin-server URL list.</summary>
     internal HttpResponse _skinServerResponse;
 
+    private readonly IGameClient game;
+
+    public ModLoadPlayerTextures(IGameClient game)
+    {
+        this.game = game;
+    }
+
     /// <inheritdoc/>
-    public override void OnNewFrame(Game game, float args)
+    public override void OnNewFrame(float args)
     {
         if (game.GuiState == GuiState.MapLoading) { return; }
 
         if (!_started)
         {
             _started = true;
-            if (!game.issingleplayer)
+            if (!game.IsSinglePlayer)
             {
                 _skinServerResponse = new HttpResponse();
                 game.Platform.WebClientDownloadDataAsync(
@@ -37,7 +44,7 @@ public class ModLoadPlayerTextures : ModBase
             }
         }
 
-        LoadPlayerTextures(game);
+        LoadPlayerTextures();
     }
 
     /// <summary>
@@ -50,9 +57,9 @@ public class ModLoadPlayerTextures : ModBase
     ///   <item><description>Fallback to <c>mineplayer.png</c>.</description></item>
     /// </list>
     /// </summary>
-    internal void LoadPlayerTextures(Game game)
+    internal void LoadPlayerTextures()
     {
-        if (!game.issingleplayer)
+        if (!game.IsSinglePlayer)
         {
             if (_skinServerResponse.Done)
             {
@@ -76,8 +83,8 @@ public class ModLoadPlayerTextures : ModBase
             if (e?.drawModel == null) { continue; }
             if (e.drawModel.CurrentTexture != -1) { continue; }
 
-            if (TryLoadDownloadedSkin(game, e)) { continue; }
-            if (TryLoadFileSkin(game, e)) { continue; }
+            if (TryLoadDownloadedSkin(e)) { continue; }
+            if (TryLoadFileSkin(e)) { continue; }
         }
     }
 
@@ -92,9 +99,9 @@ public class ModLoadPlayerTextures : ModBase
     /// <see langword="false"/> when this path is not applicable and the caller
     /// should try the file-skin fallback.
     /// </returns>
-    private bool TryLoadDownloadedSkin(Game game, Entity e)
+    private bool TryLoadDownloadedSkin(Entity e)
     {
-        if (game.issingleplayer
+        if (game.IsSinglePlayer
          || !e.drawModel.DownloadSkin
          || skinserver == null
          || e.drawModel.Texture_ != null)
@@ -133,7 +140,7 @@ public class ModLoadPlayerTextures : ModBase
     /// falls back to <c>mineplayer.png</c> when no path is set.
     /// Always sets <c>CurrentTexture</c> and returns <see langword="true"/>.
     /// </summary>
-    private static bool TryLoadFileSkin(Game game, Entity e)
+    private bool TryLoadFileSkin(Entity e)
     {
         if (e.drawModel.Texture_ == null)
         {

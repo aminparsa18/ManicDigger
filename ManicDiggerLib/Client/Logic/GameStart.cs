@@ -28,7 +28,7 @@ public partial class Game
     private void InitSubsystems()
     {
         // ── Text / language ───────────────────────────────────────────────────
-        textColorRenderer = new TextColorRenderer { platform = platform };
+        textColorRenderer = new TextColorRenderer();
         language.LoadTranslations();
 
         // ── Core data / config ────────────────────────────────────────────────

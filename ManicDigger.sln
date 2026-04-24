@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDigger", "ManicDigger\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDiggerServer", "ManicDiggerServer\ManicDiggerServer.csproj", "{46D2CD51-9603-48B4-87D1-7377B5F1E51E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDiggerLib", "ManicDiggerLib\ManicDiggerLib.csproj", "{08056549-3BE8-454C-A09A-67EDCDC81261}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDigger.Core", "ManicDiggerLib\ManicDigger.Core.csproj", "{08056549-3BE8-454C-A09A-67EDCDC81261}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MdMonsterEditor", "MdMonsterEditor\MdMonsterEditor.csproj", "{DE9E0B36-6171-4DA3-9495-0A82445B6D74}"
 EndProject
@@ -57,6 +57,7 @@ Global
 		{A3582245-A1D1-4135-BA90-8EFD7830DA83}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B50C1D99-A4F9-42B8-B67D-975F8021890C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B50C1D99-A4F9-42B8-B67D-975F8021890C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B50C1D99-A4F9-42B8-B67D-975F8021890C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{B50C1D99-A4F9-42B8-B67D-975F8021890C}.FastBuild|Any CPU.ActiveCfg = Release|Any CPU
 		{B50C1D99-A4F9-42B8-B67D-975F8021890C}.FastBuild|Any CPU.Build.0 = Release|Any CPU
 		{B50C1D99-A4F9-42B8-B67D-975F8021890C}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,20 +1,20 @@
 ﻿using NVorbis;
 
-public class AudioDataCs : AudioData
+public class AudioData 
 {
-    public byte[] Pcm;
-    public int Channels;
-    public int Rate;
-    public int BitsPerSample = 16;
+    public byte[] Pcm { get; set; }
+    public int Channels { get; set; }
+    public int Rate { get; set; }
+    public int BitsPerSample { get; set; } = 16;
 }
 
 public class OggDecoder
 {
     private const int ReadBufferSamples = 4096; // samples per channel per read
 
-    public static AudioDataCs OggToWav(Stream ogg)
+    public static AudioData OggToWav(Stream ogg)
     {
-        AudioDataCs sample = new();
+        AudioData sample = new();
 
         using var reader = new VorbisReader(ogg, closeOnDispose: false);
 

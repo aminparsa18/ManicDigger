@@ -464,7 +464,7 @@ public class ModGuiEscapeMenu : ModBase
 
     private string ResolutionString()
     {
-        DisplayResolutionCi res = game.platform.GetDisplayResolutions(out int resolutionsCount)[game.options.Resolution];
+        DisplayResolutionCi res = game.platform.GetDisplayResolutions()[game.options.Resolution];
         return string.Format("{0}x{1}, {2}, {3} Hz",
             res.Width.ToString(),
             res.Height.ToString(),
@@ -477,9 +477,9 @@ public class ModGuiEscapeMenu : ModBase
         GameOption options = game.options;
         options.Resolution++;
 
-        game.platform.GetDisplayResolutions(out int resolutionsCount);
+        game.platform.GetDisplayResolutions();
 
-        if (options.Resolution >= resolutionsCount)
+        if (options.Resolution >= game.platform.GetDisplayResolutions().Count)
         {
             options.Resolution = 0;
         }
@@ -499,14 +499,14 @@ public class ModGuiEscapeMenu : ModBase
     public void UseResolution()
     {
         GameOption options = game.options;
-        DisplayResolutionCi[] resolutions = game.platform.GetDisplayResolutions(out int resolutionsCount);
+        List<DisplayResolutionCi> resolutions = game.platform.GetDisplayResolutions();
 
         if (resolutions == null)
         {
             return;
         }
 
-        if (options.Resolution >= resolutionsCount)
+        if (options.Resolution >= resolutions.Count)
         {
             options.Resolution = 0;
         }

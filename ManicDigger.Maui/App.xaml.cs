@@ -1,5 +1,4 @@
 ﻿using Serilog;
-using static Microsoft.Maui.LifecycleEvents.WindowsLifecycle;
 
 namespace ManicDigger.Maui;
 
@@ -55,6 +54,7 @@ public class GameRunner
 
     public void Start(string[] args)
     {
+        Environment.CurrentDirectory = AppContext.BaseDirectory;
         _platform = new GamePlatformNative
         {
             crashreporter = new CrashReporter(),

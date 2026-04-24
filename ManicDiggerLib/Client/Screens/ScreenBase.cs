@@ -10,13 +10,14 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 /// widget interactions. Override <see cref="Render"/> to draw screen-specific
 /// content on top of the shared widget layer.
 /// </remarks>
-public class ScreenBase
+public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
 {
-    /// <summary>Reference to the owning <see cref="MainMenu"/>.</summary>
-    internal MainMenu menu;
+    public IMenuRenderer Renderer { get; set; } = renderer;
+    public IMenuNavigator Navigator { get; set; } = navigator;
+    public IGamePlatform Platform { get; set; } = platform;
 
     /// <summary>All widgets registered to this screen, in render and hit-test order.</summary>
-    internal List<MenuWidget> widgets = new();
+    public List<MenuWidget> Widgets { get; set; } = [];
 
     /// <summary>Called once per frame. Override to render screen-specific content.</summary>
     /// <param name="dt">Elapsed time in seconds since the previous frame.</param>
@@ -55,7 +56,7 @@ public class ScreenBase
     /// </summary>
     private void KeyDown(KeyEventArgs e)
     {
-        foreach (MenuWidget w in widgets)
+        foreach (MenuWidget w in Widgets)
         {
             if (w.hasKeyboardFocus && (e.KeyChar == (int)Keys.Tab || e.KeyChar == (int)Keys.Enter))
             {
@@ -67,7 +68,7 @@ public class ScreenBase
                 if (w.nextWidget != -1)
                 {
                     w.LoseFocus();
-                    widgets[w.nextWidget].GetFocus();
+                    Widgets[w.nextWidget].GetFocus();
                     return;
                 }
             }
@@ -102,11 +103,11 @@ public class ScreenBase
     /// </summary>
     private void KeyPress(KeyPressEventArgs e)
     {
-        foreach (MenuWidget w in widgets)
+        foreach (MenuWidget w in Widgets)
         {
             if (w.type != UIWidgetType.Textbox || !w.editing) { continue; }
 
-            if (menu.p.IsValidTypingChar(e.KeyChar))
+            if (Platform.IsValidTypingChar(e.KeyChar))
             {
                 w.text = string.Concat(w.text, (char)e.KeyChar);
             }
@@ -122,7 +123,7 @@ public class ScreenBase
     {
         bool editingChanged = false;
 
-        foreach (MenuWidget w in widgets)
+        foreach (MenuWidget w in Widgets)
         {
             bool hit = VectorUtils.PointInRect(x, y, w.x, w.y, w.sizex, w.sizey);
             w.pressed = hit;
@@ -134,12 +135,12 @@ public class ScreenBase
 
                 if (hit && !wasEditing)
                 {
-                    menu.p.ShowKeyboard(true);
+                    Platform.ShowKeyboard(true);
                     editingChanged = true;
                 }
                 else if (!hit && wasEditing && !editingChanged)
                 {
-                    menu.p.ShowKeyboard(false);
+                    Platform.ShowKeyboard(false);
                 }
             }
 
@@ -154,7 +155,7 @@ public class ScreenBase
     /// <summary>Removes keyboard focus from every widget.</summary>
     private void AllLoseFocus()
     {
-        foreach (MenuWidget w in widgets)
+        foreach (MenuWidget w in Widgets)
         {
             w.LoseFocus();
         }
@@ -167,12 +168,12 @@ public class ScreenBase
     /// </summary>
     private void MouseUp(int x, int y)
     {
-        foreach (MenuWidget w in widgets)
+        foreach (MenuWidget w in Widgets)
         {
             w.pressed = false;
         }
 
-        foreach (MenuWidget w in widgets)
+        foreach (MenuWidget w in Widgets)
         {
             if (w.type != UIWidgetType.Button) { continue; }
 
@@ -192,7 +193,7 @@ public class ScreenBase
     {
         if (e.GetEmulated() && !e.GetForceUsage()) { return; }
 
-        foreach (MenuWidget w in widgets)
+        foreach (MenuWidget w in Widgets)
         {
             w.hover = VectorUtils.PointInRect(e.GetX(), e.GetY(), w.x, w.y, w.sizex, w.sizey);
         }
@@ -210,7 +211,7 @@ public class ScreenBase
     /// </summary>
     public void DrawWidgets()
     {
-        foreach (MenuWidget w in widgets)
+        foreach (MenuWidget w in Widgets)
         {
             if (!w.visible) { continue; }
 
@@ -237,16 +238,16 @@ public class ScreenBase
             case ButtonStyle.Text:
                 if (w.image != null)
                 {
-                    menu.Draw2dQuad(menu.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
+                    Renderer.Draw2dQuad(Renderer.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
                 }
-                menu.DrawText(text, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Left, TextBaseline.Middle);
+                Renderer.DrawText(text, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Left, TextBaseline.Middle);
                 break;
 
             case ButtonStyle.Button:
-                menu.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey, w.hover || w.hasKeyboardFocus);
+                Renderer.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey, w.hover || w.hasKeyboardFocus);
                 if (w.description != null)
                 {
-                    menu.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
+                    Renderer.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
                 }
                 break;
 
@@ -263,21 +264,21 @@ public class ScreenBase
                     fields[3] = string.Concat("&2", fields[3]);
                 }
 
-                menu.DrawServerButton(fields[0], fields[1], fields[2], fields[3],
+                Renderer.DrawServerButton(fields[0], fields[1], fields[2], fields[3],
                     w.x, w.y, w.sizex, w.sizey, w.image);
 
                 if (w.description != null)
                 {
                     // Server did not respond to the last ping — show a warning icon.
-                    menu.Draw2dQuad(menu.GetTexture("serverlist_entry_noresponse.png"),
-                        w.x - 38 * menu.GetScale(), w.y, w.sizey / 2, w.sizey / 2);
+                    Renderer.Draw2dQuad(Renderer.GetTexture("serverlist_entry_noresponse.png"),
+                        w.x - 38 * Renderer.GetScale(), w.y, w.sizey / 2, w.sizey / 2);
                 }
 
-                if (fields[4] != menu.p.GetGameVersion())
+                if (fields[4] != Platform.GetGameVersion())
                 {
                     // Server version differs from the client — show a version-mismatch icon.
-                    menu.Draw2dQuad(menu.GetTexture("serverlist_entry_differentversion.png"),
-                        w.x - 38 * menu.GetScale(), w.y + w.sizey / 2, w.sizey / 2, w.sizey / 2);
+                    Renderer.Draw2dQuad(Renderer.GetTexture("serverlist_entry_differentversion.png"),
+                        w.x - 38 * Renderer.GetScale(), w.y + w.sizey / 2, w.sizey / 2, w.sizey / 2);
                 }
                 break;
         }
@@ -296,19 +297,19 @@ public class ScreenBase
         {
             if (w.image != null)
             {
-                menu.Draw2dQuad(menu.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
+                Renderer.Draw2dQuad(Renderer.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
             }
-            menu.DrawText(text, w.fontSize, w.x, w.y, TextAlign.Left, TextBaseline.Top);
+            Renderer.DrawText(text, w.fontSize, w.x, w.y, TextAlign.Left, TextBaseline.Top);
         }
         else
         {
-            menu.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey,
+            Renderer.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey,
                 w.hover || w.editing || w.hasKeyboardFocus);
         }
 
         if (w.description != null)
         {
-            menu.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
+            Renderer.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
         }
     }
 }

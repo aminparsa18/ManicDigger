@@ -395,7 +395,7 @@ public class ModGuiInventory : ModBase
         int sizex = dataItems.ItemSizeX(item);
         int sizey = InventoryUtils.ItemSizeY(item);
 
-        game.platform.TextSize(dataItems.ItemInfo(item), 11.5f, out int tw, out int th);
+        TextRenderer.TextSize(dataItems.ItemInfo(item), 11.5f, out int tw, out int th);
         tw += 6;
         th += 4;
 

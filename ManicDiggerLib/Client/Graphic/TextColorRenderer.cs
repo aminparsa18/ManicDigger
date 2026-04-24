@@ -3,7 +3,6 @@
 /// <summary>Renders multi-colored text into a single power-of-two <see cref="Bitmap"/>.</summary>
 public class TextColorRenderer
 {
-    internal IGamePlatform platform;
 
     /// <summary>
     /// Renders a <see cref="TextStyle"/> value (which may contain inline color codes) into a
@@ -15,7 +14,7 @@ public class TextColorRenderer
     /// A <see cref="Bitmap"/> containing the rendered text, with transparent pixels where
     /// no glyph was drawn.
     /// </returns>
-    internal Bitmap CreateTextTexture(TextStyle t)
+    internal static Bitmap CreateTextTexture(TextStyle t)
     {
         TextPart[] parts = DecodeColors(t.Text, t.Color);
 
@@ -26,7 +25,7 @@ public class TextColorRenderer
 
         for (int i = 0; i < parts.Length; i++)
         {
-            platform.TextSize(parts[i].text, t.FontSize, out int outWidth, out int outHeight);
+            TextRenderer.TextSize(parts[i].text, t.FontSize, out int outWidth, out int outHeight);
             sizesX[i] = outWidth;
             sizesY[i] = outHeight;
             totalWidth += outWidth;
@@ -53,7 +52,7 @@ public class TextColorRenderer
                 FontFamily = t.FontFamily
             };
 
-            PixelBuffer part = PixelBuffer.FromBitmap(platform.CreateTextTexture(partText));
+            PixelBuffer part = PixelBuffer.FromBitmap(TextRenderer.MakeTextTexture(partText));
 
             for (int y = 0; y < part.Height; y++)
             {
@@ -77,7 +76,7 @@ public class TextColorRenderer
     /// Splits <paramref name="s"/> into colored segments by parsing inline color codes of the
     /// form <c>&amp;X</c> where X is a hex digit (0–9, a–f). Unrecognised sequences are kept as-is.
     /// </summary>
-    public static TextPart[] DecodeColors(string s, int defaultcolor)
+    private static TextPart[] DecodeColors(string s, int defaultcolor)
     {
         List<TextPart> parts = [];
         int currentcolor = defaultcolor;

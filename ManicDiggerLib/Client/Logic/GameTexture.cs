@@ -71,7 +71,7 @@
     /// </summary>
     private CachedTexture MakeTextTexture(TextStyle t)
     {
-        using Bitmap bmp = textColorRenderer.CreateTextTexture(t);
+        using Bitmap bmp = TextColorRenderer.CreateTextTexture(t);
         return new CachedTexture
         {
             sizeX = bmp.Width,
@@ -81,7 +81,7 @@
     }
 
     /// <summary>Forwards the current font setting to the text renderer.</summary>
-    public void UpdateTextRendererFont() => platform.SetTextRendererFont(Font);
+    public void UpdateTextRendererFont() => TextRenderer.SetFont(Font);
 
     // ── Named texture cache ───────────────────────────────────────────────────
 

@@ -50,7 +50,8 @@ public class LoginScreen : ScreenBase
     private bool triedSavedLogin;
     private string title;
 
-    public LoginScreen()
+    public LoginScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
+        : base(renderer, navigator, platform)
     {
         // Tab chain (by list index):
         // [1] Username → [2] Password → [3] RememberMe → [0] Login → [8] Back → [1] Username
@@ -66,15 +67,15 @@ public class LoginScreen : ScreenBase
 
         title = "Login";
 
-        widgets.Add(buttonLogin);           // 0
-        widgets.Add(textboxUsername);       // 1
-        widgets.Add(textboxPassword);       // 2
-        widgets.Add(buttonRememberMe);      // 3
-        widgets.Add(buttonCreateAccount);   // 4
-        widgets.Add(textboxCreateUsername); // 5
-        widgets.Add(textboxCreatePassword); // 6
-        widgets.Add(buttonCreateRememberMe);// 7
-        widgets.Add(buttonBack);            // 8
+        Widgets.Add(buttonLogin);           // 0
+        Widgets.Add(textboxUsername);       // 1
+        Widgets.Add(textboxPassword);       // 2
+        Widgets.Add(buttonRememberMe);      // 3
+        Widgets.Add(buttonCreateAccount);   // 4
+        Widgets.Add(textboxCreateUsername); // 5
+        Widgets.Add(textboxCreatePassword); // 6
+        Widgets.Add(buttonCreateRememberMe);// 7
+        Widgets.Add(buttonBack);            // 8
 
         textboxUsername.GetFocus();
         loginResult = new LoginResult();
@@ -83,12 +84,12 @@ public class LoginScreen : ScreenBase
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonLogin.text = menu.lang.Get("MainMenu_Login");
-        textboxUsername.description = menu.lang.Get("MainMenu_LoginUsername");
-        textboxPassword.description = menu.lang.Get("MainMenu_LoginPassword");
-        buttonRememberMe.description = menu.lang.Get("MainMenu_LoginRemember");
-        buttonBack.text = menu.lang.Get("MainMenu_ButtonBack");
-        title = menu.lang.Get("MainMenu_Login");
+        buttonLogin.text = Renderer.Translate("MainMenu_Login");
+        textboxUsername.description = Renderer.Translate("MainMenu_LoginUsername");
+        textboxPassword.description = Renderer.Translate("MainMenu_LoginPassword");
+        buttonRememberMe.description = Renderer.Translate("MainMenu_LoginRemember");
+        buttonBack.text = Renderer.Translate("MainMenu_ButtonBack");
+        title = Renderer.Translate("MainMenu_Login");
 
         // Keep the toggle label in sync with the current state.
         UpdateRememberMeLabel();
@@ -112,31 +113,30 @@ public class LoginScreen : ScreenBase
             {
                 SaveCredentials(loginResultData.Token);
             }
-            menu.ConnectToGame(loginResultData, textboxUsername.text);
+            Navigator.ConnectToGame(loginResultData, textboxUsername.text);
         }
 
-        IGamePlatform p = menu.p;
-        float scale = menu.GetScale();
+        float scale = Renderer.GetScale();
 
-        menu.DrawBackground();
+        Renderer.DrawBackground();
 
-        float leftx = p.GetCanvasWidth() / 2 - 400 * scale;
-        float rightx = p.GetCanvasWidth() / 2 + 150 * scale;
-        float y = p.GetCanvasHeight() / 2 - 250 * scale;
+        float leftx = Platform.GetCanvasWidth() / 2 - 400 * scale;
+        float rightx = Platform.GetCanvasWidth() / 2 + 150 * scale;
+        float y = Platform.GetCanvasHeight() / 2 - 250 * scale;
 
         string loginResultText = loginResult switch
         {
-            LoginResult.Failed => menu.lang.Get("MainMenu_LoginInvalid"),
-            LoginResult.Connecting => menu.lang.Get("MainMenu_LoginConnecting"),
+            LoginResult.Failed => Renderer.Translate("MainMenu_LoginInvalid"),
+            LoginResult.Connecting => Renderer.Translate("MainMenu_LoginConnecting"),
             _ => null
         };
 
         if (loginResultText != null)
         {
-            menu.DrawText(loginResultText, 14 * scale, leftx, y - 50 * scale, TextAlign.Left, TextBaseline.Top);
+            Renderer.DrawText(loginResultText, 14 * scale, leftx, y - 50 * scale, TextAlign.Left, TextBaseline.Top);
         }
 
-        menu.DrawText(title, 14 * scale, leftx, y + 50 * scale, TextAlign.Left, TextBaseline.Top);
+        Renderer.DrawText(title, 14 * scale, leftx, y + 50 * scale, TextAlign.Left, TextBaseline.Top);
 
         LayoutWidget(textboxUsername, leftx, y + 100 * scale, scale);
         LayoutWidget(textboxPassword, leftx, y + 200 * scale, scale);
@@ -155,7 +155,7 @@ public class LoginScreen : ScreenBase
         buttonCreateAccount.visible = false;
 
         buttonBack.x = 40 * scale;
-        buttonBack.y = p.GetCanvasHeight() - 104 * scale;
+        buttonBack.y = Platform.GetCanvasHeight() - 104 * scale;
         buttonBack.sizex = 256 * scale;
         buttonBack.sizey = 64 * scale;
         buttonBack.fontSize = 14 * scale;
@@ -164,7 +164,7 @@ public class LoginScreen : ScreenBase
     }
 
     /// <inheritdoc/>
-    public override void OnBackPressed() => menu.StartMultiplayer();
+    public override void OnBackPressed() => Navigator.StartMultiplayer();
 
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
@@ -182,7 +182,7 @@ public class LoginScreen : ScreenBase
             if (serverHash != null)
             {
                 // Authenticated login via the main game servers.
-                menu.Login(textboxUsername.text, textboxPassword.text,
+                Navigator.Login(textboxUsername.text, textboxPassword.text,
                     serverHash, "", loginResult, loginResultData);
             }
             else
@@ -192,7 +192,7 @@ public class LoginScreen : ScreenBase
                 {
                     SaveUsername();
                 }
-                menu.StartGame(false, null, new ConnectionData
+                Navigator.StartGame(false, null, new ConnectionData
                 {
                     Ip = serverIp,
                     Port = serverPort,
@@ -222,7 +222,7 @@ public class LoginScreen : ScreenBase
     /// </summary>
     private void TrySavedLogin()
     {
-        Preferences prefs = menu.p.GetPreferences();
+        Preferences prefs = Platform.GetPreferences();
         textboxUsername.text = prefs.GetString("Username", "");
         textboxPassword.text = "";
 
@@ -231,7 +231,7 @@ public class LoginScreen : ScreenBase
 
         if (serverHash != null && token != "")
         {
-            menu.Login(textboxUsername.text, textboxPassword.text,
+            Navigator.Login(textboxUsername.text, textboxPassword.text,
                 serverHash, token, loginResult, loginResultData);
         }
     }
@@ -242,21 +242,21 @@ public class LoginScreen : ScreenBase
     /// <param name="token">New token returned by the server, or <see langword="null"/> to leave the stored token unchanged.</param>
     private void SaveCredentials(string token)
     {
-        Preferences prefs = menu.p.GetPreferences();
+        Preferences prefs = Platform.GetPreferences();
         prefs.SetString("Username", textboxUsername.text);
         if (!string.IsNullOrEmpty(token))
         {
             prefs.SetString("Password", token);
         }
-        menu.p.SetPreferences(prefs);
+        Platform.SetPreferences(prefs);
     }
 
     /// <summary>Persists only the username to preferences (used for direct-IP connections).</summary>
     private void SaveUsername()
     {
-        Preferences prefs = menu.p.GetPreferences();
+        Preferences prefs = Platform.GetPreferences();
         prefs.SetString("Username", textboxUsername.text);
-        menu.p.SetPreferences(prefs);
+        Platform.SetPreferences(prefs);
     }
 
     /// <summary>
@@ -265,8 +265,8 @@ public class LoginScreen : ScreenBase
     private void UpdateRememberMeLabel()
     {
         string label = rememberMe
-            ? menu.lang.Get("MainMenu_ChoiceYes")
-            : menu.lang.Get("MainMenu_ChoiceNo");
+            ? Renderer.Translate("MainMenu_ChoiceYes")
+            : Renderer.Translate("MainMenu_ChoiceNo");
 
         buttonRememberMe.text = label;
         buttonCreateRememberMe.text = label;

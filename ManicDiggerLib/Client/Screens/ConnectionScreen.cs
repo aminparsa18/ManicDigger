@@ -24,7 +24,8 @@ public class ConnectionScreen : ScreenBase
     private string title;
     private bool loaded;
 
-    public ConnectionScreen()
+    public ConnectionScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
+        : base(renderer, navigator, platform)
     {
         buttonConnect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
         textboxIp = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "IP", nextWidget = 2 };
@@ -33,10 +34,10 @@ public class ConnectionScreen : ScreenBase
 
         title = "Connect to IP";
 
-        widgets.Add(buttonConnect); // 0
-        widgets.Add(textboxIp);     // 1
-        widgets.Add(textboxPort);   // 2
-        widgets.Add(buttonBack);    // 3
+        Widgets.Add(buttonConnect); // 0
+        Widgets.Add(textboxIp);     // 1
+        Widgets.Add(textboxPort);   // 2
+        Widgets.Add(buttonBack);    // 3
 
         textboxIp.GetFocus();
     }
@@ -44,10 +45,10 @@ public class ConnectionScreen : ScreenBase
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonConnect.text = menu.lang.Get("MainMenu_ConnectToIpConnect");
-        textboxIp.description = menu.lang.Get("MainMenu_ConnectToIpIp");
-        textboxPort.description = menu.lang.Get("MainMenu_ConnectToIpPort");
-        title = menu.lang.Get("MainMenu_MultiplayerConnectIP");
+        buttonConnect.text = Renderer.Translate("MainMenu_ConnectToIpConnect");
+        textboxIp.description = Renderer.Translate("MainMenu_ConnectToIpIp");
+        textboxPort.description = Renderer.Translate("MainMenu_ConnectToIpPort");
+        title = Renderer.Translate("MainMenu_MultiplayerConnectIP");
     }
 
     /// <inheritdoc/>
@@ -55,8 +56,8 @@ public class ConnectionScreen : ScreenBase
     {
         if (!loaded)
         {
-            savedIp = menu.p.GetPreferences().GetString("ConnectToIpIp", "127.0.0.1");
-            savedPort = menu.p.GetPreferences().GetString("ConnectToIpPort", "25565");
+            savedIp = Platform.GetPreferences().GetString("ConnectToIpIp", "127.0.0.1");
+            savedPort = Platform.GetPreferences().GetString("ConnectToIpPort", "25565");
             textboxIp.text = savedIp;
             textboxPort.text = savedPort;
             loaded = true;
@@ -68,33 +69,32 @@ public class ConnectionScreen : ScreenBase
             savedIp = textboxIp.text;
             savedPort = textboxPort.text;
 
-            Preferences prefs = menu.p.GetPreferences();
+            Preferences prefs = Platform.GetPreferences();
             prefs.SetString("ConnectToIpIp", savedIp);
             prefs.SetString("ConnectToIpPort", savedPort);
-            menu.p.SetPreferences(prefs);
+            Platform.SetPreferences(prefs);
         }
 
-        IGamePlatform p = menu.p;
-        float scale = menu.GetScale();
+        float scale = Renderer.GetScale();
 
-        menu.DrawBackground();
+        Renderer.DrawBackground();
 
-        float leftx = p.GetCanvasWidth() / 2 - 400 * scale;
-        float y = p.GetCanvasHeight() / 2 - 250 * scale;
+        float leftx = Platform.GetCanvasWidth() / 2 - 400 * scale;
+        float y = Platform.GetCanvasHeight() / 2 - 250 * scale;
 
         if (errorText != null)
         {
-            menu.DrawText(errorText, 14 * scale, leftx, y - 50 * scale, TextAlign.Left, TextBaseline.Top);
+            Renderer.DrawText(errorText, 14 * scale, leftx, y - 50 * scale, TextAlign.Left, TextBaseline.Top);
         }
 
-        menu.DrawText(title, 14 * scale, leftx, y + 50 * scale, TextAlign.Left, TextBaseline.Top);
+        Renderer.DrawText(title, 14 * scale, leftx, y + 50 * scale, TextAlign.Left, TextBaseline.Top);
 
         LayoutWidget(textboxIp, leftx, y + 100 * scale, 256, 64, scale);
         LayoutWidget(textboxPort, leftx, y + 200 * scale, 256, 64, scale);
         LayoutWidget(buttonConnect, leftx, y + 400 * scale, 256, 64, scale);
 
         buttonBack.x = 40 * scale;
-        buttonBack.y = p.GetCanvasHeight() - 104 * scale;
+        buttonBack.y = Platform.GetCanvasHeight() - 104 * scale;
         buttonBack.sizex = 256 * scale;
         buttonBack.sizey = 64 * scale;
         buttonBack.fontSize = 14 * scale;
@@ -115,7 +115,7 @@ public class ConnectionScreen : ScreenBase
     }
 
     /// <inheritdoc/>
-    public override void OnBackPressed() => menu.StartMultiplayer();
+    public override void OnBackPressed() => Navigator.StartMultiplayer();
 
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
@@ -131,7 +131,7 @@ public class ConnectionScreen : ScreenBase
             if (!string.IsNullOrEmpty(textboxIp.text)
                 && int.TryParse(textboxPort.text, out int port))
             {
-                menu.StartLogin(null, textboxIp.text, port);
+                Navigator.StartLogin(null, textboxIp.text, port);
             }
         }
     }

@@ -2,18 +2,16 @@
 
 public class TextRenderer
 {
-    public FontType Font = FontType.Nice;
+    public static FontType Font = FontType.Nice;
 
-    public void SetFont(int fontID)
+    public static void SetFont(int fontID)
     {
         Font = (FontType)fontID;
     }
 
-    // TODO: Currently broken in mono (Graphics Path).
-    private Bitmap DefaultFont(TextStyle t)
+    private static Bitmap DefaultFont(TextStyle t)
     {
         //outlined font looks smaller
-        float oldfontsize = t.FontSize;
         t.FontSize = Math.Max(t.FontSize, 9);
         t.FontSize *= 1.65f;
         Font font = new("Arial", t.FontSize, t.FontStyle);
@@ -87,9 +85,6 @@ public class TextRenderer
 
     private static Bitmap SimpleFont(TextStyle t)
     {
-        float fontsize = t.FontSize;
-        fontsize = Math.Max(t.FontSize, 9);
-        fontsize *= 1.1f;
         Font font = new("Arial", (float)t.FontSize, t.FontStyle);
 
         SizeF size;
@@ -164,15 +159,15 @@ public class TextRenderer
         return bmp2;
     }
 
-    public virtual Bitmap MakeTextTexture(TextStyle t)
+    public static Bitmap MakeTextTexture(TextStyle t)
     {
-        return this.Font switch
+        return Font switch
         {
-            FontType.Default => this.DefaultFont(t),
+            FontType.Default => DefaultFont(t),
             FontType.BlackBackground => BlackBackgroundFont(t),
             FontType.Simple => SimpleFont(t),
             FontType.Nice => NiceFont(t),
-            _ => this.DefaultFont(t),
+            _ => DefaultFont(t),
         };
     }
 
@@ -184,7 +179,7 @@ public class TextRenderer
         return path;
     }
 
-    private readonly int textalpha = 0;
+    private static readonly int textalpha = 0;
     protected static uint NextPowerOfTwo(uint x)
     {
         x--;
@@ -219,7 +214,7 @@ public class TextRenderer
     }
     public bool NewFont = true;
 
-    public virtual SizeF MeasureTextSize(string text, float fontsize)
+    public static SizeF MeasureTextSize(string text, float fontsize)
     {
         string text2 = "";
         fontsize = Math.Max(fontsize, 9);
@@ -248,30 +243,22 @@ public class TextRenderer
         return g.MeasureString(text2, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
     }
 
-    public virtual SizeF MeasureTextSize(string text, Font font)
+    private static readonly Dictionary<TextStyle, SizeF> textsizes = [];
+    private static SizeF TextSize(string text, float fontsize)
     {
-        string text2 = "";
-        for (int i = 0; i < text.Length; i++)
+        if (textsizes.TryGetValue(new TextStyle() { Text = text, FontSize = fontsize }, out SizeF size))
         {
-            if (text[i] == '&')
-            {
-                if (i + 1 < text.Length && HexToInt(text[i + 1]) != -1)
-                {
-                    //Skip color codes when calculating text length
-                    i++;
-                }
-                else
-                {
-                    text2 += text[i];
-                }
-            }
-            else
-            {
-                text2 += text[i];
-            }
+            return size;
         }
-        using Bitmap bmp = new(1, 1);
-        using Graphics g = Graphics.FromImage(bmp);
-        return g.MeasureString(text2, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
+        size = MeasureTextSize(text, fontsize);
+        textsizes[new TextStyle() { Text = text, FontSize = fontsize }] = size;
+        return size;
+    }
+
+    public static void TextSize(string text, float fontSize, out int outWidth, out int outHeight)
+    {
+        SizeF size = TextSize(text, fontSize);
+        outWidth = (int)size.Width;
+        outHeight = (int)size.Height;
     }
 }

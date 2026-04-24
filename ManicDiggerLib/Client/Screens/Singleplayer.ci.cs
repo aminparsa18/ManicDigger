@@ -8,20 +8,28 @@
 /// </remarks>
 public class SingleplayerScreen : ScreenBase
 {
+    // Maximum number of save-file buttons shown in the list.
+    private const int MaxWorldButtons = 10;
+
     private readonly MenuWidget play;
     private readonly MenuWidget newWorld;
     private readonly MenuWidget modify;
     private readonly MenuWidget back;
     private readonly MenuWidget open;
 
-    /// <summary>Dynamically populated buttons, one per discovered save file (up to 10).</summary>
+    /// <summary>Dynamically populated buttons, one per discovered save file (up to <see cref="MaxWorldButtons"/>).</summary>
     private readonly MenuWidget[] worldButtons;
 
-    private string[] savegames;
-    private int savegamesCount;
+    /// <summary>
+    /// Save files discovered on first render. <c>null</c> until the first call to
+    /// <see cref="Render"/> so that the file scan is deferred until the screen is actually shown.
+    /// </summary>
+    private List<string> savegames;
+
     private string title;
 
-    public SingleplayerScreen()
+    public SingleplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
+        : base(renderer, navigator, platform)
     {
         play = new MenuWidget
         {
@@ -48,39 +56,38 @@ public class SingleplayerScreen : ScreenBase
 
         title = "Singleplayer";
 
-        widgets.Add(play);
-        widgets.Add(newWorld);
-        widgets.Add(modify);
-        widgets.Add(back);
-        widgets.Add(open);
+        Widgets.Add(play);
+        Widgets.Add(newWorld);
+        Widgets.Add(modify);
+        Widgets.Add(back);
+        Widgets.Add(open);
 
-        worldButtons = new MenuWidget[10];
-        for (int i = 0; i < 10; i++)
+        worldButtons = new MenuWidget[MaxWorldButtons];
+        for (int i = 0; i < MaxWorldButtons; i++)
         {
             worldButtons[i] = new MenuWidget { visible = false };
-            widgets.Add(worldButtons[i]);
+            Widgets.Add(worldButtons[i]);
         }
     }
 
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        back.text = menu.lang.Get("MainMenu_ButtonBack");
-        open.text = menu.lang.Get("MainMenu_SingleplayerButtonCreate");
-        title = menu.lang.Get("MainMenu_Singleplayer");
+        back.text = Renderer.Translate("MainMenu_ButtonBack");
+        open.text = Renderer.Translate("MainMenu_SingleplayerButtonCreate");
+        title = Renderer.Translate("MainMenu_Singleplayer");
     }
 
     /// <inheritdoc/>
     public override void Render(float dt)
     {
-        IGamePlatform p = menu.p;
-        float scale = menu.GetScale();
+        float scale = Renderer.GetScale();
 
-        menu.DrawBackground();
-        menu.DrawText(title, 20 * scale, p.GetCanvasWidth() / 2, 10, TextAlign.Center, TextBaseline.Top);
+        Renderer.DrawBackground();
+        Renderer.DrawText(title, 20 * scale, Platform.GetCanvasWidth() / 2, 10, TextAlign.Center, TextBaseline.Top);
 
-        float leftx = p.GetCanvasWidth() / 2 - 128 * scale;
-        float y = p.GetCanvasHeight() / 2 + 0 * scale;
+        float leftx = Platform.GetCanvasWidth() / 2 - 128 * scale;
+        float y = Platform.GetCanvasHeight() / 2 + 0 * scale;
 
         play.x = leftx;
         play.y = y + 100 * scale;
@@ -101,7 +108,7 @@ public class SingleplayerScreen : ScreenBase
         modify.fontSize = 14 * scale;
 
         back.x = 40 * scale;
-        back.y = p.GetCanvasHeight() - 104 * scale;
+        back.y = Platform.GetCanvasHeight() - 104 * scale;
         back.sizex = 256 * scale;
         back.sizey = 64 * scale;
         back.fontSize = 14 * scale;
@@ -112,17 +119,15 @@ public class SingleplayerScreen : ScreenBase
         open.sizey = 64 * scale;
         open.fontSize = 14 * scale;
 
-        if (savegames == null)
-        {
-            savegames = MainMenu.GetSaveGames(out int savegamesCount_);
-            savegamesCount = savegamesCount_;
-        }
+        // Deferred scan: only read the filesystem once, on the first render.
+        savegames ??= GetSaveGames();
 
-        for (int i = 0; i < 10; i++)
+        // Reset all world buttons, then re-enable one per discovered save file.
+        for (int i = 0; i < MaxWorldButtons; i++)
         {
             worldButtons[i].visible = false;
         }
-        for (int i = 0; i < savegamesCount; i++)
+        for (int i = 0; i < savegames.Count; i++)
         {
             worldButtons[i].visible = true;
             worldButtons[i].text = Path.GetFileNameWithoutExtension(savegames[i]);
@@ -136,37 +141,60 @@ public class SingleplayerScreen : ScreenBase
         // Only the Open button is active on supporting platforms.
         // Play, NewWorld, Modify, and worldButtons are reserved for a future
         // save-file browser and are hidden until that UI is implemented.
-        open.visible = menu.p.SinglePlayerServerAvailable();
+        open.visible = Platform.SinglePlayerServerAvailable();
         play.visible = false;
         newWorld.visible = false;
         modify.visible = false;
-        for (int i = 0; i < savegamesCount; i++)
+        for (int i = 0; i < savegames.Count; i++)
         {
             worldButtons[i].visible = false;
         }
 
         DrawWidgets();
 
-        if (!menu.p.SinglePlayerServerAvailable())
+        if (!Platform.SinglePlayerServerAvailable())
         {
-            menu.DrawText(
+            Renderer.DrawText(
                 "Singleplayer is only available on desktop (Windows, Linux, Mac) version of game.",
-                16 * scale, menu.p.GetCanvasWidth() / 2, menu.p.GetCanvasHeight() / 2,
+                16 * scale, Platform.GetCanvasWidth() / 2, Platform.GetCanvasHeight() / 2,
                 TextAlign.Center, TextBaseline.Middle);
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Save-game helpers
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Scans <see cref="GamePlatformNative.PathSavegames"/> for <c>.mddbs</c> files
+    /// and returns their paths. Files without the expected extension are excluded.
+    /// </summary>
+    /// <returns>List of fully-qualified paths to every discovered <c>.mddbs</c> save file.</returns>
+    private static List<string> GetSaveGames()
+    {
+        string[] files = FileHelper.DirectoryGetFiles(GamePlatformNative.PathSavegames);
+        List<string> savegames = [];
+
+        foreach (string file in files)
+        {
+            if (file.EndsWith(".mddbs", StringComparison.OrdinalIgnoreCase))
+                savegames.Add(file);
+        }
+
+        return savegames;
+    }
+
     /// <inheritdoc/>
-    public override void OnBackPressed() => menu.StartMainMenu();
+    public override void OnBackPressed() => Navigator.StartMainMenu();
 
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
     {
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < MaxWorldButtons; i++)
         {
             worldButtons[i].selected = false;
         }
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < MaxWorldButtons; i++)
         {
             if (worldButtons[i] == w)
             {
@@ -196,19 +224,11 @@ public class SingleplayerScreen : ScreenBase
 
         if (w == open)
         {
-            string extension;
-            if (menu.p.SinglePlayerServerAvailable())
-            {
-                extension = "mddbs";
-            }
-            else
-            {
-                extension = "mdss";
-            }
-            string result = menu.p.FileOpenDialog(extension, "Manic Digger Savegame", GamePlatformNative.PathSavegames);
+            string extension = Platform.SinglePlayerServerAvailable() ? "mddbs" : "mdss";
+            string result = Platform.FileOpenDialog(extension, "Manic Digger Savegame", GamePlatformNative.PathSavegames);
             if (result != null)
             {
-                menu.ConnectToSingleplayer(result);
+                Navigator.ConnectToSingleplayer(result);
             }
         }
     }

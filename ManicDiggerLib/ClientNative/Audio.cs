@@ -89,10 +89,10 @@ public class AudioOpenAl
         };
     }
 
-    public class AudioTask(GameExit gameexit, AudioDataCs sample, AudioOpenAl audio) : AudioCi
+    public class AudioTask(GameExit gameexit, AudioData sample, AudioOpenAl audio)
     {
         private readonly GameExit gameexit = gameexit;
-        private readonly AudioDataCs sample = sample;
+        private readonly AudioData sample = sample;
         public Vector3 position;
 
         public void Play()
@@ -196,7 +196,7 @@ public class AudioOpenAl
         internal bool Finished;
     }
 
-    public static AudioDataCs GetSampleFromArray(byte[] data)
+    public static AudioData GetSampleFromArray(byte[] data)
     {
         Stream stream = new MemoryStream(data);
         if (stream.ReadByte() == 'R'
@@ -206,7 +206,7 @@ public class AudioOpenAl
         {
             stream.Position = 0;
             byte[] sound_data = LoadWave(stream, out int channels, out int bits_per_sample, out int sample_rate);
-            AudioDataCs sample = new()
+            AudioData sample = new()
             {
                 Pcm = sound_data,
                 BitsPerSample = bits_per_sample,
@@ -218,12 +218,12 @@ public class AudioOpenAl
         else
         {
             stream.Position = 0;
-            AudioDataCs sample = OggDecoder.OggToWav(stream);
+            AudioData sample = OggDecoder.OggToWav(stream);
             return sample;
         }
     }
 
-    public AudioTask CreateAudio(AudioDataCs sample)
+    public AudioTask CreateAudio(AudioData sample)
     {
         return new AudioTask(d_GameExit, sample, this);
     }

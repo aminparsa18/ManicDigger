@@ -2,7 +2,8 @@
 
 public class MultiplayerScreen : ScreenBase
 {
-    public MultiplayerScreen()
+    public MultiplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
+        : base(renderer, navigator, platform)
     {
         // Tab chain (by list index): [0] Back → [1] Connect → [3] ConnectToIp → [2] Refresh → [0] Back
         back = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
@@ -40,14 +41,14 @@ public class MultiplayerScreen : ScreenBase
 
         title = "Multiplayer";
 
-        widgets.Add(back);         // 0
-        widgets.Add(connect);      // 1
-        widgets.Add(refresh);      // 2
-        widgets.Add(connectToIp);  // 3
-        widgets.Add(pageUp);       // 4
-        widgets.Add(pageDown);     // 5
-        widgets.Add(loggedInName); // 6
-        widgets.Add(logout);       // 7
+        Widgets.Add(back);         // 0
+        Widgets.Add(connect);      // 1
+        Widgets.Add(refresh);      // 2
+        Widgets.Add(connectToIp);  // 3
+        Widgets.Add(pageUp);       // 4
+        Widgets.Add(pageDown);     // 5
+        Widgets.Add(loggedInName); // 6
+        Widgets.Add(logout);       // 7
 
         serverListAddress = new HttpResponse();
         serverListCsv = new HttpResponse();
@@ -65,7 +66,7 @@ public class MultiplayerScreen : ScreenBase
                 image = "serverlist_entry_noimage.png"
             };
             serverButtons[i] = b;
-            widgets.Add(b); // 8 + i
+            Widgets.Add(b); // 8 + i
         }
         loading = true;
     }
@@ -82,24 +83,24 @@ public class MultiplayerScreen : ScreenBase
 
     public override void LoadTranslations()
     {
-        back.text = menu.lang.Get("MainMenu_ButtonBack");
-        connect.text = menu.lang.Get("MainMenu_MultiplayerConnect");
-        connectToIp.text = menu.lang.Get("MainMenu_MultiplayerConnectIP");
-        refresh.text = menu.lang.Get("MainMenu_MultiplayerRefresh");
-        title = menu.lang.Get("MainMenu_Multiplayer");
+        back.text = Renderer.Translate("MainMenu_ButtonBack");
+        connect.text = Renderer.Translate("MainMenu_MultiplayerConnect");
+        connectToIp.text = Renderer.Translate("MainMenu_MultiplayerConnectIP");
+        refresh.text = Renderer.Translate("MainMenu_MultiplayerRefresh");
+        title = Renderer.Translate("MainMenu_Multiplayer");
     }
 
     public override void Render(float dt)
     {
         if (!loaded)
         {
-            menu.p.WebClientDownloadDataAsync("http://manicdigger.sourceforge.net/serverlistcsv.php", serverListAddress);
+            Platform.WebClientDownloadDataAsync("http://manicdigger.sourceforge.net/serverlistcsv.php", serverListAddress);
             loaded = true;
         }
         if (serverListAddress.Done)
         {
             serverListAddress.Done = false;
-            menu.p.WebClientDownloadDataAsync(serverListAddress.GetString(), serverListCsv);
+            Platform.WebClientDownloadDataAsync(serverListAddress.GetString(), serverListCsv);
         }
         if (serverListCsv.Done)
         {
@@ -135,74 +136,73 @@ public class MultiplayerScreen : ScreenBase
             }
         }
 
-        IGamePlatform p = menu.p;
 
-        float scale = menu.GetScale();
+        float scale = Renderer.GetScale();
 
         back.x = 40 * scale;
-        back.y = p.GetCanvasHeight() - 104 * scale;
+        back.y = Platform.GetCanvasHeight() - 104 * scale;
         back.sizex = 256 * scale;
         back.sizey = 64 * scale;
         back.fontSize = 14 * scale;
 
-        connect.x = p.GetCanvasWidth() / 2 - 300 * scale;
-        connect.y = p.GetCanvasHeight() - 104 * scale;
+        connect.x = Platform.GetCanvasWidth() / 2 - 300 * scale;
+        connect.y = Platform.GetCanvasHeight() - 104 * scale;
         connect.sizex = 256 * scale;
         connect.sizey = 64 * scale;
         connect.fontSize = 14 * scale;
 
-        connectToIp.x = p.GetCanvasWidth() / 2 - 0 * scale;
-        connectToIp.y = p.GetCanvasHeight() - 104 * scale;
+        connectToIp.x = Platform.GetCanvasWidth() / 2 - 0 * scale;
+        connectToIp.y = Platform.GetCanvasHeight() - 104 * scale;
         connectToIp.sizex = 256 * scale;
         connectToIp.sizey = 64 * scale;
         connectToIp.fontSize = 14 * scale;
 
-        refresh.x = p.GetCanvasWidth() / 2 + 350 * scale;
-        refresh.y = p.GetCanvasHeight() - 104 * scale;
+        refresh.x = Platform.GetCanvasWidth() / 2 + 350 * scale;
+        refresh.y = Platform.GetCanvasHeight() - 104 * scale;
         refresh.sizex = 256 * scale;
         refresh.sizey = 64 * scale;
         refresh.fontSize = 14 * scale;
 
-        pageUp.x = p.GetCanvasWidth() - 94 * scale;
+        pageUp.x = Platform.GetCanvasWidth() - 94 * scale;
         pageUp.y = 100 * scale + (serversPerPage - 1) * 70 * scale;
         pageUp.sizex = 64 * scale;
         pageUp.sizey = 64 * scale;
         pageUp.image = "serverlist_nav_down.png";
 
-        pageDown.x = p.GetCanvasWidth() - 94 * scale;
+        pageDown.x = Platform.GetCanvasWidth() - 94 * scale;
         pageDown.y = 100 * scale;
         pageDown.sizex = 64 * scale;
         pageDown.sizey = 64 * scale;
         pageDown.image = "serverlist_nav_up.png";
 
-        loggedInName.x = p.GetCanvasWidth() - 228 * scale;
+        loggedInName.x = Platform.GetCanvasWidth() - 228 * scale;
         loggedInName.y = 32 * scale;
         loggedInName.sizex = 128 * scale;
         loggedInName.sizey = 32 * scale;
         loggedInName.fontSize = 12 * scale;
         if (loggedInName.text == "")
         {
-            if (p.GetPreferences().GetString("Password", "") != "")
+            if (Platform.GetPreferences().GetString("Password", "") != "")
             {
-                loggedInName.text = p.GetPreferences().GetString("Username", "Invalid");
+                loggedInName.text = Platform.GetPreferences().GetString("Username", "Invalid");
             }
         }
         logout.visible = loggedInName.text != "";
 
-        logout.x = p.GetCanvasWidth() - 228 * scale;
+        logout.x = Platform.GetCanvasWidth() - 228 * scale;
         logout.y = 62 * scale;
         logout.sizex = 128 * scale;
         logout.sizey = 32 * scale;
         logout.fontSize = 12 * scale;
         logout.text = "Logout";
 
-        menu.DrawBackground();
-        menu.DrawText(title, 20 * scale, p.GetCanvasWidth() / 2, 10, TextAlign.Center, TextBaseline.Top);
-        menu.DrawText((page + 1).ToString(), 14 * scale, p.GetCanvasWidth() - 68 * scale, p.GetCanvasHeight() / 2, TextAlign.Center, TextBaseline.Middle);
+        Renderer.DrawBackground();
+        Renderer.DrawText(title, 20 * scale, Platform.GetCanvasWidth() / 2, 10, TextAlign.Center, TextBaseline.Top);
+        Renderer.DrawText((page + 1).ToString(), 14 * scale, Platform.GetCanvasWidth() - 68 * scale, Platform.GetCanvasHeight() / 2, TextAlign.Center, TextBaseline.Middle);
 
         if (loading)
         {
-            menu.DrawText(menu.lang.Get("MainMenu_MultiplayerLoading"), 14 * scale, 100 * scale, 50 * scale, TextAlign.Left, TextBaseline.Top);
+            Renderer.DrawText(Renderer.Translate("MainMenu_MultiplayerLoading"), 14 * scale, 100 * scale, 50 * scale, TextAlign.Left, TextBaseline.Top);
         }
 
         UpdateThumbnails();
@@ -211,7 +211,7 @@ public class MultiplayerScreen : ScreenBase
             serverButtons[i].visible = false;
         }
 
-        serversPerPage = (int)((menu.p.GetCanvasHeight() - (2 * 100 * scale)) / 70 * scale);
+        serversPerPage = (int)((Platform.GetCanvasHeight() - (2 * 100 * scale)) / 70 * scale);
         if (serversPerPage <= 0)
         {
             // Do not let this get negative
@@ -241,7 +241,7 @@ public class MultiplayerScreen : ScreenBase
             serverButtons[i].text = t;
             serverButtons[i].x = 100 * scale;
             serverButtons[i].y = 100 * scale + i * 70 * scale;
-            serverButtons[i].sizex = p.GetCanvasWidth() - 200 * scale;
+            serverButtons[i].sizex = Platform.GetCanvasWidth() - 200 * scale;
             serverButtons[i].sizey = 64 * scale;
             serverButtons[i].visible = true;
             serverButtons[i].buttonStyle = ButtonStyle.ServerEntry;
@@ -286,7 +286,7 @@ public class MultiplayerScreen : ScreenBase
             {
                 //Not started downloading yet
                 thumbResponses[i] = new ThumbnailResponseCi();
-                menu.p.ThumbnailDownloadAsync(server.Ip, server.Port, thumbResponses[i]);
+                Platform.ThumbnailDownloadAsync(server.Ip, server.Port, thumbResponses[i]);
                 server.ThumbnailDownloading = true;
             }
             else
@@ -294,20 +294,20 @@ public class MultiplayerScreen : ScreenBase
                 //Download in progress
                 if (thumbResponses[i] != null)
                 {
-                    if (thumbResponses[i].done)
+                    if (thumbResponses[i].Done)
                     {
                         //Request completed. load received bitmap
-                        Bitmap bmp = PixelBuffer.BitmapFromPng(thumbResponses[i].data, thumbResponses[i].data.Length);
+                        Bitmap bmp = PixelBuffer.BitmapFromPng(thumbResponses[i].Data, thumbResponses[i].Data.Length);
                         if (bmp != null)
                         {
-                            int texture = menu.p.LoadTextureFromBitmap(bmp);
-                            menu.textures[string.Format("serverlist_entry_{0}.png", server.Hash)] = texture;
+                            int texture = Platform.LoadTextureFromBitmap(bmp);
+                            Renderer.RegisterTexture(string.Format("serverlist_entry_{0}.png", server.Hash), texture);
                             bmp.Dispose();
                         }
                         server.ThumbnailDownloading = false;
                         server.ThumbnailFetched = true;
                     }
-                    if (thumbResponses[i].error)
+                    if (thumbResponses[i].Error)
                     {
                         //Error while trying to download thumbnail
                         server.ThumbnailDownloading = false;
@@ -386,7 +386,7 @@ public class MultiplayerScreen : ScreenBase
 
     public override void OnBackPressed()
     {
-        menu.StartMainMenu();
+        Navigator.StartMainMenu();
     }
     public override void OnMouseWheel(MouseWheelEventArgs e)
     {
@@ -433,12 +433,12 @@ public class MultiplayerScreen : ScreenBase
         {
             if (selectedServerHash != null)
             {
-                menu.StartLogin(selectedServerHash, null, 0);
+                Navigator.StartLogin(selectedServerHash, null, 0);
             }
         }
         if (w == connectToIp)
         {
-            menu.StartConnectToIp();
+            Navigator.StartConnectToIp();
         }
         if (w == refresh)
         {
@@ -447,10 +447,10 @@ public class MultiplayerScreen : ScreenBase
         }
         if (w == logout)
         {
-            Preferences pref = menu.p.GetPreferences();
+            Preferences pref = Platform.GetPreferences();
             pref.Remove("Username");
             pref.Remove("Password");
-            menu.p.SetPreferences(pref);
+            Platform.SetPreferences(pref);
             loggedInName.text = "";
         }
     }

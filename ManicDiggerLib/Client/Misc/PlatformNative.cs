@@ -15,6 +15,7 @@ using System.Net;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using static ManicDigger.AudioOpenAl;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -33,24 +34,7 @@ public class GamePlatformNative : IGamePlatform
     public bool TouchTest = false;
     private readonly string[] datapaths;
 
-    private readonly Dictionary<TextStyle, SizeF> textsizes = [];
-    public SizeF TextSize(string text, float fontsize)
-    {
-        if (textsizes.TryGetValue(new TextStyle() { Text = text, FontSize = fontsize }, out SizeF size))
-        {
-            return size;
-        }
-        size = textrenderer.MeasureTextSize(text, fontsize);
-        textsizes[new TextStyle() { Text = text, FontSize = fontsize }] = size;
-        return size;
-    }
-
-    public void TextSize(string text, float fontSize, out int outWidth, out int outHeight)
-    {
-        SizeF size = TextSize(text, fontSize);
-        outWidth = (int)size.Width;
-        outHeight = (int)size.Height;
-    }
+    
 
     public static string PathSavegames => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
@@ -98,14 +82,14 @@ public class GamePlatformNative : IGamePlatform
 
         if (result != null)
         {
-            args.response.data = result.ServerThumbnail;
-            args.response.serverMessage = message;
-            args.response.done = true;
+            args.response.Data = result.ServerThumbnail;
+            args.response.ServerMessage = message;
+            args.response.Done = true;
         }
         else
         {
-            args.response.serverMessage = message;
-            args.response.error = true;
+            args.response.ServerMessage = message;
+            args.response.Error = true;
         }
     }
 
@@ -125,19 +109,6 @@ public class GamePlatformNative : IGamePlatform
     public int LoadTextureFromBitmap(Bitmap bmp)
     {
         return LoadTexture(bmp, false);
-    }
-
-    private readonly TextRenderer textrenderer = new();
-
-    public Bitmap CreateTextTexture(TextStyle t)
-    {
-        Bitmap bmp = textrenderer.MakeTextTexture(t);
-        return bmp;
-    }
-
-    public void SetTextRendererFont(int fontID)
-    {
-        textrenderer.SetFont(fontID);
     }
 
     public IAviWriter AviWriterCreate()
@@ -505,7 +476,7 @@ public class GamePlatformNative : IGamePlatform
     public AudioData AudioDataCreate(byte[] data, int dataLength)
     {
         StartAudio();
-        return AudioOpenAl.GetSampleFromArray(data);
+        return GetSampleFromArray(data);
     }
 
     public bool AudioDataLoaded(AudioData data)
@@ -513,41 +484,41 @@ public class GamePlatformNative : IGamePlatform
         return true;
     }
 
-    public AudioCi AudioCreate(AudioData data)
+    public AudioTask AudioCreate(AudioData data)
     {
-        return audio.CreateAudio((AudioDataCs)data);
+        return audio.CreateAudio(data);
     }
 
-    public void AudioPlay(AudioCi audio_)
+    public void AudioPlay(AudioTask audio_)
     {
         StartAudio();
-        ((AudioOpenAl.AudioTask)audio_).Play();
+        audio_.Play();
     }
 
-    public void AudioPause(AudioCi audio_)
+    public void AudioPause(AudioTask audio_)
     {
-        ((AudioOpenAl.AudioTask)audio_).Pause();
+        audio_.Pause();
     }
 
-    public void AudioDelete(AudioCi audio_)
+    public void AudioDelete(AudioTask audio_)
     {
-        ((AudioOpenAl.AudioTask)audio_).Stop();
+        audio_.Stop();
     }
 
-    public bool AudioFinished(AudioCi audio_)
+    public bool AudioFinished(AudioTask audio_)
     {
-        return ((AudioOpenAl.AudioTask)audio_).Finished;
+        return audio_.Finished;
     }
 
-    public void AudioSetPosition(AudioCi audio_, float x, float y, float z)
+    public void AudioSetPosition(AudioTask audio_, float x, float y, float z)
     {
-        ((AudioOpenAl.AudioTask)audio_).position = new Vector3(x, y, z);
+        audio_.position = new Vector3(x, y, z);
     }
 
     public void AudioUpdateListener(float posX, float posY, float posZ, float orientX, float orientY, float orientZ)
     {
         StartAudio();
-        AudioOpenAl.UpdateListener(new Vector3(posX, posY, posZ), new Vector3(orientX, orientY, orientZ));
+        UpdateListener(new Vector3(posX, posY, posZ), new Vector3(orientX, orientY, orientZ));
     }
 
     #endregion
@@ -723,8 +694,7 @@ public class GamePlatformNative : IGamePlatform
         window.RenderFrame += WindowRenderFrame;
         window.Closing += WindowClosed;
         window.Title = "Manic Digger";
-        //GL.Enable(EnableCap.DebugOutput);
-        // GL.Enable(EnableCap.DebugOutputSynchronous);
+
         GL.DebugMessageCallback((source, type, id, severity, length, message, param) =>
         {
             if (severity == DebugSeverity.DebugSeverityNotification)
@@ -780,28 +750,29 @@ public class GamePlatformNative : IGamePlatform
         return key.ToString();
     }
 
-    private DisplayResolutionCi[] resolutions;
-    private int resolutionsCount;
-    public DisplayResolutionCi[] GetDisplayResolutions(out int retResolutionsCount)
+    private List<DisplayResolutionCi> resolutions;
+
+    public List<DisplayResolutionCi> GetDisplayResolutions()
     {
         if (resolutions == null)
         {
-            resolutions = new DisplayResolutionCi[1024];
-            foreach (var screen in System.Windows.Forms.Screen.AllScreens)
+            resolutions = [];
+            foreach (var screen in Screen.AllScreens)
             {
-                var r2 = new DisplayResolutionCi
+                var resolution = new DisplayResolutionCi
                 {
                     Width = screen.Bounds.Width,
                     Height = screen.Bounds.Height,
                     BitsPerPixel = screen.BitsPerPixel,
                     RefreshRate = 60 // Screen doesn't expose refresh rate
                 };
-                if (r2.Width < 800 || r2.Height < 600 || r2.BitsPerPixel < 16)
+
+                if (resolution.Width < 800 || resolution.Height < 600 || resolution.BitsPerPixel < 16)
                     continue;
-                resolutions[resolutionsCount++] = r2;
+
+                resolutions.Add(resolution);
             }
         }
-        retResolutionsCount = resolutionsCount;
         return resolutions;
     }
 
@@ -822,7 +793,7 @@ public class GamePlatformNative : IGamePlatform
 
     public DisplayResolutionCi GetDisplayResolutionDefault()
     {
-        var screen = System.Windows.Forms.Screen.PrimaryScreen!;
+        var screen = Screen.PrimaryScreen!;
         var r = new DisplayResolutionCi
         {
             Width = screen.Bounds.Width,
@@ -1127,7 +1098,6 @@ public class GamePlatformNative : IGamePlatform
     public bool ENABLE_MIPMAPS = true;
     public bool ENABLE_TRANSPARENCY = true;
 
-    //http://www.opentk.com/doc/graphics/textures/loading
     public int LoadTexture(Bitmap bmpArg, bool linearMag)
     {
         Bitmap bmp = bmpArg;
@@ -1242,7 +1212,6 @@ public class GamePlatformNative : IGamePlatform
     private Vector3 _ambientLight = Vector3.One;
     private Vector4 _fogColor = Vector4.One;
     private float _fogDensity = 0.003f;
-    private bool _fogEnabled = false;
 
     public void GlLightModelAmbient(int r, int g, int b)
     {
@@ -1254,14 +1223,12 @@ public class GamePlatformNative : IGamePlatform
 
     public void GlEnableFog()
     {
-        _fogEnabled = true;
         if (_shaderProgram != -1)
             GL.Uniform1(_uFogEnabled, 1);
     }
 
     public void GlDisableFog()
     {
-        _fogEnabled = false;
         if (_shaderProgram != -1)
             GL.Uniform1(_uFogEnabled, 0);
     }
@@ -1383,7 +1350,7 @@ public class GamePlatformNative : IGamePlatform
         newFrameHandlers.Add(handler);
     }
 
-    public List<Action<KeyEventArgs>> keyDownHandlers = new();
+    public List<Action<KeyEventArgs>> keyDownHandlers { get; set; } = new();
     public List<Action<KeyEventArgs>> keyUpHandlers = new();
     public List<Action<KeyPressEventArgs>> keyPressHandlers = new();
 
@@ -1445,8 +1412,6 @@ public class GamePlatformNative : IGamePlatform
 
     private bool mousePointerLocked;
     private bool mouseCursorVisible = true;
-    //private MouseState current, previous;
-    private float lastX, lastY;
 
     public bool IsMousePointerLocked()
     {
@@ -1627,8 +1592,6 @@ public class GamePlatformNative : IGamePlatform
     {
         try
         {
-            lastX = e.X;
-            lastY = e.Y;
             Console.WriteLine($"Mouse_Move: {e.X}, {e.Y}, delta: {e.DeltaX}, {e.DeltaY}");
 
             if (TouchTest)
@@ -1731,14 +1694,8 @@ public class AviWriterCiCs : IAviWriter
     }
 }
 
-public class TextureNative : Texture
-{
-    public int value;
-}
-
 public class GameWindowNative : GameWindow
 {
-    public GamePlatformNative platform;
     public GameWindowNative()
         : base(
             new GameWindowSettings

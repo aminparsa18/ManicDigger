@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using static ManicDigger.AudioOpenAl;
+
+/// <summary>
 /// Mod that manages audio loading, playback, positional updates, looping, and cleanup.
 /// </summary>
 public class ModAudio : ModBase
@@ -160,5 +162,5 @@ public class Sound
     internal float z;
     internal bool loop;
     internal bool stop;
-    internal AudioCi audio;
+    internal AudioTask audio;
 }

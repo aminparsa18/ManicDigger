@@ -96,13 +96,13 @@ public class ModDraw2dMisc : ModBase
         game.Draw2dTexture(whiteTexId, game.Xcenter(300), 40, 300 * progress, barHeight, null, 0,
             ColorUtils.ColorFromArgb(255, 255, 0, 0), false);
 
-        game.platform.TextSize(name, 14, out int w, out _);
+        TextRenderer.TextSize(name, 14, out int w, out _);
         game.Draw2dText1(name, game.Xcenter(w), 40, 14, null, false);
 
         if (useInfo)
         {
             string hint = string.Format(game.language.PressToUse(), "E");
-            game.platform.TextSize(hint, 10, out w, out _);
+            TextRenderer.TextSize(hint, 10, out w, out _);
             game.Draw2dText1(hint, game.Xcenter(w), 70, 10, null, false);
         }
     }

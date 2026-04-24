@@ -354,6 +354,8 @@ public class ModNetworkProcess : ModBase
                 {
                     packet.Season.Hour -= 1;
                     if (packet.Season.Hour < 0) { packet.Season.Hour = 12 * Game.HourDetail; }
+                    if (game.NightLevels == null) { break; }
+                    if (packet.Season.Hour >= game.NightLevels.Length) { break; }
                     int sunlight = game.NightLevels[packet.Season.Hour];
                     game.SkySphereNight = sunlight < 8;
                     game.d_SunMoonRenderer.day_length_in_seconds = 60 * 60 * 24 / packet.Season.DayNightCycleSpeedup;

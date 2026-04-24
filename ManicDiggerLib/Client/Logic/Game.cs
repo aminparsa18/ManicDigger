@@ -290,14 +290,14 @@ public partial class Game
     /// <summary>Returns the rendered width of <paramref name="s"/> at the given point size.</summary>
     internal int TextSizeWidth(string s, int size)
     {
-        platform.TextSize(s, size, out int width, out _);
+        TextRenderer.TextSize(s, size, out int width, out _);
         return width;
     }
 
     /// <summary>Returns the rendered height of <paramref name="s"/> at the given point size.</summary>
     internal int TextSizeHeight(string s, int size)
     {
-        platform.TextSize(s, size, out _, out int height);
+        TextRenderer.TextSize(s, size, out _, out int height);
         return height;
     }
 

@@ -1,5 +1,6 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
+using static ManicDigger.AudioOpenAl;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Composite — the full platform contract used throughout the game.
@@ -21,7 +22,6 @@ public interface IGamePlatform :
 
 public interface IPlatformMisc
 {
-    void TextSize(string text, float fontSize, out int outWidth, out int outHeight);
     void WebClientDownloadDataAsync(string url, HttpResponse response);
     void ThumbnailDownloadAsync(string ip, int port, ThumbnailResponseCi response);
     void AddOnNewFrame(Action<float> handler);
@@ -40,8 +40,6 @@ public interface IPlatformMisc
     int GetCanvasHeight();
     int TimeMillisecondsFromStart { get; }
 
-    Bitmap CreateTextTexture(TextStyle t);
-    void SetTextRendererFont(int fontID);
     void SaveScreenshot();
     Bitmap GrabScreenshot();
     IAviWriter AviWriterCreate();
@@ -57,7 +55,7 @@ public interface IPlatformMisc
     bool Focused();
     void AddOnCrash(OnCrashHandler handler);
     string KeyName(int key);
-    DisplayResolutionCi[] GetDisplayResolutions(out int resolutionsCount);
+    List<DisplayResolutionCi> GetDisplayResolutions();
     WindowState GetWindowState();
     void SetWindowState(WindowState value);
     void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate);
@@ -98,12 +96,12 @@ public interface IPlatformAudio
 {
     AudioData AudioDataCreate(byte[] data, int dataLength);
     bool AudioDataLoaded(AudioData data);
-    AudioCi AudioCreate(AudioData data);
-    void AudioPlay(AudioCi audio);
-    void AudioPause(AudioCi audio);
-    void AudioDelete(AudioCi audioCi);
-    bool AudioFinished(AudioCi audio);
-    void AudioSetPosition(AudioCi audio, float x, float y, float z);
+    AudioTask AudioCreate(AudioData data);
+    void AudioPlay(AudioTask audio);
+    void AudioPause(AudioTask audio);
+    void AudioDelete(AudioTask audio);
+    bool AudioFinished(AudioTask audio);
+    void AudioSetPosition(AudioTask audio, float x, float y, float z);
     void AudioUpdateListener(float posX, float posY, float posZ, float orientX, float orientY, float orientZ);
 }
 
@@ -187,8 +185,6 @@ public interface IPlatformSinglePlayer
     PlayerInterpolationState CastToPlayerInterpolationState(InterpolatedObject a);
     EnetNetConnection CastToEnetNetConnection(NetConnection connection);
 }
-
-
 
 public class OnCrashHandler
 {
@@ -337,10 +333,3 @@ public enum TextBaseline
     Bottom
 }
 
-public abstract class AudioData
-{
-}
-
-public abstract class AudioCi
-{
-}

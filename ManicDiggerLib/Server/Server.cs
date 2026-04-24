@@ -3029,20 +3029,15 @@ public partial class Server : ICurrentTime, IDropItem
     public void SendTranslations(int clientid)
     {
         //Read all lines from server translation and send them to the client
-        TranslatedString[] strings = language.AllStrings();
-        foreach (TranslatedString transString in strings)
+        foreach (var ((lang, id), translated) in language.AllStrings())
         {
-            if (transString == null)
-            {
-                continue;
-            }
             Packet_ServerTranslatedString p = new()
             {
-                Lang = transString.language,
-                Id = transString.id,
-                Translation = transString.translated
+                Lang = lang,
+                Id = id,
+                Translation = translated
             };
-            SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.Translation, Translation = p }));
+            SendPacket(clientid, Serialize(new Packet_Server { Id = Packet_ServerIdEnum.Translation, Translation = p }));
         }
     }
 

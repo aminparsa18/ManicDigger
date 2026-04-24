@@ -63,10 +63,9 @@ public class Program
         Log.Debug("Creating GameWindowNative");
         using GameWindowNative window = new();
         platform.window = window;
-        window.platform = platform;
 
-        MainMenu mainmenu = new();
-        mainmenu.Start(platform);
+        MainMenu mainmenu = new(platform);
+        mainmenu.Start();
         ReadArgs(mainmenu, args);
 
         platform.Start();

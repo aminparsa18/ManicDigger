@@ -5,7 +5,8 @@
 /// Bridges platform input events to the game, manages the singleplayer
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
-public class ScreenGame : ScreenBase
+public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform) 
+    : ScreenBase(renderer, navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly Game game = new();
@@ -35,8 +36,8 @@ public class ScreenGame : ScreenBase
 
         game.platform = platform;
         game.issingleplayer = singleplayer;
-        game.assets = menu.assets;
-        game.assetsLoadProgress = menu.assetsLoadProgress;
+        game.assets = Renderer.Assets;
+        game.assetsLoadProgress = Renderer.AssetsLoadProgress;
 
         game.Start();
         Connect(platform);
@@ -92,7 +93,7 @@ public class ScreenGame : ScreenBase
         if (game.reconnect)
         {
             game.Dispose();
-            menu.StartGame(singleplayer, singleplayerSavePath, connectData);
+            Navigator.StartGame(singleplayer, singleplayerSavePath, connectData);
             return;
         }
 
@@ -117,7 +118,7 @@ public class ScreenGame : ScreenBase
 
         if (redirect == null)
         {
-            menu.StartMainMenu();
+            Navigator.StartMainMenu();
             return;
         }
 
@@ -131,7 +132,7 @@ public class ScreenGame : ScreenBase
         if (qresult == null)
         {
             platform.MessageBoxShowError(message, "Redirection error");
-            menu.StartMainMenu();
+            Navigator.StartMainMenu();
             return;
         }
 
@@ -152,15 +153,15 @@ public class ScreenGame : ScreenBase
         if (!lidata.ServerCorrect)
         {
             platform.MessageBoxShowError("Invalid server address!", "Redirection error!");
-            menu.StartMainMenu();
+            Navigator.StartMainMenu();
         }
         else if (!lidata.PasswordCorrect)
         {
-            menu.StartLogin(token, null, 0);
+            Navigator.StartLogin(token, null, 0);
         }
         else if (!string.IsNullOrEmpty(lidata.ServerAddress))
         {
-            menu.ConnectToGame(lidata, connectData.Username);
+            Navigator.ConnectToGame(lidata, connectData.Username);
         }
     }
 

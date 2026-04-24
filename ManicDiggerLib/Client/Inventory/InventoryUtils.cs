@@ -48,8 +48,8 @@ public class InventoryUtils
 
         if (item.ItemClass == ItemClass.Block)
         {
-            string key = string.Concat("Block_", _game.blocktypes[item.BlockId].Name);
-            return _game.language.Get(key);
+            string key = string.Concat("Block_", _game.Blocktypes[item.BlockId].Name);
+            return _game.Language.Get(key);
         }
 
         throw new NotSupportedException($"ItemInfo is not implemented for ItemClass '{item.ItemClass}'.");

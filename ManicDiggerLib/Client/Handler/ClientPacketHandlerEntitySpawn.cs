@@ -4,25 +4,25 @@
 /// </summary>
 public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
 {
-    public override void Handle(Game game, Packet_Server packet)
+    public override void Handle(IGameClient game, Packet_Server packet)
     {
         int id = packet.EntitySpawn.Id;
-        Entity entity = game.entities[id] ?? new Entity();
+        Entity entity = game.Entities[id] ?? new Entity();
 
         ToClientEntity(game, packet.EntitySpawn.Entity_, entity,
             updatePosition: id != game.LocalPlayerId);
 
-        game.entities[id] = entity;
+        game.Entities[id] = entity;
 
         if (id == game.LocalPlayerId)
         {
             entity.networkPosition = null;
-            game.player = entity;
-            if (!game.spawned)
+            game.Player = entity;
+            if (!game.Spawned)
             {
                 entity.scripts[entity.scriptsCount++] = new ScriptCharacterPhysics();
                 game.MapLoaded();
-                game.spawned = true;
+                game.Spawned = true;
             }
         }
     }
@@ -54,7 +54,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
     /// <paramref name="old"/> entity object, allocating sub-objects only when
     /// the corresponding server field is present.
     /// </summary>
-    public static Entity ToClientEntity(Game game, Packet_ServerEntity entity, Entity old, bool updatePosition)
+    public static Entity ToClientEntity(IGameClient game, Packet_ServerEntity entity, Entity old, bool updatePosition)
     {
         if (entity.Position != null && (old.position == null || updatePosition))
         {

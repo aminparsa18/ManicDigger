@@ -85,11 +85,11 @@ public class ScriptCharacterPhysics : IEntityScript
     public void OnNewFrameFixed(Game game_, int entity, float dt)
     {
         game = game_;
-        if (game.guistate == GuiState.MapLoading) return;
+        if (game.GuiState == GuiState.MapLoading) return;
 
         movespeednow = game.MoveSpeedNow();
-        game.controls.movedx = Math.Clamp(game.controls.movedx, -1, 1);
-        game.controls.movedy = Math.Clamp(game.controls.movedy, -1, 1);
+        game.Controls.movedx = Math.Clamp(game.Controls.movedx, -1, 1);
+        game.Controls.movedy = Math.Clamp(game.Controls.movedy, -1, 1);
 
         jumpstartacceleration = 13.333f * constGravity;
         jumpstartaccelerationhalf = 9f * constGravity;
@@ -99,7 +99,7 @@ public class ScriptCharacterPhysics : IEntityScript
         // ── Follow mode: suppress local input ────────────────────────────────
         // FollowId() does a linear entity scan — call once and cache.
         int? followId = game.FollowId();
-        Controls move = game.controls;
+        Controls move = game.Controls;
         if (followId != null && followId == game.LocalPlayerId)
         {
             move.movedx = 0;
@@ -108,10 +108,10 @@ public class ScriptCharacterPhysics : IEntityScript
             move.wantsjump = false;
         }
 
-        Update(game.player.position, move, dt,
+        Update(game.Player.position, move, dt,
             out game.soundnow,
             new Vector3(game.pushX, game.pushY, game.pushZ),
-            game.entities[game.LocalPlayerId].drawModel.ModelHeight);
+            game.Entities[game.LocalPlayerId].drawModel.ModelHeight);
     }
 
     // ── Core physics update ───────────────────────────────────────────────────
@@ -151,9 +151,9 @@ public class ScriptCharacterPhysics : IEntityScript
         if (blockUnder != -1
             && blockUnder == game.BlockRegistry.BlockIdTrampoline
             && !isplayeronground
-            && !game.controls.shiftkeydown)
+            && !game.Controls.shiftkeydown)
         {
-            game.controls.wantsjump = true;
+            game.Controls.wantsjump = true;
             jumpstartacceleration = 20.666f * constGravity;
         }
 
@@ -190,13 +190,13 @@ public class ScriptCharacterPhysics : IEntityScript
 
         // ── Gravity: only after the chunk under the player has arrived ─────────
         bool loaded = false;
-        int cx = (int)(game.player.position.x / Game.chunksize);
-        int cy = (int)(game.player.position.z / Game.chunksize);
-        int cz = (int)(game.player.position.y / Game.chunksize);
+        int cx = (int)(game.Player.position.x / Game.chunksize);
+        int cy = (int)(game.Player.position.z / Game.chunksize);
+        int cz = (int)(game.Player.position.y / Game.chunksize);
         if (game.VoxelMap.IsValidChunkPos(cx, cy, cz))
         {
             // Use cached chunk-count properties instead of recomputing / Game.chunksize.
-            if (game.VoxelMap.chunks[VectorIndexUtil.Index3d(
+            if (game.VoxelMap.Chunks[VectorIndexUtil.Index3d(
                     cx, cy, cz,
                     game.VoxelMap.Mapsizexchunks,
                     game.VoxelMap.Mapsizeychunks)] != null)
@@ -355,7 +355,7 @@ public class ScriptCharacterPhysics : IEntityScript
         int block = game.VoxelMap.GetBlockValid(x, y, z);
         if (block == 0) return true;
 
-        Packet_BlockType blocktype = game.blocktypes[block];
+        Packet_BlockType blocktype = game.Blocktypes[block];
         return blocktype.WalkableType == WalkableType.Fluid
             || Game.IsEmptyForPhysics(blocktype)
             || IsRail(blocktype);
@@ -395,7 +395,7 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(newposition.X, tmpPlayerPosition.Y + 0.5f, tmpPlayerPosition.Z, out _))
             {
                 game.reachedwall_1blockhigh = true;
-                if (game.blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
+                if (game.Blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
                 if (StandingOnHalfBlock(newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z)) game.reachedHalfBlock = true;
             }
         }
@@ -415,7 +415,7 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(tmpPlayerPosition.X, tmpPlayerPosition.Y + 0.5f, newposition.Z, out _))
             {
                 game.reachedwall_1blockhigh = true;
-                if (game.blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
+                if (game.Blocktypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.reachedHalfBlock = true;
                 if (StandingOnHalfBlock(tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z)) game.reachedHalfBlock = true;
             }
         }
@@ -430,7 +430,7 @@ public class ScriptCharacterPhysics : IEntityScript
     private bool StandingOnHalfBlock(float x, float y, float z)
     {
         int under = game.VoxelMap.GetBlock((int)x, (int)z, (int)y);
-        return game.blocktypes[under].DrawType == DrawType.HalfHeight;
+        return game.Blocktypes[under].DrawType == DrawType.HalfHeight;
     }
 
     private bool IsEmptySpaceForPlayer(bool high, float x, float y, float z, out int blockingBlockType)
@@ -533,7 +533,7 @@ public struct Acceleration
 /// a cheap copy — local modifications (e.g. zeroing movement in follow mode)
 /// do not affect the original <c>game.controls</c> state.
 /// </summary>
-public struct Controls
+public class Controls
 {
     /// <summary>Lateral strafe input in [-1, 1] (negative = left, positive = right).</summary>
     internal float movedx;

@@ -8,7 +8,7 @@
     // Chat line display
     // -------------------------------------------------------------------------
 
-    public void AddChatline(string s)
+    public void AddChatLine(string s)
     {
         if (string.IsNullOrEmpty(s))
             return;
@@ -115,17 +115,17 @@
         string cmd = ss[0][1..];
         int spaceIndex = s_.IndexOf(" ", StringComparison.InvariantCultureIgnoreCase);
         string arguments = spaceIndex >= 0 ? s_[spaceIndex..].Trim() : "";
-        string strFreemoveNotAllowed = language.FreemoveNotAllowed();
+        string strFreemoveNotAllowed = Language.FreemoveNotAllowed();
 
         switch (cmd)
         {
             case "clients":
-                Log("Clients:");
-                for (int i = 0; i < entities.Count; i++)
+                AddChatLine("Clients:");
+                for (int i = 0; i < Entities.Count; i++)
                 {
-                    Entity entity = entities[i];
+                    Entity entity = Entities[i];
                     if (entity == null || entity.drawName == null || !entity.drawName.ClientAutoComplete) continue;
-                    Log(string.Format("{0} {1}", i.ToString(), entity.drawName.Name));
+                    AddChatLine(string.Format("{0} {1}", i.ToString(), entity.drawName.Name));
                 }
                 break;
 
@@ -135,7 +135,7 @@
 
             case "m":
                 mouseSmoothing = !mouseSmoothing;
-                Log(mouseSmoothing ? "Mouse smoothing enabled." : "Mouse smoothing disabled.");
+                AddChatLine(mouseSmoothing ? "Mouse smoothing enabled." : "Mouse smoothing disabled.");
                 break;
 
             case "pos":
@@ -143,12 +143,12 @@
                 break;
 
             case "noclip":
-                controls.noclip = BoolCommandArgument(arguments);
+                Controls.noclip = BoolCommandArgument(arguments);
                 break;
 
             case "freemove":
-                if (!AllowFreemove) { Log(strFreemoveNotAllowed); return; }
-                controls.freemove = BoolCommandArgument(arguments);
+                if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
+                Controls.freemove = BoolCommandArgument(arguments);
                 break;
 
             case "gui":
@@ -183,7 +183,7 @@
                 int foglevel = int.Parse(arguments);
                 foglevel = Math.Min(foglevel, 1024);
                 if (foglevel % 2 == 0) foglevel--;
-                d_Config3d.ViewDistance = foglevel;
+                Config3d.ViewDistance = foglevel;
                 OnResize();
                 break;
 
@@ -192,7 +192,7 @@
                 int minfov = issingleplayer ? 1 : 60;
                 int maxfov = 179;
                 if (arg < minfov || arg > maxfov)
-                    Log(string.Format("Valid field of view: {0}-{1}", minfov, maxfov));
+                    AddChatLine(string.Format("Valid field of view: {0}-{1}", minfov, maxfov));
                 else
                 {
                     fov = 2 * MathF.PI * (arg / 360);
@@ -201,14 +201,14 @@
                 break;
 
             case "movespeed":
-                if (!AllowFreemove) { Log(strFreemoveNotAllowed); return; }
+                if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
                 float speed = float.Parse(arguments);
                 if (speed > 500)
-                    AddChatline("Entered movespeed to high! max. 500x");
+                    AddChatLine("Entered movespeed to high! max. 500x");
                 else
                 {
-                    movespeed = basemovespeed * speed;
-                    AddChatline(string.Format("Movespeed: {0}x", arguments));
+                    MoveSpeed = Basemovespeed * speed;
+                    AddChatLine(string.Format("Movespeed: {0}x", arguments));
                 }
                 break;
 
@@ -220,20 +220,20 @@
 
                     if (result != null)
                     {
-                        AddChatline(result.GameMode);
-                        AddChatline(result.MapSizeX.ToString());
-                        AddChatline(result.MapSizeY.ToString());
-                        AddChatline(result.MapSizeZ.ToString());
-                        AddChatline(result.MaxPlayers.ToString());
-                        AddChatline(result.Motd);
-                        AddChatline(result.Name);
-                        AddChatline(result.PlayerCount.ToString());
-                        AddChatline(result.PlayerList);
-                        AddChatline(result.Port.ToString());
-                        AddChatline(result.PublicHash);
-                        AddChatline(result.ServerVersion);
+                        AddChatLine(result.GameMode);
+                        AddChatLine(result.MapSizeX.ToString());
+                        AddChatLine(result.MapSizeY.ToString());
+                        AddChatLine(result.MapSizeZ.ToString());
+                        AddChatLine(result.MaxPlayers.ToString());
+                        AddChatLine(result.Motd);
+                        AddChatLine(result.Name);
+                        AddChatLine(result.PlayerCount.ToString());
+                        AddChatLine(result.PlayerList);
+                        AddChatLine(result.Port.ToString());
+                        AddChatLine(result.PublicHash);
+                        AddChatLine(result.ServerVersion);
                     }
-                    AddChatline(message);
+                    AddChatLine(message);
                 }
                 break;
         }

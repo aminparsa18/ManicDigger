@@ -6,7 +6,7 @@ public partial class Game
     // Camera mode
     // -------------------------------------------------------------------------
 
-    internal void SetCamera(CameraType type)
+    public void SetCamera(CameraType type)
     {
         switch (type)
         {
@@ -27,7 +27,7 @@ public partial class Game
                 overheadcamera = true;
                 SetFreeMouse(true);
                 ENABLE_TPP_VIEW = true;
-                playerdestination = new Vector3(player.position.x, player.position.y, player.position.z);
+                playerdestination = new Vector3(Player.position.x, Player.position.y, Player.position.z);
                 break;
         }
     }
@@ -50,7 +50,7 @@ public partial class Game
                 overheadcamera = true;
                 SetFreeMouse(true);
                 ENABLE_TPP_VIEW = true;
-                playerdestination = new Vector3(player.position.x, player.position.y, player.position.z);
+                playerdestination = new Vector3(Player.position.x, Player.position.y, Player.position.z);
                 break;
 
             case CameraType.Overhead:

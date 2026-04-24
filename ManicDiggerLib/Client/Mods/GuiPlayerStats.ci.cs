@@ -13,7 +13,7 @@ public class ModGuiPlayerStats : ModBase
 
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {
-        if (game.guistate == GuiState.MapLoading || game.PlayerStats == null) return;
+        if (game.GuiState == GuiState.MapLoading || game.PlayerStats == null) return;
 
         int barY = game.Height() - 122;
         int healthX = game.Width() / 2 - BarWidth - CenterOffset;

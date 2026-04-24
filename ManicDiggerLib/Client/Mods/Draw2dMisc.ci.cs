@@ -5,10 +5,10 @@ public class ModDraw2dMisc : ModBase
 {
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {
-        if (game.guistate == GuiState.Normal)
+        if (game.GuiState == GuiState.Normal)
             DrawAim(game);
 
-        if (game.guistate != GuiState.MapLoading)
+        if (game.GuiState != GuiState.MapLoading)
         {
             DrawEnemyHealthBlock(game);
             DrawAmmo(game);
@@ -51,7 +51,7 @@ public class ModDraw2dMisc : ModBase
             float progress = health / game.BlockRegistry.Strength[blocktype];
 
             // Cache the translated name — used in up to two calls below.
-            string name = game.language.Get("Block_" + game.blocktypes[blocktype].Name);
+            string name = game.Language.Get("Block_" + game.Blocktypes[blocktype].Name);
 
             if (game.IsUsableBlock(blocktype))
                 DrawEnemyHealthUseInfo(game, name, progress, useInfo: true);
@@ -61,7 +61,7 @@ public class ModDraw2dMisc : ModBase
 
         if (game.currentlyAttackedEntity != -1)
         {
-            Entity e = game.entities[game.currentlyAttackedEntity];
+            Entity e = game.Entities[game.currentlyAttackedEntity];
             if (e == null) return;
 
             float health = e.playerStats != null
@@ -69,7 +69,7 @@ public class ModDraw2dMisc : ModBase
                 : 1f;
 
             string name = e.drawName?.Name ?? "Unknown";
-            string translatedName = game.language.Get(name);
+            string translatedName = game.Language.Get(name);
 
             if (e.usable)
                 DrawEnemyHealthUseInfo(game, translatedName, health, useInfo: true);
@@ -101,7 +101,7 @@ public class ModDraw2dMisc : ModBase
 
         if (useInfo)
         {
-            string hint = string.Format(game.language.PressToUse(), "E");
+            string hint = string.Format(game.Language.PressToUse(), "E");
             TextRenderer.TextSize(hint, 10, out w, out _);
             game.Draw2dText1(hint, game.Xcenter(w), 70, 10, null, false);
         }
@@ -144,7 +144,7 @@ public class ModDraw2dMisc : ModBase
     {
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) return;
-        if (!game.blocktypes[item.BlockId].IsPistol) return;
+        if (!game.Blocktypes[item.BlockId].IsPistol) return;
 
         int loaded = game.LoadedAmmo[item.BlockId];
         int total = game.TotalAmmo[item.BlockId];
@@ -173,15 +173,15 @@ public class ModDraw2dMisc : ModBase
         if (!game.ENABLE_DRAWPOSITION) return;
 
         float heading = Game.HeadingByte(
-            game.player.position.rotx, game.player.position.roty, game.player.position.rotz);
+            game.Player.position.rotx, game.Player.position.roty, game.Player.position.rotz);
         float pitch = Game.PitchByte(
-            game.player.position.rotx, game.player.position.roty, game.player.position.rotz);
+            game.Player.position.rotx, game.Player.position.roty, game.Player.position.rotz);
 
         // Single interpolated string replaces seven string.Concat calls.
         string postext =
-            $"X: {MathF.Floor(game.player.position.x)},\t" +
-            $"Y: {MathF.Floor(game.player.position.z)},\t" +
-            $"Z: {MathF.Floor(game.player.position.y)}\n" +
+            $"X: {MathF.Floor(game.Player.position.x)},\t" +
+            $"Y: {MathF.Floor(game.Player.position.z)},\t" +
+            $"Z: {MathF.Floor(game.Player.position.y)}\n" +
             $"Heading: {MathF.Floor(heading)}\n" +
             $"Pitch: {MathF.Floor(pitch)}";
 
@@ -197,7 +197,7 @@ public class ModDraw2dMisc : ModBase
 
         if (lagSeconds < Game.DISCONNECTED_ICON_AFTER_SECONDS) return;
         if (lagSeconds >= 60 * 60 * 24) return;
-        if (game.invalidVersionDrawMessage != null) return;
+        if (game.InvalidVersionDrawMessage != null) return;
         if (game.issingleplayer && !game.Platform.SinglePlayerServerLoaded()) return;
 
         game.Draw2dBitmapFile("disconnected.png", game.Width() - 100, 50, 50, 50);

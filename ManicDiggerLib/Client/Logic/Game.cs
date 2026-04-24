@@ -3,14 +3,14 @@ using OpenTK.Mathematics;
 using System.Numerics;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
-public partial class Game : IMeshDrawer, ITerrainData, IGameClient
+public partial class Game : IMeshDrawer, IGameClient
 {
     // ── Map loading ───────────────────────────────────────────────────────────
 
     /// <summary>Enters map-loading state, locks the mouse, and initialises progress tracking.</summary>
     public void MapLoadingStart()
     {
-        guistate = GuiState.MapLoading;
+        GuiState = GuiState.MapLoading;
         maploadingprogress = new MapLoadingProgressEventArgs();
         fontMapLoading = new Font("Arial", 14, FontStyle.Regular);
         SetFreeMouse(true);
@@ -20,7 +20,7 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     /// Updates the map-loading progress in-place rather than allocating a new
     /// <see cref="MapLoadingProgressEventArgs"/> on every incoming chunk.
     /// </summary>
-    internal void InvokeMapLoadingProgress(int progressPercent, int progressBytes, string status)
+    public void InvokeMapLoadingProgress(int progressPercent, int progressBytes, string status)
     {
         maploadingprogress.ProgressPercent = progressPercent;
         maploadingprogress.ProgressBytes = progressBytes;
@@ -67,9 +67,9 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
 
     /// <summary>Returns the far-clip distance for the current view distance setting.</summary>
     internal float Zfar() =>
-        d_Config3d.ViewDistance >= 256
-            ? d_Config3d.ViewDistance * 2
-            : ENABLE_ZFAR ? d_Config3d.ViewDistance : 99999;
+        Config3d.ViewDistance >= 256
+            ? Config3d.ViewDistance * 2
+            : ENABLE_ZFAR ? Config3d.ViewDistance : 99999;
 
     /// <summary>Sets the 3D projection using the current far-clip and FOV.</summary>
     internal void Set3dProjection1(float zfar_) => Set3dProjection(zfar_, CurrentFov());
@@ -80,7 +80,7 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     // ── Fixed-point encoding ──────────────────────────────────────────────────
 
     /// <summary>Decodes a Q5 fixed-point integer (value / 32) to a float.</summary>
-    internal float DecodeFixedPoint(int value) => value / 32f;
+    public float DecodeFixedPoint(int value) => value / 32f;
 
     /// <summary>Encodes a float to Q5 fixed-point (value × 32).</summary>
     public static int EncodeFixedPoint(float p) => (int)(p * 32);
@@ -110,7 +110,7 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     /// otherwise falls back to the first allowed font.
     /// Uses index access instead of <c>First()</c> to avoid allocating an enumerator.
     /// </summary>
-    internal string ValidFont(string family) =>
+    public string ValidFont(string family) =>
         AllowedFonts.Contains(family) ? family : AllowedFonts[0];
 
     // ── Inventory ─────────────────────────────────────────────────────────────
@@ -128,7 +128,7 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     }
 
     /// <summary>Replaces the active inventory with the server-sent packet and notifies the util layer.</summary>
-    internal void UseInventory(Packet_Inventory packet_Inventory)
+    public void UseInventory(Packet_Inventory packet_Inventory)
     {
         d_Inventory = packet_Inventory;
         d_InventoryUtil.UpdateInventory(packet_Inventory);
@@ -137,50 +137,50 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     // ── Dialog helpers ────────────────────────────────────────────────────────
 
     /// <summary>Number of currently active (non-null) dialogs.</summary>
-    internal int DialogsCount => dialogs.Count(d => d != null);
+    internal int DialogsCount => Dialogs.Count(d => d != null);
 
     public int MapSizeX => VoxelMap.MapSizeX;
     public int MapSizeY => VoxelMap.MapSizeY;
     public int MapSizeZ => VoxelMap.MapSizeZ;
-    public int TerrainTexturesPerAtlas => terrainTexturesPerAtlas;
-    public int[] TerrainTextures1d => terrainTextures1d;
-    public Packet_BlockType[] BlockTypes => blocktypes;
+    public int TerrainTexturesPerAtlas { get; set; }
+    public Packet_BlockType[] BlockTypes { get; set; }
 
-    public float LocalPositionX { get => player.position.x; set => player.position.x = value; }
-    public float LocalPositionY { get => player.position.y; set => player.position.y = value; }
-    public float LocalPositionZ { get => player.position.z; set => player.position.z = value; }
-    public float LocalOrientationX { get => player.position.rotx; set => player.position.rotx = value; }
-    public float LocalOrientationY { get => player.position.roty; set => player.position.roty = value; }
-    public float LocalOrientationZ { get => player.position.rotz; set => player.position.rotz = value; }
+    public float LocalPositionX { get => Player.position.x; set => Player.position.x = value; }
+    public float LocalPositionY { get => Player.position.y; set => Player.position.y = value; }
+    public float LocalPositionZ { get => Player.position.z; set => Player.position.z = value; }
+    public float LocalOrientationX { get => Player.position.rotx; set => Player.position.rotx = value; }
+    public float LocalOrientationY { get => Player.position.roty; set => Player.position.roty = value; }
+    public float LocalOrientationZ { get => Player.position.rotz; set => Player.position.rotz = value; }
     public int FreemoveLevel
     {
         get
         {
-            if (!controls.freemove) return FreemoveLevelEnum.None;
-            return controls.noclip ? FreemoveLevelEnum.Noclip : FreemoveLevelEnum.Freemove;
+            if (!Controls.freemove) return FreemoveLevelEnum.None;
+            return Controls.noclip ? FreemoveLevelEnum.Noclip : FreemoveLevelEnum.Freemove;
         }
         set
         {
-            controls.freemove = value != FreemoveLevelEnum.None;
-            controls.noclip = value == FreemoveLevelEnum.Noclip;
+            Controls.freemove = value != FreemoveLevelEnum.None;
+            Controls.noclip = value == FreemoveLevelEnum.Noclip;
         }
     }
 
-    public bool IsFreemoveAllowed => AllowFreemove;
     public bool EnableDraw2d { get => ENABLE_DRAW2D; set => ENABLE_DRAW2D = value; }
     public bool EnableCameraControl { set => enableCameraControl = value; }
 
     public Dictionary<string, string> PerformanceInfo => performanceinfo;
 
+    public float LocalEyeHeight => Entities[LocalPlayerId].drawModel.eyeHeight;
+
     /// <summary>
     /// Returns the index of the dialog with key <paramref name="name"/>,
     /// or -1 if no such dialog is active.
     /// </summary>
-    internal int GetDialogId(string name)
+    public int GetDialogId(string name)
     {
-        for (int i = 0; i < dialogs.Length; i++)
+        for (int i = 0; i < Dialogs.Length; i++)
         {
-            if (dialogs[i]?.key == name)
+            if (Dialogs[i]?.key == name)
                 return i;
         }
         return -1;
@@ -189,19 +189,19 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     // ── Entity helpers ────────────────────────────────────────────────────────
 
     /// <summary>Appends <paramref name="entity"/> to the local entity list.</summary>
-    internal void EntityAddLocal(Entity entity) => entities.Add(entity);
+    public void EntityAddLocal(Entity entity) => Entities.Add(entity);
 
     /// <summary>
     /// Returns the entity index of the followed player, or
     /// <see langword="null"/> when no follow target is set or found.
     /// </summary>
-    internal int? FollowId()
+    public int? FollowId()
     {
         if (Follow == null) return null;
 
-        for (int i = 0; i < entities.Count; i++)
+        for (int i = 0; i < Entities.Count; i++)
         {
-            if (entities[i]?.drawName?.Name == Follow)
+            if (Entities[i]?.drawName?.Name == Follow)
                 return i;
         }
         return null;
@@ -287,16 +287,16 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     private bool sendResize;
 
     /// <summary>Returns to in-game GUI state and releases the free mouse.</summary>
-    internal void GuiStateBackToGame()
+    public void GuiStateBackToGame()
     {
-        guistate = GuiState.Normal;
+        GuiState = GuiState.Normal;
         SetFreeMouse(false);
     }
 
     /// <summary>Opens the escape menu and releases the mouse pointer lock.</summary>
     public void EscapeMenuStart()
     {
-        guistate = GuiState.EscapeMenu;
+        GuiState = GuiState.EscapeMenu;
         menustate = new MenuState();
         escapeMenuRestart = true;
         Platform.ExitMousePointerLock();
@@ -305,7 +305,7 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     /// <summary>Shows the escape menu in free-mouse mode.</summary>
     public void ShowEscapeMenu()
     {
-        guistate = GuiState.EscapeMenu;
+        GuiState = GuiState.EscapeMenu;
         menustate = new MenuState();
         SetFreeMouse(true);
     }
@@ -313,7 +313,7 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     /// <summary>Opens the inventory screen in free-mouse mode.</summary>
     public void ShowInventory()
     {
-        guistate = GuiState.Inventory;
+        GuiState = GuiState.Inventory;
         menustate = new MenuState();
         SetFreeMouse(true);
     }
@@ -333,11 +333,6 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
         TextRenderer.TextSize(s, size, out _, out int height);
         return height;
     }
-
-    // ── Chat log ──────────────────────────────────────────────────────────────
-
-    /// <summary>Adds <paramref name="p"/> as a chat line (alias for <see cref="AddChatline"/>).</summary>
-    internal void Log(string p) => AddChatline(p);
 
     // ── Action queue ──────────────────────────────────────────────────────────
 
@@ -483,11 +478,6 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     /// </remarks>
     internal static bool EnablePlayerUpdatePositionContainsKey(int kKey) => false;
 
-    public void AddChatLine(string message)
-    {
-        throw new NotImplementedException();
-    }
-
     void IGameClient.SendChat(string message)
     {
         SendChat(message);
@@ -502,4 +492,8 @@ public partial class Game : IMeshDrawer, ITerrainData, IGameClient
     {
         throw new NotImplementedException();
     }
+
+    public bool IsValidPos(int x, int y, int z) => VoxelMap.IsValidPos(x, y, z);
+
+    public int GetBlock(int x, int y, int z) => VoxelMap.GetBlock(x, y, z);
 }

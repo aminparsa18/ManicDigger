@@ -17,7 +17,7 @@ public class ModGuiMapLoading : ModBase
 
     public override void OnNewFrameDraw2d(Game game, float deltaTime)
     {
-        if (game.guistate != GuiState.MapLoading) return;
+        if (game.GuiState != GuiState.MapLoading) return;
 
         IGamePlatform platform = game.Platform;
         int width = platform.GetCanvasWidth();
@@ -26,9 +26,9 @@ public class ModGuiMapLoading : ModBase
 
         DrawBackground(game, width, height);
 
-        if (game.invalidVersionDrawMessage != null)
+        if (game.InvalidVersionDrawMessage != null)
         {
-            DrawCentered(game, game.invalidVersionDrawMessage, centerY - 50);
+            DrawCentered(game, game.InvalidVersionDrawMessage, centerY - 50);
             DrawCentered(game, "Click to connect", centerY + 50);
             return;
         }
@@ -52,13 +52,13 @@ public class ModGuiMapLoading : ModBase
             return game.maploadingprogress.ProgressStatus;
         if (game.issingleplayer && !platform.SinglePlayerServerLoaded())
             return "Starting game...";
-        return game.language.Connecting();
+        return game.Language.Connecting();
     }
 
     private static void DrawProgress(Game game, int centerY)
     {
-        string progress = string.Format(game.language.ConnectingProgressPercent(), game.maploadingprogress.ProgressPercent.ToString());
-        string progress1 = string.Format(game.language.ConnectingProgressKilobytes(), (game.maploadingprogress.ProgressBytes / 1024).ToString());
+        string progress = string.Format(game.Language.ConnectingProgressPercent(), game.maploadingprogress.ProgressPercent.ToString());
+        string progress1 = string.Format(game.Language.ConnectingProgressKilobytes(), (game.maploadingprogress.ProgressBytes / 1024).ToString());
 
         DrawCentered(game, progress, centerY - 20);
         DrawCentered(game, progress1, centerY + 10);

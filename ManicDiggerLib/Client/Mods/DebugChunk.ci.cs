@@ -19,9 +19,9 @@ public class ModDebugChunk : ModBase
         if (!draw) return;
 
         int cs = Game.chunksize;
-        int cx = (int)(game.player.position.x / cs) * cs;
-        int cy = (int)(game.player.position.y / cs) * cs;
-        int cz = (int)(game.player.position.z / cs) * cs;
+        int cx = (int)(game.Player.position.x / cs) * cs;
+        int cy = (int)(game.Player.position.y / cs) * cs;
+        int cz = (int)(game.Player.position.z / cs) * cs;
 
         lines.DrawWireframeCube_(game,
             cx + cs / 2,

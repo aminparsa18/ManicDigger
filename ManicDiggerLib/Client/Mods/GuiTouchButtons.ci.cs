@@ -68,7 +68,7 @@ public class ModGuiTouchButtons : GameScreen
 
         game = game_;
 
-        if (game.guistate != GuiState.Normal) { return; }
+        if (game.GuiState != GuiState.Normal) { return; }
 
         const int buttonSize = 80;
         float scale = Scale();

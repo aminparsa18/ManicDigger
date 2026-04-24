@@ -40,7 +40,7 @@ public class LightBase
     /// <param name="dataLightRadius">Per-block-type light emission radius lookup.</param>
     /// <param name="transparentForLight">Per-block-type transparency flag lookup.</param>
     public void CalculateChunkBaseLight(
-        Game game,
+        IGameClient game,
         int cx,
         int cy,
         int cz,
@@ -57,7 +57,7 @@ public class LightBase
         byte[] workLight = chunk.baseLight;
         Array.Clear(workLight, 0, workLight.Length);
 
-        Sunlight(game, cx, cy, cz, workLight, dataLightRadius, game.sunlight_);
+        Sunlight(game, cx, cy, cz, workLight, dataLightRadius, game.Sunlight);
         SunlightFlood(_workData, workLight, dataLightRadius, transparentForLight);
         LightEmitting(_workData, workLight, dataLightRadius, transparentForLight);
     }
@@ -89,7 +89,7 @@ public class LightBase
     /// <param name="dataLightRadius">Per-block-type light emission radius lookup.</param>
     /// <param name="sunlight">The sunlight intensity value to seed.</param>
     private static void Sunlight(
-        Game game,
+        IGameClient game,
         int cx,
         int cy,
         int cz,
@@ -135,9 +135,9 @@ public class LightBase
     ///     The world-space Z at which sunlight first enters this column,
     ///     or 0 if the heightmap chunk is not yet loaded.
     /// </returns>
-    private static int GetLightHeight(Game game, int cx, int cy, int xx, int yy)
+    private static int GetLightHeight(IGameClient game, int cx, int cy, int xx, int yy)
     {
-        int[] heightmapChunk = game.d_Heightmap.GetChunk(cx * ChunkedMap2d<int>.ChunkSize, cy * ChunkedMap2d<int>.ChunkSize);
+        int[] heightmapChunk = game.Heightmap.GetChunk(cx * ChunkedMap2d<int>.ChunkSize, cy * ChunkedMap2d<int>.ChunkSize);
 
         if (heightmapChunk == null)
             return 0;

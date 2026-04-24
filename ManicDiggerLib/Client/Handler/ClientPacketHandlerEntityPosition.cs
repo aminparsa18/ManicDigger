@@ -5,21 +5,21 @@
 /// </summary>
 public class ClientPacketHandlerEntityPosition : ClientPacketHandler
 {
-    public override void Handle(Game game, Packet_Server packet)
+    public override void Handle(IGameClient game, Packet_Server packet)
     {
         int id = packet.EntityPosition.Id;
-        Entity entity = game.entities[id];
+        Entity entity = game.Entities[id];
         Packet_PositionAndOrientation raw = packet.EntityPosition.PositionAndOrientation;
 
         if (id == game.LocalPlayerId)
         {
             // Local player: apply as an authoritative teleport directly onto
             // player.position. No EntityPosition_ object is needed here.
-            game.player.position.x = raw.X / 32f;
-            game.player.position.y = raw.Y / 32f;
-            game.player.position.z = raw.Z / 32f;
-            game.player.position.rotx = ClientPacketHandlerEntitySpawn.Angle256ToRad(raw.Pitch);
-            game.player.position.roty = ClientPacketHandlerEntitySpawn.Angle256ToRad(raw.Heading);
+            game.LocalPositionX = raw.X / 32f;
+            game.LocalPositionY = raw.Y / 32f;
+            game.LocalPositionZ = raw.Z / 32f;
+            game.LocalOrientationX = ClientPacketHandlerEntitySpawn.Angle256ToRad(raw.Pitch);
+            game.LocalOrientationY = ClientPacketHandlerEntitySpawn.Angle256ToRad(raw.Heading);
             entity.networkPosition = null;
         }
         else if (entity.push != null)

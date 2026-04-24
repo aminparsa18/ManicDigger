@@ -117,7 +117,7 @@ public class ModGuiInventory : ModBase
     /// <inheritdoc/>
     public override void OnKeyPress(Game game_, KeyPressEventArgs args)
     {
-        if (game.guistate != GuiState.Inventory) { return; }
+        if (game.GuiState != GuiState.Inventory) { return; }
 
         // Key codes 49–57 = '1'–'9', 48 = '0' → material slots 0–9.
         int keyChar = args.KeyChar;
@@ -128,7 +128,7 @@ public class ModGuiInventory : ModBase
     /// <inheritdoc/>
     public override void OnMouseDown(Game game_, MouseEventArgs args)
     {
-        if (game.guistate != GuiState.Inventory) { return; }
+        if (game.GuiState != GuiState.Inventory) { return; }
 
         Point mouse = new(args.GetX(), args.GetY());
 
@@ -174,7 +174,7 @@ public class ModGuiInventory : ModBase
                 controller.InventoryClick(mainClick);
             }
 
-            if (game.guistate == GuiState.Inventory)
+            if (game.GuiState == GuiState.Inventory)
             {
                 args.SetHandled(true);
             }
@@ -229,7 +229,7 @@ public class ModGuiInventory : ModBase
     /// <inheritdoc/>
     public override void OnMouseUp(Game game_, MouseEventArgs args)
     {
-        if (game != null && game.guistate != GuiState.Inventory) { return; }
+        if (game != null && game.GuiState != GuiState.Inventory) { return; }
         _scrollingUpTimeMs = 0;
         _scrollingDownTimeMs = 0;
     }
@@ -240,15 +240,15 @@ public class ModGuiInventory : ModBase
         float delta = args.OffsetY;
         bool shiftHeld = game_.keyboardState[game_.GetKey(Keys.LeftShift)];
 
-        bool inNormalOrOutsideCells = game_.guistate == GuiState.Normal
-            || (game_.guistate == GuiState.Inventory && !IsMouseOverCells());
+        bool inNormalOrOutsideCells = game_.GuiState == GuiState.Normal
+            || (game_.GuiState == GuiState.Inventory && !IsMouseOverCells());
 
         if (inNormalOrOutsideCells && !shiftHeld)
         {
             game_.ActiveMaterial = ((game_.ActiveMaterial - (int)delta) % 10 + 10) % 10;
         }
 
-        if (IsMouseOverCells() && game.guistate == GuiState.Inventory)
+        if (IsMouseOverCells() && game.GuiState == GuiState.Inventory)
         {
             if (delta > 0) { ScrollUp(); }
             if (delta < 0) { ScrollDown(); }
@@ -267,11 +267,11 @@ public class ModGuiInventory : ModBase
             inventoryUtil = game.d_InventoryUtil;
         }
 
-        if (game.guistate == GuiState.MapLoading) { return; }
+        if (game.GuiState == GuiState.MapLoading) { return; }
 
         DrawMaterialSelector();
 
-        if (game.guistate != GuiState.Inventory) { return; }
+        if (game.GuiState != GuiState.Inventory) { return; }
 
         AdvanceAutoScroll();
 

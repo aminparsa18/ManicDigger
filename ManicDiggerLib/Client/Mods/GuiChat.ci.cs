@@ -25,7 +25,7 @@ public class ModGuiChat : ModBase
     public override void OnNewFrameDraw2d(Game game_, float deltaTime)
     {
         game = game_;
-        if (game.guistate == GuiState.MapLoading)
+        if (game.GuiState == GuiState.MapLoading)
         {
             return;
         }
@@ -150,7 +150,7 @@ public class ModGuiChat : ModBase
 
     public override void OnKeyDown(Game game_, KeyEventArgs args)
     {
-        if (game.guistate != GuiState.Normal)
+        if (game.GuiState != GuiState.Normal)
         {
             //Don't open chat when not in normal game
             return;
@@ -281,7 +281,7 @@ public class ModGuiChat : ModBase
 
     public override void OnKeyPress(Game game_, KeyPressEventArgs args)
     {
-        if (game.guistate != GuiState.Normal)
+        if (game.GuiState != GuiState.Normal)
         {
             //Don't open chat when not in normal game
             return;
@@ -319,9 +319,9 @@ public class ModGuiChat : ModBase
     {
         if (!string.IsNullOrEmpty(text))
         {
-            for (int i = 0; i < game.entities.Count; i++)
+            for (int i = 0; i < game.Entities.Count; i++)
             {
-                Entity entity = game.entities[i];
+                Entity entity = game.Entities[i];
                 if (entity == null) { continue; }
                 if (entity.drawName == null) { continue; }
                 if (!entity.drawName.ClientAutoComplete) { continue; }

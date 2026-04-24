@@ -36,7 +36,7 @@ public class ModDrawTerrain : ModBase
     private const int BufferedChunkVolume = BufferedChunkEdge * BufferedChunkEdge * BufferedChunkEdge;
 
     /// <summary>Reference to the current game instance, refreshed every frame.</summary>
-    internal Game _game;
+    public IGameClient _game { get; set; }
 
     /// <summary>Reusable lighting helper for computing per-block base light within a chunk.</summary>
     private readonly LightBase _lightBase;
@@ -126,8 +126,9 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     private readonly HashSet<Vector3i> _chunksToRedrawSet = new();
 
-    public ModDrawTerrain()
+    public ModDrawTerrain(IGameClient game)
     {
+        _game = game;
         _currentChunk = new int[BufferedChunkVolume];
         _currentChunkShadows = new byte[BufferedChunkVolume];
         _tempNearestPos = new int[3];
@@ -146,7 +147,7 @@ public class ModDrawTerrain : ModBase
     internal float GetInvertedChunkSize() => invertedChunkSize;
 
     /// <summary>Returns the total number of triangles currently submitted to the batcher.</summary>
-    public int TrianglesCount() => _game.d_Batcher.TotalTriangleCount();
+    public int TrianglesCount() => _game.Batcher.TotalTriangleCount();
 
     /// <summary>
     /// Converts a block coordinate to a chunk coordinate by multiplying by
@@ -158,9 +159,9 @@ public class ModDrawTerrain : ModBase
     public override void OnNewFrameDraw3d(Game game, float _)
     {
         _game = game;
-        if (_game.shouldRedrawAllBlocks)
+        if (_game.ShouldRedrawAllBlocks)
         {
-            _game.shouldRedrawAllBlocks = false;
+            _game.ShouldRedrawAllBlocks = false;
             RedrawAllBlocks();
         }
         DrawTerrain();
@@ -168,11 +169,10 @@ public class ModDrawTerrain : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnReadOnlyBackgroundThread(Game game_, float dt)
+    public override void OnReadOnlyBackgroundThread(float dt)
     {
-        _game = game_;
         UpdateTerrain();
-        game_.QueueActionCommit(MainThreadCommit);
+        _game.QueueActionCommit(MainThreadCommit);
     }
 
     public override void Dispose(Game game_) => Clear();
@@ -188,7 +188,7 @@ public class ModDrawTerrain : ModBase
         chunksize = Game.chunksize;
         bufferedChunkSize = chunksize + 2;
         invertedChunkSize = 1.0f / chunksize;
-        _game.d_TerrainChunkTesselator.Start();
+        _game.TerrainChunkTesselator.Start();
         _terrainStarted = true;
     }
 
@@ -203,14 +203,14 @@ public class ModDrawTerrain : ModBase
             StartTerrain();
         }
 
-        int chunksLength = InvertChunk(_game.VoxelMap.MapSizeX)
-                         * InvertChunk(_game.VoxelMap.MapSizeY)
-                         * InvertChunk(_game.VoxelMap.MapSizeZ);
+        int chunksLength = InvertChunk(_game.MapSizeX)
+                         * InvertChunk(_game.MapSizeY)
+                         * InvertChunk(_game.MapSizeZ);
         unchecked
         {
             for (int i = 0; i < chunksLength; i++)
             {
-                Chunk c = _game.VoxelMap.chunks[i];
+                Chunk c = _game.VoxelMap.Chunks[i];
                 if (c == null) continue;
                 c.rendered ??= new RenderedChunk();
                 c.rendered.Dirty = true;
@@ -243,9 +243,9 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     private void RedrawChunksAroundLastPlacedBlock()
     {
-        if (_game.lastplacedblockX == NoChunk
-         && _game.lastplacedblockY == NoChunk
-         && _game.lastplacedblockZ == NoChunk)
+        if (_game.LastplacedblockX == NoChunk
+         && _game.LastplacedblockY == NoChunk
+         && _game.LastplacedblockZ == NoChunk)
         {
             return;
         }
@@ -262,7 +262,7 @@ public class ModDrawTerrain : ModBase
         // New code: fill _blocksAround7Buffer in-place, clear _chunksToRedrawSet.
         _chunksToRedrawSet.Clear();
         BlocksAround7Inplace(
-            new(_game.lastplacedblockX, _game.lastplacedblockY, _game.lastplacedblockZ),
+            new(_game.LastplacedblockX, _game.LastplacedblockY, _game.LastplacedblockZ),
             _blocksAround7Buffer);
 
         for (int i = 0; i < 7; i++)
@@ -279,14 +279,14 @@ public class ModDrawTerrain : ModBase
             {
                 continue;
             }
-            Chunk chunk = _game.VoxelMap.chunks[Index3d(xx, yy, zz, mapsizexchunks, mapsizeychunks)];
+            Chunk chunk = _game.VoxelMap.Chunks[Index3d(xx, yy, zz, mapsizexchunks, mapsizeychunks)];
             if (chunk?.rendered == null) continue;
             if (chunk.rendered.Dirty) RedrawChunk(xx, yy, zz);
         }
 
-        _game.lastplacedblockX = NoChunk;
-        _game.lastplacedblockY = NoChunk;
-        _game.lastplacedblockZ = NoChunk;
+        _game.LastplacedblockX = NoChunk;
+        _game.LastplacedblockY = NoChunk;
+        _game.LastplacedblockZ = NoChunk;
     }
 
     /// <summary>
@@ -333,9 +333,9 @@ public class ModDrawTerrain : ModBase
             int nearestDist = IntMaxValue;
             nearestPos[0] = nearestPos[1] = nearestPos[2] = NoChunk;
 
-            int px = InvertChunk((int)_game.player.position.x);
-            int py = InvertChunk((int)_game.player.position.z);
-            int pz = InvertChunk((int)_game.player.position.y);
+            int px = InvertChunk((int)_game.LocalPositionX);
+            int py = InvertChunk((int)_game.LocalPositionZ);
+            int pz = InvertChunk((int)_game.LocalPositionY);
 
             int halfXY = InvertChunk(MapAreaSize()) / 2;
             int halfZ = InvertChunk(MapAreaSizeZ()) / 2;
@@ -354,7 +354,7 @@ public class ModDrawTerrain : ModBase
                 for (int y = startY; y <= endY; y++)
                     for (int z = startZ; z <= endZ; z++)
                     {
-                        Chunk c = _game.VoxelMap.chunks[Index3d(x, y, z, mapsizexchunks, mapsizeychunks)];
+                        Chunk c = _game.VoxelMap.Chunks[Index3d(x, y, z, mapsizexchunks, mapsizeychunks)];
                         if (c?.rendered == null || !c.rendered.Dirty) continue;
 
                         int dx = px - x, dy = py - y, dz = pz - z;
@@ -404,7 +404,7 @@ public class ModDrawTerrain : ModBase
             if (rendered.Ids != null)
             {
                 for (int i = 0; i < rendered.IdsCount; i++)
-                    _game.d_Batcher.Remove(rendered.Ids[i]);
+                    _game.Batcher.Remove(rendered.Ids[i]);
             }
 
             for (int i = 0; i < r.DataCount; i++)
@@ -422,7 +422,7 @@ public class ModDrawTerrain : ModBase
                 float cz = submesh.positionY + chunksize * 0.5f;
                 float radius = _sqrt3Half * chunksize;
 
-                _batcherIds[_batcherIdsCount++] = _game.d_Batcher.Add(
+                _batcherIds[_batcherIdsCount++] = _game.Batcher.Add(
                     submesh.modelData, submesh.transparent, submesh.texture,
                     cx, cy, cz, radius);
 
@@ -465,7 +465,7 @@ public class ModDrawTerrain : ModBase
     {
         unchecked
         {
-            Chunk c = _game.VoxelMap.chunks[
+            Chunk c = _game.VoxelMap.Chunks[
                 VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(), MapsizeYChunks())];
             if (c == null) return;
 
@@ -482,9 +482,9 @@ public class ModDrawTerrain : ModBase
             if (!IsSolidChunk(_currentChunk, BufferedChunkVolume))
             {
                 CalculateShadows(x, y, z);
-                VerticesIndicesToLoad[] meshes = _game.d_TerrainChunkTesselator.MakeChunk(
+                VerticesIndicesToLoad[] meshes = _game.TerrainChunkTesselator.MakeChunk(
                     x, y, z, _currentChunk, _currentChunkShadows,
-                    _game.mLightLevels, out meshCount);
+                    _game.LightLevels, out meshCount);
 
                 if (meshCount > 0)
                 {
@@ -556,8 +556,8 @@ public class ModDrawTerrain : ModBase
         {
             for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
             {
-                if (_game.blocktypes[i] == null) continue;
-                _shadowLightRadius[i] = _game.blocktypes[i].LightRadius;
+                if (_game.BlockTypes[i] == null) continue;
+                _shadowLightRadius[i] = _game.BlockTypes[i].LightRadius;
                 _shadowIsTransparent[i] = IsTransparentForLight(i);
             }
 
@@ -581,7 +581,7 @@ public class ModDrawTerrain : ModBase
                             cx1, cy1, cz1,
                             _game.VoxelMap.Mapsizexchunks,
                             _game.VoxelMap.Mapsizeychunks);
-                        Chunk neighbour = _game.VoxelMap.chunks[nIdx];
+                        Chunk neighbour = _game.VoxelMap.Chunks[nIdx];
                         if (neighbour == null) { continue; }
 
                         if (neighbour.baseLightDirty)
@@ -622,7 +622,7 @@ public class ModDrawTerrain : ModBase
     /// <param name="blockId">Block type ID to test.</param>
     public bool IsTransparentForLight(int blockId)
     {
-        Packet_BlockType b = _game.blocktypes[blockId];
+        Packet_BlockType b = _game.BlockTypes[blockId];
         return b.DrawType != DrawType.Solid
             && b.DrawType != DrawType.ClosedDoor;
     }
@@ -632,14 +632,14 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     public void DrawTerrain()
     {
-        _game.d_Batcher.Draw(
-            _game.player.position.x,
-            _game.player.position.y,
-            _game.player.position.z);
+        _game.Batcher.Draw(
+            _game.LocalPositionX,
+            _game.LocalPositionY,
+            _game.LocalPositionZ);
     }
 
     /// <summary>Removes all chunk geometry from the batcher.</summary>
-    internal void Clear() => _game.d_Batcher.Clear();
+    internal void Clear() => _game.Batcher.Clear();
 
     /// <summary>
     /// Updates the on-screen chunk-update and triangle-count statistics once per second.
@@ -655,14 +655,14 @@ public class ModDrawTerrain : ModBase
         int updatesThisPeriod = _chunkUpdates - _lastChunkUpdatesSnapshot;
         _lastChunkUpdatesSnapshot = _chunkUpdates;
 
-        _game.performanceinfo["chunk updates"] = string.Format(
-            _game.language.ChunkUpdates(), updatesThisPeriod.ToString());
-        _game.performanceinfo["triangles"] = string.Format(
-            _game.language.Triangles(), TrianglesCount().ToString());
+        _game.PerformanceInfo["chunk updates"] = string.Format(
+            _game.Language.ChunkUpdates(), updatesThisPeriod.ToString());
+        _game.PerformanceInfo["triangles"] = string.Format(
+            _game.Language.Triangles(), TrianglesCount().ToString());
     }
 
     /// <summary>View-distance-based side length of the active map area in blocks.</summary>
-    private int MapAreaSize() => (int)_game.d_Config3d.ViewDistance * 2;
+    private int MapAreaSize() => (int)_game.Config3d.ViewDistance * 2;
 
     /// <summary>Vertical counterpart of <see cref="MapAreaSize"/>.</summary>
     private int MapAreaSizeZ() => MapAreaSize();

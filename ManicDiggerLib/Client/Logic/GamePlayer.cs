@@ -7,25 +7,25 @@ public partial class Game
     // Eyes position
     // -------------------------------------------------------------------------
 
-    public float EyesPosX() => player.position.x;
-    public float EyesPosY() => player.position.y + GetCharacterEyesHeight();
-    public float EyesPosZ() => player.position.z;
+    public float EyesPosX() => Player.position.x;
+    public float EyesPosY() => Player.position.y + GetCharacterEyesHeight();
+    public float EyesPosZ() => Player.position.z;
 
-    internal float GetCharacterEyesHeight() => entities[LocalPlayerId].drawModel.eyeHeight;
-    internal void SetCharacterEyesHeight(float value) => entities[LocalPlayerId].drawModel.eyeHeight = value;
+    internal float GetCharacterEyesHeight() => Entities[LocalPlayerId].drawModel.eyeHeight;
+    internal void SetCharacterEyesHeight(float value) => Entities[LocalPlayerId].drawModel.eyeHeight = value;
 
-    public int GetPlayerEyesBlockX() => (int)MathF.Floor(player.position.x);
-    public int GetPlayerEyesBlockY() => (int)MathF.Floor(player.position.z);
-    public int GetPlayerEyesBlockZ() => (int)MathF.Floor(player.position.y + GetCharacterEyesHeight());
+    public int GetPlayerEyesBlockX() => (int)MathF.Floor(Player.position.x);
+    public int GetPlayerEyesBlockY() => (int)MathF.Floor(Player.position.z);
+    public int GetPlayerEyesBlockZ() => (int)MathF.Floor(Player.position.y + GetCharacterEyesHeight());
 
     internal int GetPlayerEyesBlock()
     {
-        int bx = (int)MathF.Floor(player.position.x);
-        int by = (int)MathF.Floor(player.position.z);
-        int bz = (int)MathF.Floor(player.position.y + GetCharacterEyesHeight());
+        int bx = (int)MathF.Floor(Player.position.x);
+        int by = (int)MathF.Floor(Player.position.z);
+        int bz = (int)MathF.Floor(Player.position.y + GetCharacterEyesHeight());
 
         if (!VoxelMap.IsValidPos(bx, by, bz))
-            return player.position.y < WaterLevel() ? -1 : 0;
+            return Player.position.y < WaterLevel() ? -1 : 0;
 
         return VoxelMap.GetBlockValid(bx, by, bz);
     }
@@ -43,12 +43,12 @@ public partial class Game
 
     internal bool SwimmingBody()
     {
-        int block = VoxelMap.GetBlock((int)player.position.x, (int)player.position.z, (int)(player.position.y + 1));
+        int block = VoxelMap.GetBlock((int)Player.position.x, (int)Player.position.z, (int)(Player.position.y + 1));
         if (block == -1) return true;
         return BlockRegistry.WalkableType[block] == WalkableType.Fluid;
     }
 
-    internal bool WaterSwimmingEyes()
+    public bool WaterSwimmingEyes()
     {
         int block = GetPlayerEyesBlock();
         if (block == -1) return true;
@@ -61,10 +61,10 @@ public partial class Game
 
     internal int BlockUnderPlayer()
     {
-        if (!VoxelMap.IsValidPos((int)player.position.x, (int)player.position.z, (int)player.position.y - 1))
+        if (!VoxelMap.IsValidPos((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1))
             return -1;
 
-        return VoxelMap.GetBlock((int)player.position.x, (int)player.position.z, (int)player.position.y - 1);
+        return VoxelMap.GetBlock((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1);
     }
 
     internal int? BlockInHand()
@@ -81,7 +81,7 @@ public partial class Game
 
     internal float MoveSpeedNow()
     {
-        float speed = movespeed;
+        float speed = MoveSpeed;
 
         int blockUnder = BlockUnderPlayer();
         if (blockUnder != -1)
@@ -98,12 +98,12 @@ public partial class Game
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
         if (item != null && item.ItemClass == ItemClass.Block)
         {
-            float itemSpeed = DecodeFixedPoint(blocktypes[item.BlockId].WalkSpeedWhenUsedFloat);
+            float itemSpeed = DecodeFixedPoint(Blocktypes[item.BlockId].WalkSpeedWhenUsedFloat);
             if (itemSpeed != 0) speed *= itemSpeed;
 
             if (IronSights)
             {
-                float ironSpeed = DecodeFixedPoint(blocktypes[item.BlockId].IronSightsMoveSpeedFloat);
+                float ironSpeed = DecodeFixedPoint(Blocktypes[item.BlockId].IronSightsMoveSpeedFloat);
                 if (ironSpeed != 0) speed *= ironSpeed;
             }
         }
@@ -122,7 +122,7 @@ public partial class Game
             Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
             if (item != null && item.ItemClass == ItemClass.Block)
             {
-                float ironFov = DecodeFixedPoint(blocktypes[item.BlockId].IronSightsFovFloat);
+                float ironFov = DecodeFixedPoint(Blocktypes[item.BlockId].IronSightsFovFloat);
                 if (ironFov != 0) return fov * ironFov;
             }
         }
@@ -133,7 +133,7 @@ public partial class Game
     {
         Packet_Item item = d_Inventory.RightHand[ActiveMaterial];
         if (item == null || item.ItemClass != ItemClass.Block) return 0;
-        return DecodeFixedPoint(blocktypes[item.BlockId].RecoilFloat);
+        return DecodeFixedPoint(Blocktypes[item.BlockId].RecoilFloat);
     }
 
     internal float CurrentAimRadius()
@@ -142,10 +142,10 @@ public partial class Game
         if (item == null || item.ItemClass != ItemClass.Block) return 0;
 
         float radius = IronSights
-            ? DecodeFixedPoint(blocktypes[item.BlockId].IronSightsAimRadiusFloat) / 800 * Width()
-            : DecodeFixedPoint(blocktypes[item.BlockId].AimRadiusFloat) / 800 * Width();
+            ? DecodeFixedPoint(Blocktypes[item.BlockId].IronSightsAimRadiusFloat) / 800 * Width()
+            : DecodeFixedPoint(Blocktypes[item.BlockId].AimRadiusFloat) / 800 * Width();
 
-        return radius + RadiusWhenMoving * radius * Math.Min(playervelocity.Length / movespeed, 1);
+        return radius + RadiusWhenMoving * radius * Math.Min(playervelocity.Length / MoveSpeed, 1);
     }
 
     public float WeaponAttackStrength() => rnd.Next(2, 4);
@@ -154,7 +154,7 @@ public partial class Game
     // Damage
     // -------------------------------------------------------------------------
 
-    internal void ApplyDamageToPlayer(int damage, DeathReason damageSource, int sourceId)
+    public void ApplyDamageToPlayer(int damage, DeathReason damageSource, int sourceId)
     {
         PlayerStats.CurrentHealth -= damage;
         if (PlayerStats.CurrentHealth <= 0)
@@ -176,9 +176,9 @@ public partial class Game
 
     internal bool IsAnyPlayerInPos(int blockposX, int blockposY, int blockposZ)
     {
-        for (int i = 0; i < entities.Count; i++)
+        for (int i = 0; i < Entities.Count; i++)
         {
-            Entity e = entities[i];
+            Entity e = Entities[i];
             if (e?.drawModel == null) continue;
             if (e.networkPosition == null || e.networkPosition.PositionLoaded)
             {
@@ -187,8 +187,8 @@ public partial class Game
                     return true;
             }
         }
-        return IsPlayerInPos(player.position.x, player.position.y, player.position.z,
-            blockposX, blockposY, blockposZ, player.drawModel.ModelHeight);
+        return IsPlayerInPos(Player.position.x, Player.position.y, Player.position.z,
+            blockposX, blockposY, blockposZ, Player.drawModel.ModelHeight);
     }
 
     private bool IsPlayerInPos(float playerposX, float playerposY, float playerposZ,

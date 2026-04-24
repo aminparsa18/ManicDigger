@@ -4,7 +4,7 @@ public class ModDrawTestModel : ModBase
 {
     public override void OnNewFrameDraw3d(Game game, float deltaTime)
     {
-        if (game.guistate == GuiState.MapLoading)
+        if (game.GuiState == GuiState.MapLoading)
         {
             return;
         }

@@ -77,7 +77,7 @@ public class TaskScheduler
         RunReadOnlyMainThread(game, dt);
 
         for (int i = 0; i < game.clientmods.Count; i++)
-            game.clientmods[i].OnReadOnlyBackgroundThread(game, dt);
+            game.clientmods[i].OnReadOnlyBackgroundThread(dt);
 
         RunReadWriteMainThread(game, dt);
         FlushCommitActions(game);
@@ -116,7 +116,7 @@ public class TaskScheduler
     private static void RunReadOnlyMainThread(Game game, float dt)
     {
         for (int i = 0; i < game.clientmods.Count; i++)
-            game.clientmods[i].OnReadOnlyMainThread(game, dt);
+            game.clientmods[i].OnReadOnlyMainThread(dt);
     }
 
     /// <summary>Calls <c>OnReadWriteMainThread</c> on every registered client mod.</summary>
@@ -147,7 +147,7 @@ public class TaskScheduler
     {
         return () =>
         {
-            game.clientmods[modIndex].OnReadOnlyBackgroundThread(game, dt);
+            game.clientmods[modIndex].OnReadOnlyBackgroundThread(dt);
             onFinished();
         };
     }

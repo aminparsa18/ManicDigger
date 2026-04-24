@@ -2,7 +2,7 @@
 
 public partial class Game
 {
-    internal NetClient main;
+    public NetClient NetClient { get; set; }
     internal bool IsTeamchat;
     internal int ActiveMaterial;
     private int packetLen;
@@ -18,7 +18,7 @@ public partial class Game
 
     public void SendPacket(byte[] packet)
     {
-        main.SendMessage(packet.AsMemory(0, packet.Length), MyNetDeliveryMethod.ReliableOrdered);
+        NetClient.SendMessage(packet.AsMemory(0, packet.Length), MyNetDeliveryMethod.ReliableOrdered);
     }
 
     public void SendPacketClient(Packet_Client packetClient)
@@ -35,7 +35,7 @@ public partial class Game
         SendPacketClient(ClientPackets.Chat(s, IsTeamchat ? 1 : 0));
     }
 
-    internal void SendPingReply()
+    public void SendPingReply()
     {
         SendPacketClient(ClientPackets.PingReply());
     }
@@ -60,7 +60,7 @@ public partial class Game
         SendPacketClient(ClientPackets.GameResolution(Width(), Height()));
     }
 
-    internal void SendLeave(PacketLeaveReason reason)
+    public void SendLeave(PacketLeaveReason reason)
     {
         SendPacketClient(ClientPackets.Leave(reason));
     }
@@ -106,15 +106,15 @@ public partial class Game
 
     internal void Connect(string serverAddress, int port, string username, string auth)
     {
-        main.Start();
-        main.Connect(serverAddress, port);
+        NetClient.Start();
+        NetClient.Connect(serverAddress, port);
         SendPacketClient(ClientPackets.CreateLoginPacket(Platform, username, auth));
     }
 
     internal void Connect_(string serverAddress, int port, string username, string auth, string serverPassword)
     {
-        main.Start();
-        main.Connect(serverAddress, port);
+        NetClient.Start();
+        NetClient.Connect(serverAddress, port);
         SendPacketClient(ClientPackets.CreateLoginPacket_(Platform, username, auth, serverPassword));
     }
 

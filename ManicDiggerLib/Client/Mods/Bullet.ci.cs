@@ -5,11 +5,18 @@
 /// </summary>
 public class ModBullet : ModBase
 {
+    private readonly IGameClient _game;
+
+    public ModBullet(IGameClient game)
+    {
+        _game = game;
+    }
+
     public override void OnNewFrameDraw3d(Game game, float dt)
     {
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < _game.Entities.Count; i++)
         {
-            Entity entity = game.entities[i];
+            Entity entity = _game.Entities[i];
             if (entity?.bullet == null) continue;
 
             Bullet b = entity.bullet;
@@ -31,7 +38,7 @@ public class ModBullet : ModBase
             entity.sprite.positionZ = b.fromZ + dirZ * b.progress;
 
             if (b.progress > length)
-                game.entities[i] = null;
+                _game.Entities[i] = null;
         }
     }
 }

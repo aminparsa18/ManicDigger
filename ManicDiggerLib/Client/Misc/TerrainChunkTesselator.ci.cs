@@ -30,7 +30,7 @@ public class TerrainChunkTesselator
 
     internal bool EnableSmoothLight;
 
-    private readonly ITerrainData _terrain;
+    private readonly IGameClient _terrain;
     private readonly IGamePlatform _platform;
 
     private const int chunksize = 16;
@@ -75,7 +75,7 @@ public class TerrainChunkTesselator
     private readonly float[] ref_blockCornerHeight;
     private readonly int[] tmpnPos;
 
-    public TerrainChunkTesselator(ITerrainData terrain, IGamePlatform platform)
+    public TerrainChunkTesselator(IGameClient terrain, IGamePlatform platform)
     {
         _terrain = terrain;
         _platform = platform;
@@ -1730,39 +1730,4 @@ public class CornerEnum
     public const int BottomRight = 3;
 
     public const int None = -1;
-}
-
-/// <summary>
-/// Provides the terrain tesselator with read-only access to world and block-type
-/// data needed to build chunk geometry. Implemented by <see cref="Game"/>.
-/// </summary>
-public interface ITerrainData
-{
-    /// <summary>X dimension of the voxel map in blocks.</summary>
-    int MapSizeX { get; }
-
-    /// <summary>Y dimension of the voxel map in blocks.</summary>
-    int MapSizeY { get; }
-
-    /// <summary>Z dimension of the voxel map in blocks.</summary>
-    int MapSizeZ { get; }
-
-    /// <summary>Number of terrain textures packed into a single atlas.</summary>
-    int TerrainTexturesPerAtlas { get; }
-
-    /// <summary>
-    /// OpenGL texture handles for each atlas slice, indexed by atlas index.
-    /// </summary>
-    int[] TerrainTextures1d { get; }
-
-    /// <summary>
-    /// Block type definitions indexed by block type ID.
-    /// May contain <c>null</c> entries for unregistered IDs.
-    /// </summary>
-    Packet_BlockType[] BlockTypes { get; }
-
-    /// <summary>
-    /// Per-block, per-side texture IDs. Indexed as <c>[blockTypeId][sideIndex]</c>.
-    /// </summary>
-    int[][] TextureId { get; }
 }

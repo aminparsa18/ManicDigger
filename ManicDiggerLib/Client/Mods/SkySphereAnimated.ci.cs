@@ -62,7 +62,7 @@ public class ModSkySphereAnimated : ModBase
         game.Set3dProjection(size * 2, fov);
         game.GLMatrixModeModelView();
         game.GLPushMatrix();
-        game.GLTranslate(game.player.position.x, game.player.position.y, game.player.position.z);
+        game.GLTranslate(game.Player.position.x, game.Player.position.y, game.Player.position.z);
         game.Platform.BindTexture2d(0);
         game.DrawModelData(skyModel);
         game.GLPopMatrix();

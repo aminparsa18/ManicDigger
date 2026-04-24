@@ -47,14 +47,8 @@ public class ModAutoCamera : ModBase
     private bool _firstFrameDone;
 
     /// <summary>Reference to the client mod manager, set in <see cref="Start"/>.</summary>
-    private IGameClient _m;
-    private IGamePlatform _platform;
-
-    /// <summary>
-    /// Floating-point literal <c>1.0f</c> stored in a field to prevent the Cito
-    /// transpiler from truncating integer division expressions to integer arithmetic.
-    /// </summary>
-    private float _one;
+    private IGameClient? _game;
+    private IGamePlatform? _platform;
 
     /// <summary>Fixed-size pool of camera waypoints.</summary>
     private CameraPoint[] _cameraPoints;
@@ -68,12 +62,10 @@ public class ModAutoCamera : ModBase
     /// </summary>
     private float _playingTime;
 
-    /// <inheritdoc/>
-    public override void Start(IGameClient modmanager, IGamePlatform platform)
+    public ModAutoCamera(IGameClient modmanager, IGamePlatform platform)
     {
-        _m = modmanager;
+        _game = modmanager;
         _platform = platform;
-        _one = 1;
         _cameraPoints = new CameraPoint[MaxCameraPoints];
         _cameraPointsCount = 0;
         _playingTime = -1;
@@ -108,12 +100,12 @@ public class ModAutoCamera : ModBase
                 break;
 
             case "stop":
-                _m.AddChatLine("Camera stopped.");
+                _game?.AddChatLine("Camera stopped.");
                 Stop();
                 break;
 
             case "clear":
-                _m.AddChatLine("Camera points cleared.");
+                _game?.AddChatLine("Camera points cleared.");
                 _cameraPointsCount = 0;
                 Stop();
                 break;
@@ -175,14 +167,14 @@ public class ModAutoCamera : ModBase
     /// <summary>Displays the in-game help text for all <c>.cam</c> sub-commands.</summary>
     private void PrintHelp()
     {
-        _m.AddChatLine("&6AutoCamera help.");
-        _m.AddChatLine("&6.cam p&f - add a point to path");
-        _m.AddChatLine("&6.cam start [real seconds]&f - play the path");
-        _m.AddChatLine("&6.cam rec [real seconds] [video seconds]&f - play and record to .avi file");
-        _m.AddChatLine("&6.cam stop&f - stop playing and recording");
-        _m.AddChatLine("&6.cam clear&f - remove all points from path");
-        _m.AddChatLine("&6.cam save&f - copy path points to clipboard");
-        _m.AddChatLine("&6.cam load [points]&f - load path points");
+        _game?.AddChatLine("&6AutoCamera help.");
+        _game?.AddChatLine("&6.cam p&f - add a point to path");
+        _game?.AddChatLine("&6.cam start [real seconds]&f - play the path");
+        _game?.AddChatLine("&6.cam rec [real seconds] [video seconds]&f - play and record to .avi file");
+        _game?.AddChatLine("&6.cam stop&f - stop playing and recording");
+        _game?.AddChatLine("&6.cam clear&f - remove all points from path");
+        _game?.AddChatLine("&6.cam save&f - copy path points to clipboard");
+        _game?.AddChatLine("&6.cam load [points]&f - load path points");
     }
 
     /// <summary>
@@ -193,15 +185,15 @@ public class ModAutoCamera : ModBase
     {
         CameraPoint point = new()
         {
-            positionGlX = _m.LocalPositionX,
-            positionGlY = _m.LocalPositionY,
-            positionGlZ = _m.LocalPositionZ,
-            orientationGlX = _m.LocalOrientationX,
-            orientationGlY = _m.LocalOrientationY,
-            orientationGlZ = _m.LocalOrientationZ
+            PositionGlX = _game!.LocalPositionX,
+            PositionGlY = _game.LocalPositionY,
+            PositionGlZ = _game.LocalPositionZ,
+            OrientationGlX = _game.LocalOrientationX,
+            OrientationGlY = _game.LocalOrientationY,
+            OrientationGlZ = _game.LocalOrientationZ
         };
         _cameraPoints[_cameraPointsCount++] = point;
-        _m.AddChatLine("Point defined.");
+        _game.AddChatLine("Point defined.");
     }
 
     /// <summary>
@@ -218,15 +210,15 @@ public class ModAutoCamera : ModBase
     /// </param>
     private void StartPlayback(string[] arguments)
     {
-        if (!_m.IsFreemoveAllowed)
+        if (!_game!.AllowFreeMove)
         {
-            _m.AddChatLine("Free move not allowed.");
+            _game.AddChatLine("Free move not allowed.");
             return;
         }
 
         if (_cameraPointsCount == 0)
         {
-            _m.AddChatLine("No points defined. Enter points with \".cam p\" command.");
+            _game.AddChatLine("No points defined. Enter points with \".cam p\" command.");
             return;
         }
 
@@ -244,7 +236,7 @@ public class ModAutoCamera : ModBase
             _avi.Open(
                 string.Format("{0}.avi", string.Format("{0:yyyy-MM-dd_HH-mm-ss}", DateTime.Now)),
                 Framerate,
-                _platform.GetCanvasWidth(),
+                _platform!.GetCanvasWidth(),
                 _platform.GetCanvasHeight());
         }
 
@@ -259,17 +251,17 @@ public class ModAutoCamera : ModBase
         _firstFrameDone = false;
 
         // Save current camera state so it can be restored when playback ends.
-        _previousPositionX = _m.LocalPositionX;
-        _previousPositionY = _m.LocalPositionY;
-        _previousPositionZ = _m.LocalPositionZ;
-        _previousOrientationX = _m.LocalOrientationX;
-        _previousOrientationY = _m.LocalOrientationY;
-        _previousOrientationZ = _m.LocalOrientationZ;
+        _previousPositionX = _game.LocalPositionX;
+        _previousPositionY = _game.LocalPositionY;
+        _previousPositionZ = _game.LocalPositionZ;
+        _previousOrientationX = _game.LocalOrientationX;
+        _previousOrientationY = _game.LocalOrientationY;
+        _previousOrientationZ = _game.LocalOrientationZ;
 
-        _m.EnableDraw2d = false;
-        _previousFreemove = _m.FreemoveLevel;
-        _m.FreemoveLevel = (FreemoveLevelEnum.Noclip);
-        _m.EnableCameraControl = false;
+        _game.EnableDraw2d = false;
+        _previousFreemove = _game.FreemoveLevel;
+        _game.FreemoveLevel = (FreemoveLevelEnum.Noclip);
+        _game.EnableCameraControl = false;
     }
 
     /// <summary>
@@ -286,19 +278,19 @@ public class ModAutoCamera : ModBase
         for (int i = 0; i < _cameraPointsCount; i++)
         {
             CameraPoint point = _cameraPoints[i];
-            s = string.Format("{0}{1},", s, ((int)(point.positionGlX * 100)).ToString());
-            s = string.Format("{0}{1},", s, ((int)(point.positionGlY * 100)).ToString());
-            s = string.Format("{0}{1},", s, ((int)(point.positionGlZ * 100)).ToString());
-            s = string.Format("{0}{1},", s, ((int)(point.orientationGlX * 1000)).ToString());
-            s = string.Format("{0}{1},", s, ((int)(point.orientationGlY * 1000)).ToString());
-            s = string.Format("{0}{1}", s, ((int)(point.orientationGlZ * 1000)).ToString());
+            s = string.Format("{0}{1},", s, ((int)(point.PositionGlX * 100)).ToString());
+            s = string.Format("{0}{1},", s, ((int)(point.PositionGlY * 100)).ToString());
+            s = string.Format("{0}{1},", s, ((int)(point.PositionGlZ * 100)).ToString());
+            s = string.Format("{0}{1},", s, ((int)(point.OrientationGlX * 1000)).ToString());
+            s = string.Format("{0}{1},", s, ((int)(point.OrientationGlY * 1000)).ToString());
+            s = string.Format("{0}{1}", s, ((int)(point.OrientationGlZ * 1000)).ToString());
             if (i != _cameraPointsCount - 1)
             {
                 s = string.Format("{0},", s);
             }
         }
         Clipboard.SetText(s);
-        _m.AddChatLine("Camera points copied to clipboard.");
+        _game?.AddChatLine("Camera points copied to clipboard.");
     }
 
     /// <summary>
@@ -318,16 +310,16 @@ public class ModAutoCamera : ModBase
         {
             CameraPoint point = new()
             {
-                positionGlX = _one * int.Parse(points[1 + i * 6 + 0]) / 100,
-                positionGlY = _one * int.Parse(points[1 + i * 6 + 1]) / 100,
-                positionGlZ = _one * int.Parse(points[1 + i * 6 + 2]) / 100,
-                orientationGlX = _one * int.Parse(points[1 + i * 6 + 3]) / 1000,
-                orientationGlY = _one * int.Parse(points[1 + i * 6 + 4]) / 1000,
-                orientationGlZ = _one * int.Parse(points[1 + i * 6 + 5]) / 1000
+                PositionGlX = int.Parse(points[1 + i * 6 + 0]) / 100,
+                PositionGlY = int.Parse(points[1 + i * 6 + 1]) / 100,
+                PositionGlZ = int.Parse(points[1 + i * 6 + 2]) / 100,
+                OrientationGlX = int.Parse(points[1 + i * 6 + 3]) / 1000,
+                OrientationGlY = int.Parse(points[1 + i * 6 + 4]) / 1000,
+                OrientationGlZ = int.Parse(points[1 + i * 6 + 5]) / 1000
             };
             _cameraPoints[_cameraPointsCount++] = point;
         }
-        _m.AddChatLine(string.Format("Camera points loaded: {0}", n.ToString()));
+        _game?.AddChatLine(string.Format("Camera points loaded: {0}", n.ToString()));
     }
 
     /// <summary>
@@ -337,18 +329,18 @@ public class ModAutoCamera : ModBase
     /// </summary>
     private void Stop()
     {
-        _m.EnableDraw2d = true;
-        _m.EnableCameraControl = (true);
+        _game!.EnableDraw2d = true;
+        _game.EnableCameraControl = (true);
 
         if (_playingTime != -1)
         {
-            _m.FreemoveLevel = (_previousFreemove);
-            _m.LocalPositionX = _previousPositionX;
-            _m.LocalPositionY = _previousPositionY;
-            _m.LocalPositionZ = _previousPositionZ;
-            _m.LocalOrientationX = _previousOrientationX;
-            _m.LocalOrientationY = _previousOrientationY;
-            _m.LocalOrientationZ = _previousOrientationZ;
+            _game.FreemoveLevel = (_previousFreemove);
+            _game.LocalPositionX = _previousPositionX;
+            _game.LocalPositionY = _previousPositionY;
+            _game.LocalPositionZ = _previousPositionZ;
+            _game.LocalOrientationX = _previousOrientationX;
+            _game.LocalOrientationY = _previousOrientationY;
+            _game.LocalOrientationZ = _previousOrientationZ;
         }
 
         _playingTime = -1;
@@ -372,19 +364,19 @@ public class ModAutoCamera : ModBase
 
         float t = (playingDist - segmentStartDist) / Distance(a, b);
 
-        float x = CatmullRom(t, aMinus.positionGlX, a.positionGlX, b.positionGlX, bPlus.positionGlX);
-        float y = CatmullRom(t, aMinus.positionGlY, a.positionGlY, b.positionGlY, bPlus.positionGlY);
-        float z = CatmullRom(t, aMinus.positionGlZ, a.positionGlZ, b.positionGlZ, bPlus.positionGlZ);
-        _m.LocalPositionX = x;
-        _m.LocalPositionY = y;
-        _m.LocalPositionZ = z;
+        float x = CatmullRom(t, aMinus.PositionGlX, a.PositionGlX, b.PositionGlX, bPlus.PositionGlX);
+        float y = CatmullRom(t, aMinus.PositionGlY, a.PositionGlY, b.PositionGlY, bPlus.PositionGlY);
+        float z = CatmullRom(t, aMinus.PositionGlZ, a.PositionGlZ, b.PositionGlZ, bPlus.PositionGlZ);
+        _game!.LocalPositionX = x;
+        _game.LocalPositionY = y;
+        _game.LocalPositionZ = z;
 
-        float orientX = CatmullRom(t, aMinus.orientationGlX, a.orientationGlX, b.orientationGlX, bPlus.orientationGlX);
-        float orientY = CatmullRom(t, aMinus.orientationGlY, a.orientationGlY, b.orientationGlY, bPlus.orientationGlY);
-        float orientZ = CatmullRom(t, aMinus.orientationGlZ, a.orientationGlZ, b.orientationGlZ, bPlus.orientationGlZ);
-        _m.LocalOrientationX = orientX;
-        _m.LocalOrientationY = orientY;
-        _m.LocalOrientationZ = orientZ;
+        float orientX = CatmullRom(t, aMinus.OrientationGlX, a.OrientationGlX, b.OrientationGlX, bPlus.OrientationGlX);
+        float orientY = CatmullRom(t, aMinus.OrientationGlY, a.OrientationGlY, b.OrientationGlY, bPlus.OrientationGlY);
+        float orientZ = CatmullRom(t, aMinus.OrientationGlZ, a.OrientationGlZ, b.OrientationGlZ, bPlus.OrientationGlZ);
+        _game.LocalOrientationX = orientX;
+        _game.LocalOrientationY = orientY;
+        _game.LocalOrientationZ = orientZ;
     }
 
     /// <summary>
@@ -409,11 +401,11 @@ public class ModAutoCamera : ModBase
         }
 
         _writeAccum += dt;
-        if (_writeAccum >= _one / Framerate * _recSpeed)
+        if (_writeAccum >= 1f / Framerate * _recSpeed)
         {
-            _writeAccum -= _one / Framerate * _recSpeed;
+            _writeAccum -= 1f / Framerate * _recSpeed;
 
-            var bmp = _platform.GrabScreenshot();
+            var bmp = _platform!.GrabScreenshot();
             _avi.AddFrame(bmp);
             bmp.Dispose();
         }
@@ -443,9 +435,9 @@ public class ModAutoCamera : ModBase
     /// <returns>Distance in world units.</returns>
     private static float Distance(CameraPoint a, CameraPoint b)
     {
-        float dx = a.positionGlX - b.positionGlX;
-        float dy = a.positionGlY - b.positionGlY;
-        float dz = a.positionGlZ - b.positionGlZ;
+        float dx = a.PositionGlX - b.PositionGlX;
+        float dy = a.PositionGlY - b.PositionGlY;
+        float dz = a.PositionGlZ - b.PositionGlZ;
         return MathF.Sqrt(dx * dx + dy * dy + dz * dz);
     }
 
@@ -471,8 +463,7 @@ public class ModAutoCamera : ModBase
     /// <returns>Interpolated scalar value at <paramref name="t"/>.</returns>
     public static float CatmullRom(float t, float p0, float p1, float p2, float p3)
     {
-        float one = 1;
-        return one / 2 * (
+        return 1f / 2 * (
               (2 * p1)
             + (-p0 + p2) * t
             + (2 * p0 - 5 * p1 + 4 * p2 - p3) * (t * t)
@@ -487,20 +478,20 @@ public class ModAutoCamera : ModBase
 public class CameraPoint
 {
     /// <summary>World-space X coordinate of the camera.</summary>
-    internal float positionGlX;
+    public float PositionGlX { get; set; }
 
     /// <summary>World-space Y coordinate of the camera.</summary>
-    internal float positionGlY;
+    public float PositionGlY { get; set; }
 
     /// <summary>World-space Z coordinate of the camera.</summary>
-    internal float positionGlZ;
+    public float PositionGlZ { get; set; }
 
     /// <summary>Camera orientation around the X axis (pitch), in radians.</summary>
-    internal float orientationGlX;
+    public float OrientationGlX { get; set; }
 
     /// <summary>Camera orientation around the Y axis (yaw), in radians.</summary>
-    internal float orientationGlY;
+    public float OrientationGlY { get; set; }
 
     /// <summary>Camera orientation around the Z axis (roll), in radians.</summary>
-    internal float orientationGlZ;
+    public float OrientationGlZ { get; set; }
 }

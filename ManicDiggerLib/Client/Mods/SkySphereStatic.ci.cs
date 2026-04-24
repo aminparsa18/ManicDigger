@@ -44,7 +44,7 @@ public class ModSkySphereStatic : ModBase
         game.Set3dProjection(SphereSize * 2, fov);
         game.GLMatrixModeModelView();
         game.GLPushMatrix();
-        game.GLTranslate(game.player.position.x, game.player.position.y, game.player.position.z);
+        game.GLTranslate(game.Player.position.x, game.Player.position.y, game.Player.position.z);
         game.Platform.BindTexture2d(SkyTexture);
         game.DrawModel(skyModel);
         game.GLPopMatrix();

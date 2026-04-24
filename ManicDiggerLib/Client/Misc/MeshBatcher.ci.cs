@@ -287,9 +287,3 @@ internal class BatchEntry
     /// <summary>The GPU model handle issued by the platform layer.</summary>
     internal GeometryModel Model;
 }
-
-public interface IMeshDrawer
-{
-    /// <summary>Dispatches draw calls for a list of models in a single batch.</summary>
-    void DrawModels(List<GeometryModel> models, int count);
-}

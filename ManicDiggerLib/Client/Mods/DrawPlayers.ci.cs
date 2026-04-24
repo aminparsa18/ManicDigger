@@ -10,9 +10,9 @@ public class ModDrawPlayers : ModBase
     {
         game.totaltimeMilliseconds = game.Platform.TimeMillisecondsFromStart;
 
-        for (int i = 0; i < game.entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity p = game.entities[i];
+            Entity p = game.Entities[i];
             if (p?.drawModel == null) continue;
             if (i == game.LocalPlayerId && !game.ENABLE_TPP_VIEW) continue;
             if (p.networkPosition != null && !p.networkPosition.PositionLoaded) continue;
@@ -37,14 +37,14 @@ public class ModDrawPlayers : ModBase
     /// <summary>Calculates movement speed for the local player based on physics velocity.</summary>
     private static float GetLocalPlayerSpeed(Game game)
     {
-        game.player.playerDrawInfo ??= new PlayerDrawInfo();
+        game.Player.playerDrawInfo ??= new PlayerDrawInfo();
 
         float speed = new Vector3(
             game.playervelocity.X / 60f,
             game.playervelocity.Y / 60f,
             game.playervelocity.Z / 60f).Length * 1.5f;
 
-        game.player.playerDrawInfo.moves = speed != 0;
+        game.Player.playerDrawInfo.moves = speed != 0;
         return speed;
     }
 

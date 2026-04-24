@@ -220,9 +220,9 @@ public class ModDrawHand3d : ModBase
     /// </summary>
     public float Light()
     {
-        float posx = game.player.position.x;
-        float posy = game.player.position.y;
-        float posz = game.player.position.z;
+        float posx = game.Player.position.x;
+        float posy = game.Player.position.y;
+        float posz = game.Player.position.z;
         int light = game.GetLight((int)posx, (int)posz, (int)posy);
         return _one * light / MaxLight;
     }
@@ -235,7 +235,7 @@ public class ModDrawHand3d : ModBase
         Packet_Item item = game.d_Inventory.RightHand[game.ActiveMaterial];
         return item != null
             && item.ItemClass == ItemClass.Block
-            && game.blocktypes[item.BlockId].DrawType == DrawType.Torch;
+            && game.Blocktypes[item.BlockId].DrawType == DrawType.Torch;
     }
 
     /// <summary>
@@ -305,11 +305,11 @@ public class ModDrawHand3d : ModBase
 
         float curLight = Light();
 
-        if (curMaterial != _cachedMaterial || curLight != _cachedLight || _modelData == null || game.handRedraw)
+        if (curMaterial != _cachedMaterial || curLight != _cachedLight || _modelData == null || game.HandRedraw)
         {
             RebuildHandModel(lightByte);
             game.Platform.UpdateModel(_modelData); // sync rebuilt geometry to GPU
-            game.handRedraw = false;
+            game.HandRedraw = false;
         }
 
         _cachedMaterial = curMaterial;
@@ -383,13 +383,13 @@ public class ModDrawHand3d : ModBase
     /// <param name="dt">Frame delta time in seconds.</param>
     private void AdvanceBobAnimation(float dt)
     {
-        bool moved = _prevPlayerX != game.player.position.x
-                  || _prevPlayerY != game.player.position.y
-                  || _prevPlayerZ != game.player.position.z;
+        bool moved = _prevPlayerX != game.Player.position.x
+                  || _prevPlayerY != game.Player.position.y
+                  || _prevPlayerZ != game.Player.position.z;
 
-        _prevPlayerX = game.player.position.x;
-        _prevPlayerY = game.player.position.y;
-        _prevPlayerZ = game.player.position.z;
+        _prevPlayerX = game.Player.position.x;
+        _prevPlayerY = game.Player.position.y;
+        _prevPlayerZ = game.Player.position.z;
 
         if (moved)
         {

@@ -76,17 +76,17 @@ public class ModGuiCrafting : ModBase
         // Register the packet handler once, not every frame.
         if (!_handlerRegistered)
         {
-            game.packetHandlers[(int)Packet_ServerIdEnum.CraftingRecipes] = handler;
+            game.PacketHandlers[(int)Packet_ServerIdEnum.CraftingRecipes] = handler;
             _handlerRegistered = true;
         }
 
-        if (game.guistate == GuiState.CraftingRecipes)
+        if (game.GuiState == GuiState.CraftingRecipes)
             DrawCraftingRecipes(game);
     }
 
     public override void OnNewFrameFixed(Game game, float args)
     {
-        if (game.guistate == GuiState.CraftingRecipes)
+        if (game.GuiState == GuiState.CraftingRecipes)
             CraftingMouse(game);
     }
 
@@ -149,7 +149,7 @@ public class ModGuiCrafting : ModBase
 
         if (currentRecipesCount == 0)
         {
-            game.Draw2dText1(game.language.NoMaterialsForCrafting(),
+            game.Draw2dText1(game.Language.NoMaterialsForCrafting(),
                 game.Xcenter(200), game.Ycenter(20), FontSize, null, false);
             return;
         }
@@ -173,7 +173,7 @@ public class ModGuiCrafting : ModBase
                 game.Draw2dTexture(game.terrainTexture,
                     colX, rowY, 32, 32,
                     game.TextureIdForInventory[ing.Type], Game.TexturesPacked, white, false);
-                game.Draw2dText1($"{ing.Amount} {game.blocktypes[ing.Type].Name}",
+                game.Draw2dText1($"{ing.Amount} {game.Blocktypes[ing.Type].Name}",
                     colX + 50, rowY, FontSize, color, false);
             }
 
@@ -181,7 +181,7 @@ public class ModGuiCrafting : ModBase
             game.Draw2dTexture(game.terrainTexture,
                 outX, rowY, 32, 32,
                 game.TextureIdForInventory[r.Output.Type], Game.TexturesPacked, white, false);
-            game.Draw2dText1($"{r.Output.Amount} {game.blocktypes[r.Output.Type].Name}",
+            game.Draw2dText1($"{r.Output.Amount} {game.Blocktypes[r.Output.Type].Name}",
                 outX + 50, rowY, FontSize, color, false);
         }
     }
@@ -241,7 +241,7 @@ public class ModGuiCrafting : ModBase
                 _blockTypeCounts[blockId]++;
         }
 
-        game.guistate = GuiState.CraftingRecipes;
+        game.GuiState = GuiState.CraftingRecipes;
         game.menustate = new MenuState();
         game.SetFreeMouse(true);
     }

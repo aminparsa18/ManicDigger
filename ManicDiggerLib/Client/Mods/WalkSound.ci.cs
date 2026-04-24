@@ -16,7 +16,7 @@ public class ModWalkSound : ModBase
         if (game.soundnow)
             UpdateWalkSound(game, StepSoundDuration / 2);
 
-        if (game.isplayeronground && (game.controls.movedx != 0 || game.controls.movedy != 0))
+        if (game.isplayeronground && (game.Controls.movedx != 0 || game.Controls.movedy != 0))
             UpdateWalkSound(game, args);
     }
 

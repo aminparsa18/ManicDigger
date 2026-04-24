@@ -226,7 +226,7 @@ public class ClientPackets
     public static Packet_Client RequestBlob(Game game, string[] required, int requiredCount)
     {
         Packet_ClientRequestBlob p = new(); //{ RequestBlobMd5 = needed };
-        if (GameVersionHelper.ServerVersionAtLeast(game.serverGameVersion, 2014, 4, 13))
+        if (GameVersionHelper.ServerVersionAtLeast(game.ServerGameVersion, 2014, 4, 13))
         {
             p.RequestedMd5 = (required);
         }

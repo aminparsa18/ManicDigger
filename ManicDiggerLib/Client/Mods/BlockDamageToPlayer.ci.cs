@@ -112,3 +112,46 @@ public class DialogScreen : GameScreen
         }
     }
 }
+
+public class TimerCi
+{
+    public TimerCi()
+    {
+        interval = 1;
+        maxDeltaTime = -1;
+    }
+    internal float interval;
+    internal float maxDeltaTime;
+
+    internal float accumulator;
+    public void Reset()
+    {
+        accumulator = 0;
+    }
+    public int Update(float dt)
+    {
+        accumulator += dt;
+        float constDt = interval;
+        if (maxDeltaTime != -1 && accumulator > maxDeltaTime)
+        {
+            accumulator = maxDeltaTime;
+        }
+        int updates = 0;
+        while (accumulator >= constDt)
+        {
+            updates++;
+            accumulator -= constDt;
+        }
+        return updates;
+    }
+
+    internal static TimerCi Create(int interval_, int maxDeltaTime_)
+    {
+        TimerCi timer = new()
+        {
+            interval = interval_,
+            maxDeltaTime = maxDeltaTime_
+        };
+        return timer;
+    }
+}

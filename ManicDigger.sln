@@ -16,6 +16,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F9C2C6E0-7CBD-4F42-BE60-7142D3AFE779}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		TODOS.txt = TODOS.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDigger.Maui", "ManicDigger.Maui\ManicDigger.Maui.csproj", "{B50C1D99-A4F9-42B8-B67D-975F8021890C}"

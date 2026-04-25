@@ -91,8 +91,8 @@ public sealed class TcpNetConnection : NetConnection
         _ct = ct;
     }
 
-    public override IPEndPointCi RemoteEndPoint() =>
-        IPEndPointCiDefault.Create($"{_ip}:{_port}");
+    public override IpEndpoint RemoteEndPoint() =>
+        IpEndpointDefault.Create($"{_ip}:{_port}");
 
     public override void Update() { }
 

@@ -522,7 +522,7 @@ public class GamePlatformNative : IGamePlatform
 
     public EnetHost EnetCreateHost() => new EnetHostWrapper(new Host());
 
-    public void EnetHostInitialize(EnetHost host, IPEndPointCi? address, int peerLimit,
+    public void EnetHostInitialize(EnetHost host, IpEndpoint? address, int peerLimit,
         int channelLimit, int incomingBandwidth, int outgoingBandwidth)
     {
         // Client hosts always pass null address.
@@ -562,7 +562,7 @@ public class GamePlatformNative : IGamePlatform
     {
         try
         {
-            Packet packet = default;
+            ENet.Packet packet = default;
             packet.Create(payload.ToArray(), payload.Length, (PacketFlags)flags);
             ((EnetPeerWrapper)peer).Peer.Send((byte)channelId, ref packet);
         }
@@ -591,8 +591,8 @@ public class GamePlatformNative : IGamePlatform
 
         public override int UserData() => (int)Peer.Data;
         public override void SetUserData(int value) => Peer.Data = value;
-        public override IPEndPointCi GetRemoteAddress() =>
-            IPEndPointCiDefault.Create(Peer.IP);
+        public override IpEndpoint GetRemoteAddress() =>
+            IpEndpointDefault.Create(Peer.IP);
     }
 
     /// <summary>
@@ -621,8 +621,8 @@ public class GamePlatformNative : IGamePlatform
     /// <summary>Wraps ENet-CSharp's Packet struct.</summary>
     internal sealed class EnetPacketWrapper : EnetPacket
     {
-        private readonly Packet _p;
-        internal EnetPacketWrapper(Packet p) => _p = p;
+        private readonly ENet.Packet _p;
+        internal EnetPacketWrapper(ENet.Packet p) => _p = p;
 
         public override int GetBytesCount() => _p.Length;
         public override byte[] GetBytes()
@@ -1324,7 +1324,7 @@ public class GamePlatformNative : IGamePlatform
         return (EnetNetConnection)connection;
     }
 
-    public PlayerInterpolationState CastToPlayerInterpolationState(InterpolatedObject a)
+    public PlayerInterpolationState CastToPlayerInterpolationState(IInterpolatedObject a)
     {
         return (PlayerInterpolationState)a;
     }

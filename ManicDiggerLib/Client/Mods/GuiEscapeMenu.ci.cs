@@ -864,3 +864,12 @@ public class DisplayResolutionCi
     public int GetBitsPerPixel() { return BitsPerPixel; } public void SetBitsPerPixel(int value) { BitsPerPixel = value; }
     public float GetRefreshRate() { return RefreshRate; } public void SetRefreshRate(float value) { RefreshRate = value; }
 }
+
+public enum EscapeMenuState
+{
+    Main,
+    Options,
+    Graphics,
+    Keys,
+    Other
+}

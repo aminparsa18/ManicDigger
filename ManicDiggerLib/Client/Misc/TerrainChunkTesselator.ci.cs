@@ -1,11 +1,11 @@
 ﻿//Block definition:
-// 
+//
 //      Z
 //      |
-//      | 
+//      |
 //      |
 //      +----- X
-//     / 
+//     /
 //    /
 //   Y
 //
@@ -21,7 +21,6 @@ using OpenTK.Mathematics;
 
 public class TerrainChunkTesselator
 {
-    //internal float texrecTop;
     internal float _texrecLeft;
     internal float _texrecRight;
     internal float _texrecWidth;
@@ -38,14 +37,15 @@ public class TerrainChunkTesselator
     internal int[] currentChunk18;
     internal byte[] currentChunkShadows18;
     internal byte[] currentChunkDraw16;
-    // Flat layout: index = blockPos * 6 + sideIndex
-    // Replaces the jagged byte[][] which caused ~4,096 separate small heap
-    // allocations. One contiguous allocation is faster to clear and friendlier
-    // to the CPU cache.
+
+    /// <summary>
+    /// Flat layout: index = blockPos * 6 + sideIndex.
+    /// One contiguous allocation instead of a jagged byte[][] (~4096 small heap objects).
+    /// </summary>
     internal byte[] currentChunkDrawCount16Flat;
 
     internal bool started;
-    internal int mapsizex; //cache
+    internal int mapsizex;
     internal int mapsizey;
     internal int mapsizez;
 
@@ -53,16 +53,27 @@ public class TerrainChunkTesselator
     internal float terrainTexturesPerAtlasInverse;
     internal const int maxlight = 15;
     internal float maxlightInverse;
-    internal bool[] istransparent;
-    internal bool[] isLowered;
-    internal bool[] isFluid;
+
+    // ── Fix #5: three bool[] replaced with one BlockRenderFlags[] ─────────────
+    // Transparent, Lowered and Fluid flags are packed into a single byte per block.
+    // One allocation, one cache line covers ~64 block types simultaneously.
+    private BlockRenderFlags[] _blockFlags;
+
+    // Convenience accessors — keep existing call-sites readable.
+    private bool IsTransparent(int id) => (_blockFlags[id] & BlockRenderFlags.Transparent) != 0;
+    private bool IsLowered(int id) => (_blockFlags[id] & BlockRenderFlags.Lowered) != 0;
+    private bool IsFluid(int id) => (_blockFlags[id] & BlockRenderFlags.Fluid) != 0;
+
     internal float[] lightlevels;
 
     internal GeometryModel[] toreturnatlas1d;
     internal GeometryModel[] toreturnatlas1dtransparent;
-    // Pre-allocated return buffer for GetFinalVerticesIndices.
-    // Avoids allocating a new VerticesIndicesToLoad[] and new VerticesIndicesToLoad
-    // objects on every single chunk tessellation.
+
+    /// <summary>
+    /// Pre-allocated return buffer for <see cref="GetFinalVerticesIndices"/>.
+    /// Avoids allocating a new array and new objects on every chunk tessellation.
+    /// Fix #8: element type changed to struct so the array itself is fully contiguous.
+    /// </summary>
     private VerticesIndicesToLoad[] _verticesReturnBuffer;
 
     internal float BlockShadow;
@@ -72,7 +83,13 @@ public class TerrainChunkTesselator
 
     private readonly Vector3i[][] c_OcclusionNeighbors;
 
-    private readonly float[] ref_blockCornerHeight;
+    // ── Fix #6: 4-float heap array replaced with an inline struct ─────────────
+    private CornerHeights _cornerHeights;
+
+    // Indexed [TileSide][Corner] → Corner index into CornerHeights, or -1 = unmodified.
+    // Populated once in the constructor; read-only thereafter.
+    private readonly int[,] _cornerHeightLookup;
+
     private readonly int[] tmpnPos;
 
     public TerrainChunkTesselator(IGameClient terrain, IGamePlatform platform)
@@ -81,7 +98,6 @@ public class TerrainChunkTesselator
         _platform = platform;
         EnableSmoothLight = true;
         ENABLE_TEXTURE_TILING = true;
-        //option_HardWaterTesselation = true;
         _colorWhite = ColorUtils.ColorFromArgb(255, 255, 255, 255);
         BlockShadow = 0.6f;
         option_DarkenBlockSides = true;
@@ -89,112 +105,119 @@ public class TerrainChunkTesselator
         occ = 0.7f;
         halfocc = 0.4f;
         tmpnPos = new int[7];
-        tmpshadowration = new int[TileDirectionEnum.DirectionCounts];
-        tmpoccupied = new bool[TileDirectionEnum.DirectionCounts];
+        tmpshadowration = new int[(int)TileDirection.Count];
+        tmpoccupied = new bool[(int)TileDirection.Count];
         tmpfShadowRation = new float[4];
-        tmpv = Vector3i.Zero;
-        ref_blockCornerHeight = new float[4];
 
-        c_OcclusionNeighbors = new Vector3i[TileSideEnum.SideCount][];
+        // ── Fix #7: build corner-height lookup table ──────────────────────────
+        // Dimensions: [SideCount, 4 corners]. -1 means "no height modification".
+        const int sides = TileSideExt.Count;
+        const int corners = 4;
+        _cornerHeightLookup = new int[sides, corners];
 
-        //Initialize array
-        for (int i = 0; i < TileSideEnum.SideCount; i++)
-        {
-            c_OcclusionNeighbors[i] = new Vector3i[TileDirectionEnum.DirectionCounts];
-        }
+        // Default everything to -1 (no modification).
+        for (int s = 0; s < sides; s++)
+            for (int c = 0; c < corners; c++)
+                _cornerHeightLookup[s, c] = -1;
 
-        //Top
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Center] = new Vector3i(0, 0, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Top] = new Vector3i(0, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Bottom] = new Vector3i(0, 1, 1);
+        // Top: corners map to themselves.
+        _cornerHeightLookup[(int)TileSide.Top, (int)Corner.TopLeft] = (int)Corner.TopLeft;
+        _cornerHeightLookup[(int)TileSide.Top, (int)Corner.TopRight] = (int)Corner.TopRight;
+        _cornerHeightLookup[(int)TileSide.Top, (int)Corner.BottomLeft] = (int)Corner.BottomLeft;
+        _cornerHeightLookup[(int)TileSide.Top, (int)Corner.BottomRight] = (int)Corner.BottomRight;
 
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Left] = new Vector3i(-1, 0, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.Right] = new Vector3i(1, 0, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.TopLeft] = new Vector3i(-1, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.TopRight] = new Vector3i(1, -1, 1);
+        // Right side.
+        _cornerHeightLookup[(int)TileSide.Right, (int)Corner.TopRight] = (int)Corner.TopRight;
+        _cornerHeightLookup[(int)TileSide.Right, (int)Corner.TopLeft] = (int)Corner.BottomRight;
 
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.BottomLeft] = new Vector3i(-1, 1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Top][TileDirectionEnum.BottomRight] = new Vector3i(1, 1, 1);
-        //Left
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Center] = new Vector3i(-1, 0, 0);
+        // Left side.
+        _cornerHeightLookup[(int)TileSide.Left, (int)Corner.TopLeft] = (int)Corner.TopLeft;
+        _cornerHeightLookup[(int)TileSide.Left, (int)Corner.TopRight] = (int)Corner.BottomLeft;
 
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Top] = new Vector3i(-1, 0, 1);
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Bottom] = new Vector3i(-1, 0, -1);
+        // Front side.
+        _cornerHeightLookup[(int)TileSide.Front, (int)Corner.TopLeft] = (int)Corner.BottomLeft;
+        _cornerHeightLookup[(int)TileSide.Front, (int)Corner.TopRight] = (int)Corner.BottomRight;
 
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Left] = new Vector3i(-1, -1, 0);
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.Right] = new Vector3i(-1, 1, 0);
+        // Back side.
+        _cornerHeightLookup[(int)TileSide.Back, (int)Corner.TopLeft] = (int)Corner.TopRight;
+        _cornerHeightLookup[(int)TileSide.Back, (int)Corner.TopRight] = (int)Corner.TopLeft;
 
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.TopLeft] = new Vector3i(-1, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.TopRight] = new Vector3i(-1, 1, 1);
+        // Bottom: never modified (all remain -1).
 
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.BottomLeft] = new Vector3i(-1, -1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Left][TileDirectionEnum.BottomRight] = new Vector3i(-1, 1, -1);
+        // ── Occlusion neighbour offsets ───────────────────────────────────────
+        c_OcclusionNeighbors = new Vector3i[TileSideExt.Count][];
+        for (int i = 0; i < TileSideExt.Count; i++)
+            c_OcclusionNeighbors[i] = new Vector3i[(int)TileDirection.Count];
 
-        //Bottom
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Center] = new Vector3i(0, 0, -1);
+        // Top
+        c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.Center] = new Vector3i(0, 0, 1);
+        c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.Top] = new Vector3i(0, -1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.Bottom] = new Vector3i(0, 1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.Left] = new Vector3i(-1, 0, 1);
+        c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.Right] = new Vector3i(1, 0, 1);
+        c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.TopLeft] = new Vector3i(-1, -1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.TopRight] = new Vector3i(1, -1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.BottomLeft] = new Vector3i(-1, 1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.BottomRight] = new Vector3i(1, 1, 1);
 
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Top] = new Vector3i(0, 1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Bottom] = new Vector3i(0, -1, -1);
+        // Left
+        c_OcclusionNeighbors[(int)TileSide.Left][(int)TileDirection.Center] = new Vector3i(-1, 0, 0);
+        c_OcclusionNeighbors[(int)TileSide.Left][(int)TileDirection.Top] = new Vector3i(-1, 0, 1);
+        c_OcclusionNeighbors[(int)TileSide.Left][(int)TileDirection.Bottom] = new Vector3i(-1, 0, -1);
+        c_OcclusionNeighbors[(int)TileSide.Left][(int)TileDirection.Left] = new Vector3i(-1, -1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Left][(int)TileDirection.Right] = new Vector3i(-1, 1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Left][(int)TileDirection.TopLeft] = new Vector3i(-1, -1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Left][(int)TileDirection.TopRight] = new Vector3i(-1, 1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Left][(int)TileDirection.BottomLeft] = new Vector3i(-1, -1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Left][(int)TileDirection.BottomRight] = new Vector3i(-1, 1, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Left] = new Vector3i(-1, 0, -1);
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.Right] = new Vector3i(1, 0, -1);
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.TopLeft] = new Vector3i(-1, 1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.TopRight] = new Vector3i(1, 1, -1);
+        // Bottom
+        c_OcclusionNeighbors[(int)TileSide.Bottom][(int)TileDirection.Center] = new Vector3i(0, 0, -1);
+        c_OcclusionNeighbors[(int)TileSide.Bottom][(int)TileDirection.Top] = new Vector3i(0, 1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Bottom][(int)TileDirection.Bottom] = new Vector3i(0, -1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Bottom][(int)TileDirection.Left] = new Vector3i(-1, 0, -1);
+        c_OcclusionNeighbors[(int)TileSide.Bottom][(int)TileDirection.Right] = new Vector3i(1, 0, -1);
+        c_OcclusionNeighbors[(int)TileSide.Bottom][(int)TileDirection.TopLeft] = new Vector3i(-1, 1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Bottom][(int)TileDirection.TopRight] = new Vector3i(1, 1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Bottom][(int)TileDirection.BottomLeft] = new Vector3i(-1, -1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Bottom][(int)TileDirection.BottomRight] = new Vector3i(1, -1, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.BottomLeft] = new Vector3i(-1, -1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Bottom][TileDirectionEnum.BottomRight] = new Vector3i(1, -1, -1);
+        // Right
+        c_OcclusionNeighbors[(int)TileSide.Right][(int)TileDirection.Center] = new Vector3i(1, 0, 0);
+        c_OcclusionNeighbors[(int)TileSide.Right][(int)TileDirection.Top] = new Vector3i(1, 0, 1);
+        c_OcclusionNeighbors[(int)TileSide.Right][(int)TileDirection.Bottom] = new Vector3i(1, 0, -1);
+        c_OcclusionNeighbors[(int)TileSide.Right][(int)TileDirection.Left] = new Vector3i(1, 1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Right][(int)TileDirection.Right] = new Vector3i(1, -1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Right][(int)TileDirection.TopLeft] = new Vector3i(1, 1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Right][(int)TileDirection.TopRight] = new Vector3i(1, -1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Right][(int)TileDirection.BottomLeft] = new Vector3i(1, 1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Right][(int)TileDirection.BottomRight] = new Vector3i(1, -1, -1);
 
-        //Right
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Center] = new Vector3i(1, 0, 0);
+        // Back
+        c_OcclusionNeighbors[(int)TileSide.Back][(int)TileDirection.Center] = new Vector3i(0, -1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Back][(int)TileDirection.Top] = new Vector3i(0, -1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Back][(int)TileDirection.Bottom] = new Vector3i(0, -1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Back][(int)TileDirection.Left] = new Vector3i(1, -1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Back][(int)TileDirection.Right] = new Vector3i(-1, -1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Back][(int)TileDirection.TopLeft] = new Vector3i(1, -1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Back][(int)TileDirection.TopRight] = new Vector3i(-1, -1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Back][(int)TileDirection.BottomLeft] = new Vector3i(1, -1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Back][(int)TileDirection.BottomRight] = new Vector3i(-1, -1, -1);
 
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Top] = new Vector3i(1, 0, 1);
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Bottom] = new Vector3i(1, 0, -1);
-
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Left] = new Vector3i(1, 1, 0);
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.Right] = new Vector3i(1, -1, 0);
-
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.TopLeft] = new Vector3i(1, 1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.TopRight] = new Vector3i(1, -1, 1);
-
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.BottomLeft] = new Vector3i(1, 1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Right][TileDirectionEnum.BottomRight] = new Vector3i(1, -1, -1);
-
-        //Back
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Center] = new Vector3i(0, -1, 0);
-
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Top] = new Vector3i(0, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Bottom] = new Vector3i(0, -1, -1);
-
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Left] = new Vector3i(1, -1, 0);
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.Right] = new Vector3i(-1, -1, 0);
-
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.TopLeft] = new Vector3i(1, -1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.TopRight] = new Vector3i(-1, -1, 1);
-
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.BottomLeft] = new Vector3i(1, -1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Back][TileDirectionEnum.BottomRight] = new Vector3i(-1, -1, -1);
-
-        //Front
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Center] = new Vector3i(0, 1, 0);
-
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Top] = new Vector3i(0, 1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Bottom] = new Vector3i(0, 1, -1);
-
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Left] = new Vector3i(-1, 1, 0);
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.Right] = new Vector3i(1, 1, 0);
-
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.TopLeft] = new Vector3i(-1, 1, 1);
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.TopRight] = new Vector3i(1, 1, 1);
-
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.BottomLeft] = new Vector3i(-1, 1, -1);
-        c_OcclusionNeighbors[TileSideEnum.Front][TileDirectionEnum.BottomRight] = new Vector3i(1, 1, -1);
-
+        // Front
+        c_OcclusionNeighbors[(int)TileSide.Front][(int)TileDirection.Center] = new Vector3i(0, 1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Front][(int)TileDirection.Top] = new Vector3i(0, 1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Front][(int)TileDirection.Bottom] = new Vector3i(0, 1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Front][(int)TileDirection.Left] = new Vector3i(-1, 1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Front][(int)TileDirection.Right] = new Vector3i(1, 1, 0);
+        c_OcclusionNeighbors[(int)TileSide.Front][(int)TileDirection.TopLeft] = new Vector3i(-1, 1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Front][(int)TileDirection.TopRight] = new Vector3i(1, 1, 1);
+        c_OcclusionNeighbors[(int)TileSide.Front][(int)TileDirection.BottomLeft] = new Vector3i(-1, 1, -1);
+        c_OcclusionNeighbors[(int)TileSide.Front][(int)TileDirection.BottomRight] = new Vector3i(1, 1, -1);
     }
 
     private static int Index3d(int x, int y, int h, int sizex, int sizey)
-    {
-        return (h * sizey + y) * sizex + x;
-    }
+        => (h * sizey + y) * sizex + x;
 
     public void Start()
     {
@@ -207,91 +230,87 @@ public class TerrainChunkTesselator
         mapsizez = _terrain.MapSizeZ;
         started = true;
 
-        istransparent = new bool[GlobalVar.MAX_BLOCKTYPES];
-        for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
-        {
-            istransparent[i] = false;
-        }
-        isLowered = new bool[GlobalVar.MAX_BLOCKTYPES];
-        for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
-        {
-            isLowered[i] = false;
-        }
-        isFluid = new bool[GlobalVar.MAX_BLOCKTYPES];
-        for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
-        {
-            isFluid[i] = false;
-        }
+        // ── Fix #5: single flags array replaces three bool[] ──────────────────
+        _blockFlags = new BlockRenderFlags[GlobalVar.MAX_BLOCKTYPES];
+
         maxlightInverse = 1f / maxlight;
         terrainTexturesPerAtlas = _terrain.TerrainTexturesPerAtlas;
         terrainTexturesPerAtlasInverse = 1f / _terrain.TerrainTexturesPerAtlas;
 
-        if (_platform.IsFastSystem())
-        {
-            AtiArtifactFix = 1 / 32f * 0.25f;  // 32 pixels in block texture
-        }
-        else
-        {
-            // WebGL
-            AtiArtifactFix = 1 / 32f * 1.5f;  // 32 pixels in block texture
-        }
+        AtiArtifactFix = _platform.IsFastSystem()
+            ? 1 / 32f * 0.25f   // Desktop: 32 pixels per block texture
+            : 1 / 32f * 1.5f;   // WebGL
 
         _texrecWidth = 1 - (AtiArtifactFix * 2);
         _texrecHeight = terrainTexturesPerAtlasInverse * (1 - (AtiArtifactFix * 2));
         _texrecLeft = AtiArtifactFix;
         _texrecRight = _texrecLeft + _texrecWidth;
 
-        toreturnatlas1dLength = Max(1, GlobalVar.MAX_BLOCKTYPES / _terrain.TerrainTexturesPerAtlas);
+        toreturnatlas1dLength = Math.Max(1, GlobalVar.MAX_BLOCKTYPES / _terrain.TerrainTexturesPerAtlas);
         toreturnatlas1d = new GeometryModel[toreturnatlas1dLength];
         toreturnatlas1dtransparent = new GeometryModel[toreturnatlas1dLength];
+
         for (int i = 0; i < toreturnatlas1dLength; i++)
         {
             int max = 1024;
-
             toreturnatlas1d[i] = new GeometryModel
             {
                 Xyz = new float[max * 3],
                 Uv = new float[max * 2],
                 Rgba = new byte[max * 4],
-                Indices = new int[max]
+                Indices = new int[max],
             };
-
             toreturnatlas1dtransparent[i] = new GeometryModel
             {
                 Xyz = new float[max * 3],
                 Uv = new float[max * 2],
                 Rgba = new byte[max * 4],
-                Indices = new int[max]
+                Indices = new int[max],
             };
         }
 
-        // Pre-allocate every VerticesIndicesToLoad slot once. GetFinalVerticesIndices
-        // will overwrite fields in-place rather than newing objects per chunk build.
         int returnBufferSize = toreturnatlas1dLength * 2;
         _verticesReturnBuffer = new VerticesIndicesToLoad[returnBufferSize];
-        for (int i = 0; i < returnBufferSize; i++)
-            _verticesReturnBuffer[i] = new VerticesIndicesToLoad();
+
+        // ── Fix #1: populate block type cache once at Start ───────────────────
+        RefreshBlockTypeCache();
     }
+
     private int toreturnatlas1dLength;
 
-    private static int Max(int a, int b)
+    /// <summary>
+    /// Rebuilds the per-block render flag cache from the current block type definitions.
+    /// Called once from <see cref="Start"/> and again whenever block types change.
+    /// Previously this ran inside <see cref="MakeChunk"/>, executing on every single
+    /// chunk build even though block definitions almost never change.
+    /// </summary>
+    public void RefreshBlockTypeCache()
     {
-        if (a > b)
+        for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
         {
-            return a;
-        }
-        else
-        {
-            return b;
+            Packet_BlockType b = _terrain.BlockTypes[i];
+            if (b == null) continue;
+
+            BlockRenderFlags flags = BlockRenderFlags.None;
+
+            if (b.DrawType != DrawType.Solid && b.DrawType != DrawType.Fluid)
+                flags |= BlockRenderFlags.Transparent;
+
+            if (b.DrawType == DrawType.HalfHeight
+             || b.DrawType == DrawType.Flat
+             || b.Rail != 0)
+                flags |= BlockRenderFlags.Lowered;
+
+            if (b.DrawType == DrawType.Fluid)
+                flags |= BlockRenderFlags.Fluid;
+
+            _blockFlags[i] = flags;
         }
     }
 
-    // <summary>
-    // Calculate visible block faces for a chunk
-    // This method checks which faces of a block should be drawn
-    // </summary>
-    // <param name="currentChunk"></param>
-    public void CalculateVisibleFaces(int[] currentChunk)
+    // ── Visible face calculation ───────────────────────────────────────────────
+
+    private void CalculateVisibleFaces(int[] currentChunk)
     {
         int movez = (chunksize + 2) * (chunksize + 2);
 
@@ -304,323 +323,143 @@ public class TerrainChunkTesselator
                 {
                     int pos = posstart + xx;
                     int tt = currentChunk[pos];
-                    if (tt == 0) { continue; } //nothing to do
+                    if (tt == 0) continue;
 
-                    int draw = TileSideFlagsEnum.None;
+                    TileSideFlags draw = TileSideFlags.None;
 
-                    //calculate neighbor block positions
                     int[] nPos = tmpnPos;
-                    nPos[TileSideEnum.Top] = pos + movez;
-                    nPos[TileSideEnum.Bottom] = pos - movez;
-                    nPos[TileSideEnum.Front] = pos + chunksize + 2;
-                    nPos[TileSideEnum.Back] = pos - (chunksize + 2);
-                    nPos[TileSideEnum.Left] = pos - 1;
-                    nPos[TileSideEnum.Right] = pos + 1;
+                    nPos[(int)TileSide.Top] = pos + movez;
+                    nPos[(int)TileSide.Bottom] = pos - movez;
+                    nPos[(int)TileSide.Front] = pos + chunksize + 2;
+                    nPos[(int)TileSide.Back] = pos - (chunksize + 2);
+                    nPos[(int)TileSide.Left] = pos - 1;
+                    nPos[(int)TileSide.Right] = pos + 1;
 
-                    bool blnIsFluid = isFluid[tt];
-                    bool blnIsLowered = isLowered[tt];
+                    bool blnIsFluid = IsFluid(tt);
+                    bool blnIsLowered = IsLowered(tt);
 
-                    //check which faces are visible
-                    draw |= GetFaceVisibility(TileSideEnum.Top, currentChunk, nPos, blnIsFluid, blnIsLowered);
-                    draw |= GetFaceVisibility(TileSideEnum.Bottom, currentChunk, nPos, blnIsFluid, blnIsLowered);
-                    draw |= GetFaceVisibility(TileSideEnum.Left, currentChunk, nPos, blnIsFluid, blnIsLowered);
-                    draw |= GetFaceVisibility(TileSideEnum.Right, currentChunk, nPos, blnIsFluid, blnIsLowered);
-                    draw |= GetFaceVisibility(TileSideEnum.Back, currentChunk, nPos, blnIsFluid, blnIsLowered);
-                    draw |= GetFaceVisibility(TileSideEnum.Front, currentChunk, nPos, blnIsFluid, blnIsLowered);
+                    draw |= GetFaceVisibility(TileSide.Top, currentChunk, nPos, blnIsFluid, blnIsLowered);
+                    draw |= GetFaceVisibility(TileSide.Bottom, currentChunk, nPos, blnIsFluid, blnIsLowered);
+                    draw |= GetFaceVisibility(TileSide.Left, currentChunk, nPos, blnIsFluid, blnIsLowered);
+                    draw |= GetFaceVisibility(TileSide.Right, currentChunk, nPos, blnIsFluid, blnIsLowered);
+                    draw |= GetFaceVisibility(TileSide.Back, currentChunk, nPos, blnIsFluid, blnIsLowered);
+                    draw |= GetFaceVisibility(TileSide.Front, currentChunk, nPos, blnIsFluid, blnIsLowered);
 
-                    if (blnIsLowered && draw > TileSideFlagsEnum.None)
+                    if (blnIsLowered && draw != TileSideFlags.None)
                     {
-                        //Check if top needs to be rendered
-                        if (!TileSideFlagsEnum.HasFlag(draw, TileSideFlagsEnum.Top))
+                        if (!draw.HasFlag(TileSideFlags.Top))
                         {
-                            //if one side is visible, top needs to be rendered
-                            if (TileSideFlagsEnum.HasFlag(draw, TileSideFlagsEnum.Front | TileSideFlagsEnum.Back | TileSideFlagsEnum.Right | TileSideFlagsEnum.Left))
-                            {
-                                draw |= TileSideFlagsEnum.Top;
-                            }
+                            if (draw.HasFlag(TileSideFlags.Front | TileSideFlags.Back
+                                           | TileSideFlags.Right | TileSideFlags.Left))
+                                draw |= TileSideFlags.Top;
                         }
 
-                        //check if we have a rail
                         int nRail = Rail(tt);
-
                         if (nRail > 0)
                         {
-                            int nSlope = GetRailSlope(xx, yy, zz);
-
-                            //always draw raised slope sides
+                            RailSlope nSlope = GetRailSlope(xx, yy, zz);
                             switch (nSlope)
                             {
-                                case RailSlopeEnum.TwoDownRaised: draw |= TileSideFlagsEnum.Right | TileSideFlagsEnum.Front | TileSideFlagsEnum.Back; break;
-                                case RailSlopeEnum.TwoUpRaised: draw |= TileSideFlagsEnum.Left | TileSideFlagsEnum.Front | TileSideFlagsEnum.Back; break;
-                                case RailSlopeEnum.TwoLeftRaised: draw |= TileSideFlagsEnum.Front | TileSideFlagsEnum.Right | TileSideFlagsEnum.Left; break;
-                                case RailSlopeEnum.TwoRightRaised: draw |= TileSideFlagsEnum.Back | TileSideFlagsEnum.Right | TileSideFlagsEnum.Left; break;
+                                case RailSlope.TwoDownRaised: draw |= TileSideFlags.Right | TileSideFlags.Front | TileSideFlags.Back; break;
+                                case RailSlope.TwoUpRaised: draw |= TileSideFlags.Left | TileSideFlags.Front | TileSideFlags.Back; break;
+                                case RailSlope.TwoLeftRaised: draw |= TileSideFlags.Front | TileSideFlags.Right | TileSideFlags.Left; break;
+                                case RailSlope.TwoRightRaised: draw |= TileSideFlags.Back | TileSideFlags.Right | TileSideFlags.Left; break;
                             }
                         }
                     }
 
-                    //Store drawing flags
                     currentChunkDraw16[Index3d(xx - 1, yy - 1, zz - 1, chunksize, chunksize)] = (byte)draw;
                 }
             }
         }
     }
 
-    // <summary>
-    // Check if a face should be drawn
-    // </summary>
-    private int GetFaceVisibility(int nSide, int[] currentChunk, int[] nPos, bool blnIsFluid, bool blnIsLowered)
+    private TileSideFlags GetFaceVisibility(TileSide side, int[] currentChunk, int[] nPos,
+                                             bool blnIsFluid, bool blnIsLowered)
     {
-        int nReturn = TileSideFlagsEnum.None;
-
-        int nIndex = nPos[nSide];
-
+        TileSideFlags nReturn = TileSideFlags.None;
+        int nIndex = nPos[(int)side];
         int tt2 = currentChunk[nIndex];
 
-        if (tt2 == 0 || (istransparent[tt2] && !isLowered[tt2]) || (isFluid[tt2] && !blnIsFluid))
+        if (tt2 == 0 || (IsTransparent(tt2) && !IsLowered(tt2)) || (IsFluid(tt2) && !blnIsFluid))
         {
-            //Transparent or none block nearby
-            nReturn |= TileSideEnum.ToFlags(nSide);
+            nReturn |= side.ToFlags();
         }
-        else if (blnIsFluid && nSide != TileSideEnum.Bottom)
+        else if (blnIsFluid && side != TileSide.Bottom)
         {
-            //fluid branch
-            
-            //Commented out because it is causing unnecessary lava layer rendering of map bottom
-            //int top = currentChunk[nPos[TileSideEnum.Top]];
-            //if (nSide == TileSideEnum.Top)
-            //{
-            //    //a fluids topside maybe needs to be drawn, even if it is completly surrounded
-            //    if (top != 0 && !isFluid[top])
-            //    {
-            //        //Is surrounded and has a solid block above
-            //        nReturn |= TileSideEnum.ToFlags(TileSideEnum.Top);
-            //    }
-            //}
-
-            //water below?
-            if (isFluid[currentChunk[nPos[TileSideEnum.Bottom]]])
+            if (IsFluid(currentChunk[nPos[(int)TileSide.Bottom]]))
             {
-                //check if a lowered waterblock is below the neighbor
-                if (!isFluid[tt2])
+                if (!IsFluid(tt2))
                 {
                     int movez = (chunksize + 2) * (chunksize + 2);
-                    int nPos2 = nPos[nSide] - movez;
-
-                    if (nPos2 > 0 && isFluid[currentChunk[nPos2]])
-                    {
-                        nReturn |= TileSideEnum.ToFlags(nSide);
-                    }
+                    int nPos2 = nPos[(int)side] - movez;
+                    if (nPos2 > 0 && IsFluid(currentChunk[nPos2]))
+                        nReturn |= side.ToFlags();
                 }
             }
-            else
-            {//no water below, nothing to do
-            }
         }
 
-
-        if (isLowered[tt2] && nSide != TileSideEnum.Top)
+        if (IsLowered(tt2) && side != TileSide.Top)
         {
-            //the other block is lowered
-
             if (!blnIsLowered)
-            {
-                //The other block is lowered, but this one is not,
-                nReturn |= TileSideEnum.ToFlags(nSide);
-            }
-            else if (nSide == TileSideEnum.Bottom)
-            {
-                //we need the bottom, since we have a lowered block below
-                nReturn |= TileSideFlagsEnum.Bottom;
-            }
+                nReturn |= side.ToFlags();
+            else if (side == TileSide.Bottom)
+                nReturn |= TileSideFlags.Bottom;
             else
-            {
-                //this one is also lowered
-                //top is always visible, if a lowered is nearby
-                nReturn |= TileSideFlagsEnum.Top;
-            }
+                nReturn |= TileSideFlags.Top;
         }
-        //else
-        //{//hidden
-        //}
 
         return nReturn;
     }
 
-    public void CalculateTilingCount(int[] currentChunk, int startx, int starty, int startz)
+    private void CalculateTilingCount(int[] currentChunk, int startx, int starty, int startz)
     {
-        // Single bulk clear — no null checks, no per-slot allocation.
         currentChunkDrawCount16Flat.AsSpan(0, chunksize * chunksize * chunksize * 6).Clear();
 
-        //unsafe
+        for (int zz = 1; zz < chunksize + 1; zz++)
         {
-            int[] currentChunk_ = currentChunk;
-            for (int zz = 1; zz < chunksize + 1; zz++)
+            for (int yy = 1; yy < chunksize + 1; yy++)
             {
-                for (int yy = 1; yy < chunksize + 1; yy++)
+                int pos = Index3d(0, yy, zz, chunksize + 2, chunksize + 2);
+                for (int xx = 1; xx < chunksize + 1; xx++)
                 {
-                    int pos = Index3d(0, yy, zz, chunksize + 2, chunksize + 2);
-                    for (int xx = 1; xx < chunksize + 1; xx++)
-                    {
-                        int _drawCountBase = Index3d(xx - 1, yy - 1, zz - 1, chunksize, chunksize) * 6;
+                    int drawCountBase = Index3d(xx - 1, yy - 1, zz - 1, chunksize, chunksize) * 6;
+                    int tt = currentChunk[pos + xx];
+                    if (tt == 0) continue;
 
-                        int tt = currentChunk_[pos + xx];
-                        if (tt == 0) { continue; } //faster
-                        int x = startx + xx - 1;
-                        int y = starty + yy - 1;
-                        int z = startz + zz - 1;
-                        int draw = currentChunkDraw16[Index3d(xx - 1, yy - 1, zz - 1, chunksize, chunksize)];
-                        if (draw == 0) { continue; } //faster
+                    int draw = currentChunkDraw16[Index3d(xx - 1, yy - 1, zz - 1, chunksize, chunksize)];
+                    if (draw == 0) continue;
 
-                        if ((draw & TileSideFlagsEnum.Top) != 0)
-                        {
-                            currentChunkDrawCount16Flat[_drawCountBase + TileSideEnum.Top] = 1;
-                        }
-                        if ((draw & TileSideFlagsEnum.Bottom) != 0)
-                        {
-                            currentChunkDrawCount16Flat[_drawCountBase + TileSideEnum.Bottom] = 1;
-                        }
-                        if ((draw & TileSideFlagsEnum.Right) != 0)
-                        {
-                            currentChunkDrawCount16Flat[_drawCountBase + TileSideEnum.Left] = 1;
-                        }
-                        if ((draw & TileSideFlagsEnum.Left) != 0)
-                        {
-                            currentChunkDrawCount16Flat[_drawCountBase + TileSideEnum.Right] = 1;
-                        }
-                        if ((draw & TileSideFlagsEnum.Front) != 0)
-                        {
-                            currentChunkDrawCount16Flat[_drawCountBase + TileSideEnum.Back] = 1;
-                        }
-                        if ((draw & TileSideFlagsEnum.Back) != 0)
-                        {
-                            currentChunkDrawCount16Flat[_drawCountBase + TileSideEnum.Front] = 1;
-                        }
-
-                    }
+                    if ((draw & (int)TileSideFlags.Top) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Top] = 1;
+                    if ((draw & (int)TileSideFlags.Bottom) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Bottom] = 1;
+                    if ((draw & (int)TileSideFlags.Right) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Left] = 1;
+                    if ((draw & (int)TileSideFlags.Left) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Right] = 1;
+                    if ((draw & (int)TileSideFlags.Front) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Back] = 1;
+                    if ((draw & (int)TileSideFlags.Back) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Front] = 1;
                 }
             }
         }
     }
 
-    // tiling reduces number of triangles but causes white dots bug on some graphics cards.
     internal bool ENABLE_TEXTURE_TILING;
-    //Texture tiling in one direction.
-    public int GetTilingCount(int[] currentChunk, int xx, int yy, int zz, int tt, int x, int y, int z, int shadowratio, int dir, int dirflags)
-    {
-        if (!ENABLE_TEXTURE_TILING)
-        {
-            return 1;
-        }
-        //fixes tree Z-fighting
-        if (istransparent[currentChunk[Index3d(xx, yy, zz, chunksize + 2, chunksize + 2)]]
-            && !IsTransparentFully(currentChunk[Index3d(xx, yy, zz, chunksize + 2, chunksize + 2)])) { return 1; }
-        if (dir == TileSideEnum.Top || dir == TileSideEnum.Bottom)
-        {
-            int shadowz = dir == TileSideEnum.Top ? 1 : -1;
-            int newxx = xx + 1;
-            for (; ; )
-            {
-                if (newxx >= chunksize + 1) { break; }
-                if (currentChunk[Index3d(newxx, yy, zz, chunksize + 2, chunksize + 2)] != tt) { break; }
-                int shadowratio2 = GetShadowRatioOld(newxx, yy, zz + shadowz, x + (newxx - xx), y, z + shadowz);
-                if (shadowratio != shadowratio2) { break; }
-                if ((currentChunkDraw16[Index3d(newxx - 1, yy - 1, zz - 1, chunksize, chunksize)] & dirflags) == 0) { break; } // fixes water and rail problem (chunk-long stripes)
-                currentChunkDrawCount16Flat[Index3d(newxx - 1, yy - 1, zz - 1, chunksize, chunksize) * 6 + dir] = 0;
-                currentChunkDraw16[Index3d(newxx - 1, yy - 1, zz - 1, chunksize, chunksize)] &= (byte)~dirflags;
-                newxx++;
-            }
-            return newxx - xx;
-        }
-        else if (dir == TileSideEnum.Front || dir == TileSideEnum.Back)
-        {
-            int shadowx = dir == TileSideEnum.Front ? -1 : 1;
-            int newyy = yy + 1;
-            for (; ; )
-            {
-                if (newyy >= chunksize + 1) { break; }
-                if (currentChunk[Index3d(xx, newyy, zz, chunksize + 2, chunksize + 2)] != tt) { break; }
-                int shadowratio2 = GetShadowRatioOld(xx + shadowx, newyy, zz, x + shadowx, y + (newyy - yy), z);
-                if (shadowratio != shadowratio2) { break; }
-                if ((currentChunkDraw16[Index3d(xx - 1, newyy - 1, zz - 1, chunksize, chunksize)] & dirflags) == 0) { break; } // fixes water and rail problem (chunk-long stripes)
-                currentChunkDrawCount16Flat[Index3d(xx - 1, newyy - 1, zz - 1, chunksize, chunksize) * 6 + dir] = 0;
-                currentChunkDraw16[Index3d(xx - 1, newyy - 1, zz - 1, chunksize, chunksize)] &= (byte)~dirflags;
-                newyy++;
-            }
-            return newyy - yy;
-        }
-        else
-        {
-            int shadowy = dir == TileSideEnum.Left ? -1 : 1;
-            int newxx = xx + 1;
-            for (; ; )
-            {
-                if (newxx >= chunksize + 1) { break; }
-                if (currentChunk[Index3d(newxx, yy, zz, chunksize + 2, chunksize + 2)] != tt) { break; }
-                int shadowratio2 = GetShadowRatioOld(newxx, yy + shadowy, zz, x + (newxx - xx), y + shadowy, z);
-                if (shadowratio != shadowratio2) { break; }
-                if ((currentChunkDraw16[Index3d(newxx - 1, yy - 1, zz - 1, chunksize, chunksize)] & dirflags) == 0) { break; } // fixes water and rail problem (chunk-long stripes)
-                currentChunkDrawCount16Flat[Index3d(newxx - 1, yy - 1, zz - 1, chunksize, chunksize) * 6 + dir] = 0;
-                currentChunkDraw16[Index3d(newxx - 1, yy - 1, zz - 1, chunksize, chunksize)] &= (byte)~dirflags;
-                newxx++;
-            }
-            return newxx - xx;
-        }
-    }
 
-    public bool IsTransparentFully(int p)
-    {
-        Packet_BlockType b = _terrain.BlockTypes[p];
-        return (b.DrawType != DrawType.Solid) && (b.DrawType != DrawType.Plant)
-             && (b.DrawType != DrawType.OpenDoorLeft) && (b.DrawType != DrawType.OpenDoorRight) && (b.DrawType != DrawType.ClosedDoor);
-    }
+    private int GetShadowRatio(int xx, int yy, int zz)
+        => currentChunkShadows18[Index3d(xx, yy, zz, chunksize + 2, chunksize + 2)];
 
-#if !CITO
-    [System.Obsolete("Use GetShadowRation(int,int,int) instead")]
-#endif
-    public int GetShadowRatioOld(int xx, int yy, int zz, int globalx, int globaly, int globalz)
-    {
-        return GetShadowRatio(xx, yy, zz);
-    }
-
-    public int GetShadowRatioVec(Vector3i v)
-    {
-        return GetShadowRatio(v.X, v.Y, v.Z);
-    }
-
-    public int GetShadowRatio(int xx, int yy, int zz)
-    {
-        return currentChunkShadows18[Index3d(xx, yy, zz, chunksize + 2, chunksize + 2)];
-    }
-
-    public void BuildBlockPolygons(int x, int y, int z)
+    private void BuildBlockPolygons(int x, int y, int z)
     {
         for (int xx = 0; xx < chunksize; xx++)
-        {
             for (int yy = 0; yy < chunksize; yy++)
-            {
                 for (int zz = 0; zz < chunksize; zz++)
-                {
-                    //Most blocks aren't rendered at all, quickly reject them.
                     if (currentChunkDraw16[Index3d(xx, yy, zz, chunksize, chunksize)] != 0)
-                    {
-                        int xxx = x * chunksize + xx;
-                        int yyy = y * chunksize + yy;
-                        int zzz = z * chunksize + zz;
-
-                        BuildSingleBlockPolygon(xxx, yyy, zzz, currentChunk18);
-                    }
-                }
-            }
-        }
+                        BuildSingleBlockPolygon(x * chunksize + xx, y * chunksize + yy, z * chunksize + zz, currentChunk18);
     }
 
-    private int ColorMultiply(int color, float fValue)
-    {
-        return ColorUtils.ColorFromArgb(ColorUtils.ColorA(color),
+    private static int ColorMultiply(int color, float fValue)
+        => ColorUtils.ColorFromArgb(ColorUtils.ColorA(color),
             (int)(ColorUtils.ColorR(color) * fValue),
             (int)(ColorUtils.ColorG(color) * fValue),
             (int)(ColorUtils.ColorB(color) * fValue));
-    }
 
     internal float occ;
     internal float halfocc;
@@ -628,33 +467,35 @@ public class TerrainChunkTesselator
     private readonly bool[] tmpoccupied;
     private readonly int[] tmpshadowration;
     private readonly float[] tmpfShadowRation;
-    private void BuildBlockFace(int x, int y, int z, int tileType, float vOffsetX, float vOffsetY, float vOffsetZ,
-        float vScaleX, float vScaleY, float vScaleZ, int[] currentChunk, int tileSide)
+
+    private void BuildBlockFace(int x, int y, int z, int tileType,
+        float vOffsetX, float vOffsetY, float vOffsetZ,
+        float vScaleX, float vScaleY, float vScaleZ,
+        int[] currentChunk, TileSide tileSide)
     {
         int xx = x % chunksize + 1;
         int yy = y % chunksize + 1;
         int zz = z % chunksize + 1;
-        Vector3i[] vNeighbors = c_OcclusionNeighbors[tileSide];
+        Vector3i[] vNeighbors = c_OcclusionNeighbors[(int)tileSide];
 
         int[] shadowration = tmpshadowration;
         bool[] occupied = tmpoccupied;
 
-        int shadowratio = GetShadowRatio(vNeighbors[TileDirectionEnum.Center].X + xx,
-            vNeighbors[TileDirectionEnum.Center].Y + yy,
-            vNeighbors[TileDirectionEnum.Center].Z + zz);
+        int shadowratio = GetShadowRatio(
+            vNeighbors[(int)TileDirection.Center].X + xx,
+            vNeighbors[(int)TileDirection.Center].Y + yy,
+            vNeighbors[(int)TileDirection.Center].Z + zz);
 
-        //initialize shadow values
         float[] fShadowRation = tmpfShadowRation;
-        float shadowratiomain = lightlevels[shadowratio];
-        fShadowRation[0] = shadowratiomain;
-        fShadowRation[1] = shadowratiomain;
-        fShadowRation[2] = shadowratiomain;
-        fShadowRation[3] = shadowratiomain;
+        float main = lightlevels[shadowratio];
+        fShadowRation[(int)Corner.TopLeft] = main;
+        fShadowRation[(int)Corner.TopRight] = main;
+        fShadowRation[(int)Corner.BottomLeft] = main;
+        fShadowRation[(int)Corner.BottomRight] = main;
 
         if (EnableSmoothLight)
         {
-            //Get occupation and int shadowRation
-            for (int i = 0; i < TileDirectionEnum.DirectionCounts; i++)
+            for (int i = 0; i < (int)TileDirection.Count; i++)
             {
                 int vPosX = vNeighbors[i].X + xx;
                 int vPosY = vNeighbors[i].Y + yy;
@@ -673,53 +514,51 @@ public class TerrainChunkTesselator
                 }
             }
 
-            //Shadows
-            CalcShadowRation(TileDirectionEnum.Top, TileDirectionEnum.Left, TileDirectionEnum.TopLeft, CornerEnum.TopLeft, fShadowRation, occupied, shadowration);
-            CalcShadowRation(TileDirectionEnum.Top, TileDirectionEnum.Right, TileDirectionEnum.TopRight, CornerEnum.TopRight, fShadowRation, occupied, shadowration);
-            CalcShadowRation(TileDirectionEnum.Bottom, TileDirectionEnum.Left, TileDirectionEnum.BottomLeft, CornerEnum.BottomLeft, fShadowRation, occupied, shadowration);
-            CalcShadowRation(TileDirectionEnum.Bottom, TileDirectionEnum.Right, TileDirectionEnum.BottomRight, CornerEnum.BottomRight, fShadowRation, occupied, shadowration);
-        }
-        else
-        {//no smoothing
+            CalcShadowRation(TileDirection.Top, TileDirection.Left, TileDirection.TopLeft, Corner.TopLeft, fShadowRation, occupied, shadowration);
+            CalcShadowRation(TileDirection.Top, TileDirection.Right, TileDirection.TopRight, Corner.TopRight, fShadowRation, occupied, shadowration);
+            CalcShadowRation(TileDirection.Bottom, TileDirection.Left, TileDirection.BottomLeft, Corner.BottomLeft, fShadowRation, occupied, shadowration);
+            CalcShadowRation(TileDirection.Bottom, TileDirection.Right, TileDirection.BottomRight, Corner.BottomRight, fShadowRation, occupied, shadowration);
         }
 
-        DrawBlockFace(x, y, z, tileType, tileSide, vOffsetX, vOffsetY, vOffsetZ, vScaleX, vScaleY, vScaleZ, vNeighbors, fShadowRation);
+        DrawBlockFace(x, y, z, tileType, tileSide, vOffsetX, vOffsetY, vOffsetZ,
+                      vScaleX, vScaleY, vScaleZ, vNeighbors, fShadowRation);
     }
 
-    private void CalcShadowRation(int nDir1, int nDir2, int nDirBetween, int nCorner, float[] fShadowRation, bool[] occupied, int[] shadowRationInt)
+    private void CalcShadowRation(TileDirection nDir1, TileDirection nDir2, TileDirection nDirBetween,
+        Corner nCorner, float[] fShadowRation, bool[] occupied, int[] shadowRationInt)
     {
-        if (occupied[nDir1] && occupied[nDir2]) 
+        int d1 = (int)nDir1, d2 = (int)nDir2, db = (int)nDirBetween, c = (int)nCorner;
+
+        if (occupied[d1] && occupied[d2])
         {
-            fShadowRation[nCorner] *= halfocc;
+            fShadowRation[c] *= halfocc;
         }
         else
         {
             byte facesconsidered = 1;
-            if (!occupied[nDir1]) { fShadowRation[nCorner] += lightlevels[shadowRationInt[nDir1]]; facesconsidered++; }
-            if (!occupied[nDir2]) { fShadowRation[nCorner] += lightlevels[shadowRationInt[nDir2]]; facesconsidered++; }
-            if (!occupied[nDirBetween]) { fShadowRation[nCorner] += lightlevels[shadowRationInt[nDirBetween]]; facesconsidered++; }
-            fShadowRation[nCorner] /= facesconsidered;
+            if (!occupied[d1]) { fShadowRation[c] += lightlevels[shadowRationInt[d1]]; facesconsidered++; }
+            if (!occupied[d2]) { fShadowRation[c] += lightlevels[shadowRationInt[d2]]; facesconsidered++; }
+            if (!occupied[db]) { fShadowRation[c] += lightlevels[shadowRationInt[db]]; facesconsidered++; }
+            fShadowRation[c] /= facesconsidered;
 
-            if (occupied[nDir1] || occupied[nDir2] || occupied[nDirBetween])
-            {
-                fShadowRation[nCorner] *= occ;
-            }
+            if (occupied[d1] || occupied[d2] || occupied[db])
+                fShadowRation[c] *= occ;
         }
     }
 
-    private readonly Vector3i tmpv;
-    private void DrawBlockFace(int x, int y, int z, int tileType, int tileSide, float vOffsetX, float vOffsetY, float vOffsetZ, float vScaleX, float vScaleY, float vScaleZ, Vector3i[] vNeighbors, float[] fShadowRation)
+    private void DrawBlockFace(int x, int y, int z, int tileType, TileSide tileSide,
+        float vOffsetX, float vOffsetY, float vOffsetZ,
+        float vScaleX, float vScaleY, float vScaleZ,
+        Vector3i[] vNeighbors, float[] fShadowRation)
     {
         int color = _colorWhite;
-
-        //Darken shadow sides
         if (option_DarkenBlockSides)
         {
             switch (tileSide)
             {
-                case TileSideEnum.Bottom:
-                case TileSideEnum.Left:
-                case TileSideEnum.Right:
+                case TileSide.Bottom:
+                case TileSide.Left:
+                case TileSide.Right:
                     color = ColorMultiply(color, BlockShadow);
                     break;
             }
@@ -727,733 +566,437 @@ public class TerrainChunkTesselator
 
         int sidetexture = TextureId(tileType, tileSide);
         GeometryModel toreturn = GetModelData(tileType, sidetexture);
-        float texrecTop = (terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas)) + (AtiArtifactFix * terrainTexturesPerAtlasInverse);
-        float texrecBottom = texrecTop +_texrecHeight;
+        float texrecTop = terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas)
+                           + AtiArtifactFix * terrainTexturesPerAtlasInverse;
+        float texrecBottom = texrecTop + _texrecHeight;
         int lastelement = toreturn.VerticesCount;
 
-        Vector3i v = tmpv;
-        float fSlopeModifier = 0f;
-
-        //Calculate the corner points
-        v = vNeighbors[TileDirectionEnum.TopRight] + new Vector3i(1, 1, 1);
-        fSlopeModifier = GetCornerHeightModifier(tileSide, CornerEnum.TopRight);
-        float xPos = x + vOffsetX + (v.X * 0.5f * vScaleX);
-        float zPos = z + vOffsetZ + (v.Z * 0.5f * vScaleZ) + fSlopeModifier;
-        float yPos = y + vOffsetY + (v.Y * 0.5f * vScaleY);
-        ModelDataTool.AddVertex(toreturn, xPos, zPos , yPos, _texrecRight, texrecTop, ColorMultiply(color, fShadowRation[CornerEnum.TopRight]));
-
-        v = vNeighbors[TileDirectionEnum.TopLeft] + new Vector3i(1, 1, 1);
-        fSlopeModifier = GetCornerHeightModifier(tileSide, CornerEnum.TopLeft);
-        xPos = x + vOffsetX + (v.X * 0.5f * vScaleX);
-        zPos = z + vOffsetZ + (v.Z * 0.5f * vScaleZ) + fSlopeModifier;
-        yPos = y + vOffsetY + (v.Y * 0.5f * vScaleY);
-        ModelDataTool.AddVertex(toreturn, xPos, zPos, yPos, _texrecLeft, texrecTop, ColorMultiply(color, fShadowRation[CornerEnum.TopLeft]));
-
-        v = vNeighbors[TileDirectionEnum.BottomRight] + new Vector3i(1, 1, 1);
-        fSlopeModifier = GetCornerHeightModifier(tileSide, CornerEnum.BottomRight);
-        xPos = x + vOffsetX + (v.X * 0.5f * vScaleX);
-        zPos = z + vOffsetZ + (v.Z * 0.5f * vScaleZ) + fSlopeModifier;
-        yPos = y + vOffsetY + (v.Y * 0.5f * vScaleY);
-        ModelDataTool.AddVertex(toreturn, xPos, zPos, yPos, _texrecRight, texrecBottom, ColorMultiply(color, fShadowRation[CornerEnum.BottomRight]));
-
-        v = vNeighbors[TileDirectionEnum.BottomLeft] + new Vector3i(1, 1, 1);
-        fSlopeModifier = GetCornerHeightModifier(tileSide, CornerEnum.BottomLeft);
-        xPos = x + vOffsetX + (v.X * 0.5f * vScaleX);
-        zPos = z + vOffsetZ + (v.Z * 0.5f * vScaleZ) + fSlopeModifier;
-        yPos = y + vOffsetY + (v.Y * 0.5f * vScaleY);
-        ModelDataTool.AddVertex(toreturn, xPos, zPos, yPos, _texrecLeft, texrecBottom, ColorMultiply(color, fShadowRation[CornerEnum.BottomLeft]));
+        // ── Fix #7: use lookup table instead of nested switch ─────────────────
+        float AddVertex_GetZ(Corner corner)
+        {
+            Vector3i v = vNeighbors[(int)(corner == Corner.TopLeft ? TileDirection.TopLeft
+                                        : corner == Corner.TopRight ? TileDirection.TopRight
+                                        : corner == Corner.BottomLeft ? TileDirection.BottomLeft
+                                                                       : TileDirection.BottomRight)]
+                       + new Vector3i(1, 1, 1);
+            float slope = GetCornerHeightModifier(tileSide, corner);
+            return z + vOffsetZ + (v.Z * 0.5f * vScaleZ) + slope;
+        }
 
         {
-            ModelDataTool.AddIndex(toreturn, lastelement + 0);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 3);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
+            Vector3i v = vNeighbors[(int)TileDirection.TopRight] + new Vector3i(1, 1, 1);
+            ModelDataTool.AddVertex(toreturn,
+                x + vOffsetX + v.X * 0.5f * vScaleX,
+                AddVertex_GetZ(Corner.TopRight),
+                y + vOffsetY + v.Y * 0.5f * vScaleY,
+                _texrecRight, texrecTop, ColorMultiply(color, fShadowRation[(int)Corner.TopRight]));
         }
+        {
+            Vector3i v = vNeighbors[(int)TileDirection.TopLeft] + new Vector3i(1, 1, 1);
+            ModelDataTool.AddVertex(toreturn,
+                x + vOffsetX + v.X * 0.5f * vScaleX,
+                AddVertex_GetZ(Corner.TopLeft),
+                y + vOffsetY + v.Y * 0.5f * vScaleY,
+                _texrecLeft, texrecTop, ColorMultiply(color, fShadowRation[(int)Corner.TopLeft]));
+        }
+        {
+            Vector3i v = vNeighbors[(int)TileDirection.BottomRight] + new Vector3i(1, 1, 1);
+            ModelDataTool.AddVertex(toreturn,
+                x + vOffsetX + v.X * 0.5f * vScaleX,
+                AddVertex_GetZ(Corner.BottomRight),
+                y + vOffsetY + v.Y * 0.5f * vScaleY,
+                _texrecRight, texrecBottom, ColorMultiply(color, fShadowRation[(int)Corner.BottomRight]));
+        }
+        {
+            Vector3i v = vNeighbors[(int)TileDirection.BottomLeft] + new Vector3i(1, 1, 1);
+            ModelDataTool.AddVertex(toreturn,
+                x + vOffsetX + v.X * 0.5f * vScaleX,
+                AddVertex_GetZ(Corner.BottomLeft),
+                y + vOffsetY + v.Y * 0.5f * vScaleY,
+                _texrecLeft, texrecBottom, ColorMultiply(color, fShadowRation[(int)Corner.BottomLeft]));
+        }
+
+        ModelDataTool.AddIndex(toreturn, lastelement + 0);
+        ModelDataTool.AddIndex(toreturn, lastelement + 1);
+        ModelDataTool.AddIndex(toreturn, lastelement + 2);
+        ModelDataTool.AddIndex(toreturn, lastelement + 1);
+        ModelDataTool.AddIndex(toreturn, lastelement + 3);
+        ModelDataTool.AddIndex(toreturn, lastelement + 2);
     }
 
-    // <summary>
-    // Returns the sides to draw for this block
-    // </summary>
-    private int GetToDrawFlags(int xx, int yy, int zz)
+    /// <summary>
+    /// Returns the Z height modifier for the given face corner.
+    /// Uses a pre-built lookup table instead of a nested switch.
+    /// Returns 0 when no modification applies (e.g. bottom face, unmodified corner).
+    /// </summary>
+    private float GetCornerHeightModifier(TileSide side, Corner corner)
     {
-        int nToDraw = TileSideFlagsEnum.None;
+        int index = _cornerHeightLookup[(int)side, (int)corner];
+        return index < 0 ? 0f : _cornerHeights[(Corner)index];
+    }
 
-        // Slice 6 bytes from the flat array — zero allocation, stack-only Span.
+    private TileSideFlags GetToDrawFlags(int xx, int yy, int zz)
+    {
         int baseIdx = Index3d(xx - 1, yy - 1, zz - 1, chunksize, chunksize) * 6;
         ReadOnlySpan<byte> drawFlags = currentChunkDrawCount16Flat.AsSpan(baseIdx, 6);
 
-        nToDraw = SetVisibleFlag(drawFlags, TileSideEnum.Top, nToDraw, TileSideFlagsEnum.Top);
-        nToDraw = SetVisibleFlag(drawFlags, TileSideEnum.Bottom, nToDraw, TileSideFlagsEnum.Bottom);
-        nToDraw = SetVisibleFlag(drawFlags, TileSideEnum.Left, nToDraw, TileSideFlagsEnum.Right);
-        nToDraw = SetVisibleFlag(drawFlags, TileSideEnum.Right, nToDraw, TileSideFlagsEnum.Left);
-        nToDraw = SetVisibleFlag(drawFlags, TileSideEnum.Back, nToDraw, TileSideFlagsEnum.Front);
-        nToDraw = SetVisibleFlag(drawFlags, TileSideEnum.Front, nToDraw, TileSideFlagsEnum.Back);
-
+        TileSideFlags nToDraw = TileSideFlags.None;
+        if (drawFlags[(int)TileSide.Top] > 0) nToDraw |= TileSideFlags.Top;
+        if (drawFlags[(int)TileSide.Bottom] > 0) nToDraw |= TileSideFlags.Bottom;
+        if (drawFlags[(int)TileSide.Left] > 0) nToDraw |= TileSideFlags.Right;
+        if (drawFlags[(int)TileSide.Right] > 0) nToDraw |= TileSideFlags.Left;
+        if (drawFlags[(int)TileSide.Back] > 0) nToDraw |= TileSideFlags.Front;
+        if (drawFlags[(int)TileSide.Front] > 0) nToDraw |= TileSideFlags.Back;
         return nToDraw;
     }
 
-    // <summary>
-    // Sets the visible flag in the nCurrentFlags if this side needs to be drawn
-    // </summary>
-    private static int SetVisibleFlag(ReadOnlySpan<byte> drawFlags, int tileSideIndex, int nCurrentFlags, int nFlagToSet)
+    private void BuildSingleBlockPolygon(int x, int y, int z, int[] currentChunk)
     {
-        if (drawFlags[tileSideIndex] > 0)
-        {
-            return nCurrentFlags | nFlagToSet;
-        }
-        else
-        {
-            return nCurrentFlags;
-        }
-    }
-
-    public void BuildSingleBlockPolygon(int x, int y, int z, int[] currentChunk)
-    {
-        //slope height
-        for (int i = 0; i < 4; i++)
-        {
-            ref_blockCornerHeight[i] = 0;
-        }
+        // ── Fix #6: struct clear instead of array loop ────────────────────────
+        _cornerHeights.Clear();
 
         int xx = x % chunksize + 1;
         int yy = y % chunksize + 1;
         int zz = z % chunksize + 1;
 
-        int nToDraw = GetToDrawFlags(xx, yy, zz);
+        TileSideFlags nToDraw = GetToDrawFlags(xx, yy, zz);
         int tiletype = currentChunk[Index3d(xx, yy, zz, chunksize + 2, chunksize + 2)];
 
-        float vOffsetX = 0;
-        float vOffsetY = 0;
-        float vOffsetZ = 0;
-        float vScaleX = 1;
-        float vScaleY = 1;
-        float vScaleZ = 1;
+        float vOffsetX = 0, vOffsetY = 0, vOffsetZ = 0;
+        float vScaleX = 1, vScaleY = 1, vScaleZ = 1;
 
-        if (!isvalid(tiletype))
-        {
-            return;
-        }
-        if (nToDraw == TileSideFlagsEnum.None)
-        {
-            //nothing to do
-            return;
-        }
+        if (!Isvalid(tiletype) || nToDraw == TileSideFlags.None) return;
 
         if (option_DoNotDrawEdges)
         {
-            //On finite map don't draw borders:
-            //they can't be seen without freemove cheat.
-            if (z == 0) { nToDraw &= ~TileSideFlagsEnum.Bottom; }
-            if (x == 0) { nToDraw &= ~TileSideFlagsEnum.Front; }
-            if (x == mapsizex - 1) { nToDraw &= ~TileSideFlagsEnum.Back; }
-            if (y == 0) { nToDraw &= ~TileSideFlagsEnum.Left; }
-            if (y == mapsizey - 1) { nToDraw &= ~TileSideFlagsEnum.Right; }
+            if (z == 0) nToDraw &= ~TileSideFlags.Bottom;
+            if (x == 0) nToDraw &= ~TileSideFlags.Front;
+            if (x == mapsizex - 1) nToDraw &= ~TileSideFlags.Back;
+            if (y == 0) nToDraw &= ~TileSideFlags.Left;
+            if (y == mapsizey - 1) nToDraw &= ~TileSideFlags.Right;
         }
-        
+
         if (IsFlower(tiletype))
         {
-            //Draw nothing but 2 faces. Prevents flickering.
-            nToDraw = TileSideFlagsEnum.Front | TileSideFlagsEnum.Right;
-
-            vScaleX = 0.9f;
-            vScaleY = 0.9f;
-            vScaleZ = 1f;
-
-            //Draw Front and Left side
-            BuildBlockFace(x, y, z, tiletype, 0.5f, 0.05f, 0f, vScaleX, vScaleY, vScaleZ, currentChunk, TileSideEnum.Left);
-            BuildBlockFace(x, y, z, tiletype, 0.05f, 0.5f, 0f, vScaleX, vScaleY, vScaleZ, currentChunk, TileSideEnum.Back);
-            return;//done
+            vScaleX = 0.9f; vScaleY = 0.9f; vScaleZ = 1f;
+            BuildBlockFace(x, y, z, tiletype, 0.5f, 0.05f, 0f, vScaleX, vScaleY, vScaleZ, currentChunk, TileSide.Left);
+            BuildBlockFace(x, y, z, tiletype, 0.05f, 0.5f, 0f, vScaleX, vScaleY, vScaleZ, currentChunk, TileSide.Back);
+            return;
         }
-        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Cactus)
+
+        DrawType drawType = _terrain.BlockTypes[tiletype].DrawType;
+
+        if (drawType == DrawType.Cactus)
         {
-            //Cactus is thin
             float fScale = 0.875f;
             float fOffset = (1f - fScale) / 2f;
-
-            //left right
-            float vLROffsetX = fOffset;
-            float vLROffsetY = 0;
-            float vLROffsetZ = 0;
-            float vLRScaleX = fScale;
-            float vLRScaleY = 1f;
-            float vLRScaleZ = 1f;
-
-            //front back
-            float vFBOffsetX = 0;
-            float vFBOffsetY = fOffset;
-            float vFBOffsetZ = 0;
-            float vFBScaleX = 1f;
-            float vFBScaleY = fScale;
-            float vFBScaleZ = 1f;
-
-            //Cactus sides need always to be drawn
-            BuildBlockFace(x, y, z, tiletype, vLROffsetX, vLROffsetY, vLROffsetZ, vLRScaleX, vLRScaleY, vLRScaleZ, currentChunk, TileSideEnum.Left);
-            BuildBlockFace(x, y, z, tiletype, vLROffsetX, vLROffsetY, vLROffsetZ, vLRScaleX, vLRScaleY, vLRScaleZ, currentChunk, TileSideEnum.Right);
-
-            BuildBlockFace(x, y, z, tiletype, vFBOffsetX, vFBOffsetY, vFBOffsetZ, vFBScaleX, vFBScaleY, vFBScaleZ, currentChunk, TileSideEnum.Front);
-            BuildBlockFace(x, y, z, tiletype, vFBOffsetX, vFBOffsetY, vFBOffsetZ, vFBScaleX, vFBScaleY, vFBScaleZ, currentChunk, TileSideEnum.Back);
-
-            //continue to draw top and bottom
-            nToDraw = nToDraw & (TileSideFlagsEnum.Top | TileSideFlagsEnum.Bottom);
+            BuildBlockFace(x, y, z, tiletype, fOffset, 0, 0, fScale, 1f, 1f, currentChunk, TileSide.Left);
+            BuildBlockFace(x, y, z, tiletype, fOffset, 0, 0, fScale, 1f, 1f, currentChunk, TileSide.Right);
+            BuildBlockFace(x, y, z, tiletype, 0, fOffset, 0, 1f, fScale, 1f, currentChunk, TileSide.Front);
+            BuildBlockFace(x, y, z, tiletype, 0, fOffset, 0, 1f, fScale, 1f, currentChunk, TileSide.Back);
+            nToDraw = nToDraw & (TileSideFlags.Top | TileSideFlags.Bottom);
         }
-        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.OpenDoorLeft ||
-                 _terrain.BlockTypes[tiletype].DrawType == DrawType.OpenDoorRight)//TODO: is this one ever used?
+        else if (drawType == DrawType.OpenDoorLeft || drawType == DrawType.OpenDoorRight)
         {
             bool blnDrawn = false;
-            
-            //float fOffset = 0.01f; //does not display on certain distances
             float fOffset = 0.025f;
 
-            //rigt to left
             if (currentChunk[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)] == 0 &&
                 currentChunk[Index3d(xx + 1, yy, zz, chunksize + 2, chunksize + 2)] == 0)
             {
-                nToDraw = TileSideFlagsEnum.Left;
-                vOffsetX = 0;
-                vOffsetY = fOffset; //do not stuck in the wall
-                vOffsetZ = 0;
+                nToDraw = TileSideFlags.Left;
+                vOffsetY = fOffset;
                 blnDrawn = true;
             }
-            //front to back
-            if (!blnDrawn || //draw at least one side
+            if (!blnDrawn ||
                 currentChunk[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)] == 0 &&
                 currentChunk[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)] == 0)
             {
                 vOffsetX = fOffset;
                 vOffsetY = 0;
-                vOffsetZ = 0;
-                nToDraw = TileSideFlagsEnum.Front;//do not stuck in the wall
+                nToDraw = TileSideFlags.Front;
             }
         }
-        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Fence ||
-                 _terrain.BlockTypes[tiletype].DrawType == DrawType.ClosedDoor) // fence tiles automatically when another fence is beside
+        else if (drawType == DrawType.Fence || drawType == DrawType.ClosedDoor)
         {
             bool blnSideDrawn = false;
-
-            //left to right
             if (currentChunk[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)] != 0 ||
                 currentChunk[Index3d(xx + 1, yy, zz, chunksize + 2, chunksize + 2)] != 0)
             {
-                BuildBlockFace(x, y, z, tiletype, 0, -0.5f, 0, vScaleX, vScaleY, vScaleZ, currentChunk, TileSideEnum.Front);
+                BuildBlockFace(x, y, z, tiletype, 0, -0.5f, 0, vScaleX, vScaleY, vScaleZ, currentChunk, TileSide.Front);
                 blnSideDrawn = true;
             }
-
-            //front to back
-            if (!blnSideDrawn || // draw at least one side
+            if (!blnSideDrawn ||
                 currentChunk[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)] != 0 ||
                 currentChunk[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)] != 0)
-            {
-                BuildBlockFace(x, y, z, tiletype, 0.5f, 0, 0, vScaleX, vScaleY, vScaleZ, currentChunk, TileSideEnum.Left);
-            }
-
+                BuildBlockFace(x, y, z, tiletype, 0.5f, 0, 0, vScaleX, vScaleY, vScaleZ, currentChunk, TileSide.Left);
             return;
         }
-        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Ladder) // try to fit ladder to best wall or existing ladder
+        else if (drawType == DrawType.Ladder)
         {
-            //bring it away from the wall
-            vOffsetX = 0.025f;
-            vOffsetY = 0.025f;
-            vOffsetZ = 0;
-            vScaleX = 0.95f;
-            vScaleY = 0.95f;
-            vScaleZ = 1f;
+            vOffsetX = 0.025f; vOffsetY = 0.025f;
+            vScaleX = 0.95f; vScaleY = 0.95f; vScaleZ = 1f;
+            nToDraw = TileSideFlags.None;
 
-            nToDraw = TileSideFlagsEnum.None;
-
-            int ladderAtPositionMatchWall = getBestLadderWall(xx, yy, zz, currentChunk);
-            if (ladderAtPositionMatchWall < 0)
+            int ladderWall = GetBestLadderWall(xx, yy, zz, currentChunk);
+            if (ladderWall < 0)
             {
-                int ladderbelow = getBestLadderInDirection(xx, yy, zz, currentChunk, -1);
-                int ladderabove = getBestLadderInDirection(xx, yy, zz, currentChunk, 1);
-
-                if (ladderbelow != 0)
-                {
-                    ladderAtPositionMatchWall = getBestLadderWall(xx, yy, zz + ladderbelow, currentChunk);
-                }
-                else if (ladderabove != 0)
-                {
-                    ladderAtPositionMatchWall = getBestLadderWall(xx, yy, zz + ladderabove, currentChunk);
-                }
+                int below = GetBestLadderInDirection(xx, yy, zz, currentChunk, -1);
+                int above = GetBestLadderInDirection(xx, yy, zz, currentChunk, 1);
+                if (below != 0) ladderWall = GetBestLadderWall(xx, yy, zz + below, currentChunk);
+                else if (above != 0) ladderWall = GetBestLadderWall(xx, yy, zz + above, currentChunk);
             }
-            switch (ladderAtPositionMatchWall)
+            // TODO: remove magic numbers
+            nToDraw = ladderWall switch
             {
-                    //TODO: remove magic numbers
-                case 1: nToDraw |= TileSideFlagsEnum.Right; break;
-                case 2: nToDraw |= TileSideFlagsEnum.Front; break;
-                case 3: nToDraw |= TileSideFlagsEnum.Back; break;
-                default: nToDraw |= TileSideFlagsEnum.Left; break;
-            }
+                1 => TileSideFlags.Right,
+                2 => TileSideFlags.Front,
+                3 => TileSideFlags.Back,
+                _ => TileSideFlags.Left,
+            };
         }
-        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.HalfHeight)
+        else if (drawType == DrawType.HalfHeight)
         {
-            vScaleX = 1;
-            vScaleY = 1;
             vScaleZ = 0.5f;
         }
-        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Flat)
+        else if (drawType == DrawType.Flat)
         {
-            vScaleX = 1;
-            vScaleY = 1;
             vScaleZ = 0.05f;
         }
-        else if (_terrain.BlockTypes[tiletype].DrawType == DrawType.Torch)
+        else if (drawType == DrawType.Torch)
         {
-            int type = TorchTypeEnum.Normal;
-            if (CanSupportTorch(currentChunk[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)])) { type = TorchTypeEnum.Front; }
-            if (CanSupportTorch(currentChunk[Index3d(xx + 1, yy, zz, chunksize + 2, chunksize + 2)])) { type = TorchTypeEnum.Back; }
-            if (CanSupportTorch(currentChunk[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)])) { type = TorchTypeEnum.Left; }
-            if (CanSupportTorch(currentChunk[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)])) { type = TorchTypeEnum.Right; }
-            TorchSideTexture = TextureId(tiletype, TileSideEnum.Left);
-            TorchTopTexture = TextureId(tiletype, TileSideEnum.Top);
+            TorchSideTexture = TextureId(tiletype, TileSide.Left);
+            TorchTopTexture = TextureId(tiletype, TileSide.Top);
+
+            TorchType type = TorchType.Normal;
+            if (CanSupportTorch(currentChunk[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)])) type = TorchType.Front;
+            if (CanSupportTorch(currentChunk[Index3d(xx + 1, yy, zz, chunksize + 2, chunksize + 2)])) type = TorchType.Back;
+            if (CanSupportTorch(currentChunk[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)])) type = TorchType.Left;
+            if (CanSupportTorch(currentChunk[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)])) type = TorchType.Right;
+
             AddTorch(x, y, z, type, tiletype);
             return;
         }
-        else if (tiletype == 8)
+        else
         {
-            //TODO: replace the (x == 8) in this part with (IsLiquid(x)) to make it work for all fluids
-            if (currentChunk[Index3d(xx, yy, zz - 1, chunksize + 2, chunksize + 2)] == 8)
+            // ── Fix #2: was `else if (tiletype == 8)` ────────────────────────
+            int fluidId = _terrain.BlockRegistry.BlockIdLava;
+            if (fluidId >= 0 && tiletype == fluidId)
             {
-                //flow down in the lower block
-                vOffsetX = 0;
-                vOffsetY = 0;
-                vOffsetZ = -0.1f;
+                if (currentChunk[Index3d(xx, yy, zz - 1, chunksize + 2, chunksize + 2)] == fluidId)
+                    vOffsetZ = -0.1f;
+                else
+                    vScaleZ = 0.9f;
             }
             else
             {
-                //lower than a normal block
-                vScaleX = 1;
-                vScaleY = 1;
-                vScaleZ = 0.9f;
-            }
-        }
-        else
-        {
-            int rail = Rail(tiletype);
-
-            if (rail != RailDirectionFlagsEnum.None)
-            {
-                int slope = GetRailSlope(xx, yy, zz);
-                float fSlopeMod = 1.0f;
-                vScaleX = 1f;
-                vScaleY = 1f;
-                vScaleZ = 0.3f;
-                if (slope == RailSlopeEnum.TwoRightRaised)
+                int rail = Rail(tiletype);
+                if (rail != (int)RailDirectionFlags.None)
                 {
-                    ref_blockCornerHeight[CornerEnum.TopRight] = fSlopeMod;
-                    ref_blockCornerHeight[CornerEnum.BottomRight] = fSlopeMod;
+                    RailSlope slope = GetRailSlope(xx, yy, zz);
+                    vScaleZ = 0.3f;
+                    const float fSlopeMod = 1.0f;
+                    switch (slope)
+                    {
+                        case RailSlope.TwoRightRaised: _cornerHeights.TopRight = fSlopeMod; _cornerHeights.BottomRight = fSlopeMod; break;
+                        case RailSlope.TwoLeftRaised: _cornerHeights.TopLeft = fSlopeMod; _cornerHeights.BottomLeft = fSlopeMod; break;
+                        case RailSlope.TwoUpRaised: _cornerHeights.TopLeft = fSlopeMod; _cornerHeights.TopRight = fSlopeMod; break;
+                        case RailSlope.TwoDownRaised: _cornerHeights.BottomLeft = fSlopeMod; _cornerHeights.BottomRight = fSlopeMod; break;
+                    }
                 }
-                else if (slope == RailSlopeEnum.TwoLeftRaised)
-                {
-                    ref_blockCornerHeight[CornerEnum.TopLeft] = fSlopeMod;
-                    ref_blockCornerHeight[CornerEnum.BottomLeft] = fSlopeMod;
-                }
-                else if (slope == RailSlopeEnum.TwoUpRaised)
-                {
-                    ref_blockCornerHeight[CornerEnum.TopLeft] = fSlopeMod;
-                    ref_blockCornerHeight[CornerEnum.TopRight] = fSlopeMod;
-                }
-                else if (slope == RailSlopeEnum.TwoDownRaised)
-                {
-                    ref_blockCornerHeight[CornerEnum.BottomLeft] = fSlopeMod;
-                    ref_blockCornerHeight[CornerEnum.BottomRight] = fSlopeMod;
-                }
-            }
-        }
-        
-        //Draw faces
-        for (int i = 0; i < TileSideEnum.SideCount; i++)
-        {
-            if ((nToDraw & TileSideEnum.ToFlags(i)) != TileSideFlagsEnum.None)
-            {
-                BuildBlockFace(x, y, z, tiletype, vOffsetX, vOffsetY, vOffsetZ, vScaleX, vScaleY, vScaleZ, currentChunk, i);
             }
         }
 
+        for (int i = 0; i < TileSideExt.Count; i++)
+        {
+            var side = (TileSide)i;
+            if ((nToDraw & side.ToFlags()) != TileSideFlags.None)
+                BuildBlockFace(x, y, z, tiletype, vOffsetX, vOffsetY, vOffsetZ,
+                               vScaleX, vScaleY, vScaleZ, currentChunk, side);
+        }
     }
 
-    public bool IsTransparentForLight(int block)
+    private bool IsTransparentForLight(int block)
     {
         Packet_BlockType b = _terrain.BlockTypes[block];
         return b.DrawType != DrawType.Solid && b.DrawType != DrawType.ClosedDoor;
     }
-    
-    // <summary>
-    // Get the model to which the vertices for this tiletype should be added
-    // </summary>
-    public GeometryModel GetModelData(int tiletype, int textureid)
+
+    private GeometryModel GetModelData(int tiletype, int textureid)
     {
-        if (isFluid[tiletype] || (istransparent[tiletype] && !isLowered[tiletype]))
-        {
-            return toreturnatlas1dtransparent[textureid / _terrain.TerrainTexturesPerAtlas];
-        }
-        else
-        {
-            return toreturnatlas1d[textureid / _terrain.TerrainTexturesPerAtlas];
-        }
+        return (IsFluid(tiletype) || (IsTransparent(tiletype) && !IsLowered(tiletype)))
+            ? toreturnatlas1dtransparent[textureid / _terrain.TerrainTexturesPerAtlas]
+            : toreturnatlas1d[textureid / _terrain.TerrainTexturesPerAtlas];
     }
 
-    public int TextureId(int tiletype, int side)
-    {
-        return _terrain.TextureId[tiletype][side];
-    }
+    private int TextureId(int tiletype, TileSide side)
+        => _terrain.TextureId[tiletype][(int)side];
 
-    public bool CanSupportTorch(int blocktype)
-    {
-        return blocktype != 0
-            && _terrain.BlockTypes[blocktype].DrawType != DrawType.Torch;
-    }
-
-    public static void AddVertex(GeometryModel model, float x, float y, float z, float u, float v, int color)
-    {
-        int xyzOffset = model.XyzCount;
-        int uvOffset = model.UvCount;
-        int rgbaOffset = model.RgbaCount;
-
-        model.Xyz[xyzOffset] = x;
-        model.Xyz[xyzOffset + 1] = y;
-        model.Xyz[xyzOffset + 2] = z;
-
-        model.Uv[uvOffset] = u;
-        model.Uv[uvOffset + 1] = v;
-
-        model.Rgba[rgbaOffset] = (byte)ColorUtils.ColorR(color);
-        model.Rgba[rgbaOffset + 1] = (byte)ColorUtils.ColorG(color);
-        model.Rgba[rgbaOffset + 2] = (byte)ColorUtils.ColorB(color);
-        model.Rgba[rgbaOffset + 3] = (byte)ColorUtils.ColorA(color);
-
-        model.VerticesCount++;
-    }
+    private bool CanSupportTorch(int blocktype)
+        => blocktype != 0 && _terrain.BlockTypes[blocktype].DrawType != DrawType.Torch;
 
     internal int TorchTopTexture;
     internal int TorchSideTexture;
 
-    public int GetRailSlope(int xx, int yy, int zz)
+    private RailSlope GetRailSlope(int xx, int yy, int zz)
     {
         int tiletype = currentChunk18[Index3d(xx, yy, zz, chunksize + 2, chunksize + 2)];
         int rail = Rail(tiletype);
         int blocknear;
-        //if (x < d_MapStorage.MapSizeX - 1)
-        {
-            blocknear = currentChunk18[Index3d(xx + 1, yy, zz, chunksize + 2, chunksize + 2)];
-            if (rail == RailDirectionFlagsEnum.Horizontal &&
-                 blocknear != 0 && Rail(blocknear) == RailDirectionFlagsEnum.None)
-            {
-                return RailSlopeEnum.TwoRightRaised;
-            }
-        }
-        //if (x > 0)
-        {
-            blocknear = currentChunk18[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)];
-            if (rail == RailDirectionFlagsEnum.Horizontal &&
-                 blocknear != 0 && Rail(blocknear) == RailDirectionFlagsEnum.None)
-            {
-                return RailSlopeEnum.TwoLeftRaised;
 
-            }
-        }
-        //if (y > 0)
-        {
-            blocknear = currentChunk18[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)];
-            if (rail == RailDirectionFlagsEnum.Vertical &&
-                  blocknear != 0 && Rail(blocknear) == RailDirectionFlagsEnum.None)
-            {
-                return RailSlopeEnum.TwoUpRaised;
-            }
-        }
-        //if (y < d_MapStorage.MapSizeY - 1)
-        {
-            blocknear = currentChunk18[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)];
-            if (rail == RailDirectionFlagsEnum.Vertical &&
-                  blocknear != 0 && Rail(blocknear) == RailDirectionFlagsEnum.None)
-            {
-                return RailSlopeEnum.TwoDownRaised;
-            }
-        }
-        return RailSlopeEnum.Flat;
+        blocknear = currentChunk18[Index3d(xx + 1, yy, zz, chunksize + 2, chunksize + 2)];
+        if (rail == (int)RailDirectionFlags.Horizontal && blocknear != 0 && Rail(blocknear) == (int)RailDirectionFlags.None)
+            return RailSlope.TwoRightRaised;
+
+        blocknear = currentChunk18[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)];
+        if (rail == (int)RailDirectionFlags.Horizontal && blocknear != 0 && Rail(blocknear) == (int)RailDirectionFlags.None)
+            return RailSlope.TwoLeftRaised;
+
+        blocknear = currentChunk18[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)];
+        if (rail == (int)RailDirectionFlags.Vertical && blocknear != 0 && Rail(blocknear) == (int)RailDirectionFlags.None)
+            return RailSlope.TwoUpRaised;
+
+        blocknear = currentChunk18[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)];
+        if (rail == (int)RailDirectionFlags.Vertical && blocknear != 0 && Rail(blocknear) == (int)RailDirectionFlags.None)
+            return RailSlope.TwoDownRaised;
+
+        return RailSlope.Flat;
     }
 
-    public int Rail(int tiletype)
-    {
-        return _terrain.BlockTypes[tiletype].Rail;
-    }
+    private int Rail(int tiletype) => _terrain.BlockTypes[tiletype].Rail;
 
-    public bool IsFlower(int tiletype)
-    {
-        return _terrain.BlockTypes[tiletype].DrawType == DrawType.Plant;
-    }
+    private bool IsFlower(int tiletype)
+        => _terrain.BlockTypes[tiletype].DrawType == DrawType.Plant;
 
-    public bool isvalid(int tt)
-    {
-        return _terrain.BlockTypes[tt]?.Name != null;
-    }
+    private bool Isvalid(int tt)
+        => _terrain.BlockTypes[tt]?.Name != null;
 
-    public static int getBestLadderWall(int x, int y, int z, int[] currentChunk)
+    private static int GetBestLadderWall(int x, int y, int z, int[] currentChunk)
     {
-        bool front = false;
-        bool back = false;
-        bool left = false;
-        //bool right=false;
+        bool front = false, back = false, left = false;
         int wallscount = 0;
-        if (currentChunk[Index3d(x, y - 1, z, chunksize + 2, chunksize + 2)] != 0)
-        {
-            front = true;
-            wallscount++;
-        }
-        if (currentChunk[Index3d(x, y + 1, z, chunksize + 2, chunksize + 2)] != 0)
-        {
-            back = true;
-            wallscount++;
-        }
-        int c = currentChunk[Index3d(x - 1, y, z, chunksize + 2, chunksize + 2)];
-        if (c != 0)
-        {
-            left = true;
-            wallscount++;
-        }
-        if (currentChunk[Index3d(x + 1, y, z, chunksize + 2, chunksize + 2)] != 0)
-        {
-            //right = true;
-            wallscount++;
-        }
-        if (wallscount != 1)
-        {
-            return -1;
-        }
-        else
-        {
-            if (front)
-            {
-                return 0;
-            }
-            else if (back)
-            {
-                return 1;
-            }
-            else if (left)
-            {
-                return 2;
-            }
-            else
-            {
-                return 3;
-            }
-        }
+
+        if (currentChunk[Index3d(x, y - 1, z, chunksize + 2, chunksize + 2)] != 0) { front = true; wallscount++; }
+        if (currentChunk[Index3d(x, y + 1, z, chunksize + 2, chunksize + 2)] != 0) { back = true; wallscount++; }
+        if (currentChunk[Index3d(x - 1, y, z, chunksize + 2, chunksize + 2)] != 0) { left = true; wallscount++; }
+        if (currentChunk[Index3d(x + 1, y, z, chunksize + 2, chunksize + 2)] != 0) { wallscount++; }
+
+        if (wallscount != 1) return -1;
+        if (front) return 0;
+        if (back) return 1;
+        if (left) return 2;
+        return 3;
     }
 
-    public int getBestLadderInDirection(int x, int y, int z, int[] currentChunk, int dir)
+    private static int GetBestLadderInDirection(int x, int y, int z, int[] currentChunk, int dir)
     {
+        // ── Fix #3: was hardcoded block ID 152 ───────────────────────────────
+        // TODO: resolve ladder block ID via BlockTypeRegistry instead of this constant.
+        // For now the magic number is preserved but named for visibility.
+        const int LadderBlockId = 152;
+
         int dz = dir;
-        int result = 0;
-        //try
+        while (Index3d(x, y, z + dz, chunksize + 2, chunksize + 2) >= 0
+            && Index3d(x, y, z + dz, chunksize + 2, chunksize + 2) < (chunksize + 2) * (chunksize + 2) * (chunksize + 2)
+            && currentChunk[Index3d(x, y, z + dz, chunksize + 2, chunksize + 2)] == LadderBlockId)
         {
-            while ((Index3d(x, y, z + dz, chunksize + 2, chunksize + 2) >= 0)
-                && (Index3d(x, y, z + dz, chunksize + 2, chunksize + 2) < (chunksize + 2) * (chunksize + 2) * (chunksize + 2))
-                && currentChunk[Index3d(x, y, z + dz, chunksize + 2, chunksize + 2)] == 152)
-            {
-                result = dz;
-                if (getBestLadderWall(x, y, z + dz, currentChunk) != -1) return result;
-                dz += dir;
-            }
+            int result = dz;
+            if (GetBestLadderWall(x, y, z + dz, currentChunk) != -1) return result;
+            dz += dir;
         }
-        //catch { }
         return 0;
     }
 
-    public void AddTorch(int x, int y, int z, int type, int tt)
+    // ── Fix #9: AddQuad helper eliminates torch face duplication ──────────────
+
+    /// <summary>
+    /// Emits two triangles forming a quad into <paramref name="model"/>.
+    /// Vertex order: v00=top-left, v01=top-right, v10=bottom-left, v11=bottom-right.
+    /// <paramref name="flipWinding"/> reverses the winding for back-facing quads.
+    /// </summary>
+    private void AddQuad(GeometryModel model,
+        Vector3 v00, Vector3 v01, Vector3 v10, Vector3 v11,
+        float uLeft, float uRight, float vTop, float vBottom,
+        int color, bool flipWinding = false)
     {
-        TerrainChunkTesselator d_TerainRenderer = this;
+        int e = model.VerticesCount;
+        ModelDataTool.AddVertex(model, v00.X, v00.Y, v00.Z, uLeft, vTop, color);
+        ModelDataTool.AddVertex(model, v01.X, v01.Y, v01.Z, uRight, vTop, color);
+        ModelDataTool.AddVertex(model, v10.X, v10.Y, v10.Z, uLeft, vBottom, color);
+        ModelDataTool.AddVertex(model, v11.X, v11.Y, v11.Z, uRight, vBottom, color);
 
-        int curcolor = _colorWhite;
-        float torchsizexy = 0.16f;
-        float topx = 0.5f - torchsizexy / 2;
-        float topy = 0.5f - torchsizexy / 2;
-        float bottomx = 0.5f - torchsizexy / 2;
-        float bottomy = 0.5f - torchsizexy / 2;
-
-        topx += x;
-        topy += y;
-        bottomx += x;
-        bottomy += y;
-
-        if (type == TorchTypeEnum.Front) { bottomx = x - torchsizexy; }
-        if (type == TorchTypeEnum.Back) { bottomx = x + 1; }
-        if (type == TorchTypeEnum.Left) { bottomy = y - torchsizexy; }
-        if (type == TorchTypeEnum.Right) { bottomy = y + 1; }
-
-        Vector3 top00 = new Vector3(topx, z + 0.9f, topy);
-        Vector3 top01 = new Vector3(topx, z + 0.9f, topy + torchsizexy);
-        Vector3 top10 = new Vector3(topx + torchsizexy, z + 0.9f, topy);
-        Vector3 top11 = new Vector3(topx + torchsizexy, z + 0.9f, topy + torchsizexy);
-
-        if (type == TorchTypeEnum.Left)
+        if (!flipWinding)
         {
-            top01.Y += -0.1f;
-            top11.Y += -0.1f;
+            ModelDataTool.AddIndex(model, e + 0); ModelDataTool.AddIndex(model, e + 1);
+            ModelDataTool.AddIndex(model, e + 2); ModelDataTool.AddIndex(model, e + 1);
+            ModelDataTool.AddIndex(model, e + 3); ModelDataTool.AddIndex(model, e + 2);
         }
-
-        if (type == TorchTypeEnum.Right)
+        else
         {
-            top10.Y += -0.1f;
-            top00.Y += -0.1f;
-        }
-
-        if (type == TorchTypeEnum.Front)
-        {
-            top10.Y += -0.1f;
-            top11.Y += -0.1f;
-        }
-
-        if (type == TorchTypeEnum.Back)
-        {
-            top01.Y += -0.1f;
-            top00.Y += -0.1f;
-        }
-
-        Vector3 bottom00 = new Vector3(bottomx, z + 0, bottomy);
-        Vector3 bottom01 = new Vector3(bottomx, z + 0, bottomy + torchsizexy);
-        Vector3 bottom10 = new Vector3(bottomx + torchsizexy, z + 0, bottomy);
-        Vector3 bottom11 = new Vector3(bottomx + torchsizexy, z + 0, bottomy + torchsizexy);
-
-        //top
-        {
-            int sidetexture = TorchTopTexture;
-            float texrecTop = terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas);
-            float texrecBottom = texrecTop + _texrecHeight;
-            GeometryModel toreturn = GetModelData(tt, sidetexture);
-
-            int lastelement = toreturn.VerticesCount;
-            ModelDataTool.AddVertex(toreturn, top00.X, top00.Y, top00.Z, _texrecLeft, texrecTop, curcolor);
-            ModelDataTool.AddVertex(toreturn, top01.X, top01.Y, top01.Z, _texrecLeft, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, top10.X, top10.Y, top10.Z, _texrecRight, texrecTop, curcolor);
-            ModelDataTool.AddVertex(toreturn, top11.X, top11.Y, top11.Z, _texrecRight, texrecBottom, curcolor);
-            ModelDataTool.AddIndex(toreturn, lastelement + 0);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 3);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-        }
-
-        //bottom - same as top, but z is 1 less.
-        {
-            int sidetexture = TorchSideTexture;
-            float texrecTop = terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas);
-            float texrecBottom = texrecTop + _texrecHeight;
-            GeometryModel toreturn = GetModelData(tt, sidetexture);
-
-            int lastelement = toreturn.VerticesCount;
-            ModelDataTool.AddVertex(toreturn, bottom00.X, bottom00.Y, bottom00.Z, _texrecLeft, texrecTop, curcolor);
-            ModelDataTool.AddVertex(toreturn, bottom01.X, bottom01.Y, bottom01.Z, _texrecLeft, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, bottom10.X, bottom10.Y, bottom10.Z, _texrecRight, texrecTop, curcolor);
-            ModelDataTool.AddVertex(toreturn, bottom11.X, bottom11.Y, bottom11.Z, _texrecRight, texrecBottom, curcolor);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 0);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-            ModelDataTool.AddIndex(toreturn, lastelement + 3);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-        }
-
-        //front
-        {
-            int sidetexture = TorchSideTexture;
-            float texrecTop = terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas);
-            float texrecBottom = texrecTop + _texrecHeight;
-            GeometryModel toreturn = GetModelData(tt, sidetexture);
-
-            int lastelement = toreturn.VerticesCount;
-            ModelDataTool.AddVertex(toreturn, bottom00.X, bottom00.Y, bottom00.Z, _texrecLeft, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, bottom01.X, bottom01.Y, bottom01.Z, _texrecRight, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, top00.X, top00.Y, top00.Z, _texrecLeft, texrecTop, curcolor);
-            ModelDataTool.AddVertex(toreturn, top01.X, top01.Y, top01.Z, _texrecRight, texrecTop, curcolor);
-            ModelDataTool.AddIndex(toreturn, lastelement + 0);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 3);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-        }
-
-        //back - same as front, but x is 1 greater.
-        {
-            int sidetexture = TorchSideTexture;
-            float texrecTop = terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas);
-            float texrecBottom = texrecTop + _texrecHeight;
-            GeometryModel toreturn = GetModelData(tt, sidetexture);
-
-            int lastelement = toreturn.VerticesCount;
-            ModelDataTool.AddVertex(toreturn, bottom10.X, bottom10.Y, bottom10.Z, _texrecRight, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, bottom11.X, bottom11.Y, bottom11.Z, _texrecLeft, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, top10.X, top10.Y, top10.Z, _texrecRight, texrecTop, curcolor);
-            ModelDataTool.AddVertex(toreturn, top11.X, top11.Y, top11.Z, _texrecLeft, texrecTop, curcolor);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 0);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-            ModelDataTool.AddIndex(toreturn, lastelement + 3);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-        }
-
-        {
-            int sidetexture = TorchSideTexture;
-            float texrecTop = terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas);
-            float texrecBottom = texrecTop + _texrecHeight;
-            GeometryModel toreturn = GetModelData(tt, sidetexture);
-
-            int lastelement = toreturn.VerticesCount;
-            ModelDataTool.AddVertex(toreturn, bottom00.X, bottom00.Y, bottom00.Z, _texrecRight, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, top00.X, top00.Y, top00.Z, _texrecRight, texrecTop, curcolor);
-            ModelDataTool.AddVertex(toreturn, bottom10.X, bottom10.Y, bottom10.Z, _texrecLeft, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, top10.X, top10.Y, top10.Z, _texrecLeft, texrecTop, curcolor);
-            ModelDataTool.AddIndex(toreturn, lastelement + 0);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 3);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-        }
-
-        //right - same as left, but y is 1 greater.
-        {
-            int sidetexture = TorchSideTexture;
-            float texrecTop = terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas);
-            float texrecBottom = texrecTop + _texrecHeight;
-            GeometryModel toreturn = GetModelData(tt, sidetexture);
-
-            int lastelement = toreturn.VerticesCount;
-            ModelDataTool.AddVertex(toreturn, bottom01.X, bottom01.Y, bottom01.Z, _texrecLeft, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, top01.X, top01.Y, top01.Z, _texrecLeft, texrecTop, curcolor);
-            ModelDataTool.AddVertex(toreturn, bottom11.X, bottom11.Y, bottom11.Z, _texrecRight, texrecBottom, curcolor);
-            ModelDataTool.AddVertex(toreturn, top11.X, top11.Y, top11.Z, _texrecRight, texrecTop, curcolor);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 0);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
-            ModelDataTool.AddIndex(toreturn, lastelement + 3);
-            ModelDataTool.AddIndex(toreturn, lastelement + 1);
-            ModelDataTool.AddIndex(toreturn, lastelement + 2);
+            ModelDataTool.AddIndex(model, e + 1); ModelDataTool.AddIndex(model, e + 0);
+            ModelDataTool.AddIndex(model, e + 2); ModelDataTool.AddIndex(model, e + 3);
+            ModelDataTool.AddIndex(model, e + 1); ModelDataTool.AddIndex(model, e + 2);
         }
     }
 
-    public static VerticesIndicesToLoad GetVerticesIndices(GeometryModel m, int x, int y, int z, int texture, bool transparent)
+    private void AddTorch(int x, int y, int z, TorchType type, int tt)
     {
-        VerticesIndicesToLoad v = new()
-        {
-            modelData = m,
-            positionX = x * chunksize,
-            positionY = y * chunksize,
-            positionZ = z * chunksize,
-            texture = texture,
-            transparent = transparent
-        };
-        return v;
+        int color = _colorWhite;
+        const float sxy = 0.16f;
+
+        float topx = 0.5f - sxy / 2 + x;
+        float topy = 0.5f - sxy / 2 + y;
+        float botx = topx;
+        float boty = topy;
+
+        if (type == TorchType.Front) botx = x - sxy;
+        if (type == TorchType.Back) botx = x + 1;
+        if (type == TorchType.Left) boty = y - sxy;
+        if (type == TorchType.Right) boty = y + 1;
+
+        float tz = z;
+        Vector3 t00 = new(topx, tz + 0.9f, topy);
+        Vector3 t01 = new(topx, tz + 0.9f, topy + sxy);
+        Vector3 t10 = new(topx + sxy, tz + 0.9f, topy);
+        Vector3 t11 = new(topx + sxy, tz + 0.9f, topy + sxy);
+
+        // Tilt torch top toward the wall it leans on.
+        if (type == TorchType.Left) { t01.Y -= 0.1f; t11.Y -= 0.1f; }
+        if (type == TorchType.Right) { t10.Y -= 0.1f; t00.Y -= 0.1f; }
+        if (type == TorchType.Front) { t10.Y -= 0.1f; t11.Y -= 0.1f; }
+        if (type == TorchType.Back) { t01.Y -= 0.1f; t00.Y -= 0.1f; }
+
+        Vector3 b00 = new(botx, tz, boty);
+        Vector3 b01 = new(botx, tz, boty + sxy);
+        Vector3 b10 = new(botx + sxy, tz, boty);
+        Vector3 b11 = new(botx + sxy, tz, boty + sxy);
+
+        // ── Shared texture coords ─────────────────────────────────────────────
+        float sideTexrecTop = terrainTexturesPerAtlasInverse * (TorchSideTexture % terrainTexturesPerAtlas);
+        float sideTexrecBottom = sideTexrecTop + _texrecHeight;
+        float topTexrecTop = terrainTexturesPerAtlasInverse * (TorchTopTexture % terrainTexturesPerAtlas);
+        float topTexrecBottom = topTexrecTop + _texrecHeight;
+
+        GeometryModel mSide = GetModelData(tt, TorchSideTexture);
+        GeometryModel mTop = GetModelData(tt, TorchTopTexture);
+
+        // Top cap
+        AddQuad(mTop, t00, t10, t01, t11, _texrecLeft, _texrecRight, topTexrecTop, topTexrecBottom, color);
+        // Bottom cap (flipped winding)
+        AddQuad(mSide, b00, b10, b01, b11, _texrecLeft, _texrecRight, sideTexrecTop, sideTexrecBottom, color, flipWinding: true);
+        // Front face
+        AddQuad(mSide, b00, b01, t00, t01, _texrecLeft, _texrecRight, sideTexrecBottom, sideTexrecTop, color);
+        // Back face (flipped)
+        AddQuad(mSide, b10, b11, t10, t11, _texrecRight, _texrecLeft, sideTexrecBottom, sideTexrecTop, color, flipWinding: true);
+        // Left face
+        AddQuad(mSide, b00, t00, b10, t10, _texrecRight, _texrecLeft, sideTexrecBottom, sideTexrecTop, color);
+        // Right face (flipped)
+        AddQuad(mSide, b01, t01, b11, t11, _texrecLeft, _texrecRight, sideTexrecBottom, sideTexrecTop, color, flipWinding: true);
     }
 
-    public VerticesIndicesToLoad[] GetFinalVerticesIndices(int x, int y, int z, out int retCount)
+    private VerticesIndicesToLoad[] GetFinalVerticesIndices(int x, int y, int z, out int retCount)
     {
         retCount = 0;
-        // World-space chunk origin — computed once, shared by all slots.
         float posX = x * chunksize;
         float posY = y * chunksize;
         float posZ = z * chunksize;
@@ -1462,14 +1005,14 @@ public class TerrainChunkTesselator
         {
             if (toreturnatlas1d[i].IndicesCount > 0)
             {
-                // Overwrite a pre-allocated slot — zero heap allocation.
-                VerticesIndicesToLoad v = _verticesReturnBuffer[retCount];
-                v.modelData = toreturnatlas1d[i];
-                v.positionX = posX;
-                v.positionY = posY;
-                v.positionZ = posZ;
-                v.texture = _terrain.TerrainTextures1d[i % _terrain.TerrainTexturesPerAtlas];
-                v.transparent = false;
+                // ── Fix #8: struct assigned directly — no heap allocation ──────
+                ref VerticesIndicesToLoad v = ref _verticesReturnBuffer[retCount];
+                v.ModelData = toreturnatlas1d[i];
+                v.PositionX = posX;
+                v.PositionY = posY;
+                v.PositionZ = posZ;
+                v.Texture = _terrain.TerrainTextures1d[i % _terrain.TerrainTexturesPerAtlas];
+                v.Transparent = false;
                 retCount++;
             }
         }
@@ -1477,49 +1020,34 @@ public class TerrainChunkTesselator
         {
             if (toreturnatlas1dtransparent[i].IndicesCount > 0)
             {
-                VerticesIndicesToLoad v = _verticesReturnBuffer[retCount];
-                v.modelData = toreturnatlas1dtransparent[i];
-                v.positionX = posX;
-                v.positionY = posY;
-                v.positionZ = posZ;
-                v.texture = _terrain.TerrainTextures1d[i % _terrain.TerrainTexturesPerAtlas];
-                v.transparent = true;
+                ref VerticesIndicesToLoad v = ref _verticesReturnBuffer[retCount];
+                v.ModelData = toreturnatlas1dtransparent[i];
+                v.PositionX = posX;
+                v.PositionY = posY;
+                v.PositionZ = posZ;
+                v.Texture = _terrain.TerrainTextures1d[i % _terrain.TerrainTexturesPerAtlas];
+                v.Transparent = true;
                 retCount++;
             }
         }
-        // Return the same pre-allocated array every time.
-        // The caller MUST only read indices [0..retCount-1].
         return _verticesReturnBuffer;
     }
 
     public VerticesIndicesToLoad[] MakeChunk(int x, int y, int z,
-    int[] chunk18, byte[] shadows18, float[] lightlevels_, out int retCount)
+        int[] chunk18, byte[] shadows18, float[] lightlevels_, out int retCount)
     {
         this.currentChunk18 = chunk18;
         this.currentChunkShadows18 = shadows18;
         this.lightlevels = lightlevels_;
 
-        for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
-        {
-            Packet_BlockType b = _terrain.BlockTypes[i];
-            if (b == null)
-            {
-                continue;
-            }
-            istransparent[i] = (b.DrawType != DrawType.Solid) && (b.DrawType != DrawType.Fluid);
-
-            if((b.DrawType == DrawType.HalfHeight) || (b.DrawType == DrawType.Flat) || (b.Rail != 0))
-            {
-                isLowered[i] = true;
-            }
-            isFluid[i] = b.DrawType == DrawType.Fluid;
-        }
+        // ── Fix #1: block type cache is no longer rebuilt here ────────────────
+        // Call RefreshBlockTypeCache() externally when block definitions change.
 
         if (x < 0 || y < 0 || z < 0) { retCount = 0; return []; }
-        if (!started) { throw new ArgumentException("not started"); }
+        if (!started) throw new ArgumentException("not started");
         if (x >= mapsizex / chunksize
-            || y >= mapsizey / chunksize
-            || z >= mapsizez / chunksize) { retCount = 0; return []; }
+         || y >= mapsizey / chunksize
+         || z >= mapsizez / chunksize) { retCount = 0; return []; }
 
         for (int i = 0; i < toreturnatlas1dLength; i++)
         {
@@ -1532,202 +1060,160 @@ public class TerrainChunkTesselator
         CalculateVisibleFaces(currentChunk18);
         CalculateTilingCount(currentChunk18, x * chunksize, y * chunksize, z * chunksize);
         BuildBlockPolygons(x, y, z);
-        VerticesIndicesToLoad[] ret = GetFinalVerticesIndices(x, y, z, out retCount);
-        return ret;
+        return GetFinalVerticesIndices(x, y, z, out retCount);
     }
+}
 
-    // <summary>
-    // Gets the CornerHeightModifier for a side corner out of the ref_blockCornerHeight
-    // </summary>
-    private float GetCornerHeightModifier(int side, int corner)
+/// <summary>The six faces of a block, used to index into face arrays.</summary>
+public enum TileSide
+{
+    Top = 0,
+    Bottom = 1,
+    Left = 2,
+    Right = 3,
+    Back = 4,
+    Front = 5,
+}
+
+/// <summary>Bit-flags for sets of block faces.</summary>
+[Flags]
+public enum TileSideFlags
+{
+    None = 0,
+    Top = 1 << 0,
+    Bottom = 1 << 1,
+    Right = 1 << 2,
+    Left = 1 << 3,
+    Front = 1 << 4,
+    Back = 1 << 5,
+}
+
+/// <summary>
+/// Converts a <see cref="TileSide"/> to the corresponding <see cref="TileSideFlags"/> bit.
+/// </summary>
+public static class TileSideExt
+{
+    public static TileSideFlags ToFlags(this TileSide side) => side switch
     {
-        int nIndex = CornerEnum.None;
-        switch (side)
-        {
-            case TileSideEnum.Bottom:
-                {
-                    nIndex = CornerEnum.None; //bottom height is never modified
-                    break;
-                }
-            case TileSideEnum.Right:
-                switch (corner)
-                {
-                    case CornerEnum.TopRight:
-                        nIndex = CornerEnum.TopRight;
-                        break;
-                    case CornerEnum.TopLeft:
-                        nIndex = CornerEnum.BottomRight;
-                        break;
-                }
-                break;
-            case TileSideEnum.Left:
-                switch (corner)
-                {
-                    case CornerEnum.TopLeft:
-                        nIndex = CornerEnum.TopLeft;
-                        break;
-                    case CornerEnum.TopRight:
-                        nIndex = CornerEnum.BottomLeft;
-                        break;
-                }
-                break;
-            case TileSideEnum.Front:
-                switch (corner)
-                {
-                    case CornerEnum.TopLeft:
-                        nIndex = CornerEnum.BottomLeft;
-                        break;
-                    case CornerEnum.TopRight:
-                        nIndex = CornerEnum.BottomRight;
-                        break;
-                }
-                break;
-            case TileSideEnum.Back:
-                switch (corner)
-                {
-                    case CornerEnum.TopLeft:
-                        nIndex = CornerEnum.TopRight;
-                        break;
-                    case CornerEnum.TopRight:
-                        nIndex = CornerEnum.TopLeft;
-                        break;
-                }
-                break;
-            case TileSideEnum.Top:
-                //Top side uses the same corner definition
-                nIndex = corner;
-                break;
-        }
+        TileSide.Top => TileSideFlags.Top,
+        TileSide.Bottom => TileSideFlags.Bottom,
+        TileSide.Left => TileSideFlags.Front,
+        TileSide.Right => TileSideFlags.Back,
+        TileSide.Back => TileSideFlags.Left,
+        TileSide.Front => TileSideFlags.Right,
+        _ => TileSideFlags.None,
+    };
 
-        if (nIndex != CornerEnum.None)
-        {
-            //Get height modifier
-            return ref_blockCornerHeight[nIndex];
-        }
-        else
-        {
-            //default, do not modify
-            return 0f;
-        }
-    }
+    public const int Count = 6;
 }
 
-public class VerticesIndicesToLoad
+/// <summary>The 8 surrounding directions plus center, used for occlusion sampling.</summary>
+public enum TileDirection
 {
-    internal GeometryModel modelData;
-    internal float positionX;
-    internal float positionY;
-    internal float positionZ;
-    internal bool transparent;
-    internal int texture;
+    Top = 0,
+    Bottom = 1,
+    Left = 2,
+    Right = 3,
+    TopLeft = 4,
+    TopRight = 5,
+    BottomLeft = 6,
+    BottomRight = 7,
+    Center = 8,
+    Count = 9,
 }
 
-public class TorchTypeEnum
+/// <summary>The four corners of a rendered face, used for smooth lighting.</summary>
+public enum Corner
 {
-    public const int Normal = 0;
-    public const int Left = 1;
-    public const int Right = 2;
-    public const int Front = 3;
-    public const int Back = 4;
+    TopLeft = 0,
+    TopRight = 1,
+    BottomLeft = 2,
+    BottomRight = 3,
 }
 
-public class RailDirectionFlagsEnum
+/// <summary>Rail track directions (bit-flags).</summary>
+[Flags]
+public enum RailDirectionFlags
 {
-    public const int None = 0;
-    public const int Horizontal = 1;
-    public const int Vertical = 2;
-    public const int UpLeft = 4;
-    public const int UpRight = 8;
-    public const int DownLeft = 16;
-    public const int DownRight = 32;
+    None = 0,
+    Horizontal = 1,
+    Vertical = 2,
+    UpLeft = 4,
+    UpRight = 8,
+    DownLeft = 16,
+    DownRight = 32,
 }
 
-public class RailSlopeEnum
+/// <summary>Slope type for a rail tile.</summary>
+public enum RailSlope
 {
-    public const int Flat = 0;
-    public const int TwoLeftRaised = 1;
-    public const int TwoRightRaised = 2;
-    public const int TwoUpRaised = 3;
-    public const int TwoDownRaised = 4;
+    Flat = 0,
+    TwoLeftRaised = 1,
+    TwoRightRaised = 2,
+    TwoUpRaised = 3,
+    TwoDownRaised = 4,
 }
 
-public class TileSideEnum
+/// <summary>
+/// Per-block-type render flags packed into a single byte.
+/// Replaces three separate <c>bool[]</c> arrays (istransparent, isLowered, isFluid),
+/// cutting three allocations to one and improving cache locality.
+/// </summary>
+[Flags]
+public enum BlockRenderFlags : byte
 {
-    public const int Top = 0;
-    public const int Bottom = 1;
-    public const int Left = 2;
-    public const int Right = 3;
-    public const int Back = 4;
-    public const int Front = 5;
+    None = 0,
+    Transparent = 1 << 0,
+    Lowered = 1 << 1,
+    Fluid = 1 << 2,
+}
 
-    public const int SideCount = 6;
+/// <summary>
+/// Per-block corner height modifiers for sloped geometry (rails, half-blocks).
+/// A value-type struct stored as a field — no heap allocation per block.
+/// </summary>
+public struct CornerHeights
+{
+    public float TopLeft;
+    public float TopRight;
+    public float BottomLeft;
+    public float BottomRight;
 
-    // <summary>
-    // Convert to TileSideEnumFlags
-    // </summary>
-    public static int ToFlags(int nValue)
+    /// <summary>Returns the height for the given corner index.</summary>
+    public readonly float this[Corner c] => c switch
     {
-        switch (nValue)
-        {
-            case Top: return TileSideFlagsEnum.Top;
-            case Bottom: return TileSideFlagsEnum.Bottom;
-            case Left: return TileSideFlagsEnum.Front;
-            case Right: return TileSideFlagsEnum.Back;
-            case Back: return TileSideFlagsEnum.Left;
-            case Front: return TileSideFlagsEnum.Right;
-            default: return TileSideFlagsEnum.None;
-        }
-    }
+        Corner.TopLeft => TopLeft,
+        Corner.TopRight => TopRight,
+        Corner.BottomLeft => BottomLeft,
+        Corner.BottomRight => BottomRight,
+        _ => 0f,
+    };
+
+    /// <summary>Resets all corners to zero for the next block.</summary>
+    public void Clear() => TopLeft = TopRight = BottomLeft = BottomRight = 0f;
 }
 
-public class TileSideFlagsEnum
+// ── Fix #8: VerticesIndicesToLoad as a struct ─────────────────────────────────
+
+/// <summary>
+/// A single entry in the chunk tessellator's output buffer.
+/// Stored as a struct so the pre-allocated return array is fully contiguous
+/// in memory — no per-entry heap allocation.
+/// </summary>
+public struct VerticesIndicesToLoad
 {
-    public const int None = 0;
-    public const int Top = 1;
-    public const int Bottom = 2;
-    public const int Right = 4;
-    public const int Left = 8;
-    public const int Front = 16;
-    public const int Back = 32;
-
-    public static bool HasFlag(int nFlagA, int nFlagB)
-    {
-        return (nFlagA & nFlagB) != None;
-    }
+    public GeometryModel ModelData { get; set; }
+    public float PositionX { get; set; }
+    public float PositionY { get; set; }
+    public float PositionZ { get; set; }
+    public bool Transparent { get; set; }
+    public int Texture { get; set; }
 }
 
-public class GlobalVar
+// ── Retained constants ────────────────────────────────────────────────────────
+
+public static class GlobalVar
 {
     public const int MAX_BLOCKTYPES = 1024;
     public const int MAX_BLOCKTYPES_SQRT = 32;
-}
-
-public class TileDirectionEnum
-{
-    public const int Top = 0;
-    public const int Bottom = 1;
-
-    public const int Left = 2;
-    public const int Right = 3;
-
-    public const int TopLeft = 4;
-    public const int TopRight = 5;
-
-    public const int BottomLeft = 6;
-    public const int BottomRight = 7;
-
-    public const int Center = 8;
-
-    public const int DirectionCounts = 9;
-}
-
-public class CornerEnum
-{
-    public const int TopLeft = 0;
-    public const int TopRight = 1;
-
-    public const int BottomLeft = 2;
-    public const int BottomRight = 3;
-
-    public const int None = -1;
 }

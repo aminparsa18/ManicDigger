@@ -354,3 +354,12 @@ public partial class Game
     /// <summary>Returns the Z coordinate of the water surface (half the map height).</summary>
     public float WaterLevel() => VoxelMap.MapSizeZ / 2f;
 }
+
+public class Speculative
+{
+    internal int x;
+    internal int y;
+    internal int z;
+    internal int timeMilliseconds;
+    internal int blocktype;
+}

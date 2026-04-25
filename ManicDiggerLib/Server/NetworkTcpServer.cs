@@ -139,8 +139,8 @@ public sealed class TcpServerConnection : NetConnection
         _address = address;
     }
 
-    public override IPEndPointCi RemoteEndPoint() =>
-        IPEndPointCiDefault.Create(_address);
+    public override IpEndpoint RemoteEndPoint() =>
+        IpEndpointDefault.Create(_address);
 
     public override void Update() { }
 

@@ -262,3 +262,11 @@ public class TextRenderer
         outHeight = (int)size.Height;
     }
 }
+
+public enum FontType
+{
+    Nice,
+    Simple,
+    BlackBackground,
+    Default
+}

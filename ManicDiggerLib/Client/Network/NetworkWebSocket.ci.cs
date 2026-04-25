@@ -80,8 +80,8 @@ public sealed class WebSocketClientConnection : NetConnection
         _address = address;
     }
 
-    public override IPEndPointCi RemoteEndPoint() =>
-        IPEndPointCiDefault.Create(_address);
+    public override IpEndpoint RemoteEndPoint() =>
+        IpEndpointDefault.Create(_address);
 
     public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
     {

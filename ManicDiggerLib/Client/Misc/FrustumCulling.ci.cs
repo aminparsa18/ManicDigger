@@ -4,6 +4,10 @@
 /// Performs frustum culling by extracting the 6 view frustum planes from
 /// the current modelview and projection matrices, then testing objects against them.
 /// Based on the article "Fast Extraction of Viewing Frustum Planes from the World-View-Projection Matrix (24-Jan-2001!)"
+//This class answers one question every frame: "is this object visible to the camera, or is it behind/outside the screen?"
+//It works by taking the camera's view and projection matrices, combining them, and extracting 6 invisible planes that form the edges of what the camera can see 
+//(like the walls of a pyramid pointing away from the camera). Then for any object, it checks if the object is on the wrong side of any of those 6 planes — if so,
+//skip drawing it entirely. This is called frustum culling and is a fundamental rendering optimisation.
 /// </summary>
 public class FrustumCulling
 {
@@ -60,9 +64,10 @@ public class FrustumCulling
     /// </remarks>
     public void CalcFrustumEquations()
     {
+        if (CameraMatrix == null) return;
         Matrix4 matModelView = CameraMatrix.GetModelViewMatrix();
         Matrix4 matProjection = CameraMatrix.GetProjectionMatrix();
-        Matrix4.Mult(in matModelView, in matProjection, out Matrix4 m);
+        Matrix4.Mult(in matProjection, in matModelView, out Matrix4 m);
 
         frustumPlanes[Right] = NormalizePlane(m.Row0.W - m.Row0.X, m.Row1.W - m.Row1.X, m.Row2.W - m.Row2.X, m.Row3.W - m.Row3.X);
         frustumPlanes[Left] = NormalizePlane(m.Row0.W + m.Row0.X, m.Row1.W + m.Row1.X, m.Row2.W + m.Row2.X, m.Row3.W + m.Row3.X);

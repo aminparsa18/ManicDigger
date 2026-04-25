@@ -1,83 +1,91 @@
 ﻿using OpenTK.Mathematics;
-
+/// <summary>
+///This class controls an orbiting camera — like the camera in a strategy game or when you hold right-click and rotate the view in Minecraft.
+///The camera always looks at a fixed point (Center) in the world and orbits around it, similar to a ball on a string. You control three things:
+///Distance — how far the camera is from the center point (zoom in/out)
+///Azimuth — horizontal rotation around the center (spin left/right)
+///Angle — how high up the camera is tilted (looking from ground level vs. bird's eye)
+///The angle is clamped between 0° and 89° so you can never flip the camera upside down, and the distance has a minimum so you can never zoom inside the target point.
+/// </summary>
 public class Camera
 {
     public Camera()
     {
         Distance = 5;
-        Angle = 45;
-        MinimumDistance = 2;
-        T = 0;
-        MaximumAngle = 89;
-        MinimumAngle = 0;
+        angle = 45;
+        minimumDistance = 2;
+        azimuth = 0;
+        maximumAngle = 89;
+        minimumAngle = 0;
         Center = new Vector3();
     }
 
     /// <summary>
     /// Computes the world-space position of the camera and writes it into <paramref name="ret"/>.
-    /// The camera orbits <see cref="Center"/> at the current azimuth (<see cref="T"/>),
-    /// elevation (<see cref="Angle"/>), and <see cref="Distance"/>.
+    /// The camera orbits <see cref="Center"/> at the current azimuth (<see cref="azimuth"/>),
+    /// elevation (<see cref="angle"/>), and <see cref="Distance"/>.
     /// </summary>
     public void GetPosition(ref Vector3 ret)
     {
         float flatDist = GetFlatDistance();
-        ret.X = MathF.Cos(T / 2) * flatDist + Center.X;
+        ret.X = MathF.Cos(azimuth) * flatDist + Center.X;
         ret.Y = Center.Y + GetCameraHeightFromCenter();
-        ret.Z = MathF.Sin(T / 2) * flatDist + Center.Z;
+        ret.Z = MathF.Sin(azimuth) * flatDist + Center.Z;
     }
 
-    /// <summary>Gets or sets the orbit radius, clamped to at least <see cref="MinimumDistance"/> on set.</summary>
+    /// <summary>Gets or sets the orbit radius, clamped to at least <see cref="minimumDistance"/> on set.</summary>
     public float Distance
     {
         get => distance;
-        set => distance = MathF.Max(value, MinimumDistance);
+        set => distance = MathF.Max(value, minimumDistance);
     }
+
     private float distance;
 
     /// <summary>Minimum allowed orbit radius.</summary>
-    internal float MinimumDistance { get; set; }
+    private float minimumDistance;
 
     /// <summary>Elevation angle of the camera above the horizontal plane, in degrees.</summary>
-    internal float Angle { get; set; }
+    private float angle;
 
     /// <summary>Maximum allowed elevation angle, in degrees.</summary>
-    internal float MaximumAngle { get; set; }
+    private float maximumAngle;
 
     /// <summary>Minimum allowed elevation angle, in degrees.</summary>
-    internal float MinimumAngle { get; set; }
+    private float minimumAngle;
 
     /// <summary>
     /// Horizontal rotation parameter (azimuth). The actual angle used in position math
     /// is <c>T / 2</c>, so a full orbit requires <c>T</c> to advance by <c>4π</c>.
     /// </summary>
-    internal float T { get; set; }
+    private float azimuth;
 
     /// <summary>The point in world space the camera orbits around.</summary>
-    internal Vector3 Center { get; set; }
+    public Vector3 Center { get; set; }
 
     /// <summary>
     /// Returns the vertical offset of the camera above <see cref="Center"/>
-    /// based on the current <see cref="Angle"/> and <see cref="Distance"/>.
+    /// based on the current <see cref="angle"/> and <see cref="Distance"/>.
     /// </summary>
     private float GetCameraHeightFromCenter()
     {
-        return MathF.Sin(Angle * MathF.PI / 180) * Distance;
+        return MathF.Sin(angle * MathF.PI / 180) * Distance;
     }
 
     /// <summary>
     /// Returns the horizontal (XZ-plane) distance from <see cref="Center"/> to the camera
-    /// based on the current <see cref="Angle"/> and <see cref="Distance"/>.
+    /// based on the current <see cref="angle"/> and <see cref="Distance"/>.
     /// </summary>
     private float GetFlatDistance()
     {
-        return MathF.Cos(Angle * MathF.PI / 180) * Distance;
+        return MathF.Cos(angle * MathF.PI / 180) * Distance;
     }
 
     /// <summary>Rotates the camera left (counter-clockwise) by <paramref name="p"/> units.</summary>
-    public void TurnLeft(float p) { T += p; }
+    public void TurnLeft(float p) { azimuth += p; }
 
     /// <summary>Rotates the camera right (clockwise) by <paramref name="p"/> units.</summary>
-    public void TurnRight(float p) { T -= p; }
+    public void TurnRight(float p) { azimuth -= p; }
 
     /// <summary>
     /// Applies a <see cref="CameraMove"/> input to the camera for one frame.
@@ -90,16 +98,16 @@ public class Camera
         if (camera_move.TurnRight) { TurnRight(p); }
         if (camera_move.DistanceUp) { Distance += p; }
         if (camera_move.DistanceDown) { Distance -= p; }
-        if (camera_move.AngleUp) { Angle += p * 10; }
-        if (camera_move.AngleDown) { Angle -= p * 10; }
+        if (camera_move.AngleUp) { angle += p * 10; }
+        if (camera_move.AngleDown) { angle -= p * 10; }
         Distance = camera_move.Distance;
         SetValidAngle();
     }
 
-    /// <summary>Clamps <see cref="Angle"/> to the range [<see cref="MinimumAngle"/>, <see cref="MaximumAngle"/>].</summary>
+    /// <summary>Clamps <see cref="angle"/> to the range [<see cref="minimumAngle"/>, <see cref="maximumAngle"/>].</summary>
     private void SetValidAngle()
     {
-        Angle = Math.Clamp(Angle, MinimumAngle, MaximumAngle);
+        angle = Math.Clamp(angle, minimumAngle, maximumAngle);
     }
 
     /// <summary>
@@ -107,7 +115,7 @@ public class Camera
     /// </summary>
     public void TurnUp(float p)
     {
-        Angle += p;
+        angle += p;
         SetValidAngle();
     }
 }

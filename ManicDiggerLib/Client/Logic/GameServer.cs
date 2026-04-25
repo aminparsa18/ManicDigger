@@ -1,4 +1,6 @@
-﻿public partial class Game
+﻿using ManicDigger;
+
+public partial class Game
 {
     internal Packet_ServerRedirect redirectTo;
 
@@ -12,7 +14,7 @@
         ServerInfo.ConnectData = connectdata;
         ServerInfo.ServerName = packet.Identification.ServerName;
         ServerInfo.ServerMotd = packet.Identification.ServerMotd;
-        TerrainChunkTesselator.ENABLE_TEXTURE_TILING = packet.Identification.RenderHint_ == RenderHintEnum.Fast;
+        TerrainChunkTesselator.ENABLE_TEXTURE_TILING = packet.Identification.RenderHint_ == (int)RenderHint.Fast;
 
         var requiredMd5 = packet.Identification.RequiredBlobMd5;
         var requiredName = packet.Identification.RequiredBlobName;

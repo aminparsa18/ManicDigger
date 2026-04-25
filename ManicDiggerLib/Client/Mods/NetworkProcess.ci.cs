@@ -535,7 +535,7 @@ public class ModNetworkProcess : ModBase
                         }
                     }
 
-                    _game.BlockRegistry.UseBlockTypes(_platform, _game.BlockTypes, GlobalVar.MAX_BLOCKTYPES);
+                    _game.BlockRegistry.UseBlockTypes(_game.BlockTypes, GlobalVar.MAX_BLOCKTYPES);
                     for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
                     {
                         Packet_BlockType b = _game.BlockTypes[i];

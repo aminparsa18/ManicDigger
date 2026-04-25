@@ -114,7 +114,7 @@ public interface IPlatformNetwork
     // ENet
     bool EnetAvailable();
     EnetHost EnetCreateHost();
-    void EnetHostInitialize(EnetHost host, IPEndPointCi? address, int peerLimit, int channelLimit, int incomingBandwidth, int outgoingBandwidth);
+    void EnetHostInitialize(EnetHost host, IpEndpoint? address, int peerLimit, int channelLimit, int incomingBandwidth, int outgoingBandwidth);
     void EnetHostInitializeServer(EnetHost host, int port, int peerLimit);
     EnetEvent? EnetHostService(EnetHost host, int timeout);
     EnetEvent? EnetHostCheckEvents(EnetHost host);
@@ -181,7 +181,7 @@ public interface IPlatformSinglePlayer
     bool SinglePlayerServerLoaded();
     void SinglePlayerServerDisable();
     DummyNetwork SinglePlayerServerGetNetwork();
-    PlayerInterpolationState CastToPlayerInterpolationState(InterpolatedObject a);
+    PlayerInterpolationState CastToPlayerInterpolationState(IInterpolatedObject a);
     EnetNetConnection CastToEnetNetConnection(NetConnection connection);
 }
 
@@ -254,10 +254,6 @@ public class Preferences
     internal void Remove(string key) => items.Remove(key);
 }
 
-public class MonitorObject
-{
-}
-
 public class KeyEventArgs : KeyPressEventArgs
 {
     public bool CtrlPressed { get; init; }
@@ -305,17 +301,6 @@ public class TouchEventArgs
     public int GetY() { return y; } public void SetY(int value) { y = value; }
     public int GetId() { return id; } public void SetId(int value) { id = value; }
     public bool GetHandled() { return handled; } public void SetHandled(bool value) { handled = value; }
-}
-
-public abstract class TouchEventHandler
-{
-    public abstract void OnTouchStart(TouchEventArgs e);
-    public abstract void OnTouchMove(TouchEventArgs e);
-    public abstract void OnTouchEnd(TouchEventArgs e);
-}
-
-public abstract class Texture
-{
 }
 
 public enum TextAlign

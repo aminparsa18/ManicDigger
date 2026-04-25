@@ -44,7 +44,7 @@ public abstract class EnetPeer
 {
     public abstract int UserData();
     public abstract void SetUserData(int value);
-    public abstract IPEndPointCi GetRemoteAddress();
+    public abstract IpEndpoint GetRemoteAddress();
 }
 
 public abstract class EnetPacket
@@ -74,8 +74,8 @@ public sealed class EnetNetConnection : NetConnection
         Peer = peer;
     }
 
-    public override IPEndPointCi RemoteEndPoint() =>
-        IPEndPointCiDefault.Create(Peer.GetRemoteAddress().AddressToString());
+    public override IpEndpoint RemoteEndPoint() =>
+        IpEndpointDefault.Create(Peer.GetRemoteAddress().AddressToString());
 
     public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
     {

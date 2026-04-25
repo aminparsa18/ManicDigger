@@ -142,8 +142,8 @@ public partial class Game
         if (item == null || item.ItemClass != ItemClass.Block) return 0;
 
         float radius = IronSights
-            ? DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsAimRadiusFloat) / 800 * Width()
-            : DecodeFixedPoint(BlockTypes[item.BlockId].AimRadiusFloat) / 800 * Width();
+            ? DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsAimRadiusFloat) / 800 * Platform.GetCanvasWidth()
+            : DecodeFixedPoint(BlockTypes[item.BlockId].AimRadiusFloat) / 800 * Platform.GetCanvasWidth();
 
         return radius + RadiusWhenMoving * radius * Math.Min(playervelocity.Length / MoveSpeed, 1);
     }

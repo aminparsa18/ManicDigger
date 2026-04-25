@@ -120,79 +120,6 @@ public class GameExit
     }
 }
 
-public class TileEnterData
-{
-    internal int BlockPositionX;
-    internal int BlockPositionY;
-    internal int BlockPositionZ;
-    internal TileEnterDirection EnterDirection;
-}
-
-public class UpDown
-{
-    public const int None = 0;
-    public const int Up = 1;
-    public const int Down = 2;
-}
-
-public class RenderHintEnum
-{
-    public const int Fast = 0;
-    public const int Nice = 1;
-}
-
-public class Speculative
-{
-    internal int x;
-    internal int y;
-    internal int z;
-    internal int timeMilliseconds;
-    internal int blocktype;
-}
-
-public class TimerCi
-{
-    public TimerCi()
-    {
-        interval = 1;
-        maxDeltaTime = -1;
-    }
-    internal float interval;
-    internal float maxDeltaTime;
-
-    internal float accumulator;
-    public void Reset()
-    {
-        accumulator = 0;
-    }
-    public int Update(float dt)
-    {
-        accumulator += dt;
-        float constDt = interval;
-        if (maxDeltaTime != -1 && accumulator > maxDeltaTime)
-        {
-            accumulator = maxDeltaTime;
-        }
-        int updates = 0;
-        while (accumulator >= constDt)
-        {
-            updates++;
-            accumulator -= constDt;
-        }
-        return updates;
-    }
-
-    internal static TimerCi Create(int interval_, int maxDeltaTime_)
-    {
-        TimerCi timer = new()
-        {
-            interval = interval_,
-            maxDeltaTime = maxDeltaTime_
-        };
-        return timer;
-    }
-}
-
 public class Sprite
 {
     public Sprite()
@@ -227,29 +154,7 @@ public class PlayerDrawInfo
     internal bool moves;
 }
 
-public class PlayerInterpolate : IInterpolation
-{
-    internal IGamePlatform platform;
-    public override InterpolatedObject Interpolate(InterpolatedObject a, InterpolatedObject b, float progress)
-    {
-        PlayerInterpolationState aa = platform.CastToPlayerInterpolationState(a);
-        PlayerInterpolationState bb = platform.CastToPlayerInterpolationState(b);
-        PlayerInterpolationState cc = new()
-        {
-            positionX = aa.positionX + (bb.positionX - aa.positionX) * progress,
-            positionY = aa.positionY + (bb.positionY - aa.positionY) * progress,
-            positionZ = aa.positionZ + (bb.positionZ - aa.positionZ) * progress,
-            //cc.heading = Game.IntToByte(AngleInterpolation.InterpolateAngle256(platform, aa.heading, bb.heading, progress));
-            //cc.pitch = Game.IntToByte(AngleInterpolation.InterpolateAngle256(platform, aa.pitch, bb.pitch, progress));
-            rotx = float.DegreesToRadians(AngleInterpolation.InterpolateAngle360(float.RadiansToDegrees(aa.rotx), float.RadiansToDegrees(bb.rotx), progress)),
-            roty = float.DegreesToRadians(AngleInterpolation.InterpolateAngle360(float.RadiansToDegrees(aa.roty), float.RadiansToDegrees(bb.roty), progress)),
-            rotz = float.DegreesToRadians(AngleInterpolation.InterpolateAngle360(float.RadiansToDegrees(aa.rotz), float.RadiansToDegrees(bb.rotz), progress))
-        };
-        return cc;
-    }
-}
-
-public class PlayerInterpolationState : InterpolatedObject
+public class PlayerInterpolationState : IInterpolatedObject
 {
     internal float positionX;
     internal float positionY;
@@ -389,54 +294,6 @@ public class VisibleDialog
     internal GameScreen screen;
 }
 
-public class RailMapUtil
-{
-    internal IGameClient game;
-    public RailSlope GetRailSlope(int x, int y, int z)
-    {
-        int tiletype = game.VoxelMap.GetBlock(x, y, z);
-        int railDirectionFlags = game.BlockTypes[tiletype].Rail;
-        int blocknear;
-        if (x < game.VoxelMap.MapSizeX - 1)
-        {
-            blocknear = game.VoxelMap.GetBlock(x + 1, y, z);
-            if (railDirectionFlags == RailDirectionFlags.Horizontal &&
-                 blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
-            {
-                return RailSlope.TwoRightRaised;
-            }
-        }
-        if (x > 0)
-        {
-            blocknear = game.VoxelMap.GetBlock(x - 1, y, z);
-            if (railDirectionFlags == RailDirectionFlags.Horizontal &&
-                 blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
-            {
-                return RailSlope.TwoLeftRaised;
-
-            }
-        }
-        if (y > 0)
-        {
-            blocknear = game.VoxelMap.GetBlock(x, y - 1, z);
-            if (railDirectionFlags == RailDirectionFlags.Vertical &&
-                  blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
-            {
-                return RailSlope.TwoUpRaised;
-            }
-        }
-        if (y < game.VoxelMap.MapSizeY - 1)
-        {
-            blocknear = game.VoxelMap.GetBlock(x, y + 1, z);
-            if (railDirectionFlags == RailDirectionFlags.Vertical &&
-                  blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
-            {
-                return RailSlope.TwoDownRaised;
-            }
-        }
-        return RailSlope.Flat;
-    }
-}
 
 public class RailDirectionFlags
 {
@@ -750,15 +607,6 @@ public class MenuState
     internal int selected;
 }
 
-public enum EscapeMenuState
-{
-    Main,
-    Options,
-    Graphics,
-    Keys,
-    Other
-}
-
 public class MapLoadingProgressEventArgs
 {
     internal int ProgressPercent;
@@ -801,33 +649,12 @@ public class ClientCommandArgs
     internal string arguments;
 }
 
-public class TextureAtlasCi
-{
-    public static RectangleF TextureCoords2d(int textureId, int texturesPacked)
-    {
-        float step = 1f / texturesPacked;
-        return new RectangleF
-        {
-            X = step * (textureId % texturesPacked),
-            Y = step * (textureId / texturesPacked),
-            Width = step,
-            Height = step
-        };
-    }
-}
-
 public sealed class CachedTexture
 {
     internal int textureId;
     internal float sizeX;
     internal float sizeY;
     internal int lastuseMilliseconds;
-}
-
-public class TextPart
-{
-    internal int color;
-    internal string text;
 }
 
 public enum GuiState
@@ -838,14 +665,6 @@ public enum GuiState
     MapLoading,
     CraftingRecipes,
     ModalDialog
-}
-
-public enum FontType
-{
-    Nice,
-    Simple,
-    BlackBackground,
-    Default
 }
 
 public class SpecialBlockId

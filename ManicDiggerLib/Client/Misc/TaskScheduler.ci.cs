@@ -1,4 +1,16 @@
-﻿/// <summary>
+﻿//This class runs all the game's client mods every frame in the right order, with optional multithreading.
+//Each mod has three hooks:
+
+//OnReadOnlyMainThread — safe to read game state, runs on main thread
+//OnReadOnlyBackgroundThread — read-only work that can run on a worker thread in parallel
+//OnReadWriteMainThread — can modify game state, must run on main thread after background work is done
+
+//In multithreaded mode it runs like a pipeline: kick off background work, and while those worker threads are busy,
+//next frame starts its read-only main-thread work. Once all workers finish,
+//it flushes any queued state changes and dispatches the next batch of background tasks.
+//In single-threaded mode it just runs everything sequentially in order.
+
+/// <summary>
 /// Schedules and coordinates per-frame execution of client mod lifecycle hooks,
 /// dispatching background work to worker threads when multithreading is available
 /// and falling back to sequential execution otherwise.
@@ -174,5 +186,5 @@ internal class BackgroundAction
     /// <summary>
     /// Whether the background work has completed. Set to <c>true</c> by the worker thread.
     /// </summary>
-    internal bool Finished;
+    internal volatile bool Finished;
 }

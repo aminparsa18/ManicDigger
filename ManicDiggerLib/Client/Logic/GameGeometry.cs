@@ -262,7 +262,7 @@ public partial class Game
     {
         if (!ENABLE_DRAW2D) return;
 
-        OrthoMode(Width(), Height());
+        OrthoMode(Platform.GetCanvasWidth(), Platform.GetCanvasHeight());
 
         for (int i = 0; i < ClientMods.Count; i++)
             ClientMods[i]?.OnNewFrameDraw2d(dt);
@@ -422,5 +422,20 @@ public partial class Game
         GLLoadIdentity();
         DrawModelData(_circleModelData);
         GLPopMatrix();
+    }
+}
+
+public class TextureAtlasCi
+{
+    public static RectangleF TextureCoords2d(int textureId, int texturesPacked)
+    {
+        float step = 1f / texturesPacked;
+        return new RectangleF
+        {
+            X = step * (textureId % texturesPacked),
+            Y = step * (textureId / texturesPacked),
+            Width = step,
+            Height = step
+        };
     }
 }

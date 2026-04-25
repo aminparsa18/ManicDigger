@@ -1,5 +1,30 @@
 ﻿using ManicDigger;
 
+// When the game server sends the client a list of all block types (dirt, lava, ladder, rail, etc.), this class reads that list and stores every block's properties in arrays, indexed by the block's ID number. 
+// So if dirt is block #5, then WalkSpeed[5], Strength[5], DamageToPlayer[5] etc. all tell you everything about dirt.
+//The game then consults this registry constantly to answer questions like:
+
+//Physics — is this block slippery? How fast can you walk on it? Can you walk through it at all?
+//Combat — does standing in this block hurt you (like lava)?
+//Mining — how long does this block take to break?
+//Rendering — does this block glow? Does it draw like a flower/plant?
+//Sound — what sound plays when you walk on, break, or place this block?
+//Rails — is this block part of a rail track?
+
+//It also keeps a shortlist of special block IDs (lava, ladder, trampoline, compass, etc.) that the game needs to reference by name for specific logic — like "is the player standing in lava?" checks DamageToPlayer[BlockIdLava].
+//So essentially: the server defines the rules, this class stores them, and the rest of the game reads from it constantly.When the game server sends the client a list of all block types (dirt, lava, ladder, rail, etc.), this class reads that list and stores every block's properties in arrays, indexed by the block's ID number. So if dirt is block #5, then WalkSpeed[5], Strength[5], DamageToPlayer[5] etc. all tell you everything about dirt.
+//The game then consults this registry constantly to answer questions like:
+
+//Physics — is this block slippery? How fast can you walk on it? Can you walk through it at all?
+//Combat — does standing in this block hurt you (like lava)?
+//Mining — how long does this block take to break?
+//Rendering — does this block glow? Does it draw like a flower/plant?
+//Sound — what sound plays when you walk on, break, or place this block?
+//Rails — is this block part of a rail track?
+
+//It also keeps a shortlist of special block IDs (lava, ladder, trampoline, compass, etc.) that the game needs to reference by name for specific logic — like "is the player standing in lava?" checks DamageToPlayer[BlockIdLava].
+//So essentially: the server defines the rules, this class stores them, and the rest of the game reads from it constantly.
+
 /// <summary>
 /// Registry of per-block-type gameplay properties derived from server
 /// <see cref="Packet_BlockType"/> descriptors.
@@ -170,12 +195,12 @@ public class BlockTypeRegistry
     /// Applies all non-null entries in <paramref name="blocktypes"/> to the
     /// registry by calling <see cref="RegisterBlockType"/> for each.
     /// </summary>
-    public void UseBlockTypes(IGamePlatform platform, Packet_BlockType[] blocktypes, int count)
+    public void UseBlockTypes(Packet_BlockType[] blocktypes, int count)
     {
         for (int i = 0; i < count; i++)
         {
             if (blocktypes[i] != null)
-                RegisterBlockType(platform, i, blocktypes[i]);
+                RegisterBlockType(i, blocktypes[i]);
         }
     }
 
@@ -184,7 +209,7 @@ public class BlockTypeRegistry
     /// from the server descriptor <paramref name="b"/> and resolves any special
     /// block ID this block may represent.
     /// </summary>
-    public void RegisterBlockType(IGamePlatform platform, int id, Packet_BlockType b)
+    public void RegisterBlockType(int id, Packet_BlockType b)
     {
         if (b.Name == null) return;
 
@@ -239,7 +264,7 @@ public class BlockTypeRegistry
     /// TODO: replace name-based matching with a dedicated block property so that
     /// special IDs do not depend on server-side naming conventions.
     /// </remarks>
-    public bool SetSpecialBlockId(Packet_BlockType b, int id)
+    private bool SetSpecialBlockId(Packet_BlockType b, int id)
     {
         switch (b.Name)
         {

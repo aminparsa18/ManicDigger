@@ -165,7 +165,7 @@
     /// <summary>Updates the OpenGL viewport and projection matrix after a resize.</summary>
     internal void OnResize()
     {
-        Platform.GlViewport(0, 0, Width(), Height());
+        Platform.GlViewport(0, 0, Platform.GetCanvasWidth(), Platform.GetCanvasHeight());
         Set3dProjection2();
         if (sendResize)
             SendGameResolution();

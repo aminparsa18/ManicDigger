@@ -166,3 +166,9 @@ public class TextColorRenderer
         return -1;
     }
 }
+
+public class TextPart
+{
+    internal int color;
+    internal string text;
+}

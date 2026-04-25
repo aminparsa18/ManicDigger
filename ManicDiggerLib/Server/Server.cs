@@ -723,7 +723,7 @@ public partial class Server : ICurrentTime, IDropItem
                 //new connection
                 //ISocket client1 = d_MainSocket.Accept();
                 NetConnection client1 = msg.SenderConnection;
-                IPEndPointCi iep1 = client1.RemoteEndPoint();
+                IpEndpoint iep1 = client1.RemoteEndPoint();
 
                 ClientOnServer c = new()
                 {
@@ -3320,7 +3320,7 @@ public partial class Server : ICurrentTime, IDropItem
     {
         BlockTypes[id] = block;
         block.Name = name;
-        d_Data.RegisterBlockType(platform, id, BlockTypeConverter.GetBlockType(block));
+        d_Data.RegisterBlockType(id, BlockTypeConverter.GetBlockType(block));
     }
 
     public void SetBlockType(string name, BlockType block)

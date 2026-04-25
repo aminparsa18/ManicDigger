@@ -102,7 +102,7 @@ public partial class Game
         AddMod(new ModBlockDamageToPlayer(this, Platform));
         AddMod(new ModLoadPlayerTextures(this, Platform));
         AddMod(new ModSendPosition(this, Platform));
-        AddMod(new ModInterpolatePositions(this, Platform));
+        AddMod(new ModInterpolatePositions(this));
         AddMod(new ModPush(this));
 
         // ── Gameplay mechanics ────────────────────────────────────────────────

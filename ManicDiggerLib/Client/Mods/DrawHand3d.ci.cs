@@ -604,7 +604,6 @@ public class ModDrawHand3d : ModBase
     }
 }
 
-
 /// <summary>
 /// Specifies the wall the torch is mounted on.
 /// <see cref="Normal"/> means the torch stands upright on a flat surface.

@@ -1,24 +1,37 @@
-﻿/// <summary>Marker base for objects that can be interpolated between two states.</summary>
-public class InterpolatedObject { }
+﻿//This solves a problem: remote players look jerky because network packets arrive unevenly. Instead of snapping to each
+//received position, the game smooths movement between snapshots.
+//NetworkInterpolation is the engine — it keeps a buffer of the last 100 received position snapshots with timestamps,
+//and when asked "where should this player be right now?", it finds the two snapshots that bracket the current time
+//and blends between them. It also delays playback by ~200ms (or the ping time) so there's always data ahead to interpolate toward.
+//ModInterpolatePositions is the driver — every frame it loops over all remote players, feeds new network positions
+//into their interpolation buffer when they change, then reads back the smoothed position and applies it to the entity for rendering.
+//AngleInterpolation handles the tricky part of rotation — always rotating the short way around (e.g. going from 350° to 10° should rotate 20°, not 340°).
 
-/// <summary>Stateless interpolation strategy between two <see cref="InterpolatedObject"/> snapshots.</summary>
-public abstract class IInterpolation
+/// <summary>
+/// Marker interface for objects that can be interpolated between two states.
+/// Using an interface instead of a base class leaves the implementor free to
+/// inherit from whatever it needs.
+/// </summary>
+public interface IInterpolatedObject { }
+
+/// <summary>Stateless interpolation strategy between two <see cref="IInterpolatedObject"/> snapshots.</summary>
+public interface IInterpolation
 {
     /// <summary>
     /// Returns the state between <paramref name="a"/> and <paramref name="b"/>
     /// at the given <paramref name="progress"/> (0 = a, 1 = b).
     /// </summary>
-    public abstract InterpolatedObject Interpolate(InterpolatedObject a, InterpolatedObject b, float progress);
+    IInterpolatedObject Interpolate(IInterpolatedObject a, IInterpolatedObject b, float progress);
 }
 
 /// <summary>Timestamped network interpolation interface.</summary>
-public abstract class INetworkInterpolation
+public interface INetworkInterpolation
 {
     /// <summary>Records a received state snapshot with its server timestamp.</summary>
-    public abstract void AddNetworkPacket(InterpolatedObject c, int timeMilliseconds);
+    void AddNetworkPacket(IInterpolatedObject state, int timeMilliseconds);
 
     /// <summary>Returns the interpolated (or extrapolated) state for the given client time.</summary>
-    public abstract InterpolatedObject InterpolatedState(int timeMilliseconds);
+    IInterpolatedObject InterpolatedState(int timeMilliseconds);
 }
 
 /// <summary>
@@ -26,10 +39,10 @@ public abstract class INetworkInterpolation
 /// Stored as a struct so all <see cref="NetworkInterpolation.received"/> entries are
 /// embedded inline in the array — no separate heap allocation per packet.
 /// </summary>
-internal struct Packet_
+internal struct Packet
 {
     internal int timestampMilliseconds;
-    internal InterpolatedObject content;
+    internal IInterpolatedObject content;
 }
 
 /// <summary>
@@ -37,122 +50,148 @@ internal struct Packet_
 /// (or optionally extrapolated) states for rendering, compensating for network jitter
 /// via a configurable playback delay.
 /// </summary>
+/// <remarks>
+/// Internally uses a fixed-size ring buffer for O(1) packet insertion.
+/// Bracket lookup uses binary search for O(log n) instead of a linear scan.
+/// </remarks>
 public class NetworkInterpolation : INetworkInterpolation
 {
     // ── Constants ─────────────────────────────────────────────────────────────
 
-    /// <summary>Capacity of the backing array. Must be > <see cref="MaxPackets"/>.</summary>
-    private const int BufferCapacity = 128;
-
-    /// <summary>
-    /// Maximum number of snapshots retained. When the buffer is full the oldest
-    /// packet is discarded before the new one is appended.
-    /// </summary>
+    /// <summary>Maximum number of snapshots retained in the ring buffer.</summary>
     private const int MaxPackets = 100;
 
     // ── Configuration ─────────────────────────────────────────────────────────
 
     /// <summary>Interpolation strategy supplied by the caller.</summary>
-    internal IInterpolation req;
+    public IInterpolation? Interpolator { get; set; }
 
     /// <summary>When true, the last two known states are extrapolated beyond the newest snapshot.</summary>
-    internal bool EXTRAPOLATE;
+    public bool Extrapolate { get; set; }
 
     /// <summary>Playback is delayed by this many milliseconds to absorb jitter.</summary>
-    internal int DELAYMILLISECONDS;
+    public int DelayMilliseconds { get; set; } = 200;
 
-    /// <summary>Maximum duration beyond the newest snapshot that extrapolation is allowed to reach.</summary>
-    internal int EXTRAPOLATION_TIMEMILLISECONDS;
+    /// <summary>Maximum duration beyond the newest snapshot that extrapolation may reach.</summary>
+    public int ExtrapolationTimeMilliseconds { get; set; } = 200;
 
     // ── Ring buffer ───────────────────────────────────────────────────────────
 
-    private readonly Packet_[] received = new Packet_[BufferCapacity];
-    private int receivedCount;
+    private readonly Packet[] _buffer = new Packet[MaxPackets];
 
-    public NetworkInterpolation()
-    {
-        DELAYMILLISECONDS = 200;
-        EXTRAPOLATION_TIMEMILLISECONDS = 200;
-    }
+    /// <summary>Index of the oldest packet in the ring.</summary>
+    private int _head;
+
+    /// <summary>Number of valid packets currently stored.</summary>
+    private int _count;
+
+    // ── INetworkInterpolation ─────────────────────────────────────────────────
 
     /// <summary>
-    /// Appends a new snapshot. When the buffer reaches <see cref="MaxPackets"/>,
-    /// the oldest entry is discarded via <see cref="Array.Copy"/> (hardware memmove)
-    /// rather than a manual element loop.
+    /// Appends a new snapshot to the ring buffer in O(1).
+    /// When the buffer is full the oldest entry is silently overwritten.
     /// </summary>
-    public override void AddNetworkPacket(InterpolatedObject c, int timeMilliseconds)
+    public void AddNetworkPacket(IInterpolatedObject state, int timeMilliseconds)
     {
-        if (receivedCount >= MaxPackets)
+        int index = (_head + _count) % MaxPackets;
+        _buffer[index] = new Packet
         {
-            // Shift all entries left by one — discards received[0].
-            // Array.Copy uses a native memmove, replacing the previous manual loop.
-            Array.Copy(received, 1, received, 0, MaxPackets - 1);
-            receivedCount = MaxPackets - 1;
-        }
-
-        received[receivedCount++] = new Packet_
-        {
-            content = c,
+            content = state,
             timestampMilliseconds = timeMilliseconds,
         };
+
+        if (_count < MaxPackets)
+            _count++;
+        else
+            _head = (_head + 1) % MaxPackets; // oldest evicted
     }
 
     /// <summary>
     /// Returns the interpolated state for <paramref name="timeMilliseconds"/>,
-    /// applying the playback delay. When no data has been received, returns null.
+    /// applying the playback delay. Returns <see langword="null"/> when no data
+    /// has been received yet.
     /// </summary>
-    public override InterpolatedObject InterpolatedState(int timeMilliseconds)
+    public IInterpolatedObject? InterpolatedState(int timeMilliseconds)
     {
-        if (receivedCount == 0) return null;
+        if (_count == 0) return null;
 
-        int interpolationTime = timeMilliseconds - DELAYMILLISECONDS;
+        int interpolationTime = timeMilliseconds - DelayMilliseconds;
 
         int p1, p2;
 
-        if (interpolationTime < received[0].timestampMilliseconds)
+        if (interpolationTime < GetPacket(0).timestampMilliseconds)
         {
             // Before any known data — clamp to the first snapshot.
             p1 = p2 = 0;
         }
-        else if (EXTRAPOLATE
-              && receivedCount >= 2
-              && interpolationTime > received[receivedCount - 1].timestampMilliseconds)
+        else if (Extrapolate
+              && _count >= 2
+              && interpolationTime > GetPacket(_count - 1).timestampMilliseconds)
         {
             // Beyond the latest snapshot — extrapolate from the last two.
-            p1 = receivedCount - 2;
-            p2 = receivedCount - 1;
+            p1 = _count - 2;
+            p2 = _count - 1;
             interpolationTime = Math.Min(
                 interpolationTime,
-                received[receivedCount - 1].timestampMilliseconds + EXTRAPOLATION_TIMEMILLISECONDS);
+                GetPacket(_count - 1).timestampMilliseconds + ExtrapolationTimeMilliseconds);
         }
         else
         {
-            // Normal case: find the pair that brackets interpolationTime.
-            p1 = 0;
-            for (int i = 0; i < receivedCount; i++)
-            {
-                if (received[i].timestampMilliseconds <= interpolationTime)
-                    p1 = i;
-            }
-            p2 = p1 < receivedCount - 1 ? p1 + 1 : p1;
+            // Normal case: binary search for the last packet at or before interpolationTime.
+            p1 = FindBracketIndex(interpolationTime);
+            p2 = p1 < _count - 1 ? p1 + 1 : p1;
         }
 
         if (p1 == p2)
-            return received[p1].content;
+            return GetPacket(p1).content;
 
-        // Compute fractional progress between p1 and p2.
+        ref readonly Packet before = ref GetPacketRef(p1);
+        ref readonly Packet after = ref GetPacketRef(p2);
+
         float progress =
-            (float)(interpolationTime - received[p1].timestampMilliseconds)
-            / (received[p2].timestampMilliseconds - received[p1].timestampMilliseconds);
+            (float)(interpolationTime - before.timestampMilliseconds)
+            / (after.timestampMilliseconds - before.timestampMilliseconds);
 
-        return req.Interpolate(received[p1].content, received[p2].content, progress);
+        return Interpolator?.Interpolate(before.content, after.content, progress);
+    }
+
+    // ── Ring buffer helpers ───────────────────────────────────────────────────
+
+    /// <summary>Returns the packet at logical index <paramref name="i"/> (0 = oldest).</summary>
+    private Packet GetPacket(int i) => _buffer[(_head + i) % MaxPackets];
+
+    /// <summary>Returns a readonly ref to the packet at logical index <paramref name="i"/>.</summary>
+    private ref Packet GetPacketRef(int i) => ref _buffer[(_head + i) % MaxPackets];
+
+    /// <summary>
+    /// Binary search: returns the logical index of the last packet whose timestamp
+    /// is ≤ <paramref name="t"/>. Assumes the buffer is time-ordered (guaranteed by
+    /// <see cref="AddNetworkPacket"/>).
+    /// </summary>
+    private int FindBracketIndex(int t)
+    {
+        int lo = 0, hi = _count - 1, result = 0;
+        while (lo <= hi)
+        {
+            int mid = (lo + hi) >> 1;
+            if (GetPacket(mid).timestampMilliseconds <= t)
+            {
+                result = mid;
+                lo = mid + 1;
+            }
+            else
+            {
+                hi = mid - 1;
+            }
+        }
+        return result;
     }
 }
 
 /// <summary>
 /// Provides shortest-path angle interpolation for both 256-step and 360-degree representations.
 /// </summary>
-public class AngleInterpolation
+public static class AngleInterpolation
 {
     private const int CircleHalf256 = 128;
     private const int CircleFull256 = 256;
@@ -160,34 +199,26 @@ public class AngleInterpolation
     private const float CircleFull360 = 360f;
 
     /// <summary>
-    /// Bias added before modulo to keep results positive for 256-step angles.
-    /// Must be an exact multiple of <see cref="CircleFull256"/> so that the
-    /// bias does not shift the normalized value.
-    /// (32768 = 128 × 256.)
+    /// Bias for 256-step normalisation. Must be an exact multiple of 256
+    /// so it does not shift the normalised value. (32768 = 128 × 256.)
     /// </summary>
-    private const int Bias256 = 256 * 128; // 32768
+    private const int Bias256 = 256 * 128;
 
     /// <summary>
-    /// Bias added before modulo to keep results positive for 360-degree angles.
-    /// Must be an exact multiple of <see cref="CircleFull360"/>.
+    /// Bias for 360° normalisation. Must be an exact multiple of 360.
     /// (36000 = 100 × 360.)
     /// </summary>
-    private const float Bias360 = 360f * 100f; // 36000
+    private const float Bias360 = 360f * 100f;
 
     /// <summary>
     /// Interpolates between two angles in 256-step (byte) space via the shortest arc.
     /// </summary>
-    /// <param name="a">Start angle (0–255).</param>
-    /// <param name="b">End angle (0–255).</param>
-    /// <param name="progress">Interpolation factor (0 = a, 1 = b).</param>
-    /// <returns>Interpolated angle normalised to 0–255.</returns>
     public static int InterpolateAngle256(int a, int b, float progress)
     {
         if (progress != 0 && b != a)
         {
             int diff = NormalizeAngle256(b - a);
-            if (diff >= CircleHalf256)
-                diff -= CircleFull256;
+            if (diff >= CircleHalf256) diff -= CircleFull256;
             a += (int)(progress * diff);
         }
         return NormalizeAngle256(a);
@@ -196,31 +227,18 @@ public class AngleInterpolation
     /// <summary>
     /// Interpolates between two angles in degrees via the shortest arc.
     /// </summary>
-    /// <param name="a">Start angle in degrees.</param>
-    /// <param name="b">End angle in degrees.</param>
-    /// <param name="progress">Interpolation factor (0 = a, 1 = b).</param>
-    /// <returns>Interpolated angle normalised to 0–360.</returns>
     public static float InterpolateAngle360(float a, float b, float progress)
     {
         if (progress != 0 && b != a)
         {
             float diff = NormalizeAngle360(b - a);
-            if (diff >= CircleHalf360)
-                diff -= CircleFull360;
+            if (diff >= CircleHalf360) diff -= CircleFull360;
             a += progress * diff;
         }
         return NormalizeAngle360(a);
     }
 
-    /// <summary>
-    /// Normalises an angle to [0, 255].
-    /// </summary>
-    /// <remarks>
-    /// The bias must be an exact multiple of 256 so it does not shift the result.
-    /// The original code used <c>short.MaxValue / 2 = 16383</c> which is NOT a
-    /// multiple of 256 (16383 = 63×256 + 255), causing every normalised value
-    /// to be off by −1. Fixed to <see cref="Bias256"/> = 32768 = 128×256.
-    /// </remarks>
+    /// <summary>Normalises an angle to [0, 255].</summary>
     private static int NormalizeAngle256(int v) => (v + Bias256) % CircleFull256;
 
     /// <summary>Normalises an angle to [0, 360).</summary>

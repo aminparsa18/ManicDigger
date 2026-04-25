@@ -7,17 +7,15 @@ public class ModInterpolatePositions : ModBase
     private const int MinDelayMs = 100;
 
     private readonly IGameClient game;
-    private readonly IGamePlatform platform;
 
-    public ModInterpolatePositions(IGameClient game, IGamePlatform platform)
+    public ModInterpolatePositions(IGameClient game)
     {
         this.game = game;
-        this.platform = platform;
     }
 
-    public override void OnNewFrame(float args)
+    public override void OnNewFrame(float dt)
     {
-        InterpolatePositions(args);
+        InterpolatePositions(dt);
     }
 
     internal void InterpolatePositions(float dt)
@@ -32,24 +30,26 @@ public class ModInterpolatePositions : ModBase
             e.playerDrawInfo ??= new PlayerDrawInfo();
             EnsureInterpolation(e);
 
-            e.playerDrawInfo.interpolation.DELAYMILLISECONDS =
+            e.playerDrawInfo.interpolation.DelayMilliseconds =
                 Math.Max(MinDelayMs, game.ServerInfo.ServerPing.RoundtripMilliseconds);
 
             UpdateInterpolation(i, e);
         }
     }
 
-    /// <summary>Initializes the network interpolation state for an entity if not already set up.</summary>
+    /// <summary>
+    /// Initialises the network interpolation state for an entity if not already set up.
+    /// </summary>
     private void EnsureInterpolation(Entity e)
     {
         if (e.playerDrawInfo.interpolation != null) return;
 
         e.playerDrawInfo.interpolation = new NetworkInterpolation
         {
-            req = new PlayerInterpolate { platform = platform },
-            DELAYMILLISECONDS = 500,
-            EXTRAPOLATE = false,
-            EXTRAPOLATION_TIMEMILLISECONDS = ExtrapolationTimeMs
+            Interpolator = new PlayerInterpolate(),
+            DelayMilliseconds = 500,
+            Extrapolate = false,
+            ExtrapolationTimeMilliseconds = ExtrapolationTimeMs
         };
     }
 
@@ -60,52 +60,92 @@ public class ModInterpolatePositions : ModBase
 
         float netX = net.x, netY = net.y, netZ = net.z;
 
-        // Feed a new state packet when network position or rotation has changed
-        bool posChanged = !(netX == info.lastnetworkposX && netY == info.lastnetworkposY && netZ == info.lastnetworkposZ);
-        bool rotChanged = net.rotx != info.lastnetworkrotx || net.roty != info.lastnetworkroty || net.rotz != info.lastnetworkrotz;
+        // Feed a new state packet when network position or rotation has changed.
+        bool posChanged = !(netX == info.lastnetworkposX
+                         && netY == info.lastnetworkposY
+                         && netZ == info.lastnetworkposZ);
+        bool rotChanged = net.rotx != info.lastnetworkrotx
+                       || net.roty != info.lastnetworkroty
+                       || net.rotz != info.lastnetworkrotz;
 
         if (posChanged || rotChanged)
         {
+            // Store rotations in degrees to avoid per-frame radian conversion in Interpolate().
             info.interpolation.AddNetworkPacket(new PlayerInterpolationState
             {
                 positionX = netX,
                 positionY = netY,
                 positionZ = netZ,
-                rotx = net.rotx,
-                roty = net.roty,
-                rotz = net.rotz
+                rotx = float.RadiansToDegrees(net.rotx),
+                roty = float.RadiansToDegrees(net.roty),
+                rotz = float.RadiansToDegrees(net.rotz),
             }, game.TotalTimeMilliseconds);
         }
 
         PlayerInterpolationState cur =
-            platform.CastToPlayerInterpolationState(info.interpolation.InterpolatedState(game.TotalTimeMilliseconds))
+          (PlayerInterpolationState)info.interpolation.InterpolatedState(game.TotalTimeMilliseconds)
             ?? new PlayerInterpolationState();
 
-        // Bypass interpolation if the game world is controlling this entity's position
-        if (Game.EnablePlayerUpdatePositionContainsKey(entityId) && !Game.EnablePlayerUpdatePosition(entityId))
+        // Bypass interpolation if the game world is controlling this entity's position.
+        if (Game.EnablePlayerUpdatePositionContainsKey(entityId)
+         && !Game.EnablePlayerUpdatePosition(entityId))
         {
             cur.positionX = net.x;
             cur.positionY = net.y;
             cur.positionZ = net.z;
         }
 
-        info.Velocity = new (
+        info.Velocity = new(
             cur.positionX - info.lastcurposX,
             cur.positionY - info.lastcurposY,
-            cur.positionZ - info.lastcurposZ
-        );
-        info.moves = !(cur.positionX == info.lastcurposX && cur.positionY == info.lastcurposY && cur.positionZ == info.lastcurposZ);
+            cur.positionZ - info.lastcurposZ);
+
+        info.moves = !(cur.positionX == info.lastcurposX
+                    && cur.positionY == info.lastcurposY
+                    && cur.positionZ == info.lastcurposZ);
+
         info.lastcurposX = cur.positionX;
         info.lastcurposY = cur.positionY;
         info.lastcurposZ = cur.positionZ;
-        info.lastnetworkposX = netX; info.lastnetworkposY = netY; info.lastnetworkposZ = netZ;
-        info.lastnetworkrotx = net.rotx; info.lastnetworkroty = net.roty; info.lastnetworkrotz = net.rotz;
+        info.lastnetworkposX = netX;
+        info.lastnetworkposY = netY;
+        info.lastnetworkposZ = netZ;
+        info.lastnetworkrotx = net.rotx;
+        info.lastnetworkroty = net.roty;
+        info.lastnetworkrotz = net.rotz;
 
         e.position.x = cur.positionX;
         e.position.y = cur.positionY;
         e.position.z = cur.positionZ;
-        e.position.rotx = cur.rotx;
-        e.position.roty = cur.roty;
-        e.position.rotz = cur.rotz;
+        // Convert degrees back to radians only once, here at the apply site.
+        e.position.rotx = float.DegreesToRadians(cur.rotx);
+        e.position.roty = float.DegreesToRadians(cur.roty);
+        e.position.rotz = float.DegreesToRadians(cur.rotz);
+    }
+}
+
+/// <summary>
+/// Interpolates <see cref="PlayerInterpolationState"/> snapshots.
+/// Rotations are stored and interpolated in degrees; conversion to/from
+/// radians happens only at the network-receive and position-apply sites,
+/// not on every interpolation call.
+/// </summary>
+public class PlayerInterpolate : IInterpolation
+{
+    public IInterpolatedObject Interpolate(IInterpolatedObject a, IInterpolatedObject b, float progress)
+    {
+        PlayerInterpolationState aa = (PlayerInterpolationState)a;
+        PlayerInterpolationState bb = (PlayerInterpolationState)b;
+
+        return new PlayerInterpolationState
+        {
+            positionX = aa.positionX + (bb.positionX - aa.positionX) * progress,
+            positionY = aa.positionY + (bb.positionY - aa.positionY) * progress,
+            positionZ = aa.positionZ + (bb.positionZ - aa.positionZ) * progress,
+            // Rotations are already in degrees — no conversion needed here.
+            rotx = AngleInterpolation.InterpolateAngle360(aa.rotx, bb.rotx, progress),
+            roty = AngleInterpolation.InterpolateAngle360(aa.roty, bb.roty, progress),
+            rotz = AngleInterpolation.InterpolateAngle360(aa.rotz, bb.rotz, progress),
+        };
     }
 }

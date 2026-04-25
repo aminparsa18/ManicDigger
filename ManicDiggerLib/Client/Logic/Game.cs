@@ -35,18 +35,12 @@ public partial class Game : IMeshDrawer
     /// <summary>Returns the Y coordinate that centres a region of <paramref name="height"/> pixels.</summary>
     public int Ycenter(float height) => Platform.GetCanvasHeight() / 2 - (int)height / 2;
 
-    /// <summary>Current canvas width in pixels.</summary>
-    public int Width() => Platform.GetCanvasWidth();
-
-    /// <summary>Current canvas height in pixels.</summary>
-    public int Height() => Platform.GetCanvasHeight();
-
     /// <summary>
     /// UI scale factor. Returns a width-relative scale on small screens
     /// (mobile) and 1 on desktop.
     /// </summary>
     public float Scale() =>
-        Platform.IsSmallScreen() ? Width() / 1280f : 1f;
+        Platform.IsSmallScreen() ? Platform.GetCanvasWidth() / 1280f : 1f;
 
     // ── Projection ────────────────────────────────────────────────────────────
 
@@ -57,7 +51,7 @@ public partial class Game : IMeshDrawer
     /// </summary>
     public void Set3dProjection(float zfar, float fov)
     {
-        float aspect = Width() / (float)Height();
+        float aspect = Platform.GetCanvasWidth() / (float)Platform.GetCanvasHeight();
         Matrix4.CreatePerspectiveFieldOfView(fov, aspect, znear, zfar, out Matrix4 projection);
         CameraMatrix.LastProjectionMatrix = projection;
         GLMatrixModeProjection();

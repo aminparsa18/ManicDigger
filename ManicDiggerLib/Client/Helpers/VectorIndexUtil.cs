@@ -39,22 +39,6 @@ public class VectorIndexUtil
     }
 
     /// <summary>
-    /// Decomposes a flat array index into 3D grid coordinates, returning them as a <see cref="Vector3"/>.
-    /// Inverse of <see cref="Index3d"/>.
-    /// </summary>
-    /// <param name="index">The flat index to decompose.</param>
-    /// <param name="sizex">Grid width (number of elements along X).</param>
-    /// <param name="sizey">Grid depth (number of elements along Y).</param>
-    /// <returns>A <see cref="Vector3"/> whose X/Y/Z components are the grid coordinates.</returns>
-    public static Vector3 Pos(int index, int sizex, int sizey)
-    {
-        int x = index % sizex;
-        int y = index / sizex % sizey;
-        int h = index / (sizex * sizey);
-        return new Vector3(x, y, h);
-    }
-
-    /// <summary>
     /// Decomposes a flat array index into 3D grid coordinates, writing them into
     /// <paramref name="ret"/> to avoid allocating a new struct on every call.
     /// Inverse of <see cref="Index3d"/>.
@@ -63,7 +47,7 @@ public class VectorIndexUtil
     /// <param name="sizex">Grid width (number of elements along X).</param>
     /// <param name="sizey">Grid depth (number of elements along Y).</param>
     /// <param name="ret">Output vector; X/Y/Z are overwritten with the grid coordinates.</param>
-    internal static void PosInt(int index, int sizex, int sizey, ref Vector3i ret)
+    public static void PosInt(int index, int sizex, int sizey, ref Vector3i ret)
     {
         ret.X = index % sizex;
         ret.Y = index / sizex % sizey;

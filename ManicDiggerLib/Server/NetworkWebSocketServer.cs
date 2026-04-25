@@ -105,16 +105,16 @@ public sealed class WebSocketConnection : NetConnection
         _session = session;
     }
 
-    public override IPEndPointCi RemoteEndPoint()
+    public override IpEndpoint RemoteEndPoint()
     {
         try
         {
-            return IPEndPointCiDefault.Create(
+            return IpEndpointDefault.Create(
                 _session.Context.UserEndPoint.Address.ToString());
         }
         catch
         {
-            return IPEndPointCiDefault.Create("unknown");
+            return IpEndpointDefault.Create("unknown");
         }
     }
 

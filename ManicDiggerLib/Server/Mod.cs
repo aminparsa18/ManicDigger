@@ -43,7 +43,7 @@ public class ModManager1 : IModManager
             throw new Exception(blockType);
         }
         server.BlockTypes[id].IsBuildable = true;
-        server.d_Data.RegisterBlockType(server.platform, id, BlockTypeConverter.GetBlockType(server.BlockTypes[id]));
+        server.d_Data.RegisterBlockType(id, BlockTypeConverter.GetBlockType(server.BlockTypes[id]));
     }
 
     public void RegisterOnBlockBuild(ModDelegates.BlockBuild f)

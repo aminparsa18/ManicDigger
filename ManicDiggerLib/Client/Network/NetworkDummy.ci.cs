@@ -93,7 +93,7 @@ public sealed class DummyNetConnection : NetConnection
         _network.ClientInbox.Enqueue(payload.ToArray());
     }
 
-    public override IPEndPointCi RemoteEndPoint() => IPEndPointCiDefault.Create("127.0.0.1");
+    public override IpEndpoint RemoteEndPoint() => IpEndpointDefault.Create("127.0.0.1");
 
     public override void Update() { }
 

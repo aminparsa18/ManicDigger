@@ -179,12 +179,12 @@ public class ModRail : ModBase
         TileEnterDirection enterDir = DirectionUtils.ResultEnter(DirectionUtils.ResultExit(currentdirection));
 
         // Slope: ascend if the current block ramps up in the exit direction.
-        if (GetUpDownMove(currentrailblockX, currentrailblockY, currentrailblockZ, enterDir) == UpDown.Up)
+        if (GetUpDownMove(currentrailblockX, currentrailblockY, currentrailblockZ, enterDir) == (int)RailPosition.Up)
         {
             newenter.BlockPositionZ++;
         }
         // Slope: descend if the next block ramps down in the enter direction.
-        if (GetUpDownMove(newenter.BlockPositionX, newenter.BlockPositionY, newenter.BlockPositionZ - 1, enterDir) == UpDown.Down)
+        if (GetUpDownMove(newenter.BlockPositionX, newenter.BlockPositionY, newenter.BlockPositionZ - 1, enterDir) == (int)RailPosition.Down)
         {
             newenter.BlockPositionZ--;
         }
@@ -364,24 +364,24 @@ public class ModRail : ModBase
     /// Returns whether the minecart will ascend, descend, or travel flat when
     /// entering the given rail block from the specified direction.
     /// </summary>
-    /// <returns>One of <see cref="UpDown.Up"/>, <see cref="UpDown.Down"/>, or <see cref="UpDown.None"/>.</returns>
+    /// <returns>One of <see cref="RailDirection.Up"/>, <see cref="RailDirection.Down"/>, or <see cref="RailDirection.None"/>.</returns>
     internal int GetUpDownMove(int railblockX, int railblockY, int railblockZ, TileEnterDirection dir)
     {
-        if (!game.VoxelMap.IsValidPos(railblockX, railblockY, railblockZ)) { return UpDown.None; }
+        if (!game.VoxelMap.IsValidPos(railblockX, railblockY, railblockZ)) { return (int)RailPosition.None; }
 
         RailSlope slope = d_RailMapUtil.GetRailSlope(railblockX, railblockY, railblockZ);
 
-        if (slope == RailSlope.TwoDownRaised && dir == TileEnterDirection.Up) { return UpDown.Up; }
-        if (slope == RailSlope.TwoUpRaised && dir == TileEnterDirection.Down) { return UpDown.Up; }
-        if (slope == RailSlope.TwoLeftRaised && dir == TileEnterDirection.Right) { return UpDown.Up; }
-        if (slope == RailSlope.TwoRightRaised && dir == TileEnterDirection.Left) { return UpDown.Up; }
+        if (slope == RailSlope.TwoDownRaised && dir == TileEnterDirection.Up) { return (int)RailPosition.Up; }
+        if (slope == RailSlope.TwoUpRaised && dir == TileEnterDirection.Down) { return (int)RailPosition.Up; }
+        if (slope == RailSlope.TwoLeftRaised && dir == TileEnterDirection.Right) { return (int)RailPosition.Up; }
+        if (slope == RailSlope.TwoRightRaised && dir == TileEnterDirection.Left) { return (int)RailPosition.Up; }
 
-        if (slope == RailSlope.TwoDownRaised && dir == TileEnterDirection.Down) { return UpDown.Down; }
-        if (slope == RailSlope.TwoUpRaised && dir == TileEnterDirection.Up) { return UpDown.Down; }
-        if (slope == RailSlope.TwoLeftRaised && dir == TileEnterDirection.Left) { return UpDown.Down; }
-        if (slope == RailSlope.TwoRightRaised && dir == TileEnterDirection.Right) { return UpDown.Down; }
+        if (slope == RailSlope.TwoDownRaised && dir == TileEnterDirection.Down) { return (int)RailPosition.Down; }
+        if (slope == RailSlope.TwoUpRaised && dir == TileEnterDirection.Up) { return (int)RailPosition.Down; }
+        if (slope == RailSlope.TwoLeftRaised && dir == TileEnterDirection.Left) { return (int)RailPosition.Down; }
+        if (slope == RailSlope.TwoRightRaised && dir == TileEnterDirection.Right) { return (int)RailPosition.Down; }
 
-        return UpDown.None;
+        return (int)RailPosition.None;
     }
 
     /// <summary>
@@ -500,4 +500,67 @@ public class ModRail : ModBase
         retFound = false;
         return VehicleDirection12.DownLeftDown; // sentinel — caller checks retFound
     }
+}
+public class TileEnterData
+{
+    internal int BlockPositionX;
+    internal int BlockPositionY;
+    internal int BlockPositionZ;
+    internal TileEnterDirection EnterDirection;
+}
+
+public class RailMapUtil
+{
+    internal IGameClient game;
+    public RailSlope GetRailSlope(int x, int y, int z)
+    {
+        int tiletype = game.VoxelMap.GetBlock(x, y, z);
+        int railDirectionFlags = game.BlockTypes[tiletype].Rail;
+        int blocknear;
+        if (x < game.VoxelMap.MapSizeX - 1)
+        {
+            blocknear = game.VoxelMap.GetBlock(x + 1, y, z);
+            if (railDirectionFlags == RailDirectionFlags.Horizontal &&
+                 blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
+            {
+                return RailSlope.TwoRightRaised;
+            }
+        }
+        if (x > 0)
+        {
+            blocknear = game.VoxelMap.GetBlock(x - 1, y, z);
+            if (railDirectionFlags == RailDirectionFlags.Horizontal &&
+                 blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
+            {
+                return RailSlope.TwoLeftRaised;
+
+            }
+        }
+        if (y > 0)
+        {
+            blocknear = game.VoxelMap.GetBlock(x, y - 1, z);
+            if (railDirectionFlags == RailDirectionFlags.Vertical &&
+                  blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
+            {
+                return RailSlope.TwoUpRaised;
+            }
+        }
+        if (y < game.VoxelMap.MapSizeY - 1)
+        {
+            blocknear = game.VoxelMap.GetBlock(x, y + 1, z);
+            if (railDirectionFlags == RailDirectionFlags.Vertical &&
+                  blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
+            {
+                return RailSlope.TwoDownRaised;
+            }
+        }
+        return RailSlope.Flat;
+    }
+}
+
+public enum RailPosition
+{
+    None = 0,
+    Up = 1,
+    Down = 2
 }

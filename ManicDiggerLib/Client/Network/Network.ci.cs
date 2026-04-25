@@ -86,7 +86,7 @@ public abstract class NetClient
 /// </summary>
 public abstract class NetConnection
 {
-    public abstract IPEndPointCi RemoteEndPoint();
+    public abstract IpEndpoint RemoteEndPoint();
 
     /// <summary>
     /// Sends a payload to this specific connected peer.
@@ -106,18 +106,18 @@ public abstract class NetConnection
 // IP endpoint helpers
 // ---------------------------------------------------------------------------
 
-public abstract class IPEndPointCi
+public abstract class IpEndpoint
 {
     public abstract string AddressToString();
 }
 
-public class IPEndPointCiDefault : IPEndPointCi
+public class IpEndpointDefault : IpEndpoint
 {
     private readonly string _address;
 
-    private IPEndPointCiDefault(string address) => _address = address;
+    private IpEndpointDefault(string address) => _address = address;
 
-    public static IPEndPointCiDefault Create(string address) => new(address);
+    public static IpEndpointDefault Create(string address) => new(address);
 
     public override string AddressToString() => _address;
 }

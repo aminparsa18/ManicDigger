@@ -13,15 +13,22 @@ public interface IEntityScript
 /// <summary>
 /// Implements walking, jumping, swimming, and collision-response physics for the local player.
 /// Runs each fixed timestep via <see cref="IEntityScript.OnNewFrameFixed"/>.
+//This is the player movement and physics engine. Every game tick it:
+//Reads your keyboard / controller input (WASD, jump, shift)
+//Applies gravity, drag, and friction to your velocity
+//Converts your input into world-space movement
+//Slides you along walls instead of stopping dead on collision
+//Detects if you're on the ground, in water, on ice, or on a trampoline
+
+//Special cases it handles: swimming(slower gravity), jumping(including half - jumps), trampoline bouncing, half-blocks you can step up onto, noclip mode, and being pushed by external forces like explosions.
 /// </summary>
 public class ScriptCharacterPhysics : IEntityScript
 {
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ScriptCharacterPhysics(IGameClient game, IGamePlatform platform)
+    public ScriptCharacterPhysics(IGameClient game)
     {
         this.game = game;
-        this.platform = platform;
         // Only non-default values need explicit initialisation.
         // (movedz, curspeed, jumpacceleration, isplayeronground, etc. are
         //  already zero/false by C# default for their types.)
@@ -36,7 +43,6 @@ public class ScriptCharacterPhysics : IEntityScript
 
     /// <summary>Reference to the active game instance, assigned at the start of each tick.</summary>
     private readonly IGameClient game;
-    private readonly IGamePlatform platform;
 
     // ── Per-frame physics state ───────────────────────────────────────────────
 
@@ -446,24 +452,23 @@ public class ScriptCharacterPhysics : IEntityScript
 
     private bool IsEmptyPoint(float x, float y, float z, out int blockingBlocktype)
     {
-        for (int xx = 0; xx < 3; xx++)
-            for (int yy = 0; yy < 3; yy++)
-                for (int zz = 0; zz < 3; zz++)
-                {
-                    if (!IsTileEmptyForPhysics((int)(x + xx - 1), (int)(z + zz - 1), (int)(y + yy - 1)))
-                    {
-                        float minX = x + xx - 1, maxX = minX + 1;
-                        float minY = y + yy - 1;
-                        float maxY = minY + game.Getblockheight((int)(x + xx - 1), (int)(z + zz - 1), (int)(y + yy - 1));
-                        float minZ = z + zz - 1, maxZ = minZ + 1;
+        float r = game.WallDistance;
+        // 8 corners of the AABB centred on (x, y, z)
+        float[] xs = { x - r, x + r };
+        float[] ys = { y - r, y + r };
+        float[] zs = { z - r, z + r };
 
-                        if (BoxPointDistance(minX, minY, minZ, maxX, maxY, maxZ, x, y, z) < game.WallDistance)
-                        {
-                            blockingBlocktype = game.VoxelMap.GetBlock((int)(x + xx - 1), (int)(z + zz - 1), (int)(y + yy - 1));
-                            return false;
-                        }
+        foreach (float cx in xs)
+            foreach (float cy in ys)
+                foreach (float cz in zs)
+                {
+                    if (!IsTileEmptyForPhysics((int)cx, (int)cz, (int)cy))
+                    {
+                        blockingBlocktype = game.VoxelMap.GetBlock((int)cx, (int)cz, (int)cy);
+                        return false;
                     }
                 }
+
         blockingBlocktype = 0;
         return true;
     }

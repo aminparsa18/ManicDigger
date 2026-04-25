@@ -34,38 +34,7 @@ public class GamePlatformNative : IGamePlatform
 
     public static string PathSavegames => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-    public void WebClientDownloadDataAsync(string url, HttpResponse response)
-    {
-        DownloadDataArgs args = new()
-        {
-            url = url,
-            response = response
-        };
-        ThreadPool.QueueUserWorkItem(DownloadData, args);
-    }
-
-    private class DownloadDataArgs
-    {
-        public string url;
-        public HttpResponse response;
-    }
-
-    private void DownloadData(object o)
-    {
-        DownloadDataArgs args = (DownloadDataArgs)o;
-        WebClient c = new();
-        try
-        {
-            byte[] data = c.DownloadData(args.url);
-            args.response.Value = data;
-            args.response.Done = true;
-        }
-        catch
-        {
-            args.response.Error = true;
-        }
-    }
-
+   
     public void ThumbnailDownloadAsync(string ip, int port, ThumbnailResponseCi response)
     {
         ThumbnailDownloadArgs args = new() { ip = ip, port = port, response = response };
@@ -101,7 +70,7 @@ public class GamePlatformNative : IGamePlatform
     public int TimeMillisecondsFromStart => (int)start.ElapsedMilliseconds;
 
     public bool IsMono = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-    
+
     public int LoadTextureFromBitmap(Bitmap bmp)
     {
         return LoadTexture(bmp, false);
@@ -167,15 +136,8 @@ public class GamePlatformNative : IGamePlatform
             Directory.CreateDirectory(gamepathlogs());
         }
         string filename = Path.Combine(gamepathlogs(), MakeValidFileName(servername) + ".txt");
-        try
-        {
-            File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
+        return true;
     }
 
     public bool IsValidTypingChar(int c_)
@@ -323,26 +285,18 @@ public class GamePlatformNative : IGamePlatform
     {
         if (File.Exists(GetPreferencesFilePath()))
         {
-            try
+            Preferences p = new()
             {
-                Preferences p = new()
-                {
-                };
-                string[] lines = File.ReadAllLines(GetPreferencesFilePath());
-                foreach (string l in lines)
-                {
-                    int a = l.IndexOf("=", StringComparison.InvariantCultureIgnoreCase);
-                    string name = l[..a];
-                    string value = l[(a + 1)..];
-                    p.SetString(name, value);
-                }
-                return p;
-            }
-            catch
+            };
+            string[] lines = File.ReadAllLines(GetPreferencesFilePath());
+            foreach (string l in lines)
             {
-                File.Delete(GetPreferencesFilePath());
-                return new Preferences();
+                int a = l.IndexOf("=", StringComparison.InvariantCultureIgnoreCase);
+                string name = l[..a];
+                string value = l[(a + 1)..];
+                p.SetString(name, value);
             }
+            return p;
         }
         else
         {
@@ -355,14 +309,7 @@ public class GamePlatformNative : IGamePlatform
 
     public void SetPreferences(Preferences preferences)
     {
-        try
-        {
-            File.WriteAllLines(GetPreferencesFilePath(), preferences.ToLines());
-        }
-        catch
-        {
-            // TODO: log write failure
-        }
+        File.WriteAllLines(GetPreferencesFilePath(), preferences.ToLines());
     }
 
     public bool IsMac = Environment.OSVersion.Platform == PlatformID.MacOSX;
@@ -560,15 +507,9 @@ public class GamePlatformNative : IGamePlatform
 
     public void EnetPeerSend(EnetPeer peer, int channelId, ReadOnlyMemory<byte> payload, int flags)
     {
-        try
-        {
-            ENet.Packet packet = default;
-            packet.Create(payload.ToArray(), payload.Length, (PacketFlags)flags);
-            ((EnetPeerWrapper)peer).Peer.Send((byte)channelId, ref packet);
-        }
-        catch (Exception ex)
-        {
-        }
+        ENet.Packet packet = default;
+        packet.Create(payload.ToArray(), payload.Length, (PacketFlags)flags);
+        ((EnetPeerWrapper)peer).Peer.Send((byte)channelId, ref packet);
     }
 
     // ---------------------------------------------------------------------------
@@ -1238,14 +1179,7 @@ public class GamePlatformNative : IGamePlatform
 
     public int GlGetMaxTextureSize()
     {
-        int size = 1024;
-        try
-        {
-            GL.GetInteger(GetPName.MaxTextureSize, out size);
-        }
-        catch
-        {
-        }
+        GL.GetInteger(GetPName.MaxTextureSize, out int size);
         return size;
     }
 
@@ -1379,7 +1313,7 @@ public class GamePlatformNative : IGamePlatform
         OnMouseMove += onMouseMove;
         OnMouseWheel += onMouseWheel;
     }
-    
+
     public void AddOnTouchEvent(Action<TouchEventArgs> onTouchStart,
         Action<TouchEventArgs> onTouchMove,
         Action<TouchEventArgs> onTouchEnd)
@@ -1579,34 +1513,25 @@ public class GamePlatformNative : IGamePlatform
 
     private void Mouse_Move(MouseMoveEventArgs e)
     {
-        try
+        if (TouchTest)
         {
-            Console.WriteLine($"Mouse_Move: {e.X}, {e.Y}, delta: {e.DeltaX}, {e.DeltaY}");
-
-            if (TouchTest)
-            {
-                Console.WriteLine("TouchTest path");
-                TouchEventArgs args = new();
-                args.SetX((int)e.X);
-                args.SetY((int)e.Y);
-                args.SetId(0);
-                OnTouchMove?.Invoke(args);
-            }
-            else
-            {
-                Console.WriteLine("Mouse path");
-                MouseEventArgs args = new();
-                args.SetX((int)e.X);
-                args.SetY((int)e.Y);
-                args.SetMovementX((int)e.DeltaX);
-                args.SetMovementY((int)e.DeltaY);
-                args.SetEmulated(false);
-                OnMouseMove?.Invoke(args);
-            }
+            Console.WriteLine("TouchTest path");
+            TouchEventArgs args = new();
+            args.SetX((int)e.X);
+            args.SetY((int)e.Y);
+            args.SetId(0);
+            OnTouchMove?.Invoke(args);
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine($"CRASH in Mouse_Move: {ex}");
+            Console.WriteLine("Mouse path");
+            MouseEventArgs args = new();
+            args.SetX((int)e.X);
+            args.SetY((int)e.Y);
+            args.SetMovementX((int)e.DeltaX);
+            args.SetMovementY((int)e.DeltaY);
+            args.SetEmulated(false);
+            OnMouseMove?.Invoke(args);
         }
     }
 

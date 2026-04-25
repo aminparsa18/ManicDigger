@@ -270,12 +270,12 @@ public class ModRail : ModBase
         game.SetCharacterEyesHeight(MinecartHeight());
         currentvehiclespeed = 0;
 
-        if ((railUnder & RailDirectionFlags.Horizontal) != 0) { currentdirection = VehicleDirection12.HorizontalRight; }
-        else if ((railUnder & RailDirectionFlags.Vertical) != 0) { currentdirection = VehicleDirection12.VerticalUp; }
-        else if ((railUnder & RailDirectionFlags.UpLeft) != 0) { currentdirection = VehicleDirection12.UpLeftUp; }
-        else if ((railUnder & RailDirectionFlags.UpRight) != 0) { currentdirection = VehicleDirection12.UpRightUp; }
-        else if ((railUnder & RailDirectionFlags.DownLeft) != 0) { currentdirection = VehicleDirection12.DownLeftLeft; }
-        else if ((railUnder & RailDirectionFlags.DownRight) != 0) { currentdirection = VehicleDirection12.DownRightRight; }
+        if ((railUnder & (int)RailDirectionFlags.Horizontal) != 0) { currentdirection = VehicleDirection12.HorizontalRight; }
+        else if ((railUnder & (int)RailDirectionFlags.Vertical) != 0) { currentdirection = VehicleDirection12.VerticalUp; }
+        else if ((railUnder & (int)RailDirectionFlags.UpLeft) != 0) { currentdirection = VehicleDirection12.UpLeftUp; }
+        else if ((railUnder & (int)RailDirectionFlags.UpRight) != 0) { currentdirection = VehicleDirection12.UpRightUp; }
+        else if ((railUnder & (int)RailDirectionFlags.DownLeft) != 0) { currentdirection = VehicleDirection12.DownLeftLeft; }
+        else if ((railUnder & (int)RailDirectionFlags.DownRight) != 0) { currentdirection = VehicleDirection12.DownRightRight; }
         else
         {
             ExitVehicle();
@@ -520,7 +520,7 @@ public class RailMapUtil
         if (x < game.VoxelMap.MapSizeX - 1)
         {
             blocknear = game.VoxelMap.GetBlock(x + 1, y, z);
-            if (railDirectionFlags == RailDirectionFlags.Horizontal &&
+            if (railDirectionFlags == (int)RailDirectionFlags.Horizontal &&
                  blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoRightRaised;
@@ -529,7 +529,7 @@ public class RailMapUtil
         if (x > 0)
         {
             blocknear = game.VoxelMap.GetBlock(x - 1, y, z);
-            if (railDirectionFlags == RailDirectionFlags.Horizontal &&
+            if (railDirectionFlags == (int)RailDirectionFlags.Horizontal &&
                  blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoLeftRaised;
@@ -539,7 +539,7 @@ public class RailMapUtil
         if (y > 0)
         {
             blocknear = game.VoxelMap.GetBlock(x, y - 1, z);
-            if (railDirectionFlags == RailDirectionFlags.Vertical &&
+            if (railDirectionFlags == (int)RailDirectionFlags.Vertical &&
                   blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoUpRaised;
@@ -548,7 +548,7 @@ public class RailMapUtil
         if (y < game.VoxelMap.MapSizeY - 1)
         {
             blocknear = game.VoxelMap.GetBlock(x, y + 1, z);
-            if (railDirectionFlags == RailDirectionFlags.Vertical &&
+            if (railDirectionFlags == (int)RailDirectionFlags.Vertical &&
                   blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoDownRaised;

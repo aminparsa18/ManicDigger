@@ -47,42 +47,42 @@ public class ScriptCharacterPhysics : IEntityScript
     // ── Per-frame physics state ───────────────────────────────────────────────
 
     /// <summary>Current vertical velocity (positive = upward). Modified by gravity and jumps each tick.</summary>
-    internal float movedz;
+    private float movedz;
 
     /// <summary>Current XYZ movement speed vector, attenuated by <see cref="acceleration"/> each tick.</summary>
-    internal Vector3 curspeed;
+    private Vector3 curspeed;
 
     /// <summary>Remaining upward acceleration from an in-progress jump, halved each tick until exhausted.</summary>
-    internal float jumpacceleration;
+    private float jumpacceleration;
 
     /// <summary>True when the player is standing on solid ground this tick.</summary>
-    internal bool isplayeronground;
+    private bool isplayeronground;
 
     /// <summary>Tunable acceleration parameters (drag, friction, responsiveness) for the current tick.</summary>
-    internal Acceleration acceleration;
+    private Acceleration acceleration;
 
     /// <summary>Full-height jump initial acceleration, derived from <see cref="constGravity"/> each tick.</summary>
-    internal float jumpstartacceleration;
+    private float jumpstartacceleration;
 
     /// <summary>Half-height jump initial acceleration (crouch-jump / swim surfacing).</summary>
-    internal float jumpstartaccelerationhalf;
+    private float jumpstartaccelerationhalf;
 
     /// <summary>Effective movement speed this tick, sourced from <see cref="Game.MoveSpeedNow"/>.</summary>
-    internal float movespeednow;
+    private float movespeednow;
 
     // ── Tunable constants ─────────────────────────────────────────────────────
 
     /// <summary>Base gravitational acceleration applied each tick.</summary>
-    internal float constGravity;
+    private float constGravity;
 
     /// <summary>Factor by which gravity is multiplied while swimming.</summary>
-    internal float constWaterGravityMultiplier;
+    private float constWaterGravityMultiplier;
 
     /// <summary>When false, <see cref="curspeed"/> is set directly from input rather than ramped.</summary>
-    internal bool constEnableAcceleration;
+    private bool constEnableAcceleration;
 
     /// <summary>Multiplier applied to <see cref="jumpacceleration"/> each tick to produce upward displacement.</summary>
-    internal float constJump;
+    private float constJump;
 
     // ── IEntityScript ─────────────────────────────────────────────────────────
 

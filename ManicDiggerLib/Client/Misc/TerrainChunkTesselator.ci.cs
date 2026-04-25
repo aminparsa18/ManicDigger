@@ -86,6 +86,7 @@ public class TerrainChunkTesselator
     // ── Fix #6: 4-float heap array replaced with an inline struct ─────────────
     private CornerHeights _cornerHeights;
 
+    // ── Fix #7: nested switch-on-switch replaced with a 2D lookup table ───────
     // Indexed [TileSide][Corner] → Corner index into CornerHeights, or -1 = unmodified.
     // Populated once in the constructor; read-only thereafter.
     private readonly int[,] _cornerHeightLookup;
@@ -277,6 +278,8 @@ public class TerrainChunkTesselator
     }
 
     private int toreturnatlas1dLength;
+
+    // ── Fix #1: block-type flag cache ─────────────────────────────────────────
 
     /// <summary>
     /// Rebuilds the per-block render flag cache from the current block type definitions.
@@ -623,6 +626,8 @@ public class TerrainChunkTesselator
         ModelDataTool.AddIndex(toreturn, lastelement + 3);
         ModelDataTool.AddIndex(toreturn, lastelement + 2);
     }
+
+    // ── Fix #7: corner height via lookup table ────────────────────────────────
 
     /// <summary>
     /// Returns the Z height modifier for the given face corner.
@@ -1064,17 +1069,6 @@ public class TerrainChunkTesselator
     }
 }
 
-/// <summary>The six faces of a block, used to index into face arrays.</summary>
-public enum TileSide
-{
-    Top = 0,
-    Bottom = 1,
-    Left = 2,
-    Right = 3,
-    Back = 4,
-    Front = 5,
-}
-
 /// <summary>Bit-flags for sets of block faces.</summary>
 [Flags]
 public enum TileSideFlags
@@ -1142,6 +1136,10 @@ public enum RailDirectionFlags
     UpRight = 8,
     DownLeft = 16,
     DownRight = 32,
+
+    Corners = UpLeft | UpRight | DownLeft | DownRight,
+    TwoHorizontalVertical = Horizontal | Vertical,
+    Full = Horizontal | Vertical | Corners,
 }
 
 /// <summary>Slope type for a rail tile.</summary>

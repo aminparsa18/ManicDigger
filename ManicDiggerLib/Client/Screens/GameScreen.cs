@@ -140,12 +140,6 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
             token, platform.GetPreferences().GetString("Password", ""),
             new LoginResult(), lidata);
 
-        // Poll until the login attempt completes.
-        while (lic.loginResult == LoginResult.Connecting)
-        {
-            lic.Update(platform);
-        }
-
         if (!lidata.ServerCorrect)
         {
             platform.MessageBoxShowError("Invalid server address!", "Redirection error!");

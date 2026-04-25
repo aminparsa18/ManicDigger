@@ -593,10 +593,10 @@ public class ModPicking : ModBase
         int activeMaterial = game.MaterialSlots(game.ActiveMaterial);
         int railStart = game.BlockRegistry.BlockIdRailStart;
 
-        if (activeMaterial == railStart + RailDirectionFlags.TwoHorizontalVertical
-         || activeMaterial == railStart + RailDirectionFlags.Corners)
+        if (activeMaterial == railStart + (int)RailDirectionFlags.TwoHorizontalVertical
+         || activeMaterial == railStart + (int)RailDirectionFlags.Corners)
         {
-            RailDirection dirNew = activeMaterial == railStart + RailDirectionFlags.TwoHorizontalVertical
+            RailDirection dirNew = activeMaterial == railStart + (int)RailDirectionFlags.TwoHorizontalVertical
                 ? PickHorizontalVertical(xFract, zFract)
                 : PickCorners(xFract, zFract);
 

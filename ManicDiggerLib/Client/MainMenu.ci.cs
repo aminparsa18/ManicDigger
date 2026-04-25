@@ -195,7 +195,6 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
 
         DrawScene(dt);
         Animate(dt);
-        loginClient.Update(_platform);
     }
 
     // -------------------------------------------------------------------------

@@ -1,5 +1,4 @@
 ﻿using OpenTK.Mathematics;
-using System.Text;
 
 public class LoginData
 {
@@ -19,78 +18,6 @@ public class LoginClientCi
     public void Login(IGamePlatform platform, string user, string password, string publicServerKey, string token, LoginResult result, LoginData resultLoginData_)
     {
         loginResult = result;
-        resultLoginData = resultLoginData_;
-        LoginUser = user;
-        LoginPassword = password;
-        LoginToken = token;
-        LoginPublicServerKey = publicServerKey;
-        shouldLogin = true;
-    }
-
-    private string LoginUser;
-    private string LoginPassword;
-    private string LoginToken;
-    private string LoginPublicServerKey;
-
-    private bool shouldLogin;
-    private string loginUrl;
-    private HttpResponse loginUrlResponse;
-    private HttpResponse loginResponse;
-    private LoginData resultLoginData;
-
-    public void Update(IGamePlatform platform)
-    {
-        if (loginResult == null)
-        {
-            return;
-        }
-
-        if (loginUrlResponse == null && loginUrl == null)
-        {
-            loginUrlResponse = new HttpResponse();
-            platform.WebClientDownloadDataAsync("http://manicdigger.sourceforge.net/login.php", loginUrlResponse);
-        }
-        if (loginUrlResponse != null && loginUrlResponse.Done)
-        {
-            loginUrl = Encoding.UTF8.GetString(loginUrlResponse.Value, 0, loginUrlResponse.Value.Length);
-            loginUrlResponse = null;
-        }
-
-        if (loginUrl != null)
-        {
-            if (shouldLogin)
-            {
-                shouldLogin = false;
-                string requestString = string.Format("username={0}&password={1}&server={2}&token={3}"
-                    , LoginUser, LoginPassword, LoginPublicServerKey, LoginToken);
-                byte[] byteArray = Encoding.UTF8.GetBytes(requestString);
-                loginResponse = new HttpResponse();
-                platform.WebClientUploadDataAsync(loginUrl, byteArray, byteArray.Length, loginResponse);
-            }
-            if (loginResponse != null && loginResponse.Done)
-            {
-                string responseString = Encoding.UTF8.GetString(loginResponse.Value, 0, loginResponse.Value.Length);
-                resultLoginData.PasswordCorrect = !(responseString.Contains("Wrong username") || responseString.Contains("Incorrect username"));
-                resultLoginData.ServerCorrect = !responseString.Contains("server");
-                if (resultLoginData.PasswordCorrect)
-                {
-                    loginResult = LoginResult.Ok;
-                }
-                else
-                {
-                    loginResult = LoginResult.Failed;
-                }
-                string[] lines = responseString.Split(Environment.NewLine);
-                if (lines.Length >= 3)
-                {
-                    resultLoginData.AuthCode = lines[0];
-                    resultLoginData.ServerAddress = lines[1];
-                    resultLoginData.Port = int.Parse(lines[2]);
-                    resultLoginData.Token = lines[3];
-                }
-                loginResponse = null;
-            }
-        }
     }
 }
 
@@ -294,27 +221,6 @@ public class VisibleDialog
     internal GameScreen screen;
 }
 
-
-public class RailDirectionFlags
-{
-    public const int None = 0;
-    public const int Horizontal = 1;
-    public const int Vertical = 2;
-    public const int UpLeft = 4;
-    public const int UpRight = 8;
-    public const int DownLeft = 16;
-    public const int DownRight = 32;
-
-    public const int Full = Horizontal | Vertical | UpLeft | UpRight | DownLeft | DownRight;
-    public const int TwoHorizontalVertical = Horizontal | Vertical;
-    public const int Corners = UpLeft | UpRight | DownLeft | DownRight;
-}
-
-public enum RailSlope
-{
-    Flat, TwoLeftRaised, TwoRightRaised, TwoUpRaised, TwoDownRaised
-}
-
 public enum RailDirection
 {
     Horizontal,
@@ -436,12 +342,12 @@ public class DirectionUtils
     {
         return direction switch
         {
-            RailDirection.DownLeft => RailDirectionFlags.DownLeft,
-            RailDirection.DownRight => RailDirectionFlags.DownRight,
-            RailDirection.Horizontal => RailDirectionFlags.Horizontal,
-            RailDirection.UpLeft => RailDirectionFlags.UpLeft,
-            RailDirection.UpRight => RailDirectionFlags.UpRight,
-            RailDirection.Vertical => RailDirectionFlags.Vertical,
+            RailDirection.DownLeft => (int)RailDirectionFlags.DownLeft,
+            RailDirection.DownRight => (int)RailDirectionFlags.DownRight,
+            RailDirection.Horizontal => (int)RailDirectionFlags.Horizontal,
+            RailDirection.UpLeft => (int)RailDirectionFlags.UpLeft,
+            RailDirection.UpRight => (int)RailDirectionFlags.UpRight,
+            RailDirection.Vertical => (int)RailDirectionFlags.Vertical,
             _ => 0,
         };
     }

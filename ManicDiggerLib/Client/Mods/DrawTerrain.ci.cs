@@ -411,26 +411,26 @@ public class ModDrawTerrain : ModBase
             for (int i = 0; i < r.DataCount; i++)
             {
                 VerticesIndicesToLoad submesh = r.Data[i];
-                if (submesh.modelData.IndicesCount == 0)
+                if (submesh.ModelData.IndicesCount == 0)
                 {
                     // Still need to return rented arrays for empty sub-meshes.
-                    ReturnModelArrays(submesh.modelData);
+                    ReturnModelArrays(submesh.ModelData);
                     continue;
                 }
 
-                float cx = submesh.positionX + chunksize * 0.5f;
-                float cy = submesh.positionZ + chunksize * 0.5f;
-                float cz = submesh.positionY + chunksize * 0.5f;
+                float cx = submesh.PositionX + chunksize * 0.5f;
+                float cy = submesh.PositionZ + chunksize * 0.5f;
+                float cz = submesh.PositionY + chunksize * 0.5f;
                 float radius = _sqrt3Half * chunksize;
 
                 _batcherIds[_batcherIdsCount++] = _game.Batcher.Add(
-                    submesh.modelData, submesh.transparent, submesh.texture,
+                    submesh.ModelData, submesh.Transparent, submesh.Texture,
                     cx, cy, cz, radius);
 
                 // ── Return CPU geometry arrays now that the GPU has the data ──
                 // CloneModelData rented these from ArrayPool. They are dead
                 // weight on the CPU after Add() — return them immediately.
-                ReturnModelArrays(submesh.modelData);
+                ReturnModelArrays(submesh.ModelData);
             }
 
             // ── Reuse rendered.Ids if the array is already the right size ─────
@@ -690,12 +690,12 @@ public class ModDrawTerrain : ModBase
     private static VerticesIndicesToLoad CloneVerticesIndicesToLoad(VerticesIndicesToLoad source)
         => new()
         {
-            modelData = CloneModelData(source.modelData),
-            positionX = source.positionX,
-            positionY = source.positionY,
-            positionZ = source.positionZ,
-            texture = source.texture,
-            transparent = source.transparent,
+            ModelData = CloneModelData(source.ModelData),
+            PositionX = source.PositionX,
+            PositionY = source.PositionY,
+            PositionZ = source.PositionZ,
+            Texture = source.Texture,
+            Transparent = source.Transparent,
         };
 
     /// <summary>

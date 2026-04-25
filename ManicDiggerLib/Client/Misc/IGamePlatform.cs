@@ -22,7 +22,6 @@ public interface IGamePlatform :
 
 public interface IPlatformMisc
 {
-    void WebClientDownloadDataAsync(string url, HttpResponse response);
     void ThumbnailDownloadAsync(string ip, int port, ThumbnailResponseCi response);
     void AddOnNewFrame(Action<float> handler);
     void AddOnKeyEvent(Action<KeyEventArgs> onKeyDown,

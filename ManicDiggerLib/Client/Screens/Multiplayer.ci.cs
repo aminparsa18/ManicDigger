@@ -94,13 +94,11 @@ public class MultiplayerScreen : ScreenBase
     {
         if (!loaded)
         {
-            Platform.WebClientDownloadDataAsync("http://manicdigger.sourceforge.net/serverlistcsv.php", serverListAddress);
             loaded = true;
         }
         if (serverListAddress.Done)
         {
             serverListAddress.Done = false;
-            Platform.WebClientDownloadDataAsync(serverListAddress.GetString(), serverListCsv);
         }
         if (serverListCsv.Done)
         {

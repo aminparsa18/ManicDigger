@@ -59,7 +59,7 @@ public class Select : Math, IModule
 				double num = LowerBound - EdgeFalloff;
 				double num2 = LowerBound + EdgeFalloff;
 				double a = SCurve3((value - num) / (num2 - num));
-				return LinearInterpolate(SourceModule1.GetValue(x, y, z), SourceModule2.GetValue(x, y, z), a);
+				return double.Lerp(SourceModule1.GetValue(x, y, z), SourceModule2.GetValue(x, y, z), a);
 			}
 			if (value < UpperBound - EdgeFalloff)
 			{
@@ -70,7 +70,7 @@ public class Select : Math, IModule
 				double num3 = UpperBound - EdgeFalloff;
 				double num4 = UpperBound + EdgeFalloff;
 				double a = SCurve3((value - num3) / (num4 - num3));
-				return LinearInterpolate(SourceModule2.GetValue(x, y, z), SourceModule1.GetValue(x, y, z), a);
+				return double.Lerp(SourceModule2.GetValue(x, y, z), SourceModule1.GetValue(x, y, z), a);
 			}
 			return SourceModule1.GetValue(x, y, z);
 		}

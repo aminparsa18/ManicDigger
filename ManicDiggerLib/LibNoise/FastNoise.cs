@@ -1,68 +1,63 @@
 namespace LibNoise;
 
+/// <summary>
+/// Fractal Brownian motion (fBm) noise generator.
+/// Produces natural-looking noise by stacking multiple octaves of coherent
+/// gradient noise, each at progressively higher frequency and lower amplitude.
+/// </summary>
 public class FastNoise : FastNoiseBasis, IModule
 {
-	private const int MaxOctaves = 30;
+    private const int MaxOctaves = 30;
+    private int _octaveCount;
 
-	private int mOctaveCount;
+    public double Frequency { get; set; }
+    public double Persistence { get; set; }
+    public NoiseQuality NoiseQuality { get; set; }
+    public double Lacunarity { get; set; }
 
-	public double Frequency { get; set; }
+    public int OctaveCount
+    {
+        get => _octaveCount;
+        set
+        {
+            if (value < 1 || value > MaxOctaves)
+                throw new ArgumentException(
+                    $"OctaveCount must be between 1 and {MaxOctaves}, got {value}.");
+            _octaveCount = value;
+        }
+    }
 
-	public double Persistence { get; set; }
+    public FastNoise() : this(0) { }
 
-	public NoiseQuality NoiseQuality { get; set; }
+    public FastNoise(int seed) : base(seed)
+    {
+        Frequency = 1.0;
+        Lacunarity = 2.0;
+        OctaveCount = 6;
+        Persistence = 0.5;
+        NoiseQuality = NoiseQuality.Standard;
+    }
 
-	public double Lacunarity { get; set; }
+    public double GetValue(double x, double y, double z)
+    {
+        double sum = 0.0;
+        double amplitude = 1.0;
 
-	public int OctaveCount
-	{
-		get
-		{
-			return mOctaveCount;
-		}
-		set
-		{
-			if (value < 1 || value > 30)
-			{
-				throw new ArgumentException("Octave count must be greater than zero and less than " + 30);
-			}
-			mOctaveCount = value;
-		}
-	}
+        x *= Frequency;
+        y *= Frequency;
+        z *= Frequency;
 
-	public FastNoise()
-		: this(0)
-	{
-	}
+        for (int i = 0; i < OctaveCount; i++)
+        {
+            int octaveSeed = (int)((Seed + i) & 0xFFFFFFFFu);
+            double signal = GradientCoherentNoise(x, y, z, octaveSeed, NoiseQuality);
+            sum += signal * amplitude;
+            x *= Lacunarity;
+            y *= Lacunarity;
+            z *= Lacunarity;
+            amplitude *= Persistence;
+        }
 
-	public FastNoise(int seed)
-		: base(seed)
-	{
-		Frequency = 1.0;
-		Lacunarity = 2.0;
-		OctaveCount = 6;
-		Persistence = 0.5;
-		NoiseQuality = NoiseQuality.Standard;
-	}
-
-	public double GetValue(double x, double y, double z)
-	{
-		double num = 0.0;
-		double num2 = 0.0;
-		double num3 = 1.0;
-		x *= Frequency;
-		y *= Frequency;
-		z *= Frequency;
-		for (int i = 0; i < OctaveCount; i++)
-		{
-			long num4 = (Seed + i) & 0xFFFFFFFFu;
-			num2 = GradientCoherentNoise(x, y, z, (int)num4, NoiseQuality);
-			num += num2 * num3;
-			x *= Lacunarity;
-			y *= Lacunarity;
-			z *= Lacunarity;
-			num3 *= Persistence;
-		}
-		return num;
-	}
+        return sum;
+    }
 }

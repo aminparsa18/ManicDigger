@@ -18,6 +18,7 @@
 // </summary>
 using ManicDigger;
 using OpenTK.Mathematics;
+using static ModDrawHand3d;
 
 public class TerrainChunkTesselator
 {
@@ -919,7 +920,7 @@ public class TerrainChunkTesselator
     /// Vertex order: v00=top-left, v01=top-right, v10=bottom-left, v11=bottom-right.
     /// <paramref name="flipWinding"/> reverses the winding for back-facing quads.
     /// </summary>
-    private void AddQuad(GeometryModel model,
+    private static void AddQuad(GeometryModel model,
         Vector3 v00, Vector3 v01, Vector3 v10, Vector3 v11,
         float uLeft, float uRight, float vTop, float vBottom,
         int color, bool flipWinding = false)

@@ -1,39 +1,30 @@
 namespace LibNoise;
 
+/// <summary>
+/// Shared mathematical utilities for LibNoise modules.
+/// Provides smoothstep functions and constants used by noise generators.
+/// </summary>
 public class Math
 {
-	public static readonly double PI = System.Math.PI;
+    public static readonly double Sqrt3 = 1.7320508075688772;
 
-	public static readonly double Sqrt2 = 1.4142135623730951;
+    /// <summary>
+    /// Cubic smoothstep — maps <paramref name="a"/> from [0,1] to [0,1]
+    /// with zero first-derivative at both endpoints.
+    /// Used for <see cref="NoiseQuality.Standard"/> interpolation.
+    /// </summary>
+    protected static double SCurve3(double a) => a * a * (3.0 - 2.0 * a);
 
-	public static readonly double Sqrt3 = 1.7320508075688772;
-
-	public static readonly double DEG_TO_RAD = PI / 180.0;
-
-	public static double GetSmaller(double a, double b)
-	{
-		if (!(a < b))
-		{
-			return b;
-		}
-		return a;
-	}
-
-	protected double LinearInterpolate(double n0, double n1, double a)
-	{
-		return (1.0 - a) * n0 + a * n1;
-	}
-
-	protected double SCurve3(double a)
-	{
-		return a * a * (3.0 - 2.0 * a);
-	}
-
-	protected double SCurve5(double a)
-	{
-		double num = a * a * a;
-		double num2 = num * a;
-		double num3 = num2 * a;
-		return 6.0 * num3 - 15.0 * num2 + 10.0 * num;
-	}
+    /// <summary>
+    /// Quintic smootherstep — maps <paramref name="a"/> from [0,1] to [0,1]
+    /// with zero first and second derivatives at both endpoints (smoother than
+    /// <see cref="SCurve3"/>). Used for <see cref="NoiseQuality.High"/> interpolation.
+    /// </summary>
+    protected static double SCurve5(double a)
+    {
+        double a3 = a * a * a;
+        double a4 = a3 * a;
+        double a5 = a4 * a;
+        return 6.0 * a5 - 15.0 * a4 + 10.0 * a3;
+    }
 }

@@ -138,45 +138,45 @@ public static class CuboidRenderer
 
         // Front (min X)
         rect = textureCoords[0];
-        AddVertex(data, posX, posY, posZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
-        AddVertex(data, posX, posY + sizeY, posZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ, rect.X, rect.Y, color);
 
         // Back (max X)
         rect = textureCoords[1];
-        AddVertex(data, posX + sizeX, posY, posZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X, rect.Y, color);
 
         // Left (min Z)
         rect = textureCoords[2];
-        AddVertex(data, posX + sizeX, posY, posZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX, posY, posZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX, posY + sizeY, posZ, rect.X + rect.Width, rect.Y, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X, rect.Y, color);
 
         // Right (max Z)
         rect = textureCoords[3];
-        AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX, posY, posZ + sizeZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X, rect.Y, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ + sizeZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
 
         // Top (max Y)
         rect = textureCoords[4];
-        AddVertex(data, posX, posY + sizeY, posZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X, rect.Y, color);
 
         // Bottom (min Y)
         rect = textureCoords[5];
-        AddVertex(data, posX, posY, posZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
-        AddVertex(data, posX + sizeX, posY, posZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ, rect.X, rect.Y, color);
 
         SubmitCuboid(game, data);
     }
@@ -195,77 +195,46 @@ public static class CuboidRenderer
 
         // Right (min X)
         rect = textureCoords[2];
-        AddVertex(data, posX, posY, posZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
-        AddVertex(data, posX, posY + sizeY, posZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ, rect.X, rect.Y, color);
 
         // Left (max X)
         rect = textureCoords[3];
-        AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY, posZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X + rect.Width, rect.Y, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X, rect.Y, color);
 
         // Back (min Z)
         rect = textureCoords[1];
-        AddVertex(data, posX + sizeX, posY, posZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX, posY, posZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX, posY + sizeY, posZ, rect.X + rect.Width, rect.Y, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X, rect.Y, color);
 
         // Front (max Z)
         rect = textureCoords[0];
-        AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX, posY, posZ + sizeZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X, rect.Y, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ + sizeZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
 
         // Top (max Y)
         rect = textureCoords[4];
-        AddVertex(data, posX, posY + sizeY, posZ, rect.X, rect.Y, color);
-        AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY + sizeY, posZ + sizeZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY + sizeY, posZ, rect.X + rect.Width, rect.Y, color);
 
         // Bottom (min Y)
         rect = textureCoords[5];
-        AddVertex(data, posX, posY, posZ, rect.X, rect.Y, color);
-        AddVertex(data, posX, posY, posZ + sizeZ, rect.X, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
-        AddVertex(data, posX + sizeX, posY, posZ, rect.X + rect.Width, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ, rect.X, rect.Y, color);
+        ModelDataTool.AddVertex(data, posX, posY, posZ + sizeZ, rect.X, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
+        ModelDataTool.AddVertex(data, posX + sizeX, posY, posZ, rect.X + rect.Width, rect.Y, color);
 
         SubmitCuboid(game, data);
-    }
-
-    /// <summary>
-    /// Appends a single vertex to <paramref name="model"/>, writing its position,
-    /// UV coordinates, and RGBA color into the respective buffers.
-    /// </summary>
-    /// <param name="model">The model data buffer to append to.</param>
-    /// <param name="x">World-space X position of the vertex.</param>
-    /// <param name="y">World-space Y position of the vertex.</param>
-    /// <param name="z">World-space Z position of the vertex.</param>
-    /// <param name="u">Horizontal UV coordinate in normalized 0-1 space.</param>
-    /// <param name="v">Vertical UV coordinate in normalized 0-1 space.</param>
-    /// <param name="color">Packed ARGB color value, typically encoding light intensity.</param>
-    private static void AddVertex(GeometryModel model, float x, float y, float z, float u, float v, int color)
-    {
-        int xyzOffset = model.XyzCount;
-        int uvOffset = model.UvCount;
-        int rgbaOffset = model.RgbaCount;
-
-        model.Xyz[xyzOffset + 0] = x;
-        model.Xyz[xyzOffset + 1] = y;
-        model.Xyz[xyzOffset + 2] = z;
-
-        model.Uv[uvOffset + 0] = u;
-        model.Uv[uvOffset + 1] = v;
-        model.Rgba[rgbaOffset + 0] = (byte)ColorUtils.ColorR(color);
-        model.Rgba[rgbaOffset + 1] = (byte)ColorUtils.ColorG(color);
-        model.Rgba[rgbaOffset + 2] = (byte)ColorUtils.ColorB(color);
-        model.Rgba[rgbaOffset + 3] = (byte)ColorUtils.ColorA(color);
-
-        model.VerticesCount++;
     }
 }

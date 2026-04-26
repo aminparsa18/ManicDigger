@@ -15,9 +15,6 @@ public class WireframeCube
     /// <summary>Number of indices per face (4 edges × 2 endpoints = 8).</summary>
     private const int IndicesPerFace = 8;
 
-    /// <summary>Full white, fully opaque vertex colour.</summary>
-    private static readonly int White = ColorUtils.ColorFromArgb(255, 255, 255, 255);
-
     /// <summary>
     /// Builds a wireframe unit cube <see cref="GeometryModel"/> centred at the origin,
     /// with extents from -1 to +1 on each axis.
@@ -57,10 +54,10 @@ public class WireframeCube
     {
         int start = m.VerticesCount;
 
-        AddVertex(m, p0.X, p0.Y, p0.Z);
-        AddVertex(m, p1.X, p1.Y, p1.Z);
-        AddVertex(m, p2.X, p2.Y, p2.Z);
-        AddVertex(m, p3.X, p3.Y, p3.Z);
+        ModelDataTool.AddVertex(m, p0.X, p0.Y, p0.Z);
+        ModelDataTool.AddVertex(m, p1.X, p1.Y, p1.Z);
+        ModelDataTool.AddVertex(m, p2.X, p2.Y, p2.Z);
+        ModelDataTool.AddVertex(m, p3.X, p3.Y, p3.Z);
 
         // Each edge is two indices — connect corners in a loop: 0→1→2→3→0.
         m.Indices[m.IndicesCount++] = start + 0;
@@ -71,34 +68,5 @@ public class WireframeCube
         m.Indices[m.IndicesCount++] = start + 3;
         m.Indices[m.IndicesCount++] = start + 3;
         m.Indices[m.IndicesCount++] = start + 0;
-    }
-
-    /// <summary>
-    /// Appends a single vertex with the given position and full white colour
-    /// to the model's XYZ, UV, and RGBA buffers.
-    /// </summary>
-    /// <param name="m">The model data being built.</param>
-    /// <param name="x">Vertex X position.</param>
-    /// <param name="y">Vertex Y position.</param>
-    /// <param name="z">Vertex Z position.</param>
-    private static void AddVertex(GeometryModel m, float x, float y, float z)
-    {
-        int xyzOffset = m.XyzCount;
-        int uvOffset = m.UvCount;
-        int rgbaOffset = m.RgbaCount;
-
-        m.Xyz[xyzOffset] = x;
-        m.Xyz[xyzOffset + 1] = y;
-        m.Xyz[xyzOffset + 2] = z;
-        // UV is always (0,0) for wireframe — no texture sampling needed.
-        m.Uv[uvOffset] = 0f;
-        m.Uv[uvOffset + 1] = 0f;
-
-        m.Rgba[rgbaOffset] = (byte)ColorUtils.ColorR(White);
-        m.Rgba[rgbaOffset + 1] = (byte)ColorUtils.ColorG(White);
-        m.Rgba[rgbaOffset + 2] = (byte)ColorUtils.ColorB(White);
-        m.Rgba[rgbaOffset + 3] = (byte)ColorUtils.ColorA(White);
-
-        m.VerticesCount++;
     }
 }

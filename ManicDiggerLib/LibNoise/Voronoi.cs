@@ -1,73 +1,122 @@
 namespace LibNoise;
 
+/// <summary>
+/// Voronoi (cellular/Worley) noise generator.
+/// Divides space into irregular cells, each owned by the nearest randomly
+/// jittered feature point, and returns a value based on that nearest point.
+/// <para>
+/// For each sample the algorithm searches a 5×5×5 neighbourhood of integer
+/// grid cells. Each cell's centre is jittered by <see cref="ValueNoise"/> to
+/// produce a pseudo-random feature point. The nearest feature point is found,
+/// and the output is:
+/// <list type="bullet">
+///   <item>The noise value at the nearest feature point's grid cell (always).</item>
+///   <item>Plus the Euclidean distance to that point scaled by
+///         <see cref="Math.Sqrt3"/> (only when <see cref="DistanceEnabled"/>).</item>
+/// </list>
+/// Used in <c>DefaultWorldGenerator</c> for flower and decoration placement.
+/// </para>
+/// </summary>
 public class Voronoi : ValueNoiseBasis, IModule
 {
-	public double Frequency { get; set; }
+    // ── Parameters ────────────────────────────────────────────────────────────
 
-	public double Displacement { get; set; }
+    /// <summary>
+    /// Scales the input coordinates before cell lookup.
+    /// Higher values produce smaller, more densely packed cells. Default is <c>1.0</c>.
+    /// </summary>
+    public double Frequency { get; set; }
 
-	public bool DistanceEnabled { get; set; }
+    /// <summary>
+    /// Scales the cell colour value added to the output.
+    /// Higher values produce stronger contrast between adjacent cells. Default is <c>1.0</c>.
+    /// </summary>
+    public double Displacement { get; set; }
 
-	public int Seed { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, the Euclidean distance to the nearest feature
+    /// point is added to the output, producing raised ridges at cell boundaries.
+    /// Default is <see langword="false"/> (flat cell interiors).
+    /// </summary>
+    public bool DistanceEnabled { get; set; }
 
-	public Voronoi()
-	{
-		Frequency = 1.0;
-		Displacement = 1.0;
-		Seed = 0;
-		DistanceEnabled = false;
-	}
+    /// <summary>Random seed used to jitter feature points. Default is <c>0</c>.</summary>
+    public int Seed { get; set; }
 
-	public double GetValue(double x, double y, double z)
-	{
-		x *= Frequency;
-		y *= Frequency;
-		z *= Frequency;
-		int num = ((x > 0.0) ? ((int)x) : ((int)x - 1));
-		int num2 = ((y > 0.0) ? ((int)y) : ((int)y - 1));
-		int num3 = ((z > 0.0) ? ((int)z) : ((int)z - 1));
-		double num4 = 2147483647.0;
-		double num5 = 0.0;
-		double num6 = 0.0;
-		double num7 = 0.0;
-		for (int i = num3 - 2; i <= num3 + 2; i++)
-		{
-			for (int j = num2 - 2; j <= num2 + 2; j++)
-			{
-				for (int k = num - 2; k <= num + 2; k++)
-				{
-					double num8 = (double)k + ValueNoise(k, j, i, Seed);
-					double num9 = (double)j + ValueNoise(k, j, i, Seed + 1);
-					double num10 = (double)i + ValueNoise(k, j, i, Seed + 2);
-					double num11 = num8 - x;
-					double num12 = num9 - y;
-					double num13 = num10 - z;
-					double num14 = num11 * num11 + num12 * num12 + num13 * num13;
-					if (num14 < num4)
-					{
-						num4 = num14;
-						num5 = num8;
-						num6 = num9;
-						num7 = num10;
-					}
-				}
-			}
-		}
-		double num18;
-		if (DistanceEnabled)
-		{
-			double num15 = num5 - x;
-			double num16 = num6 - y;
-			double num17 = num7 - z;
-			num18 = System.Math.Sqrt(num15 * num15 + num16 * num16 + num17 * num17) * Math.Sqrt3 - 1.0;
-		}
-		else
-		{
-			num18 = 0.0;
-		}
-		int x2 = ((num5 > 0.0) ? ((int)num5) : ((int)num5 - 1));
-		int y2 = ((num6 > 0.0) ? ((int)num6) : ((int)num6 - 1));
-		int z2 = ((num7 > 0.0) ? ((int)num7) : ((int)num7 - 1));
-		return num18 + Displacement * ValueNoise(x2, y2, z2);
-	}
+    // ── Construction ──────────────────────────────────────────────────────────
+
+    /// <summary>Initialises a <see cref="Voronoi"/> with default parameters.</summary>
+    public Voronoi()
+    {
+        Frequency = 1.0;
+        Displacement = 1.0;
+        Seed = 0;
+        DistanceEnabled = false;
+    }
+
+    // ── IModule ───────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the Voronoi noise value at world position
+    /// (<paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>).
+    /// </summary>
+    public double GetValue(double x, double y, double z)
+    {
+        x *= Frequency;
+        y *= Frequency;
+        z *= Frequency;
+
+        // Integer cell containing the sample point (floor, handles negatives).
+        int cellX = x > 0.0 ? (int)x : (int)x - 1;
+        int cellY = y > 0.0 ? (int)y : (int)y - 1;
+        int cellZ = z > 0.0 ? (int)z : (int)z - 1;
+
+        // Find the nearest jittered feature point in the 5×5×5 neighbourhood.
+        double minDistSq = double.MaxValue;
+        double nearestX = 0.0;
+        double nearestY = 0.0;
+        double nearestZ = 0.0;
+
+        for (int iz = cellZ - 2; iz <= cellZ + 2; iz++)
+            for (int iy = cellY - 2; iy <= cellY + 2; iy++)
+                for (int ix = cellX - 2; ix <= cellX + 2; ix++)
+                {
+                    // Jitter the cell centre with three independent noise values.
+                    double fpX = ix + ValueNoise(ix, iy, iz, Seed);
+                    double fpY = iy + ValueNoise(ix, iy, iz, Seed + 1);
+                    double fpZ = iz + ValueNoise(ix, iy, iz, Seed + 2);
+
+                    double dx = fpX - x;
+                    double dy = fpY - y;
+                    double dz = fpZ - z;
+                    double distSq = dx * dx + dy * dy + dz * dz;
+
+                    if (distSq < minDistSq)
+                    {
+                        minDistSq = distSq;
+                        nearestX = fpX;
+                        nearestY = fpY;
+                        nearestZ = fpZ;
+                    }
+                }
+
+        // Optionally add the distance to the nearest feature point.
+        double distanceContribution = 0.0;
+        if (DistanceEnabled)
+        {
+            double dx = nearestX - x;
+            double dy = nearestY - y;
+            double dz = nearestZ - z;
+            // Normalised so the maximum possible distance maps to ~1.
+            distanceContribution = System.Math.Sqrt(dx * dx + dy * dy + dz * dz)
+                                   * Math.Sqrt3 - 1.0;
+        }
+
+        // Cell colour: noise value at the nearest feature point's integer cell.
+        int nx = nearestX > 0.0 ? (int)nearestX : (int)nearestX - 1;
+        int ny = nearestY > 0.0 ? (int)nearestY : (int)nearestY - 1;
+        int nz = nearestZ > 0.0 ? (int)nearestZ : (int)nearestZ - 1;
+
+        return distanceContribution + Displacement * ValueNoise(nx, ny, nz);
+    }
 }

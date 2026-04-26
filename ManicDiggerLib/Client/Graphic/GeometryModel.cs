@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using OpenTK.Mathematics;
+
+/// <summary>
 /// Holds the CPU-side geometry buffers and GPU handle references for a single renderable mesh.
 /// Geometry is described by parallel arrays of positions (<see cref="Xyz"/>), texture coordinates
 /// (<see cref="Uv"/>), and vertex colours (<see cref="Rgba"/>), indexed by <see cref="Indices"/>.
@@ -39,6 +41,10 @@ public class GeometryModel
 
 public class ModelDataTool
 {
+
+    /// <summary>Full white, fully opaque vertex colour.</summary>
+    private static readonly int White = ColorUtils.ColorFromArgb(255, 255, 255, 255);
+
     public static void AddVertex(GeometryModel model, float x, float y, float z, float u, float v, int color)
     {
         if (model.VerticesCount >= model.Xyz.Length / 3)
@@ -74,6 +80,42 @@ public class ModelDataTool
 
         model.VerticesCount++;
     }
+
+    /// <summary>
+    /// Appends a single vertex with the given position and full white colour
+    /// to the model's XYZ, UV, and RGBA buffers.
+    /// </summary>
+    /// <param name="model">The model data being built.</param>
+    /// <param name="x">Vertex X position.</param>
+    /// <param name="y">Vertex Y position.</param>
+    /// <param name="z">Vertex Z position.</param>
+    public static void AddVertex(GeometryModel model, float x, float y, float z)
+    {
+        int xyzOffset = model.XyzCount;
+        int uvOffset = model.UvCount;
+        int rgbaOffset = model.RgbaCount;
+
+        model.Xyz[xyzOffset] = x;
+        model.Xyz[xyzOffset + 1] = y;
+        model.Xyz[xyzOffset + 2] = z;
+        // UV is always (0,0) for wireframe — no texture sampling needed.
+        model.Uv[uvOffset] = 0f;
+        model.Uv[uvOffset + 1] = 0f;
+
+        model.Rgba[rgbaOffset] = (byte)ColorUtils.ColorR(White);
+        model.Rgba[rgbaOffset + 1] = (byte)ColorUtils.ColorG(White);
+        model.Rgba[rgbaOffset + 2] = (byte)ColorUtils.ColorB(White);
+        model.Rgba[rgbaOffset + 3] = (byte)ColorUtils.ColorA(White);
+
+        model.VerticesCount++;
+    }
+
+    /// <summary>
+    /// Convenience overload of <see cref="AddVertex(GeometryModel,float,float,float,float,float,int)"/>
+    /// that accepts a <see cref="Vector3"/> position.
+    /// </summary>
+    public static void AddVertex(GeometryModel model, Vector3 pos, float u, float v, int color)
+        => AddVertex(model, pos.X, pos.Y, pos.Z, u, v, color);
 
     internal static void AddIndex(GeometryModel model, int index)
     {

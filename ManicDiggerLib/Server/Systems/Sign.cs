@@ -21,20 +21,20 @@ public class ServerSystemSign : ServerSystem
 
         var e = new ServerEntity
         {
-            position = new ServerEntityPositionAndOrientation
+            Position = new ServerEntityPositionAndOrientation
             {
-                x = x + One / 2,
-                y = z,
-                z = y + One / 2
+                X = x + One / 2,
+                Y = z,
+                Z = y + One / 2
             },
-            sign = new ServerEntitySign { text = "Hello world!" }
+            Sign = new ServerEntitySign { Text = "Hello world!" }
         };
 
-        e.position.heading = EntityHeading.GetHeading(
+        e.Position.Heading = EntityHeading.GetHeading(
             server.modManager.GetPlayerPositionX(player),
             server.modManager.GetPlayerPositionY(player),
-            e.position.x,
-            e.position.z
+            e.Position.X,
+            e.Position.Z
         );
 
         server.AddEntity(x, y, z, e);
@@ -43,32 +43,32 @@ public class ServerSystemSign : ServerSystem
     private void UpdateEntity(int chunkx, int chunky, int chunkz, int id)
     {
         ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
-        if (e.sign == null) return;
+        if (e.Sign == null) return;
 
-        e.drawModel ??= new ServerEntityAnimatedModel();
-        e.drawModel.model = "signmodel.txt";
-        e.drawModel.texture = "signmodel.png";
-        e.drawModel.modelHeight = One * 13 / 10;
+        e.DrawModel ??= new ServerEntityAnimatedModel();
+        e.DrawModel.Model = "signmodel.txt";
+        e.DrawModel.Texture = "signmodel.png";
+        e.DrawModel.ModelHeight = One * 13 / 10;
 
-        e.drawText ??= new ServerEntityDrawText();
-        e.drawText.text = e.sign.text;
-        e.drawText.dx = One * 3 / 32;
-        e.drawText.dy = One * 36 / 32;
-        e.drawText.dz = One * 3 / 32;
+        e.DrawText ??= new ServerEntityDrawText();
+        e.DrawText.Text = e.Sign.Text;
+        e.DrawText.Dx = One * 3 / 32;
+        e.DrawText.Dy = One * 36 / 32;
+        e.DrawText.Dz = One * 3 / 32;
 
-        e.usable = true;
-        e.drawName ??= new ServerEntityDrawName
+        e.Usable = true;
+        e.DrawName ??= new ServerEntityDrawName
         {
-            name = "Sign",
-            onlyWhenSelected = true
+            Name = "Sign",
+            OnlyWhenSelected = true
         };
     }
 
     private void OnUseEntity(int player, int chunkx, int chunky, int chunkz, int id)
     {
         ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
-        if (e.sign == null) return;
-        if (!server.CheckBuildPrivileges(player, (int)e.position.x, (int)e.position.z, (int)e.position.y, PacketBlockSetMode.Use)) return;
+        if (e.Sign == null) return;
+        if (!server.CheckBuildPrivileges(player, (int)e.Position.X, (int)e.Position.Z, (int)e.Position.Y, PacketBlockSetMode.Use)) return;
 
         var font = new DialogFont("Verdana", 11f, DialogFontStyle.Bold);
 
@@ -81,13 +81,13 @@ public class ServerSystemSign : ServerSystem
             Width = 400,
             Height = 200,
             IsModal = true,
-            Widgets = new Widget[]
-            {
+            Widgets =
+            [
             Widget.MakeSolid(0, 0, 300, 200, ColorUtils.ColorFromArgb(255, 50, 50, 50)),
-            Widget.MakeTextBox(e.sign.text, font, 50, 50, 200, 50, ColorUtils.ColorFromArgb(255, 0, 0, 0)),
+            Widget.MakeTextBox(e.Sign.Text, font, 50, 50, 200, 50, ColorUtils.ColorFromArgb(255, 0, 0, 0)),
             okButton,
             Widget.MakeText("OK", font, 100, 100, ColorUtils.ColorFromArgb(255, 0, 0, 0))
-            }
+            ]
         };
 
         server.clients[player].editingSign = new ServerEntityId
@@ -114,7 +114,7 @@ public class ServerSystemSign : ServerSystem
         if (newText != "")
         {
             ServerEntity e = server.GetEntity(id.chunkx, id.chunky, id.chunkz, id.id);
-            e.sign.text = newText;
+            e.Sign.Text = newText;
             server.SetEntityDirty(id);
         }
         else

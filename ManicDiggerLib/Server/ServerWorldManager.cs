@@ -1,6 +1,5 @@
-﻿using PointG = System.Drawing.Point;
-using ProtoBuf;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
+using PointG = System.Drawing.Point;
 
 public partial class Server
 {
@@ -117,7 +116,7 @@ public partial class Server
             z /= chunksize;
             ServerChunk c = d_Map.GetChunkValid(x, y, z);
             c ??= new ServerChunk();
-            c.data = data;
+            c.Data = data;
             c.DirtyForSaving = true;
             d_Map.SetChunkValid(x, y, z, c);
             // update related chunk at clients
@@ -147,7 +146,7 @@ public partial class Server
             // TODO: check bounds.
             ServerChunk c = d_Map.GetChunkValid(k.Key.X, k.Key.Y, k.Key.Z);
             c ??= new ServerChunk();
-            c.data = k.Value;
+            c.Data = k.Value;
             c.DirtyForSaving = true;
             d_Map.SetChunkValid(k.Key.X, k.Key.Y, k.Key.Z, c);
         }
@@ -178,7 +177,7 @@ public partial class Server
             // TODO: check bounds.
             ServerChunk c = d_Map.GetChunkValid(k.Key.X + offsetX, k.Key.Y + offsetY, k.Key.Z + offsetZ);
             c ??= new ServerChunk();
-            c.data = k.Value;
+            c.Data = k.Value;
             c.DirtyForSaving = true;
             d_Map.SetChunkValid(k.Key.X + offsetX, k.Key.Y + offsetY, k.Key.Z + offsetZ, c);
         }
@@ -199,7 +198,7 @@ public partial class Server
             x /= chunksize;
             y /= chunksize;
             z /= chunksize;
-            return d_Map.GetChunkValid(x, y, z).data;
+            return d_Map.GetChunkValid(x, y, z).Data;
         }
         return null;
     }
@@ -278,7 +277,7 @@ public partial class Server
             if (serializedChunk != null)
             {
                 ServerChunk c = DeserializeChunk(serializedChunk);
-                return c.data;
+                return c.Data;
             }
         }
         return null;
@@ -312,23 +311,23 @@ public partial class Server
             {
                 c = DeserializeChunk(k.Value);
             }
-            deserializedChunks.Add(k.Key, c.data);
+            deserializedChunks.Add(k.Key, c.Data);
         }
         return deserializedChunks;
     }
 
     private static ServerChunk DeserializeChunk(byte[] serializedChunk)
     {
-        ServerChunk c = Serializer.Deserialize<ServerChunk>(new MemoryStream(serializedChunk));
+        ServerChunk c = MemoryPackSerializer.Deserialize<ServerChunk>(serializedChunk);
         //convert savegame to new format
-        if (c.dataOld != null)
+        if (c.DataOld != null)
         {
-            c.data = new ushort[chunksize * chunksize * chunksize];
-            for (int i = 0; i < c.dataOld.Length; i++)
+            c.Data = new ushort[chunksize * chunksize * chunksize];
+            for (int i = 0; i < c.DataOld.Length; i++)
             {
-                c.data[i] = c.dataOld[i];
+                c.Data[i] = c.DataOld[i];
             }
-            c.dataOld = null;
+            c.DataOld = null;
         }
         return c;
     }
@@ -353,10 +352,8 @@ public partial class Server
             int dy = pos.Y / chunksize;
             int dz = pos.Z / chunksize;
 
-            ServerChunk cc = new() { data = this.GetChunk(pos.X, pos.Y, pos.Z) };
-            MemoryStream ms = new();
-            Serializer.Serialize(ms, cc);
-            dbchunks.Add(new DbChunk() { Position = new Xyz() { X = dx, Y = dy, Z = dz }, Chunk = ms.ToArray() });
+            ServerChunk cc = new() { Data = this.GetChunk(pos.X, pos.Y, pos.Z) };
+            dbchunks.Add(new DbChunk() { Position = new Xyz() { X = dx, Y = dy, Z = dz }, Chunk = MemoryPackSerializer.Serialize(cc) });
         }
         if (dbchunks.Count != 0)
         {

@@ -374,7 +374,7 @@ public class ModPicking : ModBase
         bool found = false;
         for (int i = 0; i < 10; i++)
         {
-            if (game.Inventory.RightHand[i]?.ItemClass == ItemClass.Block
+            if (game.Inventory.RightHand[i]?.ItemClass == InventoryItemType.Block
              && game.Inventory.RightHand[i].BlockId == cloneSource2)
             {
                 game.ActiveMaterial = i;
@@ -390,7 +390,7 @@ public class ModPicking : ModBase
             {
                 Packet_PositionItem k = game.Inventory.Items[i];
                 if (k == null) { continue; }
-                if (k.Value_.ItemClass != ItemClass.Block || k.Value_.BlockId != cloneSource2) { continue; }
+                if (k.Value_.ItemClass != InventoryItemType.Block || k.Value_.BlockId != cloneSource2) { continue; }
 
                 if (freeHand != -1)
                 {
@@ -399,7 +399,7 @@ public class ModPicking : ModBase
                     break;
                 }
 
-                if (game.Inventory.RightHand[game.ActiveMaterial]?.ItemClass == ItemClass.Block)
+                if (game.Inventory.RightHand[game.ActiveMaterial]?.ItemClass == InventoryItemType.Block)
                 {
                     game.MoveToInventory(InventoryPositionMaterialSelector(game.ActiveMaterial));
                     game.WearItem(InventoryPositionMainArea(k.X, k.Y),
@@ -837,7 +837,7 @@ public class ModPicking : ModBase
     {
         float defaultDelay = 0.95f / game.Basemovespeed;
         Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
-        if (item == null || item.ItemClass != ItemClass.Block) { return defaultDelay; }
+        if (item == null || item.ItemClass != InventoryItemType.Block) { return defaultDelay; }
 
         float delay = game.DecodeFixedPoint(game.BlockTypes[item.BlockId].DelayFloat);
         return delay == 0 ? defaultDelay : delay;

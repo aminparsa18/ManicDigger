@@ -1,144 +1,223 @@
-﻿using ProtoBuf;
+﻿using MemoryPack;
 
 namespace ManicDigger;
 
-[ProtoContract]
-public class BlockType
+/// <summary>
+/// Defines all properties of a block type on the server side, including
+/// textures, physics, sounds, weapons, and special behaviour.
+/// Serialised with MemoryPack for persistence and network transfer.
+/// </summary>
+[MemoryPackable]
+public partial class BlockType
 {
-    public BlockType() { }
-    [ProtoMember(1)]
-    public string TextureIdTop = "Unknown";
-    [ProtoMember(2)]
-    public string TextureIdBottom = "Unknown";
-    [ProtoMember(3)]
-    public string TextureIdFront = "Unknown";
-    [ProtoMember(4)]
-    public string TextureIdBack = "Unknown";
-    [ProtoMember(5)]
-    public string TextureIdLeft = "Unknown";
-    [ProtoMember(6)]
-    public string TextureIdRight = "Unknown";
-    [ProtoMember(7)]
-    public string TextureIdForInventory = "Unknown";
-    [ProtoMember(8)]
-    public DrawType DrawType;
-    [ProtoMember(9)]
-    public WalkableType WalkableType;
-    [ProtoMember(10)]
-    public int Rail;
-    [ProtoMember(11)]
-    public float WalkSpeed = 1;
-    [ProtoMember(12)]
-    public bool IsSlipperyWalk;
-    [ProtoMember(13)]
-    public SoundSet Sounds;
-    [ProtoMember(14)]
-    public int LightRadius;
-    [ProtoMember(15)]
-    public int StartInventoryAmount;
-    [ProtoMember(16)]
-    public int Strength;
-    [ProtoMember(17)]
-    public string Name;
-    [ProtoMember(18)]
-    public bool IsBuildable;
-    [ProtoMember(19)]
-    public bool IsUsable;
-    [ProtoMember(20)]
-    public bool IsTool;
-    [ProtoMember(21)]
-    public string handimage;
-    [ProtoMember(22)]
-    public bool IsPistol;
-    [ProtoMember(23)]
-    public int AimRadius;
-    [ProtoMember(24)]
-    public float Recoil;
-    [ProtoMember(25)]
-    public float Delay;
-    [ProtoMember(26)]
-    public float BulletsPerShot;
-    [ProtoMember(27)]
-    public float WalkSpeedWhenUsed = 1;
-    [ProtoMember(28)]
-    public bool IronSightsEnabled;
-    [ProtoMember(29)]
-    public float IronSightsMoveSpeed = 1;
-    [ProtoMember(30)]
-    public string IronSightsImage;
-    [ProtoMember(31)]
-    public float IronSightsAimRadius;
-    [ProtoMember(32)]
-    public float IronSightsFov;
-    [ProtoMember(33)]
-    public int AmmoMagazine;
-    [ProtoMember(34)]
-    public int AmmoTotal;
-    [ProtoMember(35)]
-    public float ReloadDelay;
-    [ProtoMember(36)]
-    public float ExplosionRange;
-    [ProtoMember(37)]
-    public float ExplosionTime;
-    [ProtoMember(38)]
-    public float ProjectileSpeed; // 0 is infinite
-    [ProtoMember(39)]
-    public bool ProjectileBounce;
-    [ProtoMember(40)]
-    public float DamageBody;
-    [ProtoMember(41)]
-    public float DamageHead;
-    [ProtoMember(42)]
-    public PistolType PistolType;
-    [ProtoMember(43)]
-    public int DamageToPlayer = 0;
-    [ProtoMember(44)]
-    public int WhenPlayerPlacesGetsConvertedTo;
-    [ProtoMember(45)]
-    public float PickDistanceWhenUsed;
+    // ── Textures ──────────────────────────────────────────────────────────────
 
+    /// <summary>Texture asset name applied to the top face of this block.</summary>
+    public string TextureIdTop { get; set; } = "Unknown";
+
+    /// <summary>Texture asset name applied to the bottom face of this block.</summary>
+    public string TextureIdBottom { get; set; } = "Unknown";
+
+    /// <summary>Texture asset name applied to the front face of this block.</summary>
+    public string TextureIdFront { get; set; } = "Unknown";
+
+    /// <summary>Texture asset name applied to the back face of this block.</summary>
+    public string TextureIdBack { get; set; } = "Unknown";
+
+    /// <summary>Texture asset name applied to the left face of this block.</summary>
+    public string TextureIdLeft { get; set; } = "Unknown";
+
+    /// <summary>Texture asset name applied to the right face of this block.</summary>
+    public string TextureIdRight { get; set; } = "Unknown";
+
+    /// <summary>Texture asset name used when this block is displayed in the inventory.</summary>
+    public string TextureIdForInventory { get; set; } = "Unknown";
+
+    // ── Rendering ─────────────────────────────────────────────────────────────
+
+    /// <summary>Controls how this block is rendered (solid, fluid, plant, ladder, etc.).</summary>
+    public DrawType DrawType { get; set; }
+
+    // ── Physics ───────────────────────────────────────────────────────────────
+
+    /// <summary>Determines how the player interacts physically with this block (solid, fluid, or passable).</summary>
+    public WalkableType WalkableType { get; set; }
+
+    /// <summary>Rail sub-type for this block (0 = not a rail).</summary>
+    public int Rail { get; set; }
+
+    /// <summary>Walk speed multiplier applied while moving on this block. Default is 1 (normal speed).</summary>
+    public float WalkSpeed { get; set; } = 1;
+
+    /// <summary>
+    /// When <see langword="true"/>, the player slides on this block
+    /// with reduced friction (e.g. ice).
+    /// </summary>
+    public bool IsSlipperyWalk { get; set; }
+
+    /// <summary>Contact damage dealt to the player per tick when standing in or on this block (e.g. lava).</summary>
+    public int DamageToPlayer { get; set; } = 0;
+
+    /// <summary>
+    /// Block ID this block converts into when placed by a player.
+    /// 0 means no conversion.
+    /// </summary>
+    public int WhenPlayerPlacesGetsConvertedTo { get; set; }
+
+    // ── Lighting ──────────────────────────────────────────────────────────────
+
+    /// <summary>Radius of emitted light in blocks. 0 means this block emits no light.</summary>
+    public int LightRadius { get; set; }
+
+    // ── Sounds ────────────────────────────────────────────────────────────────
+
+    /// <summary>Walk, break, build, and clone sound variants for this block.</summary>
+    public SoundSet Sounds { get; set; }
+
+    // ── Inventory / interaction ───────────────────────────────────────────────
+
+    /// <summary>Default amount placed in the player's starting inventory.</summary>
+    public int StartInventoryAmount { get; set; }
+
+    /// <summary>Mining strength (time-to-break) for this block.</summary>
+    public int Strength { get; set; }
+
+    /// <summary>Internal name of this block type. Used for special-block lookup and debugging.</summary>
+    public string Name { get; set; }
+
+    /// <summary>When <see langword="true"/>, players can place this block in the world.</summary>
+    public bool IsBuildable { get; set; }
+
+    /// <summary>When <see langword="true"/>, right-clicking this block triggers a use action.</summary>
+    public bool IsUsable { get; set; }
+
+    /// <summary>When <see langword="true"/>, this block behaves as a holdable tool item.</summary>
+    public bool IsTool { get; set; }
+
+    /// <summary>Asset name of the hand image shown when this block is held.</summary>
+    public string handimage { get; set; }
+
+    /// <summary>Maximum interaction/pick distance override when this block is in use. 0 = default distance.</summary>
+    public float PickDistanceWhenUsed { get; set; }
+
+    // ── Weapon / firearm ──────────────────────────────────────────────────────
+
+    /// <summary>When <see langword="true"/>, this block acts as a firearm.</summary>
+    public bool IsPistol { get; set; }
+
+    /// <summary>Sub-type of firearm behaviour (pistol, rifle, etc.).</summary>
+    public PistolType PistolType { get; set; }
+
+    /// <summary>Aim spread radius in world units. Smaller values are more accurate.</summary>
+    public int AimRadius { get; set; }
+
+    /// <summary>Recoil magnitude applied to the camera on each shot.</summary>
+    public float Recoil { get; set; }
+
+    /// <summary>Minimum time in seconds between consecutive shots.</summary>
+    public float Delay { get; set; }
+
+    /// <summary>Number of projectiles fired per shot (e.g. 1 for a pistol, higher for shotguns).</summary>
+    public float BulletsPerShot { get; set; }
+
+    /// <summary>Walk speed multiplier applied while this weapon is being used. Default is 1.</summary>
+    public float WalkSpeedWhenUsed { get; set; } = 1;
+
+    // ── Iron sights ───────────────────────────────────────────────────────────
+
+    /// <summary>When <see langword="true"/>, this weapon supports iron-sights aiming mode.</summary>
+    public bool IronSightsEnabled { get; set; }
+
+    /// <summary>Walk speed multiplier applied while aiming down sights. Default is 1.</summary>
+    public float IronSightsMoveSpeed { get; set; } = 1;
+
+    /// <summary>Asset name of the iron-sights overlay image.</summary>
+    public string IronSightsImage { get; set; }
+
+    /// <summary>Aim spread radius while in iron-sights mode.</summary>
+    public float IronSightsAimRadius { get; set; }
+
+    /// <summary>Field-of-view override while in iron-sights mode. 0 = no override.</summary>
+    public float IronSightsFov { get; set; }
+
+    // ── Ammo ──────────────────────────────────────────────────────────────────
+
+    /// <summary>Maximum rounds held in one magazine before a reload is required.</summary>
+    public int AmmoMagazine { get; set; }
+
+    /// <summary>Maximum total ammo the player can carry for this weapon.</summary>
+    public int AmmoTotal { get; set; }
+
+    /// <summary>Time in seconds required to reload this weapon.</summary>
+    public float ReloadDelay { get; set; }
+
+    // ── Explosives / projectiles ──────────────────────────────────────────────
+
+    /// <summary>Radius of the explosion caused by this block's projectile. 0 = no explosion.</summary>
+    public float ExplosionRange { get; set; }
+
+    /// <summary>Duration in seconds before the projectile explodes after being fired.</summary>
+    public float ExplosionTime { get; set; }
+
+    /// <summary>
+    /// Speed of the projectile in world units per second.
+    /// 0 means the projectile travels instantaneously (hitscan).
+    /// </summary>
+    public float ProjectileSpeed { get; set; }
+
+    /// <summary>When <see langword="true"/>, the projectile bounces off surfaces.</summary>
+    public bool ProjectileBounce { get; set; }
+
+    // ── Damage ────────────────────────────────────────────────────────────────
+
+    /// <summary>Damage dealt to the body on a successful hit.</summary>
+    public float DamageBody { get; set; }
+
+    /// <summary>Damage dealt to the head on a successful hit (headshot multiplier source).</summary>
+    public float DamageHead { get; set; }
+
+    // ── Convenience setters ───────────────────────────────────────────────────
+
+    /// <summary>
+    /// Sets the same texture asset on all six faces and the inventory slot simultaneously.
+    /// </summary>
+    [MemoryPackIgnore]
     public string AllTextures
     {
         set
         {
-            TextureIdTop = value;
-            TextureIdBottom = value;
-            TextureIdFront = value;
-            TextureIdBack = value;
-            TextureIdLeft = value;
-            TextureIdRight = value;
+            TextureIdTop = TextureIdBottom = TextureIdFront =
+            TextureIdBack = TextureIdLeft = TextureIdRight =
             TextureIdForInventory = value;
         }
     }
 
+    /// <summary>Sets the same texture asset on all four side faces (front, back, left, right).</summary>
+    [MemoryPackIgnore]
     public string SideTextures
     {
-        set
-        {
-            TextureIdFront = value;
-            TextureIdBack = value;
-            TextureIdLeft = value;
-            TextureIdRight = value;
-        }
+        set { TextureIdFront = TextureIdBack = TextureIdLeft = TextureIdRight = value; }
     }
 
+    /// <summary>Sets the same texture asset on the top and bottom faces.</summary>
+    [MemoryPackIgnore]
     public string TopBottomTextures
     {
-        set
-        {
-            TextureIdTop = value;
-            TextureIdBottom = value;
-        }
+        set { TextureIdTop = TextureIdBottom = value; }
     }
 
-    public bool IsFluid()
-    {
-        return DrawType == DrawType.Fluid;
-    }
+    // ── Queries ───────────────────────────────────────────────────────────────
 
-    public bool IsEmptyForPhysics()
-    {
-        return (DrawType == DrawType.Ladder)
-            || (WalkableType != WalkableType.Solid && WalkableType != WalkableType.Fluid);
-    }
+    /// <summary>
+    /// Returns <see langword="true"/> when this block's draw type is <see cref="DrawType.Fluid"/>.
+    /// </summary>
+    public bool IsFluid() => DrawType == DrawType.Fluid;
+
+    /// <summary>
+    /// Returns <see langword="true"/> when this block does not obstruct player movement
+    /// (ladders and non-solid, non-fluid draw types).
+    /// </summary>
+    public bool IsEmptyForPhysics() =>
+        DrawType == DrawType.Ladder
+        || (WalkableType != WalkableType.Solid && WalkableType != WalkableType.Fluid);
 }

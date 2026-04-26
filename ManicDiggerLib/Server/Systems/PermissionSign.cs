@@ -51,23 +51,23 @@ public class ServerSystemPermissionSign : ServerSystem
 
         var e = new ServerEntity
         {
-            position = new ServerEntityPositionAndOrientation
+            Position = new ServerEntityPositionAndOrientation
             {
-                x = x + One / 2,
-                y = z,
-                z = y + One / 2
+                X = x + One / 2,
+                Y = z,
+                Z = y + One / 2
             },
-            permissionSign = new ServerEntityPermissionSign
+            PermissionSign = new ServerEntityPermissionSign
             {
-                name = "Admin",
-                type = PermissionSignType.Group
+                Name = "Admin",
+                Type = PermissionSignType.Group
             }
         };
 
-        e.position.heading = EntityHeading.GetHeading(
+        e.Position.Heading = EntityHeading.GetHeading(
             server.modManager.GetPlayerPositionX(player),
             server.modManager.GetPlayerPositionY(player),
-            e.position.x, e.position.z);
+            e.Position.X, e.Position.Z);
 
         server.AddEntity(x, y, z, e);
     }
@@ -84,29 +84,28 @@ public class ServerSystemPermissionSign : ServerSystem
     private void UpdateEntity(int chunkx, int chunky, int chunkz, int id)
     {
         ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
-        if (e.permissionSign == null) return;
+        if (e.PermissionSign == null) return;
 
         // Model
-        e.drawModel ??= new ServerEntityAnimatedModel();
-        e.drawModel.model = "signmodel.txt";
-        e.drawModel.texture = "permissionsignmodel.png";
-        e.drawModel.modelHeight = One * 13 / 10;
+        e.DrawModel ??= new ServerEntityAnimatedModel();
+        e.DrawModel.Model = "signmodel.txt";
+        e.DrawModel.Texture = "permissionsignmodel.png";
+        e.DrawModel.ModelHeight = One * 13 / 10;
 
         // Text (group names are prefixed red)
-        e.drawText ??= new ServerEntityDrawText();
-        e.drawText.text = e.permissionSign.type == PermissionSignType.Group
-            ? $"&4{e.permissionSign.name}"
-            : e.permissionSign.name;
-        e.drawText.dx = One * 3 / 32;
-        e.drawText.dy = One * 36 / 32;
-        e.drawText.dz = One * 3 / 32;
+        e.DrawText ??= new ServerEntityDrawText();
+        e.DrawText.Text = e.PermissionSign.Type == PermissionSignType.Group
+            ? $"&4{e.PermissionSign.Name}"
+            : e.PermissionSign.Name;
+        e.DrawText.Dx = One * 3 / 32;
+        e.DrawText.Dy = One * 36 / 32;
+        e.DrawText.Dz = One * 3 / 32;
 
         // Name tag
-        e.usable = true;
-        e.drawName ??= new ServerEntityDrawName { name = "Permission Sign", onlyWhenSelected = true };
-
+        e.Usable = true;
+        e.DrawName ??= new ServerEntityDrawName { Name = "Permission Sign", OnlyWhenSelected = true };
         // Restricted area (extends in the direction the sign faces)
-        e.drawArea ??= new ServerEntityDrawArea();
+        e.DrawArea ??= new ServerEntityDrawArea();
         UpdateDrawArea(e);
     }
 
@@ -116,30 +115,29 @@ public class ServerSystemPermissionSign : ServerSystem
     /// </summary>
     private static void UpdateDrawArea(ServerEntity e)
     {
-        int px = (int)e.position.x;
-        int py = (int)e.position.y;
-        int pz = (int)e.position.z;
+        int px = (int)e.Position.X;
+        int py = (int)e.Position.Y;
+        int pz = (int)e.Position.Z;
         int half = AreaSize / 2;
 
         // Quantise heading into 4 cardinal directions (north/east/south/west)
-        int rotDir = (byte)(e.position.heading + 255 / 8) / 64;
-
-        e.drawArea.x = rotDir switch
+        int rotDir = (byte)(e.Position.Heading + 255 / 8) / 64;
+        e.DrawArea.X = rotDir switch
         {
             1 => px,
             3 => px - AreaSize,
             _ => px - half
         };
-        e.drawArea.y = py - half;
-        e.drawArea.z = rotDir switch
+        e.DrawArea.Y = py - half;
+        e.DrawArea.Z = rotDir switch
         {
             0 => pz - AreaSize,
             2 => pz,
             _ => pz - half
         };
-        e.drawArea.sizex = AreaSize;
-        e.drawArea.sizey = AreaSize;
-        e.drawArea.sizez = AreaSize;
+        e.DrawArea.SizeX = AreaSize;
+        e.DrawArea.SizeY = AreaSize;
+        e.DrawArea.SizeZ = AreaSize;
     }
 
     // -------------------------------------------------------------------------
@@ -154,7 +152,7 @@ public class ServerSystemPermissionSign : ServerSystem
     private void OnUseEntity(int player, int chunkx, int chunky, int chunkz, int id)
     {
         ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
-        if (e.permissionSign == null) return;
+        if (e.PermissionSign == null) return;
         if (!CheckAreaPrivilege(player)) return;
 
         var font = new DialogFont("Verdana", 11f, DialogFontStyle.Bold);
@@ -170,7 +168,7 @@ public class ServerSystemPermissionSign : ServerSystem
         };
 
         d.Widgets[widgetCount++] = Widget.MakeSolid(0, 0, 400, 400, ColorUtils.ColorFromArgb(255, 50, 50, 50));
-        d.Widgets[widgetCount++] = Widget.MakeTextBox(e.permissionSign.name, font, 50, 50, 200, 50, ColorUtils.ColorFromArgb(255, 0, 0, 0));
+        d.Widgets[widgetCount++] = Widget.MakeTextBox(e.PermissionSign.Name, font, 50, 50, 200, 50, ColorUtils.ColorFromArgb(255, 0, 0, 0));
 
         for (int i = 0; i < groups.Count; i++)
         {
@@ -223,8 +221,8 @@ public class ServerSystemPermissionSign : ServerSystem
         if (!string.IsNullOrEmpty(name))
         {
             ServerEntity e = server.GetEntity(id.chunkx, id.chunky, id.chunkz, id.id);
-            e.permissionSign.name = name;
-            e.permissionSign.type = type;
+            e.PermissionSign.Name = name;
+            e.PermissionSign.Type = type;
             server.SetEntityDirty(id);
         }
         else
@@ -300,19 +298,19 @@ public class ServerSystemPermissionSign : ServerSystem
                     for (int i = 0; i < chunk.EntitiesCount; i++)
                     {
                         ServerEntity e = chunk.Entities[i];
-                        if (e?.permissionSign == null || e.drawArea == null) continue;
+                        if (e?.PermissionSign == null || e.DrawArea == null) continue;
 
                         if (!InArea(blockX, blockY, blockZ,
-                                e.drawArea.x, e.drawArea.z, e.drawArea.y,
-                                e.drawArea.sizex, e.drawArea.sizez, e.drawArea.sizey))
+                                e.DrawArea.X, e.DrawArea.Z, e.DrawArea.Y,
+                                e.DrawArea.SizeX, e.DrawArea.SizeZ, e.DrawArea.SizeY))
                             continue;
 
                         ClientOnServer client = server.clients[args.Player];
 
-                        bool allowed = e.permissionSign.type switch
+                        bool allowed = e.PermissionSign.Type switch
                         {
-                            PermissionSignType.Group => e.permissionSign.name == client.clientGroup.Name,
-                            PermissionSignType.Player => e.permissionSign.name == client.playername,
+                            PermissionSignType.Group => e.PermissionSign.Name == client.clientGroup.Name,
+                            PermissionSignType.Player => e.PermissionSign.Name == client.playername,
                             _ => false
                         };
 

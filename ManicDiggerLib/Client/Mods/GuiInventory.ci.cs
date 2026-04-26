@@ -365,7 +365,7 @@ public class ModGuiInventory : ModBase
             drawsizeY = CellDrawSize * sizey;
         }
 
-        if (item.ItemClass == ItemClass.Block)
+        if (item.ItemClass == InventoryItemType.Block)
         {
             if (item.BlockId == 0) { return; }
 

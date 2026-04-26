@@ -1,6 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using static ManicDigger.Mods.ModNetworkProcess;
 
 /// <summary>
 /// The main system for loading, unloading, and streaming map chunks to players.
@@ -132,12 +133,17 @@ public class ServerSystemNotifyMap : ServerSystem
         ServerChunk chunk = server.d_Map.GetChunk(globalPos.X, globalPos.Y, globalPos.Z);
         server.ClientSeenChunkSet(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z, server.simulationcurrentframe);
 
+        bool isSolid = MapUtil.IsSolidChunk(chunk.Data);
+        int firstBlock = chunk.Data?[0] ?? -1;
+        int nonZero = chunk.Data?.Count(b => b != 0) ?? -1;
+        DiagLog.Write($"SendChunk ({globalPos.X},{globalPos.Y},{globalPos.Z}): isSolid={isSolid} firstBlock={firstBlock} nonZero={nonZero} dataLen={chunk.Data?.Length ?? -1}");
+
         byte[] compressedChunk = null;
 
-        if (!MapUtil.IsSolidChunk(chunk.data) || chunk.data[0] != 0)
+        if (!MapUtil.IsSolidChunk(chunk.Data) || chunk.Data[0] != 0)
         {
             // Compress and queue block data for sending
-            compressedChunk = server.CompressChunkNetwork(chunk.data);
+            compressedChunk = server.CompressChunkNetwork(chunk.Data);
 
             // Send heightmap for this column
             ReadOnlySpan<byte> heightmapBytes = MemoryMarshal.AsBytes(

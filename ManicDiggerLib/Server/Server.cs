@@ -1,7 +1,5 @@
 using ManicDigger;
-using MemoryPack;
 using OpenTK.Mathematics;
-using ProtoBuf;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -17,30 +15,70 @@ public class ClientException : Exception
     }
     public int clientid;
 }
-[ProtoContract]
-public class ManicDiggerSave
+
+/// <summary>
+/// The top-level save file structure for a ManicDigger world.
+/// Persisted to disk when the server saves and loaded on world startup.
+/// </summary>
+[MemoryPackable]
+public partial class ManicDiggerSave
 {
-    [ProtoMember(1, IsRequired = false)]
-    public int MapSizeX;
-    [ProtoMember(2, IsRequired = false)]
-    public int MapSizeY;
-    [ProtoMember(3, IsRequired = false)]
-    public int MapSizeZ;
-    [ProtoMember(4, IsRequired = false)]
-    public Dictionary<string, PacketServerInventory> Inventory;
-    [ProtoMember(7, IsRequired = false)]
-    public int Seed;
-    [ProtoMember(8, IsRequired = false)]
-    public long SimulationCurrentFrame;
-    [ProtoMember(9, IsRequired = false)]
-    public Dictionary<string, PacketServerPlayerStats> PlayerStats;
-    [ProtoMember(10, IsRequired = false)]
-    public int LastMonsterId;
-    [ProtoMember(11, IsRequired = false)]
-    public Dictionary<string, byte[]> moddata;
-    [ProtoMember(12, IsRequired = false)]
-    public long TimeOfDay;
+    // ── World dimensions ──────────────────────────────────────────────────────
+
+    /// <summary>Map width in blocks along the X axis.</summary>
+    public int MapSizeX { get; set; }
+
+    /// <summary>Map depth in blocks along the Y axis.</summary>
+    public int MapSizeY { get; set; }
+
+    /// <summary>Map height in blocks along the Z axis.</summary>
+    public int MapSizeZ { get; set; }
+
+    // ── World generation ──────────────────────────────────────────────────────
+
+    /// <summary>Random seed used to generate this world's terrain.</summary>
+    public int Seed { get; set; }
+
+    // ── Simulation state ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Current simulation frame counter. Used for timestamping chunk changes,
+    /// scheduling events, and determining entity ages.
+    /// </summary>
+    public long SimulationCurrentFrame { get; set; }
+
+    /// <summary>
+    /// Current in-game time of day, expressed as a simulation tick offset.
+    /// </summary>
+    public long TimeOfDay { get; set; }
+
+    /// <summary>
+    /// Highest monster entity ID issued so far. Used to generate unique IDs
+    /// for newly spawned monsters without collision.
+    /// </summary>
+    public int LastMonsterId { get; set; }
+
+    // ── Per-player data ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Inventory snapshots keyed by player username.
+    /// </summary>
+    public Dictionary<string, PacketServerInventory>? Inventory { get; set; }
+
+    /// <summary>
+    /// Health and oxygen snapshots keyed by player username.
+    /// </summary>
+    public Dictionary<string, PacketServerPlayerStats>? PlayerStats { get; set; }
+
+    // ── Mod data ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Arbitrary binary data blobs keyed by mod identifier.
+    /// Allows server-side mods to persist custom state alongside the world save.
+    /// </summary>
+    public Dictionary<string, byte[]>? ModData { get; set; }
 }
+
 public partial class Server : ICurrentTime, IDropItem
 {
     public Server()
@@ -504,13 +542,11 @@ public partial class Server : ICurrentTime, IDropItem
             {
                 Seed = config.Seed;
             }
-            MemoryStream ms = new();
-            SaveGame(ms);
-            d_ChunkDb.SetGlobalData(ms.ToArray());
+            d_ChunkDb.SetGlobalData(SaveGame());
             this._time.Init(TimeSpan.Parse("08:00").Ticks);
             return;
         }
-        ManicDiggerSave save = Serializer.Deserialize<ManicDiggerSave>(new MemoryStream(globaldata));
+        ManicDiggerSave save = MemoryPackSerializer.Deserialize<ManicDiggerSave>(globaldata);
         Seed = save.Seed;
         d_Map.Reset(d_Map.MapSizeX, d_Map.MapSizeY, d_Map.MapSizeZ);
         if (config.IsCreative) this.Inventory = Inventory = new Dictionary<string, PacketServerInventory>(StringComparer.InvariantCultureIgnoreCase);
@@ -519,33 +555,37 @@ public partial class Server : ICurrentTime, IDropItem
         this.simulationcurrentframe = (int)save.SimulationCurrentFrame;
         this._time.Init(save.TimeOfDay);
         this.LastMonsterId = save.LastMonsterId;
-        this.moddata = save.moddata;
+        this.moddata = save.ModData;
     }
     public List<Action> onload = new();
     public List<Action> onsave = new();
     public int LastMonsterId;
     public Dictionary<string, PacketServerInventory> Inventory = new(StringComparer.InvariantCultureIgnoreCase);
     public Dictionary<string, PacketServerPlayerStats> PlayerStats = new(StringComparer.InvariantCultureIgnoreCase);
-    public void SaveGame(Stream s)
+    
+    private byte[] SaveGame()
     {
         for (int i = 0; i < onsave.Count; i++)
-        {
             onsave[i]();
-        }
-        ManicDiggerSave save = new();
-        SaveAllLoadedChunks();
-        if (!config.IsCreative)
+
+        ManicDiggerSave save = new()
         {
+            Seed = Seed,
+            SimulationCurrentFrame = simulationcurrentframe,
+            TimeOfDay = _time.Time.Ticks,
+            LastMonsterId = LastMonsterId,
+            PlayerStats = PlayerStats,
+            ModData = moddata,
+        };
+
+        SaveAllLoadedChunks();
+
+        if (!config.IsCreative)
             save.Inventory = Inventory;
-        }
-        save.PlayerStats = PlayerStats;
-        save.Seed = Seed;
-        save.SimulationCurrentFrame = simulationcurrentframe;
-        save.TimeOfDay = _time.Time.Ticks;
-        save.LastMonsterId = LastMonsterId;
-        save.moddata = moddata;
-        Serializer.Serialize(s, save);
+
+        return MemoryPackSerializer.Serialize(save);
     }
+
     public Dictionary<string, byte[]> moddata = new();
     public bool BackupDatabase(string backupFilename)
     {
@@ -602,9 +642,7 @@ public partial class Server : ICurrentTime, IDropItem
                         continue;
                     }
                     c.DirtyForSaving = false;
-                    MemoryStream ms = new();
-                    Serializer.Serialize(ms, c);
-                    tosave.Add(new DbChunk() { Position = new Xyz() { X = cx, Y = cy, Z = cz }, Chunk = ms.ToArray() });
+                    tosave.Add(new DbChunk() { Position = new Xyz() { X = cx, Y = cy, Z = cz }, Chunk = MemoryPackSerializer.Serialize(c) });
                     if (tosave.Count > 200)
                     {
                         d_ChunkDb.SetChunks(tosave);
@@ -629,9 +667,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     private void SaveGlobalData()
     {
-        MemoryStream ms = new();
-        SaveGame(ms);
-        d_ChunkDb.SetGlobalData(ms.ToArray());
+        d_ChunkDb.SetGlobalData(SaveGame());
     }
     private DateTime lastsave = DateTime.UtcNow;
 
@@ -791,9 +827,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     internal void DoSaveChunk(int x, int y, int z, ServerChunk c)
     {
-        MemoryStream ms = new();
-        Serializer.Serialize(ms, c);
-        ChunkDb.SetChunk(d_ChunkDb, x, y, z, ms.ToArray());
+        ChunkDb.SetChunk(d_ChunkDb, x, y, z, MemoryPackSerializer.Serialize(c));
     }
 
     private readonly int SEND_CHUNKS_PER_SECOND = 10;
@@ -885,7 +919,7 @@ public partial class Server : ICurrentTime, IDropItem
         return x.ToString() + " " + y.ToString();
     }
 
-    private static Packet_Item ConvertItem(Item item)
+    private static Packet_Item ConvertItem(InventoryItem item)
     {
         if (item == null)
         {
@@ -895,7 +929,7 @@ public partial class Server : ICurrentTime, IDropItem
         {
             BlockCount = item.BlockCount,
             BlockId = item.BlockId,
-            ItemClass = item.ItemClass,
+            ItemClass = item.InventoryItemType,
             ItemId = item.ItemId
         };
         return p;
@@ -1023,7 +1057,7 @@ public partial class Server : ICurrentTime, IDropItem
             {
                 if (amount > 0 || BlockTypes[i].IsBuildable)
                 {
-                    inv.Items.Add(new ProtoPoint(x, y), new Item() { ItemClass = ItemClass.Block, BlockId = i, BlockCount = 0 });
+                    inv.Items.Add(new GridPoint(x, y), new InventoryItem() { InventoryItemType = InventoryItemType.Block, BlockId = i, BlockCount = 0 });
                     x++;
                     if (x >= GetInventoryUtil(inv).CellCountX)
                     {
@@ -1034,7 +1068,7 @@ public partial class Server : ICurrentTime, IDropItem
             }
             else if (amount > 0)
             {
-                inv.Items.Add(new ProtoPoint(x, y), new Item() { ItemClass = ItemClass.Block, BlockId = i, BlockCount = amount });
+                inv.Items.Add(new GridPoint(x, y), new InventoryItem() { InventoryItemType = InventoryItemType.Block, BlockId = i, BlockCount = amount });
                 x++;
                 if (x >= GetInventoryUtil(inv).CellCountX)
                 {
@@ -1267,13 +1301,13 @@ public partial class Server : ICurrentTime, IDropItem
                     this.SetFillAreaLimit(clientid);
                     this.SendFreemoveState(clientid, clients[clientid].privileges.Contains(ServerClientMisc.Privilege.freemove));
                     c.queryClient = false;
-                    clients[clientid].entity.drawName.name = username;
+                    clients[clientid].entity.DrawName.Name = username;
                     if (config.EnablePlayerPushing)
                     {
                         // Player pushing
-                        clients[clientid].entity.push = new ServerEntityPush
+                        clients[clientid].entity.Push = new ServerEntityPush
                         {
-                            range = 1
+                            Range = 1
                         };
                     }
                     PlayerEntitySetDirty(clientid);
@@ -2131,7 +2165,7 @@ public partial class Server : ICurrentTime, IDropItem
             for (; ; )
             {
                 //check if ingredients available
-                foreach (Ingredient ingredient in craftingrecipes[i].ingredients)
+                foreach (Ingredient ingredient in craftingrecipes[i].Ingredients)
                 {
                     if (OntableFindAllCount(ontable, ontableCount, ingredient.Type) < ingredient.Amount)
                     {
@@ -2139,7 +2173,7 @@ public partial class Server : ICurrentTime, IDropItem
                     }
                 }
                 //remove ingredients
-                foreach (Ingredient ingredient in craftingrecipes[i].ingredients)
+                foreach (Ingredient ingredient in craftingrecipes[i].Ingredients)
                 {
                     for (int ii = 0; ii < ingredient.Amount; ii++)
                     {
@@ -2148,9 +2182,9 @@ public partial class Server : ICurrentTime, IDropItem
                     }
                 }
                 //add output
-                for (int z = 0; z < craftingrecipes[i].output.Amount; z++)
+                for (int z = 0; z < craftingrecipes[i].Output.Amount; z++)
                 {
-                    outputtoadd.Add(craftingrecipes[i].output.Type);
+                    outputtoadd.Add(craftingrecipes[i].Output.Type);
                 }
             }
         nextrecipe:
@@ -2473,9 +2507,9 @@ public partial class Server : ICurrentTime, IDropItem
             {
                 return false;
             }
-            switch (item.ItemClass)
+            switch (item.InventoryItemType)
             {
-                case ItemClass.Block:
+                case InventoryItemType.Block:
                     item.BlockCount--;
                     if (item.BlockCount == 0)
                     {
@@ -2506,9 +2540,9 @@ public partial class Server : ICurrentTime, IDropItem
         }
         else
         {
-            var item = new Item
+            var item = new InventoryItem
             {
-                ItemClass = ItemClass.Block
+                InventoryItemType = InventoryItemType.Block
             };
             int blockid = d_Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
             item.BlockId = d_Data.WhenPlayerPlacesGetsConvertedTo[blockid];
@@ -2557,8 +2591,8 @@ public partial class Server : ICurrentTime, IDropItem
             cmd.BlockType - d_Data.BlockIdRailStart);
         int blockstoput = newrailcount - oldrailcount;
 
-        Item item = inventory.RightHand[cmd.MaterialSlot];
-        if (!(item.ItemClass == ItemClass.Block && d_Data.Rail[item.BlockId] != 0))
+        InventoryItem item = inventory.RightHand[cmd.MaterialSlot];
+        if (!(item.InventoryItemType == InventoryItemType.Block && d_Data.Rail[item.BlockId] != 0))
         {
             return false;
         }
@@ -2605,9 +2639,9 @@ public partial class Server : ICurrentTime, IDropItem
                 blocktype - d_Data.BlockIdRailStart);
         }
 
-        var item = new Item
+        var item = new InventoryItem
         {
-            ItemClass = ItemClass.Block,
+            InventoryItemType = InventoryItemType.Block,
             BlockId = d_Data.WhenPlayerPlacesGetsConvertedTo[blocktype],
             BlockCount = blockstopick
         };
@@ -2956,20 +2990,20 @@ public partial class Server : ICurrentTime, IDropItem
             return null;
         }
         Packet_CraftingRecipe r = new();
-        if (craftingRecipe.ingredients != null)
+        if (craftingRecipe.Ingredients != null)
         {
-            r.Ingredients = new Packet_Ingredient[craftingRecipe.ingredients.Length];
-            for (int i = 0; i < craftingRecipe.ingredients.Length; i++)
+            r.Ingredients = new Packet_Ingredient[craftingRecipe.Ingredients.Length];
+            for (int i = 0; i < craftingRecipe.Ingredients.Length; i++)
             {
-                r.Ingredients[i] = ConvertIngredient(craftingRecipe.ingredients[i]);
+                r.Ingredients[i] = ConvertIngredient(craftingRecipe.Ingredients[i]);
             }
         }
-        if (craftingRecipe.output != null)
+        if (craftingRecipe.Output != null)
         {
             r.Output = new Packet_Ingredient
             {
-                Amount = craftingRecipe.output.Amount,
-                Type = craftingRecipe.output.Type
+                Amount = craftingRecipe.Output.Amount,
+                Type = craftingRecipe.Output.Type
             };
         }
         return r;
@@ -3110,11 +3144,11 @@ public partial class Server : ICurrentTime, IDropItem
     }
 
     public int dumpmax = 30;
-    public void DropItem(ref Item item, Vector3i pos)
+    public void DropItem(ref InventoryItem item, Vector3i pos)
     {
-        switch (item.ItemClass)
+        switch (item.InventoryItemType)
         {
-            case ItemClass.Block:
+            case InventoryItemType.Block:
                 for (int i = 0; i < dumpmax; i++)
                 {
                     if (item.BlockCount == 0) { break; }
@@ -3489,7 +3523,9 @@ public partial class Server : ICurrentTime, IDropItem
         }
         if (c.Entities.Length < c.EntitiesCount + 1)
         {
-            Array.Resize(ref c.Entities, c.EntitiesCount + 1);
+            var entities = c.Entities;
+            Array.Resize(ref entities, c.EntitiesCount + 1);
+            c.Entities = entities;
         }
         c.Entities[c.EntitiesCount++] = e;
         c.DirtyForSaving = true;
@@ -3503,17 +3539,17 @@ public class ClientOnServer
         float one = 1;
         entity = new ServerEntity
         {
-            drawName = new ServerEntityDrawName
+            DrawName = new ServerEntityDrawName
             {
-                clientAutoComplete = true
+                ClientAutoComplete = true
             },
-            position = new ServerEntityPositionAndOrientation
+            Position = new ServerEntityPositionAndOrientation
             {
-                pitch = 2 * 255 / 4
+                Pitch = 2 * 255 / 4
             },
-            drawModel = new ServerEntityAnimatedModel
+            DrawModel = new ServerEntityAnimatedModel
             {
-                downloadSkin = true
+                DownloadSkin = true
             }
         };
         Id = -1;
@@ -3550,15 +3586,15 @@ public class ClientOnServer
     internal List<byte> received;
     internal Ping Ping;
     internal float LastPing;
-    internal string playername { get { return entity.drawName.name; } set { entity.drawName.name = value; } }
-    internal int PositionMul32GlX { get { return (int)(entity.position.x * 32); } set { entity.position.x = (float)value / 32; } }
-    internal int PositionMul32GlY { get { return (int)(entity.position.y * 32); } set { entity.position.y = (float)value / 32; } }
-    internal int PositionMul32GlZ { get { return (int)(entity.position.z * 32); } set { entity.position.z = (float)value / 32; } }
-    internal int positionheading { get { return entity.position.heading; } set { entity.position.heading = (byte)value; } }
-    internal int positionpitch { get { return entity.position.pitch; } set { entity.position.pitch = (byte)value; } }
-    internal byte stance { get { return entity.position.stance; } set { entity.position.stance = value; } }
-    internal string Model { get { return entity.drawModel.model; } set { entity.drawModel.model = value; } }
-    internal string Texture { get { return entity.drawModel.texture; } set { entity.drawModel.texture = value; } }
+    internal string playername { get { return entity.DrawName.Name; } set { entity.DrawName.Name = value; } }
+    internal int PositionMul32GlX { get { return (int)(entity.Position.X * 32); } set { entity.Position.X = (float)value / 32; } }
+    internal int PositionMul32GlY { get { return (int)(entity.Position.Y * 32); } set { entity.Position.Y = (float)value / 32; } }
+    internal int PositionMul32GlZ { get { return (int)(entity.Position.Z * 32); } set { entity.Position.Z = (float)value / 32; } }
+    internal int positionheading { get { return entity.Position.Heading; } set { entity.Position.Heading = (byte)value; } }
+    internal int positionpitch { get { return entity.Position.Pitch; } set { entity.Position.Pitch = (byte)value; } }
+    internal byte stance { get { return entity.Position.Stance; } set { entity.Position.Stance = value; } }
+    internal string Model { get { return entity.DrawModel.Model; } set { entity.DrawModel.Model = value; } }
+    internal string Texture { get { return entity.DrawModel.Texture; } set { entity.DrawModel.Texture = value; } }
     internal Dictionary<int, int> chunksseenTime;
     internal bool[] chunksseen;
     internal Dictionary<Vector2i, int> heightmapchunksseen;
@@ -3578,7 +3614,7 @@ public class ClientOnServer
     }
     internal List<string> privileges;
     internal string color;
-    internal string displayColor { get { return entity.drawName.color; } set { entity.drawName.color = value; } }
+    internal string displayColor { get { return entity.DrawName.Color; } set { entity.DrawName.Color = value; } }
     public string ColoredPlayername(string subsequentColor)
     {
         return this.color + this.playername + subsequentColor;
@@ -3598,8 +3634,8 @@ public class ClientOnServer
         return string.Format("{0}:{1}:{2} {3}", this.playername, this.clientGroup.Name,
             ServerClientMisc.PrivilegesString(this.privileges), ip);
     }
-    internal float EyeHeight { get { return entity.drawModel.eyeHeight; } set { entity.drawModel.eyeHeight = value; } }
-    internal float ModelHeight { get { return entity.drawModel.modelHeight; } set { entity.drawModel.modelHeight = value; } }
+    internal float EyeHeight { get { return entity.DrawModel.EyeHeight; } set { entity.DrawModel.EyeHeight = value; } }
+    internal float ModelHeight { get { return entity.DrawModel.ModelHeight; } set { entity.DrawModel.ModelHeight = value; } }
     internal int ActiveMaterialSlot;
     internal bool IsSpectator;
     internal bool usingFill;
@@ -4157,23 +4193,37 @@ public class Timer
     }
 }
 
-[ProtoContract()]
-public class Ingredient
+/// <summary>
+/// A single material requirement or output in a <see cref="CraftingRecipe"/>.
+/// </summary>
+[MemoryPackable]
+public partial class Ingredient
 {
-    [ProtoMember(1)]
-    public int Type;
-    [ProtoMember(2)]
-    public int Amount;
+    /// <summary>Block type ID of this ingredient or output material.</summary>
+    public int Type { get; set; }
+
+    /// <summary>Number of items required (for inputs) or produced (for output).</summary>
+    public int Amount { get; set; }
 }
 
-[ProtoContract()]
-public class CraftingRecipe
+/// <summary>
+/// Defines a crafting recipe: a set of required input materials
+/// and the item produced when those inputs are consumed.
+/// </summary>
+[MemoryPackable]
+public partial class CraftingRecipe
 {
-    [ProtoMember(1)]
-    public Ingredient[] ingredients;
-    [ProtoMember(2)]
-    public Ingredient output;
+    /// <summary>
+    /// Input materials required to craft this recipe.
+    /// All ingredients must be present in the player's inventory
+    /// in the specified amounts.
+    /// </summary>
+    public Ingredient[]? Ingredients { get; set; }
+
+    /// <summary>The item produced when this recipe is crafted successfully.</summary>
+    public Ingredient? Output { get; set; }
 }
+
 
 public class EntityHeading
 {

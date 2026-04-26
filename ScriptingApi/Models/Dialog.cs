@@ -1,16 +1,28 @@
-﻿using ProtoBuf;
+﻿using MemoryPack;
 
 namespace ManicDigger;
 
-[ProtoContract]
-public class Dialog
+/// <summary>
+/// Describes a server-sent dialog window, including its dimensions,
+/// modality, and the collection of widgets it contains.
+/// </summary>
+[MemoryPackable]
+public partial class Dialog
 {
-    [ProtoMember(1, IsRequired = false)]
-    public Widget[] Widgets;
-    [ProtoMember(2, IsRequired = false)]
-    public int Width;
-    [ProtoMember(3, IsRequired = false)]
-    public int Height;
-    [ProtoMember(4, IsRequired = false)]
-    public bool IsModal;
+    /// <summary>
+    /// The widgets (buttons, labels, text boxes, etc.) displayed inside this dialog.
+    /// </summary>
+    public Widget[] Widgets { get; set; }
+
+    /// <summary>Width of the dialog window in pixels.</summary>
+    public int Width { get; set; }
+
+    /// <summary>Height of the dialog window in pixels.</summary>
+    public int Height { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, the dialog blocks all input to the game
+    /// until it is dismissed.
+    /// </summary>
+    public bool IsModal { get; set; }
 }

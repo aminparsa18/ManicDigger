@@ -209,7 +209,7 @@ public class ModDrawHand3d : ModBase
             return game.TextureId[game.BlockRegistry.BlockIdEmptyHand][(int)TileSide.Front];
         }
 
-        if (item.ItemClass == ItemClass.Block)
+        if (item.ItemClass == InventoryItemType.Block)
         {
             return game.TextureId[item.BlockId][(int)side];
         }
@@ -238,7 +238,7 @@ public class ModDrawHand3d : ModBase
     {
         Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
         return item != null
-            && item.ItemClass == ItemClass.Block
+            && item.ItemClass == InventoryItemType.Block
             && game.BlockTypes[item.BlockId].DrawType == DrawType.Torch;
     }
 
@@ -249,7 +249,7 @@ public class ModDrawHand3d : ModBase
     {
         Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
         return item != null
-            && item.ItemClass == ItemClass.Block
+            && item.ItemClass == InventoryItemType.Block
             && item.BlockId == game.BlockRegistry.BlockIdCompass;
     }
 

@@ -116,7 +116,7 @@ public partial class Game : IMeshDrawer
     public int MaterialSlots(int i)
     {
         Packet_Item item = Inventory.RightHand[i];
-        if (item != null && item.ItemClass == ItemClass.Block)
+        if (item != null && item.ItemClass == InventoryItemType.Block)
             return item.BlockId;
         return BlockRegistry.BlockIdDirt;
     }

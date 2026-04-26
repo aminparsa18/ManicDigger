@@ -114,11 +114,11 @@ public class ModManager1 : IModManager
         if (GetBlockId(Input0) == -1) { Console.WriteLine(recipeError + Input0); return; }
         CraftingRecipe r = new()
         {
-            ingredients =
+            Ingredients =
             [
                     new Ingredient(){Type=GetBlockId(Input0), Amount=Input0Amount},
             ],
-            output = new Ingredient() { Type = GetBlockId(output), Amount = outputAmount }
+            Output = new Ingredient() { Type = GetBlockId(output), Amount = outputAmount }
         };
         server.craftingrecipes.Add(r);
     }
@@ -130,12 +130,12 @@ public class ModManager1 : IModManager
         if (GetBlockId(Input1) == -1) { Console.WriteLine(recipeError + Input1); return; }
         CraftingRecipe r = new()
         {
-            ingredients =
+            Ingredients =
             [
                     new Ingredient(){Type=GetBlockId(Input0), Amount=Input0Amount},
                     new Ingredient(){Type=GetBlockId(Input1), Amount=Input1Amount},
             ],
-            output = new Ingredient() { Type = GetBlockId(output), Amount = outputAmount }
+            Output = new Ingredient() { Type = GetBlockId(output), Amount = outputAmount }
         };
         server.craftingrecipes.Add(r);
     }
@@ -148,13 +148,13 @@ public class ModManager1 : IModManager
         if (GetBlockId(Input2) == -1) { Console.WriteLine(recipeError + Input2); return; }
         CraftingRecipe r = new()
         {
-            ingredients =
+            Ingredients =
             [
                     new Ingredient(){Type=GetBlockId(Input0), Amount=Input0Amount},
                     new Ingredient(){Type=GetBlockId(Input1), Amount=Input1Amount},
                     new Ingredient(){Type=GetBlockId(Input2), Amount=Input2Amount},
             ],
-            output = new Ingredient() { Type = GetBlockId(output), Amount = outputAmount }
+            Output = new Ingredient() { Type = GetBlockId(output), Amount = outputAmount }
         };
         server.craftingrecipes.Add(r);
     }
@@ -215,9 +215,9 @@ public class ModManager1 : IModManager
     {
         Inventory inventory = server.GetPlayerInventory(server.GetClient(player).playername).Inventory;
 
-        var item = new Item
+        var item = new InventoryItem
         {
-            ItemClass = ItemClass.Block,
+            InventoryItemType = InventoryItemType.Block,
             BlockCount = amount,
             BlockId = server.d_Data.WhenPlayerPlacesGetsConvertedTo[block]
         };
@@ -496,16 +496,16 @@ public class ModManager1 : IModManager
         if (server.clients[player].positionOverride == null)
         {
             //No position override so far. Clone from player position
-            pos = server.clients[player].entity.position.Clone();
+            pos = server.clients[player].entity.Position.Clone();
         }
         else
         {
             //Position has already been modified. Clone from override to prevent data loss
             pos = server.clients[player].positionOverride.Clone();
         }
-        pos.x = x;
-        pos.y = z;
-        pos.z = y;
+        pos.X = x;
+        pos.Y = z;
+        pos.Z = y;
         server.clients[player].positionOverride = pos;
     }
 
@@ -530,16 +530,16 @@ public class ModManager1 : IModManager
         if (server.clients[player].positionOverride == null)
         {
             //No position override so far. Clone from player position
-            pos = server.clients[player].entity.position.Clone();
+            pos = server.clients[player].entity.Position.Clone();
         }
         else
         {
             //Position has already been modified. Clone from override to prevent data loss
             pos = server.clients[player].positionOverride.Clone();
         }
-        pos.heading = (byte)heading;
-        pos.pitch = (byte)pitch;
-        pos.stance = (byte)stance;
+        pos.Heading = (byte)heading;
+        pos.Pitch = (byte)pitch;
+        pos.Stance = (byte)stance;
         server.clients[player].positionOverride = pos;
     }
 

@@ -1292,13 +1292,13 @@ public partial class Server
                 {
                     for (int xx = 0; xx < util.CellCountX; xx++)
                     {
-                        if (!inventory.Items.ContainsKey(new ProtoPoint(xx, yy)))
+                        if (!inventory.Items.ContainsKey(new GridPoint(xx, yy)))
                         {
                             continue;
                         }
-                        Item currentItem = inventory.Items[new ProtoPoint(xx, yy)];
+                        InventoryItem currentItem = inventory.Items[new GridPoint(xx, yy)];
                         if (currentItem != null
-                            && currentItem.ItemClass == ItemClass.Block
+                            && currentItem.InventoryItemType == InventoryItemType.Block
                             && currentItem.BlockId == i)
                         {
                             currentItem.BlockCount = maxStack;
@@ -1310,16 +1310,16 @@ public partial class Server
                 {
                     for (int xx = 0; xx < util.CellCountX; xx++)
                     {
-                        Item newItem = new()
+                        InventoryItem newItem = new()
                         {
-                            ItemClass = ItemClass.Block,
+                            InventoryItemType = InventoryItemType.Block,
                             BlockId = i,
                             BlockCount = maxStack
                         };
 
                         if (util.ItemAtCell(new Point(xx, yy)) == null)
                         {
-                            inventory.Items[new ProtoPoint(xx, yy)] = newItem;
+                            inventory.Items[new GridPoint(xx, yy)] = newItem;
                             goto nextblock;
                         }
                     }
@@ -1375,19 +1375,19 @@ public partial class Server
                 {
                     for (int yy = 0; yy < util.CellCountY; yy++)
                     {
-                        if (!inventory.Items.ContainsKey(new ProtoPoint(xx, yy)))
+                        if (!inventory.Items.ContainsKey(new GridPoint(xx, yy)))
                         {
                             continue;
                         }
-                        Item currentItem = inventory.Items[new ProtoPoint(xx, yy)];
+                        InventoryItem currentItem = inventory.Items[new GridPoint(xx, yy)];
                         if (currentItem != null
-                             && currentItem.ItemClass == ItemClass.Block
+                             && currentItem.InventoryItemType == InventoryItemType.Block
                              && currentItem.BlockId == i)
                         {
                             if (amount == 0)
                             {
                                 // Delete block from player inventory if amount is 0
-                                inventory.Items.Remove(new ProtoPoint(xx, yy));
+                                inventory.Items.Remove(new GridPoint(xx, yy));
                             }
                             else
                             {
@@ -1412,14 +1412,14 @@ public partial class Server
                     {
                         if (util.ItemAtCell(new Point(xx, yy)) == null)
                         {
-                            Item newItem = new()
+                            InventoryItem newItem = new()
                             {
-                                ItemClass = ItemClass.Block,
+                                InventoryItemType = InventoryItemType.Block,
                                 BlockId = i,
                                 BlockCount = amount
                             };
 
-                            inventory.Items[new ProtoPoint(xx, yy)] = newItem;
+                            inventory.Items[new GridPoint(xx, yy)] = newItem;
                             goto nextblock;
                         }
                     }
@@ -1880,7 +1880,7 @@ public partial class Server
             return false;
         }
         ClientOnServer t = clients[clientTo];
-        ServerEntityPositionAndOrientation pos = t.entity.position.Clone();
+        ServerEntityPositionAndOrientation pos = t.entity.Position.Clone();
         clients[sourceClientId].positionOverride = pos;
         return true;
     }
@@ -1915,10 +1915,10 @@ public partial class Server
         }
 
         ClientOnServer client = GetClient(sourceClientId);
-        ServerEntityPositionAndOrientation pos = client.entity.position.Clone();
-        pos.x = x;
-        pos.y = rZ;
-        pos.z = y;
+        ServerEntityPositionAndOrientation pos = client.entity.Position.Clone();
+        pos.X = x;
+        pos.Y = rZ;
+        pos.Z = y;
         client.positionOverride = pos;
         SendMessage(client.Id, string.Format(language.Get("Server_CommandTeleportSuccess"), colorSuccess, x, y, rZ));
         return true;
@@ -1955,10 +1955,10 @@ public partial class Server
         ClientOnServer targetClient = GetClient(target);
         if (targetClient != null)
         {
-            ServerEntityPositionAndOrientation pos = clients[targetClient.Id].entity.position;
-            pos.x = x;
-            pos.y = rZ;
-            pos.z = y;
+            ServerEntityPositionAndOrientation pos = clients[targetClient.Id].entity.Position;
+            pos.X = x;
+            pos.Y = rZ;
+            pos.Z = y;
             clients[targetClient.Id].positionOverride = pos;
             SendMessage(targetClient.Id, string.Format(language.Get("Server_CommandTeleportTargetMessage"), colorImportant, x, y, rZ, GetClient(sourceClientId).ColoredPlayername(colorImportant)));
             SendMessage(sourceClientId, string.Format(language.Get("Server_CommandTeleportSourceMessage"), colorSuccess, targetClient.ColoredPlayername(colorSuccess), x, y, rZ));

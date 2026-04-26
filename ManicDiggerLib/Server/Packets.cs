@@ -1,30 +1,32 @@
-﻿using ProtoBuf;
+﻿namespace ManicDigger;
 
-[ProtoContract]
-public class PacketServerInventory
+/// <summary>
+/// Server → client packet carrying the player's current full inventory state.
+/// Sent on login and whenever the server modifies the player's inventory.
+/// </summary>
+[MemoryPackable]
+public partial class PacketServerInventory
 {
-    /*
-    [ProtoMember(1, IsRequired = false)]
-    public bool IsFinite;
-    [ProtoMember(2, IsRequired = false)]
-    public Dictionary<int, int> BlockTypeAmount = new Dictionary<int, int>();
-    [ProtoMember(3, IsRequired = false)]
-    public int Max = 200;
-    */
-    [ProtoMember(4, IsRequired = false)]
-    public ManicDigger.Inventory Inventory;
+    /// <summary>The complete inventory snapshot to apply on the client.</summary>
+    public Inventory? Inventory { get; set; }
 }
 
-[ProtoContract]
-public class PacketServerPlayerStats
+/// <summary>
+/// Server → client packet carrying the player's current health and oxygen values.
+/// Sent periodically and whenever either stat changes.
+/// </summary>
+[MemoryPackable]
+public partial class PacketServerPlayerStats
 {
-    [ProtoMember(1, IsRequired = false)]
-    public int CurrentHealth = 20;
-    [ProtoMember(2, IsRequired = false)]
-    public int MaxHealth = 20;
-    [ProtoMember(3, IsRequired = false)]
-    public int CurrentOxygen = 10;
-    [ProtoMember(4, IsRequired = false)]
-    public int MaxOxygen = 10;
-}
+    /// <summary>Player's current health points. Defaults to <c>20</c>.</summary>
+    public int CurrentHealth { get; set; } = 20;
 
+    /// <summary>Player's maximum health points. Defaults to <c>20</c>.</summary>
+    public int MaxHealth { get; set; } = 20;
+
+    /// <summary>Player's current oxygen level. Depletes while underwater. Defaults to <c>10</c>.</summary>
+    public int CurrentOxygen { get; set; } = 10;
+
+    /// <summary>Player's maximum oxygen capacity. Defaults to <c>10</c>.</summary>
+    public int MaxOxygen { get; set; } = 10;
+}

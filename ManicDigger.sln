@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDigger.Core", "ManicDi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MdMonsterEditor", "MdMonsterEditor\MdMonsterEditor.csproj", "{DE9E0B36-6171-4DA3-9495-0A82445B6D74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptingApi", "ScriptingApi\ScriptingApi.csproj", "{A3582245-A1D1-4135-BA90-8EFD7830DA83}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDigger.Domain", "ScriptingApi\ManicDigger.Domain.csproj", "{A3582245-A1D1-4135-BA90-8EFD7830DA83}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F9C2C6E0-7CBD-4F42-BE60-7142D3AFE779}"
 	ProjectSection(SolutionItems) = preProject

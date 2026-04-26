@@ -36,7 +36,7 @@ public class ModReloadAmmo : ModBase
         if (args.KeyChar != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R)) return;
 
         Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
-        if (item == null || item.ItemClass != ItemClass.Block) return;
+        if (item == null || item.ItemClass != InventoryItemType.Block) return;
         if (!game.BlockTypes[item.BlockId].IsPistol) return;
         if (game.ReloadStartMilliseconds != 0) return;
 

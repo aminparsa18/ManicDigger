@@ -46,7 +46,7 @@ public class InventoryUtils
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
 
-        if (item.ItemClass == ItemClass.Block)
+        if (item.ItemClass == InventoryItemType.Block)
         {
             string key = string.Concat("Block_", _game.BlockTypes[item.BlockId].Name);
             return _game.Language.Get(key);
@@ -69,7 +69,7 @@ public class InventoryUtils
 
         return item.ItemClass switch
         {
-            ItemClass.Block => 1,
+            InventoryItemType.Block => 1,
             _ => throw new NotSupportedException($"ItemSizeX not implemented for ItemClass '{item.ItemClass}'.")
         };
     }
@@ -88,7 +88,7 @@ public class InventoryUtils
 
         return item.ItemClass switch
         {
-            ItemClass.Block => 1,
+            InventoryItemType.Block => 1,
             _ => throw new NotSupportedException($"ItemSizeY not implemented for ItemClass '{item.ItemClass}'.")
         };
     }
@@ -111,8 +111,8 @@ public class InventoryUtils
         if (itemA == null || itemB == null)
             return null;
 
-        if (itemA.ItemClass == ItemClass.Block
-            && itemB.ItemClass == ItemClass.Block
+        if (itemA.ItemClass == InventoryItemType.Block
+            && itemB.ItemClass == InventoryItemType.Block
             && itemA.BlockId == itemB.BlockId)
         {
             return new Packet_Item
@@ -145,7 +145,7 @@ public class InventoryUtils
 
         return wearPlace switch
         {
-            WearPlace.RightHand => item.ItemClass == ItemClass.Block,
+            WearPlace.RightHand => item.ItemClass == InventoryItemType.Block,
             WearPlace.MainArmor => false,
             WearPlace.Boots => false,
             WearPlace.Helmet => false,

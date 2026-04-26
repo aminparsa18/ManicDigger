@@ -477,8 +477,8 @@ public class War : IMod
         Inventory inv = m.GetInventory(playerid);
         for (int i = 0; i < 10; i++)
         {
-            Item item = inv.RightHand[i];
-            if (item != null && item.ItemClass == ItemClass.Block)
+            InventoryItem item = inv.RightHand[i];
+            if (item != null && item.InventoryItemType == InventoryItemType.Block)
             {
                 BlockType block = m.GetBlockType(item.BlockId);
                 if (block.IsPistol)
@@ -958,9 +958,9 @@ public class War : IMod
     private void UpdatePlayerModel(int player)
     {
         Inventory inv = m.GetInventory(player);
-        Item item = inv.RightHand[m.GetActiveMaterialSlot(player)];
+        InventoryItem item = inv.RightHand[m.GetActiveMaterialSlot(player)];
         int blockid = 0;
-        if (item != null && item.ItemClass == ItemClass.Block) { blockid = item.BlockId; }
+        if (item != null && item.InventoryItemType == InventoryItemType.Block) { blockid = item.BlockId; }
         string model = "playerwar.txt";
         if (blockid == m.GetBlockId("Pistol")) { model = "playerwarpistol.txt"; }
         if (blockid == m.GetBlockId("SubmachineGun")) { model = "playerwarsubmachinegun.txt"; }

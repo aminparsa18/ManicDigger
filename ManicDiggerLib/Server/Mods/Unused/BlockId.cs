@@ -1,5 +1,3 @@
-using ProtoBuf;
-
 namespace ManicDigger.Mods;
 
 public class BlockId : IMod
@@ -99,7 +97,7 @@ public class BlockId : IMod
             byte[] b = m.GetGlobalData("BlockIDs");
             if (b != null)
             {
-                blocks = Serializer.Deserialize<Dictionary<int, string>>(new MemoryStream(b));
+                blocks = MemoryPackSerializer.Deserialize<Dictionary<int, string>>(b);
                 if (DEBUG) Console.WriteLine("Block IDs loaded from savegame.");
             }
             else
@@ -119,9 +117,7 @@ public class BlockId : IMod
     {
         if (blocks != null)
         {
-            MemoryStream ms = new();
-            Serializer.Serialize(ms, blocks);
-            m.SetGlobalData("BlockIDs", ms.ToArray());
+            m.SetGlobalData("BlockIDs", MemoryPackSerializer.Serialize(blocks));
             if (DEBUG) Console.WriteLine("Block IDs have been written to savegame");
         }
         else

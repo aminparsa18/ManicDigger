@@ -1,5 +1,4 @@
-﻿using ProtoBuf;
-using ManicDigger;
+﻿using ManicDigger;
 using OpenTK.Mathematics;
 
 //separate class because it's used by server and client.
@@ -64,7 +63,7 @@ public class InventoryUtil
 
     public IEnumerable<Point> ItemCells(Point p)
     {
-        Item item = d_Inventory.Items[new ProtoPoint(p.X, p.Y)];
+        InventoryItem item = d_Inventory.Items[new GridPoint(p.X, p.Y)];
         for (int x = 0; x < d_Items.ItemSizeX(item); x++)
         {
             for (int y = 0; y < d_Items.ItemSizeY(item); y++)
@@ -86,7 +85,7 @@ public class InventoryUtil
         return null;
     }
 
-    public Item ItemAtWearPlace(int wearPlace, int activeMaterial)
+    public InventoryItem ItemAtWearPlace(int wearPlace, int activeMaterial)
     {
         return wearPlace switch
         {
@@ -99,7 +98,7 @@ public class InventoryUtil
         };
     }
 
-    public void SetItemAtWearPlace(int wearPlace, int activeMaterial, Item item)
+    public void SetItemAtWearPlace(int wearPlace, int activeMaterial, InventoryItem item)
     {
         switch (wearPlace)
         {
@@ -113,11 +112,11 @@ public class InventoryUtil
         }
     }
 
-    public bool GrabItem(Item item, int ActiveMaterial)
+    public bool GrabItem(InventoryItem item, int ActiveMaterial)
     {
-        switch (item.ItemClass)
+        switch (item.InventoryItemType)
         {
-            case ItemClass.Block:
+            case InventoryItemType.Block:
                 if (item.BlockId == SpecialBlockId.Empty)
                 {
                     return true;
@@ -129,7 +128,7 @@ public class InventoryUtil
                     {
                         continue;
                     }
-                    Item result = d_Items.Stack(d_Inventory.RightHand[i], item);
+                    InventoryItem result = d_Items.Stack(d_Inventory.RightHand[i], item);
                     if (result != null)
                     {
                         d_Inventory.RightHand[i] = result;
@@ -142,7 +141,7 @@ public class InventoryUtil
                     return true;
                 }
                 //current hand
-                if (d_Inventory.RightHand[ActiveMaterial].ItemClass == ItemClass.Block
+                if (d_Inventory.RightHand[ActiveMaterial].InventoryItemType == InventoryItemType.Block
                     && d_Inventory.RightHand[ActiveMaterial].BlockId == item.BlockId)
                 {
                     d_Inventory.RightHand[ActiveMaterial].BlockCount++;
@@ -165,10 +164,10 @@ public class InventoryUtil
                         Point?[] p = ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), out int pCount);
                         if (p != null && pCount == 1)
                         {
-                            var stacked = d_Items.Stack(d_Inventory.Items[new ProtoPoint(p[0].Value.X, p[0].Value.Y)], item);
+                            var stacked = d_Items.Stack(d_Inventory.Items[new GridPoint(p[0].Value.X, p[0].Value.Y)], item);
                             if (stacked != null)
                             {
-                                d_Inventory.Items[new ProtoPoint(x, y)] = stacked;
+                                d_Inventory.Items[new GridPoint(x, y)] = stacked;
                                 return true;
                             }
                         }
@@ -182,7 +181,7 @@ public class InventoryUtil
                         Point?[] p = ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), out int pCount);
                         if (p != null && pCount == 0)
                         {
-                            d_Inventory.Items[new ProtoPoint(x, y)] = item;
+                            d_Inventory.Items[new GridPoint(x, y)] = item;
                             return true;
                         }
                     }
@@ -216,67 +215,83 @@ public enum InventoryPositionType
     WearPlace,
 }
 
-[ProtoContract]
-public class InventoryPosition
+/// <summary>
+/// Identifies a specific slot or position within the player's inventory UI.
+/// Used to describe the source and destination of item move and click operations.
+/// </summary>
+[MemoryPackable]
+public partial class InventoryPosition
 {
-    [ProtoMember(1, IsRequired = false)]
-    public InventoryPositionType type;
-    [ProtoMember(2, IsRequired = false)]
-    public int AreaX;
-    [ProtoMember(3, IsRequired = false)]
-    public int AreaY;
-    [ProtoMember(4, IsRequired = false)]
-    public int MaterialId;
+    /// <summary>Which inventory region this position refers to (hotbar, main area, wear slot, etc.).</summary>
+    public InventoryPositionType Type { get; set; }
 
-    //WearPlace
-    [ProtoMember(5, IsRequired = false)]
-    public int WearPlace;
-    [ProtoMember(6, IsRequired = false)]
-    public int ActiveMaterial;
-    [ProtoMember(7, IsRequired = false)]
-    public int GroundPositionX;
-    [ProtoMember(8, IsRequired = false)]
-    public int GroundPositionY;
-    [ProtoMember(9, IsRequired = false)]
-    public int GroundPositionZ;
+    // ── Main inventory area ───────────────────────────────────────────────────
 
-    public static InventoryPosition MaterialSelector(int materialId)
+    /// <summary>Column index within the main inventory grid. Used when <see cref="Type"/> is <see cref="InventoryPositionType.MainArea"/>.</summary>
+    public int AreaX { get; set; }
+
+    /// <summary>Row index within the main inventory grid. Used when <see cref="Type"/> is <see cref="InventoryPositionType.MainArea"/>.</summary>
+    public int AreaY { get; set; }
+
+    // ── Hotbar ────────────────────────────────────────────────────────────────
+
+    /// <summary>Hotbar slot index. Used when <see cref="Type"/> is <see cref="InventoryPositionType.MaterialSelector"/>.</summary>
+    public int MaterialId { get; set; }
+
+    /// <summary>Currently active hotbar slot index at the time of the operation.</summary>
+    public int ActiveMaterial { get; set; }
+
+    // ── Wear slots ────────────────────────────────────────────────────────────
+
+    /// <summary>Wear slot identifier (armour slot). Used when <see cref="Type"/> is a wear position.</summary>
+    public int WearPlace { get; set; }
+
+    // ── Ground position ───────────────────────────────────────────────────────
+
+    /// <summary>World X coordinate when dropping an item on the ground.</summary>
+    public int GroundPositionX { get; set; }
+
+    /// <summary>World Y coordinate when dropping an item on the ground.</summary>
+    public int GroundPositionY { get; set; }
+
+    /// <summary>World Z coordinate when dropping an item on the ground.</summary>
+    public int GroundPositionZ { get; set; }
+
+    // ── Factory helpers ───────────────────────────────────────────────────────
+
+    /// <summary>Creates an <see cref="InventoryPosition"/> targeting a specific hotbar slot.</summary>
+    /// <param name="materialId">Zero-based hotbar slot index.</param>
+    public static InventoryPosition MaterialSelector(int materialId) => new()
     {
-        InventoryPosition pos = new()
-        {
-            type = InventoryPositionType.MaterialSelector,
-            MaterialId = materialId
-        };
-        return pos;
-    }
+        Type = InventoryPositionType.MaterialSelector,
+        MaterialId = materialId,
+    };
 
-    public static InventoryPosition MainArea(Point point)
+    /// <summary>Creates an <see cref="InventoryPosition"/> targeting a cell in the main inventory grid.</summary>
+    /// <param name="point">Grid coordinates of the target cell.</param>
+    public static InventoryPosition MainArea(Point point) => new()
     {
-        InventoryPosition pos = new()
-        {
-            type = InventoryPositionType.MainArea,
-            AreaX = point.X,
-            AreaY = point.Y
-        };
-        return pos;
-    }
+        Type = InventoryPositionType.MainArea,
+        AreaX = point.X,
+        AreaY = point.Y,
+    };
 }
 
 public interface IGameDataItems
 {
-    int ItemSizeX(Item item);
-    int ItemSizeY(Item item);
+    int ItemSizeX(InventoryItem item);
+    int ItemSizeY(InventoryItem item);
     /// <summary>
     /// returns null if can't stack.
     /// </summary>
-    Item Stack(Item itemA, Item itemB);
-    bool CanWear(WearPlace selectedWear, Item item);
-    string ItemGraphics(Item item);
+    InventoryItem Stack(InventoryItem itemA, InventoryItem itemB);
+    bool CanWear(WearPlace selectedWear, InventoryItem item);
+    string ItemGraphics(InventoryItem item);
 }
 
 public interface IDropItem
 {
-    void DropItem(ref Item item, Vector3i pos);
+    void DropItem(ref InventoryItem item, Vector3i pos);
 }
 
 public class InventoryServer : IInventoryController
@@ -304,8 +319,8 @@ public class InventoryServer : IInventoryController
             //drag
             if (selected != null && d_Inventory.DragDropItem == null)
             {
-                d_Inventory.DragDropItem = d_Inventory.Items[new ProtoPoint(selected.Value.X, selected.Value.Y)];
-                d_Inventory.Items.Remove(new ProtoPoint(selected.Value.X, selected.Value.Y));
+                d_Inventory.DragDropItem = d_Inventory.Items[new GridPoint(selected.Value.X, selected.Value.Y)];
+                d_Inventory.Items.Remove(new GridPoint(selected.Value.X, selected.Value.Y));
                 SendInventory();
             }
             //drop
@@ -321,26 +336,26 @@ public class InventoryServer : IInventoryController
                 }
                 if (itemsAtAreaCount == 0)
                 {
-                    d_Inventory.Items.Add(new ProtoPoint(pos.AreaX, pos.AreaY), d_Inventory.DragDropItem);
+                    d_Inventory.Items.Add(new GridPoint(pos.AreaX, pos.AreaY), d_Inventory.DragDropItem);
                     d_Inventory.DragDropItem = null;
                 }
                 else //1
                 {
                     var swapWith = itemsAtArea[0];
                     //try to stack                        
-                    Item stackResult = d_Items.Stack(d_Inventory.Items[new ProtoPoint(swapWith.Value.X, swapWith.Value.Y)], d_Inventory.DragDropItem);
+                    InventoryItem stackResult = d_Items.Stack(d_Inventory.Items[new GridPoint(swapWith.Value.X, swapWith.Value.Y)], d_Inventory.DragDropItem);
                     if (stackResult != null)
                     {
-                        d_Inventory.Items[new ProtoPoint(swapWith.Value.X, swapWith.Value.Y)] = stackResult;
+                        d_Inventory.Items[new GridPoint(swapWith.Value.X, swapWith.Value.Y)] = stackResult;
                         d_Inventory.DragDropItem = null;
                     }
                     else
                     {
                         //try to swap
                         //swap (swapWith, dragdropitem)
-                        Item z = d_Inventory.Items[new ProtoPoint(swapWith.Value.X, swapWith.Value.Y)];
-                        d_Inventory.Items.Remove(new ProtoPoint(swapWith.Value.X, swapWith.Value.Y));
-                        d_Inventory.Items[new ProtoPoint(pos.AreaX, pos.AreaY)] = d_Inventory.DragDropItem;
+                        InventoryItem z = d_Inventory.Items[new GridPoint(swapWith.Value.X, swapWith.Value.Y)];
+                        d_Inventory.Items.Remove(new GridPoint(swapWith.Value.X, swapWith.Value.Y));
+                        d_Inventory.Items[new GridPoint(pos.AreaX, pos.AreaY)] = d_Inventory.DragDropItem;
                         d_Inventory.DragDropItem = z;
                     }
                 }
@@ -377,7 +392,7 @@ public class InventoryServer : IInventoryController
             {
                 if (d_Items.CanWear(WearPlace.RightHand, d_Inventory.DragDropItem))
                 {
-                    Item oldHand = d_Inventory.RightHand[pos.MaterialId];
+                    InventoryItem oldHand = d_Inventory.RightHand[pos.MaterialId];
                     d_Inventory.RightHand[pos.MaterialId] = d_Inventory.DragDropItem;
                     d_Inventory.DragDropItem = oldHand;
                 }
@@ -387,7 +402,7 @@ public class InventoryServer : IInventoryController
         else if (pos.Type == PacketInventoryPositionType.WearPlace)
         {
             //just swap.
-            Item wear = d_InventoryUtil.ItemAtWearPlace(pos.WearPlace, pos.ActiveMaterial);
+            InventoryItem wear = d_InventoryUtil.ItemAtWearPlace(pos.WearPlace, pos.ActiveMaterial);
             if (d_Items.CanWear((WearPlace)pos.WearPlace, d_Inventory.DragDropItem))
             {
                 d_InventoryUtil.SetItemAtWearPlace(pos.WearPlace, pos.ActiveMaterial, d_Inventory.DragDropItem);
@@ -408,7 +423,7 @@ public class InventoryServer : IInventoryController
     public void WearItem(Packet_InventoryPosition from, Packet_InventoryPosition to)
     {
         //todo
-        ProtoPoint originPoint = new(from.AreaX, from.AreaY);
+        GridPoint originPoint = new(from.AreaX, from.AreaY);
         if (from.Type == PacketInventoryPositionType.MainArea
             && to.Type == PacketInventoryPositionType.MaterialSelector
             && d_Inventory.RightHand[to.MaterialId] == null
@@ -426,7 +441,7 @@ public class InventoryServer : IInventoryController
         if (from.Type == PacketInventoryPositionType.MaterialSelector)
         {
             //duplicate code with GrabItem().
-            Item item = d_Inventory.RightHand[from.MaterialId];
+            InventoryItem item = d_Inventory.RightHand[from.MaterialId];
             if (item == null)
             {
                 return;
@@ -439,10 +454,10 @@ public class InventoryServer : IInventoryController
                     Point?[] p = d_InventoryUtil.ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), out int pCount);
                     if (p != null && pCount == 1)
                     {
-                        var stacked = d_Items.Stack(d_Inventory.Items[new ProtoPoint(p[0].Value.X, p[0].Value.Y)], item);
+                        var stacked = d_Items.Stack(d_Inventory.Items[new GridPoint(p[0].Value.X, p[0].Value.Y)], item);
                         if (stacked != null)
                         {
-                            d_Inventory.Items[new ProtoPoint(x, y)] = stacked;
+                            d_Inventory.Items[new GridPoint(x, y)] = stacked;
                             d_Inventory.RightHand[from.MaterialId] = null;
                             return;
                         }
@@ -457,7 +472,7 @@ public class InventoryServer : IInventoryController
                     Point?[] p = d_InventoryUtil.ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), out int pCount);
                     if (p != null && pCount == 0)
                     {
-                        d_Inventory.Items[new ProtoPoint(x, y)] = item;
+                        d_Inventory.Items[new GridPoint(x, y)] = item;
                         d_Inventory.RightHand[from.MaterialId] = null;
                         return;
                     }
@@ -470,22 +485,22 @@ public class GameDataItemsBlocks : IGameDataItems
 {
     public BlockTypeRegistry? d_Data;
 
-    public int ItemSizeX(Item item)
+    public int ItemSizeX(InventoryItem item)
     {
-        if (item.ItemClass == ItemClass.Block) { return 1; }
+        if (item.InventoryItemType == InventoryItemType.Block) { return 1; }
         throw new NotImplementedException();
     }
 
-    public int ItemSizeY(Item item)
+    public int ItemSizeY(InventoryItem item)
     {
-        if (item.ItemClass == ItemClass.Block) { return 1; }
+        if (item.InventoryItemType == InventoryItemType.Block) { return 1; }
         throw new NotImplementedException();
     }
 
-    public Item Stack(Item itemA, Item itemB)
+    public InventoryItem Stack(InventoryItem itemA, InventoryItem itemB)
     {
-        if (itemA.ItemClass == ItemClass.Block
-            && itemB.ItemClass == ItemClass.Block)
+        if (itemA.InventoryItemType == InventoryItemType.Block
+            && itemB.InventoryItemType == InventoryItemType.Block)
         {
             int railcountA = DirectionUtils.RailDirectionFlagsCount(d_Data.Rail[itemA.BlockId]);
             int railcountB = DirectionUtils.RailDirectionFlagsCount(d_Data.Rail[itemB.BlockId]);
@@ -494,9 +509,9 @@ public class GameDataItemsBlocks : IGameDataItems
                 return null;
             }
             //todo stack size limit
-            Item ret = new()
+            InventoryItem ret = new()
             {
-                ItemClass = itemA.ItemClass,
+                InventoryItemType = itemA.InventoryItemType,
                 BlockId = itemA.BlockId,
                 BlockCount = itemA.BlockCount + itemB.BlockCount
             };
@@ -508,14 +523,14 @@ public class GameDataItemsBlocks : IGameDataItems
         }
     }
 
-    public bool CanWear(WearPlace selectedWear, Item item)
+    public bool CanWear(WearPlace selectedWear, InventoryItem item)
     {
         if (item == null) { return true; }
         if (item == null) { return true; }
         return selectedWear switch
         {
             //case WearPlace.LeftHand: return false;
-            WearPlace.RightHand => item.ItemClass == ItemClass.Block,
+            WearPlace.RightHand => item.InventoryItemType == InventoryItemType.Block,
             WearPlace.MainArmor => false,
             WearPlace.Boots => false,
             WearPlace.Helmet => false,
@@ -524,7 +539,7 @@ public class GameDataItemsBlocks : IGameDataItems
         };
     }
 
-    public string ItemGraphics(Item item)
+    public string ItemGraphics(InventoryItem item)
     {
         throw new NotImplementedException();
     }

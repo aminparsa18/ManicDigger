@@ -1,100 +1,66 @@
-﻿using ProtoBuf;
-using System.Runtime.Serialization;
+﻿using MemoryPack;
 
 namespace ManicDigger;
 
-[ProtoContract]
-public class Inventory
+/// <summary>
+/// Holds all items carried by a player: the hotbar, equipped armour slots,
+/// a general item bag, and a drag-drop cursor item.
+/// </summary>
+/// <remarks>
+/// The old ProtoBuf version stored <see cref="RightHand"/> as a
+/// <c>Dictionary&lt;int, Item&gt;</c> workaround because ProtoBuf-net could not
+/// serialize arrays containing null entries. MemoryPack handles nullable array
+/// elements natively, so <see cref="RightHand"/> is a plain <c>Item?[]</c> again.
+/// </remarks>
+[MemoryPackable]
+public partial class Inventory
 {
-    [OnDeserialized()]
-    private void OnDeserialized()
-    {
-        /*
-    LeftHand = new Item[10];
-    if (LeftHandProto != null)
-    {
-        for (int i = 0; i < 10; i++)
-        {
-            if (LeftHandProto.ContainsKey(i))
-            {
-                LeftHand[i] = LeftHandProto[i];
-            }
-        }
-    }
-         */
-        RightHand = new Item[10];
-        if (RightHandProto != null)
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                if (RightHandProto.ContainsKey(i))
-                {
-                    RightHand[i] = RightHandProto[i];
-                }
-            }
-        }
-    }
-    [OnSerializing()]
-    private void OnSerializing()
-    {
-        Dictionary<int, Item> d;// = new Dictionary<int, Item>();
-        /*
-    for (int i = 0; i < 10; i++)
-    {
-        if (LeftHand[i] != null)
-        {
-            d[i] = LeftHand[i];
-        }
-    }
-    LeftHandProto = d;
-         */
-        d = [];
-        for (int i = 0; i < 10; i++)
-        {
-            if (RightHand[i] != null)
-            {
-                d[i] = RightHand[i];
-            }
-        }
-        RightHandProto = d;
-    }
-    //dictionary because protobuf-net can't serialize array of nulls.
-    //[ProtoMember(1, IsRequired = false)]
-    //public Dictionary<int, Item> LeftHandProto;
-    [ProtoMember(2, IsRequired = false)]
-    public Dictionary<int, Item> RightHandProto;
-    //public Item[] LeftHand = new Item[10];
-    public Item[] RightHand = new Item[10];
-    [ProtoMember(3, IsRequired = false)]
-    public Item MainArmor;
-    [ProtoMember(4, IsRequired = false)]
-    public Item Boots;
-    [ProtoMember(5, IsRequired = false)]
-    public Item Helmet;
-    [ProtoMember(6, IsRequired = false)]
-    public Item Gauntlet;
-    [ProtoMember(7, IsRequired = false)]
-    public Dictionary<ProtoPoint, Item> Items = [];
-    [ProtoMember(8, IsRequired = false)]
-    public Item DragDropItem;
+    /// <summary>
+    /// The ten hotbar slots. Null entries represent empty slots.
+    /// Index 0 is the leftmost slot.
+    /// </summary>
+    public InventoryItem?[] RightHand { get; set; } = new InventoryItem[10];
+
+    /// <summary>Body armour slot. <see langword="null"/> when empty.</summary>
+    public InventoryItem? MainArmor { get; set; }
+
+    /// <summary>Boots armour slot. <see langword="null"/> when empty.</summary>
+    public InventoryItem? Boots { get; set; }
+
+    /// <summary>Helmet armour slot. <see langword="null"/> when empty.</summary>
+    public InventoryItem? Helmet { get; set; }
+
+    /// <summary>Gauntlet armour slot. <see langword="null"/> when empty.</summary>
+    public InventoryItem? Gauntlet { get; set; }
+
+    /// <summary>
+    /// General inventory bag keyed by grid position.
+    /// Uses <see cref="GridPoint"/> as the key to match the existing save format.
+    /// </summary>
+    public Dictionary<GridPoint, InventoryItem> Items { get; set; } = [];
+
+    /// <summary>
+    /// The item currently held on the mouse cursor during a drag-drop operation.
+    /// <see langword="null"/> when nothing is being dragged.
+    /// </summary>
+    public InventoryItem? DragDropItem { get; set; }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Shallow-copies all slots from <paramref name="inventory"/> into this instance.
+    /// </summary>
     public void CopyFrom(Inventory inventory)
     {
-        //this.LeftHand = inventory.LeftHand;
-        this.RightHand = inventory.RightHand;
-        this.MainArmor = inventory.MainArmor;
-        this.Boots = inventory.Boots;
-        this.Helmet = inventory.Helmet;
-        this.Gauntlet = inventory.Gauntlet;
-        this.Items = inventory.Items;
-        this.DragDropItem = inventory.DragDropItem;
+        RightHand = inventory.RightHand;
+        MainArmor = inventory.MainArmor;
+        Boots = inventory.Boots;
+        Helmet = inventory.Helmet;
+        Gauntlet = inventory.Gauntlet;
+        Items = inventory.Items;
+        DragDropItem = inventory.DragDropItem;
     }
-    public static Inventory Create()
-    {
-        Inventory i = new()
-        {
-            //i.LeftHand = new Item[10];
-            RightHand = new Item[10]
-        };
-        return i;
-    }
+
+    /// <summary>Creates a new empty <see cref="Inventory"/> with ten blank hotbar slots.</summary>
+    public static Inventory Create() => new() { RightHand = new InventoryItem[10] };
 }

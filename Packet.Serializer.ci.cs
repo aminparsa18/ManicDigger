@@ -39,7 +39,7 @@ public partial class Packet_InventoryPosition
 [MemoryPackable]
 public partial class Packet_Item
 {
-    public ItemClass ItemClass { get; set; }
+    public InventoryItemType ItemClass { get; set; }
     public string ItemId { get; set; }
     public int BlockId { get; set; }
     public int BlockCount { get; set; }

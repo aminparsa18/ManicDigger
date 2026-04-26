@@ -70,7 +70,7 @@ public partial class Game
     public int? BlockInHand()
     {
         Packet_Item item = Inventory.RightHand[ActiveMaterial];
-        return item != null && item.ItemClass == ItemClass.Block ? item.BlockId : null;
+        return item != null && item.ItemClass == InventoryItemType.Block ? item.BlockId : null;
     }
 
     internal bool IsWearingWeapon() => Inventory.RightHand[ActiveMaterial] != null;
@@ -96,7 +96,7 @@ public partial class Game
         }
 
         Packet_Item item = Inventory.RightHand[ActiveMaterial];
-        if (item != null && item.ItemClass == ItemClass.Block)
+        if (item != null && item.ItemClass == InventoryItemType.Block)
         {
             float itemSpeed = DecodeFixedPoint(BlockTypes[item.BlockId].WalkSpeedWhenUsedFloat);
             if (itemSpeed != 0) speed *= itemSpeed;
@@ -120,7 +120,7 @@ public partial class Game
         if (IronSights)
         {
             Packet_Item item = Inventory.RightHand[ActiveMaterial];
-            if (item != null && item.ItemClass == ItemClass.Block)
+            if (item != null && item.ItemClass == InventoryItemType.Block)
             {
                 float ironFov = DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsFovFloat);
                 if (ironFov != 0) return fov * ironFov;
@@ -132,14 +132,14 @@ public partial class Game
     public float CurrentRecoil()
     {
         Packet_Item item = Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != ItemClass.Block) return 0;
+        if (item == null || item.ItemClass != InventoryItemType.Block) return 0;
         return DecodeFixedPoint(BlockTypes[item.BlockId].RecoilFloat);
     }
 
     public float CurrentAimRadius()
     {
         Packet_Item item = Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != ItemClass.Block) return 0;
+        if (item == null || item.ItemClass != InventoryItemType.Block) return 0;
 
         float radius = IronSights
             ? DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsAimRadiusFloat) / 800 * Platform.GetCanvasWidth()

@@ -55,7 +55,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                         Server.invertChunk(chunkPos.Y),
                         Server.invertChunk(chunkPos.Z));
 
-                    if (chunk?.data == null) continue;
+                    if (chunk?.Data == null) continue;
 
                     // Guard against future timestamps
                     if (chunk.LastUpdate > server.simulationcurrentframe)

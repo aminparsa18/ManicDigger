@@ -30,7 +30,6 @@
 		<PackageReference Include="NVorbis" Version="0.10.5" />
 		<PackageReference Include="OpenTK" Version="4.9.4" />
 		<PackageReference Include="OpenTK.Audio.OpenAL" Version="4.9.4" />
-		<PackageReference Include="protobuf-net" Version="3.2.56" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
 		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
@@ -45,13 +44,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\ScriptingApi\ScriptingApi.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<Compile Include="..\Packet.Serializer.ci.cs">
 			<Link>Common\Packet.Serializer.ci.cs</Link>
 		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ScriptingApi\ManicDigger.Domain.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

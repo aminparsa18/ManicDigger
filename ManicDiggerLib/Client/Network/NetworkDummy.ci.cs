@@ -7,7 +7,9 @@
 // Both sides live in the same process on different threads, so the queues
 // are protected with standard lock(). No MonitorObject, no manual Enter/Exit.
 
+using MemoryPack;
 using System.Collections.Concurrent;
+using static ManicDigger.Mods.ModNetworkProcess;
 
 // ---------------------------------------------------------------------------
 // Shared in-process channel
@@ -90,6 +92,8 @@ public sealed class DummyNetConnection : NetConnection
 
     public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
     {
+        var packet = MemoryPackSerializer.Deserialize<Packet_Server>(payload.Span);
+        DiagLog.Write($"DummyNetConnection.SendMessage: {packet.Id} ({payload.Length} bytes)");
         _network.ClientInbox.Enqueue(payload.ToArray());
     }
 

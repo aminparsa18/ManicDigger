@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 
 /// <summary>
 /// Server system responsible for keeping each connected client's view of the world
@@ -34,7 +35,7 @@ public class ServerSystemNotifyEntities : ServerSystem
                 // Apply position overrides to keep bot positions current;
                 // bots do not receive any other position packets.
                 if (client.positionOverride == null) continue;
-                client.entity.position = client.positionOverride;
+                client.entity.Position = client.positionOverride;
                 client.positionOverride = null;
                 continue;
             }
@@ -97,7 +98,7 @@ public class ServerSystemNotifyEntities : ServerSystem
             {
                 // Apply any server-side position correction for the local player
                 if (k.Value.positionOverride == null) continue;
-                k.Value.entity.position = k.Value.positionOverride;
+                k.Value.entity.Position = k.Value.positionOverride;
                 k.Value.positionOverride = null;
             }
             else
@@ -110,7 +111,7 @@ public class ServerSystemNotifyEntities : ServerSystem
             }
 
             Packet_PositionAndOrientation position =
-                ToNetworkEntityPosition(server.serverPlatform, server.clients[k.Key].entity.position);
+                ToNetworkEntityPosition(server.serverPlatform, server.clients[k.Key].entity.Position);
             server.SendPacket(clientId, ServerPackets.EntityPositionAndOrientation(k.Key, position));
         }
     }
@@ -222,7 +223,7 @@ public class ServerSystemNotifyEntities : ServerSystem
 
                     for (int i = 0; i < chunk.EntitiesCount; i++)
                     {
-                        if (chunk.Entities[i]?.position == null) continue;
+                        if (chunk.Entities[i]?.Position == null) continue;
                         candidates.Add(new ServerEntityId { chunkx = chunkX, chunky = chunkY, chunkz = chunkZ, id = i });
                     }
                 }
@@ -293,8 +294,8 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private static Vector3i EntityBlockPosition(Server server, ServerEntityId id)
     {
-        ServerEntityPositionAndOrientation pos = GetEntity(server, id).position;
-        return new Vector3i((int)pos.x, (int)pos.y, (int)pos.z);
+        ServerEntityPositionAndOrientation pos = GetEntity(server, id).Position;
+        return new Vector3i((int)pos.X, (int)pos.Y, (int)pos.Z);
     }
 
     // -------------------------------------------------------------------------
@@ -309,12 +310,12 @@ public class ServerSystemNotifyEntities : ServerSystem
         ServerPlatform platform, ServerEntityPositionAndOrientation position) =>
         new()
         {
-            X = (int)(position.x * 32),
-            Y = (int)(position.y * 32),
-            Z = (int)(position.z * 32),
-            Heading = position.heading,
-            Pitch = position.pitch,
-            Stance = position.stance
+            X = (int)(position.X * 32),
+            Y = (int)(position.Y * 32),
+            Z = (int)(position.Z * 32),
+            Heading = position.Heading,
+            Pitch = position.Pitch,
+            Stance = position.Stance
         };
 
     /// <summary>
@@ -325,59 +326,59 @@ public class ServerSystemNotifyEntities : ServerSystem
     {
         var p = new Packet_ServerEntity();
 
-        if (entity.position != null)
-            p.Position = ToNetworkEntityPosition(platform, entity.position);
+        if (entity.Position != null)
+            p.Position = ToNetworkEntityPosition(platform, entity.Position);
 
-        if (entity.drawModel != null)
+        if (entity.DrawModel != null)
             p.DrawModel = new Packet_ServerEntityAnimatedModel
             {
-                EyeHeight = (int)(entity.drawModel.eyeHeight * 32),
-                Model_ = entity.drawModel.model,
-                ModelHeight = (int)(entity.drawModel.modelHeight * 32),
-                Texture_ = entity.drawModel.texture,
-                DownloadSkin = entity.drawModel.downloadSkin ? 1 : 0
+                EyeHeight = (int)(entity.DrawModel.EyeHeight * 32),
+                Model_ = entity.DrawModel.Model,
+                ModelHeight = (int)(entity.DrawModel.ModelHeight * 32),
+                Texture_ = entity.DrawModel.Texture,
+                DownloadSkin = entity.DrawModel.DownloadSkin ? 1 : 0
             };
 
-        if (entity.drawName != null)
+        if (entity.DrawName != null)
             p.DrawName_ = new Packet_ServerEntityDrawName
             {
-                Name = entity.drawName.name,
-                Color = entity.drawName.color,
-                OnlyWhenSelected = entity.drawName.onlyWhenSelected,
-                ClientAutoComplete = entity.drawName.clientAutoComplete
+                Name = entity.DrawName.Name,
+                Color = entity.DrawName.Color,
+                OnlyWhenSelected = entity.DrawName.OnlyWhenSelected,
+                ClientAutoComplete = entity.DrawName.ClientAutoComplete
             };
 
-        if (entity.drawText != null)
+        if (entity.DrawText != null)
             p.DrawText = new Packet_ServerEntityDrawText
             {
-                Dx = (int)(entity.drawText.dx * 32),
-                Dy = (int)(entity.drawText.dy * 32),
-                Dz = (int)(entity.drawText.dz * 32),
-                Rotx = (int)entity.drawText.rotx,
-                Roty = (int)entity.drawText.roty,
-                Rotz = (int)entity.drawText.rotz,
-                Text = entity.drawText.text
+                Dx = (int)(entity.DrawText.Dx * 32),
+                Dy = (int)(entity.DrawText.Dy * 32),
+                Dz = (int)(entity.DrawText.Dz * 32),
+                Rotx = (int)entity.DrawText.RotX,
+                Roty = (int)entity.DrawText.RotY,
+                Rotz = (int)entity.DrawText.RotZ,
+                Text = entity.DrawText.Text
             };
 
-        if (entity.push != null)
+        if (entity.Push != null)
             p.Push = new Packet_ServerEntityPush
             {
-                RangeFloat = (int)(entity.push.range * 32)
+                RangeFloat = (int)(entity.Push.Range * 32)
             };
 
-        if (entity.drawArea != null)
+        if (entity.DrawArea != null)
             p.DrawArea = new Packet_ServerEntityDrawArea
             {
-                X = entity.drawArea.x,
-                Y = entity.drawArea.y,
-                Z = entity.drawArea.z,
-                Sizex = entity.drawArea.sizex,
-                Sizey = entity.drawArea.sizey,
-                Sizez = entity.drawArea.sizez,
-                VisibleToClientId = entity.drawArea.visibleToClientId
+                X = entity.DrawArea.X,
+                Y = entity.DrawArea.Y,
+                Z = entity.DrawArea.Z,
+                Sizex = entity.DrawArea.SizeX,
+                Sizey = entity.DrawArea.SizeY,
+                Sizez = entity.DrawArea.SizeZ,
+                VisibleToClientId = entity.DrawArea.VisibleToClientId
             };
 
-        p.Usable = entity.usable;
+        p.Usable = entity.Usable;
         return p;
     }
 }

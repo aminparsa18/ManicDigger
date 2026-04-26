@@ -1,45 +1,93 @@
 ﻿#region Using Statements
+using ManicDigger;
 using OpenTK.Mathematics;
-using ProtoBuf;
+using static ManicDigger.Mods.ModNetworkProcess;
 #endregion
 
-[ProtoContract()]
-public class Monster
+/// <summary>
+/// Represents a single monster entity in the world.
+/// Persisted as part of the <see cref="ServerChunk"/> it occupies.
+/// </summary>
+[MemoryPackable]
+public partial class Monster
 {
-    [ProtoMember(1, IsRequired = false)]
-    public int Id;
-    [ProtoMember(2, IsRequired = false)]
-    public int MonsterType;
-    [ProtoMember(3, IsRequired = false)]
-    public int X;
-    [ProtoMember(4, IsRequired = false)]
-    public int Y;
-    [ProtoMember(5, IsRequired = false)]
-    public int Z;
-    public int Health;
-    public Vector3i WalkDirection;
-    public float WalkProgress = 0;
+    /// <summary>Unique monster ID, assigned by the server at spawn time.</summary>
+    public int Id { get; set; }
+
+    /// <summary>Monster type index, used to look up behaviour and appearance.</summary>
+    public int MonsterType { get; set; }
+
+    /// <summary>World X position in blocks.</summary>
+    public int X { get; set; }
+
+    /// <summary>World Y position in blocks.</summary>
+    public int Y { get; set; }
+
+    /// <summary>World Z position in blocks.</summary>
+    public int Z { get; set; }
+
+    /// <summary>Current health points. Not persisted — reset on world load.</summary>
+    [MemoryPackIgnore]
+    public int Health { get; set; }
+
+    /// <summary>Current movement direction. Not persisted — recalculated each tick.</summary>
+    [MemoryPackIgnore]
+    public Vector3i WalkDirection { get; set; }
+
+    /// <summary>
+    /// Fractional progress [0, 1] through the current movement step.
+    /// Not persisted — reset on world load.
+    /// </summary>
+    [MemoryPackIgnore]
+    public float WalkProgress { get; set; }
 }
-[ProtoContract()]
-public class ServerChunk
+
+/// <summary>
+/// A 32³ (or 16³) block volume stored as a flat <see cref="ushort"/> array,
+/// along with any monsters and entities that currently occupy it.
+/// Persisted to the chunk database and loaded on demand.
+/// </summary>
+[MemoryPackable]
+public partial class ServerChunk
 {
-    [ProtoMember(1, IsRequired = false)]
-    public byte[] dataOld;
-    [ProtoMember(6, IsRequired = false)]
-    public ushort[] data;
-    [ProtoMember(2, IsRequired = false)]
-    public long LastUpdate;
-    [ProtoMember(3, IsRequired = false)]
-    public bool IsPopulated;
-    [ProtoMember(4, IsRequired = false)]
-    public int LastChange;
-    public bool DirtyForSaving;
-    [ProtoMember(5, IsRequired = false)]
-    public List<Monster> Monsters = new();
-    [ProtoMember(7, IsRequired = false)]
-    public int EntitiesCount;
-    [ProtoMember(8, IsRequired = false)]
-    public ServerEntity[] Entities;
+    /// <summary>
+    /// Legacy block data stored as <see langword="byte[]"/> from older save formats.
+    /// When non-null on load, its contents are migrated into <see cref="Data"/>
+    /// and this field is cleared.
+    /// </summary>
+    public byte[]? DataOld { get; set; }
+
+    /// <summary>
+    /// Block type IDs for every position in the chunk, stored in XYZ order.
+    /// Index = <c>x + y * chunksize + z * chunksize * chunksize</c>.
+    /// </summary>
+    public ushort[]? Data { get; set; }
+
+    /// <summary>Simulation frame on which this chunk was last modified by the world generator or a player.</summary>
+    public long LastUpdate { get; set; }
+
+    /// <summary>When <see langword="true"/>, this chunk has been fully generated and populated with terrain.</summary>
+    public bool IsPopulated { get; set; }
+
+    /// <summary>Simulation frame of the most recent block change within this chunk.</summary>
+    public int LastChange { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, this chunk has unsaved changes and must be
+    /// written to the database on the next save pass.
+    /// Not persisted — always resets to <see langword="false"/> on load.
+    /// </summary>
+    [MemoryPackIgnore]
+    public bool DirtyForSaving { get; set; }
+
+    /// <summary>Monsters currently residing in this chunk.</summary>
+    public List<Monster> Monsters { get; set; } = [];
+
+    /// <summary>Number of valid entries in <see cref="Entities"/>.</summary>
+    public int EntitiesCount { get; set; }
+
+    /// <summary>Server entities (signs, push zones, interactive objects) located in this chunk.</summary>
+    public ServerEntity[]? Entities { get; set; }
 }
 
 public class ServerMapStorage : IMapStorage
@@ -62,7 +110,7 @@ public class ServerMapStorage : IMapStorage
         ServerChunk chunk = GetChunk(x, y, z);
         unchecked
         {
-            return chunk.data[VectorIndexUtil.Index3d(ModuloChunk(x), ModuloChunk(y), ModuloChunk(z), chunksize, chunksize)];
+            return chunk.Data[VectorIndexUtil.Index3d(ModuloChunk(x), ModuloChunk(y), ModuloChunk(z), chunksize, chunksize)];
         }
     }
 
@@ -71,7 +119,7 @@ public class ServerMapStorage : IMapStorage
         ServerChunk chunk = GetChunk(x, y, z);
         unchecked
         {
-            chunk.data[VectorIndexUtil.Index3d(ModuloChunk(x), ModuloChunk(y), ModuloChunk(z), chunksize, chunksize)] = (ushort)tileType;
+            chunk.Data[VectorIndexUtil.Index3d(ModuloChunk(x), ModuloChunk(y), ModuloChunk(z), chunksize, chunksize)] = (ushort)tileType;
         }
         chunk.LastChange = d_CurrentTime.GetSimulationCurrentFrame();
         chunk.DirtyForSaving = true;
@@ -98,7 +146,7 @@ public class ServerMapStorage : IMapStorage
         ServerChunk chunk = GetChunk(x, y, z);
         unchecked
         {
-            chunk.data[VectorIndexUtil.Index3d(ModuloChunk(x), ModuloChunk(y), ModuloChunk(z), chunksize, chunksize)] = (ushort)tileType;
+            chunk.Data[VectorIndexUtil.Index3d(ModuloChunk(x), ModuloChunk(y), ModuloChunk(z), chunksize, chunksize)] = (ushort)tileType;
         }
         chunk.DirtyForSaving = true;
         UpdateColumnHeight(x, y);
@@ -126,10 +174,11 @@ public class ServerMapStorage : IMapStorage
         ServerChunk chunk = GetChunkValid(x, y, z);
         if (chunk != null)
         {
-            bool allZero = true;
-            for (int i = 0; i < chunk.data?.Length; i++)
-                if (chunk.data[i] != 0) { allZero = false; break; }
-            Console.WriteLine($"[Chunk] ({x},{y},{z}) already existed, allZero={allZero}, IsPopulated={chunk.IsPopulated}");
+            int existingNonZero = 0;
+            if (chunk.Data != null)
+                for (int i = 0; i < chunk.Data.Length; i++)
+                    if (chunk.Data[i] != 0) existingNonZero++;
+            DiagLog.Write($"[Chunk] ({x},{y},{z}) already existed: dataLen={chunk.Data?.Length ?? -1} nonZero={existingNonZero} IsPopulated={chunk.IsPopulated}");
         }
         if (chunk == null)
         {
@@ -137,20 +186,42 @@ public class ServerMapStorage : IMapStorage
             unchecked
             {
                 byte[] serializedChunk = ChunkDb.GetChunk(d_ChunkDb, x, y, z);
-                Console.WriteLine($"[DB] ({x},{y},{z}) key={MapUtil.ToMapPos(x, y, z)} got={serializedChunk != null} len={serializedChunk?.Length}");
+                DiagLog.Write($"[DB] ({x},{y},{z}) got={serializedChunk != null} len={serializedChunk?.Length ?? -1}");
+
                 if (serializedChunk != null)
                 {
-                    SetChunkValid(x, y, z, DeserializeChunk(serializedChunk));
+                    ServerChunk deserialized;
+                    try
+                    {
+                        deserialized = DeserializeChunk(serializedChunk);
+                        int deserNonZero = 0;
+                        if (deserialized.Data != null)
+                            for (int i = 0; i < deserialized.Data.Length; i++)
+                                if (deserialized.Data[i] != 0) deserNonZero++;
+                        DiagLog.Write($"[Deserialize] ({x},{y},{z}) data={deserialized.Data?.Length ?? -1} dataOld={deserialized.DataOld?.Length ?? -1} nonZero={deserNonZero}");
+                    }
+                    catch (Exception ex)
+                    {
+                        DiagLog.Write($"[Deserialize] ({x},{y},{z}) EXCEPTION: {ex.GetType().Name}: {ex.Message}");
+                        return null;
+                    }
+
+                    SetChunkValid(x, y, z, deserialized);
                     UpdateChunkHeight(x, y, z);
                     return GetChunkValid(x, y, z);
                 }
 
+                DiagLog.Write($"[Generate] ({x},{y},{z}) not in DB, generators={server.modEventHandlers.getchunk.Count}");
                 ushort[] newchunk = new ushort[chunksize * chunksize * chunksize];
                 for (int i = 0; i < server.modEventHandlers.getchunk.Count; i++)
-                {
                     server.modEventHandlers.getchunk[i](x, y, z, newchunk);
-                }
-                SetChunkValid(x, y, z, new ServerChunk() { data = newchunk });
+
+                int genNonZero = 0;
+                for (int i = 0; i < newchunk.Length; i++)
+                    if (newchunk[i] != 0) genNonZero++;
+                DiagLog.Write($"[Generate] ({x},{y},{z}) done, nonZero={genNonZero}");
+
+                SetChunkValid(x, y, z, new ServerChunk() { Data = newchunk });
                 GetChunkValid(x, y, z).DirtyForSaving = true;
                 UpdateChunkHeight(x, y, z);
                 return GetChunkValid(x, y, z);
@@ -167,7 +238,7 @@ public class ServerMapStorage : IMapStorage
             {
                 for (int yy = 0; yy < chunksize; yy++)
                 {
-                    int inChunkHeight = GetColumnHeightInChunk(GetChunkValid(x, y, z).data, xx, yy);
+                    int inChunkHeight = GetColumnHeightInChunk(GetChunkValid(x, y, z).Data, xx, yy);
                     if (inChunkHeight != 0)
                     {
                         int oldHeight = d_Heightmap.GetBlock(x * chunksize + xx, y * chunksize + yy);
@@ -197,17 +268,17 @@ public class ServerMapStorage : IMapStorage
 
     private ServerChunk DeserializeChunk(byte[] serializedChunk)
     {
-        ServerChunk c = Serializer.Deserialize<ServerChunk>(new MemoryStream(serializedChunk));
+        ServerChunk c = MemoryPackSerializer.Deserialize<ServerChunk>(serializedChunk);
         unchecked
         {
-            if (c.dataOld != null)
+            if (c.DataOld != null)
             {
-                c.data = new ushort[chunksize * chunksize * chunksize];
-                for (int i = 0; i < c.dataOld.Length; i++)
+                c.Data = new ushort[chunksize * chunksize * chunksize];
+                for (int i = 0; i < c.DataOld.Length; i++)
                 {
-                    c.data[i] = c.dataOld[i];
+                    c.Data[i] = c.DataOld[i];
                 }
-                c.dataOld = null;
+                c.DataOld = null;
             }
             if (c.Entities != null)
             {

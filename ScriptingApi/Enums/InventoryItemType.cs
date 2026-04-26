@@ -1,6 +1,6 @@
 ﻿namespace ManicDigger;
 
-public enum ItemClass
+public enum InventoryItemType
 {
     Block,
     Weapon,

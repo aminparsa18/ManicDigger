@@ -74,9 +74,9 @@ public class ModNetworkProcess : ModBase
 
     public void TryReadPacket(byte[] data, int dataLength)
     {
-        Packet_Server packet = MemoryPackSerializer.Deserialize<Packet_Server>(
+        Packet_Server packet;
+        packet = MemoryPackSerializer.Deserialize<Packet_Server>(
             data.AsSpan(0, dataLength));
-
         ProcessInBackground(packet);
         _game.QueueActionCommit(() => ProcessPacket(packet));
         _game.LastReceivedMilliseconds = _game.CurrentTimeMilliseconds;
@@ -123,7 +123,6 @@ public class ModNetworkProcess : ModBase
                     }
                     else
                     {
-                        // ── Fix #4: Array.Clear instead of manual zero loop ────
                         Array.Clear(receivedchunk, 0, p.SizeX * p.SizeY * p.SizeZ);
                     }
 
@@ -506,4 +505,36 @@ public class ModNetworkProcess : ModBase
                 break;
         }
     }
+
+    /// <summary>
+    /// Simple append-only file logger for diagnostics.
+    /// Thread-safe via lock. Writes to a fixed path next to the executable.
+    /// </summary>
+    public static class DiagLog
+    {
+        private static readonly string _path = Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "diag.log");
+
+        private static readonly object _lock = new();
+
+        static DiagLog()
+        {
+            // Clear the log file on startup so each run starts fresh.
+            try { File.WriteAllText(_path, $"=== DiagLog started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ==={Environment.NewLine}"); }
+            catch { /* ignore if we can't write */ }
+        }
+
+        public static void Write(string message)
+        {
+            lock (_lock)
+            {
+                try { File.AppendAllText(_path, $"[{DateTime.Now:HH:mm:ss.fff}] {message}{Environment.NewLine}"); }
+                catch { }
+            }
+        }
+
+        public static void Write(string format, params object[] args)
+            => Write(string.Format(format, args));
+    }
+
 }

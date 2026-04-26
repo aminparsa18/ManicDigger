@@ -99,10 +99,9 @@ public class GameSurfaceViewHandler : ViewHandler<GameSurfaceView, Grid>
             // OpenTK creates its own Win32 window — MAUI's window is irrelevant
             using GameWindowNative window = new();
             _platform.window = window;
-            window.platform = _platform;
 
-            var mainmenu = new MainMenu();
-            mainmenu.Start(_platform);
+            var mainmenu = new MainMenu(_platform);
+            mainmenu.Start();
 
             _platform.Start();
             window.Run(); // blocks here, OpenTK runs its own message pump
@@ -115,12 +114,6 @@ public class GameSurfaceViewHandler : ViewHandler<GameSurfaceView, Grid>
                 Application.Current?.Windows[0]
                     .Page?.DisplayAlert("Fatal Error", ex.ToString(), "OK"));
         }
-    }
-
-    private static void ReadArgs(MainMenu mainmenu, string[] args)
-    {
-        if (args.Length > 0)
-            mainmenu.StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));
     }
 
     // -----------------------------------------------------------------------

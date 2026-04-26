@@ -353,8 +353,8 @@ public partial class Server : ICurrentTime, IDropItem
         d_Map = map;
 
         //Load assets (textures, sounds, etc.)
-        string[] datapaths = new[] { Path.Combine(Path.Combine(Path.Combine("..", ".."), ".."), "data"), "data" };
-        string[] datapathspublic = new[] { Path.Combine(datapaths[0], "public"), Path.Combine(datapaths[1], "public") };
+        string[] datapaths = new[] { PathHelper.DataRoot, "data" };
+        string[] datapathspublic = new[] { Path.Combine(PathHelper.DataRoot, "public"), Path.Combine("data", "public") };
         PublicDataPaths = datapathspublic;
         assetLoader = new AssetLoader(datapathspublic);
         LoadAssets();

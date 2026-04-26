@@ -39,9 +39,25 @@ public partial class App : Application
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Game crashed");
+                File.WriteAllText(
+               Path.Combine(AppContext.BaseDirectory, "crash.txt"),
+               FlattenException(ex));
             }
         });
+    }
+
+    private static string FlattenException(Exception ex)
+    {
+        var sb = new System.Text.StringBuilder();
+        while (ex != null)
+        {
+            sb.AppendLine(ex.GetType().FullName);
+            sb.AppendLine(ex.Message);
+            sb.AppendLine(ex.StackTrace);
+            sb.AppendLine("--- Inner Exception ---");
+            ex = ex.InnerException;
+        }
+        return sb.ToString();
     }
 }
 
@@ -55,6 +71,8 @@ public class GameRunner
     public void Start(string[] args)
     {
         Environment.CurrentDirectory = AppContext.BaseDirectory;
+        // Temporary: log what the loader will actually scan
+        Log.Information("Working dir: {Dir}", Environment.CurrentDirectory);
         _platform = new GamePlatformNative
         {
             crashreporter = new CrashReporter(),
@@ -69,10 +87,9 @@ public class GameRunner
 
         using GameWindowNative window = new();
         _platform.window = window;
-        window.platform = _platform;
 
-        MainMenu mainmenu = new();
-        mainmenu.Start(_platform);
+        MainMenu mainmenu = new(_platform);
+        mainmenu.Start();
 
         if (args.Length > 0)
             mainmenu.StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));

@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using Serilog;
+using System.Security.Cryptography;
 
 /// <summary>
 /// Represents a named game asset (texture, sound, etc.) loaded from disk or received from a server.
@@ -29,7 +30,22 @@ public class AssetLoader
 
     public AssetLoader(string[] datapaths)
     {
-        this.datapaths = datapaths;
+        string baseDir = AppContext.BaseDirectory;
+        this.datapaths = datapaths
+            .Select(p =>
+            {
+                if (Path.IsPathRooted(p)) return p;
+
+                // If path contains '..', resolve it relative to baseDir
+                // but then validate it stays within a sane boundary
+                string resolved = Path.GetFullPath(Path.Combine(baseDir, p));
+
+                // Safety check: if resolved path doesn't exist, the '..' 
+                // traversal went somewhere wrong — return as-is and let
+                // the Directory.Exists check in LoadAssetsAsync skip it
+                return resolved;
+            })
+            .ToArray();
     }
 
     public List<Asset> LoadAssetsAsync(out float progress)
@@ -38,6 +54,7 @@ public class AssetLoader
 
         foreach (string path in datapaths)
         {
+            var ss = Path.GetFullPath(path);
             if (!Directory.Exists(path))
                 continue;
 

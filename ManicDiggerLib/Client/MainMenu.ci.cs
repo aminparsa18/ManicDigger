@@ -141,7 +141,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
         _platform.SetTitle(_lang.GameName());
 
         TextColorRenderer = new TextColorRenderer();
-        var assetLoader = new AssetLoader([Path.Combine(Path.Combine(Path.Combine("..", ".."), ".."), "data"), "data"]);
+        var assetLoader = new AssetLoader([PathHelper.DataRoot, "data"]);
         Assets = assetLoader.LoadAssetsAsync(out float progress);
         AssetsLoadProgress = progress;
 

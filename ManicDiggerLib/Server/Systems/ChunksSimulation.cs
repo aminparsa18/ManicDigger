@@ -69,8 +69,8 @@ public class ServerSystemChunksSimulation : ServerSystem
 
                     if (!chunk.IsPopulated)
                     {
-                        PopulateChunk(server, chunkPos);
                         chunk.IsPopulated = true;
+                        PopulateChunk(server, chunkPos);
                     }
                 }
 

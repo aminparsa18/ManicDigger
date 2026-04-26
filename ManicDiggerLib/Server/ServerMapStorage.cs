@@ -178,7 +178,6 @@ public class ServerMapStorage : IMapStorage
             if (chunk.Data != null)
                 for (int i = 0; i < chunk.Data.Length; i++)
                     if (chunk.Data[i] != 0) existingNonZero++;
-            DiagLog.Write($"[Chunk] ({x},{y},{z}) already existed: dataLen={chunk.Data?.Length ?? -1} nonZero={existingNonZero} IsPopulated={chunk.IsPopulated}");
         }
         if (chunk == null)
         {
@@ -186,7 +185,6 @@ public class ServerMapStorage : IMapStorage
             unchecked
             {
                 byte[] serializedChunk = ChunkDb.GetChunk(d_ChunkDb, x, y, z);
-                DiagLog.Write($"[DB] ({x},{y},{z}) got={serializedChunk != null} len={serializedChunk?.Length ?? -1}");
 
                 if (serializedChunk != null)
                 {
@@ -198,11 +196,9 @@ public class ServerMapStorage : IMapStorage
                         if (deserialized.Data != null)
                             for (int i = 0; i < deserialized.Data.Length; i++)
                                 if (deserialized.Data[i] != 0) deserNonZero++;
-                        DiagLog.Write($"[Deserialize] ({x},{y},{z}) data={deserialized.Data?.Length ?? -1} dataOld={deserialized.DataOld?.Length ?? -1} nonZero={deserNonZero}");
                     }
                     catch (Exception ex)
                     {
-                        DiagLog.Write($"[Deserialize] ({x},{y},{z}) EXCEPTION: {ex.GetType().Name}: {ex.Message}");
                         return null;
                     }
 
@@ -211,7 +207,6 @@ public class ServerMapStorage : IMapStorage
                     return GetChunkValid(x, y, z);
                 }
 
-                DiagLog.Write($"[Generate] ({x},{y},{z}) not in DB, generators={server.modEventHandlers.getchunk.Count}");
                 ushort[] newchunk = new ushort[chunksize * chunksize * chunksize];
                 for (int i = 0; i < server.modEventHandlers.getchunk.Count; i++)
                     server.modEventHandlers.getchunk[i](x, y, z, newchunk);
@@ -219,7 +214,6 @@ public class ServerMapStorage : IMapStorage
                 int genNonZero = 0;
                 for (int i = 0; i < newchunk.Length; i++)
                     if (newchunk[i] != 0) genNonZero++;
-                DiagLog.Write($"[Generate] ({x},{y},{z}) done, nonZero={genNonZero}");
 
                 SetChunkValid(x, y, z, new ServerChunk() { Data = newchunk });
                 GetChunkValid(x, y, z).DirtyForSaving = true;

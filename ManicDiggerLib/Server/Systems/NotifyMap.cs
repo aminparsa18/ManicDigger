@@ -136,7 +136,6 @@ public class ServerSystemNotifyMap : ServerSystem
         bool isSolid = MapUtil.IsSolidChunk(chunk.Data);
         int firstBlock = chunk.Data?[0] ?? -1;
         int nonZero = chunk.Data?.Count(b => b != 0) ?? -1;
-        DiagLog.Write($"SendChunk ({globalPos.X},{globalPos.Y},{globalPos.Z}): isSolid={isSolid} firstBlock={firstBlock} nonZero={nonZero} dataLen={chunk.Data?.Length ?? -1}");
 
         byte[] compressedChunk = null;
 

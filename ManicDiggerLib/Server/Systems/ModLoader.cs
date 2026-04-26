@@ -392,7 +392,6 @@ public class ServerSystemModLoader : ServerSystem
                 Console.WriteLine($"Loaded mod: {t.Name}");
             }
         }
-        var ss = mods;
     }
 
     // -------------------------------------------------------------------------

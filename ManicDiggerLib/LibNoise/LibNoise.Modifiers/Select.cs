@@ -27,20 +27,6 @@ public class Select : Math, IModule
 		}
 	}
 
-	public Select(IModule control, IModule source1, IModule source2)
-	{
-		if (control == null || source1 == null || source2 == null)
-		{
-			throw new ArgumentNullException("Control and source modules must be provided.");
-		}
-		ControlModule = control;
-		SourceModule1 = source1;
-		SourceModule2 = source2;
-		EdgeFalloff = 0.0;
-		LowerBound = -1.0;
-		UpperBound = 1.0;
-	}
-
 	public double GetValue(double x, double y, double z)
 	{
 		if (ControlModule == null || SourceModule1 == null || SourceModule2 == null)
@@ -79,16 +65,5 @@ public class Select : Math, IModule
 			return SourceModule1.GetValue(x, y, z);
 		}
 		return SourceModule2.GetValue(x, y, z);
-	}
-
-	public void SetBounds(double lower, double upper)
-	{
-		if (lower > upper)
-		{
-			throw new ArgumentException("The lower bounds must be lower than the upper bounds.");
-		}
-		LowerBound = lower;
-		UpperBound = upper;
-		EdgeFalloff = mEdgeFalloff;
 	}
 }

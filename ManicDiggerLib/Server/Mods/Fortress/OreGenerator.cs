@@ -1,6 +1,4 @@
-﻿using static ManicDigger.Mods.ModNetworkProcess;
-
-namespace ManicDigger.Mods;
+﻿namespace ManicDigger.Mods;
 
 public class OreGenerator : IMod
 {

@@ -1,305 +1,573 @@
 ﻿using LibNoise;
-using LibNoise.Modifiers;
+using System.Diagnostics;
 
 namespace ManicDigger.Mods;
 
 public class DefaultWorldGenerator : IMod
 {
-    private IModManager m;
-    private bool started = false;
-
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {
         m = manager;
-        m.RegisterWorldGenerator(GetChunk);
-        m.RegisterOptionBool("DefaultGenCaves", false);
-        m.RegisterOptionBool("DefaultGenLavaCaves", false);
+        chunksize = m.GetChunkSize();
+        mapSizeX = m.GetMapSizeX();
+        mapSizeY = m.GetMapSizeY();
+        int seed = m.Seed;
 
+        InitNoise(seed);
+
+        BLOCK_AIR = m.GetBlockId("Empty");
+        BLOCK_ADMINIUM = m.GetBlockId("Adminium");
         BLOCK_STONE = m.GetBlockId("Stone");
         BLOCK_DIRT = m.GetBlockId("Dirt");
-        BLOCK_SAND = m.GetBlockId("Sand");
-        BLOCK_CLAY = m.GetBlockId("Stone");
-        BLOCK_BEDROCK = m.GetBlockId("Adminium");
-        BLOCK_AIR = m.GetBlockId("Empty");
-        BLOCK_SNOW = m.GetBlockId("Grass");
-        BLOCK_ICE = m.GetBlockId("Water");
         BLOCK_GRASS = m.GetBlockId("Grass");
         BLOCK_WATER = m.GetBlockId("Water");
+        BLOCK_SAND = m.GetBlockId("Sand");
         BLOCK_GRAVEL = m.GetBlockId("Gravel");
-        BLOCK_PUMPKIN = m.GetBlockId("Hay");
-        BLOCK_RED_ROSE = m.GetBlockId("RedRoseDecorations");
-        BLOCK_YELLOW_FLOWER = m.GetBlockId("YellowFlowerDecorations");
-        BLOCK_LAVA = m.GetBlockId("Lava");
+        BLOCK_CLAY = m.GetBlockId("Clay");
+        BLOCK_REDSAND = m.GetBlockId("RedSand");
+        BLOCK_SANDSTONE = m.GetBlockId("Sandstone");
+        BLOCK_REDSANDSTONE = m.GetBlockId("RedSandstone");
+        BLOCK_CACTUS = m.GetBlockId("Cactus");
+        BLOCK_DEADPLANT = m.GetBlockId("DeadPlant");
+        BLOCK_GRASSPLANT = m.GetBlockId("GrassPlant");
+        //BLOCK_SNOW = m.GetBlockId("Snow");
+        //BLOCK_MUD = m.GetBlockId("Mud");
+
+        m.RegisterWorldGenerator(GetChunk);
+        m.RegisterPopulateChunk(PopulateChunk);
+        m.RegisterOnSave(DisplayTimes);
+        SaveImage();
     }
 
-    public void GetChunk(int x, int y, int z, ushort[] chunk)
+    // =========================================================================
+    //  State
+    // =========================================================================
+
+    IModManager m;
+    int chunksize, mapSizeX, mapSizeY;
+
+    int BLOCK_AIR, BLOCK_ADMINIUM, BLOCK_STONE, BLOCK_DIRT, BLOCK_GRASS;
+    int BLOCK_WATER, BLOCK_SAND, BLOCK_GRAVEL, BLOCK_CLAY;
+    int BLOCK_REDSAND, BLOCK_SANDSTONE, BLOCK_REDSANDSTONE;
+    int BLOCK_CACTUS, BLOCK_DEADPLANT, BLOCK_GRASSPLANT;
+    int BLOCK_SNOW, BLOCK_MUD;
+
+    // Tuned for 256x256 map — biome transitions every ~60-100 blocks
+    const double CONTINENT_SCALE = 180.0;
+    const double HEIGHT_SCALE = 120.0;
+    const double TEMP_SCALE = 220.0;
+    const double HUMIDITY_SCALE = 160.0;
+
+    // Water sits at block 30. Land biomes always generate above this.
+    const int WATER_LEVEL = 30;
+    const int LAND_MIN_HEIGHT = 33;   // guaranteed minimum for any land biome surface
+
+    int getChunkCalls, populateChunkCalls;
+    long totalGetChunkMs, totalPopulateMs;
+    readonly Stopwatch watch = new();
+
+    // =========================================================================
+    //  Noise — four fully independent layers
+    // =========================================================================
+
+    // Layer 1: Continent — decides ocean vs land
+    // Billow with few octaves = large smooth blobs, always has + and - regions
+    Billow continentNoise = new();
+
+    // Layer 2: Height — two generators, blended by how far inland we are
+    RidgedMultifractal heightRidged = new();   // sharp mountain ridges
+    Billow heightSmooth = new();   // rolling hills / lowlands
+
+    // Layer 3: Temperature — independent Perlin
+    Perlin tempNoise = new();
+
+    // Layer 4: Humidity — FastNoise at a different scale
+    FastNoise humidityNoise = new();
+
+    // Vegetation scatter
+    FastNoise vegetationNoise = new();
+
+    void InitNoise(int seed)
     {
-        if (!started)
+        // Continent — very few octaves so features are large and definite
+        continentNoise.Seed = seed;
+        continentNoise.Frequency = 1.0;
+        continentNoise.OctaveCount = 3;
+        continentNoise.Persistence = 0.5;
+        continentNoise.Lacunarity = 2.0;
+        continentNoise.NoiseQuality = NoiseQuality.Standard;
+
+        // Ridged for mountain peaks
+        heightRidged.Seed = seed + 1;
+        heightRidged.Frequency = 1.0;
+        heightRidged.OctaveCount = 5;
+        heightRidged.Lacunarity = 2.0;
+        heightRidged.NoiseQuality = NoiseQuality.Standard;
+
+        // Smooth for lowland variety
+        heightSmooth.Seed = seed + 2;
+        heightSmooth.Frequency = 1.0;
+        heightSmooth.OctaveCount = 5;
+        heightSmooth.Persistence = 0.5;
+        heightSmooth.Lacunarity = 2.0;
+        heightSmooth.NoiseQuality = NoiseQuality.Standard;
+
+        // Temperature — wider zones than humidity
+        tempNoise.Seed = seed * 3 + 137;
+        tempNoise.Frequency = 1.0;
+        tempNoise.OctaveCount = 3;
+        tempNoise.Persistence = 0.5;
+        tempNoise.Lacunarity = 2.0;
+        tempNoise.NoiseQuality = NoiseQuality.Standard;
+
+        // Humidity — tighter zones, decorrelated from temperature
+        humidityNoise.Seed = seed * 7 + 53;
+        humidityNoise.Frequency = 1.0;
+        humidityNoise.OctaveCount = 4;
+        humidityNoise.Persistence = 0.55;
+        humidityNoise.Lacunarity = 2.0;
+
+        vegetationNoise.Seed = seed + 7;
+    }
+
+    // =========================================================================
+    //  Biome
+    // =========================================================================
+
+    enum Biome
+    {
+        DeepOcean,
+        Ocean,
+        Shore,
+        Plains,
+        Forest,
+        Swamp,
+        Savanna,
+        Desert,
+        Dunes,
+        Canyon,
+        Hills,
+        Mountains,
+        SnowyMountains,
+        DesertMountains,
+    }
+
+    /// <summary>
+    /// Radial bias — pushes map center above ocean threshold so spawn is always land.
+    /// Returns up to +0.6 at center, fading to 0 at the edges.
+    /// </summary>
+    double ContinentBias(int wx, int wy)
+    {
+        double cx = mapSizeX * 0.5;
+        double cy = mapSizeY * 0.5;
+        double dx = (wx - cx) / cx;
+        double dy = (wy - cy) / cy;
+        double dist = System.Math.Sqrt(dx * dx + dy * dy); // 0 at center, ~1.4 at corner
+        return System.Math.Max(0.0, 0.6 - dist * 0.55);
+    }
+
+    /// <summary>
+    /// Returns raw continent noise + center bias, normalised to [0, 1].
+    /// Values above 0.5 are land, below 0.5 are ocean.
+    /// </summary>
+    double GetContinent(int wx, int wy)
+    {
+        double raw = continentNoise.GetValue(wx / CONTINENT_SCALE, 0, wy / CONTINENT_SCALE);
+        double biased = raw + ContinentBias(wx, wy);
+        // Billow output ≈ [-0.5, 1.5] after bias. Normalise to [0,1].
+        return System.Math.Clamp((biased + 0.5) / 2.0, 0.0, 1.0);
+    }
+
+    Biome GetBiome(int wx, int wy)
+    {
+        double cont = GetContinent(wx, wy);
+
+        // Ocean zones — continent mask only, no wasted temp/humidity sampling
+        if (cont < 0.25) return Biome.DeepOcean;
+        if (cont < 0.38) return Biome.Ocean;
+        if (cont < 0.45) return Biome.Shore;
+
+        // Land — sample height, temperature, humidity
+        double normH = GetNormHeight(wx, wy, cont);
+
+        double rawTemp = tempNoise.GetValue(wx / TEMP_SCALE, 0, wy / TEMP_SCALE);
+        double temp = System.Math.Clamp((rawTemp + 0.8) / 1.6, 0.0, 1.0);
+        temp = System.Math.Max(0.0, temp - normH * 0.45); // cold at altitude
+
+        double rawHum = humidityNoise.GetValue(wx / HUMIDITY_SCALE, 0, wy / HUMIDITY_SCALE);
+        double humidity = System.Math.Clamp((rawHum + 0.8) / 1.6, 0.0, 1.0);
+
+        return DetermineBiome(normH, temp, humidity);
+    }
+
+    /// <summary>
+    /// Pure lookup table. No noise inside.
+    /// normH    [0..1] : terrain elevation
+    /// temp     [0..1] : 0=frozen, 1=scorching
+    /// humidity [0..1] : 0=dry, 1=wet
+    /// </summary>
+    Biome DetermineBiome(double normH, double temp, double humidity)
+    {
+        // High altitude
+        if (normH > 0.70)
         {
-            Init();
-            started = true;
+            if (temp < 0.30) return Biome.SnowyMountains;
+            if (humidity < 0.30) return Biome.DesertMountains;
+            return Biome.Mountains;
         }
-        bool addCaves = (bool)m.GetOption("DefaultGenCaves");
-        bool addCaveLava = (bool)m.GetOption("DefaultGenLavaCaves");
-        int ChunkSize = m.GetChunkSize();
-        x *= ChunkSize;
-        y *= ChunkSize;
-        z *= ChunkSize;
-        int chunksize = ChunkSize;
+
+        // Mid elevation
+        if (normH > 0.42)
+        {
+            if (humidity < 0.30 && temp > 0.60) return Biome.Canyon;
+            if (humidity < 0.40 && temp > 0.50) return Biome.Dunes;
+            return Biome.Hills;
+        }
+
+        // Lowlands
+        if (temp > 0.65 && humidity < 0.30) return Biome.Desert;
+        if (temp > 0.60 && humidity < 0.50) return Biome.Savanna;
+        if (humidity > 0.72) return Biome.Swamp;
+        if (humidity > 0.52) return Biome.Forest;
+        return Biome.Plains;
+    }
+
+    // =========================================================================
+    //  Terrain height
+    // =========================================================================
+
+    /// <summary>
+    /// Normalised height [0..1] for land tiles.
+    /// Mountain noise weight rises inland (away from coast).
+    /// </summary>
+    double GetNormHeight(int wx, int wy, double cont)
+    {
+        double hx = wx / HEIGHT_SCALE;
+        double hy = wy / HEIGHT_SCALE;
+
+        // How far inland: 0 at coast (cont=0.45), 1 deep inland (cont=1.0)
+        double inland = System.Math.Clamp((cont - 0.45) / 0.55, 0.0, 1.0);
+        double mw = inland * inland; // quadratic ease — coast stays flat
+
+        double rRaw = heightRidged.GetValue(hx, 0, hy); // ≈ [-1, 1]
+        double sRaw = heightSmooth.GetValue(hx, 0, hy); // ≈ [-0.5, 1.5]
+
+        double rNorm = System.Math.Clamp((rRaw + 1.0) / 2.0, 0.0, 1.0);
+        double sNorm = System.Math.Clamp((sRaw + 0.5) / 2.0, 0.0, 1.0);
+
+        return double.Lerp(sNorm, rNorm, mw);
+    }
+
+    /// <summary>
+    /// Converts biome + normalised height to an absolute world block height.
+    /// Land biomes are clamped to always be above LAND_MIN_HEIGHT.
+    /// Ocean biomes are clamped to always be below WATER_LEVEL.
+    /// </summary>
+    int GetSurfaceZ(Biome biome, double normH)
+    {
+        (int baseH, int amp) = biome switch
+        {
+            Biome.DeepOcean => (8, 10),
+            Biome.Ocean => (14, 12),
+            Biome.Shore => (27, 5),
+            Biome.Plains => (34, 10),
+            Biome.Forest => (34, 12),
+            Biome.Swamp => (32, 5),
+            Biome.Savanna => (34, 12),
+            Biome.Desert => (34, 14),
+            Biome.Dunes => (36, 18),
+            Biome.Canyon => (48, 20),
+            Biome.Hills => (36, 22),
+            Biome.Mountains => (44, 40),
+            Biome.SnowyMountains => (46, 44),
+            Biome.DesertMountains => (40, 34),
+            _ => (34, 10),
+        };
+
+        int h = (int)(baseH + normH * amp);
+
+        // Hard guarantees — never land in water, never ocean above water
+        bool isOcean = biome == Biome.DeepOcean || biome == Biome.Ocean;
+        if (isOcean) return System.Math.Min(h, WATER_LEVEL - 2);
+        if (biome == Biome.Shore) return System.Math.Clamp(h, WATER_LEVEL - 1, WATER_LEVEL + 2);
+        return System.Math.Max(h, LAND_MIN_HEIGHT);
+    }
+
+    // =========================================================================
+    //  Chunk generation
+    // =========================================================================
+
+    void GetChunk(int cx, int cy, int cz, ushort[] chunk)
+    {
+        getChunkCalls++;
+        watch.Restart();
+
+        int ox = cx * chunksize;
+        int oy = cy * chunksize;
+        int oz = cz * chunksize;
 
         for (int xx = 0; xx < chunksize; xx++)
-        {
             for (int yy = 0; yy < chunksize; yy++)
             {
-                int currentHeight = (byte)((finalTerrain.GetValue((xx + x) / 100.0, 0, (yy + y) / 100.0) * 60) + 64);
-                int ymax = currentHeight;
+                int wx = ox + xx;
+                int wy = oy + yy;
 
-                int biome = (int)(BiomeSelect.GetValue((x + xx) / 100.0, 0, (y + yy) / 100.0) * 2); //MD * 2
-                int toplayer = BLOCK_DIRT;
-                if (biome == 0)
-                {
-                    toplayer = BLOCK_DIRT;
-                }
-                if (biome == 1)
-                {
-                    toplayer = BLOCK_SAND;
-                }
-                if (biome == 2)
-                {
-                    toplayer = BLOCK_DIRT;
-                }
-                if (biome == 3)
-                {
-                    toplayer = BLOCK_DIRT;
-                }
-                if (biome == 4)
-                {
-                    toplayer = BLOCK_DIRT;
-                }
-                if (biome == 5)
-                {
-                    toplayer = BLOCK_CLAY;
-                }
+                double cont = GetContinent(wx, wy);
+                Biome biome = GetBiome(wx, wy);
+                double normH = (biome == Biome.DeepOcean || biome == Biome.Ocean || biome == Biome.Shore)
+                                 ? System.Math.Clamp(cont / 0.45, 0.0, 1.0)
+                                 : GetNormHeight(wx, wy, cont);
+                int surfaceZ = GetSurfaceZ(biome, normH);
 
-                int stoneHeight = currentHeight - ((64 - (currentHeight % 64)) / 8) + 1;
-
-                if (ymax < seaLevel)
+                for (int zz = 0; zz < chunksize; zz++)
                 {
-                    ymax = seaLevel;
-                }
-                ymax++;
-                if (ymax > z + chunksize - 1)
-                {
-                    ymax = z + chunksize - 1;
-                }
-                for (int bY = z; bY <= ymax; bY++)
-                {
-                    int curBlock = 0;
-
-                    // Place bedrock
-                    if (bY == 0)
-                    {
-                        curBlock = BLOCK_BEDROCK;
-                    }
-                    else if (bY < currentHeight)
-                    {
-                        if (bY < stoneHeight)
-                        {
-                            curBlock = BLOCK_STONE;
-                            // Add caves
-                            if (addCaves)
-                            {
-                                if (caveNoise.GetValue((x + xx) / 4.0, bY / 1.5, (y + yy) / 4.0) > cavestreshold)
-                                {
-                                    if (bY < 10 && addCaveLava)
-                                    {
-                                        curBlock = BLOCK_LAVA;
-                                    }
-                                    else
-                                    {
-                                        curBlock = BLOCK_AIR;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            curBlock = toplayer;
-                        }
-                    }
-                    else if ((currentHeight + 1) == bY && bY > seaLevel && biome == 3)
-                    {
-                        curBlock = BLOCK_SNOW;
-                        continue;
-                    }
-                    else if ((currentHeight + 1) == bY && bY > seaLevel + 1)
-                    {
-                        if (biome == 1 || biome == 0)
-                        {
-                            continue;
-                        }
-                        double f = flowers.GetValue(x + xx / 10.0, 0, y + yy / 10.0);
-                        if (f < -0.999)
-                        {
-                            curBlock = BLOCK_RED_ROSE;
-                        }
-                        else if (f > 0.999)
-                        {
-                            curBlock = BLOCK_YELLOW_FLOWER;
-                        }
-                        else if (f < 0.001 && f > -0.001)
-                        {
-                            curBlock = BLOCK_PUMPKIN;
-                        }
-                    }
-                    else if (currentHeight == bY)
-                    {
-                        if (bY == seaLevel || bY == seaLevel - 1 || bY == seaLevel - 2)
-                        {
-                            curBlock = BLOCK_SAND;  // FF
-                        }
-                        else if (bY < seaLevel - 1)
-                        {
-                            curBlock = BLOCK_GRAVEL;  // FF
-                        }
-                        else if (toplayer == BLOCK_DIRT)
-                        {
-                            curBlock = BLOCK_GRASS;
-                        }
-                        else
-                        {
-                            curBlock = toplayer; // FF
-                        }
-                    }
-                    else
-                    {
-                        if (bY <= seaLevel)
-                        {
-                            curBlock = BLOCK_WATER;  // FF
-                        }
-                        else
-                        {
-                            curBlock = BLOCK_AIR;  // FF
-                        }
-                        if (bY == seaLevel && biome == 3)
-                        {
-                            curBlock = BLOCK_ICE;
-                        }
-                    }
-                    chunk[m.Index3d(xx, yy, bY - z, chunksize, chunksize)] = (ushort)curBlock;
+                    int wz = oz + zz;
+                    chunk[m.Index3d(xx, yy, zz, chunksize, chunksize)] =
+                        (ushort)BuildBlock(biome, wz, surfaceZ, wx, wy);
                 }
             }
+
+        totalGetChunkMs += watch.ElapsedMilliseconds;
+        watch.Stop();
+    }
+
+    int BuildBlock(Biome biome, int wz, int surfaceZ, int wx, int wy)
+    {
+        if (wz == 0) return BLOCK_ADMINIUM;
+
+        // ── Solid terrain ─────────────────────────────────────────────────────
+        if (wz <= surfaceZ)
+        {
+            switch (biome)
+            {
+                case Biome.DeepOcean:
+                case Biome.Ocean:
+                    return wz < surfaceZ ? BLOCK_STONE : BLOCK_GRAVEL;
+
+                case Biome.Shore:
+                    return wz < surfaceZ - 1 ? BLOCK_STONE : BLOCK_SAND;
+
+                case Biome.Swamp:
+                    if (wz < surfaceZ - 3) return BLOCK_STONE;
+                    if (wz < surfaceZ) return BLOCK_MUD;
+                    return BLOCK_GRASS;
+
+                case Biome.Plains:
+                case Biome.Forest:
+                case Biome.Savanna:
+                    if (wz < surfaceZ - 4) return BLOCK_STONE;
+                    if (wz < surfaceZ) return BLOCK_DIRT;
+                    return BLOCK_GRASS;
+
+                case Biome.Desert:
+                    return wz < surfaceZ - 4 ? BLOCK_SANDSTONE : BLOCK_SAND;
+
+                case Biome.Dunes:
+                    return wz < surfaceZ - 6 ? BLOCK_SANDSTONE : BLOCK_SAND;
+
+                case Biome.Canyon:
+                    {
+                        if (wz >= surfaceZ - 1) return BLOCK_REDSAND;
+                        int d = surfaceZ - wz;
+                        if (d == 7 || d == 18) return BLOCK_CLAY;
+                        if (d == 8 || d == 20) return BLOCK_SANDSTONE;
+                        if (d == 19) return BLOCK_SAND;
+                        if (d < 28) return BLOCK_REDSANDSTONE;
+                        return BLOCK_STONE;
+                    }
+
+                case Biome.Hills:
+                    if (wz < surfaceZ - 3) return BLOCK_STONE;
+                    if (wz < surfaceZ) return BLOCK_DIRT;
+                    return BLOCK_GRASS;
+
+                case Biome.Mountains:
+                    if (wz < surfaceZ - 3) return BLOCK_STONE;
+                    if (wz < surfaceZ) return BLOCK_DIRT;
+                    return wz > 60 ? BLOCK_STONE : BLOCK_GRASS;
+
+                case Biome.SnowyMountains:
+                    if (wz < surfaceZ - 2) return BLOCK_STONE;
+                    if (wz < surfaceZ) return BLOCK_DIRT;
+                    return BLOCK_SNOW;
+
+                case Biome.DesertMountains:
+                    if (wz < surfaceZ - 4) return BLOCK_STONE;
+                    if (wz < surfaceZ) return BLOCK_SANDSTONE;
+                    return BLOCK_SAND;
+
+                default: return BLOCK_STONE;
+            }
+        }
+
+        // ── Above surface ─────────────────────────────────────────────────────
+
+        // Water fill for ocean and low terrain
+        if (wz <= WATER_LEVEL) return BLOCK_WATER;
+
+        // Swamp: shallow water sits just above mud surface
+        if (biome == Biome.Swamp && wz <= surfaceZ + 1) return BLOCK_WATER;
+
+        // Sparse inline grass plants on plains/forest
+        if (wz == surfaceZ + 1 &&
+            (biome == Biome.Plains || biome == Biome.Forest || biome == Biome.Savanna))
+        {
+            if (vegetationNoise.GetValue(wx / 3.0, wy / 3.0, 0) > 0.45)
+                return BLOCK_GRASSPLANT;
+        }
+
+        return BLOCK_AIR;
+    }
+
+    // =========================================================================
+    //  Chunk population
+    // =========================================================================
+
+    readonly Random rnd = new();
+
+    void PopulateChunk(int cx, int cy, int cz)
+    {
+        populateChunkCalls++;
+        watch.Restart();
+
+        int ox = cx * chunksize;
+        int oy = cy * chunksize;
+        int oz = cz * chunksize;
+
+        for (int i = 0; i < rnd.Next(30, 120); i++)
+        {
+            int x = ox + rnd.Next(chunksize);
+            int y = oy + rnd.Next(chunksize);
+
+            // Find the topmost exposed surface block in this chunk column
+            int surfaceZ = -1;
+            for (int z = oz + chunksize - 1; z >= oz; z--)
+            {
+                if (!m.IsValidPos(x, y, z)) continue;
+                int b = m.GetBlock(x, y, z);
+                if (b != BLOCK_AIR && b != BLOCK_WATER &&
+                    m.IsValidPos(x, y, z + 1) && m.GetBlock(x, y, z + 1) == BLOCK_AIR)
+                {
+                    surfaceZ = z;
+                    break;
+                }
+            }
+            if (surfaceZ == -1) continue;
+
+            int at = m.GetBlock(x, y, surfaceZ);
+            if (at == BLOCK_GRASS) PlaceGrass(x, y, surfaceZ);
+            else if (at == BLOCK_SAND || at == BLOCK_REDSAND) PlaceDesert(x, y, surfaceZ);
+            else if (at == BLOCK_MUD) PlaceSwamp(x, y, surfaceZ);
+        }
+
+        totalPopulateMs += watch.ElapsedMilliseconds;
+        watch.Stop();
+    }
+
+    void PlaceGrass(int x, int y, int z)
+    {
+        if (rnd.Next(10) == 0) TrySet(x, y, z + 1, BLOCK_GRASSPLANT);
+    }
+
+    void PlaceDesert(int x, int y, int z)
+    {
+        switch (rnd.Next(4))
+        {
+            case 0:
+                int h = rnd.Next(2, 5);
+                for (int j = 1; j <= h; j++)
+                    if (!TrySet(x, y, z + j, BLOCK_CACTUS)) break;
+                break;
+            case 1:
+                TrySet(x, y, z + 1, BLOCK_DEADPLANT);
+                break;
         }
     }
 
-    private readonly int seaLevel = 62;
-    private int BLOCK_STONE;
-    private int BLOCK_DIRT;
-    private int BLOCK_SAND;
-    private int BLOCK_CLAY; //stone
-    private int BLOCK_BEDROCK;
-    private int BLOCK_AIR;
-    private int BLOCK_SNOW; //todo
-    private int BLOCK_ICE; //todo
-    private int BLOCK_GRASS;
-    private int BLOCK_WATER;
-    private int BLOCK_GRAVEL;
-    private int BLOCK_PUMPKIN; //hay
-    private int BLOCK_RED_ROSE;
-    private int BLOCK_YELLOW_FLOWER;
-    private int BLOCK_LAVA;
-
-    public void Init()
+    void PlaceSwamp(int x, int y, int z)
     {
-        int Seed = m.Seed;
-
-        BiomeBase.Frequency = 0.2;
-        BiomeBase.Seed = Seed - 1;
-        BiomeSelect = new ScaleBiasOutput(BiomeBase)
-        {
-            Scale = 2.5,
-            Bias = 2.5
-        };
-        mountainTerrainBase.Seed = Seed + 1;
-        mountainTerrain = new ScaleBiasOutput(mountainTerrainBase)
-        {
-            Scale = 0.5,
-            Bias = 0.5
-        };
-        jaggieEdges = new Select(jaggieControl, terrainType, plain);
-        plain.Value = 0.5;
-        jaggieEdges.SetBounds(0.5, 1.0);
-        jaggieEdges.EdgeFalloff = 0.11;
-        jaggieControl.Seed = Seed + 20;
-        baseFlatTerrain.Seed = Seed;
-        baseFlatTerrain.Frequency = 0.2;
-        flatTerrain = new ScaleBiasOutput(baseFlatTerrain)
-        {
-            Scale = 0.125,
-            Bias = 0.07
-        };
-        baseWater.Seed = Seed - 1;
-        water = new ScaleBiasOutput(baseWater)
-        {
-            Scale = 0.3,
-            Bias = -0.5
-        };
-        terrainType.Seed = Seed + 2;
-        terrainType.Frequency = 0.5;
-        terrainType.Persistence = 0.25;
-        terrainType2.Seed = Seed + 7;
-        terrainType2.Frequency = 0.5;
-        terrainType2.Persistence = 0.25;
-        waterTerrain = new Select(terrainType2, water, flatTerrain)
-        {
-            EdgeFalloff = 0.1
-        };
-        waterTerrain.SetBounds(-0.5, 1.0);
-        secondTerrain = new Select(terrainType, mountainTerrain, waterTerrain)
-        {
-            EdgeFalloff = 0.3
-        };
-        secondTerrain.SetBounds(-0.5, 1.0);
-        finalTerrain = new Select(jaggieEdges, secondTerrain, waterTerrain)
-        {
-            EdgeFalloff = 0.2
-        };
-        finalTerrain.SetBounds(-0.3, 1.0);
-        flowers.Seed = Seed + 10;
-        flowers.Frequency = 3;
-
-        // Set up us the Perlin-noise module.
-        caveNoise.Seed = Seed + 22;
-        caveNoise.Frequency = 1.0 / cavessize;
-        caveNoise.OctaveCount = 4;
+        if (rnd.Next(7) == 0) TrySet(x, y, z + 1, BLOCK_GRASSPLANT);
     }
 
-    // Heightmap composition
-    private readonly FastNoise BiomeBase = new();
-    private ScaleBiasOutput BiomeSelect;
-    private readonly RidgedMultifractal mountainTerrainBase = new();
-    private ScaleBiasOutput mountainTerrain;
-    private readonly Billow baseFlatTerrain = new();
-    private ScaleBiasOutput flatTerrain;
-    private readonly Billow baseWater = new();
-    private ScaleBiasOutput water;
-    private readonly FastNoise terrainType = new();
-    private readonly FastNoise terrainType2 = new();
-    private Select waterTerrain;
-    private Select finalTerrain;
-    private readonly Voronoi flowers = new();
-    private Select jaggieEdges;
-    private Select secondTerrain;
-    private readonly Constant plain = new(0);
-    private readonly Billow jaggieControl = new();
+    bool TrySet(int x, int y, int z, int block)
+    {
+        if (!m.IsValidPos(x, y, z)) return false;
+        if (m.GetBlock(x, y, z) != BLOCK_AIR) return false;
+        m.SetBlock(x, y, z, block);
+        return true;
+    }
 
-    private readonly RidgedMultifractal caveNoise = new();
+    // =========================================================================
+    //  Debug / visualisation
+    // =========================================================================
 
-    private readonly float cavessize = 15;
-    private readonly float cavestreshold = 0.6f;
+    void DisplayTimes()
+    {
+        if (getChunkCalls > 0)
+        {
+            long avg = totalGetChunkMs / getChunkCalls;
+            Console.WriteLine($"[WorldGen] {getChunkCalls} GetChunk calls, {avg}ms avg");
+            m.SendMessageToAll($"{avg}ms generation avg");
+            totalGetChunkMs = 0; getChunkCalls = 0;
+        }
+        if (populateChunkCalls > 0)
+        {
+            long avg = totalPopulateMs / populateChunkCalls;
+            Console.WriteLine($"[WorldGen] {populateChunkCalls} PopulateChunk calls, {avg}ms avg");
+            m.SendMessageToAll($"{avg}ms population avg");
+            totalPopulateMs = 0; populateChunkCalls = 0;
+        }
+    }
+
+    void SaveImage()
+    {
+        var bmp = new System.Drawing.Bitmap(mapSizeX, mapSizeY);
+        unsafe
+        {
+            var bd = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height),
+                                     System.Drawing.Imaging.ImageLockMode.ReadWrite, bmp.PixelFormat);
+            int bpp = System.Drawing.Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
+            int rowB = bd.Width * bpp;
+            byte* ptr = (byte*)bd.Scan0;
+
+            Parallel.For(0, bd.Height, y =>
+            {
+                byte* line = ptr + y * bd.Stride;
+                int x2 = 0;
+                for (int x = 0; x < rowB; x += bpp)
+                {
+                    var c = BiomeColor(GetBiome(x2, y));
+                    line[x] = (byte)c.B;
+                    line[x + 1] = (byte)c.G;
+                    line[x + 2] = (byte)c.R;
+                    x2++;
+                }
+            });
+
+            bmp.UnlockBits(bd);
+        }
+        bmp.Save("biomes.png");
+        Console.WriteLine("[WorldGen] biomes.png saved.");
+    }
+
+    static System.Drawing.Color BiomeColor(Biome b) => b switch
+    {
+        Biome.DeepOcean => System.Drawing.Color.FromArgb(0, 0, 140),
+        Biome.Ocean => System.Drawing.Color.FromArgb(0, 30, 200),
+        Biome.Shore => System.Drawing.Color.FromArgb(210, 200, 120),
+        Biome.Plains => System.Drawing.Color.FromArgb(80, 180, 60),
+        Biome.Forest => System.Drawing.Color.FromArgb(30, 110, 30),
+        Biome.Swamp => System.Drawing.Color.FromArgb(40, 80, 50),
+        Biome.Savanna => System.Drawing.Color.FromArgb(180, 180, 60),
+        Biome.Desert => System.Drawing.Color.FromArgb(220, 210, 80),
+        Biome.Dunes => System.Drawing.Color.FromArgb(230, 220, 130),
+        Biome.Canyon => System.Drawing.Color.FromArgb(180, 90, 20),
+        Biome.Hills => System.Drawing.Color.FromArgb(100, 160, 60),
+        Biome.Mountains => System.Drawing.Color.FromArgb(140, 140, 140),
+        Biome.SnowyMountains => System.Drawing.Color.FromArgb(230, 240, 255),
+        Biome.DesertMountains => System.Drawing.Color.FromArgb(170, 140, 90),
+        _ => System.Drawing.Color.Pink,
+    };
 }

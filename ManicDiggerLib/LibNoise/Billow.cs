@@ -2,8 +2,6 @@ namespace LibNoise;
 
 public class Billow : GradientNoiseBasis, IModule
 {
-	private const int MaxOctaves = 30;
-
 	private int mOctaveCount;
 
 	public double Frequency { get; set; }

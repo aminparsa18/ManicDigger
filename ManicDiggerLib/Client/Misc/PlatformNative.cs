@@ -1615,7 +1615,7 @@ public class GameWindowNative : GameWindow
             new GameWindowSettings
             {
 
-                UpdateFrequency = 60.0, // Cap at 60 updates/sec
+                UpdateFrequency = 45.0, // Cap at 60 updates/sec
             },
             new NativeWindowSettings
             {

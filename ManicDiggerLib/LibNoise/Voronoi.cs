@@ -45,15 +45,6 @@ public class Voronoi : ValueNoiseBasis, IModule
 
     // ── Construction ──────────────────────────────────────────────────────────
 
-    /// <summary>Initialises a <see cref="Voronoi"/> with default parameters.</summary>
-    public Voronoi()
-    {
-        Frequency = 1.0;
-        Displacement = 1.0;
-        Seed = 0;
-        DistanceEnabled = false;
-    }
-
     // ── IModule ───────────────────────────────────────────────────────────────
 
     /// <summary>

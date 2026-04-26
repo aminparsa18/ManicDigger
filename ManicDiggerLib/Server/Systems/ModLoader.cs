@@ -249,6 +249,10 @@ public class ServerSystemModLoader : ServerSystem
             .Cast<MetadataReference>()
             .ToList();
 
+        var parallelAsm = typeof(Parallel).Assembly;
+        if (!string.IsNullOrEmpty(parallelAsm.Location))
+            references.Add(MetadataReference.CreateFromFile(parallelAsm.Location));
+
         string assemblyDir = Path.GetDirectoryName(GetType().Assembly.Location)!;
 
         foreach (string asmName in ExtraAssemblyReferences)

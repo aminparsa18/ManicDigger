@@ -75,9 +75,6 @@ public class FastNoiseBasis : Math
 
     // ── Construction ──────────────────────────────────────────────────────────
 
-    /// <summary>Initialises a <see cref="FastNoiseBasis"/> with seed 0.</summary>
-    public FastNoiseBasis() : this(0) { }
-
     /// <summary>Initialises a <see cref="FastNoiseBasis"/> with the given seed.</summary>
     /// <param name="seed">Non-negative random seed.</param>
     /// <exception cref="ArgumentException">Thrown when <paramref name="seed"/> is negative.</exception>

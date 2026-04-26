@@ -368,13 +368,13 @@ public partial class Game : IGameClient
     {
         get
         {
-            if (!Controls.freemove) return FreemoveLevelEnum.None;
-            return Controls.noclip ? FreemoveLevelEnum.Noclip : FreemoveLevelEnum.Freemove;
+            if (!Controls.FreeMove) return FreemoveLevelEnum.None;
+            return Controls.NoClip ? FreemoveLevelEnum.Noclip : FreemoveLevelEnum.Freemove;
         }
         set
         {
-            Controls.freemove = value != FreemoveLevelEnum.None;
-            Controls.noclip = value == FreemoveLevelEnum.Noclip;
+            Controls.FreeMove = value != FreemoveLevelEnum.None;
+            Controls.NoClip = value == FreemoveLevelEnum.Noclip;
         }
     }
 

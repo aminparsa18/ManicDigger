@@ -22,7 +22,7 @@ public class ModFallDamageToPlayer : ModBase
     {
         if (game.GuiState == GuiState.MapLoading) return;
 
-        if (game.Controls.freemove)
+        if (game.Controls.FreeMove)
         {
             if (fallSoundPlaying) SetFallSoundActive(false);
             return;

@@ -145,7 +145,7 @@ public class ModRail : ModBase
     /// </summary>
     private void AdvanceRailRiding(float dt, bool turnLeft, bool turnRight)
     {
-        game.Controls.freemove = true;
+        game.Controls.FreeMove = true;
         game.EnableMove = false;
 
         Vector3 railPos = CurrentRailPos();
@@ -235,7 +235,7 @@ public class ModRail : ModBase
         bool ePressed = game.KeyboardState[game.GetKey(Keys.E)] && game.GuiTyping != TypingState.Typing;
         if (wasepressed || !ePressed) { return; }
 
-        if (!railriding && !game.Controls.freemove)
+        if (!railriding && !game.Controls.FreeMove)
         {
             TryEnterMinecart();
         }
@@ -304,7 +304,7 @@ public class ModRail : ModBase
     {
         game.SetCharacterEyesHeight(originalmodelheight);
         railriding = false;
-        game.Controls.freemove = false;
+        game.Controls.FreeMove = false;
         game.EnableMove = true;
     }
 

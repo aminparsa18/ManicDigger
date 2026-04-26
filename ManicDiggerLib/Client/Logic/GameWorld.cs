@@ -97,8 +97,8 @@ public partial class Game
     public bool IsTileEmptyForPhysics(int x, int y, int z)
     {
         if (z >= VoxelMap.MapSizeZ) return true;
-        if (x < 0 || y < 0 || z < 0) return Controls.freemove;
-        if (x >= VoxelMap.MapSizeX || y >= VoxelMap.MapSizeY) return Controls.freemove;
+        if (x < 0 || y < 0 || z < 0) return Controls.FreeMove;
+        if (x >= VoxelMap.MapSizeX || y >= VoxelMap.MapSizeY) return Controls.FreeMove;
 
         int block = VoxelMap.GetBlockValid(x, y, z);
         return block == SpecialBlockId.Empty

@@ -96,8 +96,8 @@ public class ScriptCharacterPhysics : IEntityScript
         if (game.GuiState == GuiState.MapLoading) return;
 
         movespeednow = game.MoveSpeedNow();
-        game.Controls.movedx = Math.Clamp(game.Controls.movedx, -1, 1);
-        game.Controls.movedy = Math.Clamp(game.Controls.movedy, -1, 1);
+        game.Controls.MovedX = Math.Clamp(game.Controls.MovedX, -1, 1);
+        game.Controls.MovedY = Math.Clamp(game.Controls.MovedY, -1, 1);
 
         jumpstartacceleration = 13.333f * constGravity;
         jumpstartaccelerationhalf = 9f * constGravity;
@@ -110,10 +110,10 @@ public class ScriptCharacterPhysics : IEntityScript
         Controls move = game.Controls;
         if (followId != null && followId == game.LocalPlayerId)
         {
-            move.movedx = 0;
-            move.movedy = 0;
-            move.moveup = false;
-            move.wantsjump = false;
+            move.MovedX = 0;
+            move.MovedY = 0;
+            move.MoveUp = false;
+            move.WantsJump = false;
         }
 
         Update(game.Player.position, move, dt,
@@ -161,9 +161,9 @@ public class ScriptCharacterPhysics : IEntityScript
         if (blockUnder != -1
             && blockUnder == game.BlockRegistry.BlockIdTrampoline
             && !isplayeronground
-            && !game.Controls.shiftkeydown)
+            && !game.Controls.ShiftKeyDown)
         {
-            game.Controls.wantsjump = true;
+            game.Controls.WantsJump = true;
             jumpstartacceleration = 20.666f * constGravity;
         }
 
@@ -180,9 +180,9 @@ public class ScriptCharacterPhysics : IEntityScript
         // ── Convert input from player-local to world space ────────────────────
         Vector3 diff1 = new();
         VectorUtils.ToVectorInFixedSystem(
-            move.movedx * movespeednow * dt,
+            move.MovedX * movespeednow * dt,
             0,
-            move.movedy * movespeednow * dt,
+            move.MovedY * movespeednow * dt,
             stateplayerposition.rotx, stateplayerposition.roty, ref diff1);
 
         // ── Apply normalised external push ────────────────────────────────────
@@ -217,7 +217,7 @@ public class ScriptCharacterPhysics : IEntityScript
             loaded = true;
         }
 
-        if (!move.freemove && loaded)
+        if (!move.FreeMove && loaded)
         {
             movedz += swimmingBody
                 ? -constGravity * constWaterGravityMultiplier
@@ -236,8 +236,8 @@ public class ScriptCharacterPhysics : IEntityScript
             curspeed.Y = MakeCloserToZero(curspeed.Y, acceleration.acceleration2 * dt);
             curspeed.Z = MakeCloserToZero(curspeed.Z, acceleration.acceleration2 * dt);
             // Fly / swim vertical input
-            diff1.Y += move.moveup ? 2 * movespeednow * dt : 0;
-            diff1.Y -= move.movedown ? 2 * movespeednow * dt : 0;
+            diff1.Y += move.MoveUp ? 2 * movespeednow * dt : 0;
+            diff1.Y -= move.MoveDown ? 2 * movespeednow * dt : 0;
             // Force ramp-up
             curspeed.X += diff1.X * acceleration.acceleration3 * dt;
             curspeed.Y += diff1.Y * acceleration.acceleration3 * dt;
@@ -264,7 +264,7 @@ public class ScriptCharacterPhysics : IEntityScript
         }
 
         Vector3 newposition = Vector3.Zero;
-        if (!move.freemove)
+        if (!move.FreeMove)
         {
             newposition.X = stateplayerposition.x + curspeed.X;
             newposition.Y = stateplayerposition.y + curspeed.Y;
@@ -299,7 +299,7 @@ public class ScriptCharacterPhysics : IEntityScript
         // Apply accumulated vertical velocity (gravity + jump).
         newposition.Y += movedz * dt;
 
-        if (!move.noclip)
+        if (!move.NoClip)
         {
             Vector3 v = WallSlide(
                 new Vector3(stateplayerposition.x, stateplayerposition.y, stateplayerposition.z),
@@ -316,19 +316,19 @@ public class ScriptCharacterPhysics : IEntityScript
             stateplayerposition.z = newposition.Z;
         }
 
-        if (!move.freemove)
+        if (!move.FreeMove)
         {
             if (isplayeronground || swimmingBody)
             {
                 jumpacceleration = 0;
                 movedz = 0;
             }
-            if ((move.wantsjump || move.wantsjumphalf)
+            if ((move.WantsJump || move.WantsJumpHalf)
                 && (jumpacceleration == 0 && isplayeronground || swimmingBody)
                 && loaded
                 && !game.SwimmingEyes())
             {
-                jumpacceleration = move.wantsjumphalf
+                jumpacceleration = move.WantsJumpHalf
                     ? jumpstartaccelerationhalf
                     : jumpstartacceleration;
                 soundnow = true;
@@ -545,29 +545,29 @@ public struct Acceleration
 public class Controls
 {
     /// <summary>Lateral strafe input in [-1, 1] (negative = left, positive = right).</summary>
-    internal float movedx;
+    public float MovedX {  get; set; }
 
     /// <summary>Forward/backward input in [-1, 1] (negative = back, positive = forward).</summary>
-    internal float movedy;
+    public float MovedY {  get; set; }
 
     /// <summary>True when the player pressed the jump key this tick.</summary>
-    internal bool wantsjump;
+    public bool WantsJump { get; set; }
 
     /// <summary>True when a reduced-height jump was requested (e.g. crouch-jump).</summary>
-    internal bool wantsjumphalf;
+    public bool WantsJumpHalf { get; set; }
 
     /// <summary>True while the fly/swim ascend key is held.</summary>
-    internal bool moveup;
+    public bool MoveUp { get; set; }
 
     /// <summary>True while the fly/swim descend key is held.</summary>
-    internal bool movedown;
+    public bool MoveDown { get; set; }
 
     /// <summary>True while the shift (sneak) key is held; suppresses trampoline super-jump.</summary>
-    internal bool shiftkeydown;
+    public bool ShiftKeyDown { get; set; }
 
     /// <summary>When true, gravity is disabled and the player moves freely in all three axes.</summary>
-    internal bool freemove;
+    public bool FreeMove { get; set; }  
 
     /// <summary>When true, collision detection is disabled (no-clip / ghost mode).</summary>
-    internal bool noclip;
+    public bool NoClip { get; set; }
 }

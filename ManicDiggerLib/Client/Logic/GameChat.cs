@@ -143,12 +143,12 @@
                 break;
 
             case "noclip":
-                Controls.noclip = BoolCommandArgument(arguments);
+                Controls.NoClip = BoolCommandArgument(arguments);
                 break;
 
             case "freemove":
                 if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
-                Controls.freemove = BoolCommandArgument(arguments);
+                Controls.FreeMove = BoolCommandArgument(arguments);
                 break;
 
             case "gui":

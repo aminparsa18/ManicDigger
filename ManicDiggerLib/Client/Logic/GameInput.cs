@@ -316,20 +316,20 @@ public partial class Game
         {
             if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
             stopPlayerMove = true;
-            if (!Controls.freemove)
+            if (!Controls.FreeMove)
             {
-                Controls.freemove = true;
+                Controls.FreeMove = true;
                 AddChatLine(Language.MoveFree());
             }
-            else if (Controls.freemove && !Controls.noclip)
+            else if (Controls.FreeMove && !Controls.NoClip)
             {
-                Controls.noclip = true;
+                Controls.NoClip = true;
                 AddChatLine(Language.MoveFreeNoclip());
             }
             else
             {
-                Controls.freemove = false;
-                Controls.noclip = false;
+                Controls.FreeMove = false;
+                Controls.NoClip = false;
                 AddChatLine(Language.MoveNormal());
             }
         }
@@ -423,7 +423,7 @@ public partial class Game
                     Player.position.x = posX + (1f / 2);
                     Player.position.y = posZ + 1;
                     Player.position.z = posY + (1f / 2);
-                    Controls.freemove = false;
+                    Controls.FreeMove = false;
                 }
                 else
                 {

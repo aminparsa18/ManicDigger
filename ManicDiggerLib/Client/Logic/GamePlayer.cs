@@ -90,9 +90,13 @@ public partial class Game
             if (floorSpeed != 0) speed *= floorSpeed;
         }
 
-        if (KeyboardState[GetKey(Keys.LeftShift)])
+        if (KeyboardState[GetKey(Keys.LeftControl)])
         {
-            speed *=  2 / 10;
+            speed *= 2f / 10f;   // Ctrl = slow walk
+        }
+        else if (KeyboardState[GetKey(Keys.LeftShift)])
+        {
+            speed *= 2f;         // Shift = sprint
         }
 
         Packet_Item item = Inventory.RightHand[ActiveMaterial];

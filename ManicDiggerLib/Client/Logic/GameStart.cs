@@ -104,6 +104,7 @@ public partial class Game
         AddMod(new ModSendPosition(this, Platform));
         AddMod(new ModInterpolatePositions(this));
         AddMod(new ModPush(this));
+        AddMod(new ModFly(this));
 
         // ── Gameplay mechanics ────────────────────────────────────────────────
         AddMod(new ModRail(this, Platform));

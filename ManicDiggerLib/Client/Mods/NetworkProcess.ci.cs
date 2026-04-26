@@ -236,8 +236,8 @@ public class ModNetworkProcess : ModBase
                 _game.AllowFreeMove = packet.Freemove.IsEnabled != 0;
                 if (!_game.AllowFreeMove)
                 {
-                    _game.Controls.freemove = false;
-                    _game.Controls.noclip = false;
+                    _game.Controls.FreeMove = false;
+                    _game.Controls.NoClip = false;
                     _game.MoveSpeed = _game.Basemovespeed;
                     _game.AddChatLine(_game.Language.MoveNormal());
                 }

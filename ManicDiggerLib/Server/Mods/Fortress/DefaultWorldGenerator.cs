@@ -89,14 +89,16 @@ public class DefaultWorldGenerator : IMod
     // Vegetation scatter
     FastNoise vegetationNoise = new();
 
+    Perlin heightDetail = new();
+
     void InitNoise(int seed)
     {
         // Continent — very few octaves so features are large and definite
-        continentNoise.Seed = seed;
+        continentNoise.Seed = seed + 3;
         continentNoise.Frequency = 1.0;
-        continentNoise.OctaveCount = 3;
-        continentNoise.Persistence = 0.5;
-        continentNoise.Lacunarity = 2.0;
+        continentNoise.OctaveCount = 8;
+        continentNoise.Persistence = 0.4;
+        continentNoise.Lacunarity = 2.1;
         continentNoise.NoiseQuality = NoiseQuality.Standard;
 
         // Ridged for mountain peaks
@@ -175,6 +177,7 @@ public class DefaultWorldGenerator : IMod
     double GetContinent(int wx, int wy)
     {
         double raw = continentNoise.GetValue(wx / CONTINENT_SCALE, 0, wy / CONTINENT_SCALE);
+        if (!double.IsFinite(raw)) raw = 0.0;
         double biased = raw + ContinentBias(wx, wy);
         // Billow output ≈ [-0.5, 1.5] after bias. Normalise to [0,1].
         return System.Math.Clamp((biased + 0.3) / 1.6, 0.0, 1.0);
@@ -247,18 +250,23 @@ public class DefaultWorldGenerator : IMod
         double hx = wx / HEIGHT_SCALE;
         double hy = wy / HEIGHT_SCALE;
 
-        // How far inland: 0 at coast (cont=0.45), 1 deep inland (cont=1.0)
-        double inland = System.Math.Clamp((cont - 0.45) / 0.55, 0.0, 1.0);
-        double mw = inland * inland; // quadratic ease — coast stays flat
+        double inland = System.Math.Clamp((cont - 0.36) / 0.64, 0.0, 1.0);
+        double mw = System.Math.Max(inland * inland, 0.3);
 
-        double rRaw = heightRidged.GetValue(hx, 0, hy); // ≈ [-1, 1]
-        double sRaw = heightSmooth.GetValue(hx, 0, hy); // ≈ [-0.5, 1.5]
+        double rRaw = heightRidged.GetValue(hx, 0, hy);
+        double sRaw = heightSmooth.GetValue(hx, 0, hy);
+        double dRaw = heightDetail.GetValue(hx * 2, 0, hy * 2);
 
-        // Add a base ridged contribution so terrain is never fully smooth
+        if (!double.IsFinite(rRaw)) rRaw = 0.0;
+        if (!double.IsFinite(sRaw)) sRaw = 0.0;
+        if (!double.IsFinite(dRaw)) dRaw = 0.0;
+
         double rNorm = System.Math.Clamp((rRaw + 1.0) / 2.0, 0.0, 1.0);
         double sNorm = System.Math.Clamp((sRaw + 0.5) / 2.0, 0.0, 1.0);
+        double dNorm = System.Math.Clamp((dRaw + 0.8) / 1.6, 0.0, 1.0);
 
-        return double.Lerp(sNorm, rNorm, System.Math.Max(mw, 0.3));
+        double baseH = double.Lerp(sNorm, rNorm, mw);
+        return System.Math.Clamp(baseH * 0.82 + dNorm * 0.18, 0.0, 1.0);
     }
 
     /// <summary>
@@ -326,8 +334,16 @@ public class DefaultWorldGenerator : IMod
                 for (int zz = 0; zz < chunksize; zz++)
                 {
                     int wz = oz + zz;
-                    chunk[m.Index3d(xx, yy, zz, chunksize, chunksize)] =
-                        (ushort)BuildBlock(biome, wz, surfaceZ, wx, wy);
+                    try
+                    {
+                        chunk[m.Index3d(xx, yy, zz, chunksize, chunksize)] =
+                            (ushort)BuildBlock(biome, wz, surfaceZ, wx, wy);
+                    }
+                    catch
+                    {
+                        chunk[m.Index3d(xx, yy, zz, chunksize, chunksize)] =
+                            (ushort)(wz == 0 ? BLOCK_ADMINIUM : BLOCK_STONE);
+                    }
                 }
             }
 
@@ -434,6 +450,10 @@ public class DefaultWorldGenerator : IMod
         populateChunkCalls++;
         watch.Restart();
 
+        // Skip chunks outside safe bounds entirely
+        if (cx < 0 || cy < 0 || cx * chunksize >= mapSizeX || cy * chunksize >= mapSizeY)
+            return;
+
         int ox = cx * chunksize;
         int oy = cy * chunksize;
         int oz = cz * chunksize;
@@ -443,11 +463,12 @@ public class DefaultWorldGenerator : IMod
             int x = ox + rnd.Next(chunksize);
             int y = oy + rnd.Next(chunksize);
 
-            // Find the topmost exposed surface block in this chunk column
+            if (!m.IsValidPos(x, y, oz)) continue; // skip whole column if base invalid
+
             int surfaceZ = -1;
             for (int z = oz + chunksize - 1; z >= oz; z--)
             {
-                if (!m.IsValidPos(x, y, z)) continue;
+                if (!m.IsValidPos(x, y, z)) break; // break not continue — if one is invalid, rest below are too
                 int b = m.GetBlock(x, y, z);
                 if (b != BLOCK_AIR && b != BLOCK_WATER &&
                     m.IsValidPos(x, y, z + 1) && m.GetBlock(x, y, z + 1) == BLOCK_AIR)

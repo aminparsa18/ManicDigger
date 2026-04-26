@@ -102,8 +102,8 @@ public class DefaultWorldGenerator : IMod
         // Ridged for mountain peaks
         heightRidged.Seed = seed + 1;
         heightRidged.Frequency = 1.0;
-        heightRidged.OctaveCount = 5;
-        heightRidged.Lacunarity = 2.0;
+        heightRidged.OctaveCount = 7;
+        heightRidged.Lacunarity = 2.4;
         heightRidged.NoiseQuality = NoiseQuality.Standard;
 
         // Smooth for lowland variety
@@ -177,7 +177,7 @@ public class DefaultWorldGenerator : IMod
         double raw = continentNoise.GetValue(wx / CONTINENT_SCALE, 0, wy / CONTINENT_SCALE);
         double biased = raw + ContinentBias(wx, wy);
         // Billow output ≈ [-0.5, 1.5] after bias. Normalise to [0,1].
-        return System.Math.Clamp((biased + 0.5) / 2.0, 0.0, 1.0);
+        return System.Math.Clamp((biased + 0.3) / 1.6, 0.0, 1.0);
     }
 
     Biome GetBiome(int wx, int wy)
@@ -185,9 +185,9 @@ public class DefaultWorldGenerator : IMod
         double cont = GetContinent(wx, wy);
 
         // Ocean zones — continent mask only, no wasted temp/humidity sampling
-        if (cont < 0.25) return Biome.DeepOcean;
-        if (cont < 0.38) return Biome.Ocean;
-        if (cont < 0.45) return Biome.Shore;
+        if (cont < 0.18) return Biome.DeepOcean;
+        if (cont < 0.28) return Biome.Ocean;
+        if (cont < 0.36) return Biome.Shore;
 
         // Land — sample height, temperature, humidity
         double normH = GetNormHeight(wx, wy, cont);
@@ -211,7 +211,7 @@ public class DefaultWorldGenerator : IMod
     Biome DetermineBiome(double normH, double temp, double humidity)
     {
         // High altitude
-        if (normH > 0.70)
+        if (normH > 58)
         {
             if (temp < 0.30) return Biome.SnowyMountains;
             if (humidity < 0.30) return Biome.DesertMountains;
@@ -219,7 +219,7 @@ public class DefaultWorldGenerator : IMod
         }
 
         // Mid elevation
-        if (normH > 0.42)
+        if (normH > 0.35)
         {
             if (humidity < 0.30 && temp > 0.60) return Biome.Canyon;
             if (humidity < 0.40 && temp > 0.50) return Biome.Dunes;
@@ -254,10 +254,11 @@ public class DefaultWorldGenerator : IMod
         double rRaw = heightRidged.GetValue(hx, 0, hy); // ≈ [-1, 1]
         double sRaw = heightSmooth.GetValue(hx, 0, hy); // ≈ [-0.5, 1.5]
 
+        // Add a base ridged contribution so terrain is never fully smooth
         double rNorm = System.Math.Clamp((rRaw + 1.0) / 2.0, 0.0, 1.0);
         double sNorm = System.Math.Clamp((sRaw + 0.5) / 2.0, 0.0, 1.0);
 
-        return double.Lerp(sNorm, rNorm, mw);
+        return double.Lerp(sNorm, rNorm, System.Math.Max(mw, 0.3));
     }
 
     /// <summary>
@@ -277,22 +278,23 @@ public class DefaultWorldGenerator : IMod
             Biome.Swamp => (32, 5),
             Biome.Savanna => (34, 12),
             Biome.Desert => (34, 14),
-            Biome.Dunes => (36, 18),
-            Biome.Canyon => (48, 20),
-            Biome.Hills => (36, 22),
-            Biome.Mountains => (44, 40),
-            Biome.SnowyMountains => (46, 44),
-            Biome.DesertMountains => (40, 34),
+            Biome.Dunes => (36, 26),
+            Biome.Canyon => (52, 28),
+            Biome.Hills => (36, 34),
+            Biome.Mountains => (44, 58),
+            Biome.SnowyMountains => (46, 64),
+            Biome.DesertMountains => (40, 48),
             _ => (34, 10),
         };
 
         int h = (int)(baseH + normH * amp);
 
-        // Hard guarantees — never land in water, never ocean above water
         bool isOcean = biome == Biome.DeepOcean || biome == Biome.Ocean;
         if (isOcean) return System.Math.Min(h, WATER_LEVEL - 2);
         if (biome == Biome.Shore) return System.Math.Clamp(h, WATER_LEVEL - 1, WATER_LEVEL + 2);
-        return System.Math.Max(h, LAND_MIN_HEIGHT);
+
+        h = System.Math.Max(h, LAND_MIN_HEIGHT);
+        return System.Math.Min(h, 90);  // ← add this — hard ceiling below map top
     }
 
     // =========================================================================
@@ -523,12 +525,12 @@ public class DefaultWorldGenerator : IMod
 
     void SaveImage()
     {
-        var bmp = new System.Drawing.Bitmap(mapSizeX, mapSizeY);
+        var bmp = new Bitmap(mapSizeX, mapSizeY);
         unsafe
         {
-            var bd = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height),
+            var bd = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height),
                                      System.Drawing.Imaging.ImageLockMode.ReadWrite, bmp.PixelFormat);
-            int bpp = System.Drawing.Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
+            int bpp = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
             int rowB = bd.Width * bpp;
             byte* ptr = (byte*)bd.Scan0;
 
@@ -552,22 +554,22 @@ public class DefaultWorldGenerator : IMod
         Console.WriteLine("[WorldGen] biomes.png saved.");
     }
 
-    static System.Drawing.Color BiomeColor(Biome b) => b switch
+    static Color BiomeColor(Biome b) => b switch
     {
-        Biome.DeepOcean => System.Drawing.Color.FromArgb(0, 0, 140),
-        Biome.Ocean => System.Drawing.Color.FromArgb(0, 30, 200),
-        Biome.Shore => System.Drawing.Color.FromArgb(210, 200, 120),
-        Biome.Plains => System.Drawing.Color.FromArgb(80, 180, 60),
-        Biome.Forest => System.Drawing.Color.FromArgb(30, 110, 30),
-        Biome.Swamp => System.Drawing.Color.FromArgb(40, 80, 50),
-        Biome.Savanna => System.Drawing.Color.FromArgb(180, 180, 60),
-        Biome.Desert => System.Drawing.Color.FromArgb(220, 210, 80),
-        Biome.Dunes => System.Drawing.Color.FromArgb(230, 220, 130),
-        Biome.Canyon => System.Drawing.Color.FromArgb(180, 90, 20),
-        Biome.Hills => System.Drawing.Color.FromArgb(100, 160, 60),
-        Biome.Mountains => System.Drawing.Color.FromArgb(140, 140, 140),
-        Biome.SnowyMountains => System.Drawing.Color.FromArgb(230, 240, 255),
-        Biome.DesertMountains => System.Drawing.Color.FromArgb(170, 140, 90),
-        _ => System.Drawing.Color.Pink,
+        Biome.DeepOcean => Color.FromArgb(0, 0, 140),
+        Biome.Ocean => Color.FromArgb(0, 30, 200),
+        Biome.Shore => Color.FromArgb(210, 200, 120),
+        Biome.Plains => Color.FromArgb(80, 180, 60),
+        Biome.Forest => Color.FromArgb(30, 110, 30),
+        Biome.Swamp => Color.FromArgb(40, 80, 50),
+        Biome.Savanna => Color.FromArgb(180, 180, 60),
+        Biome.Desert => Color.FromArgb(220, 210, 80),
+        Biome.Dunes => Color.FromArgb(230, 220, 130),
+        Biome.Canyon => Color.FromArgb(180, 90, 20),
+        Biome.Hills => Color.FromArgb(100, 160, 60),
+        Biome.Mountains => Color.FromArgb(140, 140, 140),
+        Biome.SnowyMountains => Color.FromArgb(230, 240, 255),
+        Biome.DesertMountains => Color.FromArgb(170, 140, 90),
+        _ => Color.Pink,
     };
 }

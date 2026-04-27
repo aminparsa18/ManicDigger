@@ -74,21 +74,20 @@ public class ServerSystemModLoader : ServerSystem
         if (!server.PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.restart))
         {
             server.SendMessage(sourceClientId, string.Format(
-                server.language.Get("Server_CommandInsufficientPrivileges"), server.colorError));
+                server.Language.Get("Server_CommandInsufficientPrivileges"), server.colorError));
             return false;
         }
 
         ClientOnServer caller = server.GetClient(sourceClientId);
         server.SendMessageToAll(string.Format(
-            server.language.Get("Server_CommandRestartModsSuccess"),
+            server.Language.Get("Server_CommandRestartModsSuccess"),
             server.colorImportant, caller.ColoredPlayername(server.colorImportant)));
-        server.ServerEventLog($"{caller.playername} restarts mods.");
+        server.ServerEventLog($"{caller.PlayerName} restarts mods.");
 
-        server.modEventHandlers = new ModEventHandlers();
-        for (int i = 0; i < server.systemsCount; i++)
+        server.ModEventHandlers = new ModEventHandlers();
+        for (int i = 0; i < server.Systems.Count; i++)
         {
-            if (server.systems[i] != null)
-                server.systems[i].OnRestart(server);
+            server.Systems[i]?.OnRestart(server);
         }
 
         LoadMods(server, restart: true);
@@ -108,8 +107,8 @@ public class ServerSystemModLoader : ServerSystem
     /// </param>
     private void LoadMods(Server server, bool restart)
     {
-        server.modManager = new ModManager1();
-        var manager = server.modManager;
+        server.ModManager = new ModManager1();
+        var manager = server.ModManager;
         manager.Start(server);
 
         var scripts = GetScriptSources(server);
@@ -154,14 +153,14 @@ public class ServerSystemModLoader : ServerSystem
             string currentTxt = Path.Combine(modPaths[i], "current.txt");
             if (File.Exists(currentTxt))
             {
-                server.gameMode = File.ReadAllText(currentTxt).Trim();
+                server.GameMode = File.ReadAllText(currentTxt).Trim();
             }
             else if (Directory.Exists(modPaths[i]))
             {
-                try { File.WriteAllText(currentTxt, server.gameMode); }
+                try { File.WriteAllText(currentTxt, server.GameMode); }
                 catch { }
             }
-            modPaths[i] = Path.Combine(modPaths[i], server.gameMode);
+            modPaths[i] = Path.Combine(modPaths[i], server.GameMode);
         }
 
         var scripts = new Dictionary<string, string>();

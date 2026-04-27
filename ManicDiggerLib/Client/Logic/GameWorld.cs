@@ -37,7 +37,7 @@ public partial class Game
     /// Returns <see langword="true"/> when <paramref name="block"/> does not
     /// obstruct player movement (ladders and non-solid, non-fluid draw types).
     /// </summary>
-    public static bool IsEmptyForPhysics(Packet_BlockType block) =>
+    public static bool IsEmptyForPhysics(BlockType block) =>
         block.DrawType == DrawType.Ladder
         || (block.WalkableType != WalkableType.Solid
             && block.WalkableType != WalkableType.Fluid);
@@ -46,7 +46,7 @@ public partial class Game
     /// Returns <see langword="true"/> when <paramref name="b"/> allows light
     /// to pass through it (everything except solid blocks and closed doors).
     /// </summary>
-    public static bool IsTransparentForLight(Packet_BlockType b) =>
+    public static bool IsTransparentForLight(BlockType b) =>
         b.DrawType != DrawType.Solid
         && b.DrawType != DrawType.ClosedDoor;
 
@@ -115,7 +115,7 @@ public partial class Game
         if (IsTileEmptyForPhysics(x, y, z)) return true;
         if (!VoxelMap.IsValidPos(x, y, z)) return false;
 
-        Packet_BlockType bt = BlockTypes[VoxelMap.GetBlock(x, y, z)];
+        BlockType bt = BlockTypes[VoxelMap.GetBlock(x, y, z)];
         return bt.DrawType == DrawType.HalfHeight || IsEmptyForPhysics(bt);
     }
 
@@ -262,8 +262,8 @@ public partial class Game
     {
         SendSetBlock(x, y, z, mode, material, ActiveMaterial);
 
-        Packet_Item item = Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != InventoryItemType.Block)
+        InventoryItem item = Inventory.RightHand[ActiveMaterial];
+        if (item == null || item.InventoryItemType != InventoryItemType.Block)
             return;
 
         int blockid = mode == PacketBlockSetMode.Destroy ? SpecialBlockId.Empty : material;

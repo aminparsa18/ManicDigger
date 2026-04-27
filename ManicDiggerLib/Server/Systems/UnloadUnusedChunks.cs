@@ -38,7 +38,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
             var chunkPos = new Vector3i();
             VectorIndexUtil.PosInt(iterationIndex, chunksX, chunksY, ref chunkPos);
 
-            ServerChunk chunk = server.d_Map.GetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z);
+            ServerChunk chunk = server.Map.GetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z);
 
             if (chunk != null && ShouldUnload(server, chunkPos))
             {
@@ -62,13 +62,13 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     private static bool ShouldUnload(Server server, Vector3i chunkPos)
     {
         var globalPos = ChunkToGlobalPos(chunkPos);
-        int unloadDist = (int)(server.chunkdrawdistance * Server.chunksize * UnloadDistanceMultiplier);
+        int unloadDist = (int)(server.ChunkDrawDistance * Server.ChunkSize * UnloadDistanceMultiplier);
         int unloadDistSq = unloadDist * unloadDist;
 
-        foreach (var (_, client) in server.clients)
+        foreach (var (_, client) in server.Clients)
         {
             if (client.IsBot) continue;
-            if (Server.DistanceSquared(Server.PlayerBlockPosition(client), globalPos) <= unloadDistSq)
+            if (VectorUtils.DistanceSquared(Server.PlayerBlockPosition(client), globalPos) <= unloadDistSq)
                 return false;
         }
         return true;
@@ -88,9 +88,9 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
         if (chunk.DirtyForSaving)
             server.DoSaveChunk(chunkPos.X, chunkPos.Y, chunkPos.Z, chunk);
 
-        server.d_Map.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);
+        server.Map.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);
 
-        foreach (var (clientId, _) in server.clients)
+        foreach (var (clientId, _) in server.Clients)
             server.ClientSeenChunkRemove(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z);
     }
 
@@ -100,7 +100,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
     /// <summary>Converts chunk-space coordinates to block-space (global) coordinates.</summary>
     private static Vector3i ChunkToGlobalPos(Vector3i chunkPos) =>
-        new(chunkPos.X * Server.chunksize,
-            chunkPos.Y * Server.chunksize,
-            chunkPos.Z * Server.chunksize);
+        new(chunkPos.X * Server.ChunkSize,
+            chunkPos.Y * Server.ChunkSize,
+            chunkPos.Z * Server.ChunkSize);
 }

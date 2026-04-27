@@ -3,9 +3,9 @@ using PointG = System.Drawing.Point;
 
 public partial class Server
 {
-    internal int mapsizexchunks() { return d_Map.MapSizeX / chunksize; }
-    internal int mapsizeychunks() { return d_Map.MapSizeY / chunksize; }
-    internal int mapsizezchunks() { return d_Map.MapSizeZ / chunksize; }
+    internal int mapsizexchunks() { return Map.MapSizeX / ChunkSize; }
+    internal int mapsizeychunks() { return Map.MapSizeY / ChunkSize; }
+    internal int mapsizezchunks() { return Map.MapSizeZ / ChunkSize; }
 
     // generates a new spawn near initial spawn if initial spawn is in water
     public Vector3i DontSpawnPlayerInWater(Vector3i initialSpawn)
@@ -35,7 +35,7 @@ public partial class Server
                 break;
             }
             pos.X++;
-            int newblockheight = MapUtil.blockheight(d_Map, 0, pos.X, pos.Y);
+            int newblockheight = VectorUtils.BlockHeight(Map, 0, pos.X, pos.Y);
             pos.Z = newblockheight + 1;
         }
         return pos;
@@ -45,9 +45,9 @@ public partial class Server
     {
         for (int i = 0; i < 4; i++)
         {
-            if (MapUtil.IsValidPos(d_Map, x, y, z - i))
+            if (VectorUtils.IsValidPos(Map, x, y, z - i))
             {
-                int blockUnderPlayer = d_Map.GetBlock(x, y, z - i);
+                int blockUnderPlayer = Map.GetBlock(x, y, z - i);
                 if (BlockTypes[blockUnderPlayer].IsFluid())
                 {
                     return false;
@@ -62,20 +62,20 @@ public partial class Server
 
     private PointG PlayerArea(int playerId)
     {
-        return MapUtil.PlayerArea(playerareasize, centerareasize, PlayerBlockPosition(clients[playerId]));
+        return VectorUtils.PlayerArea(playerareasize, centerareasize, PlayerBlockPosition(Clients[playerId]));
     }
 
     private IEnumerable<Vector3i> PlayerAreaChunks(int playerId)
     {
         PointG p = PlayerArea(playerId);
-        for (int x = 0; x < playerareasize / chunksize; x++)
+        for (int x = 0; x < playerareasize / ChunkSize; x++)
         {
-            for (int y = 0; y < playerareasize / chunksize; y++)
+            for (int y = 0; y < playerareasize / ChunkSize; y++)
             {
-                for (int z = 0; z < d_Map.MapSizeZ / chunksize; z++)
+                for (int z = 0; z < Map.MapSizeZ / ChunkSize; z++)
                 {
-                    var v = new Vector3i(p.X + x * chunksize, p.Y + y * chunksize, z * chunksize);
-                    if (MapUtil.IsValidPos(d_Map, v.X, v.Y, v.Z))
+                    var v = new Vector3i(p.X + x * ChunkSize, p.Y + y * ChunkSize, z * ChunkSize);
+                    if (VectorUtils.IsValidPos(Map, v.X, v.Y, v.Z))
                     {
                         yield return v;
                     }
@@ -87,7 +87,7 @@ public partial class Server
     // Interfaces to manipulate server's map.
     public void SetBlock(int x, int y, int z, int blocktype)
     {
-        if (MapUtil.IsValidPos(d_Map, x, y, z))
+        if (VectorUtils.IsValidPos(Map, x, y, z))
         {
             SetBlockAndNotify(x, y, z, blocktype);
         }
@@ -95,32 +95,32 @@ public partial class Server
 
     public int GetBlock(int x, int y, int z)
     {
-        if (MapUtil.IsValidPos(d_Map, x, y, z))
+        if (VectorUtils.IsValidPos(Map, x, y, z))
         {
-            return d_Map.GetBlock(x, y, z);
+            return Map.GetBlock(x, y, z);
         }
         return 0;
     }
 
     public int GetHeight(int x, int y)
     {
-        return MapUtil.blockheight(d_Map, 0, x, y);
+        return VectorUtils.BlockHeight(Map, 0, x, y);
     }
 
     public void SetChunk(int x, int y, int z, ushort[] data)
     {
-        if (MapUtil.IsValidPos(d_Map, x, y, z))
+        if (VectorUtils.IsValidPos(Map, x, y, z))
         {
-            x /= chunksize;
-            y /= chunksize;
-            z /= chunksize;
-            ServerChunk c = d_Map.GetChunkValid(x, y, z);
+            x /= ChunkSize;
+            y /= ChunkSize;
+            z /= ChunkSize;
+            ServerChunk c = Map.GetChunkValid(x, y, z);
             c ??= new ServerChunk();
             c.Data = data;
             c.DirtyForSaving = true;
-            d_Map.SetChunkValid(x, y, z, c);
+            Map.SetChunkValid(x, y, z, c);
             // update related chunk at clients
-            foreach (var k in clients)
+            foreach (var k in Clients)
             {
                 //todo wrong
                 //k.Value.chunksseen.Clear();
@@ -144,15 +144,15 @@ public partial class Server
             }
 
             // TODO: check bounds.
-            ServerChunk c = d_Map.GetChunkValid(k.Key.X, k.Key.Y, k.Key.Z);
+            ServerChunk c = Map.GetChunkValid(k.Key.X, k.Key.Y, k.Key.Z);
             c ??= new ServerChunk();
             c.Data = k.Value;
             c.DirtyForSaving = true;
-            d_Map.SetChunkValid(k.Key.X, k.Key.Y, k.Key.Z, c);
+            Map.SetChunkValid(k.Key.X, k.Key.Y, k.Key.Z, c);
         }
 
         // update related chunk at clients
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             //TODO wrong
             //k.Value.chunksseen.Clear();
@@ -175,15 +175,15 @@ public partial class Server
             }
 
             // TODO: check bounds.
-            ServerChunk c = d_Map.GetChunkValid(k.Key.X + offsetX, k.Key.Y + offsetY, k.Key.Z + offsetZ);
+            ServerChunk c = Map.GetChunkValid(k.Key.X + offsetX, k.Key.Y + offsetY, k.Key.Z + offsetZ);
             c ??= new ServerChunk();
             c.Data = k.Value;
             c.DirtyForSaving = true;
-            d_Map.SetChunkValid(k.Key.X + offsetX, k.Key.Y + offsetY, k.Key.Z + offsetZ, c);
+            Map.SetChunkValid(k.Key.X + offsetX, k.Key.Y + offsetY, k.Key.Z + offsetZ, c);
         }
 
         // update related chunk at clients
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             //TODO wrong
             //k.Value.chunksseen.Clear();
@@ -193,27 +193,27 @@ public partial class Server
 
     public ushort[] GetChunk(int x, int y, int z)
     {
-        if (MapUtil.IsValidPos(d_Map, x, y, z))
+        if (VectorUtils.IsValidPos(Map, x, y, z))
         {
-            x /= chunksize;
-            y /= chunksize;
-            z /= chunksize;
-            return d_Map.GetChunkValid(x, y, z).Data;
+            x /= ChunkSize;
+            y /= ChunkSize;
+            z /= ChunkSize;
+            return Map.GetChunkValid(x, y, z).Data;
         }
         return null;
     }
 
     public void DeleteChunk(int x, int y, int z)
     {
-        if (MapUtil.IsValidPos(d_Map, x, y, z))
+        if (VectorUtils.IsValidPos(Map, x, y, z))
         {
-            x /= chunksize;
-            y /= chunksize;
-            z /= chunksize;
-            ChunkDb.DeleteChunk(d_ChunkDb, x, y, z);
-            d_Map.SetChunkValid(x, y, z, null);
+            x /= ChunkSize;
+            y /= ChunkSize;
+            z /= ChunkSize;
+            global::ChunkDbHelper.DeleteChunk(ChunkDb, x, y, z);
+            Map.SetChunkValid(x, y, z, null);
             // update related chunk at clients
-            foreach (var k in clients)
+            foreach (var k in Clients)
             {
                 //todo wrong
                 //k.Value.chunksseen.Clear();
@@ -227,20 +227,20 @@ public partial class Server
         List<Xyz> chunks = [];
         foreach (Vector3i pos in chunkPositions)
         {
-            if (MapUtil.IsValidPos(d_Map, pos.X, pos.Y, pos.Z))
+            if (VectorUtils.IsValidPos(Map, pos.X, pos.Y, pos.Z))
             {
-                int x = pos.X / chunksize;
-                int y = pos.Y / chunksize;
-                int z = pos.Z / chunksize;
-                d_Map.SetChunkValid(x, y, z, null);
+                int x = pos.X / ChunkSize;
+                int y = pos.Y / ChunkSize;
+                int z = pos.Z / ChunkSize;
+                Map.SetChunkValid(x, y, z, null);
                 chunks.Add(new Xyz() { X = x, Y = y, Z = z });
             }
         }
         if (chunks.Count != 0)
         {
-            ChunkDb.DeleteChunks(d_ChunkDb, chunks);
+            global::ChunkDbHelper.DeleteChunks(ChunkDb, chunks);
             // force to update chunks at clients
-            foreach (var k in clients)
+            foreach (var k in Clients)
             {
                 //todo wrong
                 //k.Value.chunksseen.Clear();
@@ -251,12 +251,12 @@ public partial class Server
 
     public int[] GetMapSize()
     {
-        return [d_Map.MapSizeX, d_Map.MapSizeY, d_Map.MapSizeZ];
+        return [Map.MapSizeX, Map.MapSizeY, Map.MapSizeZ];
     }
 
     public ushort[] GetChunkFromDatabase(int x, int y, int z, string filename)
     {
-        if (MapUtil.IsValidPos(d_Map, x, y, z))
+        if (VectorUtils.IsValidPos(Map, x, y, z))
         {
             if (!GameStorePath.IsValidName(filename))
             {
@@ -267,13 +267,13 @@ public partial class Server
             {
                 Directory.CreateDirectory(GameStorePath.gamepathbackup);
             }
-            string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{filename}{MapManipulator.BinSaveExtension}");
+            string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{filename}{FileConstatns.DbFileExtension}");
 
-            x /= chunksize;
-            y /= chunksize;
-            z /= chunksize;
+            x /= ChunkSize;
+            y /= ChunkSize;
+            z /= ChunkSize;
 
-            byte[] serializedChunk = ChunkDb.GetChunkFromFile(d_ChunkDb, x, y, z, finalFilename);
+            byte[] serializedChunk = global::ChunkDbHelper.GetChunkFromFile(ChunkDb, x, y, z, finalFilename);
             if (serializedChunk != null)
             {
                 ServerChunk c = DeserializeChunk(serializedChunk);
@@ -299,10 +299,10 @@ public partial class Server
         {
             Directory.CreateDirectory(GameStorePath.gamepathbackup);
         }
-        string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{filename}{MapManipulator.BinSaveExtension}");
+        string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{filename}{FileConstatns.DbFileExtension}");
 
         Dictionary<Xyz, ushort[]> deserializedChunks = [];
-        Dictionary<Xyz, byte[]> serializedChunks = ChunkDb.GetChunksFromFile(d_ChunkDb, chunks, finalFilename);
+        Dictionary<Xyz, byte[]> serializedChunks = global::ChunkDbHelper.GetChunksFromFile(ChunkDb, chunks, finalFilename);
 
         foreach (var k in serializedChunks)
         {
@@ -322,7 +322,7 @@ public partial class Server
         //convert savegame to new format
         if (c.DataOld != null)
         {
-            c.Data = new ushort[chunksize * chunksize * chunksize];
+            c.Data = new ushort[ChunkSize * ChunkSize * ChunkSize];
             for (int i = 0; i < c.DataOld.Length; i++)
             {
                 c.Data[i] = c.DataOld[i];
@@ -343,21 +343,21 @@ public partial class Server
         {
             Directory.CreateDirectory(GameStorePath.gamepathbackup);
         }
-        string finalFilename = Path.Combine(GameStorePath.gamepathbackup, filename + MapManipulator.BinSaveExtension);
+        string finalFilename = Path.Combine(GameStorePath.gamepathbackup, filename + FileConstatns.DbFileExtension);
 
         List<DbChunk> dbchunks = [];
         foreach (Vector3i pos in chunkPositions)
         {
-            int dx = pos.X / chunksize;
-            int dy = pos.Y / chunksize;
-            int dz = pos.Z / chunksize;
+            int dx = pos.X / ChunkSize;
+            int dy = pos.Y / ChunkSize;
+            int dz = pos.Z / ChunkSize;
 
             ServerChunk cc = new() { Data = this.GetChunk(pos.X, pos.Y, pos.Z) };
             dbchunks.Add(new DbChunk() { Position = new Xyz() { X = dx, Y = dy, Z = dz }, Chunk = MemoryPackSerializer.Serialize(cc) });
         }
         if (dbchunks.Count != 0)
         {
-            IChunkDb d_ChunkDb = new ChunkDbCompressed() { d_ChunkDb = new ChunkDbSqlite(), d_Compression = new CompressionGzip() };
+            IChunkDb d_ChunkDb = new ChunkDbCompressed() { ChunkDb = new ChunkDbSqlite(), Compression = new CompressionGzip() };
             d_ChunkDb.SetChunksToFile(dbchunks, finalFilename);
         }
         else

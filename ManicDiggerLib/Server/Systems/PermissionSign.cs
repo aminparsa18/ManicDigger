@@ -26,11 +26,11 @@ public class ServerSystemPermissionSign : ServerSystem
     protected override void Initialize(Server server)
     {
         this.server = server;
-        server.modManager.RegisterOnBlockUseWithTool(OnUseWithTool);
-        server.modEventHandlers.onupdateentity.Add(UpdateEntity);
-        server.modEventHandlers.onuseentity.Add(OnUseEntity);
-        server.modEventHandlers.ondialogclick2.Add(OnDialogClick);
-        server.modEventHandlers.onpermission.Add(OnPermission);
+        server.ModManager.RegisterOnBlockUseWithTool(OnUseWithTool);
+        server.ModEventHandlers.onupdateentity.Add(UpdateEntity);
+        server.ModEventHandlers.onuseentity.Add(OnUseEntity);
+        server.ModEventHandlers.ondialogclick2.Add(OnDialogClick);
+        server.ModEventHandlers.onpermission.Add(OnPermission);
     }
 
     // -------------------------------------------------------------------------
@@ -44,8 +44,8 @@ public class ServerSystemPermissionSign : ServerSystem
     /// </summary>
     private void OnUseWithTool(int player, int x, int y, int z, int tool)
     {
-        if (server.modManager.GetBlockName(tool) != "PermissionSign") return;
-        if (server.d_Map.GetChunk(x, y, z) == null) return;
+        if (server.ModManager.GetBlockName(tool) != "PermissionSign") return;
+        if (server.Map.GetChunk(x, y, z) == null) return;
         if (!server.CheckBuildPrivileges(player, x, y, z, PacketBlockSetMode.Create)) return;
         if (!CheckAreaPrivilege(player)) return;
 
@@ -65,8 +65,8 @@ public class ServerSystemPermissionSign : ServerSystem
         };
 
         e.Position.Heading = EntityHeading.GetHeading(
-            server.modManager.GetPlayerPositionX(player),
-            server.modManager.GetPlayerPositionY(player),
+            server.ModManager.GetPlayerPositionX(player),
+            server.ModManager.GetPlayerPositionY(player),
             e.Position.X, e.Position.Z);
 
         server.AddEntity(x, y, z, e);
@@ -156,7 +156,7 @@ public class ServerSystemPermissionSign : ServerSystem
         if (!CheckAreaPrivilege(player)) return;
 
         var font = new DialogFont("Verdana", 11f, DialogFontStyle.Bold);
-        var groups = server.serverClient.Groups;
+        var groups = server.ServerClient.Groups;
         int widgetCount = 0;
 
         var d = new Dialog
@@ -186,12 +186,12 @@ public class ServerSystemPermissionSign : ServerSystem
         d.Widgets[widgetCount++] = okButton;
         d.Widgets[widgetCount++] = Widget.MakeText("Set player", font, 200, 50, ColorUtils.ColorFromArgb(255, 0, 0, 0));
 
-        server.clients[player].editingSign = new ServerEntityId
+        server.Clients[player].EditingSign = new ServerEntityId
         {
-            chunkx = chunkx,
-            chunky = chunky,
-            chunkz = chunkz,
-            id = id
+            ChunkX = chunkx,
+            ChunkY = chunky,
+            ChunkZ = chunkz,
+            Id = id
         };
         server.SendDialog(player, DialogKey, d);
     }
@@ -214,13 +214,13 @@ public class ServerSystemPermissionSign : ServerSystem
         if (!TryResolveDialogTarget(args, out string name, out PermissionSignType type))
             return;
 
-        ClientOnServer client = server.clients[args.Player];
-        ServerEntityId id = client.editingSign;
-        client.editingSign = null;
+        ClientOnServer client = server.Clients[args.Player];
+        ServerEntityId id = client.EditingSign;
+        client.EditingSign = null;
 
         if (!string.IsNullOrEmpty(name))
         {
-            ServerEntity e = server.GetEntity(id.chunkx, id.chunky, id.chunkz, id.id);
+            ServerEntity e = server.GetEntity(id.ChunkX, id.ChunkY, id.ChunkZ, id.Id);
             e.PermissionSign.Name = name;
             e.PermissionSign.Type = type;
             server.SetEntityDirty(id);
@@ -245,7 +245,7 @@ public class ServerSystemPermissionSign : ServerSystem
         if (args.WidgetId == OkWidgetId)
         {
             string candidate = args.TextBoxValue[1];
-            Group matchedGroup = server.serverClient.Groups
+            Group matchedGroup = server.ServerClient.Groups
                 .FirstOrDefault(g => g.Name == candidate);
             name = candidate;
             if (matchedGroup != null)
@@ -255,7 +255,7 @@ public class ServerSystemPermissionSign : ServerSystem
 
         if (args.WidgetId.StartsWith(GroupIdPrefix))
         {
-            Group matchedGroup = server.serverClient.Groups
+            Group matchedGroup = server.ServerClient.Groups
                 .FirstOrDefault(g => GroupIdPrefix + g.Name == args.WidgetId);
             if (matchedGroup == null) return false;
             name = matchedGroup.Name;
@@ -286,13 +286,13 @@ public class ServerSystemPermissionSign : ServerSystem
             for (int dy = -1; dy <= 1; dy++)
                 for (int dz = -1; dz <= 1; dz++)
                 {
-                    int cx = blockX / Server.chunksize + dx;
-                    int cy = blockY / Server.chunksize + dy;
-                    int cz = blockZ / Server.chunksize + dz;
+                    int cx = blockX / Server.ChunkSize + dx;
+                    int cy = blockY / Server.ChunkSize + dy;
+                    int cz = blockZ / Server.ChunkSize + dz;
 
-                    if (!MapUtil.IsValidChunkPos(server.d_Map, cx, cy, cz, Server.chunksize)) continue;
+                    if (!VectorUtils.IsValidChunkPos(server.Map, cx, cy, cz, Server.ChunkSize)) continue;
 
-                    ServerChunk chunk = server.d_Map.GetChunk_(cx, cy, cz);
+                    ServerChunk chunk = server.Map.GetChunk_(cx, cy, cz);
                     if (chunk == null) return;
 
                     for (int i = 0; i < chunk.EntitiesCount; i++)
@@ -305,12 +305,12 @@ public class ServerSystemPermissionSign : ServerSystem
                                 e.DrawArea.SizeX, e.DrawArea.SizeZ, e.DrawArea.SizeY))
                             continue;
 
-                        ClientOnServer client = server.clients[args.Player];
+                        ClientOnServer client = server.Clients[args.Player];
 
                         bool allowed = e.PermissionSign.Type switch
                         {
-                            PermissionSignType.Group => e.PermissionSign.Name == client.clientGroup.Name,
-                            PermissionSignType.Player => e.PermissionSign.Name == client.playername,
+                            PermissionSignType.Group => e.PermissionSign.Name == client.ClientGroup.Name,
+                            PermissionSignType.Player => e.PermissionSign.Name == client.PlayerName,
                             _ => false
                         };
 
@@ -337,7 +337,7 @@ public class ServerSystemPermissionSign : ServerSystem
             return true;
 
         server.SendMessage(player,
-            server.colorError + server.language.Get("Server_CommandInsufficientPrivileges"));
+            server.colorError + server.Language.Get("Server_CommandInsufficientPrivileges"));
         return false;
     }
 

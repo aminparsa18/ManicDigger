@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using ManicDigger;
+
+/// <summary>
 /// Renders the player's held item as a 2D hand image overlay in first-person view.
 /// </summary>
 public class ModDrawHand2d : ModBase
@@ -44,11 +46,11 @@ public class ModDrawHand2d : ModBase
     /// <summary>Returns the appropriate hand image path for the currently held item, or null if none.</summary>
     public string HandImage2d()
     {
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         if (item == null) return null;
 
         return game.IronSights
             ? game.BlockTypes[item.BlockId].IronSightsImage
-            : game.BlockTypes[item.BlockId].Handimage;
+            : game.BlockTypes[item.BlockId].handimage;
     }
 }

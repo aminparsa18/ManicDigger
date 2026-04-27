@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 
 public class LoginData
 {
@@ -217,7 +218,7 @@ public class EntityDrawText
 public class VisibleDialog
 {
     internal string key;
-    internal Packet_Dialog value;
+    internal Dialog value;
     internal GameScreen screen;
 }
 

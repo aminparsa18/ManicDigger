@@ -23,7 +23,7 @@ public class ServerSystemLoadConfig : ServerSystem
 
     /// <summary>
     /// Loads the configuration once on startup, then flushes any pending save
-    /// on subsequent ticks when <see cref="Server.configNeedsSaving"/> is set.
+    /// on subsequent ticks when <see cref="Server.ConfigNeedsSaving"/> is set.
     /// </summary>
     protected override void Initialize(Server server)
     {
@@ -34,9 +34,9 @@ public class ServerSystemLoadConfig : ServerSystem
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
     {
-        if (server.configNeedsSaving)
+        if (server.ConfigNeedsSaving)
         {
-            server.configNeedsSaving = false;
+            server.ConfigNeedsSaving = false;
             SaveConfig(server);
         }
     }
@@ -64,7 +64,7 @@ public class ServerSystemLoadConfig : ServerSystem
 
         if (!File.Exists(path))
         {
-            Console.WriteLine(server.language.ServerConfigNotFound());
+            Console.WriteLine(server.Language.ServerConfigNotFound());
             SaveConfig(server);
             return;
         }
@@ -76,8 +76,8 @@ public class ServerSystemLoadConfig : ServerSystem
         }
 
         // Switch to the operator-defined locale now that config is populated
-        server.language.OverrideLanguage = server.config.ServerLanguage;
-        Console.WriteLine(server.language.ServerConfigLoaded());
+        server.Language.OverrideLanguage = server.Config.ServerLanguage;
+        Console.WriteLine(server.Language.ServerConfigLoaded());
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public class ServerSystemLoadConfig : ServerSystem
         try
         {
             string json = File.ReadAllText(path);
-            server.config = JsonSerializer.Deserialize<ServerConfig>(json, JsonOptions)
+            server.Config = JsonSerializer.Deserialize<ServerConfig>(json, JsonOptions)
                             ?? new ServerConfig();
             return true;
         }
@@ -102,21 +102,21 @@ public class ServerSystemLoadConfig : ServerSystem
     /// <summary>
     /// Called when both load attempts fail. Tries to copy the corrupt file to
     /// <c>ServerConfig.txt.old</c>, logs a message either way, then resets
-    /// <see cref="Server.config"/> to <c>null</c> and writes a fresh default config.
+    /// <see cref="Server.Config"/> to <c>null</c> and writes a fresh default config.
     /// </summary>
     private static void TryBackupAndReset(Server server, string path)
     {
         try
         {
             File.Copy(path, path + ".old");
-            Console.WriteLine(server.language.ServerConfigCorruptBackup());
+            Console.WriteLine(server.Language.ServerConfigCorruptBackup());
         }
         catch
         {
-            Console.WriteLine(server.language.ServerConfigCorruptNoBackup());
+            Console.WriteLine(server.Language.ServerConfigCorruptNoBackup());
         }
 
-        server.config = null;
+        server.Config = null;
         SaveConfig(server);
     }
 
@@ -125,10 +125,10 @@ public class ServerSystemLoadConfig : ServerSystem
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Serializes <see cref="Server.config"/> to <c>ServerConfig.txt</c> in the
+    /// Serializes <see cref="Server.Config"/> to <c>ServerConfig.txt</c> in the
     /// game config directory.
     /// <para>
-    /// If <see cref="Server.config"/> is <c>null</c> (i.e. first run), the operator
+    /// If <see cref="Server.Config"/> is <c>null</c> (i.e. first run), the operator
     /// is prompted interactively on the console to supply basic server settings
     /// before the file is written.
     /// </para>
@@ -137,15 +137,15 @@ public class ServerSystemLoadConfig : ServerSystem
     {
         Directory.CreateDirectory(GameStorePath.gamepathconfig);
 
-        if (server.config == null)
-            server.config = CreateConfigInteractively(server);
+        if (server.Config == null)
+            server.Config = CreateConfigInteractively(server);
 
-        if (server.config.Areas.Count == 0)
-            server.config.Areas = ServerConfigMisc.getDefaultAreas();
+        if (server.Config.Areas.Count == 0)
+            server.Config.Areas = ServerConfigMisc.getDefaultAreas();
 
         File.WriteAllText(
             Path.Combine(GameStorePath.gamepathconfig, ConfigFilename),
-            JsonSerializer.Serialize(server.config, JsonOptions));
+            JsonSerializer.Serialize(server.Config, JsonOptions));
     }
 
     // -------------------------------------------------------------------------
@@ -160,7 +160,7 @@ public class ServerSystemLoadConfig : ServerSystem
     /// <returns>A new <see cref="ServerConfig"/> populated with the operator's choices.</returns>
     private static ServerConfig CreateConfigInteractively(Server server)
     {
-        Language lang = server.language;
+        Language lang = server.Language;
 
         var config = new ServerConfig
         {

@@ -69,8 +69,8 @@ public partial class Game
 
     public int? BlockInHand()
     {
-        Packet_Item item = Inventory.RightHand[ActiveMaterial];
-        return item != null && item.ItemClass == InventoryItemType.Block ? item.BlockId : null;
+        InventoryItem item = Inventory.RightHand[ActiveMaterial];
+        return item != null && item.InventoryItemType == InventoryItemType.Block ? item.BlockId : null;
     }
 
     internal bool IsWearingWeapon() => Inventory.RightHand[ActiveMaterial] != null;
@@ -99,15 +99,15 @@ public partial class Game
             speed *= 2f;         // Shift = sprint
         }
 
-        Packet_Item item = Inventory.RightHand[ActiveMaterial];
-        if (item != null && item.ItemClass == InventoryItemType.Block)
+        InventoryItem item = Inventory.RightHand[ActiveMaterial];
+        if (item != null && item.InventoryItemType == InventoryItemType.Block)
         {
-            float itemSpeed = DecodeFixedPoint(BlockTypes[item.BlockId].WalkSpeedWhenUsedFloat);
+            float itemSpeed = BlockTypes[item.BlockId].WalkSpeedWhenUsed;
             if (itemSpeed != 0) speed *= itemSpeed;
 
             if (IronSights)
             {
-                float ironSpeed = DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsMoveSpeedFloat);
+                float ironSpeed = BlockTypes[item.BlockId].IronSightsMoveSpeed;
                 if (ironSpeed != 0) speed *= ironSpeed;
             }
         }
@@ -123,10 +123,10 @@ public partial class Game
     {
         if (IronSights)
         {
-            Packet_Item item = Inventory.RightHand[ActiveMaterial];
-            if (item != null && item.ItemClass == InventoryItemType.Block)
+            InventoryItem item = Inventory.RightHand[ActiveMaterial];
+            if (item != null && item.InventoryItemType == InventoryItemType.Block)
             {
-                float ironFov = DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsFovFloat);
+                float ironFov = BlockTypes[item.BlockId].IronSightsFov;
                 if (ironFov != 0) return fov * ironFov;
             }
         }
@@ -135,19 +135,19 @@ public partial class Game
 
     public float CurrentRecoil()
     {
-        Packet_Item item = Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != InventoryItemType.Block) return 0;
-        return DecodeFixedPoint(BlockTypes[item.BlockId].RecoilFloat);
+        InventoryItem item = Inventory.RightHand[ActiveMaterial];
+        if (item == null || item.InventoryItemType != InventoryItemType.Block) return 0;
+        return BlockTypes[item.BlockId].Recoil;
     }
 
     public float CurrentAimRadius()
     {
-        Packet_Item item = Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.ItemClass != InventoryItemType.Block) return 0;
+        InventoryItem item = Inventory.RightHand[ActiveMaterial];
+        if (item == null || item.InventoryItemType != InventoryItemType.Block) return 0;
 
         float radius = IronSights
-            ? DecodeFixedPoint(BlockTypes[item.BlockId].IronSightsAimRadiusFloat) / 800 * Platform.GetCanvasWidth()
-            : DecodeFixedPoint(BlockTypes[item.BlockId].AimRadiusFloat) / 800 * Platform.GetCanvasWidth();
+            ? BlockTypes[item.BlockId].IronSightsAimRadius / 800 * Platform.GetCanvasWidth()
+            : BlockTypes[item.BlockId].AimRadius / 800 * Platform.GetCanvasWidth();
 
         return radius + RadiusWhenMoving * radius * Math.Min(playervelocity.Length / MoveSpeed, 1);
     }

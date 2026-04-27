@@ -177,7 +177,7 @@ public class SingleplayerScreen : ScreenBase
 
         foreach (string file in files)
         {
-            if (file.EndsWith(".mddbs", StringComparison.OrdinalIgnoreCase))
+            if (file.EndsWith(FileConstatns.DbFileExtension, StringComparison.OrdinalIgnoreCase))
                 savegames.Add(file);
         }
 

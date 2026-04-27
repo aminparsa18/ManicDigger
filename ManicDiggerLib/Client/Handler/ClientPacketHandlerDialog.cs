@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using ManicDigger;
+
+/// <summary>
 /// Handles <see cref="Packet_ServerIdEnum.Dialog"/> packets,
 /// opening, updating, or closing server-driven modal and non-modal dialogs.
 /// </summary>
@@ -14,7 +16,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         if (d.Dialog == null)
         {
             // Server is closing this dialog.
-            if (dialogIdx != -1 && game.Dialogs[dialogIdx].value.IsModal != 0)
+            if (dialogIdx != -1 && game.Dialogs[dialogIdx].value.IsModal)
                 game.GuiStateBackToGame();
 
             if (dialogIdx != -1)
@@ -51,7 +53,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
                 game.Dialogs[dialogIdx] = d2;
             }
 
-            if (d.Dialog.IsModal != 0)
+            if (d.Dialog.IsModal)
             {
                 game.GuiState = GuiState.ModalDialog;
                 game.SetFreeMouse(true);
@@ -59,7 +61,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         }
     }
 
-    private GameScreen ConvertDialog(IGameClient game, Packet_Dialog p)
+    private GameScreen ConvertDialog(IGameClient game, Dialog p)
     {
         DialogScreen s = new(game, default)
         {
@@ -69,22 +71,22 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
 
         for (int i = 0; i < p.Widgets.Length; i++)
         {
-            Packet_Widget a = p.Widgets[i];
+            Widget a = p.Widgets[i];
             MenuWidget b = new();
 
             // ── Single switch instead of four sequential if-blocks ────────────
             b.type = a.Type switch
             {
-                ManicDigger.WidgetType.Text => UIWidgetType.Label,
-                ManicDigger.WidgetType.Image => UIWidgetType.Button,
-                ManicDigger.WidgetType.TextBox => UIWidgetType.Textbox,
+                WidgetType.Text => UIWidgetType.Label,
+                WidgetType.Image => UIWidgetType.Button,
+                WidgetType.TextBox => UIWidgetType.Textbox,
                 _ => b.type,
             };
 
             b.x = a.X;
             b.y = a.Y;
             b.sizex = a.Width;
-            b.sizey = a.Height_;
+            b.sizey = a.Height;
             b.text = a.Text;
 
             // ── Single null-check, chained Replace calls ──────────────────────
@@ -103,7 +105,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
             {
                 b.font = new Font(
                     game.ValidFont(a.Font.FamilyName),
-                    game.DecodeFixedPoint(a.Font.SizeFloat),
+                    game.DecodeFixedPoint((int)a.Font.Size),
                     (FontStyle)a.Font.FontStyle);
             }
 

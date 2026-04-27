@@ -292,7 +292,7 @@ public class TerrainChunkTesselator
     {
         for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
         {
-            Packet_BlockType b = _terrain.BlockTypes[i];
+            BlockType b = _terrain.BlockTypes[i];
             if (b == null) continue;
 
             BlockRenderFlags flags = BlockRenderFlags.None;
@@ -824,7 +824,7 @@ public class TerrainChunkTesselator
 
     private bool IsTransparentForLight(int block)
     {
-        Packet_BlockType b = _terrain.BlockTypes[block];
+        BlockType b = _terrain.BlockTypes[block];
         return b.DrawType != DrawType.Solid && b.DrawType != DrawType.ClosedDoor;
     }
 

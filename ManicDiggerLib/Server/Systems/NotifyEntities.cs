@@ -26,7 +26,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
     {
-        foreach (var k in server.clients)
+        foreach (var k in server.Clients)
         {
             ClientOnServer client = k.Value;
 
@@ -34,9 +34,9 @@ public class ServerSystemNotifyEntities : ServerSystem
             {
                 // Apply position overrides to keep bot positions current;
                 // bots do not receive any other position packets.
-                if (client.positionOverride == null) continue;
-                client.entity.Position = client.positionOverride;
-                client.positionOverride = null;
+                if (client.PositionOverride == null) continue;
+                client.Entity.Position = client.PositionOverride;
+                client.PositionOverride = null;
                 continue;
             }
 
@@ -56,16 +56,16 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private static void NotifyPlayers(Server server, int clientId)
     {
-        ClientOnServer client = server.clients[clientId];
+        ClientOnServer client = server.Clients[clientId];
 
-        foreach (var k in server.clients)
+        foreach (var k in server.Clients)
         {
-            if (k.Value.state != ClientStateOnServer.Playing) continue;
-            if (!client.playersDirty[k.Key]) continue;
+            if (k.Value.State != ClientStateOnServer.Playing) continue;
+            if (!client.PlayersDirty[k.Key]) continue;
 
-            Packet_ServerEntity entity = ToNetworkEntity(server.serverPlatform, k.Value.entity);
+            Packet_ServerEntity entity = ToNetworkEntity(k.Value.Entity);
             server.SendPacket(clientId, ServerPackets.EntitySpawn(k.Key, entity));
-            client.playersDirty[k.Key] = false;
+            client.PlayersDirty[k.Key] = false;
         }
     }
 
@@ -84,34 +84,34 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private void NotifyPlayerPositions(Server server, int clientId, float dt)
     {
-        ClientOnServer client = server.clients[clientId];
-        client.notifyPlayerPositionsAccum += dt;
-        if (client.notifyPlayerPositionsAccum < (One / PlayerPositionUpdatesPerSecond)) return;
-        client.notifyPlayerPositionsAccum = 0;
+        ClientOnServer client = server.Clients[clientId];
+        client.NotifyPlayerPositionsAccum += dt;
+        if (client.NotifyPlayerPositionsAccum < (One / PlayerPositionUpdatesPerSecond)) return;
+        client.NotifyPlayerPositionsAccum = 0;
 
-        foreach (var k in server.clients)
+        foreach (var k in server.Clients)
         {
-            if (k.Value.state != ClientStateOnServer.Playing) continue;
+            if (k.Value.State != ClientStateOnServer.Playing) continue;
             if (!client.IsSpectator && k.Value.IsSpectator) continue;
 
             if (k.Key == clientId)
             {
                 // Apply any server-side position correction for the local player
-                if (k.Value.positionOverride == null) continue;
-                k.Value.entity.Position = k.Value.positionOverride;
-                k.Value.positionOverride = null;
+                if (k.Value.PositionOverride == null) continue;
+                k.Value.Entity.Position = k.Value.PositionOverride;
+                k.Value.PositionOverride = null;
             }
             else
             {
                 // Skip players beyond the configured draw distance
-                Vector3i otherPos = Server.PlayerBlockPosition(server.clients[k.Key]);
-                Vector3i selfPos = Server.PlayerBlockPosition(server.clients[clientId]);
-                int drawDistanceSq = server.config.PlayerDrawDistance * server.config.PlayerDrawDistance;
-                if (Server.DistanceSquared(otherPos, selfPos) > drawDistanceSq) continue;
+                Vector3i otherPos = Server.PlayerBlockPosition(server.Clients[k.Key]);
+                Vector3i selfPos = Server.PlayerBlockPosition(server.Clients[clientId]);
+                int drawDistanceSq = server.Config.PlayerDrawDistance * server.Config.PlayerDrawDistance;
+                if (VectorUtils.DistanceSquared(otherPos, selfPos) > drawDistanceSq) continue;
             }
 
             Packet_PositionAndOrientation position =
-                ToNetworkEntityPosition(server.serverPlatform, server.clients[k.Key].entity.Position);
+                ToNetworkEntityPosition(server.Clients[k.Key].Entity.Position);
             server.SendPacket(clientId, ServerPackets.EntityPositionAndOrientation(k.Key, position));
         }
     }
@@ -133,10 +133,10 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private void NotifyEntities(Server server, int clientId, float dt)
     {
-        ClientOnServer client = server.clients[clientId];
-        client.notifyEntitiesAccum += dt;
-        if (client.notifyEntitiesAccum < (One / EntityPositionUpdatesPerSecond)) return;
-        client.notifyEntitiesAccum = 0;
+        ClientOnServer client = server.Clients[clientId];
+        client.NotifyEntitiesAccum += dt;
+        if (client.NotifyEntitiesAccum < (One / EntityPositionUpdatesPerSecond)) return;
+        client.NotifyEntitiesAccum = 0;
 
         // --- Collect nearest entities ---
         var nearestEntities = new ServerEntityId[SpawnMaxEntities];
@@ -146,18 +146,18 @@ public class ServerSystemNotifyEntities : ServerSystem
         foreach (ServerEntityId e in nearestEntities)
         {
             if (e == null) continue;
-            foreach (var handler in server.modEventHandlers.onupdateentity)
-                handler(e.chunkx, e.chunky, e.chunkz, e.id);
+            foreach (var handler in server.ModEventHandlers.onupdateentity)
+                handler(e.ChunkX, e.ChunkY, e.ChunkZ, e.Id);
         }
 
         // --- Despawn entities that left range ---
-        for (int i = 0; i < client.spawnedEntitiesCount; i++)
+        for (int i = 0; i < client.SpawnedEntities.Length; i++)
         {
-            ServerEntityId e = client.spawnedEntities[i];
+            ServerEntityId e = client.SpawnedEntities[i];
             if (e == null) continue;
             if (Contains(nearestEntities, SpawnMaxEntities, e)) continue;
 
-            client.spawnedEntities[i] = null;
+            client.SpawnedEntities[i] = null;
             server.SendPacket(clientId, ServerPackets.EntityDespawn(64 + i));
         }
 
@@ -166,24 +166,24 @@ public class ServerSystemNotifyEntities : ServerSystem
         {
             ServerEntityId e = nearestEntities[i];
             if (e == null) continue;
-            if (Contains(client.spawnedEntities, SpawnMaxEntities, e)) continue;
+            if (Contains(client.SpawnedEntities, SpawnMaxEntities, e)) continue;
 
-            int slotId = IndexOfNull(client.spawnedEntities, client.spawnedEntitiesCount);
-            client.spawnedEntities[slotId] = e.Clone();
+            int slotId = IndexOfNull(client.SpawnedEntities, client.SpawnedEntities.Length);
+            client.SpawnedEntities[slotId] = e.Clone();
 
             ServerEntity entity = GetEntity(server, e);
-            server.SendPacket(clientId, ServerPackets.EntitySpawn(64 + slotId, ToNetworkEntity(server.serverPlatform, entity)));
+            server.SendPacket(clientId, ServerPackets.EntitySpawn(64 + slotId, ToNetworkEntity(entity)));
         }
 
         // --- Re-send dirty entity data ---
         for (int i = 0; i < SpawnMaxEntities; i++)
         {
-            if (!client.updateEntity[i]) continue;
-            client.updateEntity[i] = false;
+            if (!client.UpdateEntity[i]) continue;
+            client.UpdateEntity[i] = false;
 
-            ServerEntityId e = client.spawnedEntities[i];
+            ServerEntityId e = client.SpawnedEntities[i];
             ServerEntity entity = GetEntity(server, e);
-            server.SendPacket(clientId, ServerPackets.EntitySpawn(64 + i, ToNetworkEntity(server.serverPlatform, entity)));
+            server.SendPacket(clientId, ServerPackets.EntitySpawn(64 + i, ToNetworkEntity(entity)));
         }
     }
 
@@ -208,23 +208,23 @@ public class ServerSystemNotifyEntities : ServerSystem
             for (int dy = -1; dy <= 1; dy++)
                 for (int dz = -1; dz <= 1; dz++)
                 {
-                    int chunkX = playerX / Server.chunksize + dx;
-                    int chunkY = playerY / Server.chunksize + dy;
-                    int chunkZ = playerZ / Server.chunksize + dz;
+                    int chunkX = playerX / Server.ChunkSize + dx;
+                    int chunkY = playerY / Server.ChunkSize + dy;
+                    int chunkZ = playerZ / Server.ChunkSize + dz;
 
-                    if (!MapUtil.IsValidChunkPos(server.d_Map, chunkX, chunkY, chunkZ, Server.chunksize)) continue;
+                    if (!VectorUtils.IsValidChunkPos(server.Map, chunkX, chunkY, chunkZ, Server.ChunkSize)) continue;
 
-                    ServerChunk chunk = server.d_Map.GetChunk(
-                        chunkX * Server.chunksize,
-                        chunkY * Server.chunksize,
-                        chunkZ * Server.chunksize);
+                    ServerChunk chunk = server.Map.GetChunk(
+                        chunkX * Server.ChunkSize,
+                        chunkY * Server.ChunkSize,
+                        chunkZ * Server.ChunkSize);
 
                     if (chunk?.Entities == null) continue;
 
                     for (int i = 0; i < chunk.EntitiesCount; i++)
                     {
                         if (chunk.Entities[i]?.Position == null) continue;
-                        candidates.Add(new ServerEntityId { chunkx = chunkX, chunky = chunkY, chunkz = chunkZ, id = i });
+                        candidates.Add(new ServerEntityId { ChunkX = chunkX, ChunkY = chunkY, ChunkZ = chunkZ, Id = i });
                     }
                 }
 
@@ -237,8 +237,8 @@ public class ServerSystemNotifyEntities : ServerSystem
         {
             Vector3i posA = EntityBlockPosition(server, a);
             Vector3i posB = EntityBlockPosition(server, b);
-            return Server.DistanceSquared(posA, playerPos)
-                  .CompareTo(Server.DistanceSquared(posB, playerPos));
+            return VectorUtils.DistanceSquared(posA, playerPos)
+                  .CompareTo(VectorUtils.DistanceSquared(posB, playerPos));
         });
 
         int count = Math.Min(candidates.Count, maxCount);
@@ -272,10 +272,10 @@ public class ServerSystemNotifyEntities : ServerSystem
         {
             ServerEntityId s = list[i];
             if (s != null
-                && s.chunkx == value.chunkx
-                && s.chunky == value.chunky
-                && s.chunkz == value.chunkz
-                && s.id == value.id)
+                && s.ChunkX == value.ChunkX
+                && s.ChunkY == value.ChunkY
+                && s.ChunkZ == value.ChunkZ
+                && s.Id == value.Id)
                 return true;
         }
         return false;
@@ -283,11 +283,11 @@ public class ServerSystemNotifyEntities : ServerSystem
 
     /// <summary>Retrieves the <see cref="ServerEntity"/> for a given <see cref="ServerEntityId"/>.</summary>
     private static ServerEntity GetEntity(Server server, ServerEntityId id) =>
-        server.d_Map.GetChunk(
-            id.chunkx * Server.chunksize,
-            id.chunky * Server.chunksize,
-            id.chunkz * Server.chunksize)
-        .Entities[id.id];
+        server.Map.GetChunk(
+            id.ChunkX * Server.ChunkSize,
+            id.ChunkY * Server.ChunkSize,
+            id.ChunkZ * Server.ChunkSize)
+        .Entities[id.Id];
 
     /// <summary>
     /// Returns the block-space position of a world entity as a <see cref="Vector3i"/>.
@@ -306,8 +306,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// Converts a server-side position/orientation to the fixed-point network
     /// representation (coordinates multiplied by 32).
     /// </summary>
-    private static Packet_PositionAndOrientation ToNetworkEntityPosition(
-        ServerPlatform platform, ServerEntityPositionAndOrientation position) =>
+    private static Packet_PositionAndOrientation ToNetworkEntityPosition(ServerEntityPositionAndOrientation position) =>
         new()
         {
             X = (int)(position.X * 32),
@@ -322,12 +321,12 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// Converts a <see cref="ServerEntity"/> to its full network packet representation,
     /// mapping each optional component (model, name, text, push, area) only when present.
     /// </summary>
-    private static Packet_ServerEntity ToNetworkEntity(ServerPlatform platform, ServerEntity entity)
+    private static Packet_ServerEntity ToNetworkEntity(ServerEntity entity)
     {
         var p = new Packet_ServerEntity();
 
         if (entity.Position != null)
-            p.Position = ToNetworkEntityPosition(platform, entity.Position);
+            p.Position = ToNetworkEntityPosition(entity.Position);
 
         if (entity.DrawModel != null)
             p.DrawModel = new Packet_ServerEntityAnimatedModel

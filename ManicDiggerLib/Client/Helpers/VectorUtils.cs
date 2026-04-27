@@ -80,4 +80,77 @@ public class VectorUtils
         };
         return r;
     }
+
+    public static int DistanceSquared(Vector3i a, Vector3i b)
+    {
+        int dx = a.X - b.X;
+        int dy = a.Y - b.Y;
+        int dz = a.Z - b.Z;
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+    public static bool IsValidPos(IMapStorage map, int x, int y, int z)
+    {
+        if (x < 0 || y < 0 || z < 0)
+        {
+            return false;
+        }
+        if (x >= map.MapSizeX || y >= map.MapSizeY || z >= map.MapSizeZ)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public static bool IsValidPos(IMapStorage map, int x, int y)
+    {
+        if (x < 0 || y < 0)
+        {
+            return false;
+        }
+        if (x >= map.MapSizeX || y >= map.MapSizeY)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public static bool IsValidChunkPos(IMapStorage map, int cx, int cy, int cz, int chunksize)
+    {
+        return cx >= 0 && cy >= 0 && cz >= 0
+            && cx < map.MapSizeX / chunksize
+            && cy < map.MapSizeY / chunksize
+            && cz < map.MapSizeZ / chunksize;
+    }
+
+    public static Point PlayerArea(int playerAreaSize, int centerAreaSize, Vector3i blockPosition)
+    {
+        Point p = PlayerCenterArea(centerAreaSize, blockPosition);
+        int x = p.X + centerAreaSize / 2;
+        int y = p.Y + centerAreaSize / 2;
+        x -= playerAreaSize / 2;
+        y -= playerAreaSize / 2;
+        return new Point(x, y);
+    }
+
+    private static Point PlayerCenterArea(int centerAreaSize, Vector3i blockPosition)
+    {
+        int px = blockPosition.X;
+        int py = blockPosition.Y;
+        int gridposx = px / centerAreaSize * centerAreaSize;
+        int gridposy = py / centerAreaSize * centerAreaSize;
+        return new Point(gridposx, gridposy);
+    }
+
+    public static int BlockHeight(IMapStorage map, int tileidempty, int x, int y)
+    {
+        for (int z = map.MapSizeZ - 1; z >= 0; z--)
+        {
+            if (map.GetBlock(x, y, z) != tileidempty)
+            {
+                return z + 1;
+            }
+        }
+        return map.MapSizeZ / 2;
+    }
 }

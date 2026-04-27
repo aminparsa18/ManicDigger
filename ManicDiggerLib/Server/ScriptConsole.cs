@@ -105,7 +105,7 @@ public class ScriptConsole
     public void DeleteChunkRange(double x1, double y1, double z1, double x2, double y2, double z2)
     {
         List<Vector3i> chunkPositions = [];
-        int chunksize = Server.chunksize;
+        int chunksize = Server.ChunkSize;
         for (int x = (int)x1; x < (int)x2; x += chunksize)
         {
             for (int y = (int)y1; y < (int)y2; y += chunksize)
@@ -147,7 +147,7 @@ public class ScriptConsole
     public Dictionary<Xyz, ushort[]> GetChunksFromDatabase(double x1, double y1, double z1, double x2, double y2, double z2, string file)
     {
         List<Xyz> chunkPositions = [];
-        int chunksize = Server.chunksize;
+        int chunksize = Server.ChunkSize;
         for (int x = (int)x1; x < (int)x2; x += chunksize)
         {
             for (int y = (int)y1; y < (int)y2; y += chunksize)
@@ -167,7 +167,7 @@ public class ScriptConsole
     public void CopyChunksToDatabase(double x1, double y1, double z1, double x2, double y2, double z2, string file)
     {
         List<Vector3i> chunkPositions = [];
-        int chunksize = Server.chunksize;
+        int chunksize = Server.ChunkSize;
         for (int x = (int)x1; x < (int)x2; x += chunksize)
         {
             for (int y = (int)y1; y < (int)y2; y += chunksize)

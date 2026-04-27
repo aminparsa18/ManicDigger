@@ -115,8 +115,8 @@ public partial class Game : IMeshDrawer
     /// </summary>
     public int MaterialSlots(int i)
     {
-        Packet_Item item = Inventory.RightHand[i];
-        if (item != null && item.ItemClass == InventoryItemType.Block)
+        InventoryItem item = Inventory.RightHand[i];
+        if (item != null && item.InventoryItemType == InventoryItemType.Block)
             return item.BlockId;
         return BlockRegistry.BlockIdDirt;
     }
@@ -449,8 +449,4 @@ public partial class Game : IMeshDrawer
     {
         SendChat(message);
     }
-
-    public bool IsValidPos(int x, int y, int z) => VoxelMap.IsValidPos(x, y, z);
-
-    public int GetBlock(int x, int y, int z) => VoxelMap.GetBlock(x, y, z);
 }

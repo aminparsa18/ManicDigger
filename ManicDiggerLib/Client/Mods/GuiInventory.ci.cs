@@ -328,7 +328,7 @@ public class ModGuiInventory : ModBase
 
         for (int i = 0; i < 10; i++)
         {
-            Packet_Item item = game.Inventory.RightHand[i];
+            InventoryItem item = game.Inventory.RightHand[i];
             if (item != null)
             {
                 DrawItem(startX + i * cellSize, startY, item, cellSize, cellSize);
@@ -352,7 +352,7 @@ public class ModGuiInventory : ModBase
     /// <param name="item">Item to draw. No-op when <see langword="null"/>.</param>
     /// <param name="drawsizeX">Override draw width in pixels, or 0 to use cell-sized default.</param>
     /// <param name="drawsizeY">Override draw height in pixels, or 0 to use cell-sized default.</param>
-    private void DrawItem(int screenposX, int screenposY, Packet_Item item, int drawsizeX, int drawsizeY)
+    private void DrawItem(int screenposX, int screenposY, InventoryItem item, int drawsizeX, int drawsizeY)
     {
         if (item == null) { return; }
 
@@ -365,7 +365,7 @@ public class ModGuiInventory : ModBase
             drawsizeY = CellDrawSize * sizey;
         }
 
-        if (item.ItemClass == InventoryItemType.Block)
+        if (item.InventoryItemType == InventoryItemType.Block)
         {
             if (item.BlockId == 0) { return; }
 
@@ -391,7 +391,7 @@ public class ModGuiInventory : ModBase
     /// Draws a tooltip popup for <paramref name="item"/> near the given screen position,
     /// repositioning it if it would overflow the screen edges.
     /// </summary>
-    public void DrawItemInfo(int screenposX, int screenposY, Packet_Item item)
+    public void DrawItemInfo(int screenposX, int screenposY, InventoryItem item)
     {
         int sizex = dataItems.ItemSizeX(item);
         int sizey = InventoryUtils.ItemSizeY(item);
@@ -414,7 +414,7 @@ public class ModGuiInventory : ModBase
             new Font("Arial", 10),
             screenposX - tw + 4, screenposY - h + 2, null, false);
 
-        DrawItem(screenposX - w + 2, screenposY - h + 2, new Packet_Item { BlockId = item.BlockId }, 0, 0);
+        DrawItem(screenposX - w + 2, screenposY - h + 2, new InventoryItem { BlockId = item.BlockId }, 0, 0);
     }
 
     // Private helpers — drawing sub-sections
@@ -497,7 +497,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <summary>Draws a single wear-place item at its configured slot origin.</summary>
-    private void DrawWearItem(WearPlace place, Packet_Item item)
+    private void DrawWearItem(WearPlace place, InventoryItem item)
     {
         int idx = (int)place;
         DrawItem(_wearPlaceStart[idx].X + InventoryStartX(),
@@ -518,7 +518,7 @@ public class ModGuiInventory : ModBase
             Point? itemOrigin = inventoryUtil.ItemAtCell(scrolledCell);
             if (itemOrigin != null)
             {
-                Packet_Item item = GetItem(game.Inventory, itemOrigin.Value.X, itemOrigin.Value.Y);
+                InventoryItem item = GetItem(game.Inventory, itemOrigin.Value.X, itemOrigin.Value.Y);
                 if (item != null) { DrawItemInfo(mouse.X, mouse.Y, item); }
             }
         }
@@ -526,14 +526,14 @@ public class ModGuiInventory : ModBase
         int? wearSlot = SelectedWearPlace(mouse);
         if (wearSlot != null)
         {
-            Packet_Item item = inventoryUtil.ItemAtWearPlace((WearPlace)wearSlot.Value, game.ActiveMaterial);
+            InventoryItem item = inventoryUtil.ItemAtWearPlace((WearPlace)wearSlot.Value, game.ActiveMaterial);
             if (item != null) { DrawItemInfo(mouse.X, mouse.Y, item); }
         }
 
         int? matSlot = SelectedMaterialSelectorSlot(mouse);
         if (matSlot != null)
         {
-            Packet_Item item = game.Inventory.RightHand[matSlot.Value];
+            InventoryItem item = game.Inventory.RightHand[matSlot.Value];
             if (item != null) { DrawItemInfo(mouse.X, mouse.Y, item); }
         }
     }
@@ -632,7 +632,7 @@ public class ModGuiInventory : ModBase
     /// Returns the item at the given grid coordinates, or <see langword="null"/>
     /// when no item occupies that position.
     /// </summary>
-    private static Packet_Item GetItem(Packet_Inventory inventory, int x, int y)
+    private static InventoryItem GetItem(Packet_Inventory inventory, int x, int y)
     {
         for (int i = 0; i < inventory.Items.Length; i++)
         {

@@ -1,4 +1,5 @@
-﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+﻿using ManicDigger;
+using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 /// <summary>
 /// Handles rendering and input for in-game dialogs (normal and modal).
@@ -32,7 +33,7 @@ public class ModDialog : ModBase
             if (d == null) continue;
 
             d.screen.screenx = platform.GetCanvasWidth() / 2 - d.value.Width / 2;
-            d.screen.screeny = platform.GetCanvasHeight() / 2 - d.value.Height_ / 2;
+            d.screen.screeny = platform.GetCanvasHeight() / 2 - d.value.Height / 2;
             d.screen.DrawWidgets();
         }
     }
@@ -51,7 +52,7 @@ public class ModDialog : ModBase
 
             for (int i = 0; i < d.value.Widgets.Length; i++)
             {
-                Packet_Widget w = d.value.Widgets[i];
+                Widget w = d.value.Widgets[i];
                 if (w == null) continue;
 
                 // Only typeable characters are handled here; special characters use KeyDown
@@ -76,7 +77,7 @@ public class ModDialog : ModBase
             {
                 VisibleDialog d = game.Dialogs[i];
                 if (d == null) continue;
-                if (d.value.IsModal != 0)
+                if (d.value.IsModal)
                 {
                     game.Dialogs[i] = null;
                     return;
@@ -94,7 +95,7 @@ public class ModDialog : ModBase
                 // Close all modal dialogs
                 for (int i = 0; i < game.Dialogs.Length; i++)
                 {
-                    if (game.Dialogs[i]?.value.IsModal != 0)
+                    if (game.Dialogs[i]?.value.IsModal == true)
                         game.Dialogs[i] = null;
                 }
                 game.SendPacketClient(ClientPackets.DialogClick("Esc", Empty, 0));

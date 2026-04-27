@@ -37,19 +37,10 @@ public partial class Packet_InventoryPosition
 }
 
 [MemoryPackable]
-public partial class Packet_Item
-{
-    public InventoryItemType ItemClass { get; set; }
-    public string ItemId { get; set; }
-    public int BlockId { get; set; }
-    public int BlockCount { get; set; }
-}
-
-[MemoryPackable]
 public partial class Packet_PositionItem
 {
     public string Key_ { get; set; }
-    public Packet_Item Value_ { get; set; }
+    public InventoryItem Value_ { get; set; }
     public int X { get; set; }
     public int Y { get; set; }
 }
@@ -57,130 +48,21 @@ public partial class Packet_PositionItem
 [MemoryPackable]
 public partial class Packet_Inventory
 {
-    public Packet_Item MainArmor { get; set; }
-    public Packet_Item Boots { get; set; }
-    public Packet_Item Helmet { get; set; }
-    public Packet_Item Gauntlet { get; set; }
+    public InventoryItem MainArmor { get; set; }
+    public InventoryItem Boots { get; set; }
+    public InventoryItem Helmet { get; set; }
+    public InventoryItem Gauntlet { get; set; }
     public Packet_PositionItem[] Items { get; set; } = [];
-    public Packet_Item DragDropItem { get; set; }
-    public Packet_Item[] RightHand { get; set; }
+    public InventoryItem DragDropItem { get; set; }
+    public InventoryItem[] RightHand { get; set; }
 }
 
-[MemoryPackable]
-public partial class Packet_SoundSet
-{
-    public string[] Walk { get; set; }
-    public string[] Break1 { get; set; }
-    public string[] Build { get; set; }
-    public string[] Clone { get; set; }
-    public string[] Shoot { get; set; }
-    public string[] ShootEnd { get; set; }
-    public string[] Reload { get; set; }
-}
-
-[MemoryPackable]
-public partial class Packet_BlockType
-{
-    public string TextureIdTop { get; set; }
-    public string TextureIdBottom { get; set; }
-    public string TextureIdFront { get; set; }
-    public string TextureIdBack { get; set; }
-    public string TextureIdLeft { get; set; }
-    public string TextureIdRight { get; set; }
-    public string TextureIdForInventory { get; set; }
-    public DrawType DrawType { get; set; }
-    public WalkableType WalkableType { get; set; }
-    public int Rail { get; set; }
-    public int WalkSpeedFloat { get; set; }
-    public bool IsSlipperyWalk { get; set; }
-    public Packet_SoundSet Sounds { get; set; }
-    public int LightRadius { get; set; }
-    public int StartInventoryAmount { get; set; }
-    public int Strength { get; set; }
-    public string Name { get; set; }
-    public bool IsBuildable { get; set; }
-    public bool IsUsable { get; set; }
-    public bool IsTool { get; set; }
-    public string Handimage { get; set; }
-    public bool IsPistol { get; set; }
-    public int AimRadiusFloat { get; set; }
-    public int RecoilFloat { get; set; }
-    public int DelayFloat { get; set; }
-    public int BulletsPerShotFloat { get; set; }
-    public int WalkSpeedWhenUsedFloat { get; set; }
-    public bool IronSightsEnabled { get; set; }
-    public int IronSightsMoveSpeedFloat { get; set; }
-    public string IronSightsImage { get; set; }
-    public int IronSightsAimRadiusFloat { get; set; }
-    public int IronSightsFovFloat { get; set; }
-    public int AmmoMagazine { get; set; }
-    public int AmmoTotal { get; set; }
-    public int ReloadDelayFloat { get; set; }
-    public int ExplosionRangeFloat { get; set; }
-    public int ExplosionTimeFloat { get; set; }
-    public int ProjectileSpeedFloat { get; set; }
-    public bool ProjectileBounce { get; set; }
-    public int DamageBodyFloat { get; set; }
-    public int DamageHeadFloat { get; set; }
-    public PistolType PistolType { get; set; }
-    public int DamageToPlayer { get; set; }
-    public int WhenPlacedGetsConvertedTo { get; set; }
-    public int PickDistanceWhenUsedFloat { get; set; }
-}
-
-[MemoryPackable]
-public partial class Packet_Ingredient
-{
-    public int Type { get; set; }
-    public int Amount { get; set; }
-}
-
-[MemoryPackable]
-public partial class Packet_CraftingRecipe
-{
-    public Packet_Ingredient[] Ingredients { get; set; }
-    public Packet_Ingredient Output { get; set; }
-}
 
 [MemoryPackable]
 public partial class Packet_IntInt
 {
     public int Key_ { get; set; }
     public int Value_ { get; set; }
-}
-
-[MemoryPackable]
-public partial class Packet_Dialog
-{
-    public Packet_Widget[] Widgets { get; set; }
-    public int Width { get; set; }
-    public int Height_ { get; set; }
-    public int IsModal { get; set; }
-}
-
-[MemoryPackable]
-public partial class Packet_Widget
-{
-    public string Id { get; set; }
-    public int Click { get; set; }
-    public int X { get; set; }
-    public int Y { get; set; }
-    public int Width { get; set; }
-    public int Height_ { get; set; }
-    public string Text { get; set; }
-    public int ClickKey { get; set; }
-    public string Image { get; set; }
-    public int Color { get; set; }
-    public Packet_DialogFont Font { get; set; }
-    public WidgetType Type { get; set; }
-}
-
-[MemoryPackable]
-public partial class Packet_DialogFont
-{
-    public string FamilyName { get; set; }
-    public int SizeFloat { get; set; }
-    public DialogFontStyle FontStyle { get; set; }
 }
 
 // ---------------------------------------------------------------------------
@@ -613,7 +495,7 @@ public partial class Packet_ServerRedirect
 public partial class Packet_ServerBlockType
 {
     public int Id { get; set; }
-    public Packet_BlockType Blocktype { get; set; }
+    public BlockType Blocktype { get; set; }
 }
 
 [MemoryPackable]
@@ -631,7 +513,7 @@ public partial class Packet_ServerLightLevels
 [MemoryPackable]
 public partial class Packet_ServerCraftingRecipes
 {
-    public Packet_CraftingRecipe[] CraftingRecipes { get; set; }
+    public CraftingRecipe[] CraftingRecipes { get; set; }
 }
 
 [MemoryPackable]
@@ -702,7 +584,7 @@ public partial class Packet_ServerSeason
 public partial class Packet_ServerDialog
 {
     public string DialogId { get; set; }
-    public Packet_Dialog Dialog { get; set; }
+    public Dialog Dialog { get; set; }
 }
 
 [MemoryPackable]

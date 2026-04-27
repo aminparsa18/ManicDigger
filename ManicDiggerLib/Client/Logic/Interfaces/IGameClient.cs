@@ -310,12 +310,6 @@ public interface IGameClient
     /// <summary>Font used on the map-loading screen.</summary>
     Font FontMapLoading { get; set; }
 
-    /// <summary>Returns <c>true</c> if <paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/> is within map bounds.</summary>
-    bool IsValidPos(int x, int y, int z);
-
-    /// <summary>Returns the block type ID at the given world position.</summary>
-    int GetBlock(int x, int y, int z);
-
     /// <summary>Sets a block type and propagates lighting/mesh updates.</summary>
     void SetTileAndUpdate(int x, int y, int z, int type);
 
@@ -357,10 +351,10 @@ public interface IGameClient
     // =========================================================================
 
     /// <summary>Block type definitions indexed by block type ID.</summary>
-    Packet_BlockType[] BlockTypes { get; set; }
+    BlockType[] BlockTypes { get; set; }
 
     /// <summary>Pending block type definitions received from the server before map load.</summary>
-    Packet_BlockType[] NewBlockTypes { get; set; }
+    BlockType[] NewBlockTypes { get; set; }
 
     /// <summary>Provides per-block-type gameplay data (damage, rail flags, draw type, etc.).</summary>
     BlockTypeRegistry BlockRegistry { get; }

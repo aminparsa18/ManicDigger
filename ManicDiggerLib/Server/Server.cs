@@ -6,217 +6,111 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
-public class ClientException : Exception
-{
-    public ClientException(Exception innerException, int clientid)
-        : base("Client exception", innerException)
-    {
-        this.clientid = clientid;
-    }
-    public int clientid;
-}
-
-/// <summary>
-/// The top-level save file structure for a ManicDigger world.
-/// Persisted to disk when the server saves and loaded on world startup.
-/// </summary>
-[MemoryPackable]
-public partial class ManicDiggerSave
-{
-    // ── World dimensions ──────────────────────────────────────────────────────
-
-    /// <summary>Map width in blocks along the X axis.</summary>
-    public int MapSizeX { get; set; }
-
-    /// <summary>Map depth in blocks along the Y axis.</summary>
-    public int MapSizeY { get; set; }
-
-    /// <summary>Map height in blocks along the Z axis.</summary>
-    public int MapSizeZ { get; set; }
-
-    // ── World generation ──────────────────────────────────────────────────────
-
-    /// <summary>Random seed used to generate this world's terrain.</summary>
-    public int Seed { get; set; }
-
-    // ── Simulation state ──────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Current simulation frame counter. Used for timestamping chunk changes,
-    /// scheduling events, and determining entity ages.
-    /// </summary>
-    public long SimulationCurrentFrame { get; set; }
-
-    /// <summary>
-    /// Current in-game time of day, expressed as a simulation tick offset.
-    /// </summary>
-    public long TimeOfDay { get; set; }
-
-    /// <summary>
-    /// Highest monster entity ID issued so far. Used to generate unique IDs
-    /// for newly spawned monsters without collision.
-    /// </summary>
-    public int LastMonsterId { get; set; }
-
-    // ── Per-player data ───────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Inventory snapshots keyed by player username.
-    /// </summary>
-    public Dictionary<string, PacketServerInventory>? Inventory { get; set; }
-
-    /// <summary>
-    /// Health and oxygen snapshots keyed by player username.
-    /// </summary>
-    public Dictionary<string, PacketServerPlayerStats>? PlayerStats { get; set; }
-
-    // ── Mod data ──────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Arbitrary binary data blobs keyed by mod identifier.
-    /// Allows server-side mods to persist custom state alongside the world save.
-    /// </summary>
-    public Dictionary<string, byte[]>? ModData { get; set; }
-}
-
 public partial class Server : ICurrentTime, IDropItem
 {
+    private readonly IGamePlatform gameplatform;
+
+    public List<ServerSystem> Systems { get; set; }
+
     public Server()
     {
-        serverPlatform = new ServerPlatformNative();
-
-        server = new ServerCi();
-        systems = new ServerSystem[256];
-        // This ServerSystem should always be loaded first
-        systems[systemsCount++] = new ServerSystemLoadFirst();
-
-        // Regular ServerSystems
-        systems[systemsCount++] = new ServerSystemLoadConfig();
-        systems[systemsCount++] = new ServerSystemHeartbeat();
-        systems[systemsCount++] = new ServerSystemHttpServer();
-        systems[systemsCount++] = new ServerSystemUnloadUnusedChunks();
-        systems[systemsCount++] = new ServerSystemNotifyMap();
-        systems[systemsCount++] = new ServerSystemNotifyPing();
-        systems[systemsCount++] = new ServerSystemChunksSimulation();
-        systems[systemsCount++] = new ServerSystemBanList();
-        systems[systemsCount++] = new ServerSystemModLoader();
-        systems[systemsCount++] = new ServerSystemLoadServerClient();
-        systems[systemsCount++] = new ServerSystemNotifyEntities();
-        systems[systemsCount++] = new ServerSystemMonsterWalk();
-
-        // This ServerSystem should always be loaded last
-        systems[systemsCount++] = new ServerSystemLoadLast();
-
+        Systems =
+        [
+            // This ServerSystem should always be loaded first
+            new ServerSystemLoadFirst(),
+            // Regular ServerSystems
+            new ServerSystemLoadConfig(),
+            new ServerSystemHeartbeat(),
+            new ServerSystemHttpServer(),
+            new ServerSystemUnloadUnusedChunks(),
+            new ServerSystemNotifyMap(),
+            new ServerSystemNotifyPing(),
+            new ServerSystemChunksSimulation(),
+            new ServerSystemBanList(),
+            new ServerSystemModLoader(),
+            new ServerSystemLoadServerClient(),
+            new ServerSystemNotifyEntities(),
+            new ServerSystemMonsterWalk(),
+            // This ServerSystem should always be loaded last
+            new ServerSystemLoadLast(),
+        ];
         // Not finished
         // systems[systemsCount++] = new ServerSystemSign();
         // systems[systemsCount++] = new ServerSystemPermissionSign();
 
         //Load translations
         gameplatform = new GamePlatformNative();
-        language.LoadTranslations();
+        Language.LoadTranslations();
+
+        MainSockets = new NetServer[3];
     }
 
+    public GameExit GameExit { get; set; }
+    public ServerMapStorage Map { get; set; }
+    public BlockTypeRegistry BlockTypeRegistry { get; set; }
+    public CraftingTableTool CraftingTableTool { get; set; }
+    public IChunkDb ChunkDb { get; set; }
+    public ICompression NetworkCompression { get; set; }
+    public NetServer[] MainSockets { get; set; }
 
-    internal ServerCi server;
-    internal ServerSystem[] systems;
-    internal int systemsCount;
-    internal ServerPlatform serverPlatform;
+    private bool _localConnectionsOnly;
+    private int _singlePlayerPort = 25570;
+    private string _serverPathLogs = Path.Combine(GameStorePath.GetStorePath(), "Logs");
 
-    private readonly IGamePlatform gameplatform;
-    public GameExit exit;
-    public ServerMapStorage d_Map;
-    public BlockTypeRegistry d_Data;
-    public CraftingTableTool d_CraftingTableTool;
-    public IGetFileStream d_GetFile;
-    public IChunkDb d_ChunkDb;
-    public ICompression d_NetworkCompression;
-    public NetServer[] mainSockets { get { return server.mainSockets; } set { server.mainSockets = value; } }
-    public int mainSocketsCount { get { return server.mainSocketsCount; } set { server.mainSocketsCount = value; } }
-
-    public bool LocalConnectionsOnly { get; set; }
-    public string[] PublicDataPaths = new string[0];
-    public int singleplayerport = 25570;
-    public Random rnd = new();
-    public int SpawnPositionRandomizationRange = 96;
-    public bool IsMono = Type.GetType("Mono.Runtime") != null;
-
-    public string serverpathlogs = Path.Combine(GameStorePath.GetStorePath(), "Logs");
-    private void BuildLog(string p)
-    {
-        if (!config.BuildLogging)
-        {
-            return;
-        }
-        if (!Directory.Exists(serverpathlogs))
-        {
-            Directory.CreateDirectory(serverpathlogs);
-        }
-        string filename = Path.Combine(serverpathlogs, "BuildLog.txt");
-        File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
-    }
     public void ServerEventLog(string p)
     {
-        if (!config.ServerEventLogging)
+        if (!Config.ServerEventLogging)
         {
             return;
         }
-        if (!Directory.Exists(serverpathlogs))
+        if (!Directory.Exists(_serverPathLogs))
         {
-            Directory.CreateDirectory(serverpathlogs);
+            Directory.CreateDirectory(_serverPathLogs);
         }
-        string filename = Path.Combine(serverpathlogs, "ServerEventLog.txt");
-        File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
-    }
-    public void ChatLog(string p)
-    {
-        if (!config.ChatLogging)
-        {
-            return;
-        }
-        if (!Directory.Exists(serverpathlogs))
-        {
-            Directory.CreateDirectory(serverpathlogs);
-        }
-        string filename = Path.Combine(serverpathlogs, "ChatLog.txt");
+        string filename = Path.Combine(_serverPathLogs, "ServerEventLog.txt");
         File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
     }
 
-    public bool Public;
-    public bool enableshadows = true;
-    public Language language = new();
+    public bool EnableShadows { get; set; } = true;
+    public Language Language { get; set; } = new();
 
-    private readonly Stopwatch stopwatchDt = new();
-    public Stopwatch serverUptime = new();
+    private readonly DateTimeOffset startedAt = DateTimeOffset.UtcNow;
+    public TimeSpan Uptime => DateTimeOffset.UtcNow - startedAt;
+    private long lastTimestamp = Stopwatch.GetTimestamp();
+
     public void Process()
     {
-        float dt = (float)stopwatchDt.Elapsed.TotalSeconds;
-        stopwatchDt.Reset();
-        stopwatchDt.Start();
+        long now = Stopwatch.GetTimestamp();
+        float dt = (float)((double)(now - lastTimestamp) / Stopwatch.Frequency);
+        lastTimestamp = now;
 
-        for (int i = 0; i < systemsCount; i++)
+        for (int i = 0; i < Systems.Count; i++)
         {
-            systems[i].Update(this, dt);
+            Systems[i].Update(this, dt);
         }
+
         //Save data
         ProcessSave();
         //Do server stuff
         ProcessMain();
 
         //When a value of 0 or less is given, don't restart
-        if (config.AutoRestartCycle > 0 && serverUptime.Elapsed.TotalHours >= config.AutoRestartCycle)
+        if (Config.AutoRestartCycle > 0 && Uptime.TotalHours >= Config.AutoRestartCycle)
         {
             //Restart interval elapsed
             Restart();
         }
     }
-    public void ProcessSave()
+
+    private DateTime lastSave = DateTime.UtcNow;
+    private void ProcessSave()
     {
-        if ((DateTime.UtcNow - lastsave).TotalMinutes > 2)
+        if ((DateTime.UtcNow - lastSave).TotalMinutes > 2)
         {
             DateTime start = DateTime.UtcNow;
             SaveGlobalData();
-            Console.WriteLine(language.ServerGameSaved(), DateTime.UtcNow - start);
-            lastsave = DateTime.UtcNow;
+            Console.WriteLine(Language.ServerGameSaved(), DateTime.UtcNow - start);
+            lastSave = DateTime.UtcNow;
         }
     }
 
@@ -225,87 +119,79 @@ public partial class Server : ICurrentTime, IDropItem
     /// </summary>
     private void NotifySeason(int clientid)
     {
-        if (clients[clientid].state == ClientStateOnServer.Connecting)
+        if (Clients[clientid].State == ClientStateOnServer.Connecting)
         {
             return;
         }
 
         Packet_ServerSeason p = new()
         {
-            Hour = _time.GetQuarterHourPartOfDay(),
+            Hour = _gameTimer.GetQuarterHourPartOfDay(),
 
             //DayNightCycleSpeedup is used by the client like this:
             //day_length_in_seconds = SecondsInADay / packet.Season.DayNightCycleSpeedup;
 
             //Set it to 1 if we froze the time, to prevent a division by zero
-            DayNightCycleSpeedup = (_time.SpeedOfTime != 0) ? _time.SpeedOfTime : 1,
+            DayNightCycleSpeedup = (_gameTimer.SpeedOfTime != 0) ? _gameTimer.SpeedOfTime : 1,
             Moon = 0,
         };
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.Season, Season = p }));
     }
 
-    private readonly GameTime _time = new();
+    private readonly GameTimer _gameTimer = new();
     private int _nLastHourChangeNotify = 0;
 
     public void ProcessMain()
     {
-        if (server.mainSockets == null)
+        if (MainSockets == null)
         {
             return;
         }
 
-        if (_time.Tick())
+        if (_gameTimer.Tick() && _gameTimer.GetQuarterHourPartOfDay() != _nLastHourChangeNotify)
         {
-            if (_time.GetQuarterHourPartOfDay() != _nLastHourChangeNotify)
-            {
-                //#if DEBUG
-                //                SendMessageToAll("Time of day: " + _time.Time.ToString(@"hh\:mm\:ss") + " Day: " + (int)_time.Time.Days);
-                //#endif
-                //notify clients about the time
-                _nLastHourChangeNotify = _time.GetQuarterHourPartOfDay();
+            _nLastHourChangeNotify = _gameTimer.GetQuarterHourPartOfDay();
 
-                foreach (var c in clients)
-                {
-                    NotifySeason(c.Key);
-                }
+            foreach (var c in Clients)
+            {
+                NotifySeason(c.Key);
             }
         }
 
-        double currenttime = gettime() - starttime;
+        double currenttime = Server.GetTime() - starttime;
         double deltaTime = currenttime - oldtime;
         accumulator += deltaTime;
         double dt = SIMULATION_STEP_LENGTH;
         while (accumulator > dt)
         {
-            simulationcurrentframe++;
+            SimulationCurrentFrame++;
             accumulator -= dt;
         }
         oldtime = currenttime;
 
         NetIncomingMessage msg;
-        Stopwatch s = new();
-        s.Start();
+        long tickStart = Stopwatch.GetTimestamp();
 
         //Process client packets
-        for (int i = 0; i < mainSocketsCount; i++)
+        for (int i = 0; i < MainSockets.Length; i++)
         {
-            NetServer mainSocket = mainSockets[i];
+            NetServer mainSocket = MainSockets[i];
             if (mainSocket == null)
             {
                 continue;
             }
             while ((msg = mainSocket.ReadMessage()) != null)
             {
-                ProcessNetMessage(msg, mainSocket, s);
+                ProcessNetMessage(msg, mainSocket);
             }
         }
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
-            k.Value.socket.Update();
+            k.Value.Socket.Update();
         }
 
         //Send updates to player
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             //k.Value.notifyMapTimer.Update(delegate { NotifyMapChunks(k.Key, 1); });
             NotifyInventory(k.Key);
@@ -313,7 +199,7 @@ public partial class Server : ICurrentTime, IDropItem
         }
 
         //Process Mod timers
-        foreach (var k in timers)
+        foreach (var k in Timers)
         {
             k.Key.Update(k.Value);
         }
@@ -327,7 +213,7 @@ public partial class Server : ICurrentTime, IDropItem
         }
 
         //Determine how long it took all operations to finish
-        lastServerTick = s.ElapsedMilliseconds;
+        lastServerTick = (Stopwatch.GetTimestamp() - tickStart) * 1000 / Stopwatch.Frequency;
         if (lastServerTick > 500)
         {
             //Print an error if the value gets too big - TODO: Adjust
@@ -348,121 +234,113 @@ public partial class Server : ICurrentTime, IDropItem
         {
             BlockTypes[i] = new BlockType() { };
         }
-        map.d_Heightmap = new InfiniteMapChunked2dServer() { chunksize = chunksize, d_Map = map };
-        map.Reset(config.MapSizeX, config.MapSizeY, config.MapSizeZ);
-        d_Map = map;
+        map.d_Heightmap = new InfiniteMapChunked2dServer() { chunksize = ChunkSize, d_Map = map };
+        map.Reset(Config.MapSizeX, Config.MapSizeY, Config.MapSizeZ);
+        Map = map;
 
         //Load assets (textures, sounds, etc.)
-        string[] datapaths = new[] { PathHelper.DataRoot, "data" };
-        string[] datapathspublic = new[] { Path.Combine(PathHelper.DataRoot, "public"), Path.Combine("data", "public") };
-        PublicDataPaths = datapathspublic;
+        string[] datapathspublic = [Path.Combine(PathHelper.DataRoot, "public"), Path.Combine("data", "public")];
         assetLoader = new AssetLoader(datapathspublic);
         LoadAssets();
-        var getfile = new GetFileStream(datapaths);
-        d_GetFile = getfile;
 
         //Initialize game components
         var data = new BlockTypeRegistry();
         data.Start();
-        d_Data = data;
-        d_CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = data };
-        LocalConnectionsOnly = !Public;
-        var networkcompression = new CompressionGzip();
-        var diskcompression = new CompressionGzip();
-        var chunkdb = new ChunkDbCompressed() { d_ChunkDb = new ChunkDbSqlite(), d_Compression = diskcompression };
-        d_ChunkDb = chunkdb;
+        BlockTypeRegistry = data;
+        CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = data };
+        _localConnectionsOnly = true;
+        var chunkdb = new ChunkDbCompressed() { ChunkDb = new ChunkDbSqlite(), Compression = new CompressionGzip() };
+        ChunkDb = chunkdb;
         map.d_ChunkDb = chunkdb;
-        d_NetworkCompression = networkcompression;
-        d_DataItems = new GameDataItemsBlocks() { d_Data = data };
-        if (server.mainSockets == null)
+        NetworkCompression = new CompressionGzip();
+        _dataItems = new GameDataItemsBlocks() { d_Data = data };
+        if (MainSockets == null)
         {
-            server.mainSockets = new NetServer[3];
-            server.mainSocketsCount = 3;
-            mainSockets[0] = new EnetNetServer(gameplatform);
-            if (mainSockets[1] == null)
+            MainSockets = new NetServer[3];
+            MainSockets[0] = new EnetNetServer(gameplatform);
+            if (MainSockets[1] == null)
             {
-                mainSockets[1] = new WebSocketNetServer();
+                MainSockets[1] = new WebSocketNetServer();
             }
-            if (mainSockets[2] == null)
+            if (MainSockets[2] == null)
             {
-                mainSockets[2] = new TcpNetServer();
+                MainSockets[2] = new TcpNetServer();
             }
         }
 
-        all_privileges.AddRange(ServerClientMisc.Privilege.All());
+        AllPrivileges.AddRange(ServerClientMisc.Privilege.All());
 
         //Load the savegame file
+        if (!Directory.Exists(GameStorePath.gamepathsaves))
         {
-            if (!Directory.Exists(GameStorePath.gamepathsaves))
-            {
-                Directory.CreateDirectory(GameStorePath.gamepathsaves);
-            }
-            Console.WriteLine(language.ServerLoadingSavegame());
-            if (!File.Exists(GetSaveFilename()))
-            {
-                Console.WriteLine(language.ServerCreatingSavegame());
-            }
-            LoadGame(GetSaveFilename());
-            Console.WriteLine(language.ServerLoadedSavegame() + GetSaveFilename());
+            Directory.CreateDirectory(GameStorePath.gamepathsaves);
         }
-        if (LocalConnectionsOnly)
+        Console.WriteLine(Language.ServerLoadingSavegame());
+        if (!File.Exists(GetSaveFilename()))
         {
-            config.Port = singleplayerport;
+            Console.WriteLine(Language.ServerCreatingSavegame());
         }
-        Start(config.Port);
+        LoadGame(GetSaveFilename());
+        Console.WriteLine(Language.ServerLoadedSavegame() + GetSaveFilename());
+
+        if (_localConnectionsOnly)
+        {
+            Config.Port = _singlePlayerPort;
+        }
+        Start(Config.Port);
 
         // server monitor
-        if (config.ServerMonitor)
+        if (Config.ServerMonitor)
         {
-            this.serverMonitor = new ServerMonitor(this, exit);
+            this.serverMonitor = new ServerMonitor(this, GameExit);
             this.serverMonitor.Start();
         }
 
         // set up server console interpreter
-        this.serverConsoleClient = new ClientOnServer()
+        this.ServerConsoleClient = new ClientOnServer()
         {
-            Id = serverConsoleId,
-            playername = "Server",
-            queryClient = false
+            Id = ServerConsoleId,
+            PlayerName = "Server",
+            QueryClient = false
         };
         ManicDigger.Group serverGroup = new()
         {
             Name = "Server",
             Level = 255,
-            GroupPrivileges = new List<string>()
+            GroupPrivileges = []
         };
-        serverGroup.GroupPrivileges = all_privileges;
+        serverGroup.GroupPrivileges = AllPrivileges;
         serverGroup.GroupColor = ServerClientMisc.ClientColor.Red;
-        serverConsoleClient.AssignGroup(serverGroup);
-        serverConsole = new ServerConsole(this, exit);
+        ServerConsoleClient.AssignGroup(serverGroup);
 
-        if (config.AutoRestartCycle > 0)
+        if (Config.AutoRestartCycle > 0)
         {
-            Console.WriteLine("AutoRestartInterval: {0}", config.AutoRestartCycle);
+            Console.WriteLine("AutoRestartInterval: {0}", Config.AutoRestartCycle);
         }
         else
         {
             Console.WriteLine("AutoRestartInterval: DISABLED");
         }
-        serverUptime.Start();
     }
+
     private void Start(int port)
     {
         Port = port;
-        mainSockets[0].SetPort(port);
-        mainSockets[0].Start();
-        if (mainSockets[1] != null)
+        MainSockets[0].SetPort(port);
+        MainSockets[0].Start();
+        if (MainSockets[1] != null)
         {
-            mainSockets[1].SetPort(port);
-            mainSockets[1].Start();
+            MainSockets[1].SetPort(port);
+            MainSockets[1].Start();
         }
-        if (mainSockets[2] != null)
+        if (MainSockets[2] != null)
         {
-            mainSockets[2].SetPort(port + 2);
-            mainSockets[2].Start();
+            MainSockets[2].SetPort(port + 2);
+            MainSockets[2].Start();
         }
     }
-    internal int Port;
+
+    public int Port { get; set; }
     public void Stop()
     {
         Console.WriteLine("[SERVER] Doing last tick...");
@@ -471,151 +349,164 @@ public partial class Server : ICurrentTime, IDropItem
         Console.WriteLine("[SERVER] Saving data...");
         DateTime start = DateTime.UtcNow;
         SaveGlobalData();
-        Console.WriteLine(language.ServerGameSaved(), DateTime.UtcNow - start);
+        Console.WriteLine(Language.ServerGameSaved(), DateTime.UtcNow - start);
         Console.WriteLine("[SERVER] Stopped the server!");
     }
+
     public void Restart()
     {
         //Server shall exit and be restarted
-        exit.SetRestart(true);
-        exit.SetExit(true);
+        GameExit.SetRestart(true);
+        GameExit.SetExit(true);
     }
+
     public void Exit()
     {
         //Server shall be shutdown
-        exit.SetRestart(false);
-        exit.SetExit(true);
+        GameExit.SetRestart(false);
+        GameExit.SetExit(true);
     }
-
-    public List<string> all_privileges = new();
-
-    public List<string> ModPaths = new();
-    public ModManager1 modManager;
-
-    internal string gameMode = "Fortress";
 
     private ServerMonitor serverMonitor;
-    private ServerConsole serverConsole;
-    private readonly int serverConsoleId = -1; // make sure that not a regular client is assigned this ID
-    public int ServerConsoleId { get { return serverConsoleId; } }
-    internal ClientOnServer serverConsoleClient;
+
+    public List<string> AllPrivileges { get; set; } = [];
+    public List<string> ModPaths { get; set; } = [];
+    public ModManager1 ModManager { get; set; }
+    public string GameMode { get; set; } = "Fortress";
+    public int ServerConsoleId { get; } = -1;
+    public ClientOnServer ServerConsoleClient { get; set; }
+    public int Seed { get; set; }
+
     public void ReceiveServerConsole(string message)
     {
-        // empty message
-        if (string.IsNullOrEmpty(message))
+        if (string.IsNullOrEmpty(message)) return;
+
+        if (message.StartsWith('/'))
         {
-            //Ignore empty messages
+            int spaceIndex = message.IndexOf(' ');
+            string command = (spaceIndex < 0 ? message[1..] : message[1..spaceIndex]);
+            string argument = spaceIndex < 0 ? "" : message[(spaceIndex + 1)..];
+            CommandInterpreter(ServerConsoleId, command, argument);
             return;
         }
-        // server command
-        if (message.StartsWith("/"))
+
+        if (message.StartsWith('.'))
         {
-            string[] ss = message.Split(new[] { ' ' });
-            string command = ss[0].Replace("/", "");
-            string argument = message.IndexOf(" ") < 0 ? "" : message.Substring(message.IndexOf(" ") + 1);
-            this.CommandInterpreter(serverConsoleId, command, argument);
+            // client commands not handled server-side
             return;
         }
-        // client command
-        if (message.StartsWith("."))
-        {
-            return;
-        }
+
         // chat message
-        SendMessageToAll(string.Format("{0}: {1}", serverConsoleClient.ColoredPlayername(colorNormal), message));
-        ChatLog(string.Format("{0}: {1}", serverConsoleClient.playername, message));
+        SendMessageToAll(string.Format("{0}: {1}", ServerConsoleClient.ColoredPlayername(colorNormal), message));
+        ChatLog(string.Format("{0}: {1}", ServerConsoleClient.PlayerName, message));
     }
 
-    public int Seed;
     private void LoadGame(string filename)
     {
-        d_ChunkDb.Open(filename);
-        byte[] globaldata = d_ChunkDb.GetGlobalData();
+        ChunkDb.Open(filename);
+        byte[] globaldata = ChunkDb.GetGlobalData();
         if (globaldata == null)
         {
             //no savegame yet
-            if (config.RandomSeed)
+            if (Config.RandomSeed)
             {
                 Seed = new Random().Next();
             }
             else
             {
-                Seed = config.Seed;
+                Seed = Config.Seed;
             }
-            d_ChunkDb.SetGlobalData(SaveGame());
-            this._time.Init(TimeSpan.Parse("08:00").Ticks);
+            ChunkDb.SetGlobalData(SaveGame());
+            this._gameTimer.Init(TimeSpan.Parse("08:00").Ticks);
             return;
         }
         ManicDiggerSave save = MemoryPackSerializer.Deserialize<ManicDiggerSave>(globaldata);
         Seed = save.Seed;
-        d_Map.Reset(d_Map.MapSizeX, d_Map.MapSizeY, d_Map.MapSizeZ);
-        if (config.IsCreative) this.Inventory = Inventory = new Dictionary<string, PacketServerInventory>(StringComparer.InvariantCultureIgnoreCase);
+        Map.Reset(Map.MapSizeX, Map.MapSizeY, Map.MapSizeZ);
+        if (Config.IsCreative) this.Inventory = Inventory = new Dictionary<string, Inventory>(StringComparer.InvariantCultureIgnoreCase);
         else this.Inventory = save.Inventory;
         this.PlayerStats = save.PlayerStats;
-        this.simulationcurrentframe = (int)save.SimulationCurrentFrame;
-        this._time.Init(save.TimeOfDay);
+        this.SimulationCurrentFrame = (int)save.SimulationCurrentFrame;
+        this._gameTimer.Init(save.TimeOfDay);
         this.LastMonsterId = save.LastMonsterId;
-        this.moddata = save.ModData;
+        this.ModData = save.ModData;
     }
-    public List<Action> onload = new();
-    public List<Action> onsave = new();
-    public int LastMonsterId;
-    public Dictionary<string, PacketServerInventory> Inventory = new(StringComparer.InvariantCultureIgnoreCase);
-    public Dictionary<string, PacketServerPlayerStats> PlayerStats = new(StringComparer.InvariantCultureIgnoreCase);
-    
+
+    public void ChatLog(string p)
+    {
+        if (!Config.ChatLogging)
+        {
+            return;
+        }
+        if (!Directory.Exists(_serverPathLogs))
+        {
+            Directory.CreateDirectory(_serverPathLogs);
+        }
+        string filename = Path.Combine(_serverPathLogs, "ChatLog.txt");
+        File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
+    }
+
+    public List<Action> OnLoad { get; set; } = [];
+    public List<Action> OnSave { get; set; } = [];
+    public int LastMonsterId { get; set; }
+    public Dictionary<string, Inventory> Inventory { get; set; } = new(StringComparer.InvariantCultureIgnoreCase);
+    public Dictionary<string, byte[]> ModData { get; set; } = [];
+
+    private Dictionary<string, PacketServerPlayerStats> PlayerStats = new(StringComparer.InvariantCultureIgnoreCase);
+
     private byte[] SaveGame()
     {
-        for (int i = 0; i < onsave.Count; i++)
-            onsave[i]();
+        for (int i = 0; i < OnSave.Count; i++)
+            OnSave[i]();
 
         ManicDiggerSave save = new()
         {
             Seed = Seed,
-            SimulationCurrentFrame = simulationcurrentframe,
-            TimeOfDay = _time.Time.Ticks,
+            SimulationCurrentFrame = SimulationCurrentFrame,
+            TimeOfDay = _gameTimer.Time.Ticks,
             LastMonsterId = LastMonsterId,
             PlayerStats = PlayerStats,
-            ModData = moddata,
+            ModData = ModData,
         };
 
         SaveAllLoadedChunks();
 
-        if (!config.IsCreative)
+        if (!Config.IsCreative)
             save.Inventory = Inventory;
 
         return MemoryPackSerializer.Serialize(save);
     }
 
-    public Dictionary<string, byte[]> moddata = new();
     public bool BackupDatabase(string backupFilename)
     {
         if (!GameStorePath.IsValidName(backupFilename))
         {
-            Console.WriteLine(language.ServerInvalidBackupName() + backupFilename);
+            Console.WriteLine($"{Language.ServerInvalidBackupName()}{backupFilename}");
             return false;
         }
         if (!Directory.Exists(GameStorePath.gamepathbackup))
         {
             Directory.CreateDirectory(GameStorePath.gamepathbackup);
         }
-        string finalFilename = Path.Combine(GameStorePath.gamepathbackup, backupFilename + MapManipulator.BinSaveExtension);
-        d_ChunkDb.Backup(finalFilename);
+        string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{backupFilename}{FileConstatns.DbFileExtension}");
+        ChunkDb.Backup(finalFilename);
         return true;
     }
+
     public bool LoadDatabase(string filename)
     {
-        d_Map.d_ChunkDb = d_ChunkDb;
+        Map.d_ChunkDb = ChunkDb;
         SaveAll();
         if (filename != GetSaveFilename())
         {
             //todo load
         }
-        var dbcompressed = (ChunkDbCompressed)d_Map.d_ChunkDb;
-        var db = (ChunkDbSqlite)dbcompressed.d_ChunkDb;
-        db.temporaryChunks = new Dictionary<ulong, byte[]>();
-        d_Map.Clear();
+        var dbcompressed = (ChunkDbCompressed)Map.d_ChunkDb;
+        var db = (ChunkDbSqlite)dbcompressed.ChunkDb;
+        db.temporaryChunks = [];
+        Map.Clear();
         LoadGame(filename);
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             //SendLevelInitialize(k.Key);
             Array.Clear(k.Value.chunksseen, 0, k.Value.chunksseen.Length);
@@ -623,16 +514,17 @@ public partial class Server : ICurrentTime, IDropItem
         }
         return true;
     }
+
     private void SaveAllLoadedChunks()
     {
-        List<DbChunk> tosave = new();
-        for (int cx = 0; cx < d_Map.MapSizeX / chunksize; cx++)
+        List<DbChunk> tosave = [];
+        for (int cx = 0; cx < Map.MapSizeX / ChunkSize; cx++)
         {
-            for (int cy = 0; cy < d_Map.MapSizeY / chunksize; cy++)
+            for (int cy = 0; cy < Map.MapSizeY / ChunkSize; cy++)
             {
-                for (int cz = 0; cz < d_Map.MapSizeZ / chunksize; cz++)
+                for (int cz = 0; cz < Map.MapSizeZ / ChunkSize; cz++)
                 {
-                    ServerChunk c = d_Map.GetChunkValid(cx, cy, cz);
+                    ServerChunk c = Map.GetChunkValid(cx, cy, cz);
                     if (c == null)
                     {
                         continue;
@@ -645,35 +537,35 @@ public partial class Server : ICurrentTime, IDropItem
                     tosave.Add(new DbChunk() { Position = new Xyz() { X = cx, Y = cy, Z = cz }, Chunk = MemoryPackSerializer.Serialize(c) });
                     if (tosave.Count > 200)
                     {
-                        d_ChunkDb.SetChunks(tosave);
+                        ChunkDb.SetChunks(tosave);
                         tosave.Clear();
                     }
                 }
             }
         }
-        d_ChunkDb.SetChunks(tosave);
+        ChunkDb.SetChunks(tosave);
     }
 
-    public string SaveFilenameWithoutExtension = "default";
-    public string SaveFilenameOverride;
+    private const string SaveFilenameWithoutExtension = "default";
+    public string SaveFilenameOverride { get; set; }
+
     public string GetSaveFilename()
     {
         if (SaveFilenameOverride != null)
         {
             return SaveFilenameOverride;
         }
-        return Path.Combine(GameStorePath.gamepathsaves, SaveFilenameWithoutExtension + MapManipulator.BinSaveExtension);
+        return Path.Combine(GameStorePath.gamepathsaves, SaveFilenameWithoutExtension + FileConstatns.DbFileExtension);
     }
 
     private void SaveGlobalData()
     {
-        d_ChunkDb.SetGlobalData(SaveGame());
+        ChunkDb.SetGlobalData(SaveGame());
     }
-    private DateTime lastsave = DateTime.UtcNow;
 
-    public ServerConfig config;
-    public ServerBanlist banlist;
-    public bool configNeedsSaving;
+    public ServerConfig Config { get; set; }
+    public ServerBanlist BanList { get; set; }
+    public bool ConfigNeedsSaving { get; set; }
 
     public void Dispose()
     {
@@ -683,44 +575,48 @@ public partial class Server : ICurrentTime, IDropItem
         }
         disposed = true;
     }
+
     private bool disposed = false;
-    private readonly double starttime = gettime();
-    private static double gettime()
+    private readonly double starttime = GetTime();
+
+    private static double GetTime()
     {
         return (double)DateTime.UtcNow.Ticks / (10 * 1000 * 1000);
     }
-    internal int simulationcurrentframe;
+
+    public int SimulationCurrentFrame { get; set; }
+
     private double oldtime;
     private double accumulator;
     private float lastServerTick;
-
     private int lastClientId;
+
     public int GenerateClientId()
     {
         int i = 0;
-        while (clients.ContainsKey(i))
+        while (Clients.ContainsKey(i))
         {
             i++;
         }
         return i;
     }
 
-    public GamePlatformNative platform = new();
+    public GamePlatformNative Platform { get; set; } = new();
 
-    private void ProcessNetMessage(NetIncomingMessage msg, NetServer mainSocket, Stopwatch s)
+    private void ProcessNetMessage(NetIncomingMessage msg, NetServer mainSocket)
     {
         if (msg.SenderConnection == null)
         {
             return;
         }
         int clientid = -1;
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
-            if (k.Value.mainSocket != mainSocket)
+            if (k.Value.MainSocket != mainSocket)
             {
                 continue;
             }
-            if (k.Value.socket.EqualsConnection(msg.SenderConnection))
+            if (k.Value.Socket.EqualsConnection(msg.SenderConnection))
             {
                 clientid = k.Key;
             }
@@ -729,29 +625,28 @@ public partial class Server : ICurrentTime, IDropItem
         {
             case NetworkMessageType.Connect:
                 //new connection
-                //ISocket client1 = d_MainSocket.Accept();
                 NetConnection client1 = msg.SenderConnection;
-                IpEndpoint iep1 = client1.RemoteEndPoint();
 
                 ClientOnServer c = new()
                 {
-                    mainSocket = mainSocket,
-                    socket = client1
+                    MainSocket = mainSocket,
+                    Socket = client1
                 };
-                c.Ping.Timeout = TimeSpan.FromSeconds(config.ClientConnectionTimeout);
-                c.chunksseen = new bool[d_Map.MapSizeX / chunksize * d_Map.MapSizeY / chunksize * d_Map.MapSizeZ / chunksize];
-                lock (clients)
+
+                c.Ping.Timeout = TimeSpan.FromSeconds(Config?.ClientConnectionTimeout ?? 30);
+                c.chunksseen = new bool[Map.MapSizeX / ChunkSize * Map.MapSizeY / ChunkSize * Map.MapSizeZ / ChunkSize];
+                lock (Clients)
                 {
                     this.lastClientId = this.GenerateClientId();
                     c.Id = lastClientId;
-                    clients[lastClientId] = c;
+                    Clients[lastClientId] = c;
                 }
                 //clientid = c.Id;
-                c.notifyMapTimer = new Timer()
+                c.NotifyMapTimer = new Timer()
                 {
                     INTERVAL = 1.0 / SEND_CHUNKS_PER_SECOND,
                 };
-                c.notifyMonstersTimer = new Timer()
+                c.NotifyMonstersTimer = new Timer()
                 {
                     INTERVAL = 1.0 / SEND_MONSTER_UDAPTES_PER_SECOND,
                 };
@@ -761,21 +656,9 @@ public partial class Server : ICurrentTime, IDropItem
                 {
                     break;
                 }
-
                 // process packet
-                //try
-                //{
-                    TotalReceivedBytes += msg.Payload.Length;
-                    TryReadPacket(clientid, msg.Payload.ToArray());
-                //}
-                //catch (Exception e)
-                //{
-                //    //client problem. disconnect client.
-                //    Console.WriteLine("Exception at client " + clientid + ". Disconnecting client.");
-                //    SendPacket(clientid, ServerPackets.DisconnectPlayer(language.ServerClientException()));
-                //    KillPlayer(clientid);
-                //    Console.WriteLine(e.ToString());
-                //}
+                TotalReceivedBytes += msg.Payload.Length;
+                TryReadPacket(clientid, msg.Payload.ToArray());
                 break;
             case NetworkMessageType.Disconnect:
                 Console.WriteLine("Client disconnected.");
@@ -786,15 +669,16 @@ public partial class Server : ICurrentTime, IDropItem
 
     private DateTime statsupdate;
 
-    public Dictionary<Timer, Timer.Tick> timers = new();
+    public Dictionary<Timer, Timer.Tick> Timers { get; set; } = [];
 
     private void NotifyPing(int targetClientId, int ping)
     {
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             SendPlayerPing(k.Key, targetClientId, ping);
         }
     }
+
     private void SendPlayerPing(int recipientClientId, int targetClientId, int ping)
     {
         Packet_ServerPlayerPing p = new()
@@ -805,19 +689,18 @@ public partial class Server : ICurrentTime, IDropItem
         SendPacket(recipientClientId, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.PlayerPing, PlayerPing = p }));
     }
 
-
     //on exit
-    public void SaveAll()
+    private void SaveAll()
     {
-        for (int x = 0; x < d_Map.MapSizeX / chunksize; x++)
+        for (int x = 0; x < Map.MapSizeX / ChunkSize; x++)
         {
-            for (int y = 0; y < d_Map.MapSizeY / chunksize; y++)
+            for (int y = 0; y < Map.MapSizeY / ChunkSize; y++)
             {
-                for (int z = 0; z < d_Map.MapSizeZ / chunksize; z++)
+                for (int z = 0; z < Map.MapSizeZ / ChunkSize; z++)
                 {
-                    if (d_Map.GetChunkValid(x, y, z) != null)
+                    if (Map.GetChunkValid(x, y, z) != null)
                     {
-                        DoSaveChunk(x, y, z, d_Map.GetChunkValid(x, y, z));
+                        DoSaveChunk(x, y, z, Map.GetChunkValid(x, y, z));
                     }
                 }
             }
@@ -827,120 +710,86 @@ public partial class Server : ICurrentTime, IDropItem
 
     internal void DoSaveChunk(int x, int y, int z, ServerChunk c)
     {
-        ChunkDb.SetChunk(d_ChunkDb, x, y, z, MemoryPackSerializer.Serialize(c));
+        ChunkDbHelper.SetChunk(ChunkDb, x, y, z, MemoryPackSerializer.Serialize(c));
     }
 
-    private readonly int SEND_CHUNKS_PER_SECOND = 10;
-    private readonly int SEND_MONSTER_UDAPTES_PER_SECOND = 3;
+    private const int SEND_CHUNKS_PER_SECOND = 10;
+    private const int SEND_MONSTER_UDAPTES_PER_SECOND = 3;
 
     public void LoadChunk(int cx, int cy, int cz)
     {
-        d_Map.LoadChunk(cx, cy, cz);
+        Map.LoadChunk(cx, cy, cz);
     }
 
-    public const string invalidplayername = "invalid";
+    public const string InvalidPlayerName = "invalid";
+
     public void NotifyInventory(int clientid)
     {
-        ClientOnServer c = clients[clientid];
-        if (c.IsInventoryDirty && c.playername != invalidplayername && !c.usingFill)
+        ClientOnServer c = Clients[clientid];
+        if (c.IsInventoryDirty && c.PlayerName != InvalidPlayerName && !c.UsingFill)
         {
-            Packet_ServerInventory p;
-            /*
-            if (config.IsCreative)
-            {
-                p = new PacketServerInventory()
-                {
-                    BlockTypeAmount = StartInventory(),
-                    IsFinite = false,
-                };
-            }
-            else
-            */
-            {
-                p = ConvertInventory(GetPlayerInventory(c.playername));
-            }
+            Packet_ServerInventory p = ConvertInventory(GetPlayerInventory(c.PlayerName));
             SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.FiniteInventory, Inventory = p }));
             c.IsInventoryDirty = false;
         }
     }
 
-    private Packet_ServerInventory ConvertInventory(PacketServerInventory inv)
+    private static Packet_ServerInventory ConvertInventory(Inventory inv)
     {
         if (inv == null)
         {
             return null;
         }
         Packet_ServerInventory p = new();
-        if (inv.Inventory != null)
+        if (inv != null)
         {
             p.Inventory = new Packet_Inventory
             {
-                Boots = ConvertItem(inv.Inventory.Boots),
-                DragDropItem = ConvertItem(inv.Inventory.DragDropItem),
-                Gauntlet = ConvertItem(inv.Inventory.Gauntlet),
-                Helmet = ConvertItem(inv.Inventory.Helmet),
+                Boots = inv.Boots,
+                DragDropItem = inv.DragDropItem,
+                Gauntlet = inv.Gauntlet,
+                Helmet = inv.Helmet,
                 // todo
                 //p.Inventory.Items = inv.Inventory.Items;
-                Items = new Packet_PositionItem[inv.Inventory.Items.Count],
+                Items = new Packet_PositionItem[inv.Items.Count],
             };
             {
                 int i = 0;
-                foreach (var k in inv.Inventory.Items)
+                foreach (var k in inv.Items)
                 {
                     Packet_PositionItem item = new()
                     {
-                        Key_ = SerializePoint(k.Key.X, k.Key.Y),
-                        Value_ = ConvertItem(k.Value),
+                        Key_ = $"{k.Key.X} {k.Key.Y}",
+                        Value_ = k.Value,
                         X = k.Key.X,
                         Y = k.Key.Y
                     };
                     p.Inventory.Items[i++] = item;
                 }
             }
-            p.Inventory.MainArmor = ConvertItem(inv.Inventory.MainArmor);
-            p.Inventory.RightHand = new Packet_Item[10];
-            for (int i = 0; i < inv.Inventory.RightHand.Length; i++)
+            p.Inventory.MainArmor = inv.MainArmor;
+            p.Inventory.RightHand = new InventoryItem[10];
+            for (int i = 0; i < inv.RightHand.Length; i++)
             {
-                if (inv.Inventory.RightHand[i] == null)
+                if (inv.RightHand[i] == null)
                 {
-                    p.Inventory.RightHand[i] = new Packet_Item();
+                    p.Inventory.RightHand[i] = new InventoryItem();
                 }
                 else
                 {
-                    p.Inventory.RightHand[i] = ConvertItem(inv.Inventory.RightHand[i]);
+                    p.Inventory.RightHand[i] = inv.RightHand[i];
                 }
             }
         }
         return p;
     }
 
-    private static string SerializePoint(int x, int y)
-    {
-        return x.ToString() + " " + y.ToString();
-    }
-
-    private static Packet_Item ConvertItem(InventoryItem item)
-    {
-        if (item == null)
-        {
-            return null;
-        }
-        Packet_Item p = new()
-        {
-            BlockCount = item.BlockCount,
-            BlockId = item.BlockId,
-            ItemClass = item.InventoryItemType,
-            ItemId = item.ItemId
-        };
-        return p;
-    }
-
     public void NotifyPlayerStats(int clientid)
     {
-        ClientOnServer c = clients[clientid];
-        if (c.IsPlayerStatsDirty && c.playername != invalidplayername)
+        ClientOnServer c = Clients[clientid];
+        if (c.IsPlayerStatsDirty && c.PlayerName != InvalidPlayerName)
         {
-            PacketServerPlayerStats stats = GetPlayerStats(c.playername);
+            PacketServerPlayerStats stats = GetPlayerStats(c.PlayerName);
             SendPacket(clientid, ServerPackets.PlayerStats(stats.CurrentHealth, stats.MaxHealth, stats.CurrentOxygen, stats.MaxOxygen));
             c.IsPlayerStatsDirty = false;
         }
@@ -948,7 +797,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     private void HitMonsters(int clientid, int health)
     {
-        ClientOnServer c = clients[clientid];
+        ClientOnServer c = Clients[clientid];
         int mapx = c.PositionMul32GlX / 32;
         int mapy = c.PositionMul32GlZ / 32;
         int mapz = c.PositionMul32GlY / 32;
@@ -959,14 +808,14 @@ public partial class Server : ICurrentTime, IDropItem
             {
                 for (int zz = -1; zz < 2; zz++)
                 {
-                    int cx = (mapx / chunksize) + xx;
-                    int cy = (mapy / chunksize) + yy;
-                    int cz = (mapz / chunksize) + zz;
-                    if (!MapUtil.IsValidChunkPos(d_Map, cx, cy, cz, chunksize))
+                    int cx = (mapx / ChunkSize) + xx;
+                    int cy = (mapy / ChunkSize) + yy;
+                    int cz = (mapz / ChunkSize) + zz;
+                    if (!VectorUtils.IsValidChunkPos(Map, cx, cy, cz, ChunkSize))
                     {
                         continue;
                     }
-                    ServerChunk chunk = d_Map.GetChunkValid(cx, cy, cz);
+                    ServerChunk chunk = Map.GetChunkValid(cx, cy, cz);
                     if (chunk == null || chunk.Monsters == null)
                     {
                         continue;
@@ -976,11 +825,11 @@ public partial class Server : ICurrentTime, IDropItem
                         Vector3i mpos = new() { X = m.X, Y = m.Y, Z = m.Z };
                         Vector3i ppos = new()
                         {
-                            X = clients[clientid].PositionMul32GlX / 32,
-                            Y = clients[clientid].PositionMul32GlZ / 32,
-                            Z = clients[clientid].PositionMul32GlY / 32
+                            X = Clients[clientid].PositionMul32GlX / 32,
+                            Y = Clients[clientid].PositionMul32GlZ / 32,
+                            Z = Clients[clientid].PositionMul32GlY / 32
                         };
-                        if (DistanceSquared(mpos, ppos) < 15)
+                        if (VectorUtils.DistanceSquared(mpos, ppos) < 15)
                         {
                             m.Health -= health;
                             //Console.WriteLine("HIT! -2 = " + m.Health);
@@ -998,62 +847,46 @@ public partial class Server : ICurrentTime, IDropItem
             }
         }
     }
-    public PacketServerInventory GetPlayerInventory(string playername)
+
+    public Inventory GetPlayerInventory(string playername)
     {
-        if (Inventory == null)
+        Inventory ??= new Dictionary<string, Inventory>(StringComparer.InvariantCultureIgnoreCase);
+        if (!Inventory.TryGetValue(playername, out Inventory? value))
         {
-            Inventory = new Dictionary<string, PacketServerInventory>(StringComparer.InvariantCultureIgnoreCase);
+            value = StartInventory();
+            Inventory[playername] = value;
         }
-        if (!Inventory.ContainsKey(playername))
-        {
-            Inventory[playername] = new PacketServerInventory()
-            {
-                Inventory = StartInventory(),
-                /*
-                IsFinite = true,
-                Max = FiniteInventoryMax,
-                */
-            };
-        }
-        return Inventory[playername];
+        return value;
     }
+
     public void ResetPlayerInventory(ClientOnServer client)
     {
-        if (Inventory == null)
-        {
-            Inventory = new Dictionary<string, PacketServerInventory>(StringComparer.InvariantCultureIgnoreCase);
-        }
-        this.Inventory[client.playername] = new PacketServerInventory()
-        {
-            Inventory = StartInventory(),
-        };
+        Inventory ??= new Dictionary<string, Inventory>(StringComparer.InvariantCultureIgnoreCase);
+        this.Inventory[client.PlayerName] = StartInventory();
         client.IsInventoryDirty = true;
         NotifyInventory(client.Id);
     }
 
     public PacketServerPlayerStats GetPlayerStats(string playername)
     {
-        if (PlayerStats == null)
+        PlayerStats ??= new Dictionary<string, PacketServerPlayerStats>(StringComparer.InvariantCultureIgnoreCase);
+        if (!PlayerStats.TryGetValue(playername, out PacketServerPlayerStats? value))
         {
-            PlayerStats = new Dictionary<string, PacketServerPlayerStats>(StringComparer.InvariantCultureIgnoreCase);
+            value = StartPlayerStats();
+            PlayerStats[playername] = value;
         }
-        if (!PlayerStats.ContainsKey(playername))
-        {
-            PlayerStats[playername] = StartPlayerStats();
-        }
-        return PlayerStats[playername];
+        return value;
     }
-    public int FiniteInventoryMax = 200;
 
     private Inventory StartInventory()
     {
         Inventory inv = ManicDigger.Inventory.Create();
         int x = 0;
         int y = 0;
-        for (int i = 0; i < d_Data.StartInventoryAmount.Length; i++)
+        for (int i = 0; i < BlockTypeRegistry.StartInventoryAmount.Length; i++)
         {
-            int amount = d_Data.StartInventoryAmount[i];
-            if (config.IsCreative)
+            int amount = BlockTypeRegistry.StartInventoryAmount[i];
+            if (Config.IsCreative)
             {
                 if (amount > 0 || BlockTypes[i].IsBuildable)
                 {
@@ -1079,6 +912,7 @@ public partial class Server : ICurrentTime, IDropItem
         }
         return inv;
     }
+
     private static PacketServerPlayerStats StartPlayerStats()
     {
         var p = new PacketServerPlayerStats
@@ -1090,80 +924,59 @@ public partial class Server : ICurrentTime, IDropItem
         };
         return p;
     }
+
     public static Vector3i PlayerBlockPosition(ClientOnServer c)
     {
         return new Vector3i(c.PositionMul32GlX / 32, c.PositionMul32GlZ / 32, c.PositionMul32GlY / 32);
     }
-    public static int DistanceSquared(Vector3i a, Vector3i b)
-    {
-        int dx = a.X - b.X;
-        int dy = a.Y - b.Y;
-        int dz = a.Z - b.Z;
-        return dx * dx + dy * dy + dz * dz;
-    }
+
     public void KillPlayer(int clientid)
     {
-        if (!clients.ContainsKey(clientid))
+        if (!Clients.TryGetValue(clientid, out ClientOnServer? value))
         {
             return;
         }
-        if (clients[clientid].queryClient)
+        if (value.QueryClient)
         {
-            clients.Remove(clientid);
+            Clients.Remove(clientid);
             this.serverMonitor.RemoveMonitorClient(clientid);
             return;
         }
-        for (int i = 0; i < modEventHandlers.onplayerleave.Count; i++)
+        for (int i = 0; i < ModEventHandlers.onplayerleave.Count; i++)
         {
-           // try
-           // {
-                modEventHandlers.onplayerleave[i](clientid);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine("Mod exception: OnPlayerLeave");
-            //    Console.WriteLine(ex.Message);
-            //    Console.WriteLine(ex.StackTrace);
-            //}
+            ModEventHandlers.onplayerleave[i](clientid);
         }
-        for (int i = 0; i < modEventHandlers.onplayerdisconnect.Count; i++)
+        for (int i = 0; i < ModEventHandlers.onplayerdisconnect.Count; i++)
         {
-            //try
-            //{
-                modEventHandlers.onplayerdisconnect[i](clientid);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine("Mod exception: OnPlayerDisconnect");
-            //    Console.WriteLine(ex.Message);
-            //    Console.WriteLine(ex.StackTrace);
-            //}
+            ModEventHandlers.onplayerdisconnect[i](clientid);
         }
-        string coloredName = clients[clientid].ColoredPlayername(colorNormal);
-        string name = clients[clientid].playername;
-        clients.Remove(clientid);
-        if (config.ServerMonitor)
+        string coloredName = Clients[clientid].ColoredPlayername(colorNormal);
+        string name = Clients[clientid].PlayerName;
+        Clients.Remove(clientid);
+        if (Config.ServerMonitor)
         {
             this.serverMonitor.RemoveMonitorClient(clientid);
         }
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             SendPacket(k.Key, ServerPackets.EntityDespawn(clientid));
         }
         if (name != "invalid")
         {
-            SendMessageToAll(string.Format(language.ServerPlayerDisconnect(), coloredName));
+            SendMessageToAll(string.Format(Language.ServerPlayerDisconnect(), coloredName));
             ServerEventLog(string.Format("{0} disconnects.", name));
         }
     }
-    internal string ReceivedKey;
+
+    public string ReceivedKey { get; set; }
     private DateTime lastQuery = DateTime.UtcNow;
+    private int pistolcycle;
+
     private void TryReadPacket(int clientid, byte[] data)
     {
-        ClientOnServer c = clients[clientid];
-        //PacketClient packet = Serializer.Deserialize<PacketClient>(new MemoryStream(data));
+        ClientOnServer c = Clients[clientid];
         Packet_Client packet = MemoryPackSerializer.Deserialize<Packet_Client>(data.AsSpan(0, data.Length));
-        if (c.queryClient)
+        if (c.QueryClient)
         {
             if (!(packet.Id == PacketType.ServerQuery || packet.Id == PacketType.PlayerIdentification))
             {
@@ -1174,7 +987,7 @@ public partial class Server : ICurrentTime, IDropItem
                 return;
             }
         }
-        if (config.ServerMonitor && !this.serverMonitor.CheckPacket(clientid, packet))
+        if (Config.ServerMonitor && !this.serverMonitor.CheckPacket(clientid, packet))
         {
             //Console.WriteLine("Server monitor rejected packet");
             return;
@@ -1183,13 +996,13 @@ public partial class Server : ICurrentTime, IDropItem
         switch (packet.Id)
         {
             case PacketType.PingReply:
-                clients[clientid].Ping.Receive(platform);
-                clients[clientid].LastPing = (float)clients[clientid].Ping.RoundtripMilliseconds / 1000;
-                this.NotifyPing(clientid, clients[clientid].Ping.RoundtripMilliseconds);
+                Clients[clientid].Ping.Receive(Platform);
+                Clients[clientid].LastPing = (float)Clients[clientid].Ping.RoundtripMilliseconds / 1000;
+                this.NotifyPing(clientid, Clients[clientid].Ping.RoundtripMilliseconds);
                 break;
             case PacketType.PlayerIdentification:
                 {
-                    foreach (var cl in clients)
+                    foreach (var cl in Clients)
                     {
                         if (cl.Value.IsBot)
                         {
@@ -1197,17 +1010,17 @@ public partial class Server : ICurrentTime, IDropItem
                         }
                         realPlayers++;
                     }
-                    if (realPlayers > config.MaxClients)
+                    if (realPlayers > Config.MaxClients)
                     {
-                        SendPacket(clientid, ServerPackets.DisconnectPlayer(language.ServerTooManyPlayers()));
+                        SendPacket(clientid, ServerPackets.DisconnectPlayer(Language.ServerTooManyPlayers()));
                         KillPlayer(clientid);
                         break;
                     }
-                    if (config.IsPasswordProtected() && packet.Identification.ServerPassword != config.Password)
+                    if (Config.IsPasswordProtected() && packet.Identification.ServerPassword != Config.Password)
                     {
                         Console.WriteLine(string.Format("{0} fails to join (invalid server password).", packet.Identification.Username));
                         ServerEventLog(string.Format("{0} fails to join (invalid server password).", packet.Identification.Username));
-                        SendPacket(clientid, ServerPackets.DisconnectPlayer(language.ServerPasswordInvalid()));
+                        SendPacket(clientid, ServerPackets.DisconnectPlayer(Language.ServerPasswordInvalid()));
                         KillPlayer(clientid);
                         break;
                     }
@@ -1219,16 +1032,16 @@ public partial class Server : ICurrentTime, IDropItem
 
                     if (string.IsNullOrEmpty(username) || !allowedUsername.IsMatch(username))
                     {
-                        SendPacket(clientid, ServerPackets.DisconnectPlayer(language.ServerUsernameInvalid()));
-                        ServerEventLog(string.Format("{0} can't join (invalid username: {1}).", c.socket.RemoteEndPoint().AddressToString(), username));
+                        SendPacket(clientid, ServerPackets.DisconnectPlayer(Language.ServerUsernameInvalid()));
+                        ServerEventLog(string.Format("{0} can't join (invalid username: {1}).", c.Socket.RemoteEndPoint().AddressToString(), username));
                         KillPlayer(clientid);
                         break;
                     }
 
-                    bool isClientLocalhost = c.socket.RemoteEndPoint().AddressToString() == "127.0.0.1";
+                    bool isClientLocalhost = c.Socket.RemoteEndPoint().AddressToString() == "127.0.0.1";
                     bool verificationFailed = false;
 
-                    if ((ComputeMd5(config.Key.Replace("-", "") + username) != packet.Identification.VerificationKey)
+                    if ((ComputeMd5(Config.Key.Replace("-", "") + username) != packet.Identification.VerificationKey)
                         && (!isClientLocalhost))
                     {
                         //Account verification failed.
@@ -1236,17 +1049,17 @@ public partial class Server : ICurrentTime, IDropItem
                         verificationFailed = true;
                     }
 
-                    if (!config.AllowGuests && verificationFailed)
+                    if (!Config.AllowGuests && verificationFailed)
                     {
-                        SendPacket(clientid, ServerPackets.DisconnectPlayer(language.ServerNoGuests()));
+                        SendPacket(clientid, ServerPackets.DisconnectPlayer(Language.ServerNoGuests()));
                         KillPlayer(clientid);
                         break;
                     }
 
                     //When a duplicate user connects, append a number to name.
-                    foreach (var k in clients)
+                    foreach (var k in Clients)
                     {
-                        if (k.Value.playername.Equals(username, StringComparison.InvariantCultureIgnoreCase))
+                        if (k.Value.PlayerName.Equals(username, StringComparison.InvariantCultureIgnoreCase))
                         {
                             // If duplicate is a registered user, kick duplicate. It is likely that the user lost connection before.
                             if (!verificationFailed && !isClientLocalhost)
@@ -1257,25 +1070,25 @@ public partial class Server : ICurrentTime, IDropItem
 
                             // Duplicates are handled as guests.
                             username = GenerateUsername(username);
-                            if (!username.StartsWith("~")) { username = "~" + username; }
+                            if (!username.StartsWith('~')) { username = $"~{username}"; }
                             break;
                         }
                     }
-                    clients[clientid].playername = username;
+                    Clients[clientid].PlayerName = username;
 
                     // Assign group to new client
                     //Check if client is in ServerClient.txt and assign corresponding group.
                     bool exists = false;
-                    foreach (Client client in serverClient.Clients)
+                    foreach (Client client in ServerClient.Clients)
                     {
                         if (client.Name.Equals(username, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            foreach (ManicDigger.Group clientGroup in serverClient.Groups)
+                            foreach (ManicDigger.Group clientGroup in ServerClient.Groups)
                             {
                                 if (clientGroup.Name.Equals(client.Group))
                                 {
                                     exists = true;
-                                    clients[clientid].AssignGroup(clientGroup);
+                                    Clients[clientid].AssignGroup(clientGroup);
                                     break;
                                 }
                             }
@@ -1287,25 +1100,25 @@ public partial class Server : ICurrentTime, IDropItem
                         //Assign admin group if client connected from localhost
                         if (isClientLocalhost)
                         {
-                            clients[clientid].AssignGroup(serverClient.Groups.Find(v => v.Name == "Admin"));
+                            Clients[clientid].AssignGroup(ServerClient.Groups.Find(v => v.Name == "Admin"));
                         }
-                        else if (clients[clientid].playername.StartsWith("~"))
+                        else if (Clients[clientid].PlayerName.StartsWith("~"))
                         {
-                            clients[clientid].AssignGroup(this.defaultGroupGuest);
+                            Clients[clientid].AssignGroup(this.DefaultGroupGuest);
                         }
                         else
                         {
-                            clients[clientid].AssignGroup(this.defaultGroupRegistered);
+                            Clients[clientid].AssignGroup(this.DefaultGroupRegistered);
                         }
                     }
                     this.SetFillAreaLimit(clientid);
-                    this.SendFreemoveState(clientid, clients[clientid].privileges.Contains(ServerClientMisc.Privilege.freemove));
-                    c.queryClient = false;
-                    clients[clientid].entity.DrawName.Name = username;
-                    if (config.EnablePlayerPushing)
+                    this.SendFreemoveState(clientid, Clients[clientid].Privileges.Contains(ServerClientMisc.Privilege.freemove));
+                    c.QueryClient = false;
+                    Clients[clientid].Entity.DrawName.Name = username;
+                    if (Config.EnablePlayerPushing)
                     {
                         // Player pushing
-                        clients[clientid].entity.Push = new ServerEntityPush
+                        Clients[clientid].Entity.Push = new ServerEntityPush
                         {
                             Range = 1
                         };
@@ -1318,14 +1131,14 @@ public partial class Server : ICurrentTime, IDropItem
                     // Set player's spawn position
                     Vector3i position = GetPlayerSpawnPositionMul32(clientid);
 
-                    clients[clientid].PositionMul32GlX = position.X;
-                    clients[clientid].PositionMul32GlY = position.Y + (int)(0.5 * 32);
-                    clients[clientid].PositionMul32GlZ = position.Z;
+                    Clients[clientid].PositionMul32GlX = position.X;
+                    Clients[clientid].PositionMul32GlY = position.Y + (int)(0.5 * 32);
+                    Clients[clientid].PositionMul32GlZ = position.Z;
 
-                    string ip = clients[clientid].socket.RemoteEndPoint().AddressToString();
-                    SendMessageToAll(string.Format(language.ServerPlayerJoin(), clients[clientid].ColoredPlayername(colorNormal)));
-                    ServerEventLog(string.Format("{0} {1} joins.", clients[clientid].playername, ip));
-                    SendMessage(clientid, colorSuccess + config.WelcomeMessage);
+                    string ip = Clients[clientid].Socket.RemoteEndPoint().AddressToString();
+                    SendMessageToAll(string.Format(Language.ServerPlayerJoin(), Clients[clientid].ColoredPlayername(colorNormal)));
+                    ServerEventLog(string.Format("{0} {1} joins.", Clients[clientid].PlayerName, ip));
+                    SendMessage(clientid, colorSuccess + Config.WelcomeMessage);
                     SendBlobs(clientid, packet.RequestBlob.RequestedMd5);
                     SendBlockTypes(clientid);
                     SendTranslations(clientid);
@@ -1333,22 +1146,13 @@ public partial class Server : ICurrentTime, IDropItem
                     SendLightLevels(clientid);
                     SendCraftingRecipes(clientid);
 
-                    for (int i = 0; i < modEventHandlers.onplayerjoin.Count; i++)
+                    for (int i = 0; i < ModEventHandlers.onplayerjoin.Count; i++)
                     {
-                        //try
-                        //{
-                            modEventHandlers.onplayerjoin[i](clientid);
-                        //}
-                        //catch (Exception ex)
-                        //{
-                        //    Console.WriteLine("Mod exception: OnPlayerJoin");
-                        //    Console.WriteLine(ex.Message);
-                        //    Console.WriteLine(ex.StackTrace);
-                        //}
+                        ModEventHandlers.onplayerjoin[i](clientid);
                     }
 
                     SendPacket(clientid, ServerPackets.LevelFinalize());
-                    clients[clientid].state = ClientStateOnServer.Playing;
+                    Clients[clientid].State = ClientStateOnServer.Playing;
                     NotifySeason(clientid);
                 }
                 break;
@@ -1369,29 +1173,29 @@ public partial class Server : ICurrentTime, IDropItem
                     {
                         if (!CheckBuildPrivileges(clientid, x, y, z, packet.SetBlock.Mode))
                         {
-                            SendSetBlock(clientid, x, y, z, d_Map.GetBlock(x, y, z)); //revert
+                            SendSetBlock(clientid, x, y, z, Map.GetBlock(x, y, z)); //revert
                             break;
                         }
                         if (!DoCommandBuild(clientid, true, packet.SetBlock))
                         {
-                            SendSetBlock(clientid, x, y, z, d_Map.GetBlock(x, y, z)); //revert
+                            SendSetBlock(clientid, x, y, z, Map.GetBlock(x, y, z)); //revert
                         }
                         //Only log when building/destroying blocks. Prevents VandalFinder entries
                         if (packet.SetBlock.Mode != PacketBlockSetMode.UseWithTool)
-                            BuildLog(string.Format("{0} {1} {2} {3} {4} {5}", x, y, z, c.playername, c.socket.RemoteEndPoint().AddressToString(), d_Map.GetBlock(x, y, z)));
+                            BuildLog(string.Format("{0} {1} {2} {3} {4} {5}", x, y, z, c.PlayerName, c.Socket.RemoteEndPoint().AddressToString(), Map.GetBlock(x, y, z)));
                     }
                 }
                 break;
             case PacketType.FillArea:
                 {
-                    if (!clients[clientid].privileges.Contains(ServerClientMisc.Privilege.build))
+                    if (!Clients[clientid].Privileges.Contains(ServerClientMisc.Privilege.build))
                     {
-                        SendMessage(clientid, colorError + language.ServerNoBuildPrivilege());
+                        SendMessage(clientid, colorError + Language.ServerNoBuildPrivilege());
                         break;
                     }
-                    if (clients[clientid].IsSpectator && !config.AllowSpectatorBuild)
+                    if (Clients[clientid].IsSpectator && !Config.AllowSpectatorBuild)
                     {
-                        SendMessage(clientid, colorError + language.ServerNoSpectatorBuild());
+                        SendMessage(clientid, colorError + Language.ServerNoSpectatorBuild());
                         break;
                     }
                     Vector3i a = new(packet.FillArea.X1, packet.FillArea.Y1, packet.FillArea.Z1);
@@ -1399,32 +1203,32 @@ public partial class Server : ICurrentTime, IDropItem
 
                     int blockCount = (Math.Abs(a.X - b.X) + 1) * (Math.Abs(a.Y - b.Y) + 1) * (Math.Abs(a.Z - b.Z) + 1);
 
-                    if (blockCount > clients[clientid].FillLimit)
+                    if (blockCount > Clients[clientid].FillLimit)
                     {
-                        SendMessage(clientid, colorError + language.ServerFillAreaTooLarge());
+                        SendMessage(clientid, colorError + Language.ServerFillAreaTooLarge());
                         break;
                     }
-                    if (!this.IsFillAreaValid(clients[clientid], a, b))
+                    if (!this.IsFillAreaValid(Clients[clientid], a, b))
                     {
-                        SendMessage(clientid, colorError + language.ServerFillAreaInvalid());
+                        SendMessage(clientid, colorError + Language.ServerFillAreaInvalid());
                         break;
                     }
                     this.DoFillArea(clientid, packet.FillArea, blockCount);
 
                     BuildLog(string.Format("{0} {1} {2} - {3} {4} {5} {6} {7} {8}", a.X, a.Y, a.Z, b.X, b.Y, b.Z,
-                        c.playername, c.socket.RemoteEndPoint().AddressToString(),
-                        d_Map.GetBlock(a.X, a.Y, a.Z)));
+                        c.PlayerName, c.Socket.RemoteEndPoint().AddressToString(),
+                        Map.GetBlock(a.X, a.Y, a.Z)));
                 }
                 break;
             case PacketType.PositionAndOrientation:
                 {
                     var p = packet.PositionAndOrientation;
-                    clients[clientid].PositionMul32GlX = p.X;
-                    clients[clientid].PositionMul32GlY = p.Y;
-                    clients[clientid].PositionMul32GlZ = p.Z;
-                    clients[clientid].positionheading = p.Heading;
-                    clients[clientid].positionpitch = p.Pitch;
-                    clients[clientid].stance = (byte)p.Stance;
+                    Clients[clientid].PositionMul32GlX = p.X;
+                    Clients[clientid].PositionMul32GlY = p.Y;
+                    Clients[clientid].PositionMul32GlZ = p.Z;
+                    Clients[clientid].PositionHeading = p.Heading;
+                    Clients[clientid].PositionPitch = p.Pitch;
+                    Clients[clientid].Stance = (byte)p.Stance;
                 }
                 break;
             case PacketType.Message:
@@ -1439,9 +1243,9 @@ public partial class Server : ICurrentTime, IDropItem
                     // server command
                     if (packet.Message.Message.StartsWith("/"))
                     {
-                        string[] ss = packet.Message.Message.Split(new[] { ' ' });
+                        string[] ss = packet.Message.Message.Split([' ']);
                         string command = ss[0].Replace("/", "");
-                        string argument = packet.Message.Message.IndexOf(" ") < 0 ? "" : packet.Message.Message.Substring(packet.Message.Message.IndexOf(" ") + 1);
+                        string argument = packet.Message.Message.IndexOf(' ') < 0 ? "" : packet.Message.Message.Substring(packet.Message.Message.IndexOf(" ") + 1);
                         try
                         {
                             //Try to execute the given command
@@ -1469,31 +1273,22 @@ public partial class Server : ICurrentTime, IDropItem
                     else
                     {
                         string message = packet.Message.Message;
-                        for (int i = 0; i < modEventHandlers.onplayerchat.Count; i++)
+                        for (int i = 0; i < ModEventHandlers.onplayerchat.Count; i++)
                         {
-                            //try
-                            //{
-                                message = modEventHandlers.onplayerchat[i](clientid, message, packet.Message.IsTeamchat != 0);
-                            //}
-                            //catch (Exception ex)
-                            //{
-                            //    Console.WriteLine("Mod exception: OnPlayerChat");
-                            //    Console.WriteLine(ex.Message);
-                            //    Console.WriteLine(ex.StackTrace);
-                            //}
+                            message = ModEventHandlers.onplayerchat[i](clientid, message, packet.Message.IsTeamchat != 0);
                         }
-                        if (clients[clientid].privileges.Contains(ServerClientMisc.Privilege.chat))
+                        if (Clients[clientid].Privileges.Contains(ServerClientMisc.Privilege.chat))
                         {
                             if (message == null)
                             {
                                 break;
                             }
-                            SendMessageToAll(string.Format("{0}: {1}", clients[clientid].ColoredPlayername(colorNormal), message));
-                            ChatLog(string.Format("{0}: {1}", clients[clientid].playername, message));
+                            SendMessageToAll(string.Format("{0}: {1}", Clients[clientid].ColoredPlayername(colorNormal), message));
+                            ChatLog(string.Format("{0}: {1}", Clients[clientid].PlayerName, message));
                         }
                         else
                         {
-                            SendMessage(clientid, string.Format(language.ServerNoChatPrivilege(), colorError));
+                            SendMessage(clientid, string.Format(Language.ServerNoChatPrivilege(), colorError));
                         }
                     }
                 }
@@ -1507,24 +1302,24 @@ public partial class Server : ICurrentTime, IDropItem
             case PacketType.Health:
                 {
                     //todo server side
-                    var stats = GetPlayerStats(clients[clientid].playername);
+                    var stats = GetPlayerStats(Clients[clientid].PlayerName);
                     stats.CurrentHealth = packet.Health.CurrentHealth;
                     if (stats.CurrentHealth < 1)
                     {
                         //death - reset health. More stuff done in Death packet handling
                         stats.CurrentHealth = stats.MaxHealth;
                     }
-                    clients[clientid].IsPlayerStatsDirty = true;
+                    Clients[clientid].IsPlayerStatsDirty = true;
                 }
                 break;
             case PacketType.Death:
                 {
                     //Console.WriteLine("Death Packet Received. Client: {0}, Reason: {1}, Source: {2}", clientid, packet.Death.Reason, packet.Death.SourcePlayer);
-                    for (int i = 0; i < modEventHandlers.onplayerdeath.Count; i++)
+                    for (int i = 0; i < ModEventHandlers.onplayerdeath.Count; i++)
                     {
                         try
                         {
-                            modEventHandlers.onplayerdeath[i](clientid, (DeathReason)packet.Death.Reason, packet.Death.SourcePlayer);
+                            ModEventHandlers.onplayerdeath[i](clientid, (DeathReason)packet.Death.Reason, packet.Death.SourcePlayer);
                         }
                         catch (Exception ex)
                         {
@@ -1538,44 +1333,26 @@ public partial class Server : ICurrentTime, IDropItem
             case PacketType.Oxygen:
                 {
                     //todo server side
-                    var stats = GetPlayerStats(clients[clientid].playername);
+                    var stats = GetPlayerStats(Clients[clientid].PlayerName);
                     stats.CurrentOxygen = packet.Oxygen.CurrentOxygen;
-                    clients[clientid].IsPlayerStatsDirty = true;
+                    Clients[clientid].IsPlayerStatsDirty = true;
                 }
                 break;
             case PacketType.MonsterHit:
                 HitMonsters(clientid, packet.Health.CurrentHealth);
                 break;
             case PacketType.DialogClick:
-                for (int i = 0; i < modEventHandlers.ondialogclick.Count; i++)
+                for (int i = 0; i < ModEventHandlers.ondialogclick.Count; i++)
                 {
-                    //try
-                    //{
-                        modEventHandlers.ondialogclick[i](clientid, packet.DialogClick_.WidgetId);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    Console.WriteLine("Mod exception: OnDialogClick");
-                    //    Console.WriteLine(ex.Message);
-                    //    Console.WriteLine(ex.StackTrace);
-                    //}
+                    ModEventHandlers.ondialogclick[i](clientid, packet.DialogClick_.WidgetId);
                 }
-                for (int i = 0; i < modEventHandlers.ondialogclick2.Count; i++)
+                for (int i = 0; i < ModEventHandlers.ondialogclick2.Count; i++)
                 {
-                    //try
-                    //{
-                        DialogClickArgs args = new();
-                        args.Player = clientid;
-                        args.WidgetId = packet.DialogClick_.WidgetId;
-                        args.TextBoxValue = packet.DialogClick_.TextBoxValue;
-                        modEventHandlers.ondialogclick2[i](args);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    Console.WriteLine("Mod exception: OnDialogClick2");
-                    //    Console.WriteLine(ex.Message);
-                    //    Console.WriteLine(ex.StackTrace);
-                    //}
+                    DialogClickArgs args = new();
+                    args.Player = clientid;
+                    args.WidgetId = packet.DialogClick_.WidgetId;
+                    args.TextBoxValue = packet.DialogClick_.TextBoxValue;
+                    ModEventHandlers.ondialogclick2[i](args);
                 }
                 break;
             case PacketType.Shot:
@@ -1596,56 +1373,29 @@ public partial class Server : ICurrentTime, IDropItem
                     SendProjectile(clientid, DeserializeFloat(packet.Shot.FromX), DeserializeFloat(packet.Shot.FromY), DeserializeFloat(packet.Shot.FromZ),
                         v.X, v.Y, v.Z, packet.Shot.WeaponBlock, DeserializeFloat(packet.Shot.ExplodesAfter));
                     //Handle OnWeaponShot so grenade ammo is correct
-                    for (int i = 0; i < modEventHandlers.onweaponshot.Count; i++)
+                    for (int i = 0; i < ModEventHandlers.onweaponshot.Count; i++)
                     {
-                        //try
-                       // {
-                            modEventHandlers.onweaponshot[i](clientid, packet.Shot.WeaponBlock);
-                        //}
-                        //catch (Exception ex)
-                        //{
-                        //    Console.WriteLine("Mod exception: OnWeaponShot");
-                        //    Console.WriteLine(ex.Message);
-                        //    Console.WriteLine(ex.StackTrace);
-                        //}
+                        ModEventHandlers.onweaponshot[i](clientid, packet.Shot.WeaponBlock);
                     }
                     return;
                 }
-                for (int i = 0; i < modEventHandlers.onweaponshot.Count; i++)
+                for (int i = 0; i < ModEventHandlers.onweaponshot.Count; i++)
                 {
-                    //try
-                   // {
-                        modEventHandlers.onweaponshot[i](clientid, packet.Shot.WeaponBlock);
-                   // }
-                    //catch (Exception ex)
-                    //{
-                    //    Console.WriteLine("Mod exception: OnWeaponShot");
-                    //    Console.WriteLine(ex.Message);
-                    //    Console.WriteLine(ex.StackTrace);
-                    //}
+                    ModEventHandlers.onweaponshot[i](clientid, packet.Shot.WeaponBlock);
                 }
-                if (clients[clientid].LastPing < 0.3)
+                if (Clients[clientid].LastPing < 0.3)
                 {
                     if (packet.Shot.HitPlayer != -1)
                     {
                         //client-side shooting
-                        for (int i = 0; i < modEventHandlers.onweaponhit.Count; i++)
+                        for (int i = 0; i < ModEventHandlers.onweaponhit.Count; i++)
                         {
-                            //try
-                           // {
-                                modEventHandlers.onweaponhit[i](clientid, packet.Shot.HitPlayer, packet.Shot.WeaponBlock, packet.Shot.IsHitHead != 0);
-                            //}
-                            //catch (Exception ex)
-                            //{
-                            //    Console.WriteLine("Mod exception: OnWeaponHit");
-                            //    Console.WriteLine(ex.Message);
-                            //    Console.WriteLine(ex.StackTrace);
-                            //}
+                            ModEventHandlers.onweaponhit[i](clientid, packet.Shot.HitPlayer, packet.Shot.WeaponBlock, packet.Shot.IsHitHead != 0);
                         }
                     }
                     return;
                 }
-                foreach (var k in clients)
+                foreach (var k in Clients)
                 {
                     if (k.Key == clientid)
                     {
@@ -1675,67 +1425,31 @@ public partial class Server : ICurrentTime, IDropItem
 
                     if (Intersection.CheckLineBoxExact(pick, headbox) != null)
                     {
-                        for (int i = 0; i < modEventHandlers.onweaponhit.Count; i++)
+                        for (int i = 0; i < ModEventHandlers.onweaponhit.Count; i++)
                         {
-                            //try
-                            //{
-                                modEventHandlers.onweaponhit[i](clientid, k.Key, packet.Shot.WeaponBlock, true);
-                            //}
-                            //catch (Exception ex)
-                            //{
-                            //    Console.WriteLine("Mod exception: OnWeaponHit");
-                            //    Console.WriteLine(ex.Message);
-                            //    Console.WriteLine(ex.StackTrace);
-                            //}
+                            ModEventHandlers.onweaponhit[i](clientid, k.Key, packet.Shot.WeaponBlock, true);
                         }
                     }
                     else if (Intersection.CheckLineBoxExact(pick, bodybox) != null)
                     {
-                        for (int i = 0; i < modEventHandlers.onweaponhit.Count; i++)
+                        for (int i = 0; i < ModEventHandlers.onweaponhit.Count; i++)
                         {
-                            //try
-                            //{
-                                modEventHandlers.onweaponhit[i](clientid, k.Key, packet.Shot.WeaponBlock, false);
-                            //}
-                            //catch (Exception ex)
-                            //{
-                            //    Console.WriteLine("Mod exception: OnWeaponHit");
-                            //    Console.WriteLine(ex.Message);
-                            //    Console.WriteLine(ex.StackTrace);
-                            //}
+                            ModEventHandlers.onweaponhit[i](clientid, k.Key, packet.Shot.WeaponBlock, false);
                         }
                     }
                 }
                 break;
             case PacketType.SpecialKey:
-                for (int i = 0; i < modEventHandlers.onspecialkey.Count; i++)
+                for (int i = 0; i < ModEventHandlers.onspecialkey.Count; i++)
                 {
-                    //try
-                    //{
-                        modEventHandlers.onspecialkey[i](clientid, (SpecialKey)packet.SpecialKey_.Key_);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    Console.WriteLine("Mod exception: OnSpecialKey");
-                    //    Console.WriteLine(ex.Message);
-                    //    Console.WriteLine(ex.StackTrace);
-                    //}
+                    ModEventHandlers.onspecialkey[i](clientid, (SpecialKey)packet.SpecialKey_.Key_);
                 }
                 break;
             case PacketType.ActiveMaterialSlot:
-                clients[clientid].ActiveMaterialSlot = packet.ActiveMaterialSlot.ActiveMaterialSlot;
-                for (int i = 0; i < modEventHandlers.changedactivematerialslot.Count; i++)
+                Clients[clientid].ActiveMaterialSlot = packet.ActiveMaterialSlot.ActiveMaterialSlot;
+                for (int i = 0; i < ModEventHandlers.changedactivematerialslot.Count; i++)
                 {
-                    //try
-                    //{
-                        modEventHandlers.changedactivematerialslot[i](clientid);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    Console.WriteLine("Mod exception: ChangedActiveMaterialSlot");
-                    //    Console.WriteLine(ex.Message);
-                    //    Console.WriteLine(ex.StackTrace);
-                    //}
+                    ModEventHandlers.changedactivematerialslot[i](clientid);
                 }
                 break;
             case PacketType.Leave:
@@ -1757,35 +1471,35 @@ public partial class Server : ICurrentTime, IDropItem
                 Console.WriteLine("ServerQuery processed.");
                 lastQuery = DateTime.UtcNow;
                 //Client only wants server information. No real client.
-                List<string> playernames = new();
-                lock (clients)
+                List<string> playernames = [];
+                lock (Clients)
                 {
-                    foreach (var k in clients)
+                    foreach (var k in Clients)
                     {
-                        if (k.Value.queryClient || k.Value.IsBot)
+                        if (k.Value.QueryClient || k.Value.IsBot)
                         {
                             //Exclude bot players and query clients
                             continue;
                         }
-                        playernames.Add(k.Value.playername);
+                        playernames.Add(k.Value.PlayerName);
                     }
                 }
                 //Create query answer
                 Packet_ServerQueryAnswer answer = new()
                 {
-                    Name = config.Name,
-                    MOTD = config.Motd,
+                    Name = Config.Name,
+                    MOTD = Config.Motd,
                     PlayerCount = playernames.Count,
-                    MaxPlayers = config.MaxClients,
+                    MaxPlayers = Config.MaxClients,
                     PlayerList = string.Join(",", playernames.ToArray()),
-                    Port = config.Port,
-                    GameMode = gameMode,
-                    Password = config.IsPasswordProtected(),
+                    Port = Config.Port,
+                    GameMode = GameMode,
+                    Password = Config.IsPasswordProtected(),
                     PublicHash = ReceivedKey,
                     ServerVersion = GameVersion.Version,
-                    MapSizeX = d_Map.MapSizeX,
-                    MapSizeY = d_Map.MapSizeY,
-                    MapSizeZ = d_Map.MapSizeZ,
+                    MapSizeX = Map.MapSizeX,
+                    MapSizeY = Map.MapSizeY,
+                    MapSizeZ = Map.MapSizeZ,
                     ServerThumbnail = GenerateServerThumbnail(),
                 };
                 //Send answer
@@ -1796,24 +1510,24 @@ public partial class Server : ICurrentTime, IDropItem
                 break;
             case PacketType.GameResolution:
                 //Update client information
-                clients[clientid].WindowSize = new int[] { packet.GameResolution.Width, packet.GameResolution.Height };
+                Clients[clientid].WindowSize = new int[] { packet.GameResolution.Width, packet.GameResolution.Height };
                 //Console.WriteLine("client:{0} --> {1}x{2}", clientid, clients[clientid].WindowSize[0], clients[clientid].WindowSize[1]);
                 break;
             case PacketType.EntityInteraction:
                 switch (packet.EntityInteraction.InteractionType)
                 {
                     case PacketEntityInteractionType.Use:
-                        for (int i = 0; i < modEventHandlers.onuseentity.Count; i++)
+                        for (int i = 0; i < ModEventHandlers.onuseentity.Count; i++)
                         {
-                            ServerEntityId id = c.spawnedEntities[packet.EntityInteraction.EntityId - 64];
-                            modEventHandlers.onuseentity[i](clientid, id.chunkx, id.chunky, id.chunkz, id.id);
+                            ServerEntityId id = c.SpawnedEntities[packet.EntityInteraction.EntityId - 64];
+                            ModEventHandlers.onuseentity[i](clientid, id.ChunkX, id.ChunkY, id.ChunkZ, id.Id);
                         }
                         break;
                     case PacketEntityInteractionType.Hit:
-                        for (int i = 0; i < modEventHandlers.onhitentity.Count; i++)
+                        for (int i = 0; i < ModEventHandlers.onhitentity.Count; i++)
                         {
-                            ServerEntityId id = c.spawnedEntities[packet.EntityInteraction.EntityId - 64];
-                            modEventHandlers.onhitentity[i](clientid, id.chunkx, id.chunky, id.chunkz, id.id);
+                            ServerEntityId id = c.SpawnedEntities[packet.EntityInteraction.EntityId - 64];
+                            ModEventHandlers.onhitentity[i](clientid, id.ChunkX, id.ChunkY, id.ChunkZ, id.Id);
                         }
                         break;
                     default:
@@ -1827,20 +1541,34 @@ public partial class Server : ICurrentTime, IDropItem
         }
     }
 
+    private void BuildLog(string p)
+    {
+        if (!Config.BuildLogging)
+        {
+            return;
+        }
+        if (!Directory.Exists(_serverPathLogs))
+        {
+            Directory.CreateDirectory(_serverPathLogs);
+        }
+        string filename = Path.Combine(_serverPathLogs, "BuildLog.txt");
+        File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
+    }
+
     public bool CheckBuildPrivileges(int player, int x, int y, int z, PacketBlockSetMode mode)
     {
         Server server = this;
         if (!server.PlayerHasPrivilege(player, ServerClientMisc.Privilege.build))
         {
-            server.SendMessage(player, server.colorError + server.language.ServerNoBuildPrivilege());
+            server.SendMessage(player, server.colorError + server.Language.ServerNoBuildPrivilege());
             return false;
         }
-        if (server.clients[player].IsSpectator && !server.config.AllowSpectatorBuild)
+        if (server.Clients[player].IsSpectator && !server.Config.AllowSpectatorBuild)
         {
-            server.SendMessage(player, server.colorError + server.language.ServerNoSpectatorBuild());
+            server.SendMessage(player, server.colorError + server.Language.ServerNoSpectatorBuild());
             return false;
         }
-        for (int i = 0; i < server.modEventHandlers.onpermission.Count; i++)
+        for (int i = 0; i < server.ModEventHandlers.onpermission.Count; i++)
         {
             PermissionArgs args = new()
             {
@@ -1849,89 +1577,56 @@ public partial class Server : ICurrentTime, IDropItem
                 Y = y,
                 Z = z
             };
-            server.modEventHandlers.onpermission[i](args);
+            server.ModEventHandlers.onpermission[i](args);
             if (args.Allowed)
             {
                 return true;
             }
         }
-        if (!server.config.CanUserBuild(server.clients[player], x, y, z)
-            && !server.extraPrivileges.ContainsKey(ServerClientMisc.Privilege.build))
+        if (!server.Config.CanUserBuild(server.Clients[player], x, y, z)
+            && !server.ExtraPrivileges.ContainsKey(ServerClientMisc.Privilege.build))
         {
-            server.SendMessage(player, server.colorError + server.language.ServerNoBuildPermissionHere());
+            server.SendMessage(player, server.colorError + server.Language.ServerNoBuildPermissionHere());
             return false;
         }
         bool retval = true;
         if (mode == PacketBlockSetMode.Create)
         {
-            for (int i = 0; i < modEventHandlers.checkonbuild.Count; i++)
+            for (int i = 0; i < ModEventHandlers.checkonbuild.Count; i++)
             {
                 // All handlers must return true for operation to be permitted.
-                //try
-                //{
-                    retval = retval && modEventHandlers.checkonbuild[i](player, x, y, z);
-                //}
-                //catch (Exception ex)
-                //{
-                //    Console.WriteLine("Mod exception: CheckOnBuild");
-                //    Console.WriteLine(ex.Message);
-                //    Console.WriteLine(ex.StackTrace);
-                //    // Do not allow interactions when check fails.
-                //    retval = false;
-                //}
+                retval = retval && ModEventHandlers.checkonbuild[i](player, x, y, z);
             }
         }
         else if (mode == PacketBlockSetMode.Destroy)
         {
-            for (int i = 0; i < modEventHandlers.checkondelete.Count; i++)
+            for (int i = 0; i < ModEventHandlers.checkondelete.Count; i++)
             {
                 // All handlers must return true for operation to be permitted.
-                //try
-                //{
-                    retval = retval && modEventHandlers.checkondelete[i](player, x, y, z);
-                //}
-                //catch (Exception ex)
-                //{
-                //    Console.WriteLine("Mod exception: CheckOnDelete");
-                //    Console.WriteLine(ex.Message);
-                //    Console.WriteLine(ex.StackTrace);
-                //    // Do not allow interactions when check fails.
-                //    retval = false;
-                //}
+                retval = retval && ModEventHandlers.checkondelete[i](player, x, y, z);
             }
         }
         return retval;
     }
 
-    public bool CheckUsePrivileges(int player, int x, int y, int z)
+    private bool CheckUsePrivileges(int player, int x, int y, int z)
     {
         Server server = this;
         if (!server.PlayerHasPrivilege(player, ServerClientMisc.Privilege.use))
         {
-            SendMessage(player, colorError + server.language.ServerNoUsePrivilege());
+            SendMessage(player, colorError + server.Language.ServerNoUsePrivilege());
             return false;
         }
-        if (server.clients[player].IsSpectator && !server.config.AllowSpectatorUse)
+        if (server.Clients[player].IsSpectator && !server.Config.AllowSpectatorUse)
         {
-            SendMessage(player, colorError + server.language.ServerNoSpectatorUse());
+            SendMessage(player, colorError + server.Language.ServerNoSpectatorUse());
             return false;
         }
         bool retval = true;
-        for (int i = 0; i < modEventHandlers.checkonuse.Count; i++)
+        for (int i = 0; i < ModEventHandlers.checkonuse.Count; i++)
         {
             // All handlers must return true for operation to be permitted.
-            //try
-            //{
-                retval = retval && modEventHandlers.checkonuse[i](player, x, y, z);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine("Mod exception: CheckOnUse");
-            //    Console.WriteLine(ex.Message);
-            //    Console.WriteLine(ex.StackTrace);
-            //    // Do not allow interactions when check fails.
-            //    retval = false;
-            //}
+            retval = retval && ModEventHandlers.checkonuse[i](player, x, y, z);
         }
         return retval;
     }
@@ -1950,7 +1645,7 @@ public partial class Server : ICurrentTime, IDropItem
         SendPacket(clientid, p);
     }
 
-    public static byte[] GenerateServerThumbnail()
+    private static byte[] GenerateServerThumbnail()
     {
         string filename = Path.Combine(Path.Combine("data", "public"), "thumbnail.png");
         Bitmap bmp;
@@ -1989,7 +1684,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     private void SendProjectile(int player, float fromx, float fromy, float fromz, float velocityx, float velocityy, float velocityz, int block, float explodesafter)
     {
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             if (k.Key == player)
             {
@@ -2017,7 +1712,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     private void SendBullet(int player, float fromx, float fromy, float fromz, float tox, float toy, float toz, float speed)
     {
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             if (k.Key == player)
             {
@@ -2040,20 +1735,20 @@ public partial class Server : ICurrentTime, IDropItem
             SendPacket(k.Key, Serialize(p));
         }
     }
-    private int pistolcycle;
+
     public Vector3i GetPlayerSpawnPositionMul32(int clientid)
     {
         Vector3i position;
         Spawn playerSpawn = null;
         // Check if there is a spawn entry for his assign group
-        if (clients[clientid].clientGroup.Spawn != null)
+        if (Clients[clientid].ClientGroup.Spawn != null)
         {
-            playerSpawn = clients[clientid].clientGroup.Spawn;
+            playerSpawn = Clients[clientid].ClientGroup.Spawn;
         }
         // Check if there is an entry in clients with spawn member (overrides group spawn).
-        foreach (Client client in serverClient.Clients)
+        foreach (Client client in ServerClient.Clients)
         {
-            if (client.Name.Equals(clients[clientid].playername, StringComparison.InvariantCultureIgnoreCase))
+            if (client.Name.Equals(Clients[clientid].PlayerName, StringComparison.InvariantCultureIgnoreCase))
             {
                 if (client.Spawn != null)
                 {
@@ -2065,7 +1760,7 @@ public partial class Server : ICurrentTime, IDropItem
 
         if (playerSpawn == null)
         {
-            position = new Vector3i(this.defaultPlayerSpawn.X * 32, this.defaultPlayerSpawn.Z * 32, this.defaultPlayerSpawn.Y * 32);
+            position = new Vector3i(this.DefaultPlayerSpawn.X * 32, this.DefaultPlayerSpawn.Z * 32, this.DefaultPlayerSpawn.Y * 32);
         }
         else
         {
@@ -2077,17 +1772,17 @@ public partial class Server : ICurrentTime, IDropItem
     private void RunInClientSandbox(string script, int clientid)
     {
         var client = GetClient(clientid);
-        if (!config.AllowScripting)
+        if (!Config.AllowScripting)
         {
             SendMessage(clientid, "Server scripts disabled.", MessageType.Error);
             return;
         }
-        if (!client.privileges.Contains(ServerClientMisc.Privilege.run))
+        if (!client.Privileges.Contains(ServerClientMisc.Privilege.run))
         {
             SendMessage(clientid, "Insufficient privileges to access this command.", MessageType.Error);
             return;
         }
-        ServerEventLog(string.Format("{0} runs script:\n{1}", client.playername, script));
+        ServerEventLog(string.Format("{0} runs script:\n{1}", client.PlayerName, script));
         if (client.Interpreter == null)
         {
             client.Interpreter = new JavaScriptInterpreter();
@@ -2103,15 +1798,15 @@ public partial class Server : ICurrentTime, IDropItem
         {
             try
             {
-                SendMessage(clientid, colorSuccess + " => " + result);
+                SendMessage(clientid, $"{colorSuccess} => {result}");
             }
             catch (FormatException e) // can happen
             {
-                SendMessage(clientid, colorError + "Error. " + e.Message);
+                SendMessage(clientid, $"{colorError}Error. {e.Message}");
             }
             return;
         }
-        SendMessage(clientid, colorError + "Error.");
+        SendMessage(clientid, $"{colorError}Error.");
     }
 
     public string colorNormal = "&f"; //white
@@ -2139,7 +1834,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     private void NotifyBlock(int x, int y, int z, int blocktype)
     {
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             SendSetBlock(k.Key, x, y, z, blocktype);
         }
@@ -2147,44 +1842,43 @@ public partial class Server : ICurrentTime, IDropItem
 
     private bool DoCommandCraft(bool execute, Packet_ClientCraft cmd)
     {
-        if (d_Map.GetBlock(cmd.X, cmd.Y, cmd.Z) != d_Data.BlockIdCraftingTable)
+        if (Map.GetBlock(cmd.X, cmd.Y, cmd.Z) != BlockTypeRegistry.BlockIdCraftingTable)
         {
             return false;
         }
-        if (cmd.RecipeId < 0 || cmd.RecipeId >= craftingrecipes.Count)
+        if (cmd.RecipeId < 0 || cmd.RecipeId >= CraftingRecipes.Count)
         {
             return false;
         }
-        Vector3i[] table = d_CraftingTableTool.GetTable(cmd.X, cmd.Y, cmd.Z, out int tableCount);
-        int[] ontable = d_CraftingTableTool.GetOnTable(table, tableCount, out int ontableCount);
-        List<int> outputtoadd = new();
-        //for (int i = 0; i < craftingrecipes.Count; i++)
+        Vector3i[] table = CraftingTableTool.GetTable(cmd.X, cmd.Y, cmd.Z, out int tableCount);
+        int[] ontable = CraftingTableTool.GetOnTable(table, tableCount, out int ontableCount);
+        List<int> outputtoadd = [];
         int i = cmd.RecipeId;
         {
             //try apply recipe. if success then try until fail.
             for (; ; )
             {
                 //check if ingredients available
-                foreach (Ingredient ingredient in craftingrecipes[i].Ingredients)
+                foreach (Ingredient ingredient in CraftingRecipes[i].Ingredients)
                 {
-                    if (OntableFindAllCount(ontable, ontableCount, ingredient.Type) < ingredient.Amount)
+                    if (ontable.AsSpan(0, tableCount).Count(ingredient.Type) < ingredient.Amount)
                     {
                         goto nextrecipe;
                     }
                 }
                 //remove ingredients
-                foreach (Ingredient ingredient in craftingrecipes[i].Ingredients)
+                foreach (Ingredient ingredient in CraftingRecipes[i].Ingredients)
                 {
                     for (int ii = 0; ii < ingredient.Amount; ii++)
                     {
                         //replace on table
-                        ReplaceOne(ontable, ontableCount, ingredient.Type, d_Data.BlockIdEmpty);
+                        ReplaceOne(ontable, ontableCount, ingredient.Type, BlockTypeRegistry.BlockIdEmpty);
                     }
                 }
                 //add output
-                for (int z = 0; z < craftingrecipes[i].Output.Amount; z++)
+                for (int z = 0; z < CraftingRecipes[i].Output.Amount; z++)
                 {
-                    outputtoadd.Add(craftingrecipes[i].Output.Type);
+                    outputtoadd.Add(CraftingRecipes[i].Output.Type);
                 }
             }
         nextrecipe:
@@ -2192,7 +1886,7 @@ public partial class Server : ICurrentTime, IDropItem
         }
         foreach (var v in outputtoadd)
         {
-            ReplaceOne(ontable, ontableCount, d_Data.BlockIdEmpty, v);
+            ReplaceOne(ontable, ontableCount, BlockTypeRegistry.BlockIdEmpty, v);
         }
         int zz = 0;
         if (execute)
@@ -2207,49 +1901,31 @@ public partial class Server : ICurrentTime, IDropItem
         return true;
     }
 
-    private static int OntableFindAllCount(int[] ontable, int ontableCount, int p)
+    private static void ReplaceOne<T>(T[] l, int lCount, T from, T to) where T : IEquatable<T>
     {
-        int count = 0;
-        for (int i = 0; i < ontableCount; i++)
-        {
-            if (ontable[i] == p)
-            {
-                count++;
-            }
-        }
-        return count;
+        Span<T> span = l.AsSpan(0, lCount);
+        int index = span.IndexOf(from);
+        if (index >= 0) span[index] = to;
     }
 
-    private static void ReplaceOne<T>(T[] l, int lCount, T from, T to)
-    {
-        for (int ii = 0; ii < lCount; ii++)
-        {
-            if (l[ii].Equals(from))
-            {
-                l[ii] = to;
-                break;
-            }
-        }
-    }
-
-    public IGameDataItems d_DataItems;
+    private IGameDataItems _dataItems;
     public InventoryUtil GetInventoryUtil(Inventory inventory)
     {
-        InventoryUtil util = new()
+        return new()
         {
             d_Inventory = inventory,
-            d_Items = d_DataItems
+            d_Items = _dataItems
         };
-        return util;
     }
+
     private void DoCommandInventory(int player_id, Packet_ClientInventoryAction cmd)
     {
-        Inventory inventory = GetPlayerInventory(clients[player_id].playername).Inventory;
+        Inventory inventory = GetPlayerInventory(Clients[player_id].PlayerName);
         var s = new InventoryServer
         {
             d_Inventory = inventory,
             d_InventoryUtil = GetInventoryUtil(inventory),
-            d_Items = d_DataItems,
+            d_Items = _dataItems,
             d_DropItem = this
         };
 
@@ -2267,38 +1943,24 @@ public partial class Server : ICurrentTime, IDropItem
             default:
                 break;
         }
-        clients[player_id].IsInventoryDirty = true;
+        Clients[player_id].IsInventoryDirty = true;
         NotifyInventory(player_id);
     }
 
     private bool IsFillAreaValid(ClientOnServer client, Vector3i a, Vector3i b)
     {
-        if (!MapUtil.IsValidPos(this.d_Map, a.X, a.Y, a.Z) || !MapUtil.IsValidPos(this.d_Map, b.X, b.Y, b.Z))
+        if (!VectorUtils.IsValidPos(this.Map, a.X, a.Y, a.Z) || !VectorUtils.IsValidPos(this.Map, b.X, b.Y, b.Z))
         {
             return false;
         }
 
-        // TODO: Is there a more efficient way?
-        int startx = Math.Min(a.X, b.X);
-        int endx = Math.Max(a.X, b.X);
-        int starty = Math.Min(a.Y, b.Y);
-        int endy = Math.Max(a.Y, b.Y);
-        int startz = Math.Min(a.Z, b.Z);
-        int endz = Math.Max(a.Z, b.Z);
-        for (int x = startx; x <= endx; x++)
-        {
-            for (int y = starty; y <= endy; y++)
-            {
-                for (int z = startz; z <= endz; z++)
-                {
-                    if (!config.CanUserBuild(client, x, y, z))
-                    {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
+        int minX = Math.Min(a.X, b.X), maxX = Math.Max(a.X, b.X);
+        int minY = Math.Min(a.Y, b.Y), maxY = Math.Max(a.Y, b.Y);
+        int minZ = Math.Min(a.Z, b.Z), maxZ = Math.Max(a.Z, b.Z);
+
+        return Config.Areas.Any(area =>
+            area.CanUserBuild(client) &&
+            area.ContainsBox(minX, minY, minZ, maxX, maxY, maxZ));
     }
 
     private bool DoFillArea(int player_id, Packet_ClientFillArea fill, int blockCount)
@@ -2314,16 +1976,16 @@ public partial class Server : ICurrentTime, IDropItem
         int endz = Math.Max(a.Z, b.Z);
 
         int blockType = fill.BlockType;
-        blockType = d_Data.WhenPlayerPlacesGetsConvertedTo[blockType];
+        blockType = BlockTypeRegistry.WhenPlayerPlacesGetsConvertedTo[blockType];
 
-        Inventory inventory = GetPlayerInventory(clients[player_id].playername).Inventory;
+        Inventory inventory = GetPlayerInventory(Clients[player_id].PlayerName);
         var item = inventory.RightHand[fill.MaterialSlot];
         if (item == null)
         {
             return false;
         }
         //This prevents the player's inventory from getting sent to them while using fill (causes excessive bandwith usage)
-        clients[player_id].usingFill = true;
+        Clients[player_id].UsingFill = true;
         for (int x = startx; x <= endx; ++x)
         {
             for (int y = starty; y <= endy; ++y)
@@ -2342,7 +2004,7 @@ public partial class Server : ICurrentTime, IDropItem
                         cmd.Mode = PacketBlockSetMode.Destroy;
                         DoCommandBuild(player_id, true, cmd);
                     }
-                    if (blockType != d_Data.BlockIdFillArea)
+                    if (blockType != BlockTypeRegistry.BlockIdFillArea)
                     {
                         cmd.Mode = PacketBlockSetMode.Create;
                         DoCommandBuild(player_id, true, cmd);
@@ -2350,9 +2012,10 @@ public partial class Server : ICurrentTime, IDropItem
                 }
             }
         }
-        clients[player_id].usingFill = false;
+        Clients[player_id].UsingFill = false;
         return true;
     }
+
     /// <summary>
     /// Determines if a given client can see the specified chunk<br/>
     /// <b>Attention!</b> Chunk coordinates are NOT world coordinates!<br/>
@@ -2365,9 +2028,10 @@ public partial class Server : ICurrentTime, IDropItem
     /// <returns>true if client can see the chunk, false otherwise</returns>
     public bool ClientSeenChunk(int clientid, int vx, int vy, int vz)
     {
-        int pos = VectorIndexUtil.Index3d(vx, vy, vz, d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize);
-        return clients[clientid].chunksseen[pos];
+        int pos = VectorIndexUtil.Index3d(vx, vy, vz, Map.MapSizeX / ChunkSize, Map.MapSizeY / ChunkSize);
+        return Clients[clientid].chunksseen[pos];
     }
+
     /// <summary>
     /// Sets a given chunk as seen by the client<br/>
     /// <b>Attention!</b> Chunk coordinates are NOT world coordinates!<br/>
@@ -2380,11 +2044,12 @@ public partial class Server : ICurrentTime, IDropItem
     /// <param name="time"></param>
     public void ClientSeenChunkSet(int clientid, int vx, int vy, int vz, int time)
     {
-        int pos = VectorIndexUtil.Index3d(vx, vy, vz, d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize);
-        clients[clientid].chunksseen[pos] = true;
-        clients[clientid].chunksseenTime[pos] = time;
+        int pos = VectorIndexUtil.Index3d(vx, vy, vz, Map.MapSizeX / ChunkSize, Map.MapSizeY / ChunkSize);
+        Clients[clientid].chunksseen[pos] = true;
+        Clients[clientid].chunksseenTime[pos] = time;
         //Console.WriteLine("SeenChunk:   {0},{1},{2} Client: {3}", vx, vy, vz, clientid);
     }
+
     /// <summary>
     /// Sets a given chunk as unseen by the client<br/>
     /// <b>Attention!</b> Chunk coordinates are NOT world coordinates!<br/>
@@ -2396,9 +2061,9 @@ public partial class Server : ICurrentTime, IDropItem
     /// <param name="vz">Chunk z coordinate</param>
     public void ClientSeenChunkRemove(int clientid, int vx, int vy, int vz)
     {
-        int pos = VectorIndexUtil.Index3d(vx, vy, vz, d_Map.MapSizeX / chunksize, d_Map.MapSizeY / chunksize);
-        clients[clientid].chunksseen[pos] = false;
-        clients[clientid].chunksseenTime[pos] = 0;
+        int pos = VectorIndexUtil.Index3d(vx, vy, vz, Map.MapSizeX / ChunkSize, Map.MapSizeY / ChunkSize);
+        Clients[clientid].chunksseen[pos] = false;
+        Clients[clientid].chunksseenTime[pos] = 0;
         //Console.WriteLine("UnseenChunk: {0},{1},{2} Client: {3}", vx, vy, vz, clientid);
     }
 
@@ -2411,21 +2076,21 @@ public partial class Server : ICurrentTime, IDropItem
         }
 
         int maxFill = 500;
-        if (serverClient.DefaultFillLimit != null)
+        if (ServerClient.DefaultFillLimit != null)
         {
-            maxFill = serverClient.DefaultFillLimit.Value;
+            maxFill = ServerClient.DefaultFillLimit.Value;
         }
 
         // Check if there is a fill-limit entry for his assigned group.
-        if (client.clientGroup.FillLimit != null)
+        if (client.ClientGroup.FillLimit != null)
         {
-            maxFill = client.clientGroup.FillLimit.Value;
+            maxFill = client.ClientGroup.FillLimit.Value;
         }
 
         // Check if there is an entry in clients with fill-limit member (overrides group fill-limit).
-        foreach (Client clientConfig in serverClient.Clients)
+        foreach (Client clientConfig in ServerClient.Clients)
         {
-            if (clientConfig.Name.Equals(client.playername, StringComparison.InvariantCultureIgnoreCase))
+            if (clientConfig.Name.Equals(client.PlayerName, StringComparison.InvariantCultureIgnoreCase))
             {
                 if (clientConfig.FillLimit != null)
                 {
@@ -2450,54 +2115,36 @@ public partial class Server : ICurrentTime, IDropItem
     private bool DoCommandBuild(int player_id, bool execute, Packet_ClientSetBlock cmd)
     {
         Vector3 v = new(cmd.X, cmd.Y, cmd.Z);
-        Inventory inventory = GetPlayerInventory(clients[player_id].playername).Inventory;
+        Inventory inventory = GetPlayerInventory(Clients[player_id].PlayerName);
         if (cmd.Mode == PacketBlockSetMode.Use)
         {
-            for (int i = 0; i < modEventHandlers.onuse.Count; i++)
+            for (int i = 0; i < ModEventHandlers.onuse.Count; i++)
             {
-                //try
-                //{
-                    modEventHandlers.onuse[i](player_id, cmd.X, cmd.Y, cmd.Z);
-                //}
-                //catch (Exception ex)
-                //{
-                //    Console.WriteLine("Mod exception: OnUse");
-                //    Console.WriteLine(ex.Message);
-                //    Console.WriteLine(ex.StackTrace);
-                //}
+                ModEventHandlers.onuse[i](player_id, cmd.X, cmd.Y, cmd.Z);
             }
             return true;
         }
         if (cmd.Mode == PacketBlockSetMode.UseWithTool)
         {
-            for (int i = 0; i < modEventHandlers.onusewithtool.Count; i++)
+            for (int i = 0; i < ModEventHandlers.onusewithtool.Count; i++)
             {
-                //try
-                //{
-                    modEventHandlers.onusewithtool[i](player_id, cmd.X, cmd.Y, cmd.Z, cmd.BlockType);
-                //}
-                //catch (Exception ex)
-                //{
-                //    Console.WriteLine("Mod exception: OnUseWithTool");
-                //    Console.WriteLine(ex.Message);
-                //    Console.WriteLine(ex.StackTrace);
-                //}
+                ModEventHandlers.onusewithtool[i](player_id, cmd.X, cmd.Y, cmd.Z, cmd.BlockType);
             }
             return true;
         }
         if (cmd.Mode == PacketBlockSetMode.Create
-            && d_Data.Rail[cmd.BlockType] != 0)
+            && BlockTypeRegistry.Rail[cmd.BlockType] != 0)
         {
-            return DoCommandBuildRail(player_id, execute, cmd);
+            return DoCommandBuildRail(player_id, cmd);
         }
         if (cmd.Mode == PacketBlockSetMode.Destroy
-            && d_Data.Rail[d_Map.GetBlock(cmd.X, cmd.Y, cmd.Z)] != 0)
+            && BlockTypeRegistry.Rail[Map.GetBlock(cmd.X, cmd.Y, cmd.Z)] != 0)
         {
             return DoCommandRemoveRail(player_id, execute, cmd);
         }
         if (cmd.Mode == PacketBlockSetMode.Create)
         {
-            int oldblock = d_Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
+            int oldblock = Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
             if (!(oldblock == 0 || BlockTypes[oldblock].IsFluid()))
             {
                 return false;
@@ -2515,22 +2162,13 @@ public partial class Server : ICurrentTime, IDropItem
                     {
                         inventory.RightHand[cmd.MaterialSlot] = null;
                     }
-                    if (d_Data.Rail[item.BlockId] != 0)
+                    if (BlockTypeRegistry.Rail[item.BlockId] != 0)
                     {
                     }
                     SetBlockAndNotify(cmd.X, cmd.Y, cmd.Z, item.BlockId);
-                    for (int i = 0; i < modEventHandlers.onbuild.Count; i++)
+                    for (int i = 0; i < ModEventHandlers.onbuild.Count; i++)
                     {
-                        //try
-                        //{
-                            modEventHandlers.onbuild[i](player_id, cmd.X, cmd.Y, cmd.Z);
-                        //}
-                        //catch (Exception ex)
-                        //{
-                        //    Console.WriteLine("Mod exception: OnBuild");
-                        //    Console.WriteLine(ex.Message);
-                        //    Console.WriteLine(ex.StackTrace);
-                        //}
+                        ModEventHandlers.onbuild[i](player_id, cmd.X, cmd.Y, cmd.Z);
                     }
                     break;
                 default:
@@ -2544,55 +2182,45 @@ public partial class Server : ICurrentTime, IDropItem
             {
                 InventoryItemType = InventoryItemType.Block
             };
-            int blockid = d_Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
-            item.BlockId = d_Data.WhenPlayerPlacesGetsConvertedTo[blockid];
-            if (!config.IsCreative)
+            int blockid = Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
+            item.BlockId = BlockTypeRegistry.WhenPlayerPlacesGetsConvertedTo[blockid];
+            if (!Config.IsCreative)
             {
                 GetInventoryUtil(inventory).GrabItem(item, cmd.MaterialSlot);
             }
             SetBlockAndNotify(cmd.X, cmd.Y, cmd.Z, SpecialBlockId.Empty);
-            for (int i = 0; i < modEventHandlers.ondelete.Count; i++)
+            for (int i = 0; i < ModEventHandlers.ondelete.Count; i++)
             {
-                //try
-                //{
-                    modEventHandlers.ondelete[i](player_id, cmd.X, cmd.Y, cmd.Z, blockid);
-                //}
-                //catch (Exception ex)
-                //{
-                //    Console.WriteLine("Mod exception: OnDelete");
-                //    Console.WriteLine(ex.Message);
-                //    Console.WriteLine(ex.StackTrace);
-                //}
+                ModEventHandlers.ondelete[i](player_id, cmd.X, cmd.Y, cmd.Z, blockid);
             }
         }
-        clients[player_id].IsInventoryDirty = true;
+        Clients[player_id].IsInventoryDirty = true;
         NotifyInventory(player_id);
         return true;
     }
 
-    private bool DoCommandBuildRail(int player_id, bool execute, Packet_ClientSetBlock cmd)
+    private bool DoCommandBuildRail(int player_id, Packet_ClientSetBlock cmd)
     {
-        Inventory inventory = GetPlayerInventory(clients[player_id].playername).Inventory;
-        int oldblock = d_Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
-        //int blockstoput = 1;
-        if (!(oldblock == SpecialBlockId.Empty || d_Data.IsRailTile(oldblock)))
+        Inventory inventory = GetPlayerInventory(Clients[player_id].PlayerName);
+        int oldblock = Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
+        if (!(oldblock == SpecialBlockId.Empty || BlockTypeRegistry.IsRailTile(oldblock)))
         {
             return false;
         }
 
         //count how many rails will be created
         int oldrailcount = 0;
-        if (d_Data.IsRailTile(oldblock))
+        if (BlockTypeRegistry.IsRailTile(oldblock))
         {
             oldrailcount = DirectionUtils.RailDirectionFlagsCount(
-                oldblock - d_Data.BlockIdRailStart);
+                oldblock - BlockTypeRegistry.BlockIdRailStart);
         }
         int newrailcount = DirectionUtils.RailDirectionFlagsCount(
-            cmd.BlockType - d_Data.BlockIdRailStart);
+            cmd.BlockType - BlockTypeRegistry.BlockIdRailStart);
         int blockstoput = newrailcount - oldrailcount;
 
         InventoryItem item = inventory.RightHand[cmd.MaterialSlot];
-        if (!(item.InventoryItemType == InventoryItemType.Block && d_Data.Rail[item.BlockId] != 0))
+        if (!(item.InventoryItemType == InventoryItemType.Block && BlockTypeRegistry.Rail[item.BlockId] != 0))
         {
             return false;
         }
@@ -2602,69 +2230,51 @@ public partial class Server : ICurrentTime, IDropItem
             inventory.RightHand[cmd.MaterialSlot] = null;
         }
         SetBlockAndNotify(cmd.X, cmd.Y, cmd.Z, cmd.BlockType);
-        for (int i = 0; i < modEventHandlers.onbuild.Count; i++)
+        for (int i = 0; i < ModEventHandlers.onbuild.Count; i++)
         {
-            //try
-            //{
-                modEventHandlers.onbuild[i](player_id, cmd.X, cmd.Y, cmd.Z);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine("Mod exception: OnBuild");
-            //    Console.WriteLine(ex.Message);
-            //    Console.WriteLine(ex.StackTrace);
-            //}
+            ModEventHandlers.onbuild[i](player_id, cmd.X, cmd.Y, cmd.Z);
         }
 
-        clients[player_id].IsInventoryDirty = true;
+        Clients[player_id].IsInventoryDirty = true;
         NotifyInventory(player_id);
         return true;
     }
 
     private bool DoCommandRemoveRail(int player_id, bool execute, Packet_ClientSetBlock cmd)
     {
-        Inventory inventory = GetPlayerInventory(clients[player_id].playername).Inventory;
+        Inventory inventory = GetPlayerInventory(Clients[player_id].PlayerName);
         //add to inventory
-        int blockid = d_Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
-        int blocktype = d_Data.WhenPlayerPlacesGetsConvertedTo[blockid];
+        int blockid = Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
+        int blocktype = BlockTypeRegistry.WhenPlayerPlacesGetsConvertedTo[blockid];
         if ((!IsValid(blocktype))
             || blocktype == SpecialBlockId.Empty)
         {
             return false;
         }
         int blockstopick = 1;
-        if (d_Data.IsRailTile(blocktype))
+        if (BlockTypeRegistry.IsRailTile(blocktype))
         {
             blockstopick = DirectionUtils.RailDirectionFlagsCount(
-                blocktype - d_Data.BlockIdRailStart);
+                blocktype - BlockTypeRegistry.BlockIdRailStart);
         }
 
         var item = new InventoryItem
         {
             InventoryItemType = InventoryItemType.Block,
-            BlockId = d_Data.WhenPlayerPlacesGetsConvertedTo[blocktype],
+            BlockId = BlockTypeRegistry.WhenPlayerPlacesGetsConvertedTo[blocktype],
             BlockCount = blockstopick
         };
-        if (!config.IsCreative)
+        if (!Config.IsCreative)
         {
             GetInventoryUtil(inventory).GrabItem(item, cmd.MaterialSlot);
         }
         SetBlockAndNotify(cmd.X, cmd.Y, cmd.Z, SpecialBlockId.Empty);
-        for (int i = 0; i < modEventHandlers.ondelete.Count; i++)
+        for (int i = 0; i < ModEventHandlers.ondelete.Count; i++)
         {
-            //try
-            //{
-                modEventHandlers.ondelete[i](player_id, cmd.X, cmd.Y, cmd.Z, blockid);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine("Mod exception: OnDelete");
-            //    Console.WriteLine(ex.Message);
-            //    Console.WriteLine(ex.StackTrace);
-            //}
+            ModEventHandlers.ondelete[i](player_id, cmd.X, cmd.Y, cmd.Z, blockid);
         }
 
-        clients[player_id].IsInventoryDirty = true;
+        Clients[player_id].IsInventoryDirty = true;
         NotifyInventory(player_id);
         return true;
     }
@@ -2676,10 +2286,10 @@ public partial class Server : ICurrentTime, IDropItem
 
     public void SetBlockAndNotify(int x, int y, int z, int blocktype)
     {
-        d_Map.SetBlockNotMakingDirty(x, y, z, blocktype);
+        Map.SetBlockNotMakingDirty(x, y, z, blocktype);
         NotifyBlock(x, y, z, blocktype);
     }
-   
+
     public static byte[] Serialize(Packet_Server p)
     {
         return MemoryPackSerializer.Serialize(p);
@@ -2687,25 +2297,10 @@ public partial class Server : ICurrentTime, IDropItem
 
     private string GenerateUsername(string name)
     {
-        string defaultname = name;
         int appendNumber = 1;
-        bool exists;
-
-        do
-        {
-            exists = false;
-            foreach (var k in clients)
-            {
-                if (k.Value.playername.Equals(defaultname + appendNumber))
-                {
-                    exists = true;
-                    appendNumber++;
-                    break;
-                }
-            }
-        } while (exists);
-
-        return defaultname + appendNumber;
+        while (Clients.Values.Any(c => c.PlayerName.Equals($"{name}{appendNumber}", StringComparison.OrdinalIgnoreCase)))
+            appendNumber++;
+        return $"{name}{appendNumber}";
     }
 
     public void ServerMessageToAll(string message, MessageType color)
@@ -2717,7 +2312,7 @@ public partial class Server : ICurrentTime, IDropItem
     public void SendMessageToAll(string message)
     {
         Console.WriteLine("Message to all: " + message);
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             SendMessage(k.Key, message);
         }
@@ -2725,7 +2320,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     private void SendSetBlock(int clientid, int x, int y, int z, int blocktype)
     {
-        if (!ClientSeenChunk(clientid, x / chunksize, y / chunksize, z / chunksize))
+        if (!ClientSeenChunk(clientid, x / ChunkSize, y / ChunkSize, z / ChunkSize))
         {
             // don't send block updates for chunks a player can not see
             return;
@@ -2762,7 +2357,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     public void SendMessage(int clientid, string message)
     {
-        if (clientid == this.serverConsoleId)
+        if (clientid == ServerConsoleId)
         {
             ServerConsole.Receive(message);
             return;
@@ -2773,8 +2368,8 @@ public partial class Server : ICurrentTime, IDropItem
 
     private int StatTotalPackets = 0;
     private int StatTotalPacketsLength = 0;
-    public long TotalSentBytes;
-    public long TotalReceivedBytes;
+    public long TotalSentBytes { get; set; }
+    public long TotalReceivedBytes { get; set; }
 
     public void SendPacket(int clientid, Packet_Server packet)
     {
@@ -2783,72 +2378,50 @@ public partial class Server : ICurrentTime, IDropItem
 
     public void SendPacket(int clientid, byte[] packet)
     {
-        if (clients[clientid].IsBot)
+        if (Clients[clientid].IsBot)
         {
             return;
         }
         StatTotalPackets++;
         StatTotalPacketsLength += packet.Length;
         TotalSentBytes += packet.Length;
-        //try
-        //{
-            clients[clientid].socket.SendMessage(packet.AsMemory(), MyNetDeliveryMethod.ReliableOrdered);
-        //}
-        //catch (Exception)
-        //{
-        //    Console.WriteLine("Network exception.");
-        //    KillPlayer(clientid);
-        //}
+        Clients[clientid].Socket.SendMessage(packet.AsMemory(), MyNetDeliveryMethod.ReliableOrdered);
     }
-    private static void EmptyCallback(IAsyncResult result)
+
+    public int DrawDistance { get; set; } = 128;
+    public static int ChunkSize { get; set;} = 32;
+
+    public static double InvertedChunkSize { get; set; } = 1.0 / 32;
+
+    public static int InvertChunk(int num)
     {
+        return (int)(num * InvertedChunkSize);
     }
-    public int drawdistance = 128;
-    public const int chunksize = 32;
-    public const double invertedChunkSize = 1.0 / chunksize;
-    public static int invertChunk(int num)
-    {
-        return (int)(num * invertedChunkSize);
-    }
-    internal int chunkdrawdistance { get { return drawdistance / chunksize; } }
+
+    public int ChunkDrawDistance { get { return DrawDistance / ChunkSize; } }
+
     public byte[] CompressChunkNetwork(ushort[] chunk)
     {
-        return d_NetworkCompression.Compress(MemoryMarshal.AsBytes(chunk.AsSpan()));
-    }
-    public byte[] CompressChunkNetwork(byte[,,] chunk)
-    {
-        MemoryStream ms = new();
-        BinaryWriter bw = new(ms);
-        for (int z = 0; z <= chunk.GetUpperBound(2); z++)
-        {
-            for (int y = 0; y <= chunk.GetUpperBound(1); y++)
-            {
-                for (int x = 0; x <= chunk.GetUpperBound(0); x++)
-                {
-                    bw.Write(chunk[x, y, z]);
-                }
-            }
-        }
-        byte[] compressedchunk = d_NetworkCompression.Compress(ms.ToArray());
-        return compressedchunk;
+        return NetworkCompression.Compress(MemoryMarshal.AsBytes(chunk.AsSpan()));
     }
 
     private string[] GetRequiredBlobMd5()
-    => [.. assets.Select(a => a.md5)];
+        => [.. assets.Select(a => a.md5)];
 
     private string[] GetRequiredBlobName()
         => [.. assets.Select(a => a.name)];
 
     private AssetLoader assetLoader;
-    private List<Asset> assets = new();
+    private List<Asset> assets = [];
 
-    private readonly int BlobPartLength = 1024 * 1;
+    private readonly int blobPartLength = 1024;
+
     private void SendBlobs(int clientid, string[] requestedMd5)
     {
         SendPacket(clientid, ServerPackets.LevelInitialize());
         LoadAssets();
 
-        List<Asset> tosend = new();
+        List<Asset> tosend = [];
         for (int i = 0; i < assets.Count; i++)
         {
             Asset f = assets[i];
@@ -2867,18 +2440,18 @@ public partial class Server : ICurrentTime, IDropItem
             SendBlobInitialize(clientid, f.md5, f.name);
             byte[] blob = f.data;
             int totalsent = 0;
-            foreach (byte[] part in Parts(blob, BlobPartLength))
+            foreach (byte[] part in Parts(blob, blobPartLength))
             {
                 SendLevelProgress(clientid,
                     (int)(((float)i / tosend.Count
                         + (float)totalsent / blob.Length / tosend.Count) * 100),
-                    language.ServerProgressDownloadingData());
+                    Language.ServerProgressDownloadingData());
                 SendBlobPart(clientid, part);
                 totalsent += part.Length;
             }
             SendBlobFinalize(clientid);
         }
-        SendLevelProgress(clientid, 0, language.ServerProgressGenerating());
+        SendLevelProgress(clientid, 0, Language.ServerProgressGenerating());
     }
 
     private void LoadAssets()
@@ -2892,52 +2465,45 @@ public partial class Server : ICurrentTime, IDropItem
 
     public static IEnumerable<byte[]> Parts(byte[] blob, int partsize)
     {
-        int i = 0;
-        for (; ; )
-        {
-            if (i >= blob.Length) { break; }
-            int curpartsize = blob.Length - i;
-            if (curpartsize > partsize) { curpartsize = partsize; }
-            byte[] part = new byte[curpartsize];
-            for (int ii = 0; ii < curpartsize; ii++)
-            {
-                part[ii] = blob[i + ii];
-            }
-            yield return part;
-            i += curpartsize;
-        }
+        for (int i = 0; i < blob.Length; i += partsize)
+            yield return blob[i..Math.Min(i + partsize, blob.Length)];
     }
+
     private void SendBlobInitialize(int clientid, string hash, string name)
     {
         Packet_ServerBlobInitialize p = new() { Name = name, Md5 = hash };
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.BlobInitialize, BlobInitialize = p }));
     }
+
     private void SendBlobPart(int clientid, byte[] data)
     {
         Packet_ServerBlobPart p = new() { Data = data };
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.BlobPart, BlobPart = p }));
     }
+
     private void SendBlobFinalize(int clientid)
     {
         Packet_ServerBlobFinalize p = new() { };
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.BlobFinalize, BlobFinalize = p }));
     }
-    public BlockType[] BlockTypes = new BlockType[GlobalVar.MAX_BLOCKTYPES];
+
+    public BlockType[] BlockTypes { get; set; } = new BlockType[GlobalVar.MAX_BLOCKTYPES];
+
     public void SendBlockTypes(int clientid)
     {
         for (int i = 0; i < BlockTypes.Length; i++)
         {
-            Packet_ServerBlockType p1 = new() { Id = i, Blocktype = BlockTypeConverter.GetBlockType(BlockTypes[i]) };
+            Packet_ServerBlockType p1 = new() { Id = i, Blocktype = BlockTypes[i] };
             SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.BlockType, BlockType = p1 }));
         }
         Packet_ServerBlockTypes p = new() { };
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.BlockTypes, BlockTypes = p }));
     }
 
-    public void SendTranslations(int clientid)
+    private void SendTranslations(int clientid)
     {
         //Read all lines from server translation and send them to the client
-        foreach (var ((lang, id), translated) in language.AllStrings())
+        foreach (var ((lang, id), translated) in Language.AllStrings())
         {
             Packet_ServerTranslatedString p = new()
             {
@@ -2960,6 +2526,7 @@ public partial class Server : ICurrentTime, IDropItem
         p.Sunlevels = sunlevels;
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.SunLevels, SunLevels = p }));
     }
+
     private void SendLightLevels(int clientid)
     {
         Packet_ServerLightLevels p = new();
@@ -2971,52 +2538,14 @@ public partial class Server : ICurrentTime, IDropItem
         p.Lightlevels = l;
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.LightLevels, LightLevels = p }));
     }
+
     private void SendCraftingRecipes(int clientid)
     {
-        Packet_CraftingRecipe[] recipes = new Packet_CraftingRecipe[craftingrecipes.Count];
-        for (int i = 0; i < craftingrecipes.Count; i++)
+        Packet_ServerCraftingRecipes p = new()
         {
-            recipes[i] = ConvertCraftingRecipe(craftingrecipes[i]);
-        }
-        Packet_ServerCraftingRecipes p = new();
-        p.CraftingRecipes = recipes;
-        SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.CraftingRecipes, CraftingRecipes = p }));
-    }
-
-    private Packet_CraftingRecipe ConvertCraftingRecipe(CraftingRecipe craftingRecipe)
-    {
-        if (craftingRecipe == null)
-        {
-            return null;
-        }
-        Packet_CraftingRecipe r = new();
-        if (craftingRecipe.Ingredients != null)
-        {
-            r.Ingredients = new Packet_Ingredient[craftingRecipe.Ingredients.Length];
-            for (int i = 0; i < craftingRecipe.Ingredients.Length; i++)
-            {
-                r.Ingredients[i] = ConvertIngredient(craftingRecipe.Ingredients[i]);
-            }
-        }
-        if (craftingRecipe.Output != null)
-        {
-            r.Output = new Packet_Ingredient
-            {
-                Amount = craftingRecipe.Output.Amount,
-                Type = craftingRecipe.Output.Type
-            };
-        }
-        return r;
-    }
-
-    private static Packet_Ingredient ConvertIngredient(Ingredient ingredient)
-    {
-        Packet_Ingredient p = new()
-        {
-            Amount = ingredient.Amount,
-            Type = ingredient.Type
+            CraftingRecipes = [.. CraftingRecipes]
         };
-        return p;
+        SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.CraftingRecipes, CraftingRecipes = p }));
     }
 
     private void SendLevelProgress(int clientid, int percentcomplete, string status)
@@ -3024,21 +2553,21 @@ public partial class Server : ICurrentTime, IDropItem
         Packet_ServerLevelProgress p = new() { PercentComplete = percentcomplete, Status = status };
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.LevelDataChunk, LevelDataChunk = p }));
     }
-    public RenderHint RenderHint = RenderHint.Fast;
+
+    public RenderHint RenderHint { get; set; } = RenderHint.Fast;
+
     private void SendServerIdentification(int clientid)
     {
         Packet_ServerIdentification p = new()
         {
             MdProtocolVersion = GameVersion.Version,
             AssignedClientId = clientid,
-            ServerName = config.Name,
-            ServerMotd = config.Motd,
-            //UsedBlobsMd5 = new List<byte[]>(new[] { terrainTextureMd5 }),
-            //TerrainTextureMd5 = terrainTextureMd5,
-            MapSizeX = d_Map.MapSizeX,
-            MapSizeY = d_Map.MapSizeY,
-            MapSizeZ = d_Map.MapSizeZ,
-            DisableShadows = enableshadows ? 0 : 1,
+            ServerName = Config.Name,
+            ServerMotd = Config.Motd,
+            MapSizeX = Map.MapSizeX,
+            MapSizeY = Map.MapSizeY,
+            MapSizeZ = Map.MapSizeZ,
+            DisableShadows = EnableShadows ? 0 : 1,
             PlayerAreaSize = playerareasize,
             RenderHint_ = (int)RenderHint,
             RequiredBlobMd5 = GetRequiredBlobMd5(),
@@ -3056,55 +2585,35 @@ public partial class Server : ICurrentTime, IDropItem
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.Freemove, Freemove = p }));
     }
 
-    private static byte[] terrainTextureMd5 { get { byte[] b = new byte[16]; b[0] = 1; return b; } }
-    private readonly MD5 md5 = MD5.Create();
-    private byte[] ComputeMd5(byte[] b)
+    private static string ComputeMd5(string input)
     {
-        return md5.ComputeHash(b);
+        byte[] hash = MD5.HashData(Encoding.ASCII.GetBytes(input));
+        return Convert.ToHexString(hash).ToLower();
     }
-    private string ComputeMd5(string input)
-    {
-        // step 1, calculate MD5 hash from input
-        byte[] inputBytes = Encoding.ASCII.GetBytes(input);
-        byte[] hash = md5.ComputeHash(inputBytes);
 
-        // step 2, convert byte array to hex string
-        StringBuilder sb = new();
-        for (int i = 0; i < hash.Length; i++)
-        {
-            sb.Append(hash[i].ToString("X2"));
-        }
-        return sb.ToString().ToLower();
-    }
-    public int SIMULATION_KEYFRAME_EVERY = 4;
-    public float SIMULATION_STEP_LENGTH = 1f / 64f;
-    public struct BlobToSend
-    {
-        public string Name;
-        public byte[] Data;
-    }
-    public Dictionary<int, ClientOnServer> clients = new();
-    public Dictionary<string, bool> disabledprivileges = new();
-    public Dictionary<string, bool> extraPrivileges = new();
+    public float SIMULATION_STEP_LENGTH { get; set; } = 1f / 64f;
+    public Dictionary<int, ClientOnServer> Clients { get; set; } = [];
+    public Dictionary<string, bool> Disabledprivileges { get; set; } = [];
+    public Dictionary<string, bool> ExtraPrivileges { get; set; } = [];
+
     public ClientOnServer GetClient(int id)
     {
-        if (id == this.serverConsoleId)
+        if (id == ServerConsoleId)
         {
-            return this.serverConsoleClient;
+            return this.ServerConsoleClient;
         }
-        if (!clients.ContainsKey(id))
-            return null;
-        return clients[id];
+        return !Clients.TryGetValue(id, out ClientOnServer? value) ? null : value;
     }
+
     public ClientOnServer GetClient(string name)
     {
-        if (serverConsoleClient.playername.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+        if (ServerConsoleClient.PlayerName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
         {
-            return serverConsoleClient;
+            return ServerConsoleClient;
         }
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
-            if (k.Value.playername.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+            if (k.Value.PlayerName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
             {
                 return k.Value;
             }
@@ -3112,38 +2621,38 @@ public partial class Server : ICurrentTime, IDropItem
         return null;
     }
 
-    internal bool serverClientNeedsSaving;
-    public ServerClient serverClient;
-    public ManicDigger.Group? defaultGroupGuest;
-    public ManicDigger.Group defaultGroupRegistered;
-    public Vector3i defaultPlayerSpawn;
+    public bool ServerClientNeedsSaving { get; set; }
+    public ServerClient ServerClient { get; set; }
+    public ManicDigger.Group? DefaultGroupGuest { get; set; }
+    public ManicDigger.Group DefaultGroupRegistered { get; set; }
+    public Vector3i DefaultPlayerSpawn { get; set; }
 
-    private Vector3i SpawnToVector3i(ManicDigger.Spawn spawn)
+    private Vector3i SpawnToVector3i(Spawn spawn)
     {
         int x = spawn.x;
         int y = spawn.y;
         int z;
-        if (!MapUtil.IsValidPos(d_Map, x, y))
+        if (!VectorUtils.IsValidPos(Map, x, y))
         {
-            throw new Exception(language.ServerInvalidSpawnCoordinates());
+            throw new Exception(Language.ServerInvalidSpawnCoordinates());
         }
 
         if (spawn.z == null)
         {
-            z = MapUtil.blockheight(d_Map, 0, x, y);
+            z = VectorUtils.BlockHeight(Map, 0, x, y);
         }
         else
         {
             z = spawn.z.Value;
-            if (!MapUtil.IsValidPos(d_Map, x, y, z))
+            if (!VectorUtils.IsValidPos(Map, x, y, z))
             {
-                throw new Exception(language.ServerInvalidSpawnCoordinates());
+                throw new Exception(Language.ServerInvalidSpawnCoordinates());
             }
         }
         return new Vector3i(x * 32, z * 32, y * 32);
     }
 
-    public int dumpmax = 30;
+    private const int dumpmax = 30;
     public void DropItem(ref InventoryItem item, Vector3i pos)
     {
         switch (item.InventoryItemType)
@@ -3171,9 +2680,10 @@ public partial class Server : ICurrentTime, IDropItem
                 break;
         }
     }
+
     private Vector3i? FindDumpPlace(Vector3i pos)
     {
-        List<Vector3i> l = new();
+        List<Vector3i> l = [];
         for (int x = 0; x < 10; x++)
         {
             for (int y = 0; y < 10; y++)
@@ -3183,17 +2693,17 @@ public partial class Server : ICurrentTime, IDropItem
                     int xx = pos.X + x - 10 / 2;
                     int yy = pos.Y + y - 10 / 2;
                     int zz = pos.Z + z - 10 / 2;
-                    if (!MapUtil.IsValidPos(d_Map, xx, yy, zz))
+                    if (!VectorUtils.IsValidPos(Map, xx, yy, zz))
                     {
                         continue;
                     }
-                    if (d_Map.GetBlock(xx, yy, zz) == SpecialBlockId.Empty
-                        && d_Map.GetBlock(xx, yy, zz - 1) != SpecialBlockId.Empty)
+                    if (Map.GetBlock(xx, yy, zz) == SpecialBlockId.Empty
+                        && Map.GetBlock(xx, yy, zz - 1) != SpecialBlockId.Empty)
                     {
                         bool playernear = false;
-                        foreach (var player in clients)
+                        foreach (var player in Clients)
                         {
-                            if (Length(Minus(PlayerBlockPosition(player.Value), new Vector3i(xx, yy, zz))) < 3)
+                            if (VectorUtils.DistanceSquared(PlayerBlockPosition(player.Value), new Vector3i(xx, yy, zz)) < 9)
                             {
                                 playernear = true;
                             }
@@ -3206,7 +2716,7 @@ public partial class Server : ICurrentTime, IDropItem
                 }
             }
         }
-        l.Sort((a, b) => Length(Minus(a, pos)).CompareTo(Length(Minus(b, pos))));
+        l.Sort((a, b) => VectorUtils.DistanceSquared(a, pos).CompareTo(VectorUtils.DistanceSquared(b, pos)));
         if (l.Count > 0)
         {
             return l[0];
@@ -3214,21 +2724,11 @@ public partial class Server : ICurrentTime, IDropItem
         return null;
     }
 
-    private static Vector3i Minus(Vector3i a, Vector3i b)
-    {
-        return new Vector3i(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
-    }
-
-    private static int Length(Vector3i v)
-    {
-        return (int)Math.Sqrt(v.X * v.X + v.Y * v.Y + v.Z * v.Z);
-    }
-
     public void SetBlockType(int id, string name, BlockType block)
     {
         BlockTypes[id] = block;
         block.Name = name;
-        d_Data.RegisterBlockType(id, BlockTypeConverter.GetBlockType(block));
+        BlockTypeRegistry.RegisterBlockType(id, block);
     }
 
     public void SetBlockType(string name, BlockType block)
@@ -3248,16 +2748,18 @@ public partial class Server : ICurrentTime, IDropItem
     {
         this.sunlevels = sunLevels;
     }
+
     private float[] lightlevels = [];
     public void SetLightLevels(float[] lightLevels)
     {
         this.lightlevels = lightLevels;
     }
-    public List<CraftingRecipe> craftingrecipes = new();
+
+    public List<CraftingRecipe> CraftingRecipes { get; set; } = [];
 
     public bool IsSinglePlayer
     {
-        get { return mainSockets[0].GetType() == typeof(DummyNetServer); }
+        get { return MainSockets[0].GetType() == typeof(DummyNetServer); }
     }
 
     public void SendDialog(int player, string id, Dialog dialog)
@@ -3265,85 +2767,22 @@ public partial class Server : ICurrentTime, IDropItem
         Packet_ServerDialog p = new()
         {
             DialogId = id,
-            Dialog = ConvertDialog(dialog),
+            Dialog = dialog,
         };
         SendPacket(player, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.Dialog, Dialog = p }));
     }
 
-    private Packet_Dialog ConvertDialog(Dialog dialog)
-    {
-        if (dialog == null)
-        {
-            return null;
-        }
-        Packet_Dialog p = new()
-        {
-            Height_ = dialog.Height,
-            IsModal = dialog.IsModal ? 1 : 0
-        };
-        if (dialog.Widgets != null)
-        {
-            Packet_Widget[] widgets = new Packet_Widget[dialog.Widgets.Length];
-            for (int i = 0; i < dialog.Widgets.Length; i++)
-            {
-                widgets[i] = ConvertWidget(dialog.Widgets[i]);
-            }
-            p.Widgets = widgets;
-        }
-        p.Width = dialog.Width;
-        return p;
-    }
-
-    private Packet_Widget ConvertWidget(Widget widget)
-    {
-        if (widget == null)
-        {
-            return null;
-        }
-        Packet_Widget w = new()
-        {
-            Click = widget.Click ? 1 : 0,
-            ClickKey = widget.ClickKey,
-            Color = widget.Color,
-            Font = ConvertFont(widget.Font),
-            Height_ = widget.Height,
-            Id = widget.Id,
-            Image = widget.Image,
-            Text = widget.Text,
-            Type = widget.Type,
-            Width = widget.Width,
-            X = widget.X,
-            Y = widget.Y
-        };
-        return w;
-    }
-
-    private static Packet_DialogFont ConvertFont(DialogFont dialogFont)
-    {
-        if (dialogFont == null)
-        {
-            return null;
-        }
-        Packet_DialogFont f = new()
-        {
-            FamilyName = dialogFont.FamilyName,
-            FontStyle = dialogFont.FontStyle,
-            SizeFloat = SerializeFloat(dialogFont.Size)
-        };
-        return f;
-    }
-
     public bool PlayerHasPrivilege(int player, string privilege)
     {
-        if (extraPrivileges.ContainsKey(privilege))
+        if (ExtraPrivileges.ContainsKey(privilege))
         {
             return true;
         }
-        if (disabledprivileges.ContainsKey(privilege))
+        if (Disabledprivileges.ContainsKey(privilege))
         {
             return false;
         }
-        return GetClient(player).privileges.Contains(privilege);
+        return GetClient(player).Privileges.Contains(privilege);
     }
 
     public void PlaySoundAt(int posx, int posy, int posz, string sound)
@@ -3351,16 +2790,16 @@ public partial class Server : ICurrentTime, IDropItem
         PlaySoundAtExceptPlayer(posx, posy, posz, sound, null);
     }
 
-    public void PlaySoundAtExceptPlayer(int posx, int posy, int posz, string sound, int? player)
+    private void PlaySoundAtExceptPlayer(int posx, int posy, int posz, string sound, int? player)
     {
         Vector3i pos = new(posx, posy, posz);
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             if (player != null && player == k.Key)
             {
                 continue;
             }
-            int distance = DistanceSquared(new Vector3i(k.Value.PositionMul32GlX / 32, k.Value.PositionMul32GlZ / 32, k.Value.PositionMul32GlY / 32), pos);
+            int distance = VectorUtils.DistanceSquared(new Vector3i(k.Value.PositionMul32GlX / 32, k.Value.PositionMul32GlZ / 32, k.Value.PositionMul32GlY / 32), pos);
             if (distance < 64 * 64)
             {
                 SendSound(k.Key, sound, pos.X, posy, posz);
@@ -3372,16 +2811,17 @@ public partial class Server : ICurrentTime, IDropItem
     {
         PlaySoundAtExceptPlayer(posx, posy, posz, sound, null, range);
     }
-    public void PlaySoundAtExceptPlayer(int posx, int posy, int posz, string sound, int? player, int range)
+
+    private void PlaySoundAtExceptPlayer(int posx, int posy, int posz, string sound, int? player, int range)
     {
         Vector3i pos = new(posx, posy, posz);
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
             if (player != null && player == k.Key)
             {
                 continue;
             }
-            int distance = DistanceSquared(new Vector3i(k.Value.PositionMul32GlX / 32, k.Value.PositionMul32GlZ / 32, k.Value.PositionMul32GlY / 32), pos);
+            int distance = VectorUtils.DistanceSquared(new Vector3i(k.Value.PositionMul32GlX / 32, k.Value.PositionMul32GlZ / 32, k.Value.PositionMul32GlY / 32), pos);
             if (distance < range)
             {
                 SendSound(k.Key, sound, pos.X, posy, posz);
@@ -3393,7 +2833,7 @@ public partial class Server : ICurrentTime, IDropItem
     {
         Packet_ServerFollow p = new()
         {
-            Client = target == -1 ? null : clients[target].playername,
+            Client = target == -1 ? null : Clients[target].PlayerName,
             Tpp = tpp ? 1 : 0,
         };
         SendPacket(player, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.Follow, Follow = p }));
@@ -3428,15 +2868,15 @@ public partial class Server : ICurrentTime, IDropItem
 
     public string GetGroupColor(int playerid)
     {
-        return GetClient(playerid).clientGroup.GroupColorString();
+        return GetClient(playerid).ClientGroup.GroupColorString();
     }
 
     public string GetGroupName(int playerid)
     {
-        return GetClient(playerid).clientGroup.Name;
+        return GetClient(playerid).ClientGroup.Name;
     }
 
-    internal void InstallHttpModule(string name, Func<string> description, IHttpModule module)
+    public void InstallHttpModule(string name, Func<string> description, IHttpModule module)
     {
         ActiveHttpModule m = new()
         {
@@ -3444,83 +2884,73 @@ public partial class Server : ICurrentTime, IDropItem
             description = description,
             module = module
         };
-        httpModules.Add(m);
+        HttpModules.Add(m);
     }
-    internal List<ActiveHttpModule> httpModules = new();
 
-    public ModEventHandlers modEventHandlers = new();
+    public List<ActiveHttpModule> HttpModules { get; set; } = [];
 
-    internal static bool IsTransparentForLight(BlockType b)
-    {
-        return b.DrawType != DrawType.Solid && b.DrawType != DrawType.ClosedDoor;
-    }
+    public ModEventHandlers ModEventHandlers { get; set; } = new();
 
     public int GetSimulationCurrentFrame()
     {
-        return simulationcurrentframe;
+        return SimulationCurrentFrame;
     }
 
-    public GameTime GetTime()
+    public GameTimer GetTimer()
     {
-        return _time;
+        return _gameTimer;
     }
 
-    internal void PlayerEntitySetDirty(int player)
+    public void PlayerEntitySetDirty(int player)
     {
-        foreach (var k in clients.Values)
+        foreach (var k in Clients.Values)
         {
-            k.playersDirty[player] = true;
+            k.PlayersDirty[player] = true;
         }
     }
 
-    internal ServerEntity GetEntity(int chunkx, int chunky, int chunkz, int id)
+    public ServerEntity GetEntity(int chunkx, int chunky, int chunkz, int id)
     {
-        ServerChunk c = d_Map.GetChunk(chunkx * chunksize, chunky * chunksize, chunkz * chunksize);
+        ServerChunk c = Map.GetChunk(chunkx * ChunkSize, chunky * ChunkSize, chunkz * ChunkSize);
         return c.Entities[id];
     }
 
-    internal void SetEntityDirty(ServerEntityId id)
+    public void SetEntityDirty(ServerEntityId id)
     {
-        foreach (var k in clients)
+        foreach (var k in Clients)
         {
-            for (int i = 0; i < k.Value.spawnedEntities.Length; i++)
+            for (int i = 0; i < k.Value.SpawnedEntities.Length; i++)
             {
-                ServerEntityId s = k.Value.spawnedEntities[i];
-                if (s == null)
+                ServerEntityId s = k.Value.SpawnedEntities[i];
+                if (s != null &&
+                    s.ChunkX == id.ChunkX &&
+                    s.ChunkY == id.ChunkY &&
+                    s.ChunkZ == id.ChunkZ &&
+                    s.Id == id.Id)
                 {
-                    continue;
-                }
-                if (s.chunkx == id.chunkx
-                    && s.chunky == id.chunky
-                    && s.chunkz == id.chunkz
-                    && s.id == id.id)
-                {
-                    k.Value.updateEntity[i] = true;
+                    k.Value.UpdateEntity[i] = true;
                 }
             }
         }
-        ServerChunk chunk = d_Map.GetChunk(id.chunkx * chunksize, id.chunky * chunksize, id.chunkz * chunksize);
+        ServerChunk chunk = Map.GetChunk(id.ChunkX * ChunkSize, id.ChunkY * ChunkSize, id.ChunkZ * ChunkSize);
         chunk.DirtyForSaving = true;
     }
 
-    internal void DespawnEntity(ServerEntityId id)
+    public void DespawnEntity(ServerEntityId id)
     {
-        ServerChunk chunk = d_Map.GetChunk(id.chunkx * chunksize, id.chunky * chunksize, id.chunkz * chunksize);
-        chunk.Entities[id.id] = null;
-        if (id.id == chunk.EntitiesCount - 1)
+        ServerChunk chunk = Map.GetChunk(id.ChunkX * ChunkSize, id.ChunkY * ChunkSize, id.ChunkZ * ChunkSize);
+        chunk.Entities[id.Id] = null;
+        if (id.Id == chunk.EntitiesCount - 1)
         {
             chunk.EntitiesCount--;
         }
         chunk.DirtyForSaving = true;
     }
 
-    internal void AddEntity(int x, int y, int z, ServerEntity e)
+    public void AddEntity(int x, int y, int z, ServerEntity e)
     {
-        ServerChunk c = d_Map.GetChunk(x, y, z);
-        if (c.Entities == null)
-        {
-            c.Entities = new ServerEntity[256];
-        }
+        ServerChunk c = Map.GetChunk(x, y, z);
+        c.Entities ??= new ServerEntity[256];
         if (c.Entities.Length < c.EntitiesCount + 1)
         {
             var entities = c.Entities;
@@ -3532,622 +2962,9 @@ public partial class Server : ICurrentTime, IDropItem
     }
 }
 
-public class ClientOnServer
-{
-    public ClientOnServer()
-    {
-        float one = 1;
-        entity = new ServerEntity
-        {
-            DrawName = new ServerEntityDrawName
-            {
-                ClientAutoComplete = true
-            },
-            Position = new ServerEntityPositionAndOrientation
-            {
-                Pitch = 2 * 255 / 4
-            },
-            DrawModel = new ServerEntityAnimatedModel
-            {
-                DownloadSkin = true
-            }
-        };
-        Id = -1;
-        state = ClientStateOnServer.Connecting;
-        queryClient = true;
-        received = new List<byte>();
-        Ping = new Ping();
-        playername = Server.invalidplayername;
-        Model = "player.txt";
-        chunksseenTime = new Dictionary<int, int>();
-        heightmapchunksseen = new Dictionary<Vector2i, int>();
-        IsInventoryDirty = true;
-        IsPlayerStatsDirty = true;
-        FillLimit = 500;
-        privileges = new List<string>();
-        displayColor = "&f";
-        EyeHeight = one * 15 / 10;
-        ModelHeight = one * 17 / 10;
-        WindowSize = new int[] { 800, 600 };
-        playersDirty = new bool[128];
-        for (int i = 0; i < 128; i++)
-        {
-            playersDirty[i] = true;
-        }
-        spawnedEntities = new ServerEntityId[64];
-        spawnedEntitiesCount = 64;
-        updateEntity = new bool[spawnedEntitiesCount];
-    }
-    internal int Id;
-    internal int state; // ClientStateOnServer
-    internal bool queryClient;
-    internal NetServer mainSocket;
-    internal NetConnection socket;
-    internal List<byte> received;
-    internal Ping Ping;
-    internal float LastPing;
-    internal string playername { get { return entity.DrawName.Name; } set { entity.DrawName.Name = value; } }
-    internal int PositionMul32GlX { get { return (int)(entity.Position.X * 32); } set { entity.Position.X = (float)value / 32; } }
-    internal int PositionMul32GlY { get { return (int)(entity.Position.Y * 32); } set { entity.Position.Y = (float)value / 32; } }
-    internal int PositionMul32GlZ { get { return (int)(entity.Position.Z * 32); } set { entity.Position.Z = (float)value / 32; } }
-    internal int positionheading { get { return entity.Position.Heading; } set { entity.Position.Heading = (byte)value; } }
-    internal int positionpitch { get { return entity.Position.Pitch; } set { entity.Position.Pitch = (byte)value; } }
-    internal byte stance { get { return entity.Position.Stance; } set { entity.Position.Stance = value; } }
-    internal string Model { get { return entity.DrawModel.Model; } set { entity.DrawModel.Model = value; } }
-    internal string Texture { get { return entity.DrawModel.Texture; } set { entity.DrawModel.Texture = value; } }
-    internal Dictionary<int, int> chunksseenTime;
-    internal bool[] chunksseen;
-    internal Dictionary<Vector2i, int> heightmapchunksseen;
-    internal Timer notifyMapTimer;
-    internal bool IsInventoryDirty;
-    internal bool IsPlayerStatsDirty;
-    internal int FillLimit;
-    //internal List<byte[]> blobstosend = new List<byte[]>();
-    internal ManicDigger.Group clientGroup;
-    internal bool IsBot;
-    public void AssignGroup(ManicDigger.Group newGroup)
-    {
-        this.clientGroup = newGroup;
-        this.privileges.Clear();
-        this.privileges.AddRange(newGroup.GroupPrivileges);
-        this.color = newGroup.GroupColorString();
-    }
-    internal List<string> privileges;
-    internal string color;
-    internal string displayColor { get { return entity.DrawName.Color; } set { entity.DrawName.Color = value; } }
-    public string ColoredPlayername(string subsequentColor)
-    {
-        return this.color + this.playername + subsequentColor;
-    }
-    internal Timer notifyMonstersTimer;
-    internal IScriptInterpreter Interpreter;
-    internal ScriptConsole Console;
-
-    public override string ToString()
-    {
-        string ip = "";
-        if (this.socket != null)
-        {
-            ip = this.socket.RemoteEndPoint().AddressToString();
-        }
-        // Format: Playername:Group:Privileges IP
-        return string.Format("{0}:{1}:{2} {3}", this.playername, this.clientGroup.Name,
-            ServerClientMisc.PrivilegesString(this.privileges), ip);
-    }
-    internal float EyeHeight { get { return entity.DrawModel.EyeHeight; } set { entity.DrawModel.EyeHeight = value; } }
-    internal float ModelHeight { get { return entity.DrawModel.ModelHeight; } set { entity.DrawModel.ModelHeight = value; } }
-    internal int ActiveMaterialSlot;
-    internal bool IsSpectator;
-    internal bool usingFill;
-    internal int[] WindowSize;
-    internal float notifyPlayerPositionsAccum;
-    internal bool[] playersDirty;
-    internal ServerEntity entity;
-    internal ServerEntityPositionAndOrientation positionOverride;
-    internal float notifyEntitiesAccum;
-    internal ServerEntityId[] spawnedEntities;
-    internal int spawnedEntitiesCount;
-    internal ServerEntityId editingSign;
-    internal bool[] updateEntity;
-}
-
-public class ServerEntityId
-{
-    internal int chunkx;
-    internal int chunky;
-    internal int chunkz;
-    internal int id;
-
-    internal ServerEntityId Clone()
-    {
-        ServerEntityId ret = new()
-        {
-            chunkx = chunkx,
-            chunky = chunky,
-            chunkz = chunkz,
-            id = id
-        };
-        return ret;
-    }
-}
-
-public class ModEventHandlers
-{
-    public List<ModDelegates.WorldGenerator> getchunk = new();
-    public List<ModDelegates.BlockUse> onuse = new();
-    public List<ModDelegates.BlockBuild> onbuild = new();
-    public List<ModDelegates.BlockDelete> ondelete = new();
-    public List<ModDelegates.BlockUseWithTool> onusewithtool = new();
-    public List<ModDelegates.ChangedActiveMaterialSlot> changedactivematerialslot = new();
-    public List<ModDelegates.BlockUpdate> blockticks = new();
-    public List<ModDelegates.PopulateChunk> populatechunk = new();
-    public List<ModDelegates.Command> oncommand = new();
-    public List<ModDelegates.WeaponShot> onweaponshot = new();
-    public List<ModDelegates.WeaponHit> onweaponhit = new();
-    public List<ModDelegates.SpecialKey1> onspecialkey = new();
-    public List<ModDelegates.PlayerJoin> onplayerjoin = new();
-    public List<ModDelegates.PlayerLeave> onplayerleave = new();
-    public List<ModDelegates.PlayerDisconnect> onplayerdisconnect = new();
-    public List<ModDelegates.PlayerChat> onplayerchat = new();
-    public List<ModDelegates.PlayerDeath> onplayerdeath = new();
-    public List<ModDelegates.DialogClick> ondialogclick = new();
-    public List<ModDelegates.DialogClick2> ondialogclick2 = new();
-    public List<ModDelegates.LoadWorld> onloadworld = new();
-    public List<ModDelegates.UpdateEntity> onupdateentity = new();
-    public List<ModDelegates.UseEntity> onuseentity = new();
-    public List<ModDelegates.HitEntity> onhitentity = new();
-    public List<ModDelegates.Permission> onpermission = new();
-    public List<ModDelegates.CheckBlockUse> checkonuse = new();
-    public List<ModDelegates.CheckBlockBuild> checkonbuild = new();
-    public List<ModDelegates.CheckBlockDelete> checkondelete = new();
-}
-
-#region GameTime
-public class GameTime
-{
-    private int _nIngameSecondsEveryRealTimeSecond = 60;
-    private int _nDaysPerYear = 4;
-    private long _nLastIngameSecond = 0;
-
-    private readonly Stopwatch _watchIngameTime = null;
-    private TimeSpan _time = TimeSpan.Zero;
-
-    /// <summary>
-    /// This changes how fast time goes on
-    /// 0 freezes the time
-    /// can be negative to let time run backwards
-    /// </summary>
-    public int SpeedOfTime
-    {
-        get { return _nIngameSecondsEveryRealTimeSecond; }
-        set { _nIngameSecondsEveryRealTimeSecond = value; }
-    }
-
-    /// <summary>
-    /// Days of a year
-    /// </summary>
-    public int DaysPerYear
-    {
-        get { return _nDaysPerYear; }
-        set { _nDaysPerYear = value; }
-    }
-
-    /// <summary>
-    /// ctor
-    /// </summary>
-    internal GameTime()
-    {
-        _watchIngameTime = new Stopwatch();
-    }
-
-    /// <summary>
-    /// Initializes the GameTime component
-    /// </summary>
-    /// <param name="ticks"></param>
-    internal void Init(long ticks)
-    {
-        _time = TimeSpan.FromTicks(ticks);
-        _watchIngameTime.Start();
-    }
-
-    /// <summary>
-    /// Allows the time to tick
-    /// </summary>
-    internal void Start()
-    {
-        _watchIngameTime.Start();
-    }
-
-    /// <summary>
-    /// Stops the time from ticking
-    /// </summary>
-    internal void Stop()
-    {
-        _watchIngameTime.Stop();
-    }
-
-    /// <summary>
-    /// returns the time
-    /// </summary>
-    public TimeSpan Time
-    {
-        get { return _time; }
-    }
-
-    /// <summary>
-    /// Hour of the day
-    /// </summary>
-    public int Hour
-    {
-        get { return _time.Hours; }
-    }
-
-    /// <summary>
-    /// Total hours
-    /// </summary>
-    public double HourTotal
-    {
-        get { return _time.TotalHours; }
-    }
-
-    /// <summary>
-    /// Day of the year
-    /// </summary>
-    public int Day
-    {
-        get { return (int)(_time.TotalDays % _nDaysPerYear); }
-    }
-
-    /// <summary>
-    /// Total days
-    /// </summary>
-    public double DaysTotal
-    {
-        get { return _time.TotalDays; }
-    }
-
-    /// <summary>
-    /// The current year
-    /// </summary>
-    public int Year
-    {
-        get { return (int)(_time.TotalDays / _nDaysPerYear); }
-    }
-
-    /// <summary>
-    /// Gets the current season
-    /// from 0 to 3
-    /// </summary>
-    public int Season
-    {
-        get { return Year % 4; }
-    }
-
-    /// <summary>
-    /// Returns the amount of 15 mins that passed for this day
-    /// </summary>
-    /// <returns></returns>
-    public int GetQuarterHourPartOfDay()
-    {
-        //(_tsIngameTime.Hours * 4)
-        //for every hour of the current day, we got 4 x 15minutes
-
-        //(_tsIngameTime.Minutes / 15)
-        //add the 15 minutes of the current hour
-
-        //TODO: +1 at the end beacause midnight causes daylight :/
-        int nReturn = (_time.Hours * 4) + (_time.Minutes / 15) + 1;
-        return nReturn;
-    }
-
-    /// <summary>
-    /// Ticks the clock if neccesarry.
-    /// Returns true if time changed
-    /// </summary>
-    /// <returns></returns>
-    internal bool Tick()
-    {
-        bool blnTicked = false;
-
-        //update the time of day every second
-        while (_nLastIngameSecond < (_watchIngameTime.ElapsedMilliseconds / 1000))
-        {
-            //Update gametime
-            _time += TimeSpan.FromSeconds(_nIngameSecondsEveryRealTimeSecond);
-
-            ++_nLastIngameSecond;
-
-            blnTicked = true;
-        }
-
-        return blnTicked;
-    }
-
-    /// <summary>
-    /// change the time of the day
-    /// </summary>
-    internal void Set(TimeSpan time)
-    {
-        _time = time;
-    }
-
-    /// <summary>
-    /// Adds the given time
-    /// </summary>
-    /// <param name="time"></param>
-    internal void Add(TimeSpan time)
-    {
-        _time += time;
-    }
-}
-#endregion
-
-public class BlockTypeConverter
-{
-    public static Packet_BlockType GetBlockType(BlockType block)
-    {
-        Packet_BlockType p = new()
-        {
-            AimRadiusFloat = Server.SerializeFloat(block.AimRadius),
-            AmmoMagazine = block.AmmoMagazine,
-            AmmoTotal = block.AmmoTotal,
-            BulletsPerShotFloat = Server.SerializeFloat(block.BulletsPerShot),
-            DamageBodyFloat = Server.SerializeFloat(block.DamageBody),
-            DamageHeadFloat = Server.SerializeFloat(block.DamageHead),
-            DamageToPlayer = block.DamageToPlayer,
-            DelayFloat = Server.SerializeFloat(block.Delay),
-            DrawType = block.DrawType,
-            ExplosionRangeFloat = Server.SerializeFloat(block.ExplosionRange),
-            ExplosionTimeFloat = Server.SerializeFloat(block.ExplosionTime),
-            Handimage = block.handimage,
-            IronSightsAimRadiusFloat = Server.SerializeFloat(block.IronSightsAimRadius),
-            IronSightsEnabled = block.IronSightsEnabled,
-            IronSightsFovFloat = Server.SerializeFloat(block.IronSightsFov),
-            IronSightsImage = block.IronSightsImage,
-            IronSightsMoveSpeedFloat = Server.SerializeFloat(block.IronSightsMoveSpeed),
-            IsBuildable = block.IsBuildable,
-            IsPistol = block.IsPistol,
-            IsSlipperyWalk = block.IsSlipperyWalk,
-            IsTool = block.IsTool,
-            IsUsable = block.IsUsable,
-            LightRadius = block.LightRadius,
-            Name = block.Name,
-            PistolType = block.PistolType,
-            ProjectileBounce = block.ProjectileBounce,
-            ProjectileSpeedFloat = Server.SerializeFloat(block.ProjectileSpeed),
-            Rail = block.Rail,
-            RecoilFloat = Server.SerializeFloat(block.Recoil),
-            ReloadDelayFloat = Server.SerializeFloat(block.ReloadDelay),
-            Sounds = GetSoundSet(block.Sounds),
-            StartInventoryAmount = block.StartInventoryAmount,
-            Strength = block.Strength,
-            TextureIdBack = block.TextureIdBack,
-            TextureIdBottom = block.TextureIdBottom,
-            TextureIdForInventory = block.TextureIdForInventory,
-            TextureIdFront = block.TextureIdFront,
-            TextureIdLeft = block.TextureIdLeft,
-            TextureIdRight = block.TextureIdRight,
-            TextureIdTop = block.TextureIdTop,
-            WalkableType = block.WalkableType,
-            WalkSpeedFloat = Server.SerializeFloat(block.WalkSpeed),
-            WalkSpeedWhenUsedFloat = Server.SerializeFloat(block.WalkSpeedWhenUsed),
-            WhenPlacedGetsConvertedTo = block.WhenPlayerPlacesGetsConvertedTo,
-            PickDistanceWhenUsedFloat = Server.SerializeFloat(block.PickDistanceWhenUsed)
-        };
-        return p;
-    }
-
-    private static Packet_SoundSet GetSoundSet(SoundSet soundSet)
-    {
-        if (soundSet == null)
-        {
-            return null;
-        }
-        Packet_SoundSet p = new()
-        {
-            Break1 = soundSet.Break,
-            Build = soundSet.Build,
-            Clone = soundSet.Clone,
-            Reload = soundSet.Reload,
-            Shoot = soundSet.Shoot,
-            ShootEnd = soundSet.ShootEnd,
-            Walk = soundSet.Walk
-        };
-        return p;
-    }
-}
-
-public class MyLinq
-{
-    public static bool Any<T>(IEnumerable<T> l)
-    {
-        return l.GetEnumerator().MoveNext();
-    }
-    public static T First<T>(IEnumerable<T> l)
-    {
-        var e = l.GetEnumerator();
-        e.MoveNext();
-        return e.Current;
-    }
-    public static int Count<T>(IEnumerable<T> l)
-    {
-        int count = 0;
-        foreach (T v in l)
-        {
-            count++;
-        }
-        return count;
-    }
-    public static IEnumerable<T> Take<T>(IEnumerable<T> l, int n)
-    {
-        int i = 0;
-        foreach (var v in l)
-        {
-            if (i >= n)
-            {
-                yield break;
-            }
-            yield return v;
-            i++;
-        }
-    }
-    public static IEnumerable<T> Skip<T>(IEnumerable<T> l, int n)
-    {
-        var iterator = l.GetEnumerator();
-        for (int i = 0; i < n; i++)
-        {
-            if (iterator.MoveNext() == false)
-                yield break;
-        }
-        while (iterator.MoveNext())
-            yield return iterator.Current;
-    }
-}
 public interface ICurrentTime
 {
     int GetSimulationCurrentFrame();
-}
-public class CurrentTimeDummy : ICurrentTime
-{
-    public int GetSimulationCurrentFrame() { return 0; }
-}
-public static class MapUtil
-{
-    public static int Index2d(int x, int y, int sizex)
-    {
-        return x + y * sizex;
-    }
-
-    public static int Index3d(int x, int y, int h, int sizex, int sizey)
-    {
-        return (h * sizey + y) * sizex + x;
-    }
-
-    public static Vector3i Pos(int index, int sizex, int sizey)
-    {
-        int x = index % sizex;
-        int y = index / sizex % sizey;
-        int h = index / (sizex * sizey);
-        return new Vector3i(x, y, h);
-    }
-
-    public static bool IsValidPos(IMapStorage map, int x, int y, int z)
-    {
-        if (x < 0 || y < 0 || z < 0)
-        {
-            return false;
-        }
-        if (x >= map.MapSizeX || y >= map.MapSizeY || z >= map.MapSizeZ)
-        {
-            return false;
-        }
-        return true;
-    }
-
-    public static bool IsValidPos(IMapStorage map, int x, int y)
-    {
-        if (x < 0 || y < 0)
-        {
-            return false;
-        }
-        if (x >= map.MapSizeX || y >= map.MapSizeY)
-        {
-            return false;
-        }
-        return true;
-    }
-
-    public static bool IsValidChunkPos(IMapStorage map, int cx, int cy, int cz, int chunksize)
-    {
-        return cx >= 0 && cy >= 0 && cz >= 0
-            && cx < map.MapSizeX / chunksize
-            && cy < map.MapSizeY / chunksize
-            && cz < map.MapSizeZ / chunksize;
-    }
-
-    public static int blockheight(IMapStorage map, int tileidempty, int x, int y)
-    {
-        for (int z = map.MapSizeZ - 1; z >= 0; z--)
-        {
-            if (map.GetBlock(x, y, z) != tileidempty)
-            {
-                return z + 1;
-            }
-        }
-        return map.MapSizeZ / 2;
-    }
-
-    private static readonly ulong pow20minus1 = 1048576 - 1;
-    public static Vector3i FromMapPos(ulong v)
-    {
-        uint z = (uint)(v & pow20minus1);
-        v = v >> 20;
-        uint y = (uint)(v & pow20minus1);
-        v = v >> 20;
-        uint x = (uint)(v & pow20minus1);
-        return new Vector3i((int)x, (int)y, (int)z);
-    }
-
-    public static ulong ToMapPos(int x, int y, int z)
-    {
-        ulong v = 0;
-        v = (ulong)x << 40;
-        v |= (ulong)y << 20;
-        v |= (ulong)z;
-        return v;
-    }
-
-    public static int SearchColumn(IMapStorage map, int x, int y, int id, int startH)
-    {
-        for (int h = startH; h > 0; h--)
-        {
-            if (map.GetBlock(x, y, h) == (byte)id)
-            {
-                return h;
-            }
-        }
-        return -1; // -1 means 'not found'
-    }
-
-    public static int SearchColumn(IMapStorage map, int x, int y, int id)
-    {
-        return SearchColumn(map, x, y, id, map.MapSizeZ - 1);
-    }
-
-    public static bool IsSolidChunk(ushort[] chunk)
-    {
-        for (int i = 0; i <= chunk.GetUpperBound(0); i++)
-        {
-            if (chunk[i] != chunk[0])
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static Point PlayerArea(int playerAreaSize, int centerAreaSize, Vector3i blockPosition)
-    {
-        Point p = PlayerCenterArea(playerAreaSize, centerAreaSize, blockPosition);
-        int x = p.X + centerAreaSize / 2;
-        int y = p.Y + centerAreaSize / 2;
-        x -= playerAreaSize / 2;
-        y -= playerAreaSize / 2;
-        return new Point(x, y);
-    }
-
-    public static Point PlayerCenterArea(int playerAreaSize, int centerAreaSize, Vector3i blockPosition)
-    {
-        int px = blockPosition.X;
-        int py = blockPosition.Y;
-        int gridposx = px / centerAreaSize * centerAreaSize;
-        int gridposy = py / centerAreaSize * centerAreaSize;
-        return new Point(gridposx, gridposy);
-    }
-}
-public class MapManipulator
-{
-    public const string BinSaveExtension = ".mddbs";
 }
 
 public class Timer
@@ -4190,82 +3007,5 @@ public class Timer
     private static double GetTime()
     {
         return (double)DateTime.UtcNow.Ticks / (10 * 1000 * 1000);
-    }
-}
-
-/// <summary>
-/// A single material requirement or output in a <see cref="CraftingRecipe"/>.
-/// </summary>
-[MemoryPackable]
-public partial class Ingredient
-{
-    /// <summary>Block type ID of this ingredient or output material.</summary>
-    public int Type { get; set; }
-
-    /// <summary>Number of items required (for inputs) or produced (for output).</summary>
-    public int Amount { get; set; }
-}
-
-/// <summary>
-/// Defines a crafting recipe: a set of required input materials
-/// and the item produced when those inputs are consumed.
-/// </summary>
-[MemoryPackable]
-public partial class CraftingRecipe
-{
-    /// <summary>
-    /// Input materials required to craft this recipe.
-    /// All ingredients must be present in the player's inventory
-    /// in the specified amounts.
-    /// </summary>
-    public Ingredient[]? Ingredients { get; set; }
-
-    /// <summary>The item produced when this recipe is crafted successfully.</summary>
-    public Ingredient? Output { get; set; }
-}
-
-
-public class EntityHeading
-{
-    public static byte GetHeading(float posx, float posy, float targetx, float targety)
-    {
-        float deltaX = targetx - posx;
-        float deltaY = targety - posy;
-        //Angle to x-axis: cos(beta) = x / |length|
-        double headingDeg = 360.0 / (2.0 * Math.PI) * Math.Acos(deltaX / Math.Sqrt(deltaX * deltaX + deltaY * deltaY)) + 90.0;
-        //Add 2 Pi if value is negative
-        if (deltaY < 0)
-        {
-            headingDeg = -headingDeg - 180.0;
-        }
-        if (headingDeg < 0)
-        {
-            headingDeg += 360.0;
-        }
-        if (headingDeg > 360.0)
-        {
-            headingDeg -= 360.0;
-        }
-        //Convert to value between 0 and 255 and return
-        return (byte)(headingDeg / 360.0 * 256.0);
-    }
-}
-
-public abstract class ServerPlatform
-{
-    public abstract void QueueUserWorkItem(Action action);
-    public abstract int FloatToInt(float value);
-}
-
-public class ServerPlatformNative : ServerPlatform
-{
-    public override void QueueUserWorkItem(Action action)
-    {
-        ThreadPool.QueueUserWorkItem((a) => { action(); });
-    }
-
-    public override int FloatToInt(float value)
-    {
-        return (int)value;
     }
 }

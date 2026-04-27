@@ -195,7 +195,7 @@ public class BlockTypeRegistry
     /// Applies all non-null entries in <paramref name="blocktypes"/> to the
     /// registry by calling <see cref="RegisterBlockType"/> for each.
     /// </summary>
-    public void UseBlockTypes(Packet_BlockType[] blocktypes, int count)
+    public void UseBlockTypes(BlockType[] blocktypes, int count)
     {
         for (int i = 0; i < count; i++)
         {
@@ -209,17 +209,17 @@ public class BlockTypeRegistry
     /// from the server descriptor <paramref name="b"/> and resolves any special
     /// block ID this block may represent.
     /// </summary>
-    public void RegisterBlockType(int id, Packet_BlockType b)
+    public void RegisterBlockType(int id, BlockType b)
     {
         if (b.Name == null) return;
 
-        WhenPlayerPlacesGetsConvertedTo[id] = b.WhenPlacedGetsConvertedTo != 0
-            ? b.WhenPlacedGetsConvertedTo
+        WhenPlayerPlacesGetsConvertedTo[id] = b.WhenPlayerPlacesGetsConvertedTo != 0
+            ? b.WhenPlayerPlacesGetsConvertedTo
             : id;
 
         IsFlower[id] = b.DrawType == DrawType.Plant;
         Rail[id] = b.Rail;
-        WalkSpeed[id] = DeserializeFloat(b.WalkSpeedFloat);
+        WalkSpeed[id] = b.WalkSpeed;
         IsSlipperyWalk[id] = b.IsSlipperyWalk;
 
         // ── Sound variants ────────────────────────────────────────────────────
@@ -237,7 +237,7 @@ public class BlockTypeRegistry
             // to string.Concat, prepending its ToString() to every sound filename.
             // Sound paths should just be the name + ".wav".
             for (int i = 0; i < b.Sounds.Walk.Length; i++) WalkSound[id][i] = b.Sounds.Walk[i] + ".wav";
-            for (int i = 0; i < b.Sounds.Break1.Length; i++) BreakSound[id][i] = b.Sounds.Break1[i] + ".wav";
+            for (int i = 0; i < b.Sounds.Break.Length; i++) BreakSound[id][i] = b.Sounds.Break[i] + ".wav";
             for (int i = 0; i < b.Sounds.Build.Length; i++) BuildSound[id][i] = b.Sounds.Build[i] + ".wav";
             for (int i = 0; i < b.Sounds.Clone.Length; i++) CloneSound[id][i] = b.Sounds.Clone[i] + ".wav";
         }
@@ -264,7 +264,7 @@ public class BlockTypeRegistry
     /// TODO: replace name-based matching with a dedicated block property so that
     /// special IDs do not depend on server-side naming conventions.
     /// </remarks>
-    private bool SetSpecialBlockId(Packet_BlockType b, int id)
+    private bool SetSpecialBlockId(BlockType b, int id)
     {
         switch (b.Name)
         {

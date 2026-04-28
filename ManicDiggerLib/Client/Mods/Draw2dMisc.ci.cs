@@ -150,8 +150,8 @@ public class ModDraw2dMisc : ModBase
 
     internal void DrawAmmo()
     {
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
-        if (item == null || item.ItemClass != InventoryItemType.Block) return;
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
+        if (item == null || item.InventoryItemType != InventoryItemType.Block) return;
         if (!game.BlockTypes[item.BlockId].IsPistol) return;
 
         int loaded = game.LoadedAmmo[item.BlockId];

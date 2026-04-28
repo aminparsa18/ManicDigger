@@ -24,7 +24,7 @@ public class ModGuiCrafting : ModBase
 
     // ── Crafting session state ────────────────────────────────────────────────
     private int craftingTablePosX, craftingTablePosY, craftingTablePosZ;
-    private Packet_CraftingRecipe[] craftingRecipes2;
+    private CraftingRecipe[] craftingRecipes2;
     private int craftingRecipes2Count;
     private int craftingSelectedRecipe;
 
@@ -46,7 +46,7 @@ public class ModGuiCrafting : ModBase
     private readonly int[] _blockTypeCounts = new int[GlobalVar.MAX_BLOCKTYPES];
 
     // ── Injected dependencies ─────────────────────────────────────────────────
-    internal Packet_CraftingRecipe[] d_CraftingRecipes;
+    internal CraftingRecipe[] d_CraftingRecipes;
     internal int d_CraftingRecipesCount;
     internal CraftingTableTool d_CraftingTableTool;
 
@@ -131,13 +131,13 @@ public class ModGuiCrafting : ModBase
         currentRecipesCount = 0;
         for (int i = 0; i < craftingRecipes2Count; i++)
         {
-            Packet_CraftingRecipe r = craftingRecipes2[i];
+            CraftingRecipe r = craftingRecipes2[i];
             if (r == null) continue;
 
             bool canCraft = true;
             for (int k = 0; k < r.Ingredients.Length; k++)
             {
-                Packet_Ingredient ing = r.Ingredients[k];
+                Ingredient ing = r.Ingredients[k];
                 if (ing == null) continue;
                 if (_blockTypeCounts[ing.Type] < ing.Amount)
                 {
@@ -161,7 +161,7 @@ public class ModGuiCrafting : ModBase
 
         for (int i = 0; i < currentRecipesCount; i++)
         {
-            Packet_CraftingRecipe r = craftingRecipes2[currentRecipes[i]];
+            CraftingRecipe r = craftingRecipes2[currentRecipes[i]];
             int rowY = menuY + i * RecipeRowHeight;
             int color = i == craftingSelectedRecipe
                 ? ColorUtils.ColorFromArgb(255, 255, 0, 0)
@@ -170,7 +170,7 @@ public class ModGuiCrafting : ModBase
 
             for (int ii = 0; ii < r.Ingredients.Length; ii++)
             {
-                Packet_Ingredient ing = r.Ingredients[ii];
+                Ingredient ing = r.Ingredients[ii];
                 int colX = menuX + 20 + ii * 130;
                 game.Draw2dTexture(game.TerrainTexture,
                     colX, rowY, 32, 32,
@@ -214,7 +214,7 @@ public class ModGuiCrafting : ModBase
 
     // ── Session management ────────────────────────────────────────────────────
 
-    internal void CraftingRecipesStart(Packet_CraftingRecipe[] recipes, int recipesCount,
+    internal void CraftingRecipesStart(CraftingRecipe[] recipes, int recipesCount,
         int[] blocks, int blocksCount,
         int posX, int posY, int posZ)
     {

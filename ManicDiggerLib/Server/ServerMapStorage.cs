@@ -1,96 +1,4 @@
-﻿#region Using Statements
-using ManicDigger;
-using OpenTK.Mathematics;
-using static ManicDigger.Mods.ModNetworkProcess;
-#endregion
-
-/// <summary>
-/// Represents a single monster entity in the world.
-/// Persisted as part of the <see cref="ServerChunk"/> it occupies.
-/// </summary>
-[MemoryPackable]
-public partial class Monster
-{
-    /// <summary>Unique monster ID, assigned by the server at spawn time.</summary>
-    public int Id { get; set; }
-
-    /// <summary>Monster type index, used to look up behaviour and appearance.</summary>
-    public int MonsterType { get; set; }
-
-    /// <summary>World X position in blocks.</summary>
-    public int X { get; set; }
-
-    /// <summary>World Y position in blocks.</summary>
-    public int Y { get; set; }
-
-    /// <summary>World Z position in blocks.</summary>
-    public int Z { get; set; }
-
-    /// <summary>Current health points. Not persisted — reset on world load.</summary>
-    [MemoryPackIgnore]
-    public int Health { get; set; }
-
-    /// <summary>Current movement direction. Not persisted — recalculated each tick.</summary>
-    [MemoryPackIgnore]
-    public Vector3i WalkDirection { get; set; }
-
-    /// <summary>
-    /// Fractional progress [0, 1] through the current movement step.
-    /// Not persisted — reset on world load.
-    /// </summary>
-    [MemoryPackIgnore]
-    public float WalkProgress { get; set; }
-}
-
-/// <summary>
-/// A 32³ (or 16³) block volume stored as a flat <see cref="ushort"/> array,
-/// along with any monsters and entities that currently occupy it.
-/// Persisted to the chunk database and loaded on demand.
-/// </summary>
-[MemoryPackable]
-public partial class ServerChunk
-{
-    /// <summary>
-    /// Legacy block data stored as <see langword="byte[]"/> from older save formats.
-    /// When non-null on load, its contents are migrated into <see cref="Data"/>
-    /// and this field is cleared.
-    /// </summary>
-    public byte[]? DataOld { get; set; }
-
-    /// <summary>
-    /// Block type IDs for every position in the chunk, stored in XYZ order.
-    /// Index = <c>x + y * chunksize + z * chunksize * chunksize</c>.
-    /// </summary>
-    public ushort[]? Data { get; set; }
-
-    /// <summary>Simulation frame on which this chunk was last modified by the world generator or a player.</summary>
-    public long LastUpdate { get; set; }
-
-    /// <summary>When <see langword="true"/>, this chunk has been fully generated and populated with terrain.</summary>
-    public bool IsPopulated { get; set; }
-
-    /// <summary>Simulation frame of the most recent block change within this chunk.</summary>
-    public int LastChange { get; set; }
-
-    /// <summary>
-    /// When <see langword="true"/>, this chunk has unsaved changes and must be
-    /// written to the database on the next save pass.
-    /// Not persisted — always resets to <see langword="false"/> on load.
-    /// </summary>
-    [MemoryPackIgnore]
-    public bool DirtyForSaving { get; set; }
-
-    /// <summary>Monsters currently residing in this chunk.</summary>
-    public List<Monster> Monsters { get; set; } = [];
-
-    /// <summary>Number of valid entries in <see cref="Entities"/>.</summary>
-    public int EntitiesCount { get; set; }
-
-    /// <summary>Server entities (signs, push zones, interactive objects) located in this chunk.</summary>
-    public ServerEntity[]? Entities { get; set; }
-}
-
-public class ServerMapStorage : IMapStorage
+﻿public class ServerMapStorage : IMapStorage
 {
     internal Server server;
     internal IChunkDb d_ChunkDb;
@@ -133,7 +41,7 @@ public class ServerMapStorage : IMapStorage
         for (int i = mapSizeZ - 1; i >= 0; i--)
         {
             height = i;
-            if (!Server.IsTransparentForLight(server.BlockTypes[GetBlock(x, y, i)]))
+            if (!Game.IsTransparentForLight(server.BlockTypes[GetBlock(x, y, i)]))
             {
                 break;
             }
@@ -184,7 +92,7 @@ public class ServerMapStorage : IMapStorage
             wasChunkGenerated = true;
             unchecked
             {
-                byte[] serializedChunk = ChunkDb.GetChunk(d_ChunkDb, x, y, z);
+                byte[] serializedChunk = ChunkDbHelper.GetChunk(d_ChunkDb, x, y, z);
 
                 if (serializedChunk != null)
                 {
@@ -208,8 +116,8 @@ public class ServerMapStorage : IMapStorage
                 }
 
                 ushort[] newchunk = new ushort[chunksize * chunksize * chunksize];
-                for (int i = 0; i < server.modEventHandlers.getchunk.Count; i++)
-                    server.modEventHandlers.getchunk[i](x, y, z, newchunk);
+                for (int i = 0; i < server.ModEventHandlers.getchunk.Count; i++)
+                    server.ModEventHandlers.getchunk[i](x, y, z, newchunk);
 
                 int genNonZero = 0;
                 for (int i = 0; i < newchunk.Length; i++)
@@ -251,7 +159,7 @@ public class ServerMapStorage : IMapStorage
             for (int i = chunksize - 1; i >= 0; i--)
             {
                 height = i;
-                if (!Server.IsTransparentForLight(server.BlockTypes[chunk[VectorIndexUtil.Index3d(xx, yy, i, chunksize, chunksize)]]))
+                if (!Game.IsTransparentForLight(server.BlockTypes[chunk[VectorIndexUtil.Index3d(xx, yy, i, chunksize, chunksize)]]))
                 {
                     break;
                 }

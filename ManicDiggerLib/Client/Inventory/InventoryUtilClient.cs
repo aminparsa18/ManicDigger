@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using ManicDigger;
+
+/// <summary>
 /// Provides utility methods for querying and manipulating the client-side inventory grid.
 /// This class does not own inventory state — it reads from an injected
 /// <see cref="Packet_Inventory"/> and <see cref="InventoryUtils"/>.
@@ -145,8 +147,8 @@ public class InventoryUtilClient
     ///     The active material index, used to select the correct hand slot when
     ///     <paramref name="wearPlace"/> is <see cref="WearPlace.RightHand"/>.
     /// </param>
-    /// <returns>The <see cref="Packet_Item"/> in the slot, or <c>null</c>.</returns>
-    public Packet_Item? ItemAtWearPlace(WearPlace wearPlace, int activeMaterial)
+    /// <returns>The <see cref="InventoryItem"/> in the slot, or <c>null</c>.</returns>
+    public InventoryItem? ItemAtWearPlace(WearPlace wearPlace, int activeMaterial)
     {
         return wearPlace switch
         {
@@ -209,7 +211,7 @@ public class InventoryUtilClient
         for (int i = 0; i < _inventory.Items.Length; i++)
         {
             Packet_PositionItem posItem = _inventory.Items[i];
-            Packet_Item item = posItem.Value_;
+            InventoryItem item = posItem.Value_;
             var origin = new Point(posItem.X, posItem.Y);
 
             int w = _items.ItemSizeX(item);

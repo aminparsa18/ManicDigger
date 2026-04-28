@@ -24,9 +24,9 @@ public class ServerSystemNotifyMap : ServerSystem
         while (sentAny && stopwatch.ElapsedMilliseconds < 10)
         {
             sentAny = false;
-            foreach (var (clientId, client) in server.clients)
+            foreach (var (clientId, client) in server.Clients)
             {
-                if (client.state == ClientStateOnServer.Connecting) continue;
+                if (client.State == ClientStateOnServer.Connecting) continue;
 
                 Vector3i playerPos = Server.PlayerBlockPosition(client);
                 Vector3i? nearest = FindNearestDirtyChunk(server, clientId, playerPos);
@@ -54,12 +54,12 @@ public class ServerSystemNotifyMap : ServerSystem
     /// </returns>
     private static Vector3i? FindNearestDirtyChunk(Server server, int clientId, Vector3i playerPos)
     {
-        int px = playerPos.X / Server.chunksize;
-        int py = playerPos.Y / Server.chunksize;
-        int pz = playerPos.Z / Server.chunksize;
+        int px = playerPos.X / Server.ChunkSize;
+        int py = playerPos.Y / Server.ChunkSize;
+        int pz = playerPos.Z / Server.ChunkSize;
 
-        int halfXY = MapAreaSize(server) / Server.chunksize / 2;
-        int halfZ = MapAreaSizeZ(server) / Server.chunksize / 2;
+        int halfXY = MapAreaSize(server) / Server.ChunkSize / 2;
+        int halfZ = MapAreaSizeZ(server) / Server.ChunkSize / 2;
 
         int startX = Math.Max(0, px - halfXY);
         int startY = Math.Max(0, py - halfXY);
@@ -107,9 +107,9 @@ public class ServerSystemNotifyMap : ServerSystem
         if (!server.ClientSeenChunk(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z))
         {
             var globalPos = new Vector3i(
-                chunkPos.X * Server.chunksize,
-                chunkPos.Y * Server.chunksize,
-                chunkPos.Z * Server.chunksize);
+                chunkPos.X * Server.ChunkSize,
+                chunkPos.Y * Server.ChunkSize,
+                chunkPos.Z * Server.ChunkSize);
 
             SendChunk(server, clientId, globalPos, chunkPos);
         }
@@ -129,39 +129,39 @@ public class ServerSystemNotifyMap : ServerSystem
     /// <param name="chunkPos">Chunk-space coordinates of the chunk.</param>
     public static void SendChunk(Server server, int clientId, Vector3i globalPos, Vector3i chunkPos)
     {
-        ClientOnServer client = server.clients[clientId];
-        ServerChunk chunk = server.d_Map.GetChunk(globalPos.X, globalPos.Y, globalPos.Z);
-        server.ClientSeenChunkSet(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z, server.simulationcurrentframe);
+        ClientOnServer client = server.Clients[clientId];
+        ServerChunk chunk = server.Map.GetChunk(globalPos.X, globalPos.Y, globalPos.Z);
+        server.ClientSeenChunkSet(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z, server.SimulationCurrentFrame);
 
-        bool isSolid = MapUtil.IsSolidChunk(chunk.Data);
+        bool isSolid = IsSolidChunk(chunk.Data);
         int firstBlock = chunk.Data?[0] ?? -1;
         int nonZero = chunk.Data?.Count(b => b != 0) ?? -1;
 
         byte[] compressedChunk = null;
 
-        if (!MapUtil.IsSolidChunk(chunk.Data) || chunk.Data[0] != 0)
+        if (!IsSolidChunk(chunk.Data) || chunk.Data[0] != 0)
         {
             // Compress and queue block data for sending
             compressedChunk = server.CompressChunkNetwork(chunk.Data);
 
             // Send heightmap for this column
             ReadOnlySpan<byte> heightmapBytes = MemoryMarshal.AsBytes(
-                server.d_Map.GetHeightmapChunk(globalPos.X, globalPos.Y).AsSpan());
+                server.Map.GetHeightmapChunk(globalPos.X, globalPos.Y).AsSpan());
 
             var heightmapPacket = new Packet_ServerHeightmapChunk
             {
                 X = globalPos.X,
                 Y = globalPos.Y,
-                SizeX = Server.chunksize,
-                SizeY = Server.chunksize,
-                CompressedHeightmap = server.d_NetworkCompression.Compress(heightmapBytes)
+                SizeX = Server.ChunkSize,
+                SizeY = Server.ChunkSize,
+                CompressedHeightmap = server.NetworkCompression.Compress(heightmapBytes)
             };
             server.SendPacket(clientId, Server.Serialize(new Packet_Server
             {
                 Id = Packet_ServerIdEnum.HeightmapChunk,
                 HeightmapChunk = heightmapPacket
             }));
-            client.heightmapchunksseen[new Vector2i(globalPos.X, globalPos.Y)] = server.simulationcurrentframe;
+            client.heightmapchunksseen[new Vector2i(globalPos.X, globalPos.Y)] = server.SimulationCurrentFrame;
         }
 
         // Send block data in 1 KB parts
@@ -186,9 +186,9 @@ public class ServerSystemNotifyMap : ServerSystem
                 X = globalPos.X,
                 Y = globalPos.Y,
                 Z = globalPos.Z,
-                SizeX = Server.chunksize,
-                SizeY = Server.chunksize,
-                SizeZ = Server.chunksize
+                SizeX = Server.ChunkSize,
+                SizeY = Server.ChunkSize,
+                SizeZ = Server.ChunkSize
             }
         }));
     }
@@ -198,8 +198,20 @@ public class ServerSystemNotifyMap : ServerSystem
     // -------------------------------------------------------------------------
 
     /// <summary>Returns the XY map streaming area size in blocks based on the configured draw distance.</summary>
-    public static int MapAreaSize(Server server) => server.chunkdrawdistance * Server.chunksize * 2;
+    public static int MapAreaSize(Server server) => server.ChunkDrawDistance * Server.ChunkSize * 2;
 
     /// <summary>Returns the Z map streaming area size in blocks. Currently mirrors the XY area.</summary>
     public static int MapAreaSizeZ(Server server) => MapAreaSize(server);
+
+    private static bool IsSolidChunk(ushort[] chunk)
+    {
+        for (int i = 0; i <= chunk.GetUpperBound(0); i++)
+        {
+            if (chunk[i] != chunk[0])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 }

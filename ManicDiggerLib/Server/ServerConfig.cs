@@ -129,74 +129,27 @@ public class AreaConfig
             z2 = Convert.ToInt32(myCoords[5]);
         }
     }
-    public bool IsInCoords(int x, int y, int z)
-    {
-        if (x >= x1 && x <= x2 && y >= y1 && y <= y2 && z >= z1 && z <= z2)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
+
+    public bool IsInCoords(int x, int y, int z) 
+        => x >= x1 && x <= x2 && y >= y1 && y <= y2 && z >= z1 && z <= z2;
+
+    public bool ContainsBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) 
+        => minX >= x1 && maxX <= x2 && minY >= y1 && maxY <= y2 && minZ >= z1 && maxZ <= z2;
 
     public bool CanUserBuild(ClientOnServer client)
     {
-        if (this.Level != null)
-        {
-            if (client.clientGroup.Level >= this.Level)
-            {
-                return true;
-            }
-        }
-        foreach (string allowedGroup in this.PermittedGroups)
-        {
-            if (allowedGroup.Equals(client.clientGroup.Name))
-            {
-                return true;
-            }
-        }
-        foreach (string allowedUser in this.PermittedUsers)
-        {
-            if (allowedUser.Equals(client.playername, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return true;
-            }
-        }
+        if (Level != null && client.ClientGroup.Level >= Level) return true;
+        if (PermittedGroups.Contains(client.ClientGroup.Name)) return true;
+        if (PermittedUsers.Any(u => u.Equals(client.PlayerName, StringComparison.InvariantCultureIgnoreCase))) return true;
         return false;
     }
 
     public override string ToString()
     {
-        string permittedGroupsString = "";
-
-        if (this.PermittedGroups.Count > 0)
-        {
-            permittedGroupsString = this.PermittedGroups[0].ToString();
-            for (int i = 1; i < this.PermittedGroups.Count; i++)
-            {
-                permittedGroupsString += $",{this.PermittedGroups[i]}";
-            }
-        }
-
-        string permittedUsersString = "";
-        if (this.PermittedUsers.Count > 0)
-        {
-            permittedUsersString = this.PermittedUsers[0].ToString();
-            for (int i = 1; i < this.PermittedUsers.Count; i++)
-            {
-                permittedUsersString += $",{this.PermittedUsers[i]}";
-            }
-        }
-
-        string levelString = "";
-        if (Level != null)
-        {
-            levelString = this.Level.ToString();
-        }
-
-        return $"{Id}:{Coords}:{permittedGroupsString}:{permittedUsersString}:{levelString}";
+        string groups = string.Join(",", PermittedGroups);
+        string users = string.Join(",", PermittedUsers);
+        string level = Level?.ToString() ?? "";
+        return $"{Id}:{Coords}:{groups}:{users}:{level}";
     }
 }
 

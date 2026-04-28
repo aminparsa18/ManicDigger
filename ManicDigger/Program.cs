@@ -80,10 +80,10 @@ public class Program
         Server server = new()
         {
             SaveFilenameOverride = savefilename,
-            exit = exit,
-            mainSockets = new NetServer[3]
+            GameExit = exit,
+            MainSockets = new NetServer[3]
         };
-        server.mainSockets[0] = netServer;
+        server.MainSockets[0] = netServer;
 
         while (true)
         {

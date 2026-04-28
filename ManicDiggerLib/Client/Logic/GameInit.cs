@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 using System.Collections.Concurrent;
 
 /// <summary>
@@ -305,8 +306,8 @@ public partial class Game : IGameClient
     internal bool exitToMainMenu;
     private bool startedconnecting;
 
-    public Packet_BlockType[] BlockTypes { get; set; }
-    public Packet_BlockType[] NewBlockTypes { get; set; }
+    public BlockType[] BlockTypes { get; set; }
+    public BlockType[] NewBlockTypes { get; set; }
 
     public string BlobDownloadName { get; set; }
     public string BlobDownloadMd5 { get; set; }
@@ -535,7 +536,7 @@ public partial class Game : IGameClient
     private void InitNetworking()
     {
         PacketHandlers = new ClientPacketHandler[256];
-        NewBlockTypes = new Packet_BlockType[GlobalVar.MAX_BLOCKTYPES];
+        NewBlockTypes = new BlockType[GlobalVar.MAX_BLOCKTYPES];
         speculativeCount = 0;
         speculative = new Speculative?[speculativeMax];
     }

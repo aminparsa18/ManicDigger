@@ -2,6 +2,8 @@
 
 public class ServerSystemChunksSimulation : ServerSystem
 {
+    private Random _rnd; 
+
     public int[] MonsterTypesUnderground = [1, 2];
     public int[] MonsterTypesOnGround = [0, 3, 4];
 
@@ -19,6 +21,7 @@ public class ServerSystemChunksSimulation : ServerSystem
     {
         // Frames between full chunk updates: once per 10 minutes of simulation time
         simulationInterval = (int)(1f / server.SIMULATION_STEP_LENGTH) * 60 * 10;
+        _rnd = new Random();
     }
 
     protected override void OnUpdate(Server server, float dt)
@@ -38,7 +41,7 @@ public class ServerSystemChunksSimulation : ServerSystem
     {
         unchecked
         {
-            foreach (var k in server.clients)
+            foreach (var k in server.Clients)
             {
                 Vector3i playerPos = Server.PlayerBlockPosition(k.Value);
 
@@ -47,19 +50,19 @@ public class ServerSystemChunksSimulation : ServerSystem
 
                 foreach (Vector3i chunkPos in ChunksAroundPlayer(server, playerPos))
                 {
-                    if (!MapUtil.IsValidPos(server.d_Map, chunkPos.X, chunkPos.Y, chunkPos.Z))
+                    if (!VectorUtils.IsValidPos(server.Map, chunkPos.X, chunkPos.Y, chunkPos.Z))
                         continue;
 
-                    ServerChunk chunk = server.d_Map.GetChunkValid(
-                        Server.invertChunk(chunkPos.X),
-                        Server.invertChunk(chunkPos.Y),
-                        Server.invertChunk(chunkPos.Z));
+                    ServerChunk chunk = server.Map.GetChunkValid(
+                        Server.InvertChunk(chunkPos.X),
+                        Server.InvertChunk(chunkPos.Y),
+                        Server.InvertChunk(chunkPos.Z));
 
                     if (chunk?.Data == null) continue;
 
                     // Guard against future timestamps
-                    if (chunk.LastUpdate > server.simulationcurrentframe)
-                        chunk.LastUpdate = server.simulationcurrentframe;
+                    if (chunk.LastUpdate > server.SimulationCurrentFrame)
+                        chunk.LastUpdate = server.SimulationCurrentFrame;
 
                     if (chunk.LastUpdate < oldestTime)
                     {
@@ -74,16 +77,16 @@ public class ServerSystemChunksSimulation : ServerSystem
                     }
                 }
 
-                if (server.simulationcurrentframe - oldestTime > simulationInterval)
+                if (server.SimulationCurrentFrame - oldestTime > simulationInterval)
                 {
                     UpdateChunk(server, oldestPos);
 
-                    ServerChunk chunk = server.d_Map.GetChunkValid(
-                        Server.invertChunk(oldestPos.X),
-                        Server.invertChunk(oldestPos.Y),
-                        Server.invertChunk(oldestPos.Z));
+                    ServerChunk chunk = server.Map.GetChunkValid(
+                        Server.InvertChunk(oldestPos.X),
+                        Server.InvertChunk(oldestPos.Y),
+                        Server.InvertChunk(oldestPos.Z));
 
-                    chunk.LastUpdate = server.simulationcurrentframe;
+                    chunk.LastUpdate = server.SimulationCurrentFrame;
                     return;
                 }
             }
@@ -98,10 +101,10 @@ public class ServerSystemChunksSimulation : ServerSystem
     {
         unchecked
         {
-            var handlers = server.modEventHandlers.populatechunk;
-            int x = (int)(chunkPos.X * Server.invertedChunkSize);
-            int y = (int)(chunkPos.Y * Server.invertedChunkSize);
-            int z = (int)(chunkPos.Z * Server.invertedChunkSize);
+            var handlers = server.ModEventHandlers.populatechunk;
+            int x = (int)(chunkPos.X * Server.InvertedChunkSize);
+            int y = (int)(chunkPos.Y * Server.InvertedChunkSize);
+            int z = (int)(chunkPos.Z * Server.InvertedChunkSize);
             for (int i = 0; i < handlers.Count; i++)
                 handlers[i](x, y, z);
         }
@@ -115,19 +118,19 @@ public class ServerSystemChunksSimulation : ServerSystem
     {
         unchecked
         {
-            if (server.config.Monsters)
+            if (server.Config.Monsters)
                 AddMonsters(server, chunkPos);
 
-            var blockTicks = server.modEventHandlers.blockticks;
+            var blockTicks = server.ModEventHandlers.blockticks;
             int tickCount = blockTicks.Count;
 
-            for (int xx = 0; xx < Server.chunksize; xx++)
+            for (int xx = 0; xx < Server.ChunkSize; xx++)
             {
                 int px = xx + chunkPos.X;
-                for (int yy = 0; yy < Server.chunksize; yy++)
+                for (int yy = 0; yy < Server.ChunkSize; yy++)
                 {
                     int py = yy + chunkPos.Y;
-                    for (int zz = 0; zz < Server.chunksize; zz++)
+                    for (int zz = 0; zz < Server.ChunkSize; zz++)
                     {
                         int pz = zz + chunkPos.Z;
                         for (int i = 0; i < tickCount; i++)
@@ -144,19 +147,19 @@ public class ServerSystemChunksSimulation : ServerSystem
 
     private static IEnumerable<Vector3i> ChunksAroundPlayer(Server server, Vector3i playerPos)
     {
-        int zDrawDistance = Server.invertChunk(server.d_Map.MapSizeZ);
+        int zDrawDistance = Server.InvertChunk(server.Map.MapSizeZ);
         unchecked
         {
-            for (int x = -server.chunkdrawdistance; x <= server.chunkdrawdistance; x++)
-                for (int y = -server.chunkdrawdistance; y <= server.chunkdrawdistance; y++)
+            for (int x = -server.ChunkDrawDistance; x <= server.ChunkDrawDistance; x++)
+                for (int y = -server.ChunkDrawDistance; y <= server.ChunkDrawDistance; y++)
                     for (int z = 0; z < zDrawDistance; z++)
                     {
                         var p = new Vector3i(
-                            playerPos.X + x * Server.chunksize,
-                            playerPos.Y + y * Server.chunksize,
-                            z * Server.chunksize);
+                            playerPos.X + x * Server.ChunkSize,
+                            playerPos.Y + y * Server.ChunkSize,
+                            z * Server.ChunkSize);
 
-                        if (MapUtil.IsValidPos(server.d_Map, p.X, p.Y, p.Z))
+                        if (VectorUtils.IsValidPos(server.Map, p.X, p.Y, p.Z))
                             yield return p;
                     }
         }
@@ -168,16 +171,16 @@ public class ServerSystemChunksSimulation : ServerSystem
 
     public void AddMonsters(Server server, Vector3i chunkPos)
     {
-        ServerChunk chunk = server.d_Map.GetChunkValid(
-            chunkPos.X / Server.chunksize,
-            chunkPos.Y / Server.chunksize,
-            chunkPos.Z / Server.chunksize);
+        ServerChunk chunk = server.Map.GetChunkValid(
+            chunkPos.X / Server.ChunkSize,
+            chunkPos.Y / Server.ChunkSize,
+            chunkPos.Z / Server.ChunkSize);
 
         for (int tries = 0; chunk.Monsters.Count < MinMonstersPerChunk && tries < MonsterSpawnMaxTries; tries++)
         {
-            int px = chunkPos.X + server.rnd.Next(Server.chunksize);
-            int py = chunkPos.Y + server.rnd.Next(Server.chunksize);
-            int pz = chunkPos.Z + server.rnd.Next(Server.chunksize);
+            int px = chunkPos.X + _rnd.Next(Server.ChunkSize);
+            int py = chunkPos.Y + _rnd.Next(Server.ChunkSize);
+            int pz = chunkPos.Z + _rnd.Next(Server.ChunkSize);
 
             if (!IsValidSpawnPosition(server, px, py, pz)) continue;
 
@@ -199,21 +202,21 @@ public class ServerSystemChunksSimulation : ServerSystem
     }
 
     private static bool IsValidSpawnPosition(Server server, int px, int py, int pz) =>
-        MapUtil.IsValidPos(server.d_Map, px, py, pz) &&
-        MapUtil.IsValidPos(server.d_Map, px, py, pz + 1) &&
-        MapUtil.IsValidPos(server.d_Map, px, py, pz - 1);
+        VectorUtils.IsValidPos(server.Map, px, py, pz) &&
+        VectorUtils.IsValidPos(server.Map, px, py, pz + 1) &&
+        VectorUtils.IsValidPos(server.Map, px, py, pz - 1);
 
     private int ChooseMonsterType(Server server, int px, int py, int pz)
     {
-        int surfaceHeight = MapUtil.blockheight(server.d_Map, 0, px, py);
+        int surfaceHeight = VectorUtils.BlockHeight(server.Map, 0, px, py);
         return pz >= surfaceHeight
-            ? MonsterTypesOnGround[server.rnd.Next(MonsterTypesOnGround.Length)]
-            : MonsterTypesUnderground[server.rnd.Next(MonsterTypesUnderground.Length)];
+            ? MonsterTypesOnGround[_rnd.Next(MonsterTypesOnGround.Length)]
+            : MonsterTypesUnderground[_rnd.Next(MonsterTypesUnderground.Length)];
     }
 
     private static bool IsOpenGround(Server server, int px, int py, int pz) =>
-        server.d_Map.GetBlock(px, py, pz) == 0 &&
-        server.d_Map.GetBlock(px, py, pz + 1) == 0 &&
-        server.d_Map.GetBlock(px, py, pz - 1) != 0 &&
-        !server.BlockTypes[server.d_Map.GetBlock(px, py, pz - 1)].IsFluid();
+        server.Map.GetBlock(px, py, pz) == 0 &&
+        server.Map.GetBlock(px, py, pz + 1) == 0 &&
+        server.Map.GetBlock(px, py, pz - 1) != 0 &&
+        !server.BlockTypes[server.Map.GetBlock(px, py, pz - 1)].IsFluid();
 }

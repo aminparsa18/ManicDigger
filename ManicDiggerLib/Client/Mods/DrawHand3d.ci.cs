@@ -174,12 +174,12 @@ public class ModDrawHand3d : ModBase
     /// <summary>Returns the appropriate hand image path for the currently held item, or null if none.</summary>
     private string HandImage2d()
     {
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         if (item == null) return null;
 
         return game.IronSights
             ? game.BlockTypes[item.BlockId].IronSightsImage
-            : game.BlockTypes[item.BlockId].Handimage;
+            : game.BlockTypes[item.BlockId].handimage;
     }
 
     /// <summary>Returns the OpenGL texture ID of the terrain texture atlas.</summary>
@@ -197,7 +197,7 @@ public class ModDrawHand3d : ModBase
     /// <returns>Texture atlas index for that face.</returns>
     public int GetWeaponTextureId(TileSide side)
     {
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
 
         if (item == null || IsCompass() || item.BlockId == 0)
         {
@@ -209,7 +209,7 @@ public class ModDrawHand3d : ModBase
             return game.TextureId[game.BlockRegistry.BlockIdEmptyHand][(int)TileSide.Front];
         }
 
-        if (item.ItemClass == InventoryItemType.Block)
+        if (item.InventoryItemType == InventoryItemType.Block)
         {
             return game.TextureId[item.BlockId][(int)side];
         }
@@ -236,9 +236,9 @@ public class ModDrawHand3d : ModBase
     /// </summary>
     public bool IsTorch()
     {
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         return item != null
-            && item.ItemClass == InventoryItemType.Block
+            && item.InventoryItemType == InventoryItemType.Block
             && game.BlockTypes[item.BlockId].DrawType == DrawType.Torch;
     }
 
@@ -247,9 +247,9 @@ public class ModDrawHand3d : ModBase
     /// </summary>
     public bool IsCompass()
     {
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         return item != null
-            && item.ItemClass == InventoryItemType.Block
+            && item.InventoryItemType == InventoryItemType.Block
             && item.BlockId == game.BlockRegistry.BlockIdCompass;
     }
 
@@ -259,7 +259,7 @@ public class ModDrawHand3d : ModBase
     /// </summary>
     public bool IsEmptyHand()
     {
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         return item == null || item.BlockId == 0;
     }
 
@@ -300,7 +300,7 @@ public class ModDrawHand3d : ModBase
 
         platform.BindTexture2d(TerrainTexture);
 
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
 
         // Normalise block ID — block 151 is remapped to 128 for rendering purposes.
         int curMaterial = item == null ? 0

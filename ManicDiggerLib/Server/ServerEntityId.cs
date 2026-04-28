@@ -1,18 +1,18 @@
 public class ServerEntityId
 {
-    internal int chunkx;
-    internal int chunky;
-    internal int chunkz;
-    internal int id;
+    public int ChunkX {  get; set; }
+    public int ChunkY { get; set; }
+    public int ChunkZ { get; set; }
+    public int Id { get; set; }
 
-    internal ServerEntityId Clone()
+    public ServerEntityId Clone()
     {
-        ServerEntityId ret = new()
+        return new()
         {
-            chunkx = chunkx,
-            chunky = chunky,
-            chunkz = chunkz,
-            id = id
+            ChunkX = ChunkX,
+            ChunkY = ChunkY,
+            ChunkZ = ChunkZ,
+            Id = Id
         };
         return ret;
     }

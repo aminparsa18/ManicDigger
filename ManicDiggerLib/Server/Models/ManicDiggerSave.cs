@@ -47,7 +47,7 @@ public partial class ManicDiggerSave
     /// <summary>
     /// Inventory snapshots keyed by player username.
     /// </summary>
-    public Dictionary<string, PacketServerInventory>? Inventory { get; set; }
+    public Dictionary<string, Inventory>? Inventory { get; set; }
 
     /// <summary>
     /// Health and oxygen snapshots keyed by player username.

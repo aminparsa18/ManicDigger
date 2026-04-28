@@ -60,8 +60,8 @@ public class ModExpire : ModBase
         });
 
         // Spawn explosion push entity
-        float explosionTime = game.DecodeFixedPoint(blockType.ExplosionTimeFloat);
-        float explosionRange = game.DecodeFixedPoint(blockType.ExplosionRangeFloat);
+        float explosionTime = blockType.ExplosionTime;
+        float explosionRange = blockType.ExplosionRange;
 
         game.EntityAddLocal(new Entity
         {
@@ -70,16 +70,16 @@ public class ModExpire : ModBase
                 XFloat = Game.EncodeFixedPoint(posX),
                 YFloat = Game.EncodeFixedPoint(posZ),
                 ZFloat = Game.EncodeFixedPoint(posY),
-                RangeFloat = blockType.ExplosionRangeFloat,
+                RangeFloat = (int)blockType.ExplosionRange,
                 IsRelativeToPlayerPosition = 0,
-                TimeFloat = blockType.ExplosionTimeFloat
+                TimeFloat = (int)blockType.ExplosionTime
             },
             expires = new Expires { timeLeft = explosionTime }
         });
 
         // Apply damage to local player based on distance
         float dist = Vector3.Distance(new Vector3(game.Player.position.x, game.Player.position.y, game.Player.position.z), new Vector3(posX, posY, posZ));
-        float dmg = (1f - dist / explosionRange) * game.DecodeFixedPoint(blockType.DamageBodyFloat);
+        float dmg = (1f - dist / explosionRange) * blockType.DamageBody;
         if (dmg > 0)
             game.ApplyDamageToPlayer((int)dmg, DeathReason.Explosion, grenade.sourcePlayer);
     }

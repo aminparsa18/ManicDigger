@@ -365,7 +365,7 @@ public class ScriptCharacterPhysics : IEntityScript
         int block = game.VoxelMap.GetBlockValid(x, y, z);
         if (block == 0) return true;
 
-        Packet_BlockType blocktype = game.BlockTypes[block];
+        BlockType blocktype = game.BlockTypes[block];
         return blocktype.WalkableType == WalkableType.Fluid
             || Game.IsEmptyForPhysics(blocktype)
             || IsRail(blocktype);
@@ -504,7 +504,7 @@ public class ScriptCharacterPhysics : IEntityScript
     private static float Max3(float a, float b, float c) => Math.Max(Math.Max(a, b), c);
 
     /// <summary>Returns true when <paramref name="block"/> has a non-zero rail value.</summary>
-    public static bool IsRail(Packet_BlockType block) => block.Rail > 0;
+    public static bool IsRail(BlockType block) => block.Rail > 0;
 }
 
 /// <summary>

@@ -8,7 +8,7 @@ public class ServerSystemHttpServer : ServerSystem
 
     protected override void Initialize(Server server)
     {
-        if (!server.config.EnableHTTPServer || server.IsSinglePlayer)
+        if (!server.Config.EnableHTTPServer || server.IsSinglePlayer)
             return;
 
         int httpPort = server.Port + 1;
@@ -21,11 +21,11 @@ public class ServerSystemHttpServer : ServerSystem
 
             _ = ListenAsync(server, _cts.Token);
 
-            Console.WriteLine(server.language.ServerHTTPServerStarted(), httpPort);
+            Console.WriteLine(server.Language.ServerHTTPServerStarted(), httpPort);
         }
         catch
         {
-            Console.WriteLine(server.language.ServerHTTPServerError(), httpPort);
+            Console.WriteLine(server.Language.ServerHTTPServerError(), httpPort);
         }
     }
 
@@ -50,7 +50,7 @@ public class ServerSystemHttpServer : ServerSystem
             // check main module first, then installed modules
             var allModules = Enumerable
                 .Repeat<IHttpModule>(new MainHttpModule { server = server }, 1)
-                .Concat(server.httpModules.Select(m => m.module));
+                .Concat(server.HttpModules.Select(m => m.module));
 
             var handler = allModules.FirstOrDefault(m => m.ResponsibleForRequest(context.Request));
 
@@ -69,7 +69,7 @@ public class ServerSystemHttpServer : ServerSystem
     {
         _cts?.Cancel();
         _listener?.Stop();
-        server.httpModules.Clear();
+        server.HttpModules.Clear();
     }
 
     // helper the modules can also use
@@ -104,7 +104,7 @@ internal class MainHttpModule : IHttpModule
     {
         var sb = new StringBuilder("<html><body>");
 
-        foreach (var m in server.httpModules.OrderBy(m => m.name))
+        foreach (var m in server.HttpModules.OrderBy(m => m.name))
             sb.Append($"<a href='/{m.name}'>{m.name}</a> - {m.description()}<br/>");
 
         sb.Append("</body></html>");

@@ -40,19 +40,19 @@ public class InventoryUtils
     /// <param name="item">The item to describe. Must not be <c>null</c>.</param>
     /// <returns>A localised human-readable name string.</returns>
     /// <exception cref="NotSupportedException">
-    ///     Thrown if the item's <see cref="Packet_ItemClassEnum"/> is not yet handled.
+    ///     Thrown if the item's <see cref="InventoryItemType"/> is not yet handled.
     /// </exception>
-    public string ItemInfo(Packet_Item item)
+    public string ItemInfo(InventoryItem item)
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
 
-        if (item.ItemClass == InventoryItemType.Block)
+        if (item.InventoryItemType == InventoryItemType.Block)
         {
             string key = string.Concat("Block_", _game.BlockTypes[item.BlockId].Name);
             return _game.Language.Get(key);
         }
 
-        throw new NotSupportedException($"ItemInfo is not implemented for ItemClass '{item.ItemClass}'.");
+        throw new NotSupportedException($"ItemInfo is not implemented for ItemClass '{item.InventoryItemType}'.");
     }
 
     /// <summary>
@@ -61,16 +61,16 @@ public class InventoryUtils
     /// <param name="item">The item to measure. Must not be <c>null</c>.</param>
     /// <returns>The item's column span (always ≥ 1).</returns>
     /// <exception cref="NotSupportedException">
-    ///     Thrown if the item's <see cref="Packet_ItemClassEnum"/> is not yet handled.
+    ///     Thrown if the item's <see cref="InventoryItemType"/> is not yet handled.
     /// </exception>
-    public int ItemSizeX(Packet_Item item)
+    public int ItemSizeX(InventoryItem item)
     {
-        if (item == null) throw new ArgumentNullException(nameof(item));
-
-        return item.ItemClass switch
+        return item == null
+            ? throw new ArgumentNullException(nameof(item))
+            : item.InventoryItemType switch
         {
             InventoryItemType.Block => 1,
-            _ => throw new NotSupportedException($"ItemSizeX not implemented for ItemClass '{item.ItemClass}'.")
+            _ => throw new NotSupportedException($"ItemSizeX not implemented for ItemClass '{item.InventoryItemType}'.")
         };
     }
 
@@ -82,14 +82,14 @@ public class InventoryUtils
     /// <exception cref="NotSupportedException">
     ///     Thrown if the item's <see cref="Packet_ItemClassEnum"/> is not yet handled.
     /// </exception>
-    public static int ItemSizeY(Packet_Item item)
+    public static int ItemSizeY(InventoryItem item)
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
 
-        return item.ItemClass switch
+        return item.InventoryItemType switch
         {
             InventoryItemType.Block => 1,
-            _ => throw new NotSupportedException($"ItemSizeY not implemented for ItemClass '{item.ItemClass}'.")
+            _ => throw new NotSupportedException($"ItemSizeY not implemented for ItemClass '{item.InventoryItemType}'.")
         };
     }
 
@@ -106,18 +106,18 @@ public class InventoryUtils
     /// <remarks>
     ///     TODO: Enforce a per-item-type stack size limit once balancing is finalised.
     /// </remarks>
-    public static Packet_Item? Stack(Packet_Item itemA, Packet_Item itemB)
+    public static InventoryItem? Stack(InventoryItem itemA, InventoryItem itemB)
     {
         if (itemA == null || itemB == null)
             return null;
 
-        if (itemA.ItemClass == InventoryItemType.Block
-            && itemB.ItemClass == InventoryItemType.Block
+        if (itemA.InventoryItemType == InventoryItemType.Block
+            && itemB.InventoryItemType == InventoryItemType.Block
             && itemA.BlockId == itemB.BlockId)
         {
-            return new Packet_Item
+            return new InventoryItem
             {
-                ItemClass = itemA.ItemClass,
+                InventoryItemType = itemA.InventoryItemType,
                 BlockId = itemA.BlockId,
                 BlockCount = itemA.BlockCount + itemB.BlockCount,
             };
@@ -138,14 +138,14 @@ public class InventoryUtils
     ///     <c>true</c> if the item can be equipped in <paramref name="wearPlace"/>;
     ///     <c>false</c> otherwise.
     /// </returns>
-    public static bool CanWear(WearPlace wearPlace, Packet_Item? item)
+    public static bool CanWear(WearPlace wearPlace, InventoryItem? item)
     {
         if (item == null)
             return true;
 
         return wearPlace switch
         {
-            WearPlace.RightHand => item.ItemClass == InventoryItemType.Block,
+            WearPlace.RightHand => item.InventoryItemType == InventoryItemType.Block,
             WearPlace.MainArmor => false,
             WearPlace.Boots => false,
             WearPlace.Helmet => false,
@@ -166,7 +166,7 @@ public class InventoryUtils
     ///     TODO: Implement per-item-class graphic resolution.
     ///     Currently returns <c>null</c> for all items, causing callers to use the default.
     /// </remarks>
-    public static string? ItemGraphics(Packet_Item item) => null;
+    public static string? ItemGraphics(InventoryItem item) => null;
 
     /// <summary>
     /// Returns the array of texture IDs used to render inventory UI elements.

@@ -5,117 +5,237 @@ public class ClientOnServer
 {
     public ClientOnServer()
     {
-        float one = 1;
-        entity = new ServerEntity
+        Entity = new ServerEntity
         {
-            DrawName = new ServerEntityDrawName
-            {
-                ClientAutoComplete = true
-            },
-            Position = new ServerEntityPositionAndOrientation
-            {
-                Pitch = 2 * 255 / 4
-            },
-            DrawModel = new ServerEntityAnimatedModel
-            {
-                DownloadSkin = true
-            }
+            DrawName = new ServerEntityDrawName { ClientAutoComplete = true },
+            Position = new ServerEntityPositionAndOrientation { Pitch = 2 * 255 / 4 },
+            DrawModel = new ServerEntityAnimatedModel { DownloadSkin = true }
         };
+
         Id = -1;
-        state = ClientStateOnServer.Connecting;
-        queryClient = true;
-        received = new List<byte>();
+        State = ClientStateOnServer.Connecting;
+        QueryClient = true;
         Ping = new Ping();
-        playername = Server.invalidplayername;
+        PlayerName = Server.InvalidPlayerName;
         Model = "player.txt";
         chunksseenTime = new Dictionary<int, int>();
         heightmapchunksseen = new Dictionary<Vector2i, int>();
         IsInventoryDirty = true;
         IsPlayerStatsDirty = true;
         FillLimit = 500;
-        privileges = new List<string>();
-        displayColor = "&f";
-        EyeHeight = one * 15 / 10;
-        ModelHeight = one * 17 / 10;
-        WindowSize = new int[] { 800, 600 };
-        playersDirty = new bool[128];
-        for (int i = 0; i < 128; i++)
-        {
-            playersDirty[i] = true;
-        }
-        spawnedEntities = new ServerEntityId[64];
-        spawnedEntitiesCount = 64;
-        updateEntity = new bool[spawnedEntitiesCount];
+        Privileges = new List<string>();
+        DisplayColor = "&f";
+        EyeHeight = 1f * 15 / 10;
+        ModelHeight = 1f * 17 / 10;
+        WindowSize = [800, 600];
+        PlayersDirty = new bool[128];
+        Array.Fill(PlayersDirty, true);
+        SpawnedEntities = new ServerEntityId[64];
+        UpdateEntity = new bool[SpawnedEntities.Length];
     }
-    internal int Id;
-    internal int state; // ClientStateOnServer
-    internal bool queryClient;
-    internal NetServer mainSocket;
-    internal NetConnection socket;
-    internal List<byte> received;
-    internal Ping Ping;
-    internal float LastPing;
-    internal string playername { get { return entity.DrawName.Name; } set { entity.DrawName.Name = value; } }
-    internal int PositionMul32GlX { get { return (int)(entity.Position.X * 32); } set { entity.Position.X = (float)value / 32; } }
-    internal int PositionMul32GlY { get { return (int)(entity.Position.Y * 32); } set { entity.Position.Y = (float)value / 32; } }
-    internal int PositionMul32GlZ { get { return (int)(entity.Position.Z * 32); } set { entity.Position.Z = (float)value / 32; } }
-    internal int positionheading { get { return entity.Position.Heading; } set { entity.Position.Heading = (byte)value; } }
-    internal int positionpitch { get { return entity.Position.Pitch; } set { entity.Position.Pitch = (byte)value; } }
-    internal byte stance { get { return entity.Position.Stance; } set { entity.Position.Stance = value; } }
-    internal string Model { get { return entity.DrawModel.Model; } set { entity.DrawModel.Model = value; } }
-    internal string Texture { get { return entity.DrawModel.Texture; } set { entity.DrawModel.Texture = value; } }
-    internal Dictionary<int, int> chunksseenTime;
-    internal bool[] chunksseen;
-    internal Dictionary<Vector2i, int> heightmapchunksseen;
-    internal Timer notifyMapTimer;
-    internal bool IsInventoryDirty;
-    internal bool IsPlayerStatsDirty;
-    internal int FillLimit;
-    //internal List<byte[]> blobstosend = new List<byte[]>();
-    internal ManicDigger.Group clientGroup;
-    internal bool IsBot;
-    public void AssignGroup(ManicDigger.Group newGroup)
+
+    /// <summary>Unique client identifier. -1 when unassigned.</summary>
+    public int Id { get; set; }
+
+    /// <summary>Current connection state. See <see cref="ClientStateOnServer"/>.</summary>
+    public int State { get; set; }
+
+    /// <summary>Whether the server should query this client for info.</summary>
+    public bool QueryClient { get; set; }
+
+    /// <summary>The main server socket this client is connected to.</summary>
+    public NetServer MainSocket { get; set; }
+
+    /// <summary>The client's individual network connection.</summary>
+    public NetConnection Socket { get; set; }
+
+    /// <summary>Handles ping tracking for this client.</summary>
+    public Ping Ping { get; set; }
+
+    /// <summary>Last recorded ping value in seconds.</summary>
+    public float LastPing { get; set; }
+
+    /// <summary>The player's display name.</summary>
+    public string PlayerName
     {
-        this.clientGroup = newGroup;
-        this.privileges.Clear();
-        this.privileges.AddRange(newGroup.GroupPrivileges);
-        this.color = newGroup.GroupColorString();
+        get => Entity.DrawName.Name;
+        set => Entity.DrawName.Name = value;
     }
-    internal List<string> privileges;
-    internal string color;
-    internal string displayColor { get { return entity.DrawName.Color; } set { entity.DrawName.Color = value; } }
-    public string ColoredPlayername(string subsequentColor)
+
+    /// <summary>X position multiplied by 32 for network precision.</summary>
+    public int PositionMul32GlX
     {
-        return this.color + this.playername + subsequentColor;
+        get => (int)(Entity.Position.X * 32);
+        set => Entity.Position.X = value / 32f;
+    }
+
+    /// <summary>Y position multiplied by 32 for network precision.</summary>
+    public int PositionMul32GlY
+    {
+        get => (int)(Entity.Position.Y * 32);
+        set => Entity.Position.Y = value / 32f;
+    }
+
+    /// <summary>Z position multiplied by 32 for network precision.</summary>
+    public int PositionMul32GlZ
+    {
+        get => (int)(Entity.Position.Z * 32);
+        set => Entity.Position.Z = value / 32f;
+    }
+
+    /// <summary>Horizontal facing direction encoded as 0-255.</summary>
+    public int PositionHeading
+    {
+        get => Entity.Position.Heading;
+        set => Entity.Position.Heading = (byte)value;
+    }
+
+    /// <summary>Vertical look angle encoded as 0-255.</summary>
+    public int PositionPitch
+    {
+        get => Entity.Position.Pitch;
+        set => Entity.Position.Pitch = (byte)value;
     }
     internal Timer notifyMonstersTimer;
     internal IScriptInterpreter Interpreter;
     internal ScriptConsole Console;
 
+    /// <summary>Player stance (standing, crouching, etc).</summary>
+    public byte Stance
+    {
+        get => Entity.Position.Stance;
+        set => Entity.Position.Stance = value;
+    }
+
+    /// <summary>Model filename used to render this player.</summary>
+    public string Model
+    {
+        get => Entity.DrawModel.Model;
+        set => Entity.DrawModel.Model = value;
+    }
+
+    /// <summary>Texture filename applied to this player's model.</summary>
+    public string Texture
+    {
+        get => Entity.DrawModel.Texture;
+        set => Entity.DrawModel.Texture = value;
+    }
+
+    /// <summary>Tracks when each chunk was last seen by this client, keyed by chunk index.</summary>
+    public Dictionary<int, int> chunksseenTime { get; set; }
+
+    /// <summary>Flags indicating which chunks have been sent to this client.</summary>
+    public bool[] chunksseen { get; set; }
+
+    /// <summary>Tracks when each heightmap chunk was last seen, keyed by 2D chunk position.</summary>
+    public Dictionary<Vector2i, int> heightmapchunksseen { get; set; }
+
+    /// <summary>Timer controlling map chunk notification intervals.</summary>
+    public Timer NotifyMapTimer { get; set; }
+
+    /// <summary>Whether the client's inventory needs to be sent.</summary>
+    public bool IsInventoryDirty { get; set; }
+
+    /// <summary>Whether the client's player stats need to be sent.</summary>
+    public bool IsPlayerStatsDirty { get; set; }
+
+    /// <summary>Maximum number of blocks this client can fill at once.</summary>
+    public int FillLimit { get; set; }
+
+    /// <summary>The permission group this client belongs to.</summary>
+    public Group ClientGroup { get; set; }
+
+    /// <summary>Whether this client is a bot.</summary>
+    public bool IsBot { get; set; }
+
+    /// <summary>Assigns a group to this client, updating privileges and display color.</summary>
+    public void AssignGroup(Group newGroup)
+    {
+        ClientGroup = newGroup;
+        Privileges.Clear();
+        Privileges.AddRange(newGroup.GroupPrivileges);
+        color = newGroup.GroupColorString();
+    }
+
+    /// <summary>List of privilege identifiers granted to this client.</summary>
+    public List<string> Privileges { get; set; }
+
+    private string color;
+
+    /// <summary>Color code prefix applied to this player's display name.</summary>
+    public string DisplayColor
+    {
+        get => Entity.DrawName.Color;
+        set => Entity.DrawName.Color = value;
+    }
+
+    /// <summary>Returns the player's name wrapped in their group color, followed by a reset color.</summary>
+    public string ColoredPlayername(string subsequentColor) =>
+        $"{color}{PlayerName}{subsequentColor}";
+
+    /// <summary>Timer controlling monster notification intervals.</summary>
+    public Timer NotifyMonstersTimer { get; set; }
+
+    /// <summary>Script interpreter instance for mod/script execution.</summary>
+    public IScriptInterpreter Interpreter { get; set; }
+
+    /// <summary>Script console for this client's scripting context.</summary>
+    public ScriptConsole Console { get; set; }
+
+    /// <summary>Returns a formatted string: PlayerName:Group:Privileges IP</summary>
     public override string ToString()
     {
-        string ip = "";
-        if (this.socket != null)
-        {
-            ip = this.socket.RemoteEndPoint().AddressToString();
-        }
-        // Format: Playername:Group:Privileges IP
-        return string.Format("{0}:{1}:{2} {3}", this.playername, this.clientGroup.Name,
-            ServerClientMisc.PrivilegesString(this.privileges), ip);
+        string ip = Socket?.RemoteEndPoint().AddressToString() ?? "";
+        return $"{PlayerName}:{ClientGroup.Name}:{ServerClientMisc.PrivilegesString(Privileges)} {ip}";
     }
-    internal float EyeHeight { get { return entity.DrawModel.EyeHeight; } set { entity.DrawModel.EyeHeight = value; } }
-    internal float ModelHeight { get { return entity.DrawModel.ModelHeight; } set { entity.DrawModel.ModelHeight = value; } }
-    internal int ActiveMaterialSlot;
-    internal bool IsSpectator;
-    internal bool usingFill;
-    internal int[] WindowSize;
-    internal float notifyPlayerPositionsAccum;
-    internal bool[] playersDirty;
-    internal ServerEntity entity;
-    internal ServerEntityPositionAndOrientation positionOverride;
-    internal float notifyEntitiesAccum;
-    internal ServerEntityId[] spawnedEntities;
-    internal int spawnedEntitiesCount;
-    internal ServerEntityId editingSign;
-    internal bool[] updateEntity;
+
+    /// <summary>Eye height in world units used for camera positioning.</summary>
+    internal float EyeHeight
+    {
+        get => Entity.DrawModel.EyeHeight;
+        set => Entity.DrawModel.EyeHeight = value;
+    }
+
+    /// <summary>Full model height in world units used for collision.</summary>
+    internal float ModelHeight
+    {
+        get => Entity.DrawModel.ModelHeight;
+        set => Entity.DrawModel.ModelHeight = value;
+    }
+
+    /// <summary>Currently selected material/block slot in the hotbar.</summary>
+    internal int ActiveMaterialSlot { get; set; }
+
+    /// <summary>Whether this client is in spectator mode.</summary>
+    internal bool IsSpectator { get; set; }
+
+    /// <summary>Whether this client is currently performing a fill operation.</summary>
+    internal bool UsingFill { get; set; }
+
+    /// <summary>Client window dimensions in pixels [width, height].</summary>
+    internal int[] WindowSize { get; set; }
+
+    /// <summary>Accumulator for player position notification throttling.</summary>
+    internal float NotifyPlayerPositionsAccum { get; set; }
+
+    /// <summary>Dirty flags for each player slot, indicating which need to be re-sent.</summary>
+    internal bool[] PlayersDirty { get; set; }
+
+    /// <summary>The server-side entity representation of this client.</summary>
+    internal ServerEntity Entity { get; set; }
+
+    /// <summary>Overrides the entity's position if set, used for teleportation or correction.</summary>
+    internal ServerEntityPositionAndOrientation PositionOverride { get; set; }
+
+    /// <summary>Accumulator for entity notification throttling.</summary>
+    internal float NotifyEntitiesAccum { get; set; }
+
+    /// <summary>Array of entity IDs that have been spawned for this client.</summary>
+    internal ServerEntityId[] SpawnedEntities { get; set; }
+
+    /// <summary>The sign entity this client is currently editing, if any.</summary>
+    internal ServerEntityId EditingSign { get; set; }
+
+    /// <summary>Flags indicating which spawned entities need to be updated for this client.</summary>
+    internal bool[] UpdateEntity { get; set; }
 }

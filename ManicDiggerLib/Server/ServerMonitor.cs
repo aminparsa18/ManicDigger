@@ -77,7 +77,7 @@ public class ServerMonitor
             case PacketType.Message:
                 if (monitorClients[clientId].MessagePunished())
                 {
-                    server.SendMessage(clientId, server.language.ServerMonitorChatNotSent(), Server.MessageType.Error);
+                    server.SendMessage(clientId, server.Language.ServerMonitorChatNotSent(), Server.MessageType.Error);
                     return false;
                 }
                 if (monitorClients[clientId].MessagesSent < config.MaxMessages)
@@ -96,14 +96,14 @@ public class ServerMonitor
     private bool ActionSetBlock(int clientId)
     {
         this.monitorClients[clientId].SetBlockPunishment = new Punishment();//infinte duration
-        this.server.ServerMessageToAll(string.Format(server.language.ServerMonitorBuildingDisabled(), server.GetClient(clientId).playername), Server.MessageType.Important);
+        this.server.ServerMessageToAll(string.Format(server.Language.ServerMonitorBuildingDisabled(), server.GetClient(clientId).PlayerName), Server.MessageType.Important);
         return false;
     }
 
     private bool ActionMessage(int clientId)
     {
         this.monitorClients[clientId].MessagePunishment = new Punishment(new TimeSpan(0, 0, config.MessageBanTime));
-        this.server.ServerMessageToAll(string.Format(server.language.ServerMonitorChatMuted(), server.GetClient(clientId).playername, config.MessageBanTime), Server.MessageType.Important);
+        this.server.ServerMessageToAll(string.Format(server.Language.ServerMonitorChatMuted(), server.GetClient(clientId).PlayerName, config.MessageBanTime), Server.MessageType.Important);
         return false;
     }
 
@@ -200,7 +200,7 @@ public class ServerMonitor
         string path = Path.Combine(GameStorePath.gamepathconfig, filename);
         if (!File.Exists(path))
         {
-            Console.WriteLine(server.language.ServerMonitorConfigNotFound());
+            Console.WriteLine(server.Language.ServerMonitorConfigNotFound());
             this.config = new ServerMonitorConfig();
             SaveConfig();
         }
@@ -217,7 +217,7 @@ public class ServerMonitor
                 this.config = new ServerMonitorConfig();
             }
         }
-        Console.WriteLine(server.language.ServerMonitorConfigLoaded());
+        Console.WriteLine(server.Language.ServerMonitorConfigLoaded());
     }
 
     public void SaveConfig()

@@ -451,7 +451,7 @@ public class ModDrawTerrain : ModBase
 
     public bool IsTransparentForLight(int blockId)
     {
-        Packet_BlockType b = _game.BlockTypes[blockId];
+        BlockType b = _game.BlockTypes[blockId];
         return b.DrawType != DrawType.Solid
             && b.DrawType != DrawType.ClosedDoor;
     }

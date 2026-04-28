@@ -15,7 +15,7 @@ public class ServerSystemLoadLast : ServerSystem
     /// <summary>
     /// Fires all mod load callbacks in registration order.
     /// <para>
-    /// <see cref="Server.onload"/> handlers are called directly — errors there are
+    /// <see cref="Server.OnLoad"/> handlers are called directly — errors there are
     /// considered fatal. <c>onloadworld</c> handlers are wrapped individually so a
     /// single bad mod cannot abort the rest of the load sequence.
     /// </para>
@@ -23,12 +23,12 @@ public class ServerSystemLoadLast : ServerSystem
     private static void CallModOnLoad(Server server)
     {
         // Ensure mod data storage exists even if nothing was loaded from a savegame
-        server.moddata ??= [];
+        server.ModData ??= [];
 
-        foreach (var handler in server.onload)
+        foreach (var handler in server.OnLoad)
             handler();
 
-        foreach (var handler in server.modEventHandlers.onloadworld)
+        foreach (var handler in server.ModEventHandlers.onloadworld)
         {
             try
             {

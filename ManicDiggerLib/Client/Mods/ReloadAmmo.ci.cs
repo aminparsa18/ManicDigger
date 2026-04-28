@@ -21,7 +21,7 @@ public class ModReloadAmmo : ModBase
         if (game.ReloadStartMilliseconds == 0) return;
 
         float elapsed = (platform.TimeMillisecondsFromStart - game.ReloadStartMilliseconds) / 1000f;
-        float reloadDelay = game.DecodeFixedPoint(game.BlockTypes[game.ReloadBlock].ReloadDelayFloat);
+        float reloadDelay = game.BlockTypes[game.ReloadBlock].ReloadDelay;
         if (elapsed <= reloadDelay) return;
 
         int blockId = game.ReloadBlock;
@@ -35,8 +35,8 @@ public class ModReloadAmmo : ModBase
         if (game.GuiState != GuiState.Normal || game.GuiTyping != TypingState.None) return;
         if (args.KeyChar != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R)) return;
 
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
-        if (item == null || item.ItemClass != InventoryItemType.Block) return;
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
+        if (item == null || item.InventoryItemType != InventoryItemType.Block) return;
         if (!game.BlockTypes[item.BlockId].IsPistol) return;
         if (game.ReloadStartMilliseconds != 0) return;
 

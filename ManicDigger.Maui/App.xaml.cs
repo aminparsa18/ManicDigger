@@ -104,10 +104,10 @@ public class GameRunner
         var server = new Server
         {
             SaveFilenameOverride = _savefilename,
-            exit = _exit,
-            mainSockets = new NetServer[3]
+            Exit = _exit,
+            MainSockets = new NetServer[3]
         };
-        server.mainSockets[0] = netServer;
+        server.MainSockets[0] = netServer;
 
         while (true)
         {

@@ -7,16 +7,16 @@ public class ServerSystemSign : ServerSystem
     protected override void Initialize(Server server)
     {
         this.server = server;
-        server.modManager.RegisterOnBlockUseWithTool(OnUseWithTool);
-        server.modEventHandlers.onupdateentity.Add(UpdateEntity);
-        server.modEventHandlers.onuseentity.Add(OnUseEntity);
-        server.modEventHandlers.ondialogclick2.Add(OnDialogClick);
+        server.ModManager.RegisterOnBlockUseWithTool(OnUseWithTool);
+        server.ModEventHandlers.onupdateentity.Add(UpdateEntity);
+        server.ModEventHandlers.onuseentity.Add(OnUseEntity);
+        server.ModEventHandlers.ondialogclick2.Add(OnDialogClick);
     }
 
     private void OnUseWithTool(int player, int x, int y, int z, int tool)
     {
-        if (server.modManager.GetBlockName(tool) != "Sign") return;
-        if (server.d_Map.GetChunk(x, y, z) == null) return;
+        if (server.ModManager.GetBlockName(tool) != "Sign") return;
+        if (server.Map.GetChunk(x, y, z) == null) return;
         if (!server.CheckBuildPrivileges(player, x, y, z, PacketBlockSetMode.Create)) return;
 
         var e = new ServerEntity
@@ -31,8 +31,8 @@ public class ServerSystemSign : ServerSystem
         };
 
         e.Position.Heading = EntityHeading.GetHeading(
-            server.modManager.GetPlayerPositionX(player),
-            server.modManager.GetPlayerPositionY(player),
+            server.ModManager.GetPlayerPositionX(player),
+            server.ModManager.GetPlayerPositionY(player),
             e.Position.X,
             e.Position.Z
         );
@@ -90,12 +90,12 @@ public class ServerSystemSign : ServerSystem
             ]
         };
 
-        server.clients[player].editingSign = new ServerEntityId
+        server.Clients[player].EditingSign = new ServerEntityId
         {
-            chunkx = chunkx,
-            chunky = chunky,
-            chunkz = chunkz,
-            id = id
+            ChunkX = chunkx,
+            ChunkY = chunky,
+            ChunkZ = chunkz,
+            Id = id
         };
 
         server.SendDialog(player, "UseSign", d);
@@ -105,15 +105,15 @@ public class ServerSystemSign : ServerSystem
     {
         if (args.WidgetId != "UseSign_OK") return;
 
-        var client = server.clients[args.Player];
+        var client = server.Clients[args.Player];
         string newText = args.TextBoxValue[1];
-        ServerEntityId id = client.editingSign;
+        ServerEntityId id = client.EditingSign;
 
-        client.editingSign = null;
+        client.EditingSign = null;
 
         if (newText != "")
         {
-            ServerEntity e = server.GetEntity(id.chunkx, id.chunky, id.chunkz, id.id);
+            ServerEntity e = server.GetEntity(id.ChunkX, id.ChunkY, id.ChunkZ, id.Id);
             e.Sign.Text = newText;
             server.SetEntityDirty(id);
         }

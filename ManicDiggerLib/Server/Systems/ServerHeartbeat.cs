@@ -32,10 +32,10 @@ public class ServerSystemHeartbeat : ServerSystem
         while (elapsed >= HeartbeatInterval)
         {
             elapsed -= HeartbeatInterval;
-            if (server.Public && server.config.Public)
+            if (server.Config.Public)
             {
-                heartbeat.GameMode = server.gameMode;
-                server.serverPlatform.QueueUserWorkItem(async () => await SendHeartbeat(server));
+                heartbeat.GameMode = server.GameMode;
+                ThreadPool.QueueUserWorkItem(async (_) => await SendHeartbeat(server));
             }
         }
     }
@@ -51,24 +51,24 @@ public class ServerSystemHeartbeat : ServerSystem
     /// </summary>
     public async Task SendHeartbeat(Server server)
     {
-        if (server.config?.Key == null) return;
+        if (server.Config?.Key == null) return;
 
-        heartbeat.Name = server.config.Name;
-        heartbeat.MaxClients = server.config.MaxClients;
-        heartbeat.PasswordProtected = server.config.IsPasswordProtected();
-        heartbeat.AllowGuests = server.config.AllowGuests;
-        heartbeat.Port = server.config.Port;
+        heartbeat.Name = server.Config.Name;
+        heartbeat.MaxClients = server.Config.MaxClients;
+        heartbeat.PasswordProtected = server.Config.IsPasswordProtected();
+        heartbeat.AllowGuests = server.Config.AllowGuests;
+        heartbeat.Port = server.Config.Port;
         heartbeat.Version = GameVersion.Version;
-        heartbeat.Key = server.config.Key;
-        heartbeat.Motd = server.config.Motd;
+        heartbeat.Key = server.Config.Key;
+        heartbeat.Motd = server.Config.Motd;
 
         var playerNames = new List<string>();
-        lock (server.clients)
+        lock (server.Clients)
         {
-            foreach (var (_, client) in server.clients)
+            foreach (var (_, client) in server.Clients)
             {
                 if (!client.IsBot)
-                    playerNames.Add(client.playername);
+                    playerNames.Add(client.PlayerName);
             }
         }
         heartbeat.Players = playerNames;
@@ -76,7 +76,8 @@ public class ServerSystemHeartbeat : ServerSystem
 
         try
         {
-            await heartbeat.SendHeartbeatAsync();
+            //TODO: its not hosted yet
+           // await heartbeat.SendHeartbeatAsync();
             server.ReceivedKey = heartbeat.ReceivedKey;
 
             if (!hashPrinted)
@@ -85,14 +86,14 @@ public class ServerSystemHeartbeat : ServerSystem
                 hashPrinted = true;
             }
 
-            Console.WriteLine(server.language.ServerHeartbeatSent());
+            Console.WriteLine(server.Language.ServerHeartbeatSent());
         }
         catch (Exception e)
         {
 #if DEBUG
             Console.WriteLine(e.ToString());
 #endif
-            Console.WriteLine("{0} ({1})", server.language.ServerHeartbeatError(), e.Message);
+            Console.WriteLine("{0} ({1})", server.Language.ServerHeartbeatError(), e.Message);
         }
     }
 

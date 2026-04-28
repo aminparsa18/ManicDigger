@@ -442,7 +442,7 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.BlockTypes:
                 {
                     _game.BlockTypes = _game.NewBlockTypes;
-                    _game.NewBlockTypes = new Packet_BlockType[GlobalVar.MAX_BLOCKTYPES];
+                    _game.NewBlockTypes = new BlockType[GlobalVar.MAX_BLOCKTYPES];
 
                     // ── Fix #2 + #3: HashSet replaces O(n) linear scans ───────
                     // Old code: Contains() + IndexOf() scanned a 1024-entry array
@@ -481,7 +481,7 @@ public class ModNetworkProcess : ModBase
                     // ── Fix #1: null check removed — textureInAtlasIds is never null ──
                     for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
                     {
-                        Packet_BlockType b = _game.BlockTypes[i];
+                        BlockType b = _game.BlockTypes[i];
                         if (b == null) continue;
                         _game.TextureId[i][0] = textureList.IndexOf(b.TextureIdTop);
                         _game.TextureId[i][1] = textureList.IndexOf(b.TextureIdBottom);

@@ -1,4 +1,5 @@
-﻿using ManicDigger.Mods;
+﻿using ManicDigger;
+using ManicDigger.Mods;
 
 public partial class Game
 {
@@ -56,7 +57,7 @@ public partial class Game
         Heightmap = new ChunkedMap2d<int>(VoxelMap.MapSizeX, VoxelMap.MapSizeY);
 
         // ── Inventory ─────────────────────────────────────────────────────────
-        Packet_Inventory inventory = new() { RightHand = new Packet_Item[10] };
+        Packet_Inventory inventory = new() { RightHand = new InventoryItem[10] };
         InventoryUtils dataItems = new(this);
         Inventory = inventory;
         InventoryUtil = new InventoryUtilClient(inventory, dataItems);

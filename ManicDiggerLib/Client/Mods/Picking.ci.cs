@@ -114,7 +114,7 @@ public class ModPicking : ModBase
         }
         if (!left) { game.CurrentAttackedBlock = null; }
 
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         bool isPistol = item != null && game.BlockTypes[item.BlockId].IsPistol;
         bool isGrenade = isPistol && game.BlockTypes[item.BlockId].PistolType == PistolType.Grenade;
         bool isPistolShoot = isPistol && left;
@@ -374,7 +374,7 @@ public class ModPicking : ModBase
         bool found = false;
         for (int i = 0; i < 10; i++)
         {
-            if (game.Inventory.RightHand[i]?.ItemClass == InventoryItemType.Block
+            if (game.Inventory.RightHand[i]?.InventoryItemType == InventoryItemType.Block
              && game.Inventory.RightHand[i].BlockId == cloneSource2)
             {
                 game.ActiveMaterial = i;
@@ -390,7 +390,7 @@ public class ModPicking : ModBase
             {
                 Packet_PositionItem k = game.Inventory.Items[i];
                 if (k == null) { continue; }
-                if (k.Value_.ItemClass != InventoryItemType.Block || k.Value_.BlockId != cloneSource2) { continue; }
+                if (k.Value_.InventoryItemType != InventoryItemType.Block || k.Value_.BlockId != cloneSource2) { continue; }
 
                 if (freeHand != -1)
                 {
@@ -399,7 +399,7 @@ public class ModPicking : ModBase
                     break;
                 }
 
-                if (game.Inventory.RightHand[game.ActiveMaterial]?.ItemClass == InventoryItemType.Block)
+                if (game.Inventory.RightHand[game.ActiveMaterial]?.InventoryItemType == InventoryItemType.Block)
                 {
                     game.MoveToInventory(InventoryPositionMaterialSelector(game.ActiveMaterial));
                     game.WearItem(InventoryPositionMainArea(k.X, k.Y),
@@ -419,7 +419,7 @@ public class ModPicking : ModBase
     /// </summary>
     private void FirePistol(Line3D pick,
         ArraySegment<BlockPosSide> pick2, int pick2count,
-        Packet_Item item, bool isGrenade, float cookWait, ref int bulletsShot)
+        InventoryItem item, bool isGrenade, float cookWait, ref int bulletsShot)
     {
         float toX = pick.End[0], toY = pick.End[1], toZ = pick.End[2];
         if (pick2count > 0) { toX = pick2[0].blockPos[0]; toY = pick2[0].blockPos[1]; toZ = pick2[0].blockPos[2]; }
@@ -441,7 +441,7 @@ public class ModPicking : ModBase
         game.LoadedAmmo[item.BlockId]--;
         game.TotalAmmo[item.BlockId]--;
 
-        float projectileSpeed = game.DecodeFixedPoint(game.BlockTypes[item.BlockId].ProjectileSpeedFloat);
+        float projectileSpeed = game.BlockTypes[item.BlockId].ProjectileSpeed;
         if (projectileSpeed == 0)
         {
             game.EntityAddLocal(Game.CreateBulletEntity(pick.Start[0], pick.Start[1], pick.Start[2], toX, toY, toZ, 150));
@@ -465,7 +465,7 @@ public class ModPicking : ModBase
 
         // Burst fire.
         bulletsShot++;
-        if (bulletsShot < game.DecodeFixedPoint(game.BlockTypes[item.BlockId].BulletsPerShotFloat))
+        if (bulletsShot < game.BlockTypes[item.BlockId].BulletsPerShot)
         {
             NextBullet(bulletsShot);
         }
@@ -526,7 +526,7 @@ public class ModPicking : ModBase
     /// Creates and spawns a grenade entity with the correct velocity, fuse time,
     /// and sprite, and writes the explosion timer into <paramref name="shot"/>.
     /// </summary>
-    private void SpawnGrenadeEntity(Line3D pick, Packet_Item item,
+    private void SpawnGrenadeEntity(Line3D pick, InventoryItem item,
         float toX, float toY, float toZ, float projectileSpeed, float cookWait,
         ref Packet_ClientShot shot)
     {
@@ -836,10 +836,10 @@ public class ModPicking : ModBase
     internal float BuildDelay()
     {
         float defaultDelay = 0.95f / game.Basemovespeed;
-        Packet_Item item = game.Inventory.RightHand[game.ActiveMaterial];
-        if (item == null || item.ItemClass != InventoryItemType.Block) { return defaultDelay; }
+        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
+        if (item == null || item.InventoryItemType != InventoryItemType.Block) { return defaultDelay; }
 
-        float delay = game.DecodeFixedPoint(game.BlockTypes[item.BlockId].DelayFloat);
+        float delay = game.BlockTypes[item.BlockId].Delay;
         return delay == 0 ? defaultDelay : delay;
     }
 
@@ -922,9 +922,9 @@ public class ModPicking : ModBase
         float distance = game.PICK_DISTANCE;
         int? inHand = game.BlockInHand();
 
-        if (inHand.HasValue && game.BlockTypes[inHand.Value].PickDistanceWhenUsedFloat > 0)
+        if (inHand.HasValue && game.BlockTypes[inHand.Value].PickDistanceWhenUsed > 0)
         {
-            distance = game.DecodeFixedPoint(game.BlockTypes[inHand.Value].PickDistanceWhenUsedFloat);
+            distance = game.BlockTypes[inHand.Value].PickDistanceWhenUsed;
         }
 
         if (game.CameraType == CameraType.Tpp)

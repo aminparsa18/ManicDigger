@@ -1041,7 +1041,7 @@ public partial class Server : ICurrentTime, IDropItem
                         && (!isClientLocalhost))
                     {
                         //Account verification failed.
-                        username = "~" + username;
+                        username = $"~{username}";
                         verificationFailed = true;
                     }
 
@@ -1409,12 +1409,12 @@ public partial class Server : ICurrentTime, IDropItem
                     float h = k.Value.ModelHeight - headsize;
                     float r = 0.35f;
 
-                    Box3 bodybox = new Box3(
+                    Box3 bodybox = new(
                         new Vector3(feetpos.X - r, feetpos.Y, feetpos.Z - r),
                         new Vector3(feetpos.X + r, feetpos.Y + h, feetpos.Z + r)
                     );
 
-                    Box3 headbox = new Box3(
+                    Box3 headbox = new(
                         new Vector3(feetpos.X - r, feetpos.Y + h, feetpos.Z - r),
                         new Vector3(feetpos.X + r, feetpos.Y + h + headsize, feetpos.Z + r)
                     );

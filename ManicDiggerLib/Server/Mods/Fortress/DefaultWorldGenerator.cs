@@ -39,7 +39,7 @@ public class DefaultWorldGenerator : IMod
         m.RegisterWorldGenerator(GetChunk);
         m.RegisterPopulateChunk(PopulateChunk);
         m.RegisterOnSave(DisplayTimes);
-        SaveImage();
+        //SaveImage();
     }
 
     // =========================================================================
@@ -299,11 +299,11 @@ public class DefaultWorldGenerator : IMod
         int h = (int)(baseH + normH * amp);
 
         bool isOcean = biome == Biome.DeepOcean || biome == Biome.Ocean;
-        if (isOcean) return System.Math.Min(h, WATER_LEVEL - 2);
-        if (biome == Biome.Shore) return System.Math.Clamp(h, WATER_LEVEL - 1, WATER_LEVEL + 2);
+        if (isOcean) return Math.Min(h, WATER_LEVEL - 2);
+        if (biome == Biome.Shore) return Math.Clamp(h, WATER_LEVEL - 1, WATER_LEVEL + 2);
 
-        h = System.Math.Max(h, LAND_MIN_HEIGHT);
-        return System.Math.Min(h, 90);  // ← add this — hard ceiling below map top
+        h = Math.Max(h, LAND_MIN_HEIGHT);
+        return Math.Min(h, 90);  // ← add this — hard ceiling below map top
     }
 
     // =========================================================================
@@ -362,7 +362,7 @@ public class DefaultWorldGenerator : IMod
     {
         bool isOcean = biome == Biome.DeepOcean || biome == Biome.Ocean || biome == Biome.Shore;
         if (isOcean)
-            return System.Math.Clamp(cont / 0.36, 0.0, 1.0);
+            return Math.Clamp(cont / 0.36, 0.0, 1.0);
 
         // Average over a 5x5 neighbourhood to smooth out sharp biome-boundary jumps
         const int R = 2;

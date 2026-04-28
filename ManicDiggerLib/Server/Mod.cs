@@ -24,14 +24,11 @@ public class ModManager1 : IModManager
 
     public int GetBlockId(string name)
     {
-        for (int i = 0; i < server.BlockTypes.Length; i++)
+        foreach (var (id, blockType) in server.BlockTypes)
         {
-            if (server.BlockTypes[i].Name == name)
-            {
-                return i;
-            }
+            if (blockType.Name == name)
+                return id;
         }
-        //return -1;
         throw new Exception(name);
     }
 

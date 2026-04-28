@@ -280,8 +280,6 @@ public class TerrainChunkTesselator
 
     private int toreturnatlas1dLength;
 
-    // ── Fix #1: block-type flag cache ─────────────────────────────────────────
-
     /// <summary>
     /// Rebuilds the per-block render flag cache from the current block type definitions.
     /// Called once from <see cref="Start"/> and again whenever block types change.
@@ -290,11 +288,8 @@ public class TerrainChunkTesselator
     /// </summary>
     public void RefreshBlockTypeCache()
     {
-        for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
+        foreach (var (id, b) in _terrain.BlockTypes)
         {
-            BlockType b = _terrain.BlockTypes[i];
-            if (b == null) continue;
-
             BlockRenderFlags flags = BlockRenderFlags.None;
 
             if (b.DrawType != DrawType.Solid && b.DrawType != DrawType.Fluid)
@@ -308,7 +303,7 @@ public class TerrainChunkTesselator
             if (b.DrawType == DrawType.Fluid)
                 flags |= BlockRenderFlags.Fluid;
 
-            _blockFlags[i] = flags;
+            _blockFlags[id] = flags;
         }
     }
 

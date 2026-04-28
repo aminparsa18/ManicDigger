@@ -397,11 +397,10 @@ public class ModDrawTerrain : ModBase
         {
             if (_blockTypeCacheDirty)
             {
-                for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
+                foreach (var (id, blockType) in _game.BlockTypes)
                 {
-                    if (_game.BlockTypes[i] == null) continue;
-                    _shadowLightRadius[i] = _game.BlockTypes[i].LightRadius;
-                    _shadowIsTransparent[i] = IsTransparentForLight(i);
+                    _shadowLightRadius[id] = blockType.LightRadius;
+                    _shadowIsTransparent[id] = IsTransparentForLight(id);
                 }
                 _blockTypeCacheDirty = false;
             }

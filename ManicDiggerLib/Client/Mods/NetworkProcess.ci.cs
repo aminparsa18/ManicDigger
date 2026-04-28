@@ -455,16 +455,15 @@ public class ModNetworkProcess : ModBase
 
                     string[] scratch = _textureIdScratch;
 
-                    for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
+                    foreach (var (_, blockType) in _game.BlockTypes)
                     {
-                        if (_game.BlockTypes[i] == null) continue;
-                        scratch[0] = _game.BlockTypes[i].TextureIdLeft;
-                        scratch[1] = _game.BlockTypes[i].TextureIdRight;
-                        scratch[2] = _game.BlockTypes[i].TextureIdFront;
-                        scratch[3] = _game.BlockTypes[i].TextureIdBack;
-                        scratch[4] = _game.BlockTypes[i].TextureIdTop;
-                        scratch[5] = _game.BlockTypes[i].TextureIdBottom;
-                        scratch[6] = _game.BlockTypes[i].TextureIdForInventory;
+                        scratch[0] = blockType.TextureIdLeft;
+                        scratch[1] = blockType.TextureIdRight;
+                        scratch[2] = blockType.TextureIdFront;
+                        scratch[3] = blockType.TextureIdBack;
+                        scratch[4] = blockType.TextureIdTop;
+                        scratch[5] = blockType.TextureIdBottom;
+                        scratch[6] = blockType.TextureIdForInventory;
 
                         for (int k = 0; k < 7; k++)
                             if (textureSet.Add(scratch[k]))

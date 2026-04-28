@@ -1,4 +1,5 @@
 using ManicDigger;
+using OpenTK.Core;
 
 public partial class Server
 {
@@ -1279,52 +1280,51 @@ public partial class Server
             string targetName = targetClient.PlayerName;
             string sourcename = GetClient(sourceClientId).PlayerName;
             int maxStack = 9999; //TODO: Fetch this dynamically for each item - stacking
-            for (int i = 0; i < BlockTypes.Length; i++)
+            foreach (var (id, blockType) in BlockTypes)
             {
-                if (!BlockTypes[i].IsBuildable)
-                {
-                    continue;
-                }
+                if (!blockType.IsBuildable) continue;
+
                 Inventory inventory = GetPlayerInventory(targetName);
                 InventoryUtil util = GetInventoryUtil(inventory);
 
-                for (int yy = 0; yy < util.CellCountY; yy++)
+                // Try to find existing stack
+                bool found = false;
+                for (int yy = 0; yy < util.CellCountY && !found; yy++)
                 {
-                    for (int xx = 0; xx < util.CellCountX; xx++)
+                    for (int xx = 0; xx < util.CellCountX && !found; xx++)
                     {
-                        if (!inventory.Items.ContainsKey(new GridPoint(xx, yy)))
-                        {
-                            continue;
-                        }
-                        InventoryItem currentItem = inventory.Items[new GridPoint(xx, yy)];
-                        if (currentItem != null
-                            && currentItem.InventoryItemType == InventoryItemType.Block
-                            && currentItem.BlockId == i)
+                        var key = new GridPoint(xx, yy);
+                        if (!inventory.Items.TryGetValue(key, out InventoryItem currentItem)) continue;
+                        if (currentItem?.InventoryItemType == InventoryItemType.Block && currentItem.BlockId == id)
                         {
                             currentItem.BlockCount = maxStack;
-                            goto nextblock;
+                            found = true;
                         }
                     }
                 }
-                for (int yy = 0; yy < util.CellCountY; yy++)
-                {
-                    for (int xx = 0; xx < util.CellCountX; xx++)
-                    {
-                        InventoryItem newItem = new()
-                        {
-                            InventoryItemType = InventoryItemType.Block,
-                            BlockId = i,
-                            BlockCount = maxStack
-                        };
 
-                        if (util.ItemAtCell(new Point(xx, yy)) == null)
+                // Find empty slot
+                if (!found)
+                {
+                    for (int yy = 0; yy < util.CellCountY && !found; yy++)
+                    {
+                        for (int xx = 0; xx < util.CellCountX && !found; xx++)
                         {
-                            inventory.Items[new GridPoint(xx, yy)] = newItem;
-                            goto nextblock;
+                            var cell = new Point(xx, yy);
+                            if (util.ItemAtCell(cell) == null)
+                            {
+                                inventory.Items[new GridPoint(xx, yy)] = new InventoryItem
+                                {
+                                    InventoryItemType = InventoryItemType.Block,
+                                    BlockId = id,
+                                    BlockCount = maxStack
+                                };
+                                found = true;
+                            }
                         }
                     }
                 }
-            nextblock:
+
                 targetClient.IsInventoryDirty = true;
             }
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandGiveAll"), colorSuccess, targetName));
@@ -1357,74 +1357,51 @@ public partial class Server
             {
                 amount = maxStack;
             }
-            for (int i = 0; i < BlockTypes.Length; i++)
+            Inventory inventory = GetPlayerInventory(targetName);
+            InventoryUtil util = GetInventoryUtil(inventory);
+            foreach (var (id, blockType) in BlockTypes)
             {
-                if (!BlockTypes[i].IsBuildable)
-                {
-                    continue;
-                }
-                if (!BlockTypes[i].Name.Equals(blockname, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    continue;
-                }
-                Inventory inventory = GetPlayerInventory(targetName);
-                InventoryUtil util = GetInventoryUtil(inventory);
+                if (!blockType.IsBuildable) continue;
+                if (!blockType.Name.Equals(blockname, StringComparison.InvariantCultureIgnoreCase)) continue;
 
-                // Try to find given block in player inventory
-                for (int xx = 0; xx < util.CellCountX; xx++)
+                // Try to find existing stack
+                bool found = false;
+                for (int xx = 0; xx < util.CellCountX && !found; xx++)
                 {
-                    for (int yy = 0; yy < util.CellCountY; yy++)
+                    for (int yy = 0; yy < util.CellCountY && !found; yy++)
                     {
-                        if (!inventory.Items.ContainsKey(new GridPoint(xx, yy)))
-                        {
-                            continue;
-                        }
-                        InventoryItem currentItem = inventory.Items[new GridPoint(xx, yy)];
-                        if (currentItem != null
-                             && currentItem.InventoryItemType == InventoryItemType.Block
-                             && currentItem.BlockId == i)
-                        {
-                            if (amount == 0)
-                            {
-                                // Delete block from player inventory if amount is 0
-                                inventory.Items.Remove(new GridPoint(xx, yy));
-                            }
-                            else
-                            {
-                                // Add specified amount to player inventory
-                                if (currentItem.BlockCount + amount > maxStack)
-                                {
-                                    currentItem.BlockCount = maxStack;
-                                }
-                                else
-                                {
-                                    currentItem.BlockCount += amount;
-                                }
-                            }
-                            goto nextblock;
-                        }
+                        var key = new GridPoint(xx, yy);
+                        if (!inventory.Items.TryGetValue(key, out InventoryItem currentItem)) continue;
+                        if (currentItem?.InventoryItemType != InventoryItemType.Block || currentItem.BlockId != id) continue;
+
+                        if (amount == 0)
+                            inventory.Items.Remove(key);
+                        else
+                            currentItem.BlockCount = Math.Min(currentItem.BlockCount + amount, maxStack);
+
+                        found = true;
                     }
                 }
-                // Block not yet in inventory. Add to first free slot.
-                for (int xx = 0; xx < util.CellCountX; xx++)
+
+                // Block not yet in inventory — add to first free slot
+                if (!found)
                 {
-                    for (int yy = 0; yy < util.CellCountY; yy++)
+                    for (int xx = 0; xx < util.CellCountX && !found; xx++)
                     {
-                        if (util.ItemAtCell(new Point(xx, yy)) == null)
+                        for (int yy = 0; yy < util.CellCountY && !found; yy++)
                         {
-                            InventoryItem newItem = new()
+                            if (util.ItemAtCell(new Point(xx, yy)) != null) continue;
+                            inventory.Items[new GridPoint(xx, yy)] = new InventoryItem
                             {
                                 InventoryItemType = InventoryItemType.Block,
-                                BlockId = i,
+                                BlockId = id,
                                 BlockCount = amount
                             };
-
-                            inventory.Items[new GridPoint(xx, yy)] = newItem;
-                            goto nextblock;
+                            found = true;
                         }
                     }
                 }
-            nextblock:
+
                 targetClient.IsInventoryDirty = true;
             }
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandGiveSuccess"), colorSuccess, amount, blockname, targetName));

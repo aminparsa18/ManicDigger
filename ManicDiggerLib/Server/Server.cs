@@ -230,10 +230,7 @@ public partial class Server : ICurrentTime, IDropItem
             d_CurrentTime = this,
             ChunkSize = 32
         };
-        for (int i = 0; i < BlockTypes.Length; i++)
-        {
-            BlockTypes[i] = new BlockType() { };
-        }
+        BlockTypes = [];
         map.Heightmap = new InfiniteMapChunked2dServer() { d_Map = map };
         map.Reset(Config.MapSizeX, Config.MapSizeY, Config.MapSizeZ);
         Map = map;
@@ -883,31 +880,30 @@ public partial class Server : ICurrentTime, IDropItem
         Inventory inv = ManicDigger.Inventory.Create();
         int x = 0;
         int y = 0;
-        for (int i = 0; i < BlockTypeRegistry.StartInventoryAmount.Length; i++)
+        InventoryUtil util = GetInventoryUtil(inv);
+
+        foreach (var (id, blockType) in BlockTypes)
         {
-            int amount = BlockTypeRegistry.StartInventoryAmount[i];
-            if (Config.IsCreative)
+            BlockTypeRegistry.StartInventoryAmount.TryGetValue(id, out int amount);
+
+            bool shouldAdd = Config.IsCreative
+                ? amount > 0 || blockType.IsBuildable
+                : amount > 0;
+
+            if (!shouldAdd) continue;
+
+            inv.Items.Add(new GridPoint(x, y), new InventoryItem
             {
-                if (amount > 0 || BlockTypes[i].IsBuildable)
-                {
-                    inv.Items.Add(new GridPoint(x, y), new InventoryItem() { InventoryItemType = InventoryItemType.Block, BlockId = i, BlockCount = 0 });
-                    x++;
-                    if (x >= GetInventoryUtil(inv).CellCountX)
-                    {
-                        x = 0;
-                        y++;
-                    }
-                }
-            }
-            else if (amount > 0)
+                InventoryItemType = InventoryItemType.Block,
+                BlockId = id,
+                BlockCount = Config.IsCreative ? 0 : amount
+            });
+
+            x++;
+            if (x >= util.CellCountX)
             {
-                inv.Items.Add(new GridPoint(x, y), new InventoryItem() { InventoryItemType = InventoryItemType.Block, BlockId = i, BlockCount = amount });
-                x++;
-                if (x >= GetInventoryUtil(inv).CellCountX)
-                {
-                    x = 0;
-                    y++;
-                }
+                x = 0;
+                y++;
             }
         }
         return inv;
@@ -2487,13 +2483,13 @@ public partial class Server : ICurrentTime, IDropItem
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.BlobFinalize, BlobFinalize = p }));
     }
 
-    public BlockType[] BlockTypes { get; set; } = new BlockType[GlobalVar.MAX_BLOCKTYPES];
+    public Dictionary<int, BlockType> BlockTypes { get; set; } = [];
 
     public void SendBlockTypes(int clientid)
     {
-        for (int i = 0; i < BlockTypes.Length; i++)
+        foreach (var (id, blockType) in BlockTypes)
         {
-            Packet_ServerBlockType p1 = new() { Id = i, Blocktype = BlockTypes[i] };
+            Packet_ServerBlockType p1 = new() { Id = id, Blocktype = blockType };
             SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.BlockType, BlockType = p1 }));
         }
         Packet_ServerBlockTypes p = new() { };
@@ -2733,14 +2729,8 @@ public partial class Server : ICurrentTime, IDropItem
 
     public void SetBlockType(string name, BlockType block)
     {
-        for (int i = 0; i < BlockTypes.Length; i++)
-        {
-            if (BlockTypes[i].Name == null)
-            {
-                SetBlockType(i, name, block);
-                return;
-            }
-        }
+        int id = BlockTypes.Count == 0 ? 0 : BlockTypes.Keys.Max() + 1;
+        SetBlockType(id, name, block);
     }
 
     private int[] sunlevels = [];

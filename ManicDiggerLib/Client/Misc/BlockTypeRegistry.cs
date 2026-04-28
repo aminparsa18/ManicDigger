@@ -75,8 +75,8 @@ public class BlockTypeRegistry
     /// <summary>Emitted light radius for each block type (0 = no light).</summary>
     public int[] LightRadius { get; private set; }
 
-    /// <summary>Default starting inventory amount for each block type.</summary>
-    public int[] StartInventoryAmount { get; private set; }
+    /// <summary>Default starting inventory amount for each block type, keyed by block type id.</summary>
+    public Dictionary<int, int> StartInventoryAmount { get; private set; } = [];
 
     /// <summary>Mining strength (time-to-break) for each block type.</summary>
     public float[] Strength { get; private set; }
@@ -165,7 +165,7 @@ public class BlockTypeRegistry
         Rail = new int[blockTypeCount];
         IsSlipperyWalk = new bool[blockTypeCount];
         LightRadius = new int[blockTypeCount];
-        StartInventoryAmount = new int[blockTypeCount];
+        StartInventoryAmount = [];
         Strength = new float[blockTypeCount];
         DamageToPlayer = new int[blockTypeCount];
         WalkableType = new WalkableType[blockTypeCount];
@@ -197,11 +197,8 @@ public class BlockTypeRegistry
     /// </summary>
     public void UseBlockTypes(Dictionary<int, BlockType> blocktypes)
     {
-        for (int i = 0; i < blocktypes.Count; i++)
-        {
-            if (blocktypes[i] != null)
-                RegisterBlockType(i, blocktypes[i]);
-        }
+        foreach (var (id, blockType) in blocktypes)
+            RegisterBlockType(id, blockType);
     }
 
     /// <summary>

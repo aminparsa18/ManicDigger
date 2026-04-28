@@ -34,7 +34,6 @@ public class DefaultWorldGenerator : IMod
         m.RegisterWorldGenerator(GetChunk);
         m.RegisterPopulateChunk(PopulateChunk);
         m.RegisterOnSave(DisplayTimes);
-        //SaveImage();
     }
 
     // =========================================================================
@@ -51,14 +50,13 @@ public class DefaultWorldGenerator : IMod
     private readonly int BLOCK_MUD;
 
     // Tuned for 256x256 map — biome transitions every ~60-100 blocks
-    private const float CONTINENT_SCALE = 180f;
-    private const float HEIGHT_SCALE = 120f;
-    private const float TEMP_SCALE = 220f;
-    private const float HUMIDITY_SCALE = 160f;
+    private const float CONTINENT_SCALE = 260f;
+    private const float HEIGHT_SCALE = 140f;
+    private const float TEMP_SCALE = 300f;
+    private const float HUMIDITY_SCALE = 240f;
 
     // Water sits at block 30. Land biomes always generate above this.
     private const int WATER_LEVEL = 30;
-    private const int LAND_MIN_HEIGHT = 33;   // guaranteed minimum for any land biome surface
 
     private int getChunkCalls, populateChunkCalls;
     private long totalGetChunkMs, totalPopulateMs;
@@ -156,19 +154,17 @@ public class DefaultWorldGenerator : IMod
     /// Returns raw continent noise + center bias, normalised to [0, 1].
     /// Values above 0.5 are land, below 0.5 are ocean.
     /// </summary>
-    private float GetContinent(int wx, int wy)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private float GetContinentF(float wx, float wy)
     {
-        float nx = wx / CONTINENT_SCALE;
-        float ny = wy / CONTINENT_SCALE;
+        float c1 = continentNoise.GetValue(wx / CONTINENT_SCALE, 0f, wy / CONTINENT_SCALE);
+        float c2 = continentNoise.GetValue(wx / (CONTINENT_SCALE * 3f), 0f, wy / (CONTINENT_SCALE * 3f));
 
-        // add secondary noise to break coastlines
-        float coastWarp = heightDetail.GetValue(nx * 2f, 0f, ny * 2f) * 0.15f;
-
-        float raw = continentNoise.GetValue(nx + coastWarp, 0f, ny + coastWarp);
+        float raw = c1 * 0.85f + c2 * 0.15f;
 
         if (!float.IsFinite(raw)) raw = 0f;
-        float biased = raw + ContinentBias(wx, wy);
-        // Billow output ≈ [-0.5, 1.5] after bias. Normalise to [0,1].
+
+        float biased = raw + ContinentBias((int)wx, (int)wy); // bias can stay int-based
         return Math.Clamp((biased + 0.3f) / 1.6f, 0f, 1f);
     }
 
@@ -195,7 +191,7 @@ public class DefaultWorldGenerator : IMod
         float sNorm = Math.Clamp((sRaw + 0.5f) / 2.0f, 0f, 1f);
         float dNorm = Math.Clamp((dRaw + 0.8f) / 1.6f, 0f, 1f);
 
-        float mw = MathF.Max(inland * inland, 0.3f);
+        float mw = MathF.Pow(inland, 2.0f);
         float baseH = float.Lerp(sNorm, rNorm, mw);
 
         float h = baseH * 0.82f + dNorm * 0.18f;
@@ -231,14 +227,21 @@ public class DefaultWorldGenerator : IMod
 
                 var (wxw, wyw) = Warp(wx, wy);
 
-                float cont = GetContinent((int)wxw, (int)wyw);
+                float cont = GetContinentF(wxw, wyw);
                 float normH = SampleNormHeight(wxw, wyw, cont);
 
                 float rawTemp = tempNoise.GetValue(wxw / TEMP_SCALE, 0f, wyw / TEMP_SCALE);
-                float temp = Math.Clamp((rawTemp + 0.8f) / 1.6f, 0f, 1f);
+                float temp = Math.Clamp((rawTemp + 1f) * 0.5f, 0f, 1f);
+
+                // increase contrast (push toward extremes)
+                temp = MathF.Pow(temp, 0.85f);
 
                 float rawHum = humidityNoise.GetValue(wxw / HUMIDITY_SCALE, 0f, wyw / HUMIDITY_SCALE);
-                float humidity = Math.Clamp((rawHum + 0.8f) / 1.6f, 0f, 1f);
+                float humidity = Math.Clamp((rawHum + 1f) * 0.5f, 0f, 1f);
+
+                // push values away from middle → real dry/wet regions
+                temp = MathF.Pow(temp, 0.9f);
+                humidity = MathF.Pow(humidity, 1.15f);
 
                 var weights = GetBiomeWeights(normH, temp, humidity);
                 int surfaceZ = ComputeSurfaceZ(cont, normH, weights);
@@ -282,7 +285,7 @@ public class DefaultWorldGenerator : IMod
         return Lerp(30f, 36f, Math.Clamp((cont - 0.36f) / 0.64f, 0f, 1f));        // land base   z=30→36
     }
 
-    private BiomeWeights GetBiomeWeights(float normH, float temp, float humidity)
+    private static BiomeWeights GetBiomeWeights(float normH, float temp, float humidity)
     {
         BiomeWeights w = new();
 
@@ -295,10 +298,13 @@ public class DefaultWorldGenerator : IMod
         float cold = 1f - temp;
 
         // Humidity
-        float dry = 1f - humidity;
         float wet = humidity;
 
-        w.Desert = hot * dry * (1f - w.Mountains);
+        float dryness = SmoothStep(0.5f, 0.9f, 1f - humidity);
+        float heat = SmoothStep(0.55f, 0.9f, temp);
+
+        // additive instead of multiplicative bias
+        w.Desert = (heat * 0.7f + dryness * 0.6f) * (1f - w.Mountains);
         w.Forest = wet * (1f - hot) * (1f - w.Mountains);
         w.Snow = cold * w.Mountains;
 
@@ -323,15 +329,11 @@ public class DefaultWorldGenerator : IMod
         return Math.Clamp((int)(baseZ + normH * amp), 1, 90);
     }
 
-    private float GetBlendedAmplitude(BiomeWeights w)
-    {
-        return
-            w.Plains * 12f +
+    private float GetBlendedAmplitude(BiomeWeights w) => w.Plains * 12f +
             w.Forest * 14f +
             w.Desert * 18f +
             w.Mountains * 58f +
             w.Snow * 64f;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int BuildBlock(BiomeWeights w, int wz, int surfaceZ, int wx, int wy)
@@ -412,8 +414,8 @@ public class DefaultWorldGenerator : IMod
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private (float x, float y) Warp(int wx, int wy)
     {
-        float scale = 80f;      // controls size of distortion
-        float strength = 35f;   // how strong the warp is
+        float scale = 140f;      // controls size of distortion
+        float strength = 30f;   // how strong the warp is
 
         float nx = wx / scale;
         float ny = wy / scale;

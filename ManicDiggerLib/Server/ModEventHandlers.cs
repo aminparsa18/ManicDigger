@@ -2,7 +2,7 @@ using ManicDigger;
 
 public class ModEventHandlers
 {
-    public List<ModDelegates.WorldGenerator> getchunk = [];
+    public List<ModDelegates.WorldGenerator> getchunk { get; set; } = [];
     public List<ModDelegates.BlockUse> onuse = [];
     public List<ModDelegates.BlockBuild> onbuild = [];
     public List<ModDelegates.BlockDelete> ondelete = [];

@@ -142,10 +142,6 @@
             }
             c.DataOld = null;
         }
-        if (c.Entities != null)
-        {
-            c.EntitiesCount = c.Entities.Length;
-        }
         return c;
     }
 

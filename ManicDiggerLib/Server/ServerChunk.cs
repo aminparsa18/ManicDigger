@@ -40,9 +40,6 @@ public partial class ServerChunk
     /// <summary>Monsters currently residing in this chunk.</summary>
     public List<Monster> Monsters { get; set; } = [];
 
-    /// <summary>Number of valid entries in <see cref="Entities"/>.</summary>
-    public int EntitiesCount { get; set; }
-
     /// <summary>Server entities (signs, push zones, interactive objects) located in this chunk.</summary>
-    public ServerEntity[]? Entities { get; set; }
+    public Dictionary<int, ServerEntity>? Entities { get; set; }
 }

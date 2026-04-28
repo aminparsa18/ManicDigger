@@ -221,10 +221,10 @@ public class ServerSystemNotifyEntities : ServerSystem
 
                     if (chunk?.Entities == null) continue;
 
-                    for (int i = 0; i < chunk.EntitiesCount; i++)
+                    foreach (var (id, entity) in chunk.Entities)
                     {
-                        if (chunk.Entities[i]?.Position == null) continue;
-                        candidates.Add(new ServerEntityId { ChunkX = chunkX, ChunkY = chunkY, ChunkZ = chunkZ, Id = i });
+                        if (entity?.Position == null) continue;
+                        candidates.Add(new ServerEntityId { ChunkX = chunkX, ChunkY = chunkY, ChunkZ = chunkZ, Id = id });
                     }
                 }
 

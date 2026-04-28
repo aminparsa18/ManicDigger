@@ -18,12 +18,12 @@ public class ClientOnServer
         Ping = new Ping();
         PlayerName = Server.InvalidPlayerName;
         Model = "player.txt";
-        chunksseenTime = new Dictionary<int, int>();
-        heightmapchunksseen = new Dictionary<Vector2i, int>();
+        chunksseenTime = [];
+        heightmapchunksseen = [];
         IsInventoryDirty = true;
         IsPlayerStatsDirty = true;
         FillLimit = 500;
-        Privileges = new List<string>();
+        Privileges = [];
         DisplayColor = "&f";
         EyeHeight = 1f * 15 / 10;
         ModelHeight = 1f * 17 / 10;

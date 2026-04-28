@@ -295,28 +295,27 @@ public class ServerSystemPermissionSign : ServerSystem
                     ServerChunk chunk = server.Map.GetChunk_(cx, cy, cz);
                     if (chunk == null) return;
 
-                    for (int i = 0; i < chunk.EntitiesCount; i++)
+                    foreach (var (_, entity) in chunk.Entities)
                     {
-                        ServerEntity e = chunk.Entities[i];
-                        if (e?.PermissionSign == null || e.DrawArea == null) continue;
+                        if (entity?.PermissionSign == null || entity.DrawArea == null) continue;
 
                         if (!InArea(blockX, blockY, blockZ,
-                                e.DrawArea.X, e.DrawArea.Z, e.DrawArea.Y,
-                                e.DrawArea.SizeX, e.DrawArea.SizeZ, e.DrawArea.SizeY))
+                                entity.DrawArea.X, entity.DrawArea.Z, entity.DrawArea.Y,
+                                entity.DrawArea.SizeX, entity.DrawArea.SizeZ, entity.DrawArea.SizeY))
                             continue;
 
                         ClientOnServer client = server.Clients[args.Player];
 
-                        bool allowed = e.PermissionSign.Type switch
+                        bool allowed = entity.PermissionSign.Type switch
                         {
-                            PermissionSignType.Group => e.PermissionSign.Name == client.ClientGroup.Name,
-                            PermissionSignType.Player => e.PermissionSign.Name == client.PlayerName,
+                            PermissionSignType.Group => entity.PermissionSign.Name == client.ClientGroup.Name,
+                            PermissionSignType.Player => entity.PermissionSign.Name == client.PlayerName,
                             _ => false
                         };
 
                         if (allowed)
                         {
-                            args.Allowed=(true);
+                            args.Allowed = true;
                             return;
                         }
                     }

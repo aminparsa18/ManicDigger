@@ -158,7 +158,7 @@ public partial class Server : ICurrentTime, IDropItem
             }
         }
 
-        double currenttime = Server.GetTime() - starttime;
+        double currenttime = GetTime() - starttime;
         double deltaTime = currenttime - oldtime;
         accumulator += deltaTime;
         double dt = SIMULATION_STEP_LENGTH;
@@ -2939,25 +2939,15 @@ public partial class Server : ICurrentTime, IDropItem
     public void DespawnEntity(ServerEntityId id)
     {
         ServerChunk chunk = Map.GetChunk(id.ChunkX * ChunkSize, id.ChunkY * ChunkSize, id.ChunkZ * ChunkSize);
-        chunk.Entities[id.Id] = null;
-        if (id.Id == chunk.EntitiesCount - 1)
-        {
-            chunk.EntitiesCount--;
-        }
+        chunk.Entities.Remove(id.Id);
         chunk.DirtyForSaving = true;
     }
 
     public void AddEntity(int x, int y, int z, ServerEntity e)
     {
         ServerChunk c = Map.GetChunk(x, y, z);
-        c.Entities ??= new ServerEntity[256];
-        if (c.Entities.Length < c.EntitiesCount + 1)
-        {
-            var entities = c.Entities;
-            Array.Resize(ref entities, c.EntitiesCount + 1);
-            c.Entities = entities;
-        }
-        c.Entities[c.EntitiesCount++] = e;
+        int id = c.Entities.Count == 0 ? 0 : c.Entities.Keys.Max() + 1;
+        c.Entities[id] = e;
         c.DirtyForSaving = true;
     }
 }

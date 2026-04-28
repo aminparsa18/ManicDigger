@@ -71,7 +71,10 @@ public class ChunkedMap2d<T>
     /// <summary>Returns the block value at (<paramref name="x"/>, <paramref name="y"/>),
     /// or <c>default(T)</c> if the containing chunk has never been written.</summary>
     public T GetBlock(int x, int y)
-        => GetChunk(x, y)[BlockIndex(x, y)];
+    {
+        var chunk = _chunks[ChunkIndex(x, y)];
+        return chunk == null ? default : chunk[BlockIndex(x, y)];
+    }
 
     /// <summary>Writes <paramref name="blocktype"/> at (<paramref name="x"/>, <paramref name="y"/>),
     /// allocating the containing chunk on first write.</summary>

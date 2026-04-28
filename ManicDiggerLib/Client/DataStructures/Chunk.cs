@@ -14,7 +14,7 @@
 public class Chunk
 {
     /// <summary>Total number of blocks in a full chunk volume (ChunkSide³).</summary>
-    private static int ChunkVolume => Game.chunksize * Game.chunksize * Game.chunksize;
+    private static readonly int ChunkVolume = Game.chunksize * Game.chunksize * Game.chunksize;
 
     // ── Backing stores ───────────────────────────────────────────────────────
     // Exactly one of data/dataInt is active at any time; the other is null.
@@ -71,8 +71,7 @@ public class Chunk
         // Rent a new int array at least ChunkVolume in size.
         int n = ChunkVolume;
         int[] promoted = ArrayPool<int>.Shared.Rent(n);
-        for (int i = 0; i < n; i++)
-            promoted[i] = data[i];
+        Buffer.BlockCopy(data, 0, promoted, 0, n);
 
         // Return the now-redundant byte array to the pool.
         ArrayPool<byte>.Shared.Return(data);
@@ -116,5 +115,8 @@ public class Chunk
             ArrayPool<byte>.Shared.Return(baseLight);
             baseLight = null;
         }
+
+        rendered?.ReleaseLight();
+        rendered = null;
     }
 }

@@ -47,7 +47,7 @@ public class LightBase
         int[] dataLightRadius,
         bool[] transparentForLight)
     {
-        Chunk chunk = game.VoxelMap.GetChunk_(cx, cy, cz);
+        Chunk chunk = game.VoxelMap.GetChunkAt(cx, cy, cz);
 
         // Copy block data into the working buffer via the chunk's unified accessor,
         // which handles both byte (data) and int (dataInt) storage transparently.

@@ -209,17 +209,6 @@ public class ModDrawTerrain : ModBase
         buffer[6] = new(pos.X, pos.Y, pos.Z - 1);
     }
 
-    public static Vector3i[] BlocksAround7(Vector3i pos) =>
-    [
-        pos,
-        new(pos.X + 1, pos.Y,     pos.Z),
-        new(pos.X - 1, pos.Y,     pos.Z),
-        new(pos.X,     pos.Y + 1, pos.Z),
-        new(pos.X,     pos.Y - 1, pos.Z),
-        new(pos.X,     pos.Y,     pos.Z + 1),
-        new(pos.X,     pos.Y,     pos.Z - 1),
-    ];
-
     /// <summary>
     /// Finds the dirty chunk nearest to the player within the current view distance.
     /// Returns <see langword="null"/> when no dirty chunk exists.
@@ -290,7 +279,7 @@ public class ModDrawTerrain : ModBase
             _batcherIdsCount = 0;
             RenderedChunk rendered = r.Chunk.rendered;
 
-            if (rendered.Ids != null)
+            if (rendered?.Ids != null)
                 for (int i = 0; i < rendered.IdsCount; i++)
                     _game.Batcher.Remove(rendered.Ids[i]);
 
@@ -315,13 +304,13 @@ public class ModDrawTerrain : ModBase
                 ReturnModelArrays(submesh.ModelData);
             }
 
-            if (rendered.Ids == null || rendered.Ids.Length != _batcherIdsCount)
-                rendered.Ids = new int[_batcherIdsCount];
+            if (rendered?.Ids == null || rendered.Ids.Length != _batcherIdsCount)
+                rendered?.Ids = new int[_batcherIdsCount];
 
             for (int i = 0; i < _batcherIdsCount; i++)
-                rendered.Ids[i] = _batcherIds[i];
+                rendered?.Ids[i] = _batcherIds[i];
 
-            rendered.IdsCount = _batcherIdsCount;
+            rendered?.IdsCount = _batcherIdsCount;
         }
     }
 

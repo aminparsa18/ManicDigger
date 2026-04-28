@@ -1,5 +1,7 @@
-﻿using System.Buffers;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
+using System.Buffers;
+using System.Net;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 /// <summary>
 /// Represents the voxel world, storing block data in a sparse grid of <see cref="Chunk"/> objects.
@@ -52,10 +54,12 @@ public class VoxelMap
     /// </summary>
     public Chunk GetChunk(int x, int y, int z)
     {
-        x = x / Game.chunksize;
-        y = y / Game.chunksize;
-        z = z / Game.chunksize;
-        return GetChunk_(x, y, z);
+        if (x < 0 || y < 0 || z < 0)
+            Console.WriteLine($"[WARN] GetChunk negative input: ({x}, {y}, {z})");
+        x >>= Game.chunksizebits;
+        y >>= Game.chunksizebits;
+        z >>= Game.chunksizebits;
+        return GetChunkAt(x, y, z);
     }
 
     /// <summary>
@@ -63,10 +67,11 @@ public class VoxelMap
     /// Backing arrays are rented from <see cref="ArrayPool{T}.Shared"/> and zeroed before use
     /// so the caller always receives clean, initialised memory.
     /// </summary>
-    public Chunk GetChunk_(int cx, int cy, int cz)
+    public Chunk GetChunkAt(int cx, int cy, int cz)
     {
-        int mapsizexchunks = MapSizeX / Game.chunksize;
-        int mapsizeychunks = MapSizeY / Game.chunksize;
+        int csBits = Game.chunksizebits;
+        int mapsizexchunks = MapSizeX >> csBits;
+        int mapsizeychunks = MapSizeY >> csBits;
         int flatIndex = Index3d(cx, cy, cz, mapsizexchunks, mapsizeychunks);
         Chunk chunk = Chunks[flatIndex];
 
@@ -101,27 +106,8 @@ public class VoxelMap
     public void SetBlockRaw(int x, int y, int z, int tileType)
     {
         Chunk chunk = GetChunk(x, y, z);
-        int pos = Index3d(x % Game.chunksize, y % Game.chunksize, z % Game.chunksize, Game.chunksize, Game.chunksize);
+        int pos = Index3d(x & (Game.chunksize - 1), y & (Game.chunksize - 1), z & (Game.chunksize - 1), Game.chunksize, Game.chunksize);
         chunk.SetBlock(pos, tileType);
-    }
-
-    /// <summary>
-    /// Copies all block data from <paramref name="chunk"/> into <paramref name="output"/>.
-    /// Uses <see cref="Chunk.dataInt"/> when available, otherwise falls back to <see cref="Chunk.data"/>.
-    /// </summary>
-    public static void CopyChunk(Chunk chunk, int[] output)
-    {
-        int n = Game.chunksize * Game.chunksize * Game.chunksize;
-        if (chunk.dataInt != null)
-        {
-            for (int i = 0; i < n; i++)
-                output[i] = chunk.dataInt[i];
-        }
-        else
-        {
-            for (int i = 0; i < n; i++)
-                output[i] = chunk.data[i];
-        }
     }
 
     /// <summary>
@@ -157,48 +143,64 @@ public class VoxelMap
     /// </summary>
     public void GetMapPortion(int[] outPortion, int x, int y, int z, int portionsizex, int portionsizey, int portionsizez)
     {
-        int outPortionCount = portionsizex * portionsizey * portionsizez;
-        for (int i = 0; i < outPortionCount; i++)
-        {
-            outPortion[i] = 0;
-        }
+        int csBits = Game.chunksizebits;
+        int cs = Game.chunksize;
+        int mapchunksx = MapSizeX >> csBits;
+        int mapchunksy = MapSizeY >> csBits;
+        int mapsizechunks = mapchunksx * mapchunksy * (MapSizeZ >> csBits);
 
-        int mapchunksx = MapSizeX / Game.chunksize;
-        int mapchunksy = MapSizeY / Game.chunksize;
-        int mapchunksz = MapSizeZ / Game.chunksize;
-        int mapsizechunks = mapchunksx * mapchunksy * mapchunksz;
+        Array.Clear(outPortion, 0, portionsizex * portionsizey * portionsizez);
 
-        for (int xx = 0; xx < portionsizex; xx++)
+        int startCX = x >> csBits;
+        int startCY = y >> csBits;
+        int startCZ = z >> csBits;
+        int endCX = (x + portionsizex - 1) >> csBits;
+        int endCY = (y + portionsizey - 1) >> csBits;
+        int endCZ = (z + portionsizez - 1) >> csBits;
+
+        for (int cx = startCX; cx <= endCX; cx++)
         {
-            for (int yy = 0; yy < portionsizey; yy++)
+            for (int cy = startCY; cy <= endCY; cy++)
             {
-                for (int zz = 0; zz < portionsizez; zz++)
+                for (int cz = startCZ; cz <= endCZ; cz++)
                 {
-                    int cx = (x + xx) >> Game.chunksizebits;
-                    int cy = (y + yy) >> Game.chunksizebits;
-                    int cz = (z + zz) >> Game.chunksizebits;
                     int cpos = (cz * mapchunksy + cy) * mapchunksx + cx;
-                    if (cpos < 0 || cpos >= mapsizechunks)
-                    {
-                        continue;
-                    }
+                    if ((uint)cpos >= (uint)mapsizechunks) continue;
+
                     Chunk chunk = Chunks[cpos];
-                    if (chunk == null || !chunk.HasData())
+                    if (chunk == null || !chunk.HasData()) continue;
+
+                    // block range this chunk contributes to the output
+                    int chunkGlobalX = cx << csBits;
+                    int chunkGlobalY = cy << csBits;
+                    int chunkGlobalZ = cz << csBits;
+
+                    int blockX0 = Math.Max(x, chunkGlobalX);
+                    int blockY0 = Math.Max(y, chunkGlobalY);
+                    int blockZ0 = Math.Max(z, chunkGlobalZ);
+                    int blockX1 = Math.Min(x + portionsizex, chunkGlobalX + cs);
+                    int blockY1 = Math.Min(y + portionsizey, chunkGlobalY + cs);
+                    int blockZ1 = Math.Min(z + portionsizez, chunkGlobalZ + cs);
+
+                    for (int bx = blockX0; bx < blockX1; bx++)
                     {
-                        continue;
+                        int inChunkX = bx - chunkGlobalX;
+                        int outX = bx - x;
+                        for (int by = blockY0; by < blockY1; by++)
+                        {
+                            int inChunkY = by - chunkGlobalY;
+                            int outY = by - y;
+                            for (int bz = blockZ0; bz < blockZ1; bz++)
+                            {
+                                int inChunkZ = bz - chunkGlobalZ;
+                                int outZ = bz - z;
+
+                                int pos = (((inChunkZ << csBits) + inChunkY) << csBits) + inChunkX;
+                                int block = chunk.GetBlock(pos);
+                                outPortion[((outZ * portionsizey) + outY) * portionsizex + outX] = block;
+                            }
+                        }
                     }
-                    int chunkGlobalX = cx << Game.chunksizebits;
-                    int chunkGlobalY = cy << Game.chunksizebits;
-                    int chunkGlobalZ = cz << Game.chunksizebits;
-
-                    int inChunkX = x + xx - chunkGlobalX;
-                    int inChunkY = y + yy - chunkGlobalY;
-                    int inChunkZ = z + zz - chunkGlobalZ;
-
-                    int pos = (((inChunkZ << Game.chunksizebits) + inChunkY) << Game.chunksizebits) + inChunkX;
-
-                    int block = chunk.GetBlock(pos);
-                    outPortion[(zz * portionsizey + yy) * portionsizex + xx] = block;
                 }
             }
         }
@@ -284,30 +286,36 @@ public class VoxelMap
     /// </summary>
     public void SetMapPortion(int x, int y, int z, int[] chunk, int sizeX, int sizeY, int sizeZ)
     {
-        int chunksizex = sizeX;
-        int chunksizey = sizeY;
-        int chunksizez = sizeZ;
-        int chunksize = Game.chunksize;
-        Chunk[] localchunks = new Chunk[chunksizex / chunksize * (chunksizey / chunksize) * (chunksizez / chunksize)];
-        for (int cx = 0; cx < chunksizex / chunksize; cx++)
+        int cs = Game.chunksize;
+        int csBits = Game.chunksizebits;
+        int chunksX = sizeX >> csBits;
+        int chunksY = sizeY >> csBits;
+        int chunksZ = sizeZ >> csBits;
+        Chunk[] localchunks = new Chunk[chunksX * chunksY * chunksZ];
+        for (int cx = 0; cx < chunksX; cx++)
         {
-            for (int cy = 0; cy < chunksizey / chunksize; cy++)
+            int worldX = x + (cx << csBits);
+            int srcX = cx << csBits;
+            for (int cy = 0; cy < chunksY; cy++)
             {
-                for (int cz = 0; cz < chunksizez / chunksize; cz++)
+                int worldY = y + (cy << csBits);
+                int srcY = cy << csBits;
+                for (int cz = 0; cz < chunksZ; cz++)
                 {
-                    localchunks[Index3d(cx, cy, cz, chunksizex / chunksize, chunksizey / chunksize)] = GetChunk(x + cx * chunksize, y + cy * chunksize, z + cz * chunksize);
-                    FillChunk(localchunks[Index3d(cx, cy, cz, chunksizex / chunksize, chunksizey / chunksize)], chunksize, cx * chunksize, cy * chunksize, cz * chunksize, chunk, sizeX, sizeY, sizeZ);
-                }
-            }
-        }
-        for (int xxx = 0; xxx < chunksizex; xxx += chunksize)
-        {
-            for (int yyy = 0; yyy < chunksizey; yyy += chunksize)
-            {
-                for (int zzz = 0; zzz < chunksizez; zzz += chunksize)
-                {
-                    SetChunkDirty((x + xxx) / chunksize, (y + yyy) / chunksize, (z + zzz) / chunksize, true, true);
-                    SetChunksAroundDirty((x + xxx) / chunksize, (y + yyy) / chunksize, (z + zzz) / chunksize);
+                    int worldZ = z + (cz << csBits);
+                    int srcZ = cz << csBits;
+
+                    int idx = Index3d(cx, cy, cz, chunksX, chunksY); // computed once
+                    var c = GetChunk(worldX, worldY, worldZ);
+                    localchunks[idx] = c;
+
+                    FillChunk(c, cs, srcX, srcY, srcZ, chunk, sizeX, sizeY, sizeZ);
+
+                    int ccx = worldX >> csBits;
+                    int ccy = worldY >> csBits;
+                    int ccz = worldZ >> csBits;
+                    SetChunkDirty(ccx, ccy, ccz, true, true);
+                    SetChunksAroundDirty(ccx, ccy, ccz);
                 }
             }
         }
@@ -317,17 +325,21 @@ public class VoxelMap
     /// Copies a sub-cube of <paramref name="source"/> (offset by the given source coordinates)
     /// into <paramref name="destination"/>, filling every block position in the destination chunk.
     /// </summary>
-    public static void FillChunk(Chunk destination, int destinationchunksize, int sourcex, int sourcey, int sourcez, int[] source, int sourcechunksizeX, int sourcechunksizeY, int sourcechunksizeZ)
+    public static void FillChunk(Chunk destination, int dcs, int srcX, int srcY, int srcZ, int[] source, int srcSizeX, int srcSizeY, int srcSizeZ)
     {
-        for (int x = 0; x < destinationchunksize; x++)
+        int csBits = Game.chunksizebits;
+
+        for (int z = 0; z < dcs; z++)
         {
-            for (int y = 0; y < destinationchunksize; y++)
+            int srcZRow = (z + srcZ) * srcSizeY;
+            int dstZRow = z << csBits;
+            for (int y = 0; y < dcs; y++)
             {
-                for (int z = 0; z < destinationchunksize; z++)
+                int srcBase = (srcZRow + (y + srcY)) * srcSizeX + srcX;
+                int dstBase = (dstZRow + y) << csBits;
+                for (int x = 0; x < dcs; x++)
                 {
-                    destination.SetBlock(
-                        Index3d(x, y, z, destinationchunksize, destinationchunksize),
-                        source[Index3d(x + sourcex, y + sourcey, z + sourcez, sourcechunksizeX, sourcechunksizeY)]);
+                    destination.SetBlock(dstBase + x, source[srcBase + x]);
                 }
             }
         }
@@ -340,28 +352,26 @@ public class VoxelMap
     /// </summary>
     public int MaybeGetLight(int x, int y, int z)
     {
-        int light = -1;
-        int cx = x / Game.chunksize;
-        int cy = y / Game.chunksize;
-        int cz = z / Game.chunksize;
-        if (IsValidPos(x, y, z) && IsValidChunkPos(cx, cy, cz))
-        {
-            Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
-            if (c == null || c.rendered == null || c.rendered.Light == null)
-            {
-                light = -1;
-            }
-            else
-            {
-                light = c.rendered.Light[VectorIndexUtil.Index3d(
-                    (x % Game.chunksize) + 1,
-                    (y % Game.chunksize) + 1,
-                    (z % Game.chunksize) + 1,
-                    Game.chunksize + 2,
-                    Game.chunksize + 2)];
-            }
-        }
-        return light;
+        if (!IsValidPos(x, y, z)) return -1;
+
+        int csBits = Game.chunksizebits;
+        int csMask = Game.chunksize - 1;
+        int lightCS = Game.chunksize + 2; // light array stride with padding
+
+        int cx = x >> csBits;
+        int cy = y >> csBits;
+        int cz = z >> csBits;
+
+        if (!IsValidChunkPos(cx, cy, cz)) return -1;
+
+        Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
+        if (c?.rendered?.Light == null) return -1;
+
+        int lx = (x & csMask) + 1;
+        int ly = (y & csMask) + 1;
+        int lz = (z & csMask) + 1;
+
+        return c.rendered.Light[VectorIndexUtil.Index3d(lx, ly, lz, lightCS, lightCS)];
     }
 
     /// <summary>
@@ -370,16 +380,35 @@ public class VoxelMap
     /// </summary>
     public void SetBlockDirty(int x, int y, int z)
     {
-        Vector3i[] around = ModDrawTerrain.BlocksAround7(new Vector3i(x, y, z));
-        for (int i = 0; i < 7; i++)
+        int csBits = Game.chunksizebits;
+
+        // center + 6 neighbors
+        Span<(int x, int y, int z)> offsets =
+        [
+        (x, y, z),
+        (x - 1, y, z),
+        (x + 1, y, z),
+        (x, y - 1, z),
+        (x, y + 1, z),
+        (x, y, z - 1),
+        (x, y, z + 1),
+        ];
+
+        for (int i = 0; i < offsets.Length; i++)
         {
-            Vector3i a = around[i];
-            int xx = a.X;
-            int yy = a.Y;
-            int zz = a.Z;
-            if (xx < 0 || yy < 0 || zz < 0 || xx >= MapSizeX || yy >= MapSizeY || zz >= MapSizeZ)
-                return;
-            SetChunkDirty(xx / Game.chunksize, yy / Game.chunksize, zz / Game.chunksize, true, true);
+            var p = offsets[i];
+
+            if ((uint)p.x >= (uint)MapSizeX ||
+                (uint)p.y >= (uint)MapSizeY ||
+                (uint)p.z >= (uint)MapSizeZ)
+                continue;
+
+            SetChunkDirty(
+                p.x >> csBits,
+                p.y >> csBits,
+                p.z >> csBits,
+                true,
+                true);
         }
     }
 

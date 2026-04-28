@@ -123,7 +123,7 @@ public class LightBetweenChunks
                         continue;
                     }
 
-                    Chunk chunk = game.VoxelMap.GetChunk_(pcx, pcy, pcz);
+                    Chunk chunk = game.VoxelMap.GetChunkAt(pcx, pcy, pcz);
                     int[] dataSlot = _chunksData[slotIndex];
                     byte[] lightSlot = _chunksLight[slotIndex];
 
@@ -274,7 +274,7 @@ public class LightBetweenChunks
     /// <param name="cz">Target chunk Z coordinate.</param>
     private void Output(IGameClient game, int cx, int cy, int cz)
     {
-        Chunk chunk = game.VoxelMap.GetChunk_(cx, cy, cz);
+        Chunk chunk = game.VoxelMap.GetChunkAt(cx, cy, cz);
 
         for (int x = 0; x < OutputSize; x++)
         {

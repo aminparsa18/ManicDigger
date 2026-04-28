@@ -1,65 +1,76 @@
 ﻿namespace LibNoise;
 
+/// <summary>
+/// Classic Perlin fBm noise generator. Stacks multiple octaves of coherent
+/// gradient noise at progressively higher frequency and lower amplitude,
+/// producing smooth, natural-looking noise suitable for terrain heightmaps,
+/// cloud layers, and general-purpose procedural content.
+/// <para>
+/// Identical in structure to <see cref="FastNoise"/> but operates on
+/// <see cref="GradientNoiseBasis"/> rather than <see cref="FastNoiseBasis"/>,
+/// giving a different visual character from the same parameters.
+/// </para>
+/// </summary>
 public class Perlin : GradientNoiseBasis, IModule
 {
-    private int mOctaveCount;
+    private const int MaxOctaves = 30;
+    private int _octaveCount;
 
-    public double Frequency { get; set; }
-
-    public double Persistence { get; set; }
-
+    public float Frequency { get; set; }
+    public float Persistence { get; set; }
+    public float Lacunarity { get; set; }
     public NoiseQuality NoiseQuality { get; set; }
-
     public int Seed { get; set; }
-
-    public double Lacunarity { get; set; }
 
     public int OctaveCount
     {
-        get
-        {
-            return mOctaveCount;
-        }
+        get => _octaveCount;
         set
         {
-            if (value < 1 || value > 30)
-            {
-                throw new ArgumentException("Octave count must be greater than zero and less than " + 30);
-            }
-
-            mOctaveCount = value;
+            if (value < 1 || value > MaxOctaves)
+                throw new ArgumentException(
+                    $"OctaveCount must be between 1 and {MaxOctaves}, got {value}.");
+            _octaveCount = value;
         }
     }
 
     public Perlin()
     {
-        Frequency = 1.0;
-        Lacunarity = 2.0;
+        Frequency = 1f;
+        Lacunarity = 2f;
         OctaveCount = 6;
-        Persistence = 0.5;
+        Persistence = 0.5f;
         NoiseQuality = NoiseQuality.Standard;
         Seed = 0;
     }
 
-    public double GetValue(double x, double y, double z)
+    public float GetValue(float x, float y, float z)
     {
-        double num = 0.0;
-        double num2 = 0.0;
-        double num3 = 1.0;
+        float sum = 0f;
+        float amplitude = 1f;
+
+        // Cache fields in locals — prevents repeated this-pointer dereferences
+        // and keeps values in registers across all octave iterations.
+        int octaveCount = _octaveCount;
+        int seed = Seed;
+        float lacunarity = Lacunarity;
+        float persistence = Persistence;
+        NoiseQuality quality = NoiseQuality;
+
         x *= Frequency;
         y *= Frequency;
         z *= Frequency;
-        for (int i = 0; i < OctaveCount; i++)
+
+        for (int i = 0; i < octaveCount; i++)
         {
-            long num4 = (Seed + i) & 0xFFFFFFFFu;
-            num2 = GradientCoherentNoise(x, y, z, (int)num4, NoiseQuality);
-            num += num2 * num3;
-            x *= Lacunarity;
-            y *= Lacunarity;
-            z *= Lacunarity;
-            num3 *= Persistence;
+            int octaveSeed = (seed + i) & 0x7FFFFFFF;
+            sum += GradientCoherentNoise(x, y, z, octaveSeed, quality) * amplitude;
+            x *= lacunarity;
+            y *= lacunarity;
+            z *= lacunarity;
+            amplitude *= persistence;
         }
 
-        return num;
+        return sum;
     }
 }

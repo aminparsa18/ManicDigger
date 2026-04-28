@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace LibNoise;
 
 /// <summary>
@@ -16,12 +18,6 @@ public class FastNoiseBasis : Math
     // ── Permutation / gradient tables ─────────────────────────────────────────
 
     /// <summary>
-    /// Raw random values in [0, 254] generated from <see cref="Seed"/>.
-    /// Used to shuffle <see cref="_permutations"/>.
-    /// </summary>
-    private readonly int[] _randomValues = new int[512];
-
-    /// <summary>
     /// Doubled permutation table (indices 0–255 mirrored to 256–511) so that
     /// index arithmetic never wraps — avoids a modulo on every lookup.
     /// </summary>
@@ -29,7 +25,9 @@ public class FastNoiseBasis : Math
 
     /// <summary>
     /// Pre-computed gradient values mapped through <see cref="_permutations"/>.
-    /// Also doubled to 512 entries for the same wrap-avoidance reason.
+    /// Doubled to 512 entries for the same wrap-avoidance reason as above.
+    /// Stored as <c>float</c> — the noise output is single-precision so there
+    /// is no benefit in keeping these as <c>double</c>.
     /// </summary>
     private readonly float[] _gradients = new float[512];
 
@@ -49,23 +47,23 @@ public class FastNoiseBasis : Math
         {
             _seed = value;
 
-            // Build raw random permutation values from the seed.
+            // Build permutation table from the seed.
+            // _randomValues has been eliminated — we write directly into
+            // _permutations[0..255] then mirror, saving one 512-int allocation
+            // and a copy loop.
             var rng = new Random(_seed);
-            for (int i = 0; i < 512; i++)
-                _randomValues[i] = rng.Next(255);
-
-            // Mirror the first 256 entries into [256..511] so index+1 never wraps.
             for (int i = 0; i < 256; i++)
-                _permutations[256 + i] = _permutations[i] = _randomValues[i];
+                _permutations[i] = rng.Next(255);
 
-            // Map uniform [0..255] integers to gradients in [-1, 1].
-            var gradientSource = new float[256];
+            // Mirror [0..255] into [256..511] so index+1 never wraps.
             for (int i = 0; i < 256; i++)
-                gradientSource[i] = -1f + 2f * (i / 255f);
+                _permutations[256 + i] = _permutations[i];
 
-            // Shuffle gradients through the permutation table.
+            // Map each permutation entry to a gradient in [-1, 1] and store
+            // directly — gradientSource[] temp array eliminated.
+            const float inv255 = 1f / 255f;
             for (int i = 0; i < 256; i++)
-                _gradients[i] = gradientSource[_permutations[i]];
+                _gradients[i] = -1f + 2f * (_permutations[i] * inv255);
 
             // Mirror gradient table to [256..511].
             for (int i = 256; i < 512; i++)
@@ -112,56 +110,71 @@ public class FastNoiseBasis : Math
     /// <see cref="NoiseQuality.Standard"/> = cubic S-curve,
     /// <see cref="NoiseQuality.High"/> = quintic S-curve (smoothest).
     /// </param>
-    public double GradientCoherentNoise(double x, double y, double z,
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float GradientCoherentNoise(float x, float y, float z,
         int seed, NoiseQuality noiseQuality)
     {
         // Floor to integer cube origin (handles negative coordinates correctly).
-        int ix = x > 0.0 ? (int)x : (int)x - 1;
-        int iy = y > 0.0 ? (int)y : (int)y - 1;
-        int iz = z > 0.0 ? (int)z : (int)z - 1;
+        int ix = x > 0f ? (int)x : (int)x - 1;
+        int iy = y > 0f ? (int)y : (int)y - 1;
+        int iz = z > 0f ? (int)z : (int)z - 1;
 
         // Fractional position inside the unit cube.
-        double fx = x - ix;
-        double fy = y - iy;
-        double fz = z - iz;
+        float fx = x - ix;
+        float fy = y - iy;
+        float fz = z - iz;
 
         // Wrap cube coordinates to [0, 255] for table lookup.
         int cx = ix & 0xFF;
         int cy = iy & 0xFF;
         int cz = iz & 0xFF;
 
-        // Smooth the fractional offsets based on quality.
-        double sx, sy, sz;
+        // Smooth the fractional offsets based on quality (inlined, no virtual call).
+        float sx, sy, sz;
         switch (noiseQuality)
         {
             case NoiseQuality.Low:
                 sx = fx; sy = fy; sz = fz;
                 break;
             case NoiseQuality.Standard:
-                sx = SCurve3(fx); sy = SCurve3(fy); sz = SCurve3(fz);
+                sx = fx * fx * (3f - 2f * fx);
+                sy = fy * fy * (3f - 2f * fy);
+                sz = fz * fz * (3f - 2f * fz);
                 break;
             default: // High
-                sx = SCurve5(fx); sy = SCurve5(fy); sz = SCurve5(fz);
+                sx = fx * fx * fx * (fx * (6f * fx - 15f) + 10f);
+                sy = fy * fy * fy * (fy * (6f * fy - 15f) + 10f);
+                sz = fz * fz * fz * (fz * (6f * fz - 15f) + 10f);
                 break;
         }
 
+        // Pin spans once — suppresses repeated bounds checks across all 8 lookups.
+        ReadOnlySpan<int> perm = _permutations;
+        ReadOnlySpan<float> grad = _gradients;
+
         // Look up gradient table indices for the eight cube corners.
-        int a = _permutations[cx] + cy;
-        int aa = _permutations[a] + cz;
-        int ab = _permutations[a + 1] + cz;
-        int b = _permutations[cx + 1] + cy;
-        int ba = _permutations[b] + cz;
-        int bb = _permutations[b + 1] + cz;
+        int a = perm[cx] + cy;
+        int aa = perm[a] + cz;
+        int ab = perm[a + 1] + cz;
+        int b = perm[cx + 1] + cy;
+        int ba = perm[b] + cz;
+        int bb = perm[b + 1] + cz;
 
-        // Trilinear interpolation across the eight corners.
-        double x1 = double.Lerp(_gradients[aa], _gradients[ba], sx);
-        double x2 = double.Lerp(_gradients[ab], _gradients[bb], sx);
-        double y1 = double.Lerp(x1, x2, sy);
+        // Trilinear interpolation across the eight corners (Lerp inlined as FMA).
+        float x1 = Lerp(grad[aa], grad[ba], sx);
+        float x2 = Lerp(grad[ab], grad[bb], sx);
+        float y1 = Lerp(x1, x2, sy);
 
-        double x3 = double.Lerp(_gradients[aa + 1], _gradients[ba + 1], sx);
-        double x4 = double.Lerp(_gradients[ab + 1], _gradients[bb + 1], sx);
-        double y2 = double.Lerp(x3, x4, sy);
+        float x3 = Lerp(grad[aa + 1], grad[ba + 1], sx);
+        float x4 = Lerp(grad[ab + 1], grad[bb + 1], sx);
+        float y2 = Lerp(x3, x4, sy);
 
-        return double.Lerp(y1, y2, sz);
+        return Lerp(y1, y2, sz);
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>Inline linear interpolation — avoids virtual dispatch to Math.Lerp.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static float Lerp(float a, float b, float t) => a + t * (b - a);
 }

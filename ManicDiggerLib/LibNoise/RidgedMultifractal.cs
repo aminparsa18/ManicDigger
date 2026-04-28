@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace LibNoise;
 
 /// <summary>
@@ -18,18 +20,20 @@ public class RidgedMultifractal : GradientNoiseBasis, IModule
     private const int MaxOctaves = 30;
 
     private int _octaveCount;
-    private double _lacunarity;
+    private float _lacunarity;
 
     /// <summary>
     /// Pre-computed per-octave amplitude weights based on <see cref="Lacunarity"/>.
+    /// Stored as <c>float</c> — precision beyond single is wasted here since
+    /// the noise values themselves are <c>float</c>.
     /// Recalculated whenever <see cref="Lacunarity"/> changes.
     /// </summary>
-    private readonly double[] _spectralWeights = new double[MaxOctaves];
+    private readonly float[] _spectralWeights = new float[MaxOctaves];
 
     // ── Parameters ────────────────────────────────────────────────────────────
 
     /// <summary>Base frequency of the lowest octave. Default is <c>1.0</c>.</summary>
-    public double Frequency { get; set; }
+    public float Frequency { get; set; }
 
     /// <summary>Noise interpolation quality. Default is <see cref="NoiseQuality.Standard"/>.</summary>
     public NoiseQuality NoiseQuality { get; set; }
@@ -42,7 +46,7 @@ public class RidgedMultifractal : GradientNoiseBasis, IModule
     /// Setting this recalculates <see cref="_spectralWeights"/> immediately.
     /// Default is <c>2.0</c>.
     /// </summary>
-    public double Lacunarity
+    public float Lacunarity
     {
         get => _lacunarity;
         set
@@ -76,8 +80,8 @@ public class RidgedMultifractal : GradientNoiseBasis, IModule
     /// </summary>
     public RidgedMultifractal()
     {
-        Frequency = 1.0;
-        Lacunarity = 2.0; // also calls CalculateSpectralWeights()
+        Frequency = 1f;
+        Lacunarity = 2f;  // also calls CalculateSpectralWeights()
         OctaveCount = 6;
         NoiseQuality = NoiseQuality.Standard;
         Seed = 0;
@@ -99,43 +103,57 @@ public class RidgedMultifractal : GradientNoiseBasis, IModule
     /// The output is scaled and biased to approximately [-1, 1].
     /// </para>
     /// </summary>
-    public double GetValue(double x, double y, double z)
+    public float GetValue(float x, float y, float z)
     {
         x *= Frequency;
         y *= Frequency;
         z *= Frequency;
 
-        double sum = 0.0;
-        double weight = 1.0;
+        float sum = 0f;
+        float weight = 1f;
 
-        // Offset and gain control ridge sharpness — these are standard constants.
-        const double offset = 1.0;
-        const double gain = 2.0;
+        // Offset and gain control ridge sharpness — standard constants.
+        const float offset = 1f;
+        const float gain = 2f;
 
-        for (int i = 0; i < OctaveCount; i++)
+        // Cache fields in locals so the JIT doesn't re-read them each iteration.
+        int octaveCount = _octaveCount;
+        float lacunarity = _lacunarity;
+        int seed = Seed;
+        NoiseQuality quality = NoiseQuality;
+        ReadOnlySpan<float> sw = _spectralWeights;
+
+        for (int i = 0; i < octaveCount; i++)
         {
-            int octaveSeed = (int)((Seed + i) & 0x7FFFFFFF);
+            int octaveSeed = (seed + i) & 0x7FFFFFFF;
 
-            // Sample noise, fold to [0,1], invert to make ridges at zero-crossings.
-            double signal = GradientCoherentNoise(x, y, z, octaveSeed, NoiseQuality);
-            signal = System.Math.Abs(signal);
-            signal = offset - signal;
-            signal *= signal;               // square to sharpen ridges
+            // Sample gradient noise, fold to [0,1], invert so ridge peaks sit at
+            // zero-crossings of the raw noise field, then square to sharpen them.
+            float signal = GradientCoherentNoise(x, y, z, octaveSeed, quality);
+            signal = offset - MathF.Abs(signal);
+            signal *= signal;
 
-            // Weight this octave by the previous signal (feedback amplifies ridges).
+            // Feedback: weight this octave by the previous signal so ridges
+            // compound across octaves rather than blending uniformly.
             signal *= weight;
-            weight = System.Math.Clamp(signal * gain, 0.0, 1.0);
+            weight = Clamp01(signal * gain);
 
-            sum += signal * _spectralWeights[i];
+            sum += signal * sw[i];
 
-            x *= Lacunarity;
-            y *= Lacunarity;
-            z *= Lacunarity;
+            x *= lacunarity;
+            y *= lacunarity;
+            z *= lacunarity;
         }
 
         // Scale output to approximately [-1, 1].
-        return sum * 1.25 - 1.0;
+        return sum * 1.25f - 1f;
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>Branchless clamp to [0, 1] — avoids a Math.Clamp call in the hot loop.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static float Clamp01(float v) => v < 0f ? 0f : v > 1f ? 1f : v;
 
     // ── Spectral weights ──────────────────────────────────────────────────────
 
@@ -146,11 +164,11 @@ public class RidgedMultifractal : GradientNoiseBasis, IModule
     /// </summary>
     private void CalculateSpectralWeights()
     {
-        const double H = 1.0;
-        double frequency = 1.0;
+        const float H = 1f;
+        float frequency = 1f;
         for (int i = 0; i < MaxOctaves; i++)
         {
-            _spectralWeights[i] = System.Math.Pow(frequency, -H);
+            _spectralWeights[i] = MathF.Pow(frequency, -H);
             frequency *= _lacunarity;
         }
     }

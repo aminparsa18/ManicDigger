@@ -43,8 +43,8 @@ public class TreeGenerator : IMod
         int Seed = m.Seed;
         treenoise.Seed = Seed + 2;
         treenoise.OctaveCount = 6;
-        treenoise.Frequency = 1.0 / 180.0;
-        treenoise.Lacunarity = treeCount / 20.0 * (treeCount / 20.0) * 2.0;
+        treenoise.Frequency = 1f / 180f;
+        treenoise.Lacunarity = treeCount / 20f * (treeCount / 20f) * 2f;
     }
 
 
@@ -54,11 +54,10 @@ public class TreeGenerator : IMod
         y *= m.GetChunkSize();
         z *= m.GetChunkSize();
         //forests
-        double count = treenoise.GetValue(x / 512.0, 0, y / 512.0) * 1000;
-        {
-            count = System.Math.Min(count, 300);
-            MakeSmallTrees(x, y, z, m.GetChunkSize(), _rnd, (int)count);
-        }
+        // forests
+        float count = treenoise.GetValue(x / 512f, 0f, y / 512f) * 1000f;
+        count = MathF.Min(count, 300f);
+        MakeSmallTrees(x, y, z, m.GetChunkSize(), _rnd, (int)count);
         //random trees
         MakeSmallTrees(x, y, z, m.GetChunkSize(), _rnd, treeCount + 10 - (10 - treeCount / 10));
     }

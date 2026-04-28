@@ -2,9 +2,9 @@ namespace LibNoise.Modifiers;
 
 public class Constant : IModule
 {
-	public double Value { get; set; }
+	public float Value { get; set; }
 
-	public double GetValue(double x, double y, double z)
+	public float GetValue(float x, float y, float z)
 	{
 		return Value;
 	}

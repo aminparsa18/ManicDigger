@@ -45,7 +45,7 @@ public class ValueNoiseBasis
     /// Returns a normalised noise value in approximately [−1, 1] for the given
     /// grid position, using seed 0.
     /// </summary>
-    public double ValueNoise(int x, int y, int z) => ValueNoise(x, y, z, 0);
+    public float ValueNoise(int x, int y, int z) => ValueNoise(x, y, z, 0);
 
     /// <summary>
     /// Returns a normalised noise value in approximately [−1, 1] for the given
@@ -53,6 +53,6 @@ public class ValueNoiseBasis
     /// Divides <see cref="IntValueNoise"/> by 2³⁰ (1 073 741 824) and subtracts
     /// from 1 to map the integer range to [−1, 1].
     /// </summary>
-    public double ValueNoise(int x, int y, int z, int seed)
-        => 1.0 - IntValueNoise(x, y, z, seed) / 1_073_741_824.0;
+    public float ValueNoise(int x, int y, int z, int seed)
+    => 1f - IntValueNoise(x, y, z, seed) * (1f / 1_073_741_824f);
 }

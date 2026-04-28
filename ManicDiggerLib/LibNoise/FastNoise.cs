@@ -10,10 +10,10 @@ public class FastNoise : FastNoiseBasis, IModule
     private const int MaxOctaves = 30;
     private int _octaveCount;
 
-    public double Frequency { get; set; }
-    public double Persistence { get; set; }
+    public float Frequency { get; set; }
+    public float Persistence { get; set; }
+    public float Lacunarity { get; set; }
     public NoiseQuality NoiseQuality { get; set; }
-    public double Lacunarity { get; set; }
 
     public int OctaveCount
     {
@@ -31,31 +31,38 @@ public class FastNoise : FastNoiseBasis, IModule
 
     public FastNoise(int seed) : base(seed)
     {
-        Frequency = 1.0;
-        Lacunarity = 2.0;
+        Frequency = 1f;
+        Lacunarity = 2f;
         OctaveCount = 6;
-        Persistence = 0.5;
+        Persistence = 0.5f;
         NoiseQuality = NoiseQuality.Standard;
     }
 
-    public double GetValue(double x, double y, double z)
+    public float GetValue(float x, float y, float z)
     {
-        double sum = 0.0;
-        double amplitude = 1.0;
+        float sum = 0f;
+        float amplitude = 1f;
+
+        // Cache fields in locals — prevents repeated this-pointer dereferences
+        // inside the hot loop and lets the JIT keep everything in registers.
+        int octaveCount = _octaveCount;
+        int seed = Seed;
+        float lacunarity = Lacunarity;
+        float persistence = Persistence;
+        NoiseQuality quality = NoiseQuality;
 
         x *= Frequency;
         y *= Frequency;
         z *= Frequency;
 
-        for (int i = 0; i < OctaveCount; i++)
+        for (int i = 0; i < octaveCount; i++)
         {
-            int octaveSeed = (int)((Seed + i) & 0xFFFFFFFFu);
-            double signal = GradientCoherentNoise(x, y, z, octaveSeed, NoiseQuality);
-            sum += signal * amplitude;
-            x *= Lacunarity;
-            y *= Lacunarity;
-            z *= Lacunarity;
-            amplitude *= Persistence;
+            int octaveSeed = (seed + i) & 0x7FFFFFFF;
+            sum += GradientCoherentNoise(x, y, z, octaveSeed, quality) * amplitude;
+            x *= lacunarity;
+            y *= lacunarity;
+            z *= lacunarity;
+            amplitude *= persistence;
         }
 
         return sum;

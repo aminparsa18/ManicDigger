@@ -1,5 +1,6 @@
 ﻿using LibNoise;
 using System.Diagnostics;
+using Math = System.Math;
 
 namespace ManicDigger.Mods;
 
@@ -55,10 +56,10 @@ public class DefaultWorldGenerator : IMod
     int BLOCK_SNOW, BLOCK_MUD;
 
     // Tuned for 256x256 map — biome transitions every ~60-100 blocks
-    const double CONTINENT_SCALE = 180.0;
-    const double HEIGHT_SCALE = 120.0;
-    const double TEMP_SCALE = 220.0;
-    const double HUMIDITY_SCALE = 160.0;
+    const float CONTINENT_SCALE = 180f;
+    const float HEIGHT_SCALE = 120f;
+    const float TEMP_SCALE = 220f;
+    const float HUMIDITY_SCALE = 160f;
 
     // Water sits at block 30. Land biomes always generate above this.
     const int WATER_LEVEL = 30;
@@ -95,41 +96,41 @@ public class DefaultWorldGenerator : IMod
     {
         // Continent — very few octaves so features are large and definite
         continentNoise.Seed = seed + 3;
-        continentNoise.Frequency = 1.0;
+        continentNoise.Frequency = 1f;
         continentNoise.OctaveCount = 8;
-        continentNoise.Persistence = 0.4;
-        continentNoise.Lacunarity = 2.1;
+        continentNoise.Persistence = 0.4f;
+        continentNoise.Lacunarity = 2.1f;
         continentNoise.NoiseQuality = NoiseQuality.Standard;
 
         // Ridged for mountain peaks
         heightRidged.Seed = seed + 1;
-        heightRidged.Frequency = 1.0;
+        heightRidged.Frequency = 1f;
         heightRidged.OctaveCount = 7;
-        heightRidged.Lacunarity = 2.4;
+        heightRidged.Lacunarity = 2.4f;
         heightRidged.NoiseQuality = NoiseQuality.Standard;
 
         // Smooth for lowland variety
         heightSmooth.Seed = seed + 2;
-        heightSmooth.Frequency = 1.0;
+        heightSmooth.Frequency = 1f;
         heightSmooth.OctaveCount = 5;
-        heightSmooth.Persistence = 0.5;
-        heightSmooth.Lacunarity = 2.0;
+        heightSmooth.Persistence = 0.5f;
+        heightSmooth.Lacunarity = 2.0f;
         heightSmooth.NoiseQuality = NoiseQuality.Standard;
 
         // Temperature — wider zones than humidity
         tempNoise.Seed = seed * 3 + 137;
-        tempNoise.Frequency = 1.0;
+        tempNoise.Frequency = 1f;
         tempNoise.OctaveCount = 3;
-        tempNoise.Persistence = 0.5;
-        tempNoise.Lacunarity = 2.0;
+        tempNoise.Persistence = 0.5f;
+        tempNoise.Lacunarity = 2.0f;
         tempNoise.NoiseQuality = NoiseQuality.Standard;
 
         // Humidity — tighter zones, decorrelated from temperature
         humidityNoise.Seed = seed * 7 + 53;
-        humidityNoise.Frequency = 1.0;
+        humidityNoise.Frequency = 1f;
         humidityNoise.OctaveCount = 4;
-        humidityNoise.Persistence = 0.55;
-        humidityNoise.Lacunarity = 2.0;
+        humidityNoise.Persistence = 0.55f;
+        humidityNoise.Lacunarity = 2.0f;
 
         vegetationNoise.Seed = seed + 7;
     }
@@ -160,47 +161,47 @@ public class DefaultWorldGenerator : IMod
     /// Radial bias — pushes map center above ocean threshold so spawn is always land.
     /// Returns up to +0.6 at center, fading to 0 at the edges.
     /// </summary>
-    double ContinentBias(int wx, int wy)
+    float ContinentBias(int wx, int wy)
     {
-        double cx = mapSizeX * 0.5;
-        double cy = mapSizeY * 0.5;
-        double dx = (wx - cx) / cx;
-        double dy = (wy - cy) / cy;
-        double dist = System.Math.Sqrt(dx * dx + dy * dy); // 0 at center, ~1.4 at corner
-        return System.Math.Max(0.0, 0.6 - dist * 0.55);
+        float cx = mapSizeX * 0.5f;
+        float cy = mapSizeY * 0.5f;
+        float dx = (wx - cx) / cx;
+        float dy = (wy - cy) / cy;
+        float dist = MathF.Sqrt(dx * dx + dy * dy); // 0 at center, ~1.4 at corner
+        return MathF.Max(0f, 0.6f - dist * 0.55f);
     }
 
     /// <summary>
     /// Returns raw continent noise + center bias, normalised to [0, 1].
     /// Values above 0.5 are land, below 0.5 are ocean.
     /// </summary>
-    double GetContinent(int wx, int wy)
+    float GetContinent(int wx, int wy)
     {
-        double raw = continentNoise.GetValue(wx / CONTINENT_SCALE, 0, wy / CONTINENT_SCALE);
-        if (!double.IsFinite(raw)) raw = 0.0;
-        double biased = raw + ContinentBias(wx, wy);
+        float raw = continentNoise.GetValue(wx / CONTINENT_SCALE, 0f, wy / CONTINENT_SCALE);
+        if (!float.IsFinite(raw)) raw = 0f;
+        float biased = raw + ContinentBias(wx, wy);
         // Billow output ≈ [-0.5, 1.5] after bias. Normalise to [0,1].
-        return System.Math.Clamp((biased + 0.3) / 1.6, 0.0, 1.0);
+        return Math.Clamp((biased + 0.3f) / 1.6f, 0f, 1f);
     }
 
     Biome GetBiome(int wx, int wy)
     {
-        double cont = GetContinent(wx, wy);
+        float cont = GetContinent(wx, wy);
 
         // Ocean zones — continent mask only, no wasted temp/humidity sampling
-        if (cont < 0.18) return Biome.DeepOcean;
-        if (cont < 0.28) return Biome.Ocean;
-        if (cont < 0.36) return Biome.Shore;
+        if (cont < 0.18f) return Biome.DeepOcean;
+        if (cont < 0.28f) return Biome.Ocean;
+        if (cont < 0.36f) return Biome.Shore;
 
         // Land — sample height, temperature, humidity
-        double normH = GetNormHeight(wx, wy, cont);
+        float normH = GetNormHeight(wx, wy, cont);
 
-        double rawTemp = tempNoise.GetValue(wx / TEMP_SCALE, 0, wy / TEMP_SCALE);
-        double temp = System.Math.Clamp((rawTemp + 0.8) / 1.6, 0.0, 1.0);
-        temp = System.Math.Max(0.0, temp - normH * 0.45); // cold at altitude
+        float rawTemp = tempNoise.GetValue(wx / TEMP_SCALE, 0f, wy / TEMP_SCALE);
+        float temp = Math.Clamp((rawTemp + 0.8f) / 1.6f, 0f, 1f);
+        temp = MathF.Max(0f, temp - normH * 0.45f); // cold at altitude
 
-        double rawHum = humidityNoise.GetValue(wx / HUMIDITY_SCALE, 0, wy / HUMIDITY_SCALE);
-        double humidity = System.Math.Clamp((rawHum + 0.8) / 1.6, 0.0, 1.0);
+        float rawHum = humidityNoise.GetValue(wx / HUMIDITY_SCALE, 0f, wy / HUMIDITY_SCALE);
+        float humidity = Math.Clamp((rawHum + 0.8f) / 1.6f, 0f, 1f);
 
         return DetermineBiome(normH, temp, humidity);
     }
@@ -209,31 +210,31 @@ public class DefaultWorldGenerator : IMod
     /// Pure lookup table. No noise inside.
     /// normH    [0..1] : terrain elevation
     /// temp     [0..1] : 0=frozen, 1=scorching
-    /// humidity [0..1] : 0=dry, 1=wet
+    /// humidity [0..1] : 0=wet, 1=dry
     /// </summary>
-    Biome DetermineBiome(double normH, double temp, double humidity)
+    Biome DetermineBiome(float normH, float temp, float humidity)
     {
         // High altitude
-        if (normH > 58)
+        if (normH > 0.58f)
         {
-            if (temp < 0.30) return Biome.SnowyMountains;
-            if (humidity < 0.30) return Biome.DesertMountains;
+            if (temp < 0.30f) return Biome.SnowyMountains;
+            if (humidity < 0.30f) return Biome.DesertMountains;
             return Biome.Mountains;
         }
 
         // Mid elevation
-        if (normH > 0.35)
+        if (normH > 0.35f)
         {
-            if (humidity < 0.30 && temp > 0.60) return Biome.Canyon;
-            if (humidity < 0.40 && temp > 0.50) return Biome.Dunes;
+            if (humidity < 0.30f && temp > 0.60f) return Biome.Canyon;
+            if (humidity < 0.40f && temp > 0.50f) return Biome.Dunes;
             return Biome.Hills;
         }
 
         // Lowlands
-        if (temp > 0.65 && humidity < 0.30) return Biome.Desert;
-        if (temp > 0.60 && humidity < 0.50) return Biome.Savanna;
-        if (humidity > 0.72) return Biome.Swamp;
-        if (humidity > 0.52) return Biome.Forest;
+        if (temp > 0.65f && humidity < 0.30f) return Biome.Desert;
+        if (temp > 0.60f && humidity < 0.50f) return Biome.Savanna;
+        if (humidity > 0.72f) return Biome.Swamp;
+        if (humidity > 0.52f) return Biome.Forest;
         return Biome.Plains;
     }
 
@@ -245,28 +246,28 @@ public class DefaultWorldGenerator : IMod
     /// Normalised height [0..1] for land tiles.
     /// Mountain noise weight rises inland (away from coast).
     /// </summary>
-    double GetNormHeight(int wx, int wy, double cont)
+    float GetNormHeight(int wx, int wy, float cont)
     {
-        double hx = wx / HEIGHT_SCALE;
-        double hy = wy / HEIGHT_SCALE;
+        float hx = wx / HEIGHT_SCALE;
+        float hy = wy / HEIGHT_SCALE;
 
-        double inland = System.Math.Clamp((cont - 0.36) / 0.64, 0.0, 1.0);
-        double mw = System.Math.Max(inland * inland, 0.3);
+        float inland = Math.Clamp((cont - 0.36f) / 0.64f, 0f, 1f);
+        float mw = MathF.Max(inland * inland, 0.3f);
 
-        double rRaw = heightRidged.GetValue(hx, 0, hy);
-        double sRaw = heightSmooth.GetValue(hx, 0, hy);
-        double dRaw = heightDetail.GetValue(hx * 2, 0, hy * 2);
+        float rRaw = heightRidged.GetValue(hx, 0f, hy);
+        float sRaw = heightSmooth.GetValue(hx, 0f, hy);
+        float dRaw = heightDetail.GetValue(hx * 2f, 0f, hy * 2f);
 
-        if (!double.IsFinite(rRaw)) rRaw = 0.0;
-        if (!double.IsFinite(sRaw)) sRaw = 0.0;
-        if (!double.IsFinite(dRaw)) dRaw = 0.0;
+        if (!float.IsFinite(rRaw)) rRaw = 0f;
+        if (!float.IsFinite(sRaw)) sRaw = 0f;
+        if (!float.IsFinite(dRaw)) dRaw = 0f;
 
-        double rNorm = System.Math.Clamp((rRaw + 1.0) / 2.0, 0.0, 1.0);
-        double sNorm = System.Math.Clamp((sRaw + 0.5) / 2.0, 0.0, 1.0);
-        double dNorm = System.Math.Clamp((dRaw + 0.8) / 1.6, 0.0, 1.0);
+        float rNorm = Math.Clamp((rRaw + 1.0f) / 2.0f, 0f, 1f);
+        float sNorm = Math.Clamp((sRaw + 0.5f) / 2.0f, 0f, 1f);
+        float dNorm = Math.Clamp((dRaw + 0.8f) / 1.6f, 0f, 1f);
 
-        double baseH = double.Lerp(sNorm, rNorm, mw);
-        return System.Math.Clamp(baseH * 0.82 + dNorm * 0.18, 0.0, 1.0);
+        float baseH = float.Lerp(sNorm, rNorm, mw);
+        return Math.Clamp(baseH * 0.82f + dNorm * 0.18f, 0f, 1f);
     }
 
     /// <summary>
@@ -369,7 +370,7 @@ public class DefaultWorldGenerator : IMod
         for (int dx = -R; dx <= R; dx++)
             for (int dy = -R; dy <= R; dy++)
             {
-                double nc = GetContinent(wx + dx, wy + dy);
+                float nc = GetContinent(wx + dx, wy + dy);
                 sum += GetNormHeight(wx + dx, wy + dy, nc);
             }
         return sum / ((2 * R + 1) * (2 * R + 1));
@@ -456,7 +457,7 @@ public class DefaultWorldGenerator : IMod
         if (wz == surfaceZ + 1 &&
             (biome == Biome.Plains || biome == Biome.Forest || biome == Biome.Savanna))
         {
-            if (vegetationNoise.GetValue(wx / 3.0, wy / 3.0, 0) > 0.45)
+            if (vegetationNoise.GetValue(wx / 3f, wy / 3f, 0f) > 0.45f)
                 return BLOCK_GRASSPLANT;
         }
 

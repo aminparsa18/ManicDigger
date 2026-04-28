@@ -1,27 +1,25 @@
 namespace LibNoise.Modifiers;
 
+/// <summary>
+/// Post-processor that applies a linear scale and bias to the output of another
+/// module: <c>result = source * Scale + Bias</c>.
+/// Useful for remapping noise into a specific value range — for example,
+/// scaling terrain height into world units or biasing a [-1, 1] signal to [0, 1].
+/// </summary>
 public class ScaleBiasOutput : IModule
 {
-	public double Scale { get; set; }
+    public float Scale { get; set; }
+    public float Bias { get; set; }
+    public IModule SourceModule { get; set; }
 
-	public double Bias { get; set; }
-
-	public IModule SourceModule { get; set; }
-
-	public ScaleBiasOutput(IModule sourceModule)
-	{
+    public ScaleBiasOutput(IModule sourceModule)
+    {
         ArgumentNullException.ThrowIfNull(sourceModule);
         SourceModule = sourceModule;
-		Bias = 0.0;
-		Scale = 1.0;
-	}
+        Scale = 1f;
+        Bias = 0f;
+    }
 
-	public double GetValue(double x, double y, double z)
-	{
-		if (SourceModule == null)
-		{
-			throw new Exception("A source module must be provided.");
-		}
-		return SourceModule.GetValue(x, y, z) * Scale + Bias;
-	}
+    public float GetValue(float x, float y, float z)
+        => SourceModule.GetValue(x, y, z) * Scale + Bias;
 }

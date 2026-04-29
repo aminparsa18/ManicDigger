@@ -1,7 +1,6 @@
 ﻿using ManicDigger;
 using OpenTK.Mathematics;
 using System.Buffers;
-using static ManicDigger.Mods.ModNetworkProcess;
 
 /// <summary>
 /// Client-side mod responsible for tessellating, lighting, and drawing the voxel terrain.
@@ -60,15 +59,6 @@ public class ModDrawTerrain : ModBase
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
 
-    /// <summary>
-    /// Set to <see langword="true"/> once the first <see cref="OnNewFrameDraw3d"/>
-    /// fires, which only happens after <see cref="GuiState.MapLoading"/> ends and
-    /// the server has delivered the player's spawn position.
-    /// Ensures <see cref="RedrawAllBlocks"/> runs with a valid player position
-    /// rather than the default (0, 0, 0).
-    /// </summary>
-    private bool _initialRedrawDone;
-
     public ModDrawTerrain(IGameClient game, IGamePlatform platform)
     {
         _game = game;
@@ -85,30 +75,13 @@ public class ModDrawTerrain : ModBase
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    public int ChunkUpdates() => _chunkUpdates;
     public int TrianglesCount() => _game.Batcher.TotalTriangleCount();
-    internal float GetInvertedChunkSize() => invertedChunkSize;
     internal int InvertChunk(int num) => (int)(num * invertedChunkSize);
-
-    /// <summary>
-    /// Call this whenever block type definitions change so the lighting cache
-    /// is rebuilt before the next chunk tessellation.
-    /// </summary>
-    public void InvalidateBlockTypeCache() => _blockTypeCacheDirty = true;
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
     public override void OnNewFrameDraw3d(float _)
     {
-        // GameLoop skips the 3D pass entirely while GuiState == MapLoading,
-        // so the first time we reach here the server has already sent the
-        // player's spawn position — safe to do the initial full redraw.
-        if (!_initialRedrawDone)
-        {
-            _initialRedrawDone = true;
-            RedrawAllBlocks();
-        }
-
         if (_game.ShouldRedrawAllBlocks)
         {
             _game.ShouldRedrawAllBlocks = false;
@@ -445,7 +418,7 @@ public class ModDrawTerrain : ModBase
 
     // ── Drawing ───────────────────────────────────────────────────────────────
 
-    public void DrawTerrain()
+    private void DrawTerrain()
     {
         _game.Batcher.Draw(
             _game.LocalPositionX,
@@ -477,14 +450,9 @@ public class ModDrawTerrain : ModBase
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>View-distance-based side length of the active map area in blocks.</summary>
-    private int MapAreaSize() => (int)_game.Config3d.ViewDistance * 2;
-
     private int MapsizeXChunks() => _game.VoxelMap.Mapsizexchunks;
     private int MapsizeYChunks() => _game.VoxelMap.Mapsizeychunks;
     private int MapsizeZChunks() => _game.VoxelMap.Mapsizezchunks;
-
-    private static int Index3d(int x, int y, int h, int sizeX, int sizeY)
-        => (h * sizeY + y) * sizeX + x;
 
     private static VerticesIndicesToLoad CloneVerticesIndicesToLoad(VerticesIndicesToLoad source)
         => new()

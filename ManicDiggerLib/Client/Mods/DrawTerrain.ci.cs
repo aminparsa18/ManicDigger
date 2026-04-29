@@ -216,9 +216,9 @@ public class ModDrawTerrain : ModBase
     }
 
     /// <summary>
-    /// Scans the flat chunk array for the nearest dirty chunk to the player.
-    /// O(N) over loaded chunks — simple, no allocation, automatically picks up
-    /// chunks streamed in from the server since the last full redraw.
+    /// Scans the view-distance window around the player for the nearest dirty chunk.
+    /// O(V³) over the view volume — same scope as the original, avoids iterating
+    /// the full pre-allocated map array which is mostly null slots.
     /// </summary>
     private (int x, int y, int z)? NearestDirty()
     {
@@ -228,35 +228,39 @@ public class ModDrawTerrain : ModBase
         int py = InvertChunk((int)_game.LocalPositionZ);
         int pz = InvertChunk((int)_game.LocalPositionY);
 
+        int half = InvertChunk((int)_game.Config3d.ViewDistance);
+
+        int startX = Math.Max(px - half, 0);
+        int startY = Math.Max(py - half, 0);
+        int startZ = Math.Max(pz - half, 0);
+        int endX = Math.Min(px + half, MapsizeXChunks() - 1);
+        int endY = Math.Min(py + half, MapsizeYChunks() - 1);
+        int endZ = Math.Min(pz + half, MapsizeZChunks() - 1);
+
         int mxc = MapsizeXChunks();
         int myc = MapsizeYChunks();
-        Chunk[] chunks = _game.VoxelMap.Chunks;
 
         int bestIdx = -1;
         int bestDist = int.MaxValue;
 
-        int scanned = 0;
-        for (int i = 0; i < chunks.Length; i++)
-        {
-            scanned++;
-            Chunk c = chunks[i];
-            if (c?.rendered == null || !c.rendered.Dirty) continue;
+        for (int ix = startX; ix <= endX; ix++)
+            for (int iy = startY; iy <= endY; iy++)
+                for (int iz = startZ; iz <= endZ; iz++)
+                {
+                    int i = VectorIndexUtil.Index3d(ix, iy, iz, mxc, myc);
+                    Chunk c = _game.VoxelMap.Chunks[i];
+                    if (c?.rendered == null || !c.rendered.Dirty) continue;
 
-            int iz = i / (mxc * myc);
-            int iy = (i % (mxc * myc)) / mxc;
-            int ix = i % mxc;
-
-            int dx = px - ix, dy = py - iy, dz = pz - iz;
-            int dist = dx * dx + dy * dy + dz * dz;
-            if (dist < bestDist) { bestDist = dist; bestIdx = i; }
-        }
-        DiagLog.Write("[NEW] scanned=" + scanned);
+                    int dx = px - ix, dy = py - iy, dz = pz - iz;
+                    int dist = dx * dx + dy * dy + dz * dz;
+                    if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+                }
 
         // ─────────────────────────────────────────────────────────────────────
 
         if (bestIdx == -1) return null;
 
-        chunks[bestIdx].rendered.Dirty = false;
+        _game.VoxelMap.Chunks[bestIdx].rendered.Dirty = false;
 
         int biz = bestIdx / (mxc * myc);
         int biy = (bestIdx % (mxc * myc)) / mxc;

@@ -55,7 +55,6 @@ public class TerrainChunkTesselator
     internal const int maxlight = 15;
     internal float maxlightInverse;
 
-    // ── Fix #5: three bool[] replaced with one BlockRenderFlags[] ─────────────
     // Transparent, Lowered and Fluid flags are packed into a single byte per block.
     // One allocation, one cache line covers ~64 block types simultaneously.
     private BlockRenderFlags[] _blockFlags;
@@ -73,7 +72,6 @@ public class TerrainChunkTesselator
     /// <summary>
     /// Pre-allocated return buffer for <see cref="GetFinalVerticesIndices"/>.
     /// Avoids allocating a new array and new objects on every chunk tessellation.
-    /// Fix #8: element type changed to struct so the array itself is fully contiguous.
     /// </summary>
     private VerticesIndicesToLoad[] _verticesReturnBuffer;
 
@@ -84,10 +82,8 @@ public class TerrainChunkTesselator
 
     private readonly Vector3i[][] c_OcclusionNeighbors;
 
-    // ── Fix #6: 4-float heap array replaced with an inline struct ─────────────
     private CornerHeights _cornerHeights;
 
-    // ── Fix #7: nested switch-on-switch replaced with a 2D lookup table ───────
     // Indexed [TileSide][Corner] → Corner index into CornerHeights, or -1 = unmodified.
     // Populated once in the constructor; read-only thereafter.
     private readonly int[,] _cornerHeightLookup;
@@ -111,7 +107,6 @@ public class TerrainChunkTesselator
         tmpoccupied = new bool[(int)TileDirection.Count];
         tmpfShadowRation = new float[4];
 
-        // ── Fix #7: build corner-height lookup table ──────────────────────────
         // Dimensions: [SideCount, 4 corners]. -1 means "no height modification".
         const int sides = TileSideExt.Count;
         const int corners = 4;
@@ -232,7 +227,6 @@ public class TerrainChunkTesselator
         mapsizez = _terrain.MapSizeZ;
         started = true;
 
-        // ── Fix #5: single flags array replaces three bool[] ──────────────────
         _blockFlags = new BlockRenderFlags[GlobalVar.MAX_BLOCKTYPES];
 
         maxlightInverse = 1f / maxlight;
@@ -274,7 +268,6 @@ public class TerrainChunkTesselator
         int returnBufferSize = toreturnatlas1dLength * 2;
         _verticesReturnBuffer = new VerticesIndicesToLoad[returnBufferSize];
 
-        // ── Fix #1: populate block type cache once at Start ───────────────────
         RefreshBlockTypeCache();
     }
 
@@ -308,7 +301,6 @@ public class TerrainChunkTesselator
     }
 
     // ── Visible face calculation ───────────────────────────────────────────────
-
     private void CalculateVisibleFaces(int[] currentChunk)
     {
         int movez = (chunksize + 2) * (chunksize + 2);
@@ -570,7 +562,6 @@ public class TerrainChunkTesselator
         float texrecBottom = texrecTop + _texrecHeight;
         int lastelement = toreturn.VerticesCount;
 
-        // ── Fix #7: use lookup table instead of nested switch ─────────────────
         float AddVertex_GetZ(Corner corner)
         {
             Vector3i v = vNeighbors[(int)(corner == Corner.TopLeft ? TileDirection.TopLeft
@@ -623,8 +614,6 @@ public class TerrainChunkTesselator
         ModelDataTool.AddIndex(toreturn, lastelement + 2);
     }
 
-    // ── Fix #7: corner height via lookup table ────────────────────────────────
-
     /// <summary>
     /// Returns the Z height modifier for the given face corner.
     /// Uses a pre-built lookup table instead of a nested switch.
@@ -653,7 +642,6 @@ public class TerrainChunkTesselator
 
     private void BuildSingleBlockPolygon(int x, int y, int z, int[] currentChunk)
     {
-        // ── Fix #6: struct clear instead of array loop ────────────────────────
         _cornerHeights.Clear();
 
         int xx = x % chunksize + 1;
@@ -891,7 +879,6 @@ public class TerrainChunkTesselator
 
     private static int GetBestLadderInDirection(int x, int y, int z, int[] currentChunk, int dir)
     {
-        // ── Fix #3: was hardcoded block ID 152 ───────────────────────────────
         // TODO: resolve ladder block ID via BlockTypeRegistry instead of this constant.
         // For now the magic number is preserved but named for visibility.
         const int LadderBlockId = 152;
@@ -907,8 +894,6 @@ public class TerrainChunkTesselator
         }
         return 0;
     }
-
-    // ── Fix #9: AddQuad helper eliminates torch face duplication ──────────────
 
     /// <summary>
     /// Emits two triangles forming a quad into <paramref name="model"/>.
@@ -1041,7 +1026,6 @@ public class TerrainChunkTesselator
         this.currentChunkShadows18 = shadows18;
         this.lightlevels = lightlevels_;
 
-        // ── Fix #1: block type cache is no longer rebuilt here ────────────────
         // Call RefreshBlockTypeCache() externally when block definitions change.
 
         if (x < 0 || y < 0 || z < 0) { retCount = 0; return []; }
@@ -1186,8 +1170,6 @@ public struct CornerHeights
     /// <summary>Resets all corners to zero for the next block.</summary>
     public void Clear() => TopLeft = TopRight = BottomLeft = BottomRight = 0f;
 }
-
-// ── Fix #8: VerticesIndicesToLoad as a struct ─────────────────────────────────
 
 /// <summary>
 /// A single entry in the chunk tessellator's output buffer.

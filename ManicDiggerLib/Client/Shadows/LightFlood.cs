@@ -1,5 +1,4 @@
-﻿
-/// <summary>
+﻿/// <summary>
 /// Floods light values outward from a seed position inside a 16×16×16 chunk,
 /// using a breadth-first queue to propagate light level decay neighbour by neighbour.
 /// </summary>

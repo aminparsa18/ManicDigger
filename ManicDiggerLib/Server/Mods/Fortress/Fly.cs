@@ -1,4 +1,5 @@
-﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+﻿using static ManicDigger.Mods.ModNetworkProcess;
+using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 /// <summary>
 /// ModFly – client-side flight mod.
@@ -33,7 +34,7 @@ public class ModFly : ModBase
             return;
 
         flyActive = !flyActive;
-
+        DiagLog.Write($"Flight mode {(flyActive ? "On" : "Off")}");
         if (flyActive)
         {
             game.AddChatLine("&aFlight ON  –  Space: rise  |  Shift: sink  |  F: exit");

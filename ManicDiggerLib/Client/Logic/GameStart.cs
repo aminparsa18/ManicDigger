@@ -183,11 +183,6 @@ public partial class Game
             Platform.GlCullFaceBack();
             Platform.GlEnableCullFace();
         }
-
-        Platform.GlEnableLighting();
-        Platform.GlEnableColorMaterial();
-        Platform.GlColorMaterialFrontAndBackAmbientAndDiffuse();
-        Platform.GlShadeModelSmooth();
     }
 
     public void AddMod(ModBase mod)

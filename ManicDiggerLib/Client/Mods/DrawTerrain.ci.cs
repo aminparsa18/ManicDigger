@@ -1,6 +1,7 @@
-﻿using System.Buffers;
-using ManicDigger;
+﻿using ManicDigger;
 using OpenTK.Mathematics;
+using System.Buffers;
+using static ManicDigger.Mods.ModNetworkProcess;
 
 /// <summary>
 /// Client-side mod responsible for tessellating, lighting, and drawing the voxel terrain.
@@ -17,7 +18,7 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     private float _sqrt3Half;
 
-    /// <summary>Sentinel value meaning "no chunk found" in <see cref="NearestDirty"/>.</summary>
+    /// <summary>Sentinel value meaning "no chunk found".</summary>
     private const int NoChunk = -1;
 
     /// <summary>
@@ -58,7 +59,15 @@ public class ModDrawTerrain : ModBase
     private int _lastChunkUpdatesSnapshot;
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
-    private readonly HashSet<Vector3i> _chunksToRedrawSet = new();
+
+    /// <summary>
+    /// Set to <see langword="true"/> once the first <see cref="OnNewFrameDraw3d"/>
+    /// fires, which only happens after <see cref="GuiState.MapLoading"/> ends and
+    /// the server has delivered the player's spawn position.
+    /// Ensures <see cref="RedrawAllBlocks"/> runs with a valid player position
+    /// rather than the default (0, 0, 0).
+    /// </summary>
+    private bool _initialRedrawDone;
 
     public ModDrawTerrain(IGameClient game, IGamePlatform platform)
     {
@@ -91,6 +100,15 @@ public class ModDrawTerrain : ModBase
 
     public override void OnNewFrameDraw3d(float _)
     {
+        // GameLoop skips the 3D pass entirely while GuiState == MapLoading,
+        // so the first time we reach here the server has already sent the
+        // player's spawn position — safe to do the initial full redraw.
+        if (!_initialRedrawDone)
+        {
+            _initialRedrawDone = true;
+            RedrawAllBlocks();
+        }
+
         if (_game.ShouldRedrawAllBlocks)
         {
             _game.ShouldRedrawAllBlocks = false;
@@ -128,6 +146,7 @@ public class ModDrawTerrain : ModBase
         int chunksLength = InvertChunk(_game.MapSizeX)
                          * InvertChunk(_game.MapSizeY)
                          * InvertChunk(_game.MapSizeZ);
+
         for (int i = 0; i < chunksLength; i++)
         {
             Chunk c = _game.VoxelMap.Chunks[i];
@@ -160,10 +179,7 @@ public class ModDrawTerrain : ModBase
         int mapSizeX = InvertChunk(_game.VoxelMap.MapSizeX);
         int mapSizeY = InvertChunk(_game.VoxelMap.MapSizeY);
         int mapSizeZ = InvertChunk(_game.VoxelMap.MapSizeZ);
-        int mapsizexchunks = MapsizeXChunks();
-        int mapsizeychunks = MapsizeYChunks();
 
-        _chunksToRedrawSet.Clear();
         BlocksAround7Inplace(
             new(_game.LastplacedblockX, _game.LastplacedblockY, _game.LastplacedblockZ),
             _blocksAround7Buffer);
@@ -171,19 +187,16 @@ public class ModDrawTerrain : ModBase
         for (int i = 0; i < 7; i++)
         {
             Vector3i a = _blocksAround7Buffer[i];
-            _chunksToRedrawSet.Add(new(InvertChunk(a.X), InvertChunk(a.Y), InvertChunk(a.Z)));
-        }
+            int cx = InvertChunk(a.X), cy = InvertChunk(a.Y), cz = InvertChunk(a.Z);
 
-        foreach (Vector3i chunk3 in _chunksToRedrawSet)
-        {
-            int xx = chunk3.X, yy = chunk3.Y, zz = chunk3.Z;
-            if (xx < 0 || yy < 0 || zz < 0
-             || xx >= mapSizeX || yy >= mapSizeY || zz >= mapSizeZ)
+            if (cx < 0 || cy < 0 || cz < 0
+             || cx >= mapSizeX || cy >= mapSizeY || cz >= mapSizeZ)
                 continue;
 
-            Chunk chunk = _game.VoxelMap.Chunks[Index3d(xx, yy, zz, mapsizexchunks, mapsizeychunks)];
-            if (chunk?.rendered == null) continue;
-            if (chunk.rendered.Dirty) RedrawChunk(xx, yy, zz);
+            int idx = VectorIndexUtil.Index3d(cx, cy, cz, mapSizeX, mapSizeY);
+            Chunk c = _game.VoxelMap.Chunks[idx];
+            if (c?.rendered == null) continue;
+            c.rendered.Dirty = true;
         }
 
         _game.LastplacedblockX = NoChunk;
@@ -203,49 +216,52 @@ public class ModDrawTerrain : ModBase
     }
 
     /// <summary>
-    /// Finds the dirty chunk nearest to the player within the current view distance.
-    /// Returns <see langword="null"/> when no dirty chunk exists.
+    /// Scans the flat chunk array for the nearest dirty chunk to the player.
+    /// O(N) over loaded chunks — simple, no allocation, automatically picks up
+    /// chunks streamed in from the server since the last full redraw.
     /// </summary>
     private (int x, int y, int z)? NearestDirty()
     {
-        // ── Fix #4: int.MaxValue directly — IntMaxValue constant removed ──
-        int nearestDist = int.MaxValue;
-        int nearestX = NoChunk, nearestY = NoChunk, nearestZ = NoChunk;
+        if (_game.VoxelMap?.Chunks == null) return null;
 
         int px = InvertChunk((int)_game.LocalPositionX);
         int py = InvertChunk((int)_game.LocalPositionZ);
         int pz = InvertChunk((int)_game.LocalPositionY);
 
-        // ── Fix #3: MapAreaSizeZ() removed — use MapAreaSize() directly ───
-        int halfXY = InvertChunk(MapAreaSize()) / 2;
-        int halfZ = halfXY; // currently identical; change here if vertical distance diverges
+        int mxc = MapsizeXChunks();
+        int myc = MapsizeYChunks();
+        Chunk[] chunks = _game.VoxelMap.Chunks;
 
-        int startX = Math.Max(px - halfXY, 0);
-        int startY = Math.Max(py - halfXY, 0);
-        int startZ = Math.Max(pz - halfZ, 0);
-        int endX = Math.Min(px + halfXY, MapsizeXChunks() - 1);
-        int endY = Math.Min(py + halfXY, MapsizeYChunks() - 1);
-        int endZ = Math.Min(pz + halfZ, MapsizeZChunks() - 1);
+        int bestIdx = -1;
+        int bestDist = int.MaxValue;
 
-        int mapsizexchunks = MapsizeXChunks();
-        int mapsizeychunks = MapsizeYChunks();
+        int scanned = 0;
+        for (int i = 0; i < chunks.Length; i++)
+        {
+            scanned++;
+            Chunk c = chunks[i];
+            if (c?.rendered == null || !c.rendered.Dirty) continue;
 
-        for (int x = startX; x <= endX; x++)
-            for (int y = startY; y <= endY; y++)
-                for (int z = startZ; z <= endZ; z++)
-                {
-                    Chunk c = _game.VoxelMap.Chunks[Index3d(x, y, z, mapsizexchunks, mapsizeychunks)];
-                    if (c?.rendered == null || !c.rendered.Dirty) continue;
-                    int dx = px - x, dy = py - y, dz = pz - z;
-                    int dist = dx * dx + dy * dy + dz * dz;
-                    if (dist < nearestDist)
-                    {
-                        nearestDist = dist;
-                        nearestX = x; nearestY = y; nearestZ = z;
-                    }
-                }
+            int iz = i / (mxc * myc);
+            int iy = (i % (mxc * myc)) / mxc;
+            int ix = i % mxc;
 
-        return nearestX == NoChunk ? null : (nearestX, nearestY, nearestZ);
+            int dx = px - ix, dy = py - iy, dz = pz - iz;
+            int dist = dx * dx + dy * dy + dz * dz;
+            if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+        }
+        DiagLog.Write("[NEW] scanned=" + scanned);
+
+        // ─────────────────────────────────────────────────────────────────────
+
+        if (bestIdx == -1) return null;
+
+        chunks[bestIdx].rendered.Dirty = false;
+
+        int biz = bestIdx / (mxc * myc);
+        int biy = (bestIdx % (mxc * myc)) / mxc;
+        int bix = bestIdx % mxc;
+        return (bix, biy, biz);
     }
 
     // ── Main-thread commit ────────────────────────────────────────────────────
@@ -300,14 +316,6 @@ public class ModDrawTerrain : ModBase
         rendered?.IdsCount = _batcherIdsCount;
     }
 
-    private static void ReturnModelArrays(GeometryModel model)
-    {
-        if (model.Xyz != null) { ArrayPool<float>.Shared.Return(model.Xyz); model.Xyz = null; }
-        if (model.Uv != null) { ArrayPool<float>.Shared.Return(model.Uv); model.Uv = null; }
-        if (model.Rgba != null) { ArrayPool<byte>.Shared.Return(model.Rgba); model.Rgba = null; }
-        if (model.Indices != null) { ArrayPool<int>.Shared.Return(model.Indices); model.Indices = null; }
-    }
-
     // ── Tessellation ──────────────────────────────────────────────────────────
 
     private void RedrawChunk(int x, int y, int z)
@@ -317,7 +325,6 @@ public class ModDrawTerrain : ModBase
         if (c == null) return;
 
         c.rendered ??= new RenderedChunk();
-        c.rendered.Dirty = false;
         _chunkUpdates++;
 
         GetExtendedChunk(x, y, z);
@@ -444,6 +451,8 @@ public class ModDrawTerrain : ModBase
 
     internal void Clear() => _game.Batcher.Clear();
 
+    // ── Performance info ──────────────────────────────────────────────────────
+
     /// <summary>Updates chunk-update and triangle-count statistics once per second.</summary>
     internal void UpdatePerformanceInfo()
     {
@@ -505,6 +514,14 @@ public class ModDrawTerrain : ModBase
             dest.IndicesCount = source.IndicesCount;
         }
         return dest;
+    }
+
+    private static void ReturnModelArrays(GeometryModel model)
+    {
+        if (model.Xyz != null) { ArrayPool<float>.Shared.Return(model.Xyz); model.Xyz = null; }
+        if (model.Uv != null) { ArrayPool<float>.Shared.Return(model.Uv); model.Uv = null; }
+        if (model.Rgba != null) { ArrayPool<byte>.Shared.Return(model.Rgba); model.Rgba = null; }
+        if (model.Indices != null) { ArrayPool<int>.Shared.Return(model.Indices); model.Indices = null; }
     }
 }
 

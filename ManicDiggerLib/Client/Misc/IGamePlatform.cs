@@ -149,10 +149,6 @@ public interface IPlatformOpenGl
     int GlGetMaxTextureSize();
     void GlDepthMask(bool flag);
     void GlCullFaceBack();
-    void GlEnableLighting();
-    void GlEnableColorMaterial();
-    void GlColorMaterialFrontAndBackAmbientAndDiffuse();
-    void GlShadeModelSmooth();
     void GlDisableFog();
     void BindTexture2d(int texture);
     GeometryModel CreateModel(GeometryModel modelData);

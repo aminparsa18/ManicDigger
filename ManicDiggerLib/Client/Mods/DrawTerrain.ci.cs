@@ -128,16 +128,13 @@ public class ModDrawTerrain : ModBase
         int chunksLength = InvertChunk(_game.MapSizeX)
                          * InvertChunk(_game.MapSizeY)
                          * InvertChunk(_game.MapSizeZ);
-        unchecked
+        for (int i = 0; i < chunksLength; i++)
         {
-            for (int i = 0; i < chunksLength; i++)
-            {
-                Chunk c = _game.VoxelMap.Chunks[i];
-                if (c == null) continue;
-                c.rendered ??= new RenderedChunk();
-                c.rendered.Dirty = true;
-                c.baseLightDirty = true;
-            }
+            Chunk c = _game.VoxelMap.Chunks[i];
+            if (c == null) continue;
+            c.rendered ??= new RenderedChunk();
+            c.rendered.Dirty = true;
+            c.baseLightDirty = true;
         }
     }
 
@@ -146,14 +143,11 @@ public class ModDrawTerrain : ModBase
     public void UpdateTerrain()
     {
         if (!_terrainStarted) return;
-        unchecked
-        {
-            RedrawChunksAroundLastPlacedBlock();
+        RedrawChunksAroundLastPlacedBlock();
 
-            var nearest = NearestDirty();
-            if (nearest.HasValue)
-                RedrawChunk(nearest.Value.x, nearest.Value.y, nearest.Value.z);
-        }
+        var nearest = NearestDirty();
+        if (nearest.HasValue)
+            RedrawChunk(nearest.Value.x, nearest.Value.y, nearest.Value.z);
     }
 
     private void RedrawChunksAroundLastPlacedBlock()
@@ -214,47 +208,44 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     private (int x, int y, int z)? NearestDirty()
     {
-        unchecked
-        {
-            // ── Fix #4: int.MaxValue directly — IntMaxValue constant removed ──
-            int nearestDist = int.MaxValue;
-            int nearestX = NoChunk, nearestY = NoChunk, nearestZ = NoChunk;
+        // ── Fix #4: int.MaxValue directly — IntMaxValue constant removed ──
+        int nearestDist = int.MaxValue;
+        int nearestX = NoChunk, nearestY = NoChunk, nearestZ = NoChunk;
 
-            int px = InvertChunk((int)_game.LocalPositionX);
-            int py = InvertChunk((int)_game.LocalPositionZ);
-            int pz = InvertChunk((int)_game.LocalPositionY);
+        int px = InvertChunk((int)_game.LocalPositionX);
+        int py = InvertChunk((int)_game.LocalPositionZ);
+        int pz = InvertChunk((int)_game.LocalPositionY);
 
-            // ── Fix #3: MapAreaSizeZ() removed — use MapAreaSize() directly ───
-            int halfXY = InvertChunk(MapAreaSize()) / 2;
-            int halfZ = halfXY; // currently identical; change here if vertical distance diverges
+        // ── Fix #3: MapAreaSizeZ() removed — use MapAreaSize() directly ───
+        int halfXY = InvertChunk(MapAreaSize()) / 2;
+        int halfZ = halfXY; // currently identical; change here if vertical distance diverges
 
-            int startX = Math.Max(px - halfXY, 0);
-            int startY = Math.Max(py - halfXY, 0);
-            int startZ = Math.Max(pz - halfZ, 0);
-            int endX = Math.Min(px + halfXY, MapsizeXChunks() - 1);
-            int endY = Math.Min(py + halfXY, MapsizeYChunks() - 1);
-            int endZ = Math.Min(pz + halfZ, MapsizeZChunks() - 1);
+        int startX = Math.Max(px - halfXY, 0);
+        int startY = Math.Max(py - halfXY, 0);
+        int startZ = Math.Max(pz - halfZ, 0);
+        int endX = Math.Min(px + halfXY, MapsizeXChunks() - 1);
+        int endY = Math.Min(py + halfXY, MapsizeYChunks() - 1);
+        int endZ = Math.Min(pz + halfZ, MapsizeZChunks() - 1);
 
-            int mapsizexchunks = MapsizeXChunks();
-            int mapsizeychunks = MapsizeYChunks();
+        int mapsizexchunks = MapsizeXChunks();
+        int mapsizeychunks = MapsizeYChunks();
 
-            for (int x = startX; x <= endX; x++)
-                for (int y = startY; y <= endY; y++)
-                    for (int z = startZ; z <= endZ; z++)
+        for (int x = startX; x <= endX; x++)
+            for (int y = startY; y <= endY; y++)
+                for (int z = startZ; z <= endZ; z++)
+                {
+                    Chunk c = _game.VoxelMap.Chunks[Index3d(x, y, z, mapsizexchunks, mapsizeychunks)];
+                    if (c?.rendered == null || !c.rendered.Dirty) continue;
+                    int dx = px - x, dy = py - y, dz = pz - z;
+                    int dist = dx * dx + dy * dy + dz * dz;
+                    if (dist < nearestDist)
                     {
-                        Chunk c = _game.VoxelMap.Chunks[Index3d(x, y, z, mapsizexchunks, mapsizeychunks)];
-                        if (c?.rendered == null || !c.rendered.Dirty) continue;
-                        int dx = px - x, dy = py - y, dz = pz - z;
-                        int dist = dx * dx + dy * dy + dz * dz;
-                        if (dist < nearestDist)
-                        {
-                            nearestDist = dist;
-                            nearestX = x; nearestY = y; nearestZ = z;
-                        }
+                        nearestDist = dist;
+                        nearestX = x; nearestY = y; nearestZ = z;
                     }
+                }
 
-            return nearestX == NoChunk ? null : (nearestX, nearestY, nearestZ);
-        }
+        return nearestX == NoChunk ? null : (nearestX, nearestY, nearestZ);
     }
 
     // ── Main-thread commit ────────────────────────────────────────────────────
@@ -272,44 +263,41 @@ public class ModDrawTerrain : ModBase
 
     private void DoRedraw(TerrainRendererRedraw r)
     {
-        unchecked
+        _batcherIdsCount = 0;
+        RenderedChunk rendered = r.Chunk.rendered;
+
+        if (rendered?.Ids != null)
+            for (int i = 0; i < rendered.IdsCount; i++)
+                _game.Batcher.Remove(rendered.Ids[i]);
+
+        for (int i = 0; i < r.DataCount; i++)
         {
-            _batcherIdsCount = 0;
-            RenderedChunk rendered = r.Chunk.rendered;
-
-            if (rendered?.Ids != null)
-                for (int i = 0; i < rendered.IdsCount; i++)
-                    _game.Batcher.Remove(rendered.Ids[i]);
-
-            for (int i = 0; i < r.DataCount; i++)
+            VerticesIndicesToLoad submesh = r.Data[i];
+            if (submesh.ModelData.IndicesCount == 0)
             {
-                VerticesIndicesToLoad submesh = r.Data[i];
-                if (submesh.ModelData.IndicesCount == 0)
-                {
-                    ReturnModelArrays(submesh.ModelData);
-                    continue;
-                }
-
-                float cx = submesh.PositionX + chunksize * 0.5f;
-                float cy = submesh.PositionZ + chunksize * 0.5f;
-                float cz = submesh.PositionY + chunksize * 0.5f;
-                float radius = _sqrt3Half * chunksize;
-
-                _batcherIds[_batcherIdsCount++] = _game.Batcher.Add(
-                    submesh.ModelData, submesh.Transparent, submesh.Texture,
-                    cx, cy, cz, radius);
-
                 ReturnModelArrays(submesh.ModelData);
+                continue;
             }
 
-            if (rendered?.Ids == null || rendered.Ids.Length != _batcherIdsCount)
-                rendered?.Ids = new int[_batcherIdsCount];
+            float cx = submesh.PositionX + chunksize * 0.5f;
+            float cy = submesh.PositionZ + chunksize * 0.5f;
+            float cz = submesh.PositionY + chunksize * 0.5f;
+            float radius = _sqrt3Half * chunksize;
 
-            for (int i = 0; i < _batcherIdsCount; i++)
-                rendered?.Ids[i] = _batcherIds[i];
+            _batcherIds[_batcherIdsCount++] = _game.Batcher.Add(
+                submesh.ModelData, submesh.Transparent, submesh.Texture,
+                cx, cy, cz, radius);
 
-            rendered?.IdsCount = _batcherIdsCount;
+            ReturnModelArrays(submesh.ModelData);
         }
+
+        if (rendered?.Ids == null || rendered.Ids.Length != _batcherIdsCount)
+            rendered?.Ids = new int[_batcherIdsCount];
+
+        for (int i = 0; i < _batcherIdsCount; i++)
+            rendered?.Ids[i] = _batcherIds[i];
+
+        rendered?.IdsCount = _batcherIdsCount;
     }
 
     private static void ReturnModelArrays(GeometryModel model)
@@ -324,46 +312,43 @@ public class ModDrawTerrain : ModBase
 
     private void RedrawChunk(int x, int y, int z)
     {
-        unchecked
+        Chunk c = _game.VoxelMap.Chunks[
+            VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(), MapsizeYChunks())];
+        if (c == null) return;
+
+        c.rendered ??= new RenderedChunk();
+        c.rendered.Dirty = false;
+        _chunkUpdates++;
+
+        GetExtendedChunk(x, y, z);
+
+        int meshCount = 0;
+        VerticesIndicesToLoad[] meshData = null;
+        bool dataRented = false;
+
+        if (!IsUniformChunk(_currentChunk, BufferedChunkVolume))
         {
-            Chunk c = _game.VoxelMap.Chunks[
-                VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(), MapsizeYChunks())];
-            if (c == null) return;
+            CalculateShadows(x, y, z);
+            VerticesIndicesToLoad[] meshes = _game.TerrainChunkTesselator.MakeChunk(
+                x, y, z, _currentChunk, _currentChunkShadows,
+                _game.LightLevels, out meshCount);
 
-            c.rendered ??= new RenderedChunk();
-            c.rendered.Dirty = false;
-            _chunkUpdates++;
-
-            GetExtendedChunk(x, y, z);
-
-            int meshCount = 0;
-            VerticesIndicesToLoad[] meshData = null;
-            bool dataRented = false;
-
-            if (!IsUniformChunk(_currentChunk, BufferedChunkVolume))
+            if (meshCount > 0)
             {
-                CalculateShadows(x, y, z);
-                VerticesIndicesToLoad[] meshes = _game.TerrainChunkTesselator.MakeChunk(
-                    x, y, z, _currentChunk, _currentChunkShadows,
-                    _game.LightLevels, out meshCount);
-
-                if (meshCount > 0)
-                {
-                    meshData = ArrayPool<VerticesIndicesToLoad>.Shared.Rent(meshCount);
-                    dataRented = true;
-                    for (int i = 0; i < meshCount; i++)
-                        meshData[i] = CloneVerticesIndicesToLoad(meshes[i]);
-                }
+                meshData = ArrayPool<VerticesIndicesToLoad>.Shared.Rent(meshCount);
+                dataRented = true;
+                for (int i = 0; i < meshCount; i++)
+                    meshData[i] = CloneVerticesIndicesToLoad(meshes[i]);
             }
-
-            if (meshData == null)
-            {
-                meshData = Array.Empty<VerticesIndicesToLoad>();
-                dataRented = false;
-            }
-
-            _redrawQueue[_redrawQueueCount++] = new(c, meshData, meshCount, dataRented);
         }
+
+        if (meshData == null)
+        {
+            meshData = Array.Empty<VerticesIndicesToLoad>();
+            dataRented = false;
+        }
+
+        _redrawQueue[_redrawQueueCount++] = new(c, meshData, meshCount, dataRented);
     }
 
     private void GetExtendedChunk(int x, int y, int z)
@@ -381,69 +366,63 @@ public class ModDrawTerrain : ModBase
     private static bool IsUniformChunk(int[] chunk, int length)
     {
         int first = chunk[0];
-        unchecked
-        {
-            for (int i = 1; i < length; i++)
-                if (chunk[i] != first) return false;
-        }
+        for (int i = 1; i < length; i++)
+            if (chunk[i] != first) return false;
         return true;
     }
 
     private void CalculateShadows(int cx, int cy, int cz)
     {
-        unchecked
+        if (_blockTypeCacheDirty)
         {
-            if (_blockTypeCacheDirty)
+            foreach (var (id, blockType) in _game.BlockTypes)
             {
-                foreach (var (id, blockType) in _game.BlockTypes)
-                {
-                    _shadowLightRadius[id] = blockType.LightRadius;
-                    _shadowIsTransparent[id] = IsTransparentForLight(id);
-                }
-                _blockTypeCacheDirty = false;
+                _shadowLightRadius[id] = blockType.LightRadius;
+                _shadowIsTransparent[id] = IsTransparentForLight(id);
             }
-
-            for (int xx = 0; xx < 3; xx++)
-                for (int yy = 0; yy < 3; yy++)
-                    for (int zz = 0; zz < 3; zz++)
-                    {
-                        int cx1 = cx + xx - 1;
-                        int cy1 = cy + yy - 1;
-                        int cz1 = cz + zz - 1;
-                        if (!_game.VoxelMap.IsValidChunkPos(cx1, cy1, cz1)) continue;
-
-                        int nIdx = VectorIndexUtil.Index3d(
-                            cx1, cy1, cz1,
-                            _game.VoxelMap.Mapsizexchunks,
-                            _game.VoxelMap.Mapsizeychunks);
-                        Chunk neighbour = _game.VoxelMap.Chunks[nIdx];
-                        if (neighbour == null) continue;
-
-                        if (neighbour.baseLightDirty)
-                        {
-                            _lightBase.CalculateChunkBaseLight(
-                                _game, cx1, cy1, cz1,
-                                _shadowLightRadius, _shadowIsTransparent);
-                            neighbour.baseLightDirty = false;
-                        }
-                    }
-
-            RenderedChunk rendered = _game.VoxelMap
-                .GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).rendered;
-
-            if (rendered.Light == null)
-            {
-                rendered.Light = ArrayPool<byte>.Shared.Rent(BufferedChunkVolume);
-                rendered.LightRented = true;
-                rendered.Light.AsSpan(0, BufferedChunkVolume).Fill(15);
-            }
-
-            _lightBetweenChunks.CalculateLightBetweenChunks(
-                _game, cx, cy, cz, _shadowLightRadius, _shadowIsTransparent);
-
-            rendered.Light.AsSpan(0, BufferedChunkVolume)
-                          .CopyTo(_currentChunkShadows.AsSpan(0, BufferedChunkVolume));
+            _blockTypeCacheDirty = false;
         }
+
+        for (int xx = 0; xx < 3; xx++)
+            for (int yy = 0; yy < 3; yy++)
+                for (int zz = 0; zz < 3; zz++)
+                {
+                    int cx1 = cx + xx - 1;
+                    int cy1 = cy + yy - 1;
+                    int cz1 = cz + zz - 1;
+                    if (!_game.VoxelMap.IsValidChunkPos(cx1, cy1, cz1)) continue;
+
+                    int nIdx = VectorIndexUtil.Index3d(
+                        cx1, cy1, cz1,
+                        _game.VoxelMap.Mapsizexchunks,
+                        _game.VoxelMap.Mapsizeychunks);
+                    Chunk neighbour = _game.VoxelMap.Chunks[nIdx];
+                    if (neighbour == null) continue;
+
+                    if (neighbour.baseLightDirty)
+                    {
+                        _lightBase.CalculateChunkBaseLight(
+                            _game, cx1, cy1, cz1,
+                            _shadowLightRadius, _shadowIsTransparent);
+                        neighbour.baseLightDirty = false;
+                    }
+                }
+
+        RenderedChunk rendered = _game.VoxelMap
+            .GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).rendered;
+
+        if (rendered.Light == null)
+        {
+            rendered.Light = ArrayPool<byte>.Shared.Rent(BufferedChunkVolume);
+            rendered.LightRented = true;
+            rendered.Light.AsSpan(0, BufferedChunkVolume).Fill(15);
+        }
+
+        _lightBetweenChunks.CalculateLightBetweenChunks(
+            _game, cx, cy, cz, _shadowLightRadius, _shadowIsTransparent);
+
+        rendered.Light.AsSpan(0, BufferedChunkVolume)
+                      .CopyTo(_currentChunkShadows.AsSpan(0, BufferedChunkVolume));
     }
 
     public bool IsTransparentForLight(int blockId)

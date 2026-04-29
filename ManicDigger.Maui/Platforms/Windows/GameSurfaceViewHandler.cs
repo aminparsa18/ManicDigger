@@ -128,7 +128,6 @@ public class GameSurfaceViewHandler : ViewHandler<GameSurfaceView, Grid>
         var server = new Server
         {
             SaveFilenameOverride = _savefilename,
-            Exit = _exit,
             MainSockets = new NetServer[3]
         };
         server.MainSockets[0] = netServer;

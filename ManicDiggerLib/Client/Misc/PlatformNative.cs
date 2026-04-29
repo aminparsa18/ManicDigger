@@ -1117,26 +1117,6 @@ public class GamePlatformNative : IGamePlatform
         GL.CullFace(TriangleFace.Back);
     }
 
-    public void GlEnableLighting()
-    {
-        // TODO: lighting moved to shader, use _ambientLight uniform
-    }
-
-    public void GlEnableColorMaterial()
-    {
-        // no equivalent needed - shader reads vertex color attribute directly
-    }
-
-    public void GlColorMaterialFrontAndBackAmbientAndDiffuse()
-    {
-        // no equivalent needed - shader handles material properties
-    }
-
-    public void GlShadeModelSmooth()
-    {
-        // no equivalent needed - interpolation across fragments is default in modern GL
-    }
-
     #endregion
 
     #region Game

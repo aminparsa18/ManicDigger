@@ -1,6 +1,6 @@
-﻿using System.Buffers;
-using ManicDigger;
+﻿using ManicDigger;
 using OpenTK.Mathematics;
+using System.Buffers;
 
 /// <summary>
 /// Client-side mod responsible for tessellating, lighting, and drawing the voxel terrain.
@@ -17,7 +17,7 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     private float _sqrt3Half;
 
-    /// <summary>Sentinel value meaning "no chunk found" in <see cref="NearestDirty"/>.</summary>
+    /// <summary>Sentinel value meaning "no chunk found".</summary>
     private const int NoChunk = -1;
 
     /// <summary>
@@ -58,7 +58,6 @@ public class ModDrawTerrain : ModBase
     private int _lastChunkUpdatesSnapshot;
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
-    private readonly HashSet<Vector3i> _chunksToRedrawSet = new();
 
     public ModDrawTerrain(IGameClient game, IGamePlatform platform)
     {
@@ -76,16 +75,8 @@ public class ModDrawTerrain : ModBase
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    public int ChunkUpdates() => _chunkUpdates;
     public int TrianglesCount() => _game.Batcher.TotalTriangleCount();
-    internal float GetInvertedChunkSize() => invertedChunkSize;
     internal int InvertChunk(int num) => (int)(num * invertedChunkSize);
-
-    /// <summary>
-    /// Call this whenever block type definitions change so the lighting cache
-    /// is rebuilt before the next chunk tessellation.
-    /// </summary>
-    public void InvalidateBlockTypeCache() => _blockTypeCacheDirty = true;
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
@@ -128,6 +119,7 @@ public class ModDrawTerrain : ModBase
         int chunksLength = InvertChunk(_game.MapSizeX)
                          * InvertChunk(_game.MapSizeY)
                          * InvertChunk(_game.MapSizeZ);
+
         for (int i = 0; i < chunksLength; i++)
         {
             Chunk c = _game.VoxelMap.Chunks[i];
@@ -160,10 +152,7 @@ public class ModDrawTerrain : ModBase
         int mapSizeX = InvertChunk(_game.VoxelMap.MapSizeX);
         int mapSizeY = InvertChunk(_game.VoxelMap.MapSizeY);
         int mapSizeZ = InvertChunk(_game.VoxelMap.MapSizeZ);
-        int mapsizexchunks = MapsizeXChunks();
-        int mapsizeychunks = MapsizeYChunks();
 
-        _chunksToRedrawSet.Clear();
         BlocksAround7Inplace(
             new(_game.LastplacedblockX, _game.LastplacedblockY, _game.LastplacedblockZ),
             _blocksAround7Buffer);
@@ -171,19 +160,16 @@ public class ModDrawTerrain : ModBase
         for (int i = 0; i < 7; i++)
         {
             Vector3i a = _blocksAround7Buffer[i];
-            _chunksToRedrawSet.Add(new(InvertChunk(a.X), InvertChunk(a.Y), InvertChunk(a.Z)));
-        }
+            int cx = InvertChunk(a.X), cy = InvertChunk(a.Y), cz = InvertChunk(a.Z);
 
-        foreach (Vector3i chunk3 in _chunksToRedrawSet)
-        {
-            int xx = chunk3.X, yy = chunk3.Y, zz = chunk3.Z;
-            if (xx < 0 || yy < 0 || zz < 0
-             || xx >= mapSizeX || yy >= mapSizeY || zz >= mapSizeZ)
+            if (cx < 0 || cy < 0 || cz < 0
+             || cx >= mapSizeX || cy >= mapSizeY || cz >= mapSizeZ)
                 continue;
 
-            Chunk chunk = _game.VoxelMap.Chunks[Index3d(xx, yy, zz, mapsizexchunks, mapsizeychunks)];
-            if (chunk?.rendered == null) continue;
-            if (chunk.rendered.Dirty) RedrawChunk(xx, yy, zz);
+            int idx = VectorIndexUtil.Index3d(cx, cy, cz, mapSizeX, mapSizeY);
+            Chunk c = _game.VoxelMap.Chunks[idx];
+            if (c?.rendered == null) continue;
+            c.rendered.Dirty = true;
         }
 
         _game.LastplacedblockX = NoChunk;
@@ -203,49 +189,56 @@ public class ModDrawTerrain : ModBase
     }
 
     /// <summary>
-    /// Finds the dirty chunk nearest to the player within the current view distance.
-    /// Returns <see langword="null"/> when no dirty chunk exists.
+    /// Scans the view-distance window around the player for the nearest dirty chunk.
+    /// O(V³) over the view volume — same scope as the original, avoids iterating
+    /// the full pre-allocated map array which is mostly null slots.
     /// </summary>
     private (int x, int y, int z)? NearestDirty()
     {
-        // ── Fix #4: int.MaxValue directly — IntMaxValue constant removed ──
-        int nearestDist = int.MaxValue;
-        int nearestX = NoChunk, nearestY = NoChunk, nearestZ = NoChunk;
+        if (_game.VoxelMap?.Chunks == null) return null;
 
         int px = InvertChunk((int)_game.LocalPositionX);
         int py = InvertChunk((int)_game.LocalPositionZ);
         int pz = InvertChunk((int)_game.LocalPositionY);
 
-        // ── Fix #3: MapAreaSizeZ() removed — use MapAreaSize() directly ───
-        int halfXY = InvertChunk(MapAreaSize()) / 2;
-        int halfZ = halfXY; // currently identical; change here if vertical distance diverges
+        int half = InvertChunk((int)_game.Config3d.ViewDistance);
 
-        int startX = Math.Max(px - halfXY, 0);
-        int startY = Math.Max(py - halfXY, 0);
-        int startZ = Math.Max(pz - halfZ, 0);
-        int endX = Math.Min(px + halfXY, MapsizeXChunks() - 1);
-        int endY = Math.Min(py + halfXY, MapsizeYChunks() - 1);
-        int endZ = Math.Min(pz + halfZ, MapsizeZChunks() - 1);
+        int startX = Math.Max(px - half, 0);
+        int startY = Math.Max(py - half, 0);
+        int startZ = Math.Max(pz - half, 0);
+        int endX = Math.Min(px + half, MapsizeXChunks() - 1);
+        int endY = Math.Min(py + half, MapsizeYChunks() - 1);
+        int endZ = Math.Min(pz + half, MapsizeZChunks() - 1);
 
-        int mapsizexchunks = MapsizeXChunks();
-        int mapsizeychunks = MapsizeYChunks();
+        int mxc = MapsizeXChunks();
+        int myc = MapsizeYChunks();
 
-        for (int x = startX; x <= endX; x++)
-            for (int y = startY; y <= endY; y++)
-                for (int z = startZ; z <= endZ; z++)
+        int bestIdx = -1;
+        int bestDist = int.MaxValue;
+
+        for (int ix = startX; ix <= endX; ix++)
+            for (int iy = startY; iy <= endY; iy++)
+                for (int iz = startZ; iz <= endZ; iz++)
                 {
-                    Chunk c = _game.VoxelMap.Chunks[Index3d(x, y, z, mapsizexchunks, mapsizeychunks)];
+                    int i = VectorIndexUtil.Index3d(ix, iy, iz, mxc, myc);
+                    Chunk c = _game.VoxelMap.Chunks[i];
                     if (c?.rendered == null || !c.rendered.Dirty) continue;
-                    int dx = px - x, dy = py - y, dz = pz - z;
+
+                    int dx = px - ix, dy = py - iy, dz = pz - iz;
                     int dist = dx * dx + dy * dy + dz * dz;
-                    if (dist < nearestDist)
-                    {
-                        nearestDist = dist;
-                        nearestX = x; nearestY = y; nearestZ = z;
-                    }
+                    if (dist < bestDist) { bestDist = dist; bestIdx = i; }
                 }
 
-        return nearestX == NoChunk ? null : (nearestX, nearestY, nearestZ);
+        // ─────────────────────────────────────────────────────────────────────
+
+        if (bestIdx == -1) return null;
+
+        _game.VoxelMap.Chunks[bestIdx].rendered.Dirty = false;
+
+        int biz = bestIdx / (mxc * myc);
+        int biy = (bestIdx % (mxc * myc)) / mxc;
+        int bix = bestIdx % mxc;
+        return (bix, biy, biz);
     }
 
     // ── Main-thread commit ────────────────────────────────────────────────────
@@ -300,14 +293,6 @@ public class ModDrawTerrain : ModBase
         rendered?.IdsCount = _batcherIdsCount;
     }
 
-    private static void ReturnModelArrays(GeometryModel model)
-    {
-        if (model.Xyz != null) { ArrayPool<float>.Shared.Return(model.Xyz); model.Xyz = null; }
-        if (model.Uv != null) { ArrayPool<float>.Shared.Return(model.Uv); model.Uv = null; }
-        if (model.Rgba != null) { ArrayPool<byte>.Shared.Return(model.Rgba); model.Rgba = null; }
-        if (model.Indices != null) { ArrayPool<int>.Shared.Return(model.Indices); model.Indices = null; }
-    }
-
     // ── Tessellation ──────────────────────────────────────────────────────────
 
     private void RedrawChunk(int x, int y, int z)
@@ -317,7 +302,6 @@ public class ModDrawTerrain : ModBase
         if (c == null) return;
 
         c.rendered ??= new RenderedChunk();
-        c.rendered.Dirty = false;
         _chunkUpdates++;
 
         GetExtendedChunk(x, y, z);
@@ -434,7 +418,7 @@ public class ModDrawTerrain : ModBase
 
     // ── Drawing ───────────────────────────────────────────────────────────────
 
-    public void DrawTerrain()
+    private void DrawTerrain()
     {
         _game.Batcher.Draw(
             _game.LocalPositionX,
@@ -443,6 +427,8 @@ public class ModDrawTerrain : ModBase
     }
 
     internal void Clear() => _game.Batcher.Clear();
+
+    // ── Performance info ──────────────────────────────────────────────────────
 
     /// <summary>Updates chunk-update and triangle-count statistics once per second.</summary>
     internal void UpdatePerformanceInfo()
@@ -464,14 +450,9 @@ public class ModDrawTerrain : ModBase
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>View-distance-based side length of the active map area in blocks.</summary>
-    private int MapAreaSize() => (int)_game.Config3d.ViewDistance * 2;
-
     private int MapsizeXChunks() => _game.VoxelMap.Mapsizexchunks;
     private int MapsizeYChunks() => _game.VoxelMap.Mapsizeychunks;
     private int MapsizeZChunks() => _game.VoxelMap.Mapsizezchunks;
-
-    private static int Index3d(int x, int y, int h, int sizeX, int sizeY)
-        => (h * sizeY + y) * sizeX + x;
 
     private static VerticesIndicesToLoad CloneVerticesIndicesToLoad(VerticesIndicesToLoad source)
         => new()
@@ -505,6 +486,14 @@ public class ModDrawTerrain : ModBase
             dest.IndicesCount = source.IndicesCount;
         }
         return dest;
+    }
+
+    private static void ReturnModelArrays(GeometryModel model)
+    {
+        if (model.Xyz != null) { ArrayPool<float>.Shared.Return(model.Xyz); model.Xyz = null; }
+        if (model.Uv != null) { ArrayPool<float>.Shared.Return(model.Uv); model.Uv = null; }
+        if (model.Rgba != null) { ArrayPool<byte>.Shared.Return(model.Rgba); model.Rgba = null; }
+        if (model.Indices != null) { ArrayPool<int>.Shared.Return(model.Indices); model.Indices = null; }
     }
 }
 

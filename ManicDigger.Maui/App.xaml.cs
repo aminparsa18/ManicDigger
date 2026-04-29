@@ -104,7 +104,7 @@ public class GameRunner
         var server = new Server
         {
             SaveFilenameOverride = _savefilename,
-            Exit = _exit,
+            GameExit = _exit,
             MainSockets = new NetServer[3]
         };
         server.MainSockets[0] = netServer;

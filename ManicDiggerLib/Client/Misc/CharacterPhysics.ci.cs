@@ -73,16 +73,16 @@ public class ScriptCharacterPhysics : IEntityScript
     // ── Tunable constants ─────────────────────────────────────────────────────
 
     /// <summary>Base gravitational acceleration applied each tick.</summary>
-    private float constGravity;
+    private readonly float constGravity;
 
     /// <summary>Factor by which gravity is multiplied while swimming.</summary>
-    private float constWaterGravityMultiplier;
+    private readonly float constWaterGravityMultiplier;
 
     /// <summary>When false, <see cref="curspeed"/> is set directly from input rather than ramped.</summary>
-    private bool constEnableAcceleration;
+    private readonly bool constEnableAcceleration;
 
     /// <summary>Multiplier applied to <see cref="jumpacceleration"/> each tick to produce upward displacement.</summary>
-    private float constJump;
+    private readonly float constJump;
 
     // ── IEntityScript ─────────────────────────────────────────────────────────
 

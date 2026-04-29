@@ -140,7 +140,7 @@ public class ServerSystemModLoader : ServerSystem
 
         string[] modPaths =
         [
-            Path.Combine(assemblyDir, "..", "..", "..", "..", "ManicDiggerLib", "Server", "Mods"),
+            Path.Combine(assemblyDir, "..", "..", "..", "..", "ManicDigger.Core", "Server", "Mods"),
             Path.Combine(assemblyDir, "Mods")
         ];
 

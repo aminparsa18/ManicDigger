@@ -26,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ManicDiggerLib\ManicDigger.Core.csproj" />
+	  <ProjectReference Include="..\ManicDigger.Core\ManicDigger.Core.csproj" />
 	</ItemGroup>
 
 </Project>

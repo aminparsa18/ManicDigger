@@ -54,14 +54,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ScriptingApi\ManicDigger.Domain.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Runtime.InteropServices.NativeLibrary.AlwaysGenerateEvents" Value="true" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="Server\Logic\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ManicDigger.Domain\ManicDigger.Domain.csproj" />
 	</ItemGroup>
 </Project>

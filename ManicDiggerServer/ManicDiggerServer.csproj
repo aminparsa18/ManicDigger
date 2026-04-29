@@ -78,7 +78,7 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ManicDiggerLib\ManicDigger.Core.csproj">
+    <ProjectReference Include="..\ManicDigger.Core\ManicDigger.Core.csproj">
       <Project>{08056549-3BE8-454C-A09A-67EDCDC81261}</Project>
       <Name>ManicDigger.Core</Name>
     </ProjectReference>

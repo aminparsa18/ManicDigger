@@ -10,7 +10,7 @@ public class BlockOctreeSearcher
     /// The root bounding box of the octree search space.
     /// Must have equal power-of-two dimensions for the octree subdivision to work correctly.
     /// </summary>
-    internal Box3 StartBox;
+    public Box3 StartBox {get;set;}
 
     /// <summary>The line currently being tested, set at the start of <see cref="LineIntersection"/>.</summary>
     private Line3D currentLine;

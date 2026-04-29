@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET WinForms Launch",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/ManicDigger/bin/Debug/net10.0-windows/ManicDigger.exe",
+            "cwd": "${workspaceFolder}/ManicDigger",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

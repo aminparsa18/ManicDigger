@@ -57,7 +57,7 @@ public class ModGuiCrafting : ModBase
     /// </summary>
     private bool _handlerRegistered;
 
-    private IGame game;
+    private readonly IGame game;
 
     public ModGuiCrafting(IGame game)
     {

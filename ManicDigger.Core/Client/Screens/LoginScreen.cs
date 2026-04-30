@@ -50,9 +50,12 @@ public class LoginScreen : ScreenBase
     private bool triedSavedLogin;
     private string title;
 
-    public LoginScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform)
-        : base(renderer, navigator, platform, default, default)
+    private readonly IPreferences preferences;
+
+    public LoginScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IPreferences preferences)
+        : base(renderer, navigator, platform, default, default, preferences)
     {
+        this.preferences = preferences;
         // Tab chain (by list index):
         // [1] Username → [2] Password → [3] RememberMe → [0] Login → [8] Back → [1] Username
         buttonLogin = new MenuWidget { text = "Login", type = UIWidgetType.Button, nextWidget = 8 };
@@ -222,11 +225,10 @@ public class LoginScreen : ScreenBase
     /// </summary>
     private void TrySavedLogin()
     {
-        Preferences prefs = Platform.GetPreferences();
-        textboxUsername.text = prefs.GetString("Username", "");
+        textboxUsername.text = preferences.GetString("Username", "");
         textboxPassword.text = "";
 
-        string token = prefs.GetString("Password", "");
+        string token = preferences.GetString("Password", "");
         loginResultData = new LoginData();
 
         if (serverHash != null && token != "")
@@ -242,21 +244,19 @@ public class LoginScreen : ScreenBase
     /// <param name="token">New token returned by the server, or <see langword="null"/> to leave the stored token unchanged.</param>
     private void SaveCredentials(string token)
     {
-        Preferences prefs = Platform.GetPreferences();
-        prefs.SetString("Username", textboxUsername.text);
+        preferences.SetString("Username", textboxUsername.text);
         if (!string.IsNullOrEmpty(token))
         {
-            prefs.SetString("Password", token);
+            preferences.SetString("Password", token);
         }
-        Platform.SetPreferences(prefs);
+        preferences.SetValues();
     }
 
     /// <summary>Persists only the username to preferences (used for direct-IP connections).</summary>
     private void SaveUsername()
     {
-        Preferences prefs = Platform.GetPreferences();
-        prefs.SetString("Username", textboxUsername.text);
-        Platform.SetPreferences(prefs);
+        preferences.SetString("Username", textboxUsername.text);
+        preferences.SetValues();
     }
 
     /// <summary>

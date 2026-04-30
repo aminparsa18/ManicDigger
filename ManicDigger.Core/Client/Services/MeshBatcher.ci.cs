@@ -28,7 +28,7 @@ public class MeshBatcher
     /// When <c>true</c>, <see cref="Draw"/> will bind each texture before issuing
     /// draw calls. Set to <c>false</c> when the caller manages texture binding externally.
     /// </summary>
-    private bool BindTexture;
+    private readonly bool BindTexture;
 
     /// <summary>Flat array of all model slots. Index == model ID.</summary>
     private readonly BatchEntry[] _models;

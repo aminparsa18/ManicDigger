@@ -3,9 +3,9 @@
 /// A simple string-keyed settings store. All values are persisted as strings
 /// and converted on read. Backed by a <see cref="Dictionary{TKey,TValue}"/>.
 /// </summary>
-public class Preferences
+public class Preferences : IPreferences
 {
-    private readonly Dictionary<string, string> items = new();
+    private Dictionary<string, string> items;
 
     // -------------------------------------------------------------------------
     // String
@@ -52,14 +52,47 @@ public class Preferences
     public IEnumerable<string> ToLines() =>
         items.Select(kvp => $"{kvp.Key}={kvp.Value}");
 
+    public void SetValues()
+    {
+        File.WriteAllLines(GetPreferencesFilePath(), ToLines());
+    }
+
     // -------------------------------------------------------------------------
     // Collection
     // -------------------------------------------------------------------------
 
-    public int GetKeysCount() => items.Count;
+    public void Remove(string key) => items.Remove(key);
 
-    public string GetKey(int i) => items.Keys.ElementAtOrDefault(i);
+    private static string GetPreferencesFilePath()
+    {
+        string path = GameStorePath.GetStorePath();
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+        return Path.Combine(path, "Preferences.txt");
+    }
 
-    internal void Remove(string key) => items.Remove(key);
+    public IPreferences Instance
+    {
+        get
+        {
+            if (items != null)
+                return this;
+
+            items = [];
+            if (File.Exists(GetPreferencesFilePath()))
+            {
+                string[] lines = File.ReadAllLines(GetPreferencesFilePath());
+                foreach (string l in lines)
+                {
+                    int a = l.IndexOf("=", StringComparison.InvariantCultureIgnoreCase);
+                    string name = l[..a];
+                    string value = l[(a + 1)..];
+                    SetString(name, value);
+                }
+            }
+            return this;
+        }
+    }
 }
-

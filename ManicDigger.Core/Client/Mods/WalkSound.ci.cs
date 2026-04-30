@@ -8,7 +8,7 @@ public class ModWalkSound : ModBase
 
     private float walkSoundTimer;
     private int lastWalkSound;
-    private Random random;
+    private readonly Random random;
     private readonly IGame game;
 
     public ModWalkSound(IGame game)

@@ -12,25 +12,28 @@ public class ConnectionScreen : ScreenBase
     private readonly MenuWidget buttonBack;
     private readonly MenuWidget textboxIp;
     private readonly MenuWidget textboxPort;
+    private readonly IPreferences preferences;
 
     /// <summary>
     /// Error text displayed above the form. Currently unused — set this field
     /// to surface connection or validation errors to the player.
     /// </summary>
-    private string errorText;
+    private readonly string errorText;
 
     private string savedIp;
     private string savedPort;
     private string title;
     private bool loaded;
 
-    public ConnectionScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform)
-        : base(renderer, navigator, platform, default, default)
+    public ConnectionScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IPreferences preferences)
+        : base(renderer, navigator, platform, default, default, preferences)
     {
         buttonConnect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
         textboxIp = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "IP", nextWidget = 2 };
         textboxPort = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Port", nextWidget = 0 };
         buttonBack = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
+
+        this.preferences = preferences;
 
         title = "Connect to IP";
 
@@ -56,8 +59,8 @@ public class ConnectionScreen : ScreenBase
     {
         if (!loaded)
         {
-            savedIp = Platform.GetPreferences().GetString("ConnectToIpIp", "127.0.0.1");
-            savedPort = Platform.GetPreferences().GetString("ConnectToIpPort", "25565");
+            savedIp = preferences.GetString("ConnectToIpIp", "127.0.0.1");
+            savedPort = preferences.GetString("ConnectToIpPort", "25565");
             textboxIp.text = savedIp;
             textboxPort.text = savedPort;
             loaded = true;
@@ -69,10 +72,10 @@ public class ConnectionScreen : ScreenBase
             savedIp = textboxIp.text;
             savedPort = textboxPort.text;
 
-            Preferences prefs = Platform.GetPreferences();
+            var prefs = preferences;
             prefs.SetString("ConnectToIpIp", savedIp);
             prefs.SetString("ConnectToIpPort", savedPort);
-            Platform.SetPreferences(prefs);
+            prefs.SetValues();
         }
 
         float scale = Renderer.GetScale();

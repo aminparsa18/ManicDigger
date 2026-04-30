@@ -61,11 +61,11 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     // -------------------------------------------------------------------------
 
     /// <summary>The active platform abstraction (windowing, GL, input, etc.).</summary>
-    private IGameService _platform;
+    private readonly IGameService _platform;
 
-    private IOpenGlService _platformOpenGl;
-    private ISinglePlayerService _singlePlayerService;
-
+    private readonly IOpenGlService _platformOpenGl;
+    private readonly ISinglePlayerService _singlePlayerService;
+    private readonly IPreferences _preferences;
 
     /// <summary>Loaded localisation/translation data.</summary>
     private Language _lang;
@@ -118,14 +118,15 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     // Constructor
     // -------------------------------------------------------------------------
 
-    public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService)
+    public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences)
     {
         _platform = platform;
         _platformOpenGl = platformOpenGl;
         _singlePlayerService = singlePlayerService;
+        _preferences = preferences;
         Textures = [];
         textTextureCache = [];
-        screen = new MainScreen(this, this, _platform, singlePlayerService);
+        screen = new MainScreen(this, this, _platform, singlePlayerService, _preferences);
         loginClient = new LoginClientCi();
         Assets = [];
     }
@@ -535,21 +536,21 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <summary>Navigates to the main (home) screen and releases any mouse pointer lock.</summary>
     public void StartMainMenu()
     {
-        screen = new MainScreen(this, this, _platform, default);
+        screen = new MainScreen(this, this, _platform, default, _preferences);
         _platform.ExitMousePointerLock();
     }
 
     /// <summary>Navigates to the single-player world selection screen.</summary>
     public void StartSingleplayer()
     {
-        screen = new SingleplayerScreen(this, this, _platform, _singlePlayerService);
+        screen = new SingleplayerScreen(this, this, _platform, _singlePlayerService, _preferences);
         screen.LoadTranslations();
     }
 
     /// <summary>Navigates to the multiplayer server-browser screen.</summary>
     public void StartMultiplayer()
     {
-        screen = new MultiplayerScreen(this, this, _platform, default, default);
+        screen = new MultiplayerScreen(this, this, _platform, default, default, _preferences);
         screen.LoadTranslations();
     }
 
@@ -561,7 +562,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <param name="port">Server port number.</param>
     public void StartLogin(string serverHash, string ip, int port)
     {
-        screen = new LoginScreen(this, this, _platform)
+        screen = new LoginScreen(this, this, _platform, _preferences)
         {
             serverHash = serverHash,
             serverIp = ip,
@@ -573,7 +574,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <summary>Navigates to the direct-connect / manual IP entry screen.</summary>
     public void StartConnectToIp()
     {
-        screen = new ConnectionScreen(this, this, _platform);
+        screen = new ConnectionScreen(this, this, _platform, _preferences);
         screen.LoadTranslations();
     }
 
@@ -586,7 +587,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(this, this, _platform, _platformOpenGl, _singlePlayerService);
+        ScreenGame screenGame = new(this, this, _platform, _platformOpenGl, _singlePlayerService, _preferences);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }

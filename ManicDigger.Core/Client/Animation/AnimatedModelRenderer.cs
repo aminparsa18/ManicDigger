@@ -25,7 +25,7 @@ public class AnimatedModelRenderer
     private AnimatedModel m;
 
     /// <summary>Index of the currently playing animation in <see cref="AnimatedModel.Animations"/>.</summary>
-    private int anim;
+    private readonly int anim;
 
     /// <summary>Current playback position, in frames.</summary>
     private float frame;

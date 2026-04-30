@@ -740,7 +740,7 @@ public class ModGuiEscapeMenu : ModBase
     private GameOption LoadOptions_()
     {
         GameOption options = new();
-        Preferences preferences = platform.GetPreferences();
+        var preferences = game.Preferences;
                 
         options.Shadows = preferences.GetBool("Shadows", true);
         options.Font = preferences.GetInt("Font", 0);
@@ -792,7 +792,7 @@ public class ModGuiEscapeMenu : ModBase
 
     private void SaveOptions_(GameOption options)
     {
-        Preferences preferences = platform.GetPreferences();
+        var preferences = game.Preferences;
 
         preferences.SetBool("Shadows", options.Shadows);
         preferences.SetInt("Font", options.Font);
@@ -824,7 +824,7 @@ public class ModGuiEscapeMenu : ModBase
             }
         }
 
-        platform.SetPreferences(preferences);
+        preferences.SetValues();
     }
 }
 

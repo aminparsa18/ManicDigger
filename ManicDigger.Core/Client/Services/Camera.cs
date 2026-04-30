@@ -43,16 +43,16 @@ public class Camera
     private float distance;
 
     /// <summary>Minimum allowed orbit radius.</summary>
-    private float minimumDistance;
+    private readonly float minimumDistance;
 
     /// <summary>Elevation angle of the camera above the horizontal plane, in degrees.</summary>
     private float angle;
 
     /// <summary>Maximum allowed elevation angle, in degrees.</summary>
-    private float maximumAngle;
+    private readonly float maximumAngle;
 
     /// <summary>Minimum allowed elevation angle, in degrees.</summary>
-    private float minimumAngle;
+    private readonly float minimumAngle;
 
     /// <summary>
     /// Horizontal rotation parameter (azimuth). The actual angle used in position math

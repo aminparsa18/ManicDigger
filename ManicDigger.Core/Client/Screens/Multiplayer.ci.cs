@@ -2,9 +2,10 @@
 
 public class MultiplayerScreen : ScreenBase
 {
-    public MultiplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService _)
-        : base(renderer, navigator, platform, platformOpenGl, _)
+    public MultiplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService _, IPreferences preferences)
+        : base(renderer, navigator, platform, platformOpenGl, _, preferences)
     {
+        this.preferences = preferences;
         // Tab chain (by list index): [0] Back → [1] Connect → [3] ConnectToIp → [2] Refresh → [0] Back
         back = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
         connect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
@@ -80,6 +81,7 @@ public class MultiplayerScreen : ScreenBase
     private int serversPerPage;
     private string title;
     private bool loading;
+    private readonly IPreferences preferences;
 
     public override void LoadTranslations()
     {
@@ -180,9 +182,9 @@ public class MultiplayerScreen : ScreenBase
         loggedInName.fontSize = 12 * scale;
         if (loggedInName.text == "")
         {
-            if (Platform.GetPreferences().GetString("Password", "") != "")
+            if (preferences.GetString("Password", "") != "")
             {
-                loggedInName.text = Platform.GetPreferences().GetString("Username", "Invalid");
+                loggedInName.text = preferences.GetString("Username", "Invalid");
             }
         }
         logout.visible = loggedInName.text != "";
@@ -444,10 +446,9 @@ public class MultiplayerScreen : ScreenBase
         }
         if (w == logout)
         {
-            Preferences pref = Platform.GetPreferences();
-            pref.Remove("Username");
-            pref.Remove("Password");
-            Platform.SetPreferences(pref);
+            preferences.Remove("Username");
+            preferences.Remove("Password");
+            preferences.SetValues();
             loggedInName.text = "";
         }
     }

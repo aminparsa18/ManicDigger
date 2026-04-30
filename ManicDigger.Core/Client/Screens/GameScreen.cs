@@ -5,11 +5,11 @@
 /// Bridges platform input events to the game, manages the singleplayer
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
-public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService) 
-    : ScreenBase(renderer, navigator, platform, platformOpenGl, singlePlayerService)
+public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences) 
+    : ScreenBase(renderer, navigator, platform, platformOpenGl, singlePlayerService, preferences)
 {
     /// <summary>The game instance owned by this screen.</summary>
-    private readonly Game game = new(platform, platformOpenGl, singlePlayerService);
+    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences);
 
     private ConnectionData connectData;
     private bool singleplayer;
@@ -137,7 +137,7 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
         string token = qresult.PublicHash.Split('=')[1];
 
         lic.Login(platform, connectData.Username, "",
-            token, platform.GetPreferences().GetString("Password", ""),
+            token, preferences.GetString("Password", ""),
             new LoginResult(), lidata);
 
         if (!lidata.ServerCorrect)

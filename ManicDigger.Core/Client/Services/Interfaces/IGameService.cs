@@ -50,8 +50,7 @@ public interface IGameService
     void ApplicationDoEvents();
     void ShowKeyboard(bool show);
     bool IsFastSystem();
-    Preferences GetPreferences();
-    void SetPreferences(Preferences preferences);
+
     bool IsMousePointerLocked();
     void RequestMousePointerLock();
     void ExitMousePointerLock();

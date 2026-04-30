@@ -39,6 +39,7 @@ public partial class Game : IGame
     public IGameService GameService { get; set; }
     public IOpenGlService OpenGlService { get; set; }
     public ISinglePlayerService SinglePlayerService { get; set; }
+    public IPreferences Preferences { get; set; }
 
     public Language Language { get; set; }
     public Config3d Config3d { get; set; }
@@ -166,7 +167,7 @@ public partial class Game : IGame
     private int playertexturedefault;
     public const string playertexturedefaultfilename = "mineplayer.png";
 
-    private int lastOxygenTickMilliseconds;
+    private readonly int lastOxygenTickMilliseconds;
     public int LastReceivedMilliseconds { get; set; }
     public int ReloadBlock { get; set; }
     public int ReloadStartMilliseconds { get; set; }
@@ -247,7 +248,7 @@ public partial class Game : IGame
     public bool isNight { get; set; }
     public bool fancySkysphere { get; set; }
     public bool SkySphereNight { get; set; }
-    private ModSkySphereStatic skysphere;
+    private readonly ModSkySphereStatic skysphere;
     public bool shadowssimple { get; set; }
 
     // -------------------------------------------------------------------------
@@ -383,11 +384,12 @@ public partial class Game : IGame
     // Constructor
     // -------------------------------------------------------------------------
 
-    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService)
+    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences)
     {
         GameService = platform;
         OpenGlService = platformOpenGl;
         SinglePlayerService = singlePlayerService;
+        Preferences = preferences;
         InitCore();
         InitMap();
         InitTextures();

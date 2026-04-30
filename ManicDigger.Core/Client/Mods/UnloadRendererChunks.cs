@@ -11,7 +11,7 @@ public class ModUnloadRendererChunks : ModBase
     private readonly IGame _game;
 
     private int _pendingUnloadIndex = -1;
-    private Action _unloadAction;
+    private readonly Action _unloadAction;
 
     /// <summary>Edge length of one chunk in blocks.</summary>
     private int _chunkSize;

@@ -8,8 +8,8 @@
 /// </remarks>
 public class MainScreen : ScreenBase
 {
-    public MainScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService singlePlayerService)
-        : base(renderer, navigator, platform, default, singlePlayerService)
+    public MainScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService singlePlayerService, IPreferences preferences)
+        : base(renderer, navigator, platform, default, singlePlayerService, preferences)
     {
         buttonSingleplayer = new MenuWidget { text = "Singleplayer" };
         buttonMultiplayer = new MenuWidget { text = "Multiplayer" };

@@ -10,8 +10,8 @@ public class ModFpsHistoryGraph : ModBase
     private const int GraphPosX = 25;
     private const int PerLine = 2;
 
-    private IGame _game;
-    private IGameService _platform;
+    private readonly IGame _game;
+    private readonly IGameService _platform;
 
     private readonly float[] dtHistory = new float[MaxCount];
     private readonly Draw2dData[] todraw = new Draw2dData[MaxCount];

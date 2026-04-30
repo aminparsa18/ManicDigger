@@ -55,8 +55,8 @@ public partial class Server : ICurrentTime, IDropItem
     public NetServer[] MainSockets { get; set; }
 
     private bool _localConnectionsOnly;
-    private int _singlePlayerPort = 25570;
-    private string _serverPathLogs = Path.Combine(GameStorePath.GetStorePath(), "Logs");
+    private readonly int _singlePlayerPort = 25570;
+    private readonly string _serverPathLogs = Path.Combine(GameStorePath.GetStorePath(), "Logs");
 
     public void ServerEventLog(string p)
     {

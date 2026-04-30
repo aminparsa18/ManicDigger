@@ -27,6 +27,7 @@ public class Program
     public GameExit exit = new();
     private GameService platform;
     private ISinglePlayerService singlePlayerService;
+    private IPreferences preferences;
 
     // -------------------------------------------------------------------------
     // Startup
@@ -58,8 +59,9 @@ public class Program
                 new Thread(ServerThreadStart) { IsBackground = true }.Start();
             }
         };
+        preferences = new Preferences().Instance;
 
-        MainMenu mainmenu = new(platform, new PlatformOpenGl(), singlePlayerService);
+        MainMenu mainmenu = new(platform, new PlatformOpenGl(), singlePlayerService, preferences);
 
         mainmenu.Start();
         ReadArgs(mainmenu, args);

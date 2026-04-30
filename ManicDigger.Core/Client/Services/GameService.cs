@@ -104,47 +104,6 @@ public class GameService : IGameService
         return false;
     }
 
-    private static string GetPreferencesFilePath()
-    {
-        string path = GameStorePath.GetStorePath();
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-        }
-        return Path.Combine(path, "Preferences.txt");
-    }
-
-    public Preferences GetPreferences()
-    {
-        if (File.Exists(GetPreferencesFilePath()))
-        {
-            Preferences p = new()
-            {
-            };
-            string[] lines = File.ReadAllLines(GetPreferencesFilePath());
-            foreach (string l in lines)
-            {
-                int a = l.IndexOf("=", StringComparison.InvariantCultureIgnoreCase);
-                string name = l[..a];
-                string value = l[(a + 1)..];
-                p.SetString(name, value);
-            }
-            return p;
-        }
-        else
-        {
-            Preferences p = new()
-            {
-            };
-            return p;
-        }
-    }
-
-    public void SetPreferences(Preferences preferences)
-    {
-        File.WriteAllLines(GetPreferencesFilePath(), preferences.ToLines());
-    }
-
     public bool IsMac = Environment.OSVersion.Platform == PlatformID.MacOSX;
 
     public bool MultithreadingAvailable()
@@ -371,6 +330,8 @@ public class GameService : IGameService
     }
 
     public List<Action<KeyEventArgs>> KeyDownHandlers { get; set; } = [];
+
+
     public List<Action<KeyEventArgs>> KeyUpHandlers = [];
     public List<Action<KeyPressEventArgs>> KeyPressHandlers = [];
 

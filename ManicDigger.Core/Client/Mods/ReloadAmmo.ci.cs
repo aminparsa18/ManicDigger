@@ -5,18 +5,16 @@
 /// </summary>
 public class ModReloadAmmo : ModBase
 {
-    private readonly IGame game;
     private readonly IGameService platform;
     private readonly Random random;
 
-    public ModReloadAmmo(IGame game, IGameService platform)
+    public ModReloadAmmo(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
         random = new Random();
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnNewFrameFixed(IGame game, float args)
     {
         if (game.ReloadStartMilliseconds == 0) return;
 
@@ -30,7 +28,7 @@ public class ModReloadAmmo : ModBase
         game.ReloadBlock = -1;
     }
 
-    public override void OnKeyDown(KeyEventArgs args)
+    public override void OnKeyDown(IGame game, KeyEventArgs args)
     {
         if (game.GuiState != GuiState.Normal || game.GuiTyping != TypingState.None) return;
         if (args.KeyChar != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R)) return;

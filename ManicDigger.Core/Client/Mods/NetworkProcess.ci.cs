@@ -18,12 +18,10 @@ namespace ManicDigger.Mods;
 
 public class ModNetworkProcess : ModBase
 {
-    private readonly IGame _game;
     private readonly IGameService _platform;
 
-    public ModNetworkProcess(IGame game, IGameService gamePlatform)
+    public ModNetworkProcess(IGameService gamePlatform)
     {
-        _game = game;
         _platform = gamePlatform;
         CurrentChunk = new byte[1024 * 64];
         CurrentChunkCount = 0;
@@ -44,10 +42,10 @@ public class ModNetworkProcess : ModBase
     private static int Index3d(int x, int y, int h, int sizex, int sizey)
         => (h * sizey + y) * sizex + x;
 
-    public override void OnReadOnlyBackgroundThread(float dt)
-        => NetworkProcess();
+    public override void OnReadOnlyBackgroundThread(IGame game, float dt)
+        => NetworkProcess(game);
 
-    public void NetworkProcess()
+    public void NetworkProcess(IGame _game)
     {
         _game.CurrentTimeMilliseconds = _platform.TimeMillisecondsFromStart;
         if (_game.NetClient == null) return;
@@ -62,7 +60,7 @@ public class ModNetworkProcess : ModBase
             try
             {
                 msg.Payload.CopyTo(rentedPayload);
-                TryReadPacket(rentedPayload, payloadLength);
+                TryReadPacket(_game, rentedPayload, payloadLength);
             }
             finally
             {
@@ -71,17 +69,17 @@ public class ModNetworkProcess : ModBase
         }
     }
 
-    public void TryReadPacket(byte[] data, int dataLength)
+    public void TryReadPacket(IGame _game, byte[] data, int dataLength)
     {
         Packet_Server packet;
         packet = MemoryPackSerializer.Deserialize<Packet_Server>(
             data.AsSpan(0, dataLength));
-        ProcessInBackground(packet);
-        _game.QueueActionCommit(() => ProcessPacket(packet));
+        ProcessInBackground(_game, packet);
+        _game.QueueActionCommit((game) => ProcessPacket(_game, packet));
         _game.LastReceivedMilliseconds = _game.CurrentTimeMilliseconds;
     }
 
-    private void ProcessInBackground(Packet_Server packet)
+    private void ProcessInBackground(IGame _game, Packet_Server packet)
     {
         switch (packet.Id)
         {
@@ -163,7 +161,7 @@ public class ModNetworkProcess : ModBase
 
     // a private Handle*() method to make this switch a clean dispatch table
     // and enable per-handler unit testing. Deferred to keep this diff focused.
-    internal void ProcessPacket(Packet_Server packet)
+    internal void ProcessPacket(IGame _game, Packet_Server packet)
     {
         _game.PacketHandlers[(int)packet.Id]?.Handle(_game, packet);
         switch (packet.Id)
@@ -299,11 +297,11 @@ public class ModNetworkProcess : ModBase
                     if (packet.Season.Hour >= _game.NightLevels.Length) break;
                     int sunlight = _game.NightLevels[packet.Season.Hour];
                     _game.SkySphereNight = sunlight < 8;
-                    _game.SunMoonRenderer.day_length_in_seconds =
-                        60 * 60 * 24 / packet.Season.DayNightCycleSpeedup;
-                    int hour = packet.Season.Hour / Game.HourDetail;
-                    if (_game.SunMoonRenderer.GetHour() != hour)
-                        _game.SunMoonRenderer.SetHour(hour);
+                    //_game.SunMoonRenderer.day_length_in_seconds =
+                    //    60 * 60 * 24 / packet.Season.DayNightCycleSpeedup;
+                    //int hour = packet.Season.Hour / Game.HourDetail;
+                    //if (_game.SunMoonRenderer.GetHour() != hour)
+                    //    _game.SunMoonRenderer.SetHour(hour);
                     if (_game.Sunlight != sunlight)
                     {
                         _game.Sunlight = sunlight;

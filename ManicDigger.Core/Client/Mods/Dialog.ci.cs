@@ -10,22 +10,20 @@ public class ModDialog : ModBase
     private const string TypableChars = "abcdefghijklmnopqrstuvwxyz1234567890\t ";
 
     private readonly ClientPacketHandler packetHandler = new ClientPacketHandlerDialog();
-    private readonly IGame game;
     private readonly IGameService platform;
 
-    public ModDialog(IGame game, IGameService platform)
+    public ModDialog(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
     {
         game.PacketHandlers[(int)Packet_ServerIdEnum.Dialog] = packetHandler;
-        DrawDialogs();
+        DrawDialogs(game);
     }
 
-    internal void DrawDialogs()
+    internal void DrawDialogs(IGame game)
     {
         for (int i = 0; i < game.Dialogs.Length; i++)
         {
@@ -34,16 +32,16 @@ public class ModDialog : ModBase
 
             d.screen.screenx = platform.CanvasWidth / 2 - d.value.Width / 2;
             d.screen.screeny = platform.CanvasHeight / 2 - d.value.Height / 2;
-            d.screen.DrawWidgets();
+            d.screen.DrawWidgets(game);
         }
     }
 
-    public override void OnKeyPress(KeyPressEventArgs args)
+    public override void OnKeyPress(IGame game, KeyPressEventArgs args)
     {
         if (game.GuiState != GuiState.ModalDialog && game.GuiState != GuiState.Normal) return;
         if (game.IsTyping) return;
 
-        ForEachDialog(d => d.screen.OnKeyPress(args));
+        ForEachDialog(game, d => d.screen.OnKeyPress(game, args));
 
         for (int k = 0; k < game.Dialogs.Length; k++)
         {
@@ -65,9 +63,9 @@ public class ModDialog : ModBase
         }
     }
 
-    public override void OnKeyDown(KeyEventArgs args)
+    public override void OnKeyDown(IGame game, KeyEventArgs args)
     {
-        ForEachDialog(d => d.screen.OnKeyDown(args));
+        ForEachDialog(game, d => d.screen.OnKeyDown(game, args));
 
         bool isEsc = args.KeyChar == (int)Keys.Escape;
 
@@ -110,16 +108,16 @@ public class ModDialog : ModBase
         }
     }
 
-    public override void OnKeyUp(KeyEventArgs args) =>
-        ForEachDialog(d => d.screen.OnKeyUp(args));
+    public override void OnKeyUp(IGame game, KeyEventArgs args) =>
+        ForEachDialog(game, d => d.screen.OnKeyUp(game, args));
 
-    public override void OnMouseDown(MouseEventArgs args) =>
-        ForEachDialog(d => d.screen.OnMouseDown(args));
-    public override void OnMouseUp(MouseEventArgs args) =>
-        ForEachDialog(d => d.screen.OnMouseUp(args));
+    public override void OnMouseDown(IGame game, MouseEventArgs args) =>
+        ForEachDialog(game, d => d.screen.OnMouseDown(game, args));
+    public override void OnMouseUp(IGame game, MouseEventArgs args) =>
+        ForEachDialog(game, d => d.screen.OnMouseUp(game, args));
 
     /// <summary>Iterates all non-null dialogs and applies an action to each.</summary>
-    private void ForEachDialog(Action<VisibleDialog> action)
+    private static void ForEachDialog(IGame game, Action<VisibleDialog> action)
     {
         for (int i = 0; i < game.Dialogs.Length; i++)
         {

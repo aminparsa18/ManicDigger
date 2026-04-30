@@ -9,30 +9,28 @@ public class ModFallDamageToPlayer : ModBase
 
     private bool fallSoundPlaying;
     private int lastFallDamageTimeMilliseconds;
-    private readonly IGame game;
     private readonly IGameService platform;
 
-    public ModFallDamageToPlayer(IGame game, IGameService platform)
+    public ModFallDamageToPlayer(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnNewFrameFixed(IGame game, float args)
     {
         if (game.GuiState == GuiState.MapLoading) return;
 
         if (game.Controls.FreeMove)
         {
-            if (fallSoundPlaying) SetFallSoundActive(false);
+            if (fallSoundPlaying) SetFallSoundActive(game, false);
             return;
         }
 
         if (game.FollowId() == null)
-            UpdateFallDamageToPlayer(args);
+            UpdateFallDamageToPlayer(game, args);
     }
 
-    internal void UpdateFallDamageToPlayer(float dt)
+    internal void UpdateFallDamageToPlayer(IGame game, float dt)
     {
         float fallSpeed = game.MovedZ / -game.Basemovespeed;
 
@@ -42,12 +40,12 @@ public class ModFallDamageToPlayer : ModBase
 
         // Play falling wind sound when high up or falling fast
         bool highUp = game.Blockheight(posX, posY, posZ) < posZ - 8;
-        SetFallSoundActive((highUp || fallSpeed > 3) && fallSpeed > 2);
+        SetFallSoundActive(game, (highUp || fallSpeed > 3) && fallSpeed > 2);
 
-        ApplyFallDamage(posX, posY, posZ, fallSpeed);
+        ApplyFallDamage(game, posX, posY, posZ, fallSpeed);
     }
 
-    private void ApplyFallDamage(int posX, int posY, int posZ, float fallSpeed)
+    private void ApplyFallDamage(IGame game, int posX, int posY, int posZ, float fallSpeed)
     {
         if (fallSpeed < 4f) return;
         if (!game.VoxelMap.IsValidPos(posX, posY, posZ - 3)) return;
@@ -72,7 +70,7 @@ public class ModFallDamageToPlayer : ModBase
         game.ApplyDamageToPlayer((int)(severity * game.PlayerStats.MaxHealth), DeathReason.FallDamage, 0);
     }
 
-    internal void SetFallSoundActive(bool active)
+    internal void SetFallSoundActive(IGame game, bool active)
     {
         game.AudioPlayLoop("fallloop.wav", active, true);
         fallSoundPlaying = active;

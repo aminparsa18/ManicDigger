@@ -35,18 +35,22 @@ public partial class Game : IGame
     // Platform & core subsystems
     // -------------------------------------------------------------------------
 
-    public IAudioService AudioService { get; set; }
     public IGameService GameService { get; set; }
     public IOpenGlService OpenGlService { get; set; }
-    public ISinglePlayerService SinglePlayerService { get; set; }
+
+    private IAudioService audioService;
+    private readonly ISinglePlayerService singlePlayerService;
+    private readonly IPreferences preferences;
     private readonly IGameExit gameExit;
+    private readonly IEnumerable<IModBase> mods;
+
     public LanguageService Language { get; set; }
     public Config3d Config3d { get; set; }
     public GameOption options { get; set; }
     public ServerInformation ServerInfo { get; set; }
     private Dictionary<string, string> performanceinfo;
     private TaskScheduler taskScheduler;
-    public ConcurrentQueue<Action> commitActions { get; set; }
+    public ConcurrentQueue<Action<IGame>> commitActions { get; set; }
 
     // -------------------------------------------------------------------------
     // Rendering / textures
@@ -259,8 +263,7 @@ public partial class Game : IGame
     public bool mouseleftdeclick { get; set; }
     private bool wasmouseleft;
     public bool mouserightclick { get; set; }
-    private bool mouserightdeclick;
-    private bool wasmouseright;
+
 
     public bool[] KeyboardState { get; set; }
     public bool[] KeyboardStateRaw { get; set; }
@@ -326,16 +329,14 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
 
     public List<Entity> Entities { get; set; }
-    public List<ModBase> ClientMods { get; set; }
+    public List<IModBase> ClientMods { get; set; }
     public FrustumCulling FrustumCulling { get; set; }
     public TerrainChunkTesselator TerrainChunkTesselator { get; set; }
     public MeshBatcher Batcher { get; set; }
-    public SunMoonRenderer SunMoonRenderer { get; set; }
     public InventoryUtilClient InventoryUtil { get; set; }
     public BlockTypeRegistry BlockRegistry { get; set; }
     public Packet_Inventory Inventory { get; set; }
     public BlockOctreeSearcher BlockOctreeSearcher { get; set; }
-    private ModDrawParticleEffectBlockBreak particleEffectBlockBreak;
 
     // -------------------------------------------------------------------------
     // UI / menus
@@ -380,15 +381,16 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
-    private readonly IPreferences preferences;
+
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
-        IPreferences preferences, IGameExit gameExit)
+        IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods)
     {
         GameService = platform;
         OpenGlService = platformOpenGl;
-        SinglePlayerService = singlePlayerService;
+        this.singlePlayerService = singlePlayerService;
         this.preferences = preferences;
         this.gameExit = gameExit;
+        this.mods = mods;
         InitCore();
         InitMap();
         InitTextures();
@@ -410,7 +412,6 @@ public partial class Game : IGame
     {
         performanceinfo = [];
         Language = new LanguageService();
-        particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
         ServerInfo = new ServerInformation();
         options = new GameOption();
         getAsset = new string[1024 * 2];
@@ -515,8 +516,6 @@ public partial class Game : IGame
         mouseleftdeclick = false;
         wasmouseleft = false;
         mouserightclick = false;
-        mouserightdeclick = false;
-        wasmouseright = false;
 
         const int KeysMax = 360;
         KeyboardState = new bool[KeysMax];
@@ -547,7 +546,7 @@ public partial class Game : IGame
 
     private void InitAudio()
     {
-        AudioService = new AudioService(gameExit);
+        audioService = new AudioService(gameExit);
         Audio = new AudioControl();
     }
 }

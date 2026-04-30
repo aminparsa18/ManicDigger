@@ -8,40 +8,38 @@ public class ModSkySphereAnimated : ModBase
     private const int NormalSegments = 20;
 
     private readonly ModBase stars;
-    private readonly IGame game;
     private readonly IOpenGlService platform;
     private GeometryModel skyModel;
     private int[] skyPixels;
     private int[] glowPixels;
     private bool started;
 
-    public ModSkySphereAnimated(IGame game, IOpenGlService platform)
+    public ModSkySphereAnimated(IOpenGlService platform)
     {
-        this.game = game;
         this.platform = platform;
-        stars = new ModSkySphereStatic(game, platform);
+        stars = new ModSkySphereStatic(platform);
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
         game.SkySphereNight = false;
-        stars.OnNewFrameDraw3d(deltaTime);
+        stars.OnNewFrameDraw3d(game, deltaTime);
         platform.GlDisableFog();
-        DrawSkySphere();
+        DrawSkySphere(game);
         game.SetFog();
     }
 
-    internal void DrawSkySphere()
+    internal void DrawSkySphere(IGame game)
     {
         if (!started)
         {
             started = true;
-            LoadPixels("sky.png", ref skyPixels);
-            LoadPixels("glow.png", ref glowPixels);
+            LoadPixels(game, "sky.png", ref skyPixels);
+            LoadPixels(game, "glow.png", ref glowPixels);
         }
 
         platform.GlDisableDepthTest();
-        Draw(game.CurrentFov());
+        Draw(game, game.CurrentFov());
         platform.GlEnableDepthTest();
     }
 
@@ -51,7 +49,7 @@ public class ModSkySphereAnimated : ModBase
     /// <param name="game">Used to access the platform and asset file system.</param>
     /// <param name="filename">Asset filename including extension (e.g. <c>"terrain.png"</c>).</param>
     /// <param name="pixels">Receives the loaded ARGB pixel data.</param>
-    private void LoadPixels(string filename, ref int[] pixels)
+    private void LoadPixels(IGame game, string filename, ref int[] pixels)
     {
         Bitmap bmp = PixelBuffer.BitmapFromPng(game.GetAssetFile(filename), game.GetAssetFileLength(filename));
         PixelBuffer buffer = PixelBuffer.FromBitmap(bmp);
@@ -59,7 +57,7 @@ public class ModSkySphereAnimated : ModBase
         pixels = buffer.Argb;
     }
 
-    public void Draw(float fov)
+    public void Draw(IGame game, float fov)
     {
         int size = 1000;
         int segments = game.fancySkysphere ? FancySegments : NormalSegments;

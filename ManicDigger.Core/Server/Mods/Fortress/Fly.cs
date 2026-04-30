@@ -15,17 +15,15 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 /// </summary>
 public class ModFly : ModBase
 {
-    private readonly IGame game;
 
     private bool flyActive = false;
 
-    public ModFly(IGame game)
+    public ModFly()
     {
-        this.game = game;
     }
 
     // ── Toggle on F ───────────────────────────────────────────────────────────
-    public override void OnKeyDown(KeyEventArgs args)
+    public override void OnKeyDown(IGame game, KeyEventArgs args)
     {
         if (game.GuiState != GuiState.Normal || game.GuiTyping != TypingState.None)
             return;
@@ -53,7 +51,7 @@ public class ModFly : ModBase
     }
 
     // ── Feed freemove + vertical intent into Controls every physics tick ──────
-    public override void OnNewFrameFixed(float dt)
+    public override void OnNewFrameFixed(IGame game, float dt)
     {
         if (!flyActive) return;
 
@@ -72,8 +70,8 @@ public class ModFly : ModBase
     {
         if (!flyActive) return;
 
-        game.Controls.FreeMove = false;
-        game.Controls.MoveUp = false;
-        game.Controls.MoveDown = false;
+       // game.Controls.FreeMove = false;
+       // game.Controls.MoveUp = false;
+       // game.Controls.MoveDown = false;
     }
 }

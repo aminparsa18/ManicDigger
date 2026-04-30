@@ -6,20 +6,18 @@
 public class ModDrawHand2d : ModBase
 {
     private string lastHandImage;
-    private readonly IGame game;
     private readonly IGameService platform;
 
-    public ModDrawHand2d(IGame game, IGameService platform)
+    public ModDrawHand2d(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
-        if (!ShouldDrawHand()) return;
+        if (!ShouldDrawHand(game)) return;
 
-        string img = HandImage2d();
+        string img = HandImage2d(game);
         if (img == null) return;
 
         game.OrthoMode(platform.CanvasWidth, platform.CanvasHeight);
@@ -41,10 +39,10 @@ public class ModDrawHand2d : ModBase
     }
 
     /// <summary>Returns true if the hand should be drawn (first-person view with 2D enabled).</summary>
-    public bool ShouldDrawHand() => !game.EnableTppView && game.ENABLE_DRAW2D;
+    public bool ShouldDrawHand(IGame game) => !game.EnableTppView && game.ENABLE_DRAW2D;
 
     /// <summary>Returns the appropriate hand image path for the currently held item, or null if none.</summary>
-    public string HandImage2d()
+    public string HandImage2d(IGame game)
     {
         InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         if (item == null) return null;

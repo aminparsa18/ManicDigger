@@ -4,14 +4,12 @@
 public class ModSendActiveMaterial : ModBase
 {
     private int previousActiveMaterialBlock;
-    private readonly IGame game;
 
-    public ModSendActiveMaterial(IGame game)
+    public ModSendActiveMaterial()
     {
-        this.game = game;
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnNewFrameFixed(IGame game, float args)
     {
         int activeBlock = game.Inventory.RightHand[game.ActiveMaterial]?.BlockId ?? 0;
 

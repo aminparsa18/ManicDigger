@@ -309,7 +309,7 @@ public partial class Game : IMeshDrawer
     /// Enqueues <paramref name="action"/> for execution on the main thread at
     /// the end of the next frame. Thread-safe — see <see cref="ConcurrentQueue{T}"/>.
     /// </summary>
-    public void QueueActionCommit(Action action) => commitActions.Enqueue(action);
+    public void QueueActionCommit(Action<IGame> action) => commitActions.Enqueue(action);
 
     // ── Draw dispatch ─────────────────────────────────────────────────────────
 
@@ -340,7 +340,7 @@ public partial class Game : IMeshDrawer
     public void Update(float dt)
     {
         for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnNewFrameReadOnlyMainThread(dt);
+            ClientMods[i]?.OnNewFrameReadOnlyMainThread(this, dt);
     }
 
     // ── Block picking ─────────────────────────────────────────────────────────

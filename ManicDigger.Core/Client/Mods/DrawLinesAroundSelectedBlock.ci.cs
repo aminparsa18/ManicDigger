@@ -6,25 +6,23 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
     private const float SelectionScale = 1.02f;
 
     private readonly DrawWireframeCube lines;
-    private readonly IGame game;
 
-    public ModDrawLinesAroundSelectedBlock(IGame game, IOpenGlService platform)
+    public ModDrawLinesAroundSelectedBlock(IOpenGlService platform)
     {
-        this.game = game;
         lines = new DrawWireframeCube(platform);
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
         if (!game.ENABLE_DRAW2D) return;
 
         if (game.SelectedEntityId != -1)
-            DrawEntityOutline();
+            DrawEntityOutline(game);
         else if (game.SelectedBlockPositionX != -1)
-            DrawBlockOutline();
+            DrawBlockOutline(game);
     }
 
-    private void DrawEntityOutline()
+    private void DrawEntityOutline(IGame game)
     {
         Entity e = game.Entities[game.SelectedEntityId];
         if (e == null) return;
@@ -35,7 +33,7 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
             SelectionScale, SelectionScale * height, SelectionScale);
     }
 
-    private void DrawBlockOutline()
+    private void DrawBlockOutline(IGame game)
     {
         int x = game.SelectedBlockPositionX;
         int y = game.SelectedBlockPositionY;

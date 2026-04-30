@@ -3,13 +3,11 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 public class ModGuiEscapeMenu : ModBase
 {
-    private readonly IGame game;
     private readonly IGameService platform;
     private readonly IPreferences preferences;
 
-    public ModGuiEscapeMenu(IGame game, IGameService platform, IPreferences preferences)
+    public ModGuiEscapeMenu(IGameService platform, IPreferences preferences)
     {
-        this.game = game;
         this.platform = platform;
         this.preferences = preferences;
 
@@ -33,7 +31,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button buttonMainExit;
 
     private int widgetsCount;
-    private void MainSet()
+    private void MainSet(IGame game)
     {
         LanguageService language = game.Language;
         buttonMainReturnToGame = new Button
@@ -55,7 +53,7 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(buttonMainExit);
     }
 
-    private void MainHandleClick(Button b)
+    private void MainHandleClick(IGame game, Button b)
     {
         if (b == buttonMainReturnToGame)
         {
@@ -63,7 +61,7 @@ public class ModGuiEscapeMenu : ModBase
         }
         if (b == buttonMainOptions)
         {
-            SetEscapeMenuState(EscapeMenuState.Options);
+            SetEscapeMenuState(game, EscapeMenuState.Options);
         }
         if (b == buttonMainExit)
         {
@@ -76,7 +74,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button optionsKeys;
     private Button optionsOther;
     private Button optionsReturnToMainMenu;
-    private void OptionsSet()
+    private void OptionsSet(IGame game)
     {
         LanguageService language = game.Language;
         optionsGraphics = new Button
@@ -103,23 +101,23 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(optionsReturnToMainMenu);
     }
 
-    private void OptionsHandleClick(Button b)
+    private void OptionsHandleClick(IGame game, Button b)
     {
         if (b == optionsGraphics)
         {
-            SetEscapeMenuState(EscapeMenuState.Graphics);
+            SetEscapeMenuState(game, EscapeMenuState.Graphics);
         }
         if (b == optionsKeys)
         {
-            SetEscapeMenuState(EscapeMenuState.Keys);
+            SetEscapeMenuState(game, EscapeMenuState.Keys);
         }
         if (b == optionsOther)
         {
-            SetEscapeMenuState(EscapeMenuState.Other);
+            SetEscapeMenuState(game, EscapeMenuState.Other);
         }
         if (b == optionsReturnToMainMenu)
         {
-            SaveOptions(); SetEscapeMenuState(EscapeMenuState.Main);
+            SaveOptions(game); SetEscapeMenuState(game, EscapeMenuState.Main);
         }
     }
 
@@ -132,7 +130,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button graphicsUseServerTexturesOption;
     private Button graphicsFontOption;
     private Button graphicsReturnToOptionsMenu;
-    private void GraphicsSet()
+    private void GraphicsSet(IGame game)
     {
         GameOption options = game.options;
         LanguageService language = game.Language;
@@ -150,11 +148,11 @@ public class ModGuiEscapeMenu : ModBase
         };
         graphicsOptionFramerate = new Button
         {
-            Text = string.Format(language.OptionFramerate(), VsyncString())
+            Text = string.Format(language.OptionFramerate(), VsyncString(game))
         };
         graphicsOptionResolution = new Button
         {
-            Text = string.Format(language.OptionResolution(), ResolutionString())
+            Text = string.Format(language.OptionResolution(), ResolutionString(game))
         };
         graphicsOptionFullscreen = new Button
         {
@@ -166,7 +164,7 @@ public class ModGuiEscapeMenu : ModBase
         };
         graphicsFontOption = new Button
         {
-            Text = string.Format(language.FontOption(), FontString())
+            Text = string.Format(language.FontOption(), FontString(game))
         };
         graphicsReturnToOptionsMenu = new Button
         {
@@ -184,7 +182,7 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(graphicsFontOption);
         AddWidget(graphicsReturnToOptionsMenu);
     }
-    private void GraphicsHandleClick(Button b)
+    private void GraphicsHandleClick(IGame game, Button b)
     {
         GameOption options = game.options;
         if (b == graphicsOptionSmoothShadows)
@@ -219,7 +217,7 @@ public class ModGuiEscapeMenu : ModBase
         }
         if (b == graphicsOptionResolution)
         {
-            ToggleResolution();
+            ToggleResolution(game);
         }
         if (b == graphicsOptionFullscreen)
         {
@@ -231,13 +229,13 @@ public class ModGuiEscapeMenu : ModBase
         }
         if (b == graphicsFontOption)
         {
-            ToggleFont();
+            ToggleFont(game);
         }
         if (b == graphicsReturnToOptionsMenu)
         {
-            UseFullscreen(); 
-            UseResolution(); 
-            SetEscapeMenuState(EscapeMenuState.Options);
+            UseFullscreen(game); 
+            UseResolution(game); 
+            SetEscapeMenuState(game,EscapeMenuState.Options);
         }
     }
 
@@ -245,7 +243,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button otherReturnToOptionsMenu;
     private Button otherAutoJumpOption;
     private Button otherLanguageSetting;
-    private void OtherSet()
+    private void OtherSet(IGame game)
     {
         LanguageService language = game.Language;
 
@@ -273,7 +271,7 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(otherReturnToOptionsMenu);
     }
 
-    private void OtherHandleClick(Button b)
+    private void OtherHandleClick(IGame game, Button b)
     {
         if (b == otherSoundOption)
         {
@@ -290,7 +288,7 @@ public class ModGuiEscapeMenu : ModBase
         }
         if (b == otherReturnToOptionsMenu)
         {
-            SetEscapeMenuState(EscapeMenuState.Options);
+            SetEscapeMenuState(game, EscapeMenuState.Options);
         }
     }
 
@@ -300,7 +298,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button keysReturnToOptionsMenu;
 
     private const int keyButtonsCount = 1024;
-    private void KeysSet()
+    private void KeysSet(IGame game)
     {
         LanguageService language = game.Language;
 
@@ -310,7 +308,7 @@ public class ModGuiEscapeMenu : ModBase
             keyButtons[i] = null;
         }
 
-        KeyHelp[] helps = keyhelps();
+        KeyHelp[] helps = keyhelps(game);
         for (int i = 0; i < keyButtonsCount; i++)
         {
             if (helps[i] == null)
@@ -342,7 +340,7 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(keysReturnToOptionsMenu);
     }
 
-    private void KeysHandleClick(Button b)
+    private void KeysHandleClick(IGame game, Button b)
     {
         if (keyButtons != null)
         {
@@ -360,17 +358,17 @@ public class ModGuiEscapeMenu : ModBase
         }
         if (b == keysReturnToOptionsMenu)
         {
-            SetEscapeMenuState(EscapeMenuState.Options);
+            SetEscapeMenuState(game, EscapeMenuState.Options);
         }
     }
 
-    private void HandleButtonClick(Button w)
+    private void HandleButtonClick(IGame game, Button w)
     {
-        MainHandleClick(w);
-        OptionsHandleClick(w);
-        GraphicsHandleClick(w);
-        OtherHandleClick(w);
-        KeysHandleClick(w);
+        MainHandleClick(game, w);
+        OptionsHandleClick(game, w);
+        GraphicsHandleClick(game, w);
+        OtherHandleClick(game, w);
+        KeysHandleClick(game, w);
     }
 
     private void AddWidget(Button b)
@@ -384,7 +382,7 @@ public class ModGuiEscapeMenu : ModBase
     }
 
     private EscapeMenuState escapemenustate;
-    private void EscapeMenuMouse1()
+    private void EscapeMenuMouse1(IGame game)
     {
         for (int i = 0; i < widgetsCount; i++)
         {
@@ -392,7 +390,7 @@ public class ModGuiEscapeMenu : ModBase
             w.selected = RectContains(w.x, w.y, w.width, w.height, game.MouseCurrentX, game.MouseCurrentY);
             if (w.selected && game.MouseLeftClick)
             {
-                HandleButtonClick(w);
+                HandleButtonClick(game, w);
                 break;
             }
         }
@@ -406,41 +404,41 @@ public class ModGuiEscapeMenu : ModBase
             && py < y + h;
     }
 
-    private void SetEscapeMenuState(EscapeMenuState state)
+    private void SetEscapeMenuState(IGame game, EscapeMenuState state)
     {
         LanguageService language = game.Language;
         escapemenustate = state;
         WidgetsClear();
         if (state == EscapeMenuState.Main)
         {
-            MainSet();
-            MakeSimpleOptions(20, 50);
+            MainSet(game);
+            MakeSimpleOptions(game, 20, 50);
         }
         else if (state == EscapeMenuState.Options)
         {
-            OptionsSet();
-            MakeSimpleOptions(20, 50);
+            OptionsSet(game);
+            MakeSimpleOptions(game, 20, 50);
         }
         else if (state == EscapeMenuState.Graphics)
         {
-            GraphicsSet();
-            MakeSimpleOptions(20, 50);
+            GraphicsSet(game);
+            MakeSimpleOptions(game, 20, 50);
         }
         else if (state == EscapeMenuState.Other)
         {
-            OtherSet();
-            MakeSimpleOptions(20, 50);
+            OtherSet(game);
+            MakeSimpleOptions(game, 20, 50);
         }
         else if (state == EscapeMenuState.Keys)
         {
-            KeysSet();
+            KeysSet(game);
             int fontsize = 12;
             int textheight = 20;
-            MakeSimpleOptions(fontsize, textheight);
+            MakeSimpleOptions(game, fontsize, textheight);
         }
     }
 
-    private void UseFullscreen()
+    private void UseFullscreen(IGame game)
     {
         if (game.options.Fullscreen)
         {
@@ -451,7 +449,7 @@ public class ModGuiEscapeMenu : ModBase
                 changedResolution = true;
             }
             platform.SetWindowState(WindowState.Fullscreen);
-            UseResolution();
+            UseResolution(game);
         }
         else
         {
@@ -460,7 +458,7 @@ public class ModGuiEscapeMenu : ModBase
         }
     }
 
-    private string VsyncString()
+    private string VsyncString(IGame game)
     {
         if (game.EnableLog == 0) { return "Vsync"; }
         else if (game.EnableLog == 1) { return "Unlimited"; }
@@ -468,7 +466,7 @@ public class ModGuiEscapeMenu : ModBase
         else return null; //throw new Exception();
     }
 
-    private string ResolutionString()
+    private string ResolutionString(IGame game)
     {
         DisplayResolutionCi res = platform.GetDisplayResolutions()[game.options.Resolution];
         return string.Format("{0}x{1}, {2}, {3} Hz",
@@ -478,7 +476,7 @@ public class ModGuiEscapeMenu : ModBase
             ((int)res.RefreshRate).ToString());
     }
 
-    private void ToggleResolution()
+    private void ToggleResolution(IGame game)
     {
         GameOption options = game.options;
         options.Resolution++;
@@ -502,7 +500,7 @@ public class ModGuiEscapeMenu : ModBase
             changedResolution = false;
         }
     }
-    public void UseResolution()
+    public void UseResolution(IGame game)
     {
         GameOption options = game.options;
         List<DisplayResolutionCi> resolutions = platform.GetDisplayResolutions();
@@ -534,12 +532,12 @@ public class ModGuiEscapeMenu : ModBase
     private readonly int fontsLength;
     private readonly int[] fontValues;
 
-    private string FontString()
+    private string FontString(IGame game)
     {
         return fonts[game.options.Font];
     }
 
-    private void ToggleFont()
+    private void ToggleFont(IGame game)
     {
         GameOption options = game.options;
         options.Font++;
@@ -563,7 +561,7 @@ public class ModGuiEscapeMenu : ModBase
         return platform.KeyName(key);
     }
 
-    private void MakeSimpleOptions(int fontsize, int textheight)
+    private void MakeSimpleOptions(IGame game, int fontsize, int textheight)
     {
         int starty = game.Ycenter(widgetsCount * textheight);
         for (int i = 0; i < widgetsCount; i++)
@@ -588,24 +586,24 @@ public class ModGuiEscapeMenu : ModBase
         }
     }
     private bool loaded;
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
     {
         if (!loaded)
         {
             loaded = true;
-            LoadOptions();
+            LoadOptions(game);
         }
         if (game.EscapeMenuRestart)
         {
             game.EscapeMenuRestart = false;
-            SetEscapeMenuState(EscapeMenuState.Main);
+            SetEscapeMenuState(game, EscapeMenuState.Main);
         }
         if (game.GuiState != GuiState.EscapeMenu)
         {
             return;
         }
-        SetEscapeMenuState(escapemenustate);
-        EscapeMenuMouse1();
+        SetEscapeMenuState(game, escapemenustate);
+        EscapeMenuMouse1(game);
         for (int i = 0; i < widgetsCount; i++)
         {
             Button w = widgets[i];
@@ -613,7 +611,7 @@ public class ModGuiEscapeMenu : ModBase
         }
     }
     private readonly Button[] widgets;
-    private KeyHelp[] keyhelps()
+    private KeyHelp[] keyhelps(IGame game)
     {
         int n = 1024;
         KeyHelp[] helps = new KeyHelp[n];
@@ -662,7 +660,7 @@ public class ModGuiEscapeMenu : ModBase
 
 
     private int keyselectid;
-    public override void OnKeyDown(KeyEventArgs args)
+    public override void OnKeyDown(IGame game, KeyEventArgs args)
     {
         int eKey = args.KeyChar;
         if (eKey == game.GetKey(Keys.Escape))
@@ -671,16 +669,16 @@ public class ModGuiEscapeMenu : ModBase
                 || escapemenustate == EscapeMenuState.Keys
                 || escapemenustate == EscapeMenuState.Other)
             {
-                SetEscapeMenuState(EscapeMenuState.Options);
+                SetEscapeMenuState(game, EscapeMenuState.Options);
             }
             else if (escapemenustate == EscapeMenuState.Options)
             {
-                SaveOptions();
-                SetEscapeMenuState(EscapeMenuState.Main);
+                SaveOptions(game);
+                SetEscapeMenuState(game, EscapeMenuState.Main);
             }
             else
             {
-                SetEscapeMenuState(EscapeMenuState.Main);
+                SetEscapeMenuState(game, EscapeMenuState.Main);
                 game.GuiStateBackToGame();
             }
             args.Handled=true;
@@ -689,7 +687,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             if (keyselectid != -1)
             {
-                game.options.Keys[keyhelps()[keyselectid].DefaultKey] = eKey;
+                game.options.Keys[keyhelps(game)[keyselectid].DefaultKey] = eKey;
                 keyselectid = -1;
                 args.Handled=true;
             }
@@ -700,18 +698,18 @@ public class ModGuiEscapeMenu : ModBase
             {
                 platform.SetWindowState(WindowState.Normal);
                 RestoreResolution();
-                SaveOptions();
+                SaveOptions(game);
             }
             else
             {
                 platform.SetWindowState(WindowState.Fullscreen);
-                UseResolution();
-                SaveOptions();
+                UseResolution(game);
+                SaveOptions(game);
             }
             args.Handled=true;
         }
     }
-    public void LoadOptions()
+    public void LoadOptions(IGame game)
     {
         GameOption o = LoadOptions_();
         if (o == null)
@@ -735,9 +733,9 @@ public class ModGuiEscapeMenu : ModBase
         game.TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
         game.TerrainChunkTesselator.option_DarkenBlockSides = options.EnableBlockShadow;
         game.EnableLog = options.Framerate;
-        UseFullscreen();
+        UseFullscreen(game);
         game.UseVsync();
-        UseResolution();
+        UseResolution(game);
     }
 
     private GameOption LoadOptions_()
@@ -772,7 +770,7 @@ public class ModGuiEscapeMenu : ModBase
         return options;
     }
 
-    public void SaveOptions()
+    public void SaveOptions(IGame game)
     {
         GameOption options = game.options;
 

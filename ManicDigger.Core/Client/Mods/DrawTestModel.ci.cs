@@ -2,26 +2,24 @@
 
 public class ModDrawTestModel : ModBase
 {
-    private readonly IGame game;
     private readonly IOpenGlService platformOpenGl;
 
-    public ModDrawTestModel(IGame game, IOpenGlService platformOpenGl)
+    public ModDrawTestModel(IOpenGlService platformOpenGl)
     {
-        this.game = game;
         this.platformOpenGl = platformOpenGl;
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
         if (game.GuiState == GuiState.MapLoading)
         {
             return;
         }
 
-        DrawTestModel(deltaTime);
+        DrawTestModel(game, deltaTime);
     }
 
-    private void DrawTestModel(float deltaTime)
+    private void DrawTestModel(IGame game, float deltaTime)
     {
         if (!game.EnableDrawTestCharacter)
         {
@@ -44,7 +42,7 @@ public class ModDrawTestModel : ModBase
     }
     private AnimatedModelRenderer testmodel;
 
-    public override bool OnClientCommand(ClientCommandArgs args)
+    public override bool OnClientCommand(IGame game, ClientCommandArgs args)
     {
         if (args.command == "testmodel")
         {

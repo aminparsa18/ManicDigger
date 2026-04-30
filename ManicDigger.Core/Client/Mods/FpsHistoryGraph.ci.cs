@@ -10,7 +10,6 @@ public class ModFpsHistoryGraph : ModBase
     private const int GraphPosX = 25;
     private const int PerLine = 2;
 
-    private readonly IGame _game;
     private readonly IGameService _platform;
 
     private readonly float[] dtHistory = new float[MaxCount];
@@ -23,9 +22,8 @@ public class ModFpsHistoryGraph : ModBase
     private bool drawFpsText;
     private bool drawFpsGraph;
 
-    public ModFpsHistoryGraph(IGame game, IGameService platform)
+    public ModFpsHistoryGraph(IGameService platform)
     {
-        _game = game;
         _platform = platform;
 
         for (int i = 0; i < MaxCount; i++)
@@ -33,15 +31,15 @@ public class ModFpsHistoryGraph : ModBase
     }
     
     /// <inheritdoc/>
-    public override void OnNewFrame(float dt)
+    public override void OnNewFrame(IGame game, float dt)
     {
         UpdateGraph(dt);
-        UpdateTitleFps(dt);
-        Draw();
+        UpdateTitleFps(game, dt);
+        Draw(game);
     }
 
     /// <inheritdoc/>
-    public override void OnKeyDown(KeyEventArgs args)
+    public override void OnKeyDown(IGame game, KeyEventArgs args)
     {
         if (args.KeyChar == (int)Keys.F7)
         {
@@ -51,7 +49,7 @@ public class ModFpsHistoryGraph : ModBase
     }
 
     /// <inheritdoc/>
-    public override bool OnClientCommand(ClientCommandArgs args)
+    public override bool OnClientCommand(IGame game, ClientCommandArgs args)
     {
         if (args.command != "fps") return false;
 
@@ -76,7 +74,7 @@ public class ModFpsHistoryGraph : ModBase
     }
 
     /// <summary>Updates the FPS counter and performance info string once per second.</summary>
-    private void UpdateTitleFps(float dt)
+    private void UpdateTitleFps(IGame _game, float dt)
     {
         fpsCount++;
         longestFrameDt = Math.Max(longestFrameDt, dt);
@@ -109,17 +107,17 @@ public class ModFpsHistoryGraph : ModBase
         fpsText = sb.ToString();
     }
 
-    private void Draw()
+    private void Draw(IGame _game)
     {
         if (!drawFpsGraph && !drawFpsText) return;
 
         _game.OrthoMode(_platform.CanvasWidth, _platform.CanvasHeight);
-        if (drawFpsGraph) DrawGraph();
+        if (drawFpsGraph) DrawGraph(_game);
         if (drawFpsText) _game.Draw2dText(fpsText, new Font("Arial", ChatFontSize), 20, 20, null, false);
         _game.PerspectiveMode();
     }
 
-    private void DrawGraph()
+    private void DrawGraph(IGame _game)
     {
         int posx = GraphPosX;
         int posy = _platform.CanvasHeight - GraphHeight - 20;
@@ -146,14 +144,14 @@ public class ModFpsHistoryGraph : ModBase
 
         // Reference FPS lines
         int lineColor = ColorUtils.ColorFromArgb(255, 255, 255, 255);
-        DrawFpsLine(posy, 30, lineColor);
-        DrawFpsLine(posy, 60, lineColor);
-        DrawFpsLine(posy, 75, lineColor);
-        DrawFpsLine(posy, 150, lineColor);
+        DrawFpsLine(_game, posy, 30, lineColor);
+        DrawFpsLine(_game, posy, 60, lineColor);
+        DrawFpsLine(_game, posy, 75, lineColor);
+        DrawFpsLine(_game, posy, 150, lineColor);
     }
 
     /// <summary>Draws a horizontal reference line at the given target FPS level.</summary>
-    private void DrawFpsLine(int posy, int fps, int color)
+    private void DrawFpsLine(IGame _game, int posy, int fps, int color)
     {
         int whiteTexture = _game.GetOrCreateWhiteTexture();
         float y = posy - GraphHeight * (60f / fps);

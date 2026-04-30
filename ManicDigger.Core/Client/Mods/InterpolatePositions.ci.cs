@@ -6,19 +6,17 @@ public class ModInterpolatePositions : ModBase
     private const int ExtrapolationTimeMs = 300;
     private const int MinDelayMs = 100;
 
-    private readonly IGame game;
 
-    public ModInterpolatePositions(IGame game)
+    public ModInterpolatePositions()
     {
-        this.game = game;
     }
 
-    public override void OnNewFrame(float dt)
+    public override void OnNewFrame(IGame game, float dt)
     {
-        InterpolatePositions(dt);
+        InterpolatePositions(game);
     }
 
-    internal void InterpolatePositions(float dt)
+    internal void InterpolatePositions(IGame game)
     {
         for (int i = 0; i < game.Entities.Count; i++)
         {
@@ -33,7 +31,7 @@ public class ModInterpolatePositions : ModBase
             e.playerDrawInfo.interpolation.DelayMilliseconds =
                 Math.Max(MinDelayMs, game.ServerInfo.ServerPing.RoundtripMilliseconds);
 
-            UpdateInterpolation(i, e);
+            UpdateInterpolation(game, i, e);
         }
     }
 
@@ -53,7 +51,7 @@ public class ModInterpolatePositions : ModBase
         };
     }
 
-    private void UpdateInterpolation(int entityId, Entity e)
+    private void UpdateInterpolation(IGame game, int entityId, Entity e)
     {
         PlayerDrawInfo info = e.playerDrawInfo;
         EntityPosition_ net = e.networkPosition;

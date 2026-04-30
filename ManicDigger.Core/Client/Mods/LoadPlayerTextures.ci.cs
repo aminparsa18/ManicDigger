@@ -20,17 +20,8 @@ public class ModLoadPlayerTextures : ModBase
     /// <summary>Async HTTP response for the skin-server URL list.</summary>
     internal HttpResponse _skinServerResponse;
 
-    private readonly IGame game;
-    private readonly IGameService platform;
-
-    public ModLoadPlayerTextures(IGame game, IGameService platform)
-    {
-        this.game = game;
-        this.platform = platform;
-    }
-
     /// <inheritdoc/>
-    public override void OnNewFrame(float args)
+    public override void OnNewFrame(IGame game, float args)
     {
         if (game.GuiState == GuiState.MapLoading) { return; }
 
@@ -39,7 +30,7 @@ public class ModLoadPlayerTextures : ModBase
             _started = true;
         }
 
-        LoadPlayerTextures();
+        LoadPlayerTextures(game);
     }
 
     /// <summary>
@@ -52,7 +43,7 @@ public class ModLoadPlayerTextures : ModBase
     ///   <item><description>Fallback to <c>mineplayer.png</c>.</description></item>
     /// </list>
     /// </summary>
-    internal void LoadPlayerTextures()
+    internal void LoadPlayerTextures(IGame game)
     {
         if (!game.IsSinglePlayer)
         {
@@ -78,8 +69,8 @@ public class ModLoadPlayerTextures : ModBase
             if (e?.drawModel == null) { continue; }
             if (e.drawModel.CurrentTexture != -1) { continue; }
 
-            if (TryLoadDownloadedSkin(e)) { continue; }
-            if (TryLoadFileSkin(e)) { continue; }
+            if (TryLoadDownloadedSkin(game, e)) { continue; }
+            if (TryLoadFileSkin(game, e)) { continue; }
         }
     }
 
@@ -94,7 +85,7 @@ public class ModLoadPlayerTextures : ModBase
     /// <see langword="false"/> when this path is not applicable and the caller
     /// should try the file-skin fallback.
     /// </returns>
-    private bool TryLoadDownloadedSkin(Entity e)
+    private bool TryLoadDownloadedSkin(IGame game, Entity e)
     {
         if (game.IsSinglePlayer
          || !e.drawModel.DownloadSkin
@@ -134,7 +125,7 @@ public class ModLoadPlayerTextures : ModBase
     /// falls back to <c>mineplayer.png</c> when no path is set.
     /// Always sets <c>CurrentTexture</c> and returns <see langword="true"/>.
     /// </summary>
-    private bool TryLoadFileSkin(Entity e)
+    private bool TryLoadFileSkin(IGame game, Entity e)
     {
         if (e.drawModel.Texture_ == null)
         {

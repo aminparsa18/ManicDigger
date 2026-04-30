@@ -2,9 +2,8 @@
 
 public class ModGuiChat : ModBase
 {
-    public ModGuiChat(IGame game, IGameService platform)
+    public ModGuiChat(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
         ChatFontSize = 11;
         currentFontSize = ChatFontSize;
@@ -14,7 +13,6 @@ public class ModGuiChat : ModBase
         chatlines2 = new Chatline[1024];
     }
 
-    private readonly IGame game;
     private readonly IGameService platform;
 
     internal float ChatFontSize;
@@ -24,20 +22,20 @@ public class ModGuiChat : ModBase
     private float currentFontSize = 11;
     private FontStyle currentFontStyle = FontStyle.Regular;
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
     {
         if (game.GuiState == GuiState.MapLoading)
         {
             return;
         }
-        DrawChatLines(game.GuiTyping == TypingState.Typing);
+        DrawChatLines(game, game.GuiTyping == TypingState.Typing);
         if (game.GuiTyping == TypingState.Typing)
         {
-            DrawTypingBuffer();
+            DrawTypingBuffer(game);
         }
     }
 
-    public override void OnMouseDown(MouseEventArgs args)
+    public override void OnMouseDown(IGame game, MouseEventArgs args)
     {
         for (int i = 0; i < chatlines2Count; i++)
         {
@@ -66,7 +64,7 @@ public class ModGuiChat : ModBase
 
     private readonly Chatline[] chatlines2;
     private int chatlines2Count;
-    public void DrawChatLines(bool all)
+    public void DrawChatLines(IGame game, bool all)
     {
         chatlines2Count = 0;
         int timeNow = platform.TimeMillisecondsFromStart;
@@ -130,7 +128,7 @@ public class ModGuiChat : ModBase
         }
     }
     private Font font;
-    public void DrawTypingBuffer()
+    public void DrawTypingBuffer(IGame game)
     {
         currentFontSize = ChatFontSize * game.Scale();
         font = new Font("Arial", currentFontSize, currentFontStyle);
@@ -149,7 +147,7 @@ public class ModGuiChat : ModBase
         }
     }
 
-    public override void OnKeyDown(KeyEventArgs args)
+    public override void OnKeyDown(IGame game, KeyEventArgs args)
     {
         if (game.GuiState != GuiState.Normal)
         {
@@ -254,7 +252,7 @@ public class ModGuiChat : ModBase
             if (eKey == game.GetKey(Keys.Tab) && game.GuiTypingBuffer.Trim() != "")
             {
                 string[] parts = game.GuiTypingBuffer.Split(" ");
-                string completed = DoAutocomplete(parts[parts.Length - 1]);
+                string completed = DoAutocomplete(game, parts[parts.Length - 1]);
                 if (completed == "")
                 {
                     //No completion available. Abort.
@@ -280,7 +278,7 @@ public class ModGuiChat : ModBase
         }
     }
 
-    public override void OnKeyPress(KeyPressEventArgs args)
+    public override void OnKeyPress(IGame game, KeyPressEventArgs args)
     {
         if (game.GuiState != GuiState.Normal)
         {
@@ -316,7 +314,7 @@ public class ModGuiChat : ModBase
         }
     }
 
-    public string DoAutocomplete(string text)
+    public string DoAutocomplete(IGame game, string text)
     {
         if (!string.IsNullOrEmpty(text))
         {

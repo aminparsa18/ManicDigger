@@ -11,7 +11,7 @@ public class ModUnloadRendererChunks : ModBase
     private readonly IGame _game;
 
     private int _pendingUnloadIndex = -1;
-    private readonly Action _unloadAction;
+    private readonly Action<IGame> _unloadAction;
 
     /// <summary>Edge length of one chunk in blocks.</summary>
     private int _chunkSize;
@@ -62,7 +62,7 @@ public class ModUnloadRendererChunks : ModBase
     /// Passing <c>-1</c> is a no-op.
     /// </param>
     /// <returns>An <see cref="Action"/> safe to enqueue via <see cref="Game.QueueActionCommit"/>.</returns>
-    private void ExecuteUnload()
+    private void ExecuteUnload(IGame game)
     {
         int chunkFlatIndex = _pendingUnloadIndex;
         if (chunkFlatIndex == -1) return;
@@ -90,7 +90,7 @@ public class ModUnloadRendererChunks : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnReadOnlyBackgroundThread(float dt)
+    public override void OnReadOnlyBackgroundThread(IGame game, float dt)
     {
         RefreshChunkGridDimensions();
 
@@ -175,9 +175,9 @@ public class ModUnloadRendererChunks : ModBase
         }
     }
 
-    private Action CreatePhantomUnloadCommit(int flatIndex)
+    private Action<IGame> CreatePhantomUnloadCommit(int flatIndex)
     {
-        return () =>
+        return (game) =>
         {
             Chunk chunk = _game.VoxelMap.Chunks[flatIndex];
             if (chunk == null || chunk.rendered != null) return;

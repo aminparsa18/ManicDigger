@@ -171,7 +171,7 @@
         for (int i = 0; i < ClientMods.Count; i++)
         {
             ClientCommandArgs args = new() { arguments = arguments, command = cmd };
-            ClientMods[i].OnClientCommand(args);
+            ClientMods[i].OnClientCommand(this, args);
         }
     }
 

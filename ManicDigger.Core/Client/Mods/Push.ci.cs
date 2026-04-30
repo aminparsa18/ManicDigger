@@ -6,14 +6,12 @@
 /// </summary>
 public class ModPush : ModBase
 {
-    private readonly IGame game;
 
-    public ModPush(IGame game)
+    public ModPush()
     {
-        this.game = game;
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnNewFrameFixed(IGame game, float args)
     {
         game.PushX = 0;
         game.PushY = 0;

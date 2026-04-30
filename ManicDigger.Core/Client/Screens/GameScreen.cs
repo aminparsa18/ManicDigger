@@ -7,11 +7,11 @@ using Serilog;
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
 public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService platformOpenGl,
-    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork) 
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods) 
     : ScreenBase(navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
-    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences, gameExit);
+    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences, gameExit, mods);
 
     private ConnectionData connectData;
     private bool singleplayer;
@@ -204,12 +204,12 @@ public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService p
     private bool IsFocused => GameService.Focused();
 
     public override void OnKeyDown(KeyEventArgs e) => game.KeyDown(e);
-    public override void OnKeyUp(KeyEventArgs e) => game.KeyUp(e);
-    public override void OnKeyPress(KeyPressEventArgs e) => game.KeyPress(e);
-    public override void OnMouseWheel(MouseWheelEventArgs e) => game.MouseWheelChanged(e);
+    public override void OnKeyUp(KeyEventArgs e) => game.KeyUp(game, e);
+    public override void OnKeyPress(KeyPressEventArgs e) => game.KeyPress(game, e);
+    public override void OnMouseWheel(MouseWheelEventArgs e) => game.MouseWheelChanged(game, e);
     public override void OnTouchStart(TouchEventArgs e) => game.OnTouchStart(e);
     public override void OnTouchMove(TouchEventArgs e) => game.OnTouchMove(e);
-    public override void OnTouchEnd(TouchEventArgs e) => game.OnTouchEnd(e);
+    public override void OnTouchEnd(TouchEventArgs e) => game.OnTouchEnd(game, e);
     public override void OnBackPressed() => Game.OnBackPressed();
 
     public override void OnMouseDown(MouseEventArgs e)

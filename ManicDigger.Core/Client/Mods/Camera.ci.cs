@@ -8,19 +8,16 @@ public class ModCamera : ModBase
     private static readonly Vector3 Up = Vector3.UnitY;
     private Vector3 overheadCameraEye;
 
-    private readonly IGame game;
-
-    public ModCamera(IGame game)
+    public ModCamera()
     {
-        this.game = game;
     }
 
-    public override void OnBeforeNewFrameDraw3d(float deltaTime)
+    public override void OnBeforeNewFrameDraw3d(IGame game, float deltaTime)
     {
-        game.Camera = game.OverheadCamera ? OverheadCamera() : FppCamera();
+        game.Camera = game.OverheadCamera ? OverheadCamera(game) : FppCamera(game);
     }
 
-    private Matrix4 OverheadCamera()
+    private Matrix4 OverheadCamera(IGame game)
     {
         game.OverheadCameraK.GetPosition(ref overheadCameraEye);
         Vector3 eye = overheadCameraEye;
@@ -29,12 +26,12 @@ public class ModCamera : ModBase
             game.OverheadCameraK.Center.Y + game.GetCharacterEyesHeight(),
             game.OverheadCameraK.Center.Z);
 
-        game.OverHeadCameraDistance = LimitThirdPersonCameraToWalls(ref eye, ref target, game.OverHeadCameraDistance);
-        SetCameraEye(eye);
+        game.OverHeadCameraDistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, game.OverHeadCameraDistance);
+        SetCameraEye(game, eye);
         return Matrix4.LookAt(eye, target, Up);
     }
 
-    private Matrix4 FppCamera()
+    private Matrix4 FppCamera(IGame game)
     {
         Vector3 forward = new();
         VectorUtils.ToVectorInFixedSystem(0, 0, 1, game.Player.position.rotx, game.Player.position.roty, ref forward);
@@ -56,10 +53,10 @@ public class ModCamera : ModBase
                                  eyeY + forward.Y * -game.TppCameraDistance,
                                  eyeZ + forward.Z * -game.TppCameraDistance);
             target = new Vector3(eyeX, eyeY, eyeZ);
-            game.TppCameraDistance = LimitThirdPersonCameraToWalls(ref eye, ref target, game.TppCameraDistance);
+            game.TppCameraDistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, game.TppCameraDistance);
         }
 
-        SetCameraEye(eye);
+        SetCameraEye(game, eye);
         return Matrix4.LookAt(eye, target, Up);
     }
 
@@ -67,7 +64,7 @@ public class ModCamera : ModBase
     /// Casts a ray from the camera target toward the eye and pulls the camera
     /// in if terrain blocks the view, with a minimum distance of 0.3 units.
     /// </summary>
-    private float LimitThirdPersonCameraToWalls(ref Vector3 eye, ref Vector3 target, float distance)
+    private float LimitThirdPersonCameraToWalls(IGame game, ref Vector3 eye, ref Vector3 target, float distance)
     {
         const float MinDistance = 0.3f;
 
@@ -95,7 +92,7 @@ public class ModCamera : ModBase
     }
 
     /// <summary>Writes the eye position back to the game for other systems to use.</summary>
-    private void SetCameraEye(Vector3 eye)
+    private void SetCameraEye(IGame game, Vector3 eye)
     {
         game.CameraEye = eye;
     }

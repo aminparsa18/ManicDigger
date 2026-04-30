@@ -67,7 +67,7 @@ public partial class Game
         OpenGlService.BindTexture2d(TerrainTexture);
 
         for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnBeforeNewFrameDraw3d(deltaTime);
+            ClientMods[i]?.OnBeforeNewFrameDraw3d(this, deltaTime);
 
         GLMatrixModeModelView();
         GLLoadMatrix(Camera);
@@ -76,7 +76,7 @@ public partial class Game
 
         OpenGlService.GlEnableDepthTest();
         for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnNewFrameDraw3d(deltaTime);
+            ClientMods[i]?.OnNewFrameDraw3d(this, deltaTime);
 
         RunDraw2dAndEndFrame(deltaTime);
     }
@@ -91,7 +91,7 @@ public partial class Game
     internal void FrameTick(float dt)
     {
         for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i].OnNewFrameFixed(dt);
+            ClientMods[i].OnNewFrameFixed(this, dt);
 
         for (int i = 0; i < Entities.Count; i++)
         {
@@ -107,7 +107,7 @@ public partial class Game
 
         float orientationX = MathF.Sin(Player.position.roty);
         float orientationZ = -MathF.Cos(Player.position.roty);
-        AudioService.AudioUpdateListener(
+        audioService.AudioUpdateListener(
             EyesPosX, EyesPosY, EyesPosZ,
             orientationX, 0, orientationZ);
 
@@ -134,19 +134,18 @@ public partial class Game
         // Cap at 32 actions per frame so a sudden flood can't stall rendering.
         // Unprocessed actions stay in the queue and drain over subsequent frames.
         int maxCommitsPerFrame = 32;
-        while (maxCommitsPerFrame-- > 0 && commitActions.TryDequeue(out Action action))
-            action();
+        while (maxCommitsPerFrame-- > 0 && commitActions.TryDequeue(out Action<IGame> action))
+            action(this);
 
         SetAmbientLight(ColorUtils.ColorFromArgb(255, 255, 255, 255));
         Draw2d(dt);
 
         for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnNewFrame(dt);
+            ClientMods[i]?.OnNewFrame(this, dt);
 
         MouseLeftClick = false;
         mouserightclick = false;
         mouseleftdeclick = false;
-        mouserightdeclick = false;
 
         TryInitialiseConnection();
     }
@@ -161,8 +160,8 @@ public partial class Game
         if (startedconnecting) return;
 
         if (!IsSinglePlayer
-         || SinglePlayerService.SinglePlayerServerLoaded
-         || !SinglePlayerService.SinglePlayerServerAvailable)
+         || singlePlayerService.SinglePlayerServerLoaded
+         || !singlePlayerService.SinglePlayerServerAvailable)
         {
             startedconnecting = true;
             Connect();

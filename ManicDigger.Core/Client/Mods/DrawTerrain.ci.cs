@@ -1,6 +1,7 @@
 ﻿using ManicDigger;
 using OpenTK.Mathematics;
 using System.Buffers;
+using System.Xml.Linq;
 
 /// <summary>
 /// Client-side mod responsible for tessellating, lighting, and drawing the voxel terrain.
@@ -29,7 +30,6 @@ public class ModDrawTerrain : ModBase
     /// <summary>Volume of the extended chunk buffer (<see cref="BufferedChunkEdge"/>³).</summary>
     private const int BufferedChunkVolume = BufferedChunkEdge * BufferedChunkEdge * BufferedChunkEdge;
 
-    private readonly IGame _game;
     private readonly IGameService _platform;
 
     private readonly LightBase _lightBase;
@@ -59,9 +59,8 @@ public class ModDrawTerrain : ModBase
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
 
-    public ModDrawTerrain(IGame game, IGameService platform)
+    public ModDrawTerrain(IGameService platform)
     {
-        _game = game;
         _platform = platform;
         _currentChunk = new int[BufferedChunkVolume];
         _currentChunkShadows = new byte[BufferedChunkVolume];
@@ -75,33 +74,33 @@ public class ModDrawTerrain : ModBase
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    public int TrianglesCount() => _game.Batcher.TotalTriangleCount();
+    public int TrianglesCount(IGame _game) => _game.Batcher.TotalTriangleCount();
     internal int InvertChunk(int num) => (int)(num * invertedChunkSize);
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
-    public override void OnNewFrameDraw3d(float _)
+    public override void OnNewFrameDraw3d(IGame _game, float _)
     {
         if (_game.ShouldRedrawAllBlocks)
         {
             _game.ShouldRedrawAllBlocks = false;
-            RedrawAllBlocks();
+            RedrawAllBlocks(_game);
         }
-        DrawTerrain();
-        UpdatePerformanceInfo();
+        DrawTerrain(_game);
+        UpdatePerformanceInfo(_game);
     }
 
-    public override void OnReadOnlyBackgroundThread(float dt)
+    public override void OnReadOnlyBackgroundThread(IGame _game, float dt)
     {
-        UpdateTerrain();
+        UpdateTerrain(_game);
         _game.QueueActionCommit(MainThreadCommit);
     }
 
-    public override void Dispose() => Clear();
+    //public override void Dispose() => Clear();
 
     // ── Initialisation ────────────────────────────────────────────────────────
 
-    public void StartTerrain()
+    public void StartTerrain(IGame _game)
     {
         _sqrt3Half = MathF.Sqrt(3) * 0.5f;
         chunksize = Game.chunksize;
@@ -111,10 +110,10 @@ public class ModDrawTerrain : ModBase
         _terrainStarted = true;
     }
 
-    public void RedrawAllBlocks()
+    public void RedrawAllBlocks(IGame _game)
     {
         if (!_terrainStarted)
-            StartTerrain();
+            StartTerrain(_game);
 
         int chunksLength = InvertChunk(_game.MapSizeX)
                          * InvertChunk(_game.MapSizeY)
@@ -132,17 +131,17 @@ public class ModDrawTerrain : ModBase
 
     // ── Background thread ─────────────────────────────────────────────────────
 
-    public void UpdateTerrain()
+    public void UpdateTerrain(IGame _game)
     {
         if (!_terrainStarted) return;
-        RedrawChunksAroundLastPlacedBlock();
+        RedrawChunksAroundLastPlacedBlock(_game);
 
-        var nearest = NearestDirty();
+        var nearest = NearestDirty(_game);
         if (nearest.HasValue)
-            RedrawChunk(nearest.Value.x, nearest.Value.y, nearest.Value.z);
+            RedrawChunk(_game, nearest.Value.x, nearest.Value.y, nearest.Value.z);
     }
 
-    private void RedrawChunksAroundLastPlacedBlock()
+    private void RedrawChunksAroundLastPlacedBlock(IGame _game)
     {
         if (_game.LastplacedblockX == NoChunk
          && _game.LastplacedblockY == NoChunk
@@ -193,7 +192,7 @@ public class ModDrawTerrain : ModBase
     /// O(V³) over the view volume — same scope as the original, avoids iterating
     /// the full pre-allocated map array which is mostly null slots.
     /// </summary>
-    private (int x, int y, int z)? NearestDirty()
+    private (int x, int y, int z)? NearestDirty(IGame _game)
     {
         if (_game.VoxelMap?.Chunks == null) return null;
 
@@ -206,12 +205,12 @@ public class ModDrawTerrain : ModBase
         int startX = Math.Max(px - half, 0);
         int startY = Math.Max(py - half, 0);
         int startZ = Math.Max(pz - half, 0);
-        int endX = Math.Min(px + half, MapsizeXChunks() - 1);
-        int endY = Math.Min(py + half, MapsizeYChunks() - 1);
-        int endZ = Math.Min(pz + half, MapsizeZChunks() - 1);
+        int endX = Math.Min(px + half, MapsizeXChunks(_game) - 1);
+        int endY = Math.Min(py + half, MapsizeYChunks(_game) - 1);
+        int endZ = Math.Min(pz + half, MapsizeZChunks(_game) - 1);
 
-        int mxc = MapsizeXChunks();
-        int myc = MapsizeYChunks();
+        int mxc = MapsizeXChunks(_game);
+        int myc = MapsizeYChunks(_game);
 
         int bestIdx = -1;
         int bestDist = int.MaxValue;
@@ -243,18 +242,18 @@ public class ModDrawTerrain : ModBase
 
     // ── Main-thread commit ────────────────────────────────────────────────────
 
-    public void MainThreadCommit()
+    public void MainThreadCommit(IGame _game)
     {
         for (int i = 0; i < _redrawQueueCount; i++)
         {
-            DoRedraw(_redrawQueue[i]);
+            DoRedraw(_game, _redrawQueue[i]);
             if (_redrawQueue[i].DataRented)
                 ArrayPool<VerticesIndicesToLoad>.Shared.Return(_redrawQueue[i].Data);
         }
         _redrawQueueCount = 0;
     }
 
-    private void DoRedraw(TerrainRendererRedraw r)
+    private void DoRedraw(IGame _game, TerrainRendererRedraw r)
     {
         _batcherIdsCount = 0;
         RenderedChunk rendered = r.Chunk.rendered;
@@ -295,16 +294,16 @@ public class ModDrawTerrain : ModBase
 
     // ── Tessellation ──────────────────────────────────────────────────────────
 
-    private void RedrawChunk(int x, int y, int z)
+    private void RedrawChunk(IGame _game, int x, int y, int z)
     {
         Chunk c = _game.VoxelMap.Chunks[
-            VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(), MapsizeYChunks())];
+            VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(_game), MapsizeYChunks(_game))];
         if (c == null) return;
 
         c.rendered ??= new RenderedChunk();
         _chunkUpdates++;
 
-        GetExtendedChunk(x, y, z);
+        GetExtendedChunk(_game, x, y, z);
 
         int meshCount = 0;
         VerticesIndicesToLoad[] meshData = null;
@@ -312,7 +311,7 @@ public class ModDrawTerrain : ModBase
 
         if (!IsUniformChunk(_currentChunk, BufferedChunkVolume))
         {
-            CalculateShadows(x, y, z);
+            CalculateShadows(_game, x, y, z);
             VerticesIndicesToLoad[] meshes = _game.TerrainChunkTesselator.MakeChunk(
                 x, y, z, _currentChunk, _currentChunkShadows,
                 _game.LightLevels, out meshCount);
@@ -335,7 +334,7 @@ public class ModDrawTerrain : ModBase
         _redrawQueue[_redrawQueueCount++] = new(c, meshData, meshCount, dataRented);
     }
 
-    private void GetExtendedChunk(int x, int y, int z)
+    private void GetExtendedChunk(IGame _game, int x, int y, int z)
     {
         _game.VoxelMap.GetMapPortion(
             _currentChunk,
@@ -355,14 +354,14 @@ public class ModDrawTerrain : ModBase
         return true;
     }
 
-    private void CalculateShadows(int cx, int cy, int cz)
+    private void CalculateShadows(IGame _game, int cx, int cy, int cz)
     {
         if (_blockTypeCacheDirty)
         {
             foreach (var (id, blockType) in _game.BlockTypes)
             {
                 _shadowLightRadius[id] = blockType.LightRadius;
-                _shadowIsTransparent[id] = IsTransparentForLight(id);
+                _shadowIsTransparent[id] = IsTransparentForLight(_game, id);
             }
             _blockTypeCacheDirty = false;
         }
@@ -409,7 +408,7 @@ public class ModDrawTerrain : ModBase
                       .CopyTo(_currentChunkShadows.AsSpan(0, BufferedChunkVolume));
     }
 
-    public bool IsTransparentForLight(int blockId)
+    public bool IsTransparentForLight(IGame _game, int blockId)
     {
         BlockType b = _game.BlockTypes[blockId];
         return b.DrawType != DrawType.Solid
@@ -418,7 +417,7 @@ public class ModDrawTerrain : ModBase
 
     // ── Drawing ───────────────────────────────────────────────────────────────
 
-    private void DrawTerrain()
+    private void DrawTerrain(IGame _game)
     {
         _game.Batcher.Draw(
             _game.LocalPositionX,
@@ -426,12 +425,12 @@ public class ModDrawTerrain : ModBase
             _game.LocalPositionZ);
     }
 
-    internal void Clear() => _game.Batcher.Clear();
+    internal void Clear(IGame _game) => _game.Batcher.Clear();
 
     // ── Performance info ──────────────────────────────────────────────────────
 
     /// <summary>Updates chunk-update and triangle-count statistics once per second.</summary>
-    internal void UpdatePerformanceInfo()
+    internal void UpdatePerformanceInfo(IGame _game)
     {
         const float MsToSeconds = 1f / 1000f;
         float elapsed = (_platform.TimeMillisecondsFromStart - _lastPerfUpdateMs) * MsToSeconds;
@@ -444,15 +443,15 @@ public class ModDrawTerrain : ModBase
         _game.PerformanceInfo["chunk updates"] = string.Format(
             _game.Language.ChunkUpdates(), updatesThisPeriod.ToString());
         _game.PerformanceInfo["triangles"] = string.Format(
-            _game.Language.Triangles(), TrianglesCount().ToString());
+            _game.Language.Triangles(), TrianglesCount(_game).ToString());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>View-distance-based side length of the active map area in blocks.</summary>
-    private int MapsizeXChunks() => _game.VoxelMap.Mapsizexchunks;
-    private int MapsizeYChunks() => _game.VoxelMap.Mapsizeychunks;
-    private int MapsizeZChunks() => _game.VoxelMap.Mapsizezchunks;
+    private int MapsizeXChunks(IGame _game) => _game.VoxelMap.Mapsizexchunks;
+    private int MapsizeYChunks(IGame _game) => _game.VoxelMap.Mapsizeychunks;
+    private int MapsizeZChunks(IGame _game) => _game.VoxelMap.Mapsizezchunks;
 
     private static VerticesIndicesToLoad CloneVerticesIndicesToLoad(VerticesIndicesToLoad source)
         => new()

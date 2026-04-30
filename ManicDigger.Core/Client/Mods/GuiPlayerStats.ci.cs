@@ -11,16 +11,14 @@ public class ModGuiPlayerStats : ModBase
     private static readonly int Red = ColorUtils.ColorFromArgb(255, 255, 0, 0);
     private static readonly int Blue = ColorUtils.ColorFromArgb(255, 0, 0, 255);
 
-    private readonly IGame game;
     private readonly IGameService platform;
 
-    public ModGuiPlayerStats(IGame game, IGameService platform)
+    public ModGuiPlayerStats(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
     {
         if (game.GuiState == GuiState.MapLoading || game.PlayerStats == null) return;
 
@@ -28,14 +26,14 @@ public class ModGuiPlayerStats : ModBase
         int healthX = platform.CanvasWidth / 2 - BarWidth - CenterOffset;
         int oxygenX = platform.CanvasWidth / 2 + CenterOffset;
 
-        DrawBar(healthX, barY, (float)game.PlayerStats.CurrentHealth / game.PlayerStats.MaxHealth, Red);
+        DrawBar(game, healthX, barY, (float)game.PlayerStats.CurrentHealth / game.PlayerStats.MaxHealth, Red);
 
         if (game.PlayerStats.CurrentOxygen < game.PlayerStats.MaxOxygen)
-            DrawBar(oxygenX, barY, (float)game.PlayerStats.CurrentOxygen / game.PlayerStats.MaxOxygen, Blue);
+            DrawBar(game, oxygenX, barY, (float)game.PlayerStats.CurrentOxygen / game.PlayerStats.MaxOxygen, Blue);
     }
 
     /// <summary>Draws a background + filled progress bar at the given position.</summary>
-    private void DrawBar(int x, int y, float progress, int color)
+    private void DrawBar(IGame game, int x, int y, float progress, int color)
     {
         int bgTex = game.GetTexture("ui_bar_background.png");
         int barTex = game.GetTexture("ui_bar_inner.png");

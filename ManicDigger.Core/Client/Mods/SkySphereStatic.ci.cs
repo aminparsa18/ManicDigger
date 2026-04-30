@@ -10,28 +10,26 @@ public class ModSkySphereStatic : ModBase
     private int skySphereTexture = -1;
     private int skySphereNightTexture = -1;
     private GeometryModel skyModel;
-    private readonly IGame game;
     private readonly IOpenGlService platform;
 
-    public ModSkySphereStatic(IGame game, IOpenGlService platform)
+    public ModSkySphereStatic(IOpenGlService platform)
     {
-        this.game = game;
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
         platform.GlDisableFog();
-        DrawSkySphere();
+        DrawSkySphere(game);
         game.SetFog();
     }
 
-    internal void DrawSkySphere()
+    internal void DrawSkySphere(IGame game)
     {
         if (skySphereTexture == -1)
         {
-            skySphereTexture = LoadTexture("skysphere.png");
-            skySphereNightTexture = LoadTexture("skyspherenight.png");
+            skySphereTexture = LoadTexture(game, "skysphere.png");
+            skySphereNightTexture = LoadTexture(game, "skyspherenight.png");
         }
 
         // Simple shadows always use the day texture
@@ -39,10 +37,10 @@ public class ModSkySphereStatic : ModBase
             ? skySphereTexture
             : skySphereNightTexture;
 
-        Draw(game.CurrentFov());
+        Draw(game, game.CurrentFov());
     }
 
-    public void Draw(float fov)
+    public void Draw(IGame game, float fov)
     {
         if (SkyTexture == -1)
             throw new InvalidOperationException($"error in {nameof(ModSkySphereStatic)} - {nameof(DrawSkySphere)}");
@@ -59,7 +57,7 @@ public class ModSkySphereStatic : ModBase
         game.Set3dProjection(game.Zfar(), fov);
     }
 
-    private int LoadTexture(string filename)
+    private int LoadTexture(IGame game, string filename)
     {
         Bitmap bmp = PixelBuffer.BitmapFromPng(game.GetAssetFile(filename), game.GetAssetFileLength(filename));
         int texture = platform.LoadTextureFromBitmap(bmp);

@@ -9,14 +9,12 @@ public class ModDrawPlayerNames : ModBase
     private const float NameTagScale = 0.02f;
     private const float NameTagDrawDistance = 20f;
 
-    private readonly IGame game;
 
-    public ModDrawPlayerNames(IGame game)
+    public ModDrawPlayerNames()
     {
-        this.game = game;
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
         for (int i = 0; i < game.Entities.Count; i++)
         {
@@ -35,15 +33,15 @@ public class ModDrawPlayerNames : ModBase
             bool altHeld = game.KeyboardState[Game.KeyAltLeft] || game.KeyboardState[Game.KeyAltRight];
             if (!nearEnough && !altHeld) continue;
 
-            DrawNameTag(p, posX, posY, posZ);
+            DrawNameTag(game, p, posX, posY, posZ);
         }
     }
 
-    private void DrawNameTag(DrawName p, float posX, float posY, float posZ)
+    private void DrawNameTag(IGame game, DrawName p, float posX, float posY, float posZ)
     {
         game.GLPushMatrix();
         game.GLTranslate(posX, posY, posZ);
-        new ModDrawSprites(game).Billboard();
+        VectorUtils.Billboard(game);
         game.GLScale(NameTagScale, NameTagScale, NameTagScale);
 
         if (p.DrawHealth)

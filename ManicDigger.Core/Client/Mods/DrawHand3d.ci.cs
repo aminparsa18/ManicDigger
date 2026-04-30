@@ -27,7 +27,6 @@ public class ModDrawHand3d : ModBase
     private const float BobRange = 7f / 100f;
 
     /// <summary>Reference to the current game instance, set each frame in <see cref="OnNewFrameDraw3d"/>.</summary>
-    private readonly IGame game;
     private readonly IOpenGlService platform;
 
     /// <summary>Torch block renderer used to draw held torches and the empty-hand model.</summary>
@@ -121,9 +120,8 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Initialises all animation parameters and creates the torch renderer dependency.
     /// </summary>
-    public ModDrawHand3d(IGame game, IOpenGlService platform)
+    public ModDrawHand3d(IOpenGlService platform)
     {
-        this.game = game;
         this.platform = platform;
         _attack = -1;
         _attackOffset = 0;
@@ -143,13 +141,13 @@ public class ModDrawHand3d : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
 
         if (!game.EnableTppView && game.ENABLE_DRAW2D)
         {
             // A 2-D hand image overrides the 3-D model entirely.
-            string img = HandImage2d();
+            string img = HandImage2d(game);
             if (img != null)
             {
                 return;
@@ -167,12 +165,12 @@ public class ModDrawHand3d : ModBase
                 game.handSetAttackDestroy = false;
             }
 
-            DrawWeapon(deltaTime);
+            DrawWeapon(game, deltaTime);
         }
     }
 
     /// <summary>Returns the appropriate hand image path for the currently held item, or null if none.</summary>
-    private string HandImage2d()
+    private string HandImage2d(IGame game)
     {
         InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         if (item == null) return null;
@@ -183,7 +181,10 @@ public class ModDrawHand3d : ModBase
     }
 
     /// <summary>Returns the OpenGL texture ID of the terrain texture atlas.</summary>
-    public int TerrainTexture => game.TerrainTexture;
+    public int GetTerrainTexture(IGame game)
+    {
+        return game.TerrainTexture;
+    }
 
     /// <summary>Returns the number of textures packed per row/column in the terrain atlas.</summary>
     public static int TexturesPacked => Game.TexturesPacked;
@@ -195,11 +196,11 @@ public class ModDrawHand3d : ModBase
     /// </summary>
     /// <param name="side">The block face whose texture ID is requested.</param>
     /// <returns>Texture atlas index for that face.</returns>
-    public int GetWeaponTextureId(TileSide side)
+    public int GetWeaponTextureId(IGame game, TileSide side)
     {
         InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
 
-        if (item == null || IsCompass() || item.BlockId == 0)
+        if (item == null || IsCompass(game) || item.BlockId == 0)
         {
             // Empty hand — use the designated empty-hand block texture.
             if (side == TileSide.Top)
@@ -222,7 +223,7 @@ public class ModDrawHand3d : ModBase
     /// Returns the ambient light level at the player's current position, normalised
     /// to the range [0, 1].
     /// </summary>
-    public float Light()
+    public float Light(IGame game)
     {
         float posx = game.Player.position.x;
         float posy = game.Player.position.y;
@@ -234,7 +235,7 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Returns <see langword="true"/> when the player is currently holding a torch block.
     /// </summary>
-    public bool IsTorch()
+    public bool IsTorch(IGame game)
     {
         InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         return item != null
@@ -245,7 +246,7 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Returns <see langword="true"/> when the player is currently holding a compass block.
     /// </summary>
-    public bool IsCompass()
+    public bool IsCompass(IGame game)
     {
         InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         return item != null
@@ -257,7 +258,7 @@ public class ModDrawHand3d : ModBase
     /// Returns <see langword="true"/> when the player's right-hand slot is empty
     /// (null item or block ID 0).
     /// </summary>
-    public bool IsEmptyHand()
+    public bool IsEmptyHand(IGame game)
     {
         InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
         return item == null || item.BlockId == 0;
@@ -294,11 +295,11 @@ public class ModDrawHand3d : ModBase
     /// level changes, advances all animations, then submits the model to the GPU.
     /// </summary>
     /// <param name="dt">Real-time delta for the current frame in seconds.</param>
-    public void DrawWeapon(float dt)
+    public void DrawWeapon(IGame game, float dt)
     {
-        int lightByte = IsTorch() ? 255 : Math.Clamp((int)(Light() * 256), 0, 255);
+        int lightByte = IsTorch(game) ? 255 : Math.Clamp((int)(Light(game) * 256), 0, 255);
 
-        platform.BindTexture2d(TerrainTexture);
+        platform.BindTexture2d(GetTerrainTexture(game));
 
         InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
 
@@ -307,11 +308,11 @@ public class ModDrawHand3d : ModBase
                         : item.BlockId == 151 ? 128
                         : item.BlockId;
 
-        float curLight = Light();
+        float curLight = Light(game);
 
         if (curMaterial != _cachedMaterial || curLight != _cachedLight || _modelData == null || game.HandRedraw)
         {
-            RebuildHandModel(lightByte);
+            RebuildHandModel(game, lightByte);
             platform.UpdateModel(_modelData); // sync rebuilt geometry to GPU
             game.HandRedraw = false;
         }
@@ -336,10 +337,10 @@ public class ModDrawHand3d : ModBase
         game.GLRotate(60 + _restRotateY, 0, 1, 0);
         game.GLScale(1f * 8 / 10, 1f * 8 / 10, 1f * 8 / 10);
 
-        AdvanceBobAnimation(dt);
+        AdvanceBobAnimation(game, dt);
         AdvanceSwingAnimation(dt);
 
-        platform.BindTexture2d(TerrainTexture);
+        platform.BindTexture2d(GetTerrainTexture(game));
         game.DrawModelData(_modelData);
 
         game.GLPopMatrix();
@@ -353,7 +354,7 @@ public class ModDrawHand3d : ModBase
     /// <param name="lightByte">
     /// Light intensity in [0, 255] baked into the vertex colours.
     /// </param>
-    private void RebuildHandModel(int lightByte)
+    private void RebuildHandModel(IGame game, int lightByte)
     {
         _modelData = new GeometryModel
         {
@@ -365,17 +366,17 @@ public class ModDrawHand3d : ModBase
 
         const int x = 0, y = 0, z = 0;
 
-        if (IsEmptyHand() || IsCompass() || IsTorch())
+        if (IsEmptyHand(game) || IsCompass(game) || IsTorch(game))
         {
             // All three cases use the torch renderer: the empty-hand and compass use
             // a normal torch shape, and a real torch uses its own texture on the same shape.
-            d_BlockRendererTorch.TopTexture = GetWeaponTextureId(TileSide.Top);
-            d_BlockRendererTorch.SideTexture = GetWeaponTextureId(TileSide.Front);
+            d_BlockRendererTorch.TopTexture = GetWeaponTextureId(game, TileSide.Top);
+            d_BlockRendererTorch.SideTexture = GetWeaponTextureId(game, TileSide.Front);
             d_BlockRendererTorch.AddTorch(game.BlockRegistry, game, _modelData, x, y, z, TorchType.Normal);
         }
         else
         {
-            DrawCube(_modelData, x, y, z, ColorUtils.ColorFromArgb(255, lightByte, lightByte, lightByte));
+            DrawCube(game, _modelData, x, y, z, ColorUtils.ColorFromArgb(255, lightByte, lightByte, lightByte));
         }
     }
 
@@ -385,7 +386,7 @@ public class ModDrawHand3d : ModBase
     /// Updates <see cref="_bobOffsetX"/> and <see cref="_bobOffsetZ"/>.
     /// </summary>
     /// <param name="dt">Frame delta time in seconds.</param>
-    private void AdvanceBobAnimation(float dt)
+    private void AdvanceBobAnimation(IGame game, float dt)
     {
         bool moved = _prevPlayerX != game.Player.position.x
                   || _prevPlayerY != game.Player.position.y
@@ -484,14 +485,14 @@ public class ModDrawHand3d : ModBase
     /// <param name="y">Cube origin Y in local model space.</param>
     /// <param name="z">Cube origin Z in local model space.</param>
     /// <param name="c">Packed ARGB vertex colour applied to every vertex.</param>
-    private void DrawCube(GeometryModel m, int x, int y, int z, int c)
+    private void DrawCube(IGame game, GeometryModel m, int x, int y, int z, int c)
     {
-        AddFace(m, x, y, z, c, TileSide.Top, windingCw: false);
-        AddFace(m, x, y, z, c, TileSide.Bottom, windingCw: true);
-        AddFace(m, x, y, z, c, TileSide.Front, windingCw: false);
-        AddFace(m, x, y, z, c, TileSide.Back, windingCw: true);   // TODO: fix texture coords
-        AddFace(m, x, y, z, c, TileSide.Left, windingCw: false);
-        AddFace(m, x, y, z, c, TileSide.Right, windingCw: true);   // TODO: fix texture coords
+        AddFace(game, m, x, y, z, c, TileSide.Top, windingCw: false);
+        AddFace(game, m, x, y, z, c, TileSide.Bottom, windingCw: true);
+        AddFace(game, m, x, y, z, c, TileSide.Front, windingCw: false);
+        AddFace(game, m, x, y, z, c, TileSide.Back, windingCw: true);   // TODO: fix texture coords
+        AddFace(game, m, x, y, z, c, TileSide.Left, windingCw: false);
+        AddFace(game, m, x, y, z, c, TileSide.Right, windingCw: true);   // TODO: fix texture coords
     }
 
     /// <summary>
@@ -507,9 +508,9 @@ public class ModDrawHand3d : ModBase
     /// <see langword="true"/> to emit indices in clockwise winding (back-facing normals);
     /// <see langword="false"/> for counter-clockwise (front-facing normals).
     /// </param>
-    private void AddFace(GeometryModel m, int x, int y, int z, int c, TileSide side, bool windingCw)
+    private void AddFace(IGame game, GeometryModel m, int x, int y, int z, int c, TileSide side, bool windingCw)
     {
-        int tex = GetWeaponTextureId(side);
+        int tex = GetWeaponTextureId(game, side);
         RectangleF r = VectorUtils.GetAtlasRect(tex, TexturesPacked);
         int base_ = m.VerticesCount;
 

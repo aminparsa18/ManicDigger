@@ -22,14 +22,13 @@ public class ModGuiTextEditor : GameScreen
     private bool visible;
     private readonly IGame game;
 
-    public ModGuiTextEditor(IGame game, IGameService _) :base(game, _)
+    public ModGuiTextEditor(IGameService game) : base(game)
     {
-        this.game = game;
         for (int i = 0; i < MaxLines; i++)
             buffer[i] = new int[MaxColumns];
     }
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
     {
         if (!visible) return;
 
@@ -46,7 +45,7 @@ public class ModGuiTextEditor : GameScreen
         game.Draw2dText(cursorRow, Font, StartX, StartY + cursorLine * CharSize, null, false);
     }
 
-    public override void OnKeyDown(KeyEventArgs e)
+    public override void OnKeyDown(IGame game, KeyEventArgs e)
     {
         int key = e.KeyChar;
 
@@ -82,7 +81,7 @@ public class ModGuiTextEditor : GameScreen
         e.Handled = true;
     }
 
-    public override void OnKeyPress(KeyPressEventArgs e)
+    public override void OnKeyPress(IGame game, KeyPressEventArgs e)
     {
         if (!visible) return;
         if (e.KeyChar == 8) return; // backspace handled in OnKeyDown

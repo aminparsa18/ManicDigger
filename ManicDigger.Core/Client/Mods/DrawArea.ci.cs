@@ -4,15 +4,13 @@
 public class ModDrawArea : ModBase
 {
     private readonly DrawWireframeCube lines;
-    private readonly IGame game;
 
-    public ModDrawArea(IGame game, IOpenGlService platform)
+    public ModDrawArea(IOpenGlService platform)
     {
-        this.game = game;
         lines = new DrawWireframeCube(platform);
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
         if (!game.ENABLE_DRAW2D) return;
 
@@ -29,7 +27,7 @@ public class ModDrawArea : ModBase
         }
     }
 
-    public override void OnHitEntity(OnUseEntityArgs e)
+    public override void OnHitEntity(IGame game, OnUseEntityArgs e)
     {
         var area = game.Entities[e.Id]?.drawArea;
         if (area == null) return;

@@ -32,10 +32,10 @@ public interface IGame
     Dictionary<string, string> PerformanceInfo { get; }
 
     /// <summary>Thread-safe queue of actions to run on the main/commit thread.</summary>
-    ConcurrentQueue<Action> commitActions { get; set; }
+    ConcurrentQueue<Action<IGame>> commitActions { get; set; }
 
     /// <summary>Enqueues an action to be executed on the main commit thread.</summary>
-    void QueueActionCommit(Action action);
+    void QueueActionCommit(Action<IGame> action);
 
     // =========================================================================
     // Frame / update loop
@@ -228,9 +228,6 @@ public interface IGame
 
     /// <summary>Frustum culling helper.</summary>
     FrustumCulling FrustumCulling { get; set; }
-
-    /// <summary>Sun and moon billboard renderer.</summary>
-    SunMoonRenderer SunMoonRenderer { get; set; }
 
     /// <summary>When <c>true</c>, all chunk meshes are rebuilt next frame.</summary>
     bool ShouldRedrawAllBlocks { get; set; }
@@ -661,7 +658,7 @@ public interface IGame
     void EntityAddLocal(Entity entity);
 
     /// <summary>All registered client-side mods.</summary>
-    List<ModBase> ClientMods { get; set; }
+    List<IModBase> ClientMods { get; set; }
 
     /// <summary>
     /// Returns the entity ID being followed in spectator mode,

@@ -11,7 +11,6 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 public class ModGuiInventory : ModBase
 {
     /// <summary>Reference to the current game instance.</summary>
-    private readonly IGame game;
     private readonly IGameService platform;
 
     /// <summary>Item data helpers (texture IDs, sizes, display info).</summary>
@@ -65,9 +64,8 @@ public class ModGuiInventory : ModBase
     private int _scrollingDownTimeMs;
 
     /// <summary>Initialises cell dimensions and wear-place layout data.</summary>
-    public ModGuiInventory(IGame game, IGameService platform)
+    public ModGuiInventory(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
         // Wear-place slot origins (relative to inventory background image origin).
         _wearPlaceStart = new Point[WearPlaceCount];
@@ -100,12 +98,12 @@ public class ModGuiInventory : ModBase
     public int CellsStartY() => 180 + InventoryStartY();
 
     /// <summary>Returns the pixel size of one material-selector cell at the current UI scale.</summary>
-    public int ActiveMaterialCellSize() => (int)(48 * game.Scale());
+    public int ActiveMaterialCellSize(IGame game) => (int)(48 * game.Scale());
 
-    private int MaterialSelectorStartX() => (int)(MaterialSelectorBgStartX() + 17 * game.Scale());
-    private int MaterialSelectorStartY() => (int)(MaterialSelectorBgStartY() + 17 * game.Scale());
-    private int MaterialSelectorBgStartX() => (int)(platform.CanvasWidth / 2 - 512 / 2 * game.Scale());
-    private int MaterialSelectorBgStartY() => (int)(platform.CanvasHeight - 90 * game.Scale());
+    private int MaterialSelectorStartX(IGame game) => (int)(MaterialSelectorBgStartX(game) + 17 * game.Scale());
+    private int MaterialSelectorStartY(IGame game) => (int)(MaterialSelectorBgStartY(game) + 17 * game.Scale());
+    private int MaterialSelectorBgStartX(IGame game) => (int)(platform.CanvasWidth / 2 - 512 / 2 * game.Scale());
+    private int MaterialSelectorBgStartY(IGame game) => (int)(platform.CanvasHeight - 90 * game.Scale());
 
     private int ScrollButtonSize() => CellDrawSize;
     private int ScrollUpButtonX() => CellsStartX() + _cellCountInPageX * CellDrawSize;
@@ -114,7 +112,7 @@ public class ModGuiInventory : ModBase
     private int ScrollDownButtonY() => CellsStartY() + (_cellCountInPageY - 1) * CellDrawSize;
 
     /// <inheritdoc/>
-    public override void OnKeyPress(KeyPressEventArgs args)
+    public override void OnKeyPress(IGame game, KeyPressEventArgs args)
     {
         if (game.GuiState != GuiState.Inventory) { return; }
 
@@ -125,14 +123,14 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnMouseDown(MouseEventArgs args)
+    public override void OnMouseDown(IGame game, MouseEventArgs args)
     {
         if (game.GuiState != GuiState.Inventory) { return; }
 
         Point mouse = new(args.GetX(), args.GetY());
 
         // Material selector bar click.
-        int? materialSlot = SelectedMaterialSelectorSlot(mouse);
+        int? materialSlot = SelectedMaterialSelectorSlot(game, mouse);
         if (materialSlot != null)
         {
             game.ActiveMaterial = materialSlot.Value;
@@ -216,17 +214,17 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnTouchStart(TouchEventArgs e)
+    public override void OnTouchStart(IGame game, TouchEventArgs e)
     {
         MouseEventArgs args = new();
         args.SetX(e.GetX());
         args.SetY(e.GetY());
-        OnMouseDown(args);
+        OnMouseDown(game, args);
         e.SetHandled(args.GetHandled());
     }
 
     /// <inheritdoc/>
-    public override void OnMouseUp(MouseEventArgs args)
+    public override void OnMouseUp(IGame game, MouseEventArgs args)
     {
         if (game != null && game.GuiState != GuiState.Inventory) { return; }
         _scrollingUpTimeMs = 0;
@@ -234,20 +232,20 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnMouseWheelChanged(MouseWheelEventArgs args)
+    public override void OnMouseWheelChanged(IGame game, MouseWheelEventArgs args)
     {
         float delta = args.OffsetY;
         bool shiftHeld = game.KeyboardState[game.GetKey(Keys.LeftShift)];
 
         bool inNormalOrOutsideCells = game.GuiState == GuiState.Normal
-            || (game.GuiState == GuiState.Inventory && !IsMouseOverCells());
+            || (game.GuiState == GuiState.Inventory && !IsMouseOverCells(game));
 
         if (inNormalOrOutsideCells && !shiftHeld)
         {
             game.ActiveMaterial = ((game.ActiveMaterial - (int)delta) % 10 + 10) % 10;
         }
 
-        if (IsMouseOverCells() && game.GuiState == GuiState.Inventory)
+        if (IsMouseOverCells(game) && game.GuiState == GuiState.Inventory)
         {
             if (delta > 0) { ScrollUp(); }
             if (delta < 0) { ScrollDown(); }
@@ -255,7 +253,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
     {
         if (inventoryService == null)
         {
@@ -266,7 +264,7 @@ public class ModGuiInventory : ModBase
 
         if (game.GuiState == GuiState.MapLoading) { return; }
 
-        DrawMaterialSelector();
+        DrawMaterialSelector(game);
 
         if (game.GuiState != GuiState.Inventory) { return; }
 
@@ -276,15 +274,15 @@ public class ModGuiInventory : ModBase
 
         game.Draw2dBitmapFile("inventory.png", InventoryStartX(), InventoryStartY(), 1024, 1024);
 
-        DrawInventoryItems();
-        DrawDragDropFeedback(mouse);
-        DrawMaterialSelector();
-        DrawWearPlaceItems();
-        DrawTooltips(mouse);
+        DrawInventoryItems(game);
+        DrawDragDropFeedback(game, mouse);
+        DrawMaterialSelector(game);
+        DrawWearPlaceItems(game);
+        DrawTooltips(game, mouse);
 
         if (game.Inventory.DragDropItem != null)
         {
-            DrawItem(mouse.X, mouse.Y, game.Inventory.DragDropItem, 0, 0);
+            DrawItem(game, mouse.X, mouse.Y, game.Inventory.DragDropItem, 0, 0);
         }
     }
 
@@ -292,7 +290,7 @@ public class ModGuiInventory : ModBase
     /// Returns <see langword="true"/> when the mouse cursor is over the inventory
     /// cell grid or its adjacent scroll buttons.
     /// </summary>
-    public bool IsMouseOverCells()
+    public bool IsMouseOverCells(IGame game)
         => SelectedCellOrScrollbar(game.MouseCurrentX, game.MouseCurrentY);
 
     /// <summary>Scrolls the inventory grid up by one row, clamped to row 0.</summary>
@@ -312,22 +310,22 @@ public class ModGuiInventory : ModBase
     /// Draws the material selector bar at the bottom of the screen and highlights
     /// the active material slot.
     /// </summary>
-    public void DrawMaterialSelector()
+    public void DrawMaterialSelector(IGame game)
     {
         game.Draw2dBitmapFile("materials.png",
-            MaterialSelectorBgStartX(), MaterialSelectorBgStartY(),
+            MaterialSelectorBgStartX(game), MaterialSelectorBgStartY(game),
             (int)(1024 * game.Scale()), (int)(128 * game.Scale()));
 
-        int startX = MaterialSelectorStartX();
-        int startY = MaterialSelectorStartY();
-        int cellSize = ActiveMaterialCellSize();
+        int startX = MaterialSelectorStartX(game);
+        int startY = MaterialSelectorStartY(game);
+        int cellSize = ActiveMaterialCellSize(game);
 
         for (int i = 0; i < 10; i++)
         {
             InventoryItem item = game.Inventory.RightHand[i];
             if (item != null)
             {
-                DrawItem(startX + i * cellSize, startY, item, cellSize, cellSize);
+                DrawItem(game, startX + i * cellSize, startY, item, cellSize, cellSize);
             }
         }
 
@@ -348,7 +346,7 @@ public class ModGuiInventory : ModBase
     /// <param name="item">Item to draw. No-op when <see langword="null"/>.</param>
     /// <param name="drawsizeX">Override draw width in pixels, or 0 to use cell-sized default.</param>
     /// <param name="drawsizeY">Override draw height in pixels, or 0 to use cell-sized default.</param>
-    private void DrawItem(int screenposX, int screenposY, InventoryItem item, int drawsizeX, int drawsizeY)
+    private void DrawItem(IGame game, int screenposX, int screenposY, InventoryItem item, int drawsizeX, int drawsizeY)
     {
         if (item == null) { return; }
 
@@ -387,7 +385,7 @@ public class ModGuiInventory : ModBase
     /// Draws a tooltip popup for <paramref name="item"/> near the given screen position,
     /// repositioning it if it would overflow the screen edges.
     /// </summary>
-    public void DrawItemInfo(int screenposX, int screenposY, InventoryItem item)
+    public void DrawItemInfo(IGame game, int screenposX, int screenposY, InventoryItem item)
     {
         int sizex = InventoryService.ItemSizeX(item);
         int sizey = InventoryService.ItemSizeY(item);
@@ -410,13 +408,13 @@ public class ModGuiInventory : ModBase
             new Font("Arial", 10),
             screenposX - tw + 4, screenposY - h + 2, null, false);
 
-        DrawItem(screenposX - w + 2, screenposY - h + 2, new InventoryItem { BlockId = item.BlockId }, 0, 0);
+        DrawItem(game, screenposX - w + 2, screenposY - h + 2, new InventoryItem { BlockId = item.BlockId }, 0, 0);
     }
 
     // Private helpers — drawing sub-sections
 
     /// <summary>Draws all items currently visible in the scrolled inventory grid.</summary>
-    private void DrawInventoryItems()
+    private void DrawInventoryItems(IGame game)
     {
         for (int i = 0; i < game.Inventory.Items.Length; i++)
         {
@@ -426,7 +424,7 @@ public class ModGuiInventory : ModBase
             int screenRow = k.Y - ScrollLine;
             if (screenRow >= 0 && screenRow < _cellCountInPageY)
             {
-                DrawItem(CellsStartX() + k.X * CellDrawSize, CellsStartY() + screenRow * CellDrawSize, k.Value_, 0, 0);
+                DrawItem(game, CellsStartX() + k.X * CellDrawSize, CellsStartY() + screenRow * CellDrawSize, k.Value_, 0, 0);
             }
         }
     }
@@ -436,7 +434,7 @@ public class ModGuiInventory : ModBase
     /// while an item is being dragged, indicating whether the drop is valid
     /// (green) or blocked (red).
     /// </summary>
-    private void DrawDragDropFeedback(Point mouse)
+    private void DrawDragDropFeedback(IGame game, Point mouse)
     {
         if (game.Inventory.DragDropItem == null) { return; }
 
@@ -483,20 +481,20 @@ public class ModGuiInventory : ModBase
     }
 
     /// <summary>Draws the item currently equipped in each wear-place slot.</summary>
-    private void DrawWearPlaceItems()
+    private void DrawWearPlaceItems(IGame game)
     {
-        DrawWearItem(WearPlace.RightHand, game.Inventory.RightHand[game.ActiveMaterial]);
-        DrawWearItem(WearPlace.MainArmor, game.Inventory.MainArmor);
-        DrawWearItem(WearPlace.Boots, game.Inventory.Boots);
-        DrawWearItem(WearPlace.Helmet, game.Inventory.Helmet);
-        DrawWearItem(WearPlace.Gauntlet, game.Inventory.Gauntlet);
+        DrawWearItem(game, WearPlace.RightHand, game.Inventory.RightHand[game.ActiveMaterial]);
+        DrawWearItem(game, WearPlace.MainArmor, game.Inventory.MainArmor);
+        DrawWearItem(game, WearPlace.Boots, game.Inventory.Boots);
+        DrawWearItem(game, WearPlace.Helmet, game.Inventory.Helmet);
+        DrawWearItem(game, WearPlace.Gauntlet, game.Inventory.Gauntlet);
     }
 
     /// <summary>Draws a single wear-place item at its configured slot origin.</summary>
-    private void DrawWearItem(WearPlace place, InventoryItem item)
+    private void DrawWearItem(IGame game, WearPlace place, InventoryItem item)
     {
         int idx = (int)place;
-        DrawItem(_wearPlaceStart[idx].X + InventoryStartX(),
+        DrawItem(game, _wearPlaceStart[idx].X + InventoryStartX(),
                  _wearPlaceStart[idx].Y + InventoryStartY(),
                  item, 0, 0);
     }
@@ -505,7 +503,7 @@ public class ModGuiInventory : ModBase
     /// Draws item tooltips for whichever cell, wear-place slot, or material-selector
     /// slot is currently under the mouse cursor.
     /// </summary>
-    private void DrawTooltips(Point mouse)
+    private void DrawTooltips(IGame game, Point mouse)
     {
         Point? cell = SelectedCell(mouse);
         if (cell != null)
@@ -515,7 +513,7 @@ public class ModGuiInventory : ModBase
             if (itemOrigin != null)
             {
                 InventoryItem item = GetItem(game.Inventory, itemOrigin.Value.X, itemOrigin.Value.Y);
-                if (item != null) { DrawItemInfo(mouse.X, mouse.Y, item); }
+                if (item != null) { DrawItemInfo(game, mouse.X, mouse.Y, item); }
             }
         }
 
@@ -523,14 +521,14 @@ public class ModGuiInventory : ModBase
         if (wearSlot != null)
         {
             InventoryItem item = inventoryUtil.ItemAtWearPlace((WearPlace)wearSlot.Value, game.ActiveMaterial);
-            if (item != null) { DrawItemInfo(mouse.X, mouse.Y, item); }
+            if (item != null) { DrawItemInfo(game, mouse.X, mouse.Y, item); }
         }
 
-        int? matSlot = SelectedMaterialSelectorSlot(mouse);
+        int? matSlot = SelectedMaterialSelectorSlot(game, mouse);
         if (matSlot != null)
         {
             InventoryItem item = game.Inventory.RightHand[matSlot.Value];
-            if (item != null) { DrawItemInfo(mouse.X, mouse.Y, item); }
+            if (item != null) { DrawItemInfo(game, mouse.X, mouse.Y, item); }
         }
     }
 
@@ -602,11 +600,11 @@ public class ModGuiInventory : ModBase
     /// Returns the material-selector slot index under <paramref name="mouse"/>,
     /// or <see langword="null"/> when the cursor is outside the bar.
     /// </summary>
-    private int? SelectedMaterialSelectorSlot(Point mouse)
+    private int? SelectedMaterialSelectorSlot(IGame game, Point mouse)
     {
-        int cellSize = ActiveMaterialCellSize();
-        int startX = MaterialSelectorStartX();
-        int startY = MaterialSelectorStartY();
+        int cellSize = ActiveMaterialCellSize(game);
+        int startX = MaterialSelectorStartX(game);
+        int startY = MaterialSelectorStartY(game);
 
         if (mouse.X >= startX && mouse.Y >= startY
          && mouse.X < startX + 10 * cellSize

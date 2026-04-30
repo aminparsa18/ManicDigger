@@ -57,17 +57,15 @@ public class ModGuiCrafting : ModBase
     /// </summary>
     private bool _handlerRegistered;
 
-    private readonly IGame game;
 
-    public ModGuiCrafting(IGame game)
+    public ModGuiCrafting()
     {
-        this.game = game;
         handler = new PacketHandlerCraftingRecipes { mod = this };
     }
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
     {
         // Lazy-initialise the tool once.
         d_CraftingTableTool ??= new CraftingTableTool
@@ -84,16 +82,16 @@ public class ModGuiCrafting : ModBase
         }
 
         if (game.GuiState == GuiState.CraftingRecipes)
-            DrawCraftingRecipes();
+            DrawCraftingRecipes(game);
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnNewFrameFixed(IGame game, float args)
     {
         if (game.GuiState == GuiState.CraftingRecipes)
-            CraftingMouse();
+            CraftingMouse(game);
     }
 
-    public override void OnKeyDown(KeyEventArgs args)
+    public override void OnKeyDown(IGame game, KeyEventArgs args)
     {
         if (args.KeyChar != game.GetKey(Keys.E) || game.GuiTyping != TypingState.None) return;
         if (game.SelectedBlockPositionX == -1
@@ -113,7 +111,7 @@ public class ModGuiCrafting : ModBase
         Vector3i[] table = d_CraftingTableTool.GetTable(posX, posY, posZ, out int tableCount);
         int[] onTable = d_CraftingTableTool.GetOnTable(table, tableCount, out int onTableCount);
 
-        CraftingRecipesStart(d_CraftingRecipes, d_CraftingRecipesCount,
+        CraftingRecipesStart(game, d_CraftingRecipes, d_CraftingRecipesCount,
             onTable, onTableCount,
             posX, posY, posZ);
 
@@ -122,7 +120,7 @@ public class ModGuiCrafting : ModBase
 
     // ── Drawing ───────────────────────────────────────────────────────────────
 
-    internal void DrawCraftingRecipes()
+    internal void DrawCraftingRecipes(IGame game)
     {
         // ── Filter recipes for which the player has all materials ─────────────
         // Uses _blockTypeCounts (built once in CraftingRecipesStart) for O(1)
@@ -190,7 +188,7 @@ public class ModGuiCrafting : ModBase
 
     // ── Input ─────────────────────────────────────────────────────────────────
 
-    internal void CraftingMouse()
+    internal void CraftingMouse(IGame game)
     {
         if (currentRecipesCount == 0) return;
 
@@ -214,7 +212,7 @@ public class ModGuiCrafting : ModBase
 
     // ── Session management ────────────────────────────────────────────────────
 
-    internal void CraftingRecipesStart(CraftingRecipe[] recipes, int recipesCount,
+    internal void CraftingRecipesStart(IGame game, CraftingRecipe[] recipes, int recipesCount,
         int[] blocks, int blocksCount,
         int posX, int posY, int posZ)
     {

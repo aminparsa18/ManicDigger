@@ -7,16 +7,14 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 public class ModCameraKeys : ModBase
 {
     private const float OverheadCameraSpeed = 3f;
-    private readonly IGame game;
     private readonly IGameService platform;
 
-    public ModCameraKeys(IGame game, IGameService platform)
+    public ModCameraKeys(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnNewFrameFixed(IGame game, float args)
     {
         if (game.GuiState == GuiState.MapLoading) return;
 
@@ -24,7 +22,7 @@ public class ModCameraKeys : ModBase
         bool isNormal = game.GuiState == GuiState.Normal;
         bool isTyping = game.GuiTyping != TypingState.None;
 
-        UpdateJumpAndShift(isNormal, isTyping);
+        UpdateJumpAndShift(game, isNormal, isTyping);
 
         game.Controls.MovedX = 0;
         game.Controls.MovedY = 0;
@@ -35,20 +33,20 @@ public class ModCameraKeys : ModBase
         {
             if (!isTyping)
             {
-                UpdateAutoJump();
+                UpdateAutoJump(game);
 
                 if (game.OverheadCamera)
-                    UpdateOverheadCamera(dt);
+                    UpdateOverheadCamera(game, dt);
                 else if (game.EnableMove)
-                    UpdateMovementKeys();
+                    UpdateMovementKeys(game);
             }
 
-            UpdateVerticalFreemove(isTyping);
+            UpdateVerticalFreemove(game, isTyping);
         }
     }
 
     /// <summary>Updates jump and shift control flags based on keyboard state.</summary>
-    private void UpdateJumpAndShift(bool isNormal, bool isTyping)
+    private void UpdateJumpAndShift(IGame game, bool isNormal, bool isTyping)
     {
         bool canAct = isNormal && !isTyping;
         game.Controls.WantsJump = canAct && game.KeyboardState[game.GetKey(Keys.Space)];
@@ -57,7 +55,7 @@ public class ModCameraKeys : ModBase
     }
 
     /// <summary>Triggers auto-jump when the player walks into a climbable wall or half-block.</summary>
-    private void UpdateAutoJump()
+    private void UpdateAutoJump(IGame game)
     {
         if (game.ReachedWall1BlockHigh && (game.AutoJumpEnabled || !platform.IsMousePointerLocked()))
             game.Controls.WantsJump = true;
@@ -67,7 +65,7 @@ public class ModCameraKeys : ModBase
     }
 
     /// <summary>Handles overhead (RTS-style) camera rotation, angle, and click-to-move.</summary>
-    private void UpdateOverheadCamera(float dt)
+    private void UpdateOverheadCamera(IGame game, float dt)
     {
         if (game.KeyboardState[game.GetKey(Keys.A)]) game.OverheadCameraK.TurnRight(dt * OverheadCameraSpeed);
         if (game.KeyboardState[game.GetKey(Keys.D)]) game.OverheadCameraK.TurnLeft(dt * OverheadCameraSpeed);
@@ -101,7 +99,7 @@ public class ModCameraKeys : ModBase
     }
 
     /// <summary>Handles WASD movement and leaning animation hints in first/third person.</summary>
-    private void UpdateMovementKeys()
+    private void UpdateMovementKeys(IGame game)
     {
         if (game.KeyboardState[game.GetKey(Keys.W)]) game.Controls.MovedY += 1;
         if (game.KeyboardState[game.GetKey(Keys.S)]) game.Controls.MovedY -= 1;
@@ -121,7 +119,7 @@ public class ModCameraKeys : ModBase
     }
 
     /// <summary>Handles vertical movement in freemove mode or while swimming.</summary>
-    private void UpdateVerticalFreemove(bool isTyping)
+    private void UpdateVerticalFreemove(IGame game, bool isTyping)
     {
         if (!game.Controls.FreeMove && !game.SwimmingEyes()) return;
         if (isTyping) return;

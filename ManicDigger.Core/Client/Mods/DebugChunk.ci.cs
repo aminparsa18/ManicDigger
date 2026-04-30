@@ -6,22 +6,20 @@ public class ModDebugChunk : ModBase
 {
     private bool draw;
     private readonly DrawWireframeCube lines;
-    private readonly IGame game;
 
-    public ModDebugChunk(IGame game, IOpenGlService platform)
+    public ModDebugChunk(IOpenGlService platform)
     {
-        this.game = game;
         lines = new DrawWireframeCube(platform);
     }
 
-    public override bool OnClientCommand(ClientCommandArgs args)
+    public override bool OnClientCommand(IGame game, ClientCommandArgs args)
     {
         if (args.command != "chunk") return false;
         draw = !draw;
         return true;
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
         if (!draw) return;
 

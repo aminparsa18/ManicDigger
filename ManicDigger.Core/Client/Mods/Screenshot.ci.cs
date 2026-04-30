@@ -13,16 +13,14 @@ public class ModScreenshot : ModBase
     private bool takeScreenshot;
     private int screenshotFlashFramesLeft;
 
-    private readonly IGame game;
     private readonly IGameService platform;
 
-    public ModScreenshot(IGame game, IGameService platform)
+    public ModScreenshot(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
     {
         if (takeScreenshot)
         {
@@ -33,19 +31,19 @@ public class ModScreenshot : ModBase
 
         if (screenshotFlashFramesLeft > 0)
         {
-            DrawScreenshotFlash();
+            DrawScreenshotFlash(game);
             screenshotFlashFramesLeft--;
         }
     }
 
-    public override void OnKeyDown(KeyEventArgs args)
+    public override void OnKeyDown(IGame game, KeyEventArgs args)
     {
         if (args.KeyChar != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.F12)) return;
         takeScreenshot = true;
         args.Handled = true;
     }
 
-    internal void DrawScreenshotFlash()
+    internal void DrawScreenshotFlash(IGame game)
     {
         game.Draw2dTexture(game.GetOrCreateWhiteTexture(), 0, 0, platform.CanvasWidth, platform.CanvasHeight, null, 0, White, false);
         TextRenderer.TextSize(ScreenshotText, FlashFontSize, out int textWidth, out int textHeight);

@@ -111,16 +111,15 @@ public class ModAutoCamera : ModBase
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ModAutoCamera(IGame game, IGameService platform)
+    public ModAutoCamera(IGameService platform)
     {
-        _game = game;
         _platform = platform;
     }
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
     /// <inheritdoc/>
-    public override bool OnClientCommand(ClientCommandArgs args)
+    public override bool OnClientCommand(IGame _game, ClientCommandArgs args)
     {
         if (args.command != "cam")
             return false;
@@ -170,7 +169,7 @@ public class ModAutoCamera : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame(float dt)
+    public override void OnNewFrame(IGame game, float dt)
     {
         if (!_isPlaying) return;
 

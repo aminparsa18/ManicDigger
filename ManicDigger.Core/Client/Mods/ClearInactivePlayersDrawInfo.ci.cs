@@ -5,22 +5,20 @@ public class ModClearInactivePlayersDrawInfo : ModBase
 {
     private const float InactiveThresholdSeconds = 2f;
 
-    private readonly IGame _game;
     private readonly IGameService _platform;
 
-    public ModClearInactivePlayersDrawInfo(IGame game, IGameService platform)
+    public ModClearInactivePlayersDrawInfo(IGameService platform)
     {
-        _game = game;
         _platform = platform;
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnNewFrameFixed(IGame game, float args)
     {
         int now = _platform.TimeMillisecondsFromStart;
 
-        for (int i = 0; i < _game.Entities.Count; i++)
+        for (int i = 0; i < game.Entities.Count; i++)
         {
-            Entity p = _game.Entities[i];
+            Entity p = game.Entities[i];
             if (p?.playerDrawInfo == null || p.networkPosition == null) continue;
 
             float secondsSinceUpdate = (now - p.networkPosition.LastUpdateMilliseconds) / 1000f;

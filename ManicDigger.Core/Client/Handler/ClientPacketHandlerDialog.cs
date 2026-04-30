@@ -63,7 +63,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
 
     private GameScreen ConvertDialog(IGame game, Dialog p)
     {
-        DialogScreen s = new(game, default)
+        DialogScreen s = new(game.GameService)
         {
             widgets = new MenuWidget[p.Widgets.Length],
             WidgetCount = p.Widgets.Length,

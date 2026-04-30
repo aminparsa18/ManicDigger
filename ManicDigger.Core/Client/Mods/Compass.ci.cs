@@ -13,21 +13,20 @@ public class ModCompass : ModBase
     private int needleId = -1;
     private float compassAngle;
     private float compassVelocity;
-    private readonly IGame game;
     private readonly IGameService platform;
-    public ModCompass(IGame game, IGameService platform)
+
+    public ModCompass(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d(float dt)
+    public override void OnNewFrameDraw2d(IGame game, float dt)
     {
         if (game.GuiState == GuiState.MapLoading) return;
-        DrawCompass();
+        DrawCompass(game);
     }
 
-    private bool CompassInActiveMaterials()
+    private bool CompassInActiveMaterials(IGame game)
     {
         for (int i = 0; i < 10; i++)
         {
@@ -37,9 +36,9 @@ public class ModCompass : ModBase
         return false;
     }
 
-    public void DrawCompass()
+    public void DrawCompass(IGame game)
     {
-        if (!CompassInActiveMaterials()) return;
+        if (!CompassInActiveMaterials(game)) return;
 
         if (compassId == -1)
         {

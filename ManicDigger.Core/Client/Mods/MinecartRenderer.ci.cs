@@ -8,24 +8,22 @@ public class ModDrawMinecarts : ModBase
     private const float HeightOffset = -0.3f;
 
     private int minecartTexture = -1;
-    private readonly IGame game;
 
-    public ModDrawMinecarts(IGame game)
+    public ModDrawMinecarts()
     {
-        this.game = game;
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
         for (int i = 0; i < game.Entities.Count; i++)
         {
             Minecart m = game.Entities[i]?.minecart;
             if (m == null || !m.Enabled) continue;
-            Draw(m);
+            Draw(game, m);
         }
     }
 
-    private void Draw(Minecart m)
+    private void Draw(IGame game, Minecart m)
     {
         minecartTexture = minecartTexture == -1 ? game.GetTexture("minecart.png") : minecartTexture;
 

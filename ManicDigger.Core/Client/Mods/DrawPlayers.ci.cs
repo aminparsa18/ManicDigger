@@ -6,16 +6,14 @@ using System.Text;
 /// </summary>
 public class ModDrawPlayers : ModBase
 {
-    private readonly IGame game;
     private readonly IGameService platform;
 
-    public ModDrawPlayers(IGame game, IGameService platform)
+    public ModDrawPlayers(IGameService platform)
     {
-        this.game = game;
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
     {
         game.TotalTimeMilliseconds = platform.TimeMillisecondsFromStart;
 
@@ -36,15 +34,15 @@ public class ModDrawPlayers : ModBase
             p.playerDrawInfo ??= new PlayerDrawInfo();
 
             float shadow = (float)game.GetLight((int)p.position.x, (int)p.position.z, (int)p.position.y) / Game.maxlight;
-            float speed = i == game.LocalPlayerId ? GetLocalPlayerSpeed() : GetNetworkPlayerSpeed(p, deltaTime);
+            float speed = i == game.LocalPlayerId ? GetLocalPlayerSpeed(game) : GetNetworkPlayerSpeed(p, deltaTime);
 
-            EnsureRenderer(p);
-            DrawEntity(p, deltaTime, shadow, speed);
+            EnsureRenderer(game, p);
+            DrawEntity(game, p, deltaTime, shadow, speed);
         }
     }
 
     /// <summary>Calculates movement speed for the local player based on physics velocity.</summary>
-    private float GetLocalPlayerSpeed()
+    private float GetLocalPlayerSpeed(IGame game)
     {
         game.Player.playerDrawInfo ??= new PlayerDrawInfo();
 
@@ -64,7 +62,7 @@ public class ModDrawPlayers : ModBase
     }
 
     /// <summary>Loads and initializes the animated model renderer for an entity if not already done.</summary>
-    private void EnsureRenderer(Entity p)
+    private void EnsureRenderer(IGame game, Entity p)
     {
         if (p.drawModel.renderer != null) return;
 
@@ -79,7 +77,7 @@ public class ModDrawPlayers : ModBase
     }
 
     /// <summary>Renders the entity's animated model at its current world position and orientation.</summary>
-    private void DrawEntity(Entity p, float dt, float shadow, float speed)
+    private void DrawEntity(IGame game, Entity p, float dt, float shadow, float speed)
     {
         game.GLPushMatrix();
         game.GLTranslate(p.position.x, p.position.y, p.position.z);

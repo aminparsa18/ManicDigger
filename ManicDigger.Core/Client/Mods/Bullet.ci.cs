@@ -5,14 +5,11 @@
 /// </summary>
 public class ModBullet : ModBase
 {
-    private readonly IGame _game;
-
-    public ModBullet(IGame game)
+    public ModBullet()
     {
-        _game = game;
     }
 
-    public override void OnNewFrameDraw3d(float dt)
+    public override void OnNewFrameDraw3d(IGame _game, float dt)
     {
         for (int i = 0; i < _game.Entities.Count; i++)
         {

@@ -11,18 +11,16 @@ using static ManicDigger.AudioOpenAl;
 public class ModAudio : ModBase
 {
     private readonly Dictionary<string, AudioData> audioData = new();
-    private readonly IGame game;
     private readonly IAudioService platform;
 
     private bool wasLoaded;
 
-    public ModAudio(IGame game, IAudioService gamePlatform)
+    public ModAudio(IAudioService gamePlatform)
     {
-        this.game = game;
         this.platform = gamePlatform;
     }
 
-    public override void OnNewFrame(float args)
+    public override void OnNewFrame(IGame game, float args)
     {
         if (game.AssetsLoadProgress != 1)
             return;
@@ -30,32 +28,32 @@ public class ModAudio : ModBase
         if (!wasLoaded)
         {
             wasLoaded = true;
-            Preload();
+            Preload(game);
         }
 
-        ProcessSounds();
+        ProcessSounds(game);
     }
 
-    private void ProcessSounds()
+    private void ProcessSounds(IGame game)
     {
         for (int i = 0; i < game.Audio.soundsCount; i++)
         {
             Sound sound = game.Audio.sounds[i];
             if (sound == null) continue;
 
-            TryLoad(i, sound);
+            TryLoad(game, i, sound);
             TryUpdatePosition(sound);
-            TryStop(i, sound);
-            TryLoopOrFinish(i, sound);
+            TryStop(game, i, sound);
+            TryLoopOrFinish(game, i, sound);
         }
     }
 
     /// <summary>Attempts to create and play audio for a sound that hasn't been loaded yet.</summary>
-    private void TryLoad(int i, Sound sound)
+    private void TryLoad(IGame game, int i, Sound sound)
     {
         if (sound.audio != null) return;
 
-        AudioData data = GetAudioData(sound.name);
+        AudioData data = GetAudioData(game, sound.name);
         if (platform.AudioDataLoaded(data))
         {
             sound.audio = platform.AudioCreate(data);
@@ -71,7 +69,7 @@ public class ModAudio : ModBase
     }
 
     /// <summary>Deletes and nulls out any sound marked for stopping.</summary>
-    private void TryStop(int i, Sound sound)
+    private void TryStop(IGame game, int i, Sound sound)
     {
         if (sound.audio == null || !sound.stop) return;
         platform.AudioDelete(sound.audio);
@@ -79,14 +77,14 @@ public class ModAudio : ModBase
     }
 
     /// <summary>Loops finished looping sounds or clears finished one-shot sounds.</summary>
-    private void TryLoopOrFinish(int i, Sound sound)
+    private void TryLoopOrFinish(IGame game, int i, Sound sound)
     {
         if (sound.audio == null) return;
         if (!platform.AudioFinished(sound.audio)) return;
 
         if (sound.loop)
         {
-            AudioData data = GetAudioData(sound.name);
+            AudioData data = GetAudioData(game, sound.name);
             if (platform.AudioDataLoaded(data))
             {
                 sound.audio = platform.AudioCreate(data);
@@ -100,19 +98,19 @@ public class ModAudio : ModBase
     }
 
     /// <summary>Preloads all .ogg assets found in the asset list.</summary>
-    private void Preload()
+    private void Preload(IGame game)
     {
         for (int k = 0; k < game.Assets.Count; k++)
         {
             string name = game.Assets[k].name;
             if (!name.EndsWith(".ogg")) 
                 continue;
-            GetAudioData(name);
+            GetAudioData(game, name);
         }
     }
 
     /// <summary>Returns cached audio data for the given sound name, loading it if necessary.</summary>
-    private AudioData GetAudioData(string sound)
+    private AudioData GetAudioData(IGame game, string sound)
     {
         if (!audioData.TryGetValue(sound, out AudioData data))
         {

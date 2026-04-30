@@ -153,4 +153,28 @@ public class VectorUtils
         }
         return map.MapSizeZ / 2;
     }
+
+    /// <summary>
+    /// Replaces the rotation component of the current model-view matrix with an identity rotation,
+    /// making the object always face the camera (cylindrical billboard).
+    /// See: http://stackoverflow.com/a/5487981
+    /// </summary>
+    public static void Billboard(IGame game)
+    {
+        Matrix4 m = game.mvMatrix.Peek();
+
+        float d = MathF.Sqrt(m.Row0.X * m.Row0.X + m.Row0.Y * m.Row0.Y + m.Row0.Z * m.Row0.Z);
+
+        m.Row0 = new Vector4(d, 0, 0, 0);
+        m.Row1 = new Vector4(0, d, 0, 0);
+        m.Row2 = new Vector4(0, 0, d, 0);
+        m.Row3 = new Vector4(m.Row3.X, m.Row3.Y, m.Row3.Z, 1);
+
+        Matrix4.CreateRotationX(MathF.PI, out Matrix4 rotX);
+        m = rotX * m;
+
+        game.mvMatrix.Pop();
+        game.mvMatrix.Push(m);
+        game.GLLoadMatrix(m);
+    }
 }

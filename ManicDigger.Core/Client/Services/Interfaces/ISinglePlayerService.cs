@@ -9,5 +9,5 @@ public interface ISinglePlayerService
     void SinglePlayerServerStart(string saveFilename);
     bool SinglePlayerServerExit { get; set; }
     bool SinglePlayerServerLoaded { get;set; }
-    DummyNetwork SinglePlayerServerNetwork { get; set; }
+    IDummyNetwork SinglePlayerServerNetwork { get; set; }
 }

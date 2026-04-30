@@ -25,8 +25,8 @@ public class ConnectionScreen : ScreenBase
     private string title;
     private bool loaded;
 
-    public ConnectionScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IPreferences preferences)
-        : base(renderer, navigator, platform)
+    public ConnectionScreen(IMenu navigator, IGameService platform, IPreferences preferences)
+        : base(navigator, platform)
     {
         buttonConnect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
         textboxIp = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "IP", nextWidget = 2 };
@@ -48,10 +48,10 @@ public class ConnectionScreen : ScreenBase
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonConnect.text = Renderer.Translate("MainMenu_ConnectToIpConnect");
-        textboxIp.description = Renderer.Translate("MainMenu_ConnectToIpIp");
-        textboxPort.description = Renderer.Translate("MainMenu_ConnectToIpPort");
-        title = Renderer.Translate("MainMenu_MultiplayerConnectIP");
+        buttonConnect.text = Menu.Translate("MainMenu_ConnectToIpConnect");
+        textboxIp.description = Menu.Translate("MainMenu_ConnectToIpIp");
+        textboxPort.description = Menu.Translate("MainMenu_ConnectToIpPort");
+        title = Menu.Translate("MainMenu_MultiplayerConnectIP");
     }
 
     /// <inheritdoc/>
@@ -78,26 +78,26 @@ public class ConnectionScreen : ScreenBase
             prefs.SetValues();
         }
 
-        float scale = Renderer.GetScale();
+        float scale = Menu.GetScale();
 
-        Renderer.DrawBackground();
+        Menu.DrawBackground();
 
-        float leftx = Platform.CanvasWidth / 2 - 400 * scale;
-        float y = Platform.CanvasHeight / 2 - 250 * scale;
+        float leftx = GameService.CanvasWidth / 2 - 400 * scale;
+        float y = GameService.CanvasHeight / 2 - 250 * scale;
 
         if (errorText != null)
         {
-            Renderer.DrawText(errorText, 14 * scale, leftx, y - 50 * scale, TextAlign.Left, TextBaseline.Top);
+            Menu.DrawText(errorText, 14 * scale, leftx, y - 50 * scale, TextAlign.Left, TextBaseline.Top);
         }
 
-        Renderer.DrawText(title, 14 * scale, leftx, y + 50 * scale, TextAlign.Left, TextBaseline.Top);
+        Menu.DrawText(title, 14 * scale, leftx, y + 50 * scale, TextAlign.Left, TextBaseline.Top);
 
         LayoutWidget(textboxIp, leftx, y + 100 * scale, 256, 64, scale);
         LayoutWidget(textboxPort, leftx, y + 200 * scale, 256, 64, scale);
         LayoutWidget(buttonConnect, leftx, y + 400 * scale, 256, 64, scale);
 
         buttonBack.x = 40 * scale;
-        buttonBack.y = Platform.CanvasHeight - 104 * scale;
+        buttonBack.y = GameService.CanvasHeight - 104 * scale;
         buttonBack.sizex = 256 * scale;
         buttonBack.sizey = 64 * scale;
         buttonBack.fontSize = 14 * scale;
@@ -118,7 +118,7 @@ public class ConnectionScreen : ScreenBase
     }
 
     /// <inheritdoc/>
-    public override void OnBackPressed() => Navigator.StartMultiplayer();
+    public override void OnBackPressed() => Menu.StartMultiplayer();
 
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
@@ -134,7 +134,7 @@ public class ConnectionScreen : ScreenBase
             if (!string.IsNullOrEmpty(textboxIp.text)
                 && int.TryParse(textboxPort.text, out int port))
             {
-                Navigator.StartLogin(null, textboxIp.text, port);
+                Menu.StartLogin(null, textboxIp.text, port);
             }
         }
     }

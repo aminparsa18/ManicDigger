@@ -10,11 +10,10 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 /// widget interactions. Override <see cref="Render"/> to draw screen-specific
 /// content on top of the shared widget layer.
 /// </remarks>
-public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform)
+public class ScreenBase(IMenu menu, IGameService gameService)
 {
-    protected IMenuRenderer Renderer { get; set; } = renderer;
-    protected IMenuNavigator Navigator { get; set; } = navigator;
-    protected IGameService Platform { get; set; } = platform;
+    protected IMenu Menu { get; set; } = menu;
+    protected IGameService GameService { get; set; } = gameService;
 
     /// <summary>All widgets registered to this screen, in render and hit-test order.</summary>
     protected List<MenuWidget> Widgets { get; set; } = [];
@@ -135,12 +134,12 @@ public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
 
                 if (hit && !wasEditing)
                 {
-                    Platform.ShowKeyboard(true);
+                    GameService.ShowKeyboard(true);
                     editingChanged = true;
                 }
                 else if (!hit && wasEditing && !editingChanged)
                 {
-                    Platform.ShowKeyboard(false);
+                    GameService.ShowKeyboard(false);
                 }
             }
 
@@ -238,16 +237,16 @@ public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
             case ButtonStyle.Text:
                 if (w.image != null)
                 {
-                    Renderer.Draw2dQuad(Renderer.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
+                    Menu.Draw2dQuad(Menu.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
                 }
-                Renderer.DrawText(text, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Left, TextBaseline.Middle);
+                Menu.DrawText(text, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Left, TextBaseline.Middle);
                 break;
 
             case ButtonStyle.Button:
-                Renderer.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey, w.hover || w.hasKeyboardFocus);
+                Menu.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey, w.hover || w.hasKeyboardFocus);
                 if (w.description != null)
                 {
-                    Renderer.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
+                    Menu.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
                 }
                 break;
 
@@ -264,21 +263,21 @@ public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
                     fields[3] = string.Concat("&2", fields[3]);
                 }
 
-                Renderer.DrawServerButton(fields[0], fields[1], fields[2], fields[3],
+                Menu.DrawServerButton(fields[0], fields[1], fields[2], fields[3],
                     w.x, w.y, w.sizex, w.sizey, w.image);
 
                 if (w.description != null)
                 {
                     // Server did not respond to the last ping — show a warning icon.
-                    Renderer.Draw2dQuad(Renderer.GetTexture("serverlist_entry_noresponse.png"),
-                        w.x - 38 * Renderer.GetScale(), w.y, w.sizey / 2, w.sizey / 2);
+                    Menu.Draw2dQuad(Menu.GetTexture("serverlist_entry_noresponse.png"),
+                        w.x - 38 * Menu.GetScale(), w.y, w.sizey / 2, w.sizey / 2);
                 }
 
-                if (fields[4] != Platform.GetGameVersion())
+                if (fields[4] != GameService.GetGameVersion())
                 {
                     // Server version differs from the client — show a version-mismatch icon.
-                    Renderer.Draw2dQuad(Renderer.GetTexture("serverlist_entry_differentversion.png"),
-                        w.x - 38 * Renderer.GetScale(), w.y + w.sizey / 2, w.sizey / 2, w.sizey / 2);
+                    Menu.Draw2dQuad(Menu.GetTexture("serverlist_entry_differentversion.png"),
+                        w.x - 38 * Menu.GetScale(), w.y + w.sizey / 2, w.sizey / 2, w.sizey / 2);
                 }
                 break;
         }
@@ -297,19 +296,19 @@ public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
         {
             if (w.image != null)
             {
-                Renderer.Draw2dQuad(Renderer.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
+                Menu.Draw2dQuad(Menu.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
             }
-            Renderer.DrawText(text, w.fontSize, w.x, w.y, TextAlign.Left, TextBaseline.Top);
+            Menu.DrawText(text, w.fontSize, w.x, w.y, TextAlign.Left, TextBaseline.Top);
         }
         else
         {
-            Renderer.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey,
+            Menu.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey,
                 w.hover || w.editing || w.hasKeyboardFocus);
         }
 
         if (w.description != null)
         {
-            Renderer.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
+            Menu.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
         }
     }
 }

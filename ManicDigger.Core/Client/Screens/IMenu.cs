@@ -28,7 +28,5 @@
     void ConnectToSingleplayer(string filename);
     void ConnectToGame(LoginData loginData, string username);
 
-    IGameService GameService { get; set; }
-    string[] GameArgs { get; set; } // args from program.cs
-    void Start();
+    void Start(string[] args);
 }

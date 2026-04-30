@@ -55,16 +55,6 @@ public class Program
 
         Log.Debug("Creating GameWindowNative");
 
-        mainmenu.Start();
-
-        ReadArgs(mainmenu, args);
-
-        mainmenu.GameService.Start();
-    }
-
-    private static void ReadArgs(IMenu mainmenu, string[] args)
-    {
-        if (args.Length > 0)
-            mainmenu.StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));
+        mainmenu.Start(args);
     }
 }

@@ -6,11 +6,11 @@ using System.Text.Json.Serialization;
 public class ServerMonitor
 {
     private ServerMonitorConfig config;
-    public GameExit Exit;
+    public IGameExit Exit;
     private readonly Server server;
     private readonly Dictionary<int, MonitorClient> monitorClients;
 
-    public ServerMonitor(Server server, GameExit exit)
+    public ServerMonitor(Server server, IGameExit exit)
     {
         this.server = server;
         this.LoadConfig();

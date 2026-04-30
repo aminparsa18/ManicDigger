@@ -29,7 +29,9 @@ public class Program
     private void ConfigureServices(ServiceCollection services)
     {
         // Register your services here
+        services.AddTransient<IGameExit, GameExit>();
         services.AddTransient<IPreferences, Preferences>();
+        services.AddTransient<IOpenGlService, OpenGlService>();
         services.AddTransient<ISinglePlayerService, SinglePlayerService>(factory =>
         {
             return new SinglePlayerService()
@@ -51,7 +53,7 @@ public class Program
 
     private readonly DummyNetwork dummyNetwork;
     private string savefilename;
-    public GameExit exit = new();
+    public IGameExit exit;
     private GameService platform;
     private ISinglePlayerService singlePlayerService;
 
@@ -66,6 +68,7 @@ public class Program
 
         Log.Debug("Initialising GamePlatformNative");
 
+        exit = ServiceProvider.GetRequiredService<IGameExit>();
         platform = new GameService
         {
             crashreporter = new CrashReporter(),
@@ -78,8 +81,9 @@ public class Program
 
         //temporary until DI is done;
         singlePlayerService = ServiceProvider.GetRequiredService<ISinglePlayerService>();
+        var openGlService = ServiceProvider.GetRequiredService<IOpenGlService>();
         var preference = ServiceProvider.GetRequiredService<IPreferences>();
-        MainMenu mainmenu = new(platform, new OpenGlService(), singlePlayerService, preference);
+        MainMenu mainmenu = new(platform, openGlService, singlePlayerService, preference);
 
         mainmenu.Start();
         ReadArgs(mainmenu, args);

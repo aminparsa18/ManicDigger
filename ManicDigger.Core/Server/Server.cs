@@ -46,7 +46,7 @@ public partial class Server : ICurrentTime, IDropItem
         MainSockets = new NetServer[3];
     }
 
-    public GameExit GameExit { get; set; }
+    public IGameExit GameExit { get; set; }
     public ServerMapStorage Map { get; set; }
     public BlockTypeRegistry BlockTypeRegistry { get; set; }
     public CraftingTableTool CraftingTableTool { get; set; }

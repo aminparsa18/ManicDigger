@@ -62,7 +62,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
 
     /// <summary>The active platform abstraction (windowing, GL, input, etc.).</summary>
     private readonly IGameService _platform;
-
+    private readonly IGameExit _gameExit;
     private readonly IOpenGlService _platformOpenGl;
     private readonly ISinglePlayerService _singlePlayerService;
     private readonly IPreferences _preferences;
@@ -118,12 +118,13 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     // Constructor
     // -------------------------------------------------------------------------
 
-    public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences)
+    public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit)
     {
         _platform = platform;
         _platformOpenGl = platformOpenGl;
         _singlePlayerService = singlePlayerService;
         _preferences = preferences;
+        _gameExit = gameExit;
         Textures = [];
         textTextureCache = [];
         screen = new MainScreen(this, this, _platform, singlePlayerService);
@@ -587,7 +588,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(this, this, _platform, _platformOpenGl, _singlePlayerService, _preferences);
+        ScreenGame screenGame = new(this, this, _platform, _platformOpenGl, _singlePlayerService, _preferences, _gameExit);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }

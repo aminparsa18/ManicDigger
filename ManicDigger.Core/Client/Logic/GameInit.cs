@@ -39,7 +39,7 @@ public partial class Game : IGame
     public IGameService GameService { get; set; }
     public IOpenGlService OpenGlService { get; set; }
     public ISinglePlayerService SinglePlayerService { get; set; }
-
+    private readonly IGameExit gameExit;
     public LanguageService Language { get; set; }
     public Config3d Config3d { get; set; }
     public GameOption options { get; set; }
@@ -383,12 +383,14 @@ public partial class Game : IGame
     // Constructor
     // -------------------------------------------------------------------------
     private readonly IPreferences preferences;
-    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences)
+    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
+        IPreferences preferences, IGameExit gameExit)
     {
         GameService = platform;
         OpenGlService = platformOpenGl;
         SinglePlayerService = singlePlayerService;
         this.preferences = preferences;
+        this.gameExit = gameExit;
         InitCore();
         InitMap();
         InitTextures();
@@ -549,7 +551,7 @@ public partial class Game : IGame
 
     private void InitAudio()
     {
-        AudioService = new AudioService(GameService.GameExit);
+        AudioService = new AudioService(gameExit);
         Audio = new AudioControl();
     }
 }

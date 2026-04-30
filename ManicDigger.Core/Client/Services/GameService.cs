@@ -3,7 +3,6 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Common.Input;
-using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -14,15 +13,19 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 public class GameService : IGameService
 {
     #region Misc
-    public GameService()
+
+    public readonly IGameExit _gameExit;
+
+    public GameService(IGameExit gameExit)
     {
+        _gameExit = gameExit;
+        crashreporter = new CrashReporter();
         ThreadPool.SetMinThreads(32, 32);
         ThreadPool.SetMaxThreads(128, 128);
         start.Start();
     }
 
     public INetworkService NetworkService { get; set; }
-    public IGameExit GameExit { get; set; }
 
     public bool TouchTest = false;
 
@@ -191,7 +194,7 @@ public class GameService : IGameService
 
     #region Game
 
-    public GameWindow Window { get; set; }
+    public GameWindowNative Window { get; set; }
 
     public int CanvasWidth => Window.ClientSize.X;
 
@@ -222,7 +225,7 @@ public class GameService : IGameService
 
     private void WindowClosed(CancelEventArgs e)
     {
-        GameExit.Exit = e.Cancel;
+        _gameExit.Exit = e.Cancel;
     }
 
     public void SetVSync(bool enabled)
@@ -247,7 +250,7 @@ public class GameService : IGameService
 
     public void WindowExit()
     {
-        GameExit?.Exit = true;
+        _gameExit?.Exit = true;
         Window.Close();
     }
 

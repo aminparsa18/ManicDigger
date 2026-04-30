@@ -30,6 +30,7 @@ public class Program
     {
         // Register your services here
         services.AddTransient<IGameExit, GameExit>();
+        services.AddTransient<IGameService, GameService>();
         services.AddTransient<IPreferences, Preferences>();
         services.AddTransient<IOpenGlService, OpenGlService>();
         services.AddTransient<ISinglePlayerService, SinglePlayerService>(factory =>
@@ -54,7 +55,7 @@ public class Program
     private readonly DummyNetwork dummyNetwork;
     private string savefilename;
     public IGameExit exit;
-    private GameService platform;
+    private IGameService gameService;
     private ISinglePlayerService singlePlayerService;
 
     // -------------------------------------------------------------------------
@@ -68,27 +69,23 @@ public class Program
 
         Log.Debug("Initialising GamePlatformNative");
 
-        exit = ServiceProvider.GetRequiredService<IGameExit>();
-        platform = new GameService
-        {
-            crashreporter = new CrashReporter(),
-            GameExit = exit,
-        };
+        gameService = ServiceProvider.GetRequiredService<IGameService>();
 
         Log.Debug("Creating GameWindowNative");
         using GameWindowNative window = new();
-        platform.Window = window;
+        gameService.Window = window;
 
         //temporary until DI is done;
+        exit ??= ServiceProvider.GetRequiredService<IGameExit>();
         singlePlayerService = ServiceProvider.GetRequiredService<ISinglePlayerService>();
         var openGlService = ServiceProvider.GetRequiredService<IOpenGlService>();
         var preference = ServiceProvider.GetRequiredService<IPreferences>();
-        MainMenu mainmenu = new(platform, openGlService, singlePlayerService, preference);
+        MainMenu mainmenu = new(gameService, openGlService, singlePlayerService, preference, exit);
 
         mainmenu.Start();
         ReadArgs(mainmenu, args);
 
-        platform.Start();
+        gameService.Start();
         window.Run();
     }
 
@@ -107,10 +104,10 @@ public class Program
         Log.Debug("Single-player server thread started");
         DummyNetServer netServer = new(dummyNetwork);
 
-        Server server = new()
+        exit ??= ServiceProvider.GetRequiredService<IGameExit>();
+        Server server = new(exit)
         {
             SaveFilenameOverride = savefilename,
-            GameExit = exit,
             MainSockets = new NetServer[3]
         };
         server.MainSockets[0] = netServer;

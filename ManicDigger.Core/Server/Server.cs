@@ -10,11 +10,15 @@ using static ManicDigger.Mods.ModNetworkProcess;
 public partial class Server : ICurrentTime, IDropItem
 {
     private readonly IGameService gameplatform;
+    private readonly IGameExit _gameExit;
 
     public List<ServerSystem> Systems { get; set; }
 
-    public Server()
+    public Server(IGameExit gameExit)
     {
+        gameplatform = new GameService(gameExit);
+        _gameExit = gameExit;
+
         Systems =
         [
             // This ServerSystem should always be loaded first
@@ -25,10 +29,10 @@ public partial class Server : ICurrentTime, IDropItem
             new ServerSystemHttpServer(),
             new ServerSystemUnloadUnusedChunks(),
             new ServerSystemNotifyMap(),
-            new ServerSystemNotifyPing(),
+            new ServerSystemNotifyPing(gameplatform, gameExit),
             new ServerSystemChunksSimulation(),
             new ServerSystemBanList(),
-            new ServerSystemModLoader(),
+            new ServerSystemModLoader(gameExit),
             new ServerSystemLoadServerClient(),
             new ServerSystemNotifyEntities(),
             new ServerSystemMonsterWalk(),
@@ -40,13 +44,12 @@ public partial class Server : ICurrentTime, IDropItem
         // systems[systemsCount++] = new ServerSystemPermissionSign();
 
         //Load translations
-        gameplatform = new GameService();
+
         Language.LoadTranslations();
 
         MainSockets = new NetServer[3];
     }
 
-    public IGameExit GameExit { get; set; }
     public ServerMapStorage Map { get; set; }
     public BlockTypeRegistry BlockTypeRegistry { get; set; }
     public CraftingTableTool CraftingTableTool { get; set; }
@@ -290,7 +293,7 @@ public partial class Server : ICurrentTime, IDropItem
         // server monitor
         if (Config.ServerMonitor)
         {
-            this.serverMonitor = new ServerMonitor(this, GameExit);
+            this.serverMonitor = new ServerMonitor(this, _gameExit);
             this.serverMonitor.Start();
         }
 
@@ -354,24 +357,24 @@ public partial class Server : ICurrentTime, IDropItem
     public void Restart()
     {
         //Server shall exit and be restarted
-        GameExit.        //Server shall exit and be restarted
+        _gameExit.        //Server shall exit and be restarted
         Restart = true;
-        GameExit.Exit = (true);
+        _gameExit.Exit = (true);
     }
 
     public void Exit()
     {
         //Server shall be shutdown
-        GameExit.        //Server shall be shutdown
+        _gameExit.        //Server shall be shutdown
         Restart = false;
-        GameExit.Exit = (true);
+        _gameExit.Exit = (true);
     }
 
     private ServerMonitor serverMonitor;
 
     public List<string> AllPrivileges { get; set; } = [];
     public List<string> ModPaths { get; set; } = [];
-    public ModManager1 ModManager { get; set; }
+    public ModManager ModManager { get; set; }
     public string GameMode { get; set; } = "Fortress";
     public int ServerConsoleId { get; } = -1;
     public ClientOnServer ServerConsoleClient { get; set; }
@@ -600,8 +603,6 @@ public partial class Server : ICurrentTime, IDropItem
         }
         return i;
     }
-
-    public GameService Platform { get; set; } = new();
 
     private void ProcessNetMessage(NetIncomingMessage msg, NetServer mainSocket)
     {
@@ -995,7 +996,7 @@ public partial class Server : ICurrentTime, IDropItem
         switch (packet.Id)
         {
             case PacketType.PingReply:
-                Clients[clientid].Ping.Receive(Platform);
+                Clients[clientid].Ping.Receive(gameplatform);
                 Clients[clientid].LastPing = (float)Clients[clientid].Ping.RoundtripMilliseconds / 1000;
                 this.NotifyPing(clientid, Clients[clientid].Ping.RoundtripMilliseconds);
                 break;

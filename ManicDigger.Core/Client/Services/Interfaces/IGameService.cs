@@ -8,7 +8,6 @@
 public interface IGameService 
 {
     INetworkService NetworkService{ get; set; }
-    IGameExit GameExit { get; set; }
     void AddOnNewFrame(Action<float> handler);
     void AddOnKeyEvent(Action<KeyEventArgs> onKeyDown,
         Action<KeyEventArgs> onKeyUp,
@@ -65,6 +64,9 @@ public interface IGameService
     string QueryStringValue(string key);
     void SetWindowCursor(int hotx, int hoty, int sizex, int sizey, byte[] imgdata, int imgdataLength);
     void RestoreWindowCursor();
+
+    GameWindowNative Window { get; set; }
+    void Start();
 }
 
 public class OnCrashHandler

@@ -3,8 +3,15 @@ using System.Runtime.InteropServices;
 
 namespace ManicDigger;
 
-public class ModManager1 : IModManager
+public class ModManager : IModManager
 {
+    private readonly IGameExit gameExit;
+
+    public ModManager(IGameExit gameExit)
+    {
+        this.gameExit = gameExit;
+    }
+
     public int GetMaxBlockTypes()
     {
         return GlobalVar.MAX_BLOCKTYPES;
@@ -993,7 +1000,7 @@ public class ModManager1 : IModManager
         server.SendServerRedirect(player, ip, port);
     }
 
-    public bool IsShuttingDown => server.GameExit.Exit;
+    public bool IsShuttingDown => gameExit.Exit;
 
     public void RegisterCheckOnBlockBuild(ModDelegates.CheckBlockBuild f)
     {

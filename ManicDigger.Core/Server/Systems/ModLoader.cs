@@ -36,6 +36,13 @@ public class ServerSystemModLoader : ServerSystem
 
     private static readonly string[] ExtraAssemblyReferences = ["ScriptingApi.dll"];
 
+    private readonly IGameExit gameExit;
+
+    public ServerSystemModLoader(IGameExit gameExit)
+    {
+        this.gameExit = gameExit;
+    }
+
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------
@@ -107,7 +114,7 @@ public class ServerSystemModLoader : ServerSystem
     /// </param>
     private void LoadMods(Server server, bool restart)
     {
-        server.ModManager = new ModManager1();
+        server.ModManager = new ModManager(gameExit);
         var manager = server.ModManager;
         manager.Start(server);
 

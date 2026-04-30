@@ -5,11 +5,12 @@
 /// Bridges platform input events to the game, manages the singleplayer
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
-public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences) 
+public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl,
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit) 
     : ScreenBase(renderer, navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
-    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences);
+    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences, gameExit);
 
     private ConnectionData connectData;
     private bool singleplayer;

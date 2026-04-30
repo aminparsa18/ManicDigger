@@ -7,21 +7,29 @@
 public class ServerSystemNotifyPing : ServerSystem
 {
     private readonly Timer pingTimer = new() { INTERVAL = 1, MaxDeltaTime = 5 };
+    private readonly IGameService gameService;
+    private readonly IGameExit gameExit;
+
+    public ServerSystemNotifyPing(IGameService gameService, IGameExit gameExit)
+    {
+        this.gameService = gameService;
+        this.gameExit = gameExit;
+    }
 
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
     {
-        pingTimer.Update((Timer.Tick)(() =>
+        pingTimer.Update(() =>
         {
-            if (server.GameExit.Exit) return;
+            if (gameExit.Exit) return;
 
             var timedOut = new List<int>();
 
             foreach (var (clientId, client) in server.Clients)
             {
-                if (!client.Ping.Send(server.Platform.TimeMillisecondsFromStart))
+                if (!client.Ping.Send(gameService.TimeMillisecondsFromStart))
                 {
-                    if (client.Ping.CheckTimeout(server.Platform.TimeMillisecondsFromStart))
+                    if (client.Ping.CheckTimeout(gameService.TimeMillisecondsFromStart))
                     {
                         Console.WriteLine($"{clientId}: ping timeout. Disconnecting...");
                         timedOut.Add(clientId);
@@ -35,6 +43,6 @@ public class ServerSystemNotifyPing : ServerSystem
 
             foreach (int clientId in timedOut)
                 server.KillPlayer(clientId);
-        }));
+        });
     }
 }

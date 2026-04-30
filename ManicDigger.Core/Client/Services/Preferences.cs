@@ -5,7 +5,23 @@
 /// </summary>
 public class Preferences : IPreferences
 {
-    private Dictionary<string, string> items;
+    private Dictionary<string, string> items = [];
+
+    public Preferences()
+    {
+        items = [];
+        if (File.Exists(GetPreferencesFilePath()))
+        {
+            string[] lines = File.ReadAllLines(GetPreferencesFilePath());
+            foreach (string l in lines)
+            {
+                int a = l.IndexOf("=", StringComparison.InvariantCultureIgnoreCase);
+                string name = l[..a];
+                string value = l[(a + 1)..];
+                SetString(name, value);
+            }
+        }
+    }
 
     // -------------------------------------------------------------------------
     // String
@@ -71,28 +87,5 @@ public class Preferences : IPreferences
             Directory.CreateDirectory(path);
         }
         return Path.Combine(path, "Preferences.txt");
-    }
-
-    public IPreferences Instance
-    {
-        get
-        {
-            if (items != null)
-                return this;
-
-            items = [];
-            if (File.Exists(GetPreferencesFilePath()))
-            {
-                string[] lines = File.ReadAllLines(GetPreferencesFilePath());
-                foreach (string l in lines)
-                {
-                    int a = l.IndexOf("=", StringComparison.InvariantCultureIgnoreCase);
-                    string name = l[..a];
-                    string value = l[(a + 1)..];
-                    SetString(name, value);
-                }
-            }
-            return this;
-        }
     }
 }

@@ -5,11 +5,14 @@ public class ModGuiEscapeMenu : ModBase
 {
     private readonly IGame game;
     private readonly IGameService platform;
+    private readonly IPreferences preferences;
 
-    public ModGuiEscapeMenu(IGame game, IGameService platform)
+    public ModGuiEscapeMenu(IGame game, IGameService platform, IPreferences preferences)
     {
         this.game = game;
         this.platform = platform;
+        this.preferences = preferences;
+
         fonts = new string[4];
         fonts[0] = "Nice";
         fonts[1] = "Simple";
@@ -739,22 +742,22 @@ public class ModGuiEscapeMenu : ModBase
 
     private GameOption LoadOptions_()
     {
-        GameOption options = new();
-        var preferences = game.Preferences;
-                
-        options.Shadows = preferences.GetBool("Shadows", true);
-        options.Font = preferences.GetInt("Font", 0);
-        options.DrawDistance = preferences.GetInt("DrawDistance", platform.IsFastSystem() ? 128 : 32);
-        options.UseServerTextures = preferences.GetBool("UseServerTextures", true);
-        options.EnableSound = preferences.GetBool("EnableSound", true);
-        options.EnableAutoJump = preferences.GetBool("EnableAutoJump", false);
-        options.ClientLanguage = preferences.GetString("ClientLanguage", "");
-        options.Framerate = preferences.GetInt("Framerate", 0);
-        options.Resolution = preferences.GetInt("Resolution", 0);
-        options.Fullscreen = preferences.GetBool("Fullscreen", false);
-        options.Smoothshadows = preferences.GetBool("Smoothshadows", true);
-        options.BlockShadowSave = 1f * preferences.GetInt("BlockShadowSave", 70) / 100;
-        options.EnableBlockShadow = preferences.GetBool("EnableBlockShadow", true);
+        GameOption options = new()
+        {
+            Shadows = preferences.GetBool("Shadows", true),
+            Font = preferences.GetInt("Font", 0),
+            DrawDistance = preferences.GetInt("DrawDistance", platform.IsFastSystem() ? 128 : 32),
+            UseServerTextures = preferences.GetBool("UseServerTextures", true),
+            EnableSound = preferences.GetBool("EnableSound", true),
+            EnableAutoJump = preferences.GetBool("EnableAutoJump", false),
+            ClientLanguage = preferences.GetString("ClientLanguage", ""),
+            Framerate = preferences.GetInt("Framerate", 0),
+            Resolution = preferences.GetInt("Resolution", 0),
+            Fullscreen = preferences.GetBool("Fullscreen", false),
+            Smoothshadows = preferences.GetBool("Smoothshadows", true),
+            BlockShadowSave = 1f * preferences.GetInt("BlockShadowSave", 70) / 100,
+            EnableBlockShadow = preferences.GetBool("EnableBlockShadow", true)
+        };
 
         for (int i = 0; i < 256; i++)
         {
@@ -792,8 +795,6 @@ public class ModGuiEscapeMenu : ModBase
 
     private void SaveOptions_(GameOption options)
     {
-        var preferences = game.Preferences;
-
         preferences.SetBool("Shadows", options.Shadows);
         preferences.SetInt("Font", options.Font);
         preferences.SetInt("DrawDistance", options.DrawDistance);

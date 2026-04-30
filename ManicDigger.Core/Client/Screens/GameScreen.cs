@@ -6,7 +6,7 @@
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
 public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences) 
-    : ScreenBase(renderer, navigator, platform, platformOpenGl, singlePlayerService, preferences)
+    : ScreenBase(renderer, navigator, platform, platformOpenGl, singlePlayerService)
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences);

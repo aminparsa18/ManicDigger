@@ -1,6 +1,5 @@
 ﻿public interface IPreferences
 {
-    IPreferences Instance { get; }
     bool GetBool(string key, bool default_);
     int GetInt(string key, int default_);
     string GetString(string key, string default_);

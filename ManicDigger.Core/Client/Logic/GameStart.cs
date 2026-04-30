@@ -165,7 +165,7 @@ public partial class Game
         // ── GUI (topmost — rendered last) ─────────────────────────────────────
         AddMod(new ModDialog(this, GameService));
         AddMod(new ModGuiTouchButtons(this, GameService));
-        AddMod(new ModGuiEscapeMenu(this, GameService));
+        AddMod(new ModGuiEscapeMenu(this, GameService, preferences));
         AddMod(new ModGuiMapLoading(this, GameService, SinglePlayerService));
         AddMod(new ModGuiPlayerStats(this, GameService));
         AddMod(new ModGuiChat(this, GameService));

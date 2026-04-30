@@ -39,7 +39,6 @@ public partial class Game : IGame
     public IGameService GameService { get; set; }
     public IOpenGlService OpenGlService { get; set; }
     public ISinglePlayerService SinglePlayerService { get; set; }
-    public IPreferences Preferences { get; set; }
 
     public LanguageService Language { get; set; }
     public Config3d Config3d { get; set; }
@@ -383,13 +382,13 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
-
+    private readonly IPreferences preferences;
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences)
     {
         GameService = platform;
         OpenGlService = platformOpenGl;
         SinglePlayerService = singlePlayerService;
-        Preferences = preferences;
+        this.preferences = preferences;
         InitCore();
         InitMap();
         InitTextures();

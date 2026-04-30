@@ -10,14 +10,13 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 /// widget interactions. Override <see cref="Render"/> to draw screen-specific
 /// content on top of the shared widget layer.
 /// </remarks>
-public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences)
+public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService)
 {
     protected IMenuRenderer Renderer { get; set; } = renderer;
     protected IMenuNavigator Navigator { get; set; } = navigator;
     protected IGameService Platform { get; set; } = platform;
     protected IOpenGlService PlatformOpenGl { get; set; } = platformOpenGl;
     protected ISinglePlayerService SinglePlayerService { get; set; } = singlePlayerService;
-    protected IPreferences Preferences { get; set; } = preferences;
 
     /// <summary>All widgets registered to this screen, in render and hit-test order.</summary>
     protected List<MenuWidget> Widgets { get; set; } = [];

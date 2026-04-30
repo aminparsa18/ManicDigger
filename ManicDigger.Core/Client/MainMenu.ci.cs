@@ -543,14 +543,14 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <summary>Navigates to the single-player world selection screen.</summary>
     public void StartSingleplayer()
     {
-        screen = new SingleplayerScreen(this, this, _platform, _singlePlayerService, _preferences);
+        screen = new SingleplayerScreen(this, this, _platform, _singlePlayerService);
         screen.LoadTranslations();
     }
 
     /// <summary>Navigates to the multiplayer server-browser screen.</summary>
     public void StartMultiplayer()
     {
-        screen = new MultiplayerScreen(this, this, _platform, default, default, _preferences);
+        screen = new MultiplayerScreen(this, this, _platform, default, default);
         screen.LoadTranslations();
     }
 
@@ -562,7 +562,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <param name="port">Server port number.</param>
     public void StartLogin(string serverHash, string ip, int port)
     {
-        screen = new LoginScreen(this, this, _platform, _preferences)
+        screen = new LoginScreen(this, this, _platform)
         {
             serverHash = serverHash,
             serverIp = ip,

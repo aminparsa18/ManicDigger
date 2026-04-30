@@ -1,8 +1,10 @@
-﻿using Serilog;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using System.Diagnostics;
 
 public class Program
 {
+    public static IServiceProvider ServiceProvider { get; private set; }
 
     [STAThread]
     public static void Main(string[] args)
@@ -15,7 +17,19 @@ public class Program
     public Program(string[] args)
     {
         dummyNetwork = new DummyNetwork();
+
+        var serviceCollection = new ServiceCollection();
+        ConfigureServices(serviceCollection);
+
+        ServiceProvider = serviceCollection.BuildServiceProvider();
+
         Start(args);
+    }
+
+    private static void ConfigureServices(ServiceCollection services)
+    {
+        // Register your services here
+        services.AddTransient<IPreferences, Preferences>();
     }
 
     // -------------------------------------------------------------------------
@@ -27,7 +41,6 @@ public class Program
     public GameExit exit = new();
     private GameService platform;
     private ISinglePlayerService singlePlayerService;
-    private IPreferences preferences;
 
     // -------------------------------------------------------------------------
     // Startup
@@ -59,9 +72,9 @@ public class Program
                 new Thread(ServerThreadStart) { IsBackground = true }.Start();
             }
         };
-        preferences = new Preferences().Instance;
-
-        MainMenu mainmenu = new(platform, new OpenGlService(), singlePlayerService, preferences);
+        //temporary until DI is done;
+        var preference = ServiceProvider.GetRequiredService<IPreferences>();
+        MainMenu mainmenu = new(platform, new OpenGlService(), singlePlayerService, preference);
 
         mainmenu.Start();
         ReadArgs(mainmenu, args);

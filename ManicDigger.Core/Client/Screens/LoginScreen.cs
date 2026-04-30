@@ -52,8 +52,8 @@ public class LoginScreen : ScreenBase
 
     private readonly IPreferences preferences;
 
-    public LoginScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IPreferences preferences)
-        : base(renderer, navigator, platform, default, default, preferences)
+    public LoginScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform)
+        : base(renderer, navigator, platform, default, default)
     {
         this.preferences = preferences;
         // Tab chain (by list index):

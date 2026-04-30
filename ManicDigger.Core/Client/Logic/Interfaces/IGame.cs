@@ -18,7 +18,6 @@ public interface IGame
     IGameService GameService { get; set; }
 
     IOpenGlService OpenGlService { get; set; }
-    IPreferences Preferences { get; set; }
 
     /// <summary>Active localisation data.</summary>
     LanguageService Language { get; set; }

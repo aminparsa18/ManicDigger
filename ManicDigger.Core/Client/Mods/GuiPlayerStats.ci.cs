@@ -24,9 +24,9 @@ public class ModGuiPlayerStats : ModBase
     {
         if (game.GuiState == GuiState.MapLoading || game.PlayerStats == null) return;
 
-        int barY = platform.GetCanvasHeight() - 122;
-        int healthX = platform.GetCanvasWidth() / 2 - BarWidth - CenterOffset;
-        int oxygenX = platform.GetCanvasWidth() / 2 + CenterOffset;
+        int barY = platform.CanvasHeight - 122;
+        int healthX = platform.CanvasWidth / 2 - BarWidth - CenterOffset;
+        int oxygenX = platform.CanvasWidth / 2 + CenterOffset;
 
         DrawBar(healthX, barY, (float)game.PlayerStats.CurrentHealth / game.PlayerStats.MaxHealth, Red);
 

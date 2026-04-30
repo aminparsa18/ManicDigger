@@ -113,7 +113,7 @@ public class ModFpsHistoryGraph : ModBase
     {
         if (!drawFpsGraph && !drawFpsText) return;
 
-        _game.OrthoMode(_platform.GetCanvasWidth(), _platform.GetCanvasHeight());
+        _game.OrthoMode(_platform.CanvasWidth, _platform.CanvasHeight);
         if (drawFpsGraph) DrawGraph();
         if (drawFpsText) _game.Draw2dText(fpsText, new Font("Arial", ChatFontSize), 20, 20, null, false);
         _game.PerspectiveMode();
@@ -122,7 +122,7 @@ public class ModFpsHistoryGraph : ModBase
     private void DrawGraph()
     {
         int posx = GraphPosX;
-        int posy = _platform.GetCanvasHeight() - GraphHeight - 20;
+        int posy = _platform.CanvasHeight - GraphHeight - 20;
 
         int[] colors =
         [

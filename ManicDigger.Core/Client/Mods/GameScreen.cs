@@ -98,7 +98,7 @@ public class GameScreen : ModBase
                 if (Clipboard.ContainsText()) { w.text = string.Concat(w.text, Clipboard.GetText()); }
                 return;
             }
-            if (platform.IsValidTypingChar(key))
+            if (StringUtils.IsValidTypingChar(key))
             {
                 w.text = string.Concat(w.text, ((char)key).ToString());
             }

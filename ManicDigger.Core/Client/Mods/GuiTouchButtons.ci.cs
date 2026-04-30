@@ -86,8 +86,8 @@ public class ModGuiTouchButtons : GameScreen
         {
             if (game.CameraType == CameraType.Fpp || game.CameraType == CameraType.Tpp)
             {
-                game.Draw2dText1("Move", platform.GetCanvasWidth() * 5 / 100, platform.GetCanvasHeight() * 85 / 100, (int)(scale * 50), null, false);
-                game.Draw2dText1("Look", platform.GetCanvasWidth() * 80 / 100, platform.GetCanvasHeight() * 85 / 100, (int)(scale * 50), null, false);
+                game.Draw2dText1("Move", platform.CanvasWidth * 5 / 100, platform.CanvasHeight * 85 / 100, (int)(scale * 50), null, false);
+                game.Draw2dText1("Look", platform.CanvasWidth * 80 / 100, platform.CanvasHeight * 85 / 100, (int)(scale * 50), null, false);
             }
             DrawWidgets();
         }
@@ -125,7 +125,7 @@ public class ModGuiTouchButtons : GameScreen
         base.OnTouchStart(e);
         if (e.GetHandled()) { return; }
 
-        bool isLeftSide = e.GetX() <= platform.GetCanvasWidth() / 2;
+        bool isLeftSide = e.GetX() <= platform.CanvasWidth / 2;
 
         if (isLeftSide && _touchIdMove == -1)
         {
@@ -133,7 +133,7 @@ public class ModGuiTouchButtons : GameScreen
             _touchMoveStartX = e.GetX();
             _touchMoveStartY = e.GetY();
             game.TouchMoveDx = 0;
-            game.TouchMoveDy = e.GetY() < platform.GetCanvasHeight() * 50 / 100 ? 1 : 0;
+            game.TouchMoveDy = e.GetY() < platform.CanvasHeight * 50 / 100 ? 1 : 0;
         }
 
         bool isSecondFinger = _touchIdMove != -1 && e.GetId() != _touchIdMove;
@@ -153,7 +153,7 @@ public class ModGuiTouchButtons : GameScreen
             game.TouchMoveDx = e.GetX() - _touchMoveStartX;
             game.TouchMoveDy = -(e.GetY() - 1 - _touchMoveStartY);
 
-            if (e.GetY() < platform.GetCanvasHeight() * 50 / 100)
+            if (e.GetY() < platform.CanvasHeight * 50 / 100)
             {
                 // Upper half of screen — lock to forward movement only.
                 game.TouchMoveDx = 0;
@@ -172,7 +172,7 @@ public class ModGuiTouchButtons : GameScreen
 
         if (e.GetId() == _touchIdRotate)
         {
-            float sensitivity = platform.GetCanvasWidth() / 40f;
+            float sensitivity = platform.CanvasWidth / 40f;
             game.TouchOrientationDx += (e.GetX() - _touchRotateStartX) / sensitivity;
             game.TouchOrientationDy += (e.GetY() - _touchRotateStartY) / sensitivity;
             _touchRotateStartX = e.GetX();

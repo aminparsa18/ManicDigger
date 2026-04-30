@@ -5,16 +5,7 @@
 // GamePlatformNative implements this; everything else depends on it.
 // ─────────────────────────────────────────────────────────────────────────────
 
-public interface IGameService :
-    IPlatformMisc
-{
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Misc / OS / window
-// ─────────────────────────────────────────────────────────────────────────────
-
-public interface IPlatformMisc
+public interface IGameService 
 {
     INetworkService NetworkService{ get; set; }
     IGameExit GameExit { get; set; }
@@ -30,19 +21,17 @@ public interface IPlatformMisc
     void AddOnTouchEvent(Action<TouchEventArgs> onTouchStart,
         Action<TouchEventArgs> onTouchMove,
         Action<TouchEventArgs> onTouchEnd);
-    int GetCanvasWidth();
-    int GetCanvasHeight();
+    int CanvasWidth { get; }
+    int CanvasHeight { get; }
     int TimeMillisecondsFromStart { get; }
 
     void SaveScreenshot();
     Bitmap GrabScreenshot();
-    IAviWriter AviWriterCreate();
-    string PathStorage();
+    string StoragePath { get; }
+    string GameSavePath { get; }
     void SetVSync(bool enabled);
     string GetGameVersion();
-    void GzipDecompress(byte[] compressed, int compressedLength, byte[] ret);
     bool ChatLog(string servername, string p);
-    bool IsValidTypingChar(int c);
     void WindowExit();
     void MessageBoxShowError(string text, string caption);
     void SetTitle(string applicationname);
@@ -68,7 +57,6 @@ public interface IPlatformMisc
     void ExitMousePointerLock();
     bool MultithreadingAvailable();
     void QueueUserWorkItem(Action action);
-    byte[] GzipCompress(byte[] data, int dataLength);
     bool IsDebuggerAttached();
     bool IsSmallScreen();
     void OpenLinkInBrowser(string url);

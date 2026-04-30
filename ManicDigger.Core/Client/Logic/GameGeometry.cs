@@ -308,7 +308,7 @@ public partial class Game
     {
         if (!ENABLE_DRAW2D) return;
 
-        OrthoMode(GameService.GetCanvasWidth(), GameService.GetCanvasHeight());
+        OrthoMode(GameService.CanvasWidth, GameService.CanvasHeight);
 
         for (int i = 0; i < ClientMods.Count; i++)
             ClientMods[i]?.OnNewFrameDraw2d(dt);

@@ -47,7 +47,7 @@ public class ModCompass : ModBase
             needleId = game.GetTexture("compassneedle.png");
         }
 
-        float posX = platform.GetCanvasWidth() - CompassPosX;
+        float posX = platform.CanvasWidth - CompassPosX;
         float posY = CompassPosY;
         float playerOrientation = -(game.Player.position.roty / (2 * MathF.PI)) * 360f;
 

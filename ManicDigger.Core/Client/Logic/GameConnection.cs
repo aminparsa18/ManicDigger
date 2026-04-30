@@ -54,7 +54,7 @@ public partial class Game
 
     private void SendGameResolution()
     {
-        SendPacketClient(ClientPackets.GameResolution(GameService.GetCanvasWidth(), GameService.GetCanvasHeight()));
+        SendPacketClient(ClientPackets.GameResolution(GameService.CanvasWidth, GameService.CanvasHeight));
     }
 
     public void SendLeave(PacketLeaveReason reason)

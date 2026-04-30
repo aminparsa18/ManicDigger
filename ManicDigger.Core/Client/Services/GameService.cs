@@ -7,7 +7,6 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
@@ -27,7 +26,7 @@ public class GameService : IGameService
 
     public bool TouchTest = false;
 
-    public static string PathSavegames => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+    public string GameSavePath { get; } = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
     private readonly Stopwatch start = new();
 
@@ -35,76 +34,31 @@ public class GameService : IGameService
 
     public bool IsMono = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
-    public IAviWriter AviWriterCreate()
-    {
-        AviWriterCiCs avi = new();
-        return avi;
-    }
-
-    public string PathStorage()
-    {
-        return GameStorePath.GetStorePath();
-    }
+    public string StoragePath { get; } = GameStorePath.GetStorePath();
 
     public string GetGameVersion()
     {
         return GameVersion.Version;
     }
 
-    public void GzipDecompress(byte[] compressed, int compressedLength, byte[] ret)
-    {
-        // MemoryStream(byte[], int, int) wraps the existing array without copying.
-        // GZipStream reads from it and writes the decompressed bytes directly into
-        // ret via the Read loop — no intermediate byte[] allocation at any point.
-        using var source = new MemoryStream(compressed, 0, compressedLength, writable: false);
-        using var gz = new GZipStream(source, CompressionMode.Decompress);
+    public string GameLogsPath => Path.Combine(StoragePath, "Logs");
 
-        int totalRead = 0;
-        int bytesRead;
-        while ((bytesRead = gz.Read(ret, totalRead, ret.Length - totalRead)) > 0)
-            totalRead += bytesRead;
-    }
-
-    public byte[] GzipCompress(byte[] data, int dataLength)
-    {
-        using var output = new MemoryStream();
-        using (var gz = new GZipStream(output, CompressionMode.Compress, leaveOpen: true))
-            gz.Write(data, 0, dataLength);
-        // GZipStream must be disposed (flushed) before reading — leaveOpen keeps
-        // output accessible after gz is done writing the GZip footer.
-        byte[] result = output.ToArray();
-        return result;
-    }
-
-    public bool ENABLE_CHATLOG = true;
-    public string gamepathlogs() { return Path.Combine(PathStorage(), "Logs"); }
     private static string MakeValidFileName(string name)
     {
         string invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
         string invalidReStr = string.Format(@"[{0}]", invalidChars);
         return Regex.Replace(name, invalidReStr, "_");
     }
+
     public bool ChatLog(string servername, string p)
     {
-        if (!ENABLE_CHATLOG)
+        if (!Directory.Exists(GameLogsPath))
         {
-            return true;
+            Directory.CreateDirectory(GameLogsPath);
         }
-        if (!Directory.Exists(gamepathlogs()))
-        {
-            Directory.CreateDirectory(gamepathlogs());
-        }
-        string filename = Path.Combine(gamepathlogs(), MakeValidFileName(servername) + ".txt");
+        string filename = Path.Combine(GameLogsPath, MakeValidFileName(servername) + ".txt");
         File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
         return true;
-    }
-
-    public bool IsValidTypingChar(int c_)
-    {
-        char c = (char)c_;
-        return (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)
-                    || char.IsPunctuation(c) || char.IsSeparator(c) || char.IsSymbol(c))
-                    && c != '\r' && c != '\t';
     }
 
     public void MessageBoxShowError(string text, string caption)
@@ -218,7 +172,7 @@ public class GameService : IGameService
         Process.Start(url);
     }
 
-    public string Cachepath() { return Path.Combine(PathStorage(), "Cache"); }
+    public string Cachepath() { return Path.Combine(StoragePath, "Cache"); }
     public void Checkcachedir()
     {
         if (!Directory.Exists(Cachepath()))
@@ -280,15 +234,9 @@ public class GameService : IGameService
 
     public GameWindow Window { get; set; }
 
-    public int GetCanvasWidth()
-    {
-        return Window.ClientSize.X;
-    }
+    public int CanvasWidth => Window.ClientSize.X;
 
-    public int GetCanvasHeight()
-    {
-        return Window.ClientSize.Y;
-    }
+    public int CanvasHeight => Window.ClientSize.Y;
 
     public void Start()
     {
@@ -681,7 +629,7 @@ public class GameService : IGameService
 
     private void GameTextInput(TextInputEventArgs e)
     {
-        var args = new KeyPressEventArgs { KeyChar = e.Unicode };
+        var args = new KeyPressEventArgs { KeyChar = (char)e.Unicode };
         foreach (var h in KeyPressHandlers)
         {
             h(args);
@@ -693,7 +641,7 @@ public class GameService : IGameService
     {
         KeyEventArgs args = new()
         {
-            KeyChar = (int)(e.Key),
+            KeyChar = (int)e.Key,
             CtrlPressed = e.Modifiers == KeyModifiers.Control,
             ShiftPressed = e.Modifiers == KeyModifiers.Shift,
             AltPressed = e.Modifiers == KeyModifiers.Alt
@@ -707,7 +655,7 @@ public class GameService : IGameService
 
     private void GameKeyUp(KeyboardKeyEventArgs e)
     {
-        KeyEventArgs args = new() { KeyChar = (int)(e.Key) };
+        KeyEventArgs args = new() { KeyChar = (int)e.Key };
         foreach (var h in KeyUpHandlers)
         {
             h(args);

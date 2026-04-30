@@ -16,6 +16,12 @@
         }
     }
 
+    public static bool IsValidTypingChar(int c_)
+    {
+        char c = (char)c_;
+        return !char.IsControl(c) && c != '\t' && c != '\r';
+    }
+
     public static bool IsChecksum(string checksum)
     {
         //Check if checksum string has correct length

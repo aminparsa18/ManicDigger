@@ -141,11 +141,11 @@ public class ModGuiChat : ModBase
         }
         if (platform.IsSmallScreen())
         {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (platform.GetCanvasHeight() / 2) - 100 * game.Scale(), null, true);
+            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (platform.CanvasHeight / 2) - 100 * game.Scale(), null, true);
         }
         else
         {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), platform.GetCanvasHeight() - 100 * game.Scale(), null, true);
+            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), platform.CanvasHeight - 100 * game.Scale(), null, true);
         }
     }
 
@@ -309,7 +309,7 @@ public class ModGuiChat : ModBase
         if (game.GuiTyping == TypingState.Typing)
         {
             int c = eKeyChar;
-            if (platform.IsValidTypingChar(c))
+            if (StringUtils.IsValidTypingChar(c))
             {
                 game.GuiTypingBuffer = string.Concat(game.GuiTypingBuffer, (char)c);
             }

@@ -30,17 +30,17 @@ public partial class Game : IMeshDrawer
     // ── Screen / layout helpers ───────────────────────────────────────────────
 
     /// <summary>Returns the X coordinate that centres a region of <paramref name="width"/> pixels.</summary>
-    public int Xcenter(float width) => GameService.GetCanvasWidth() / 2 - (int)width / 2;
+    public int Xcenter(float width) => GameService.CanvasWidth / 2 - (int)width / 2;
 
     /// <summary>Returns the Y coordinate that centres a region of <paramref name="height"/> pixels.</summary>
-    public int Ycenter(float height) => GameService.GetCanvasHeight() / 2 - (int)height / 2;
+    public int Ycenter(float height) => GameService.CanvasHeight / 2 - (int)height / 2;
 
     /// <summary>
     /// UI scale factor. Returns a width-relative scale on small screens
     /// (mobile) and 1 on desktop.
     /// </summary>
     public float Scale() =>
-        GameService.IsSmallScreen() ? GameService.GetCanvasWidth() / 1280f : 1f;
+        GameService.IsSmallScreen() ? GameService.CanvasWidth / 1280f : 1f;
 
     // ── Projection ────────────────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ public partial class Game : IMeshDrawer
     /// </summary>
     public void Set3dProjection(float zfar, float fov)
     {
-        float aspect = GameService.GetCanvasWidth() / (float)GameService.GetCanvasHeight();
+        float aspect = GameService.CanvasWidth / (float)GameService.CanvasHeight;
         Matrix4.CreatePerspectiveFieldOfView(fov, aspect, znear, zfar, out Matrix4 projection);
         CameraMatrix.LastProjectionMatrix = projection;
         GLMatrixModeProjection();

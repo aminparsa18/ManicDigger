@@ -270,8 +270,8 @@ public class ModAutoCamera : ModBase
             _avi.Open(
                 $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.avi",
                 Framerate,
-                _platform.GetCanvasWidth(),
-                _platform.GetCanvasHeight());
+                _platform.                CanvasWidth,
+                _platform.                CanvasHeight);
         }
 
         if (arguments.Length >= 2)

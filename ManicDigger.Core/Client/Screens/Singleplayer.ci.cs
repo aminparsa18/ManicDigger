@@ -84,10 +84,10 @@ public class SingleplayerScreen : ScreenBase
         float scale = Renderer.GetScale();
 
         Renderer.DrawBackground();
-        Renderer.DrawText(title, 20 * scale, Platform.GetCanvasWidth() / 2, 10, TextAlign.Center, TextBaseline.Top);
+        Renderer.DrawText(title, 20 * scale, Platform.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
 
-        float leftx = Platform.GetCanvasWidth() / 2 - 128 * scale;
-        float y = Platform.GetCanvasHeight() / 2 + 0 * scale;
+        float leftx = Platform.CanvasWidth / 2 - 128 * scale;
+        float y = Platform.CanvasHeight / 2 + 0 * scale;
 
         play.x = leftx;
         play.y = y + 100 * scale;
@@ -108,7 +108,7 @@ public class SingleplayerScreen : ScreenBase
         modify.fontSize = 14 * scale;
 
         back.x = 40 * scale;
-        back.y = Platform.GetCanvasHeight() - 104 * scale;
+        back.y = Platform.CanvasHeight - 104 * scale;
         back.sizex = 256 * scale;
         back.sizey = 64 * scale;
         back.fontSize = 14 * scale;
@@ -156,7 +156,7 @@ public class SingleplayerScreen : ScreenBase
         {
             Renderer.DrawText(
                 "Singleplayer is only available on desktop (Windows, Linux, Mac) version of game.",
-                16 * scale, Platform.GetCanvasWidth() / 2, Platform.GetCanvasHeight() / 2,
+                16 * scale, Platform.CanvasWidth / 2, Platform.CanvasHeight / 2,
                 TextAlign.Center, TextBaseline.Middle);
         }
     }
@@ -166,13 +166,13 @@ public class SingleplayerScreen : ScreenBase
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Scans <see cref="GameService.PathSavegames"/> for <c>.mddbs</c> files
+    /// Scans <see cref="GameService.GameSavePath"/> for <c>.mddbs</c> files
     /// and returns their paths. Files without the expected extension are excluded.
     /// </summary>
     /// <returns>List of fully-qualified paths to every discovered <c>.mddbs</c> save file.</returns>
-    private static List<string> GetSaveGames()
+    private List<string> GetSaveGames()
     {
-        string[] files = FileHelper.DirectoryGetFiles(GameService.PathSavegames);
+        string[] files = FileHelper.DirectoryGetFiles(Platform.GameSavePath);
         List<string> savegames = [];
 
         foreach (string file in files)
@@ -225,7 +225,7 @@ public class SingleplayerScreen : ScreenBase
         if (w == open)
         {
             string extension = SinglePlayerService.SinglePlayerServerAvailable() ? "mddbs" : "mdss";
-            string result = Platform.FileOpenDialog(extension, "Manic Digger Savegame", GameService.PathSavegames);
+            string result = Platform.FileOpenDialog(extension, "Manic Digger Savegame", Platform.GameSavePath);
             if (result != null)
             {
                 Navigator.ConnectToSingleplayer(result);

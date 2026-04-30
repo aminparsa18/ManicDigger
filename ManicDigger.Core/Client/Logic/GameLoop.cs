@@ -176,8 +176,8 @@ public partial class Game
     /// </summary>
     private void UpdateResize()
     {
-        int w = GameService.GetCanvasWidth();
-        int h = GameService.GetCanvasHeight();
+        int w = GameService.CanvasWidth;
+        int h = GameService.CanvasHeight;
         if (lastWidth == w && lastHeight == h) return;
 
         lastWidth = w;
@@ -188,7 +188,7 @@ public partial class Game
     /// <summary>Updates the OpenGL viewport and projection matrix after a resize.</summary>
     internal void OnResize()
     {
-        OpenGlService.GlViewport(0, 0, GameService.GetCanvasWidth(), GameService.GetCanvasHeight());
+        OpenGlService.GlViewport(0, 0, GameService.CanvasWidth, GameService.CanvasHeight);
         Set3dProjection2();
         if (sendResize)
             SendGameResolution();

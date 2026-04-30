@@ -79,8 +79,8 @@ public class ConnectionScreen : ScreenBase
 
         Renderer.DrawBackground();
 
-        float leftx = Platform.GetCanvasWidth() / 2 - 400 * scale;
-        float y = Platform.GetCanvasHeight() / 2 - 250 * scale;
+        float leftx = Platform.CanvasWidth / 2 - 400 * scale;
+        float y = Platform.CanvasHeight / 2 - 250 * scale;
 
         if (errorText != null)
         {
@@ -94,7 +94,7 @@ public class ConnectionScreen : ScreenBase
         LayoutWidget(buttonConnect, leftx, y + 400 * scale, 256, 64, scale);
 
         buttonBack.x = 40 * scale;
-        buttonBack.y = Platform.GetCanvasHeight() - 104 * scale;
+        buttonBack.y = Platform.CanvasHeight - 104 * scale;
         buttonBack.sizex = 256 * scale;
         buttonBack.sizey = 64 * scale;
         buttonBack.fontSize = 14 * scale;

@@ -120,9 +120,9 @@ public class LoginScreen : ScreenBase
 
         Renderer.DrawBackground();
 
-        float leftx = Platform.GetCanvasWidth() / 2 - 400 * scale;
-        float rightx = Platform.GetCanvasWidth() / 2 + 150 * scale;
-        float y = Platform.GetCanvasHeight() / 2 - 250 * scale;
+        float leftx = Platform.CanvasWidth / 2 - 400 * scale;
+        float rightx = Platform.CanvasWidth / 2 + 150 * scale;
+        float y = Platform.CanvasHeight / 2 - 250 * scale;
 
         string loginResultText = loginResult switch
         {
@@ -155,7 +155,7 @@ public class LoginScreen : ScreenBase
         buttonCreateAccount.visible = false;
 
         buttonBack.x = 40 * scale;
-        buttonBack.y = Platform.GetCanvasHeight() - 104 * scale;
+        buttonBack.y = Platform.CanvasHeight - 104 * scale;
         buttonBack.sizex = 256 * scale;
         buttonBack.sizey = 64 * scale;
         buttonBack.fontSize = 14 * scale;

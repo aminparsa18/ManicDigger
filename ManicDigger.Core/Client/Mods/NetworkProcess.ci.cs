@@ -10,8 +10,8 @@
 //The split exists because chunk decompression is expensive and safe to do off the main thread,
 //while UI/game-state mutations must happen on the main thread
 
-using MemoryPack;
 using System.Buffers;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 
 namespace ManicDigger.Mods;
@@ -36,7 +36,6 @@ public class ModNetworkProcess : ModBase
     private readonly int[] receivedchunk;
     private readonly byte[] decompressedchunk;
 
-    // ── Fix #6: instance field instead of static ──────────────────────────────
     // Was static — safe today because ProcessPacket runs on the main thread,
     // but fragile if a second instance ever ran concurrently. Instance field
     // makes the threading contract explicit.
@@ -108,7 +107,7 @@ public class ModNetworkProcess : ModBase
 
                     if (compressedLength != 0)
                     {
-                        _platform.GzipDecompress(CurrentChunk, compressedLength, decompressedchunk);
+                        GzipDecompress(CurrentChunk, compressedLength, decompressedchunk);
 
                         int i = 0;
                         for (int zz = 0; zz < p.SizeZ; zz++)
@@ -134,7 +133,7 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.HeightmapChunk:
                 {
                     Packet_ServerHeightmapChunk p = packet.HeightmapChunk;
-                    _platform.GzipDecompress(
+                    GzipDecompress(
                         p.CompressedHeightmap, p.CompressedHeightmap.Length, decompressedchunk);
                     ReadOnlySpan<ushort> heights = MemoryMarshal.Cast<byte, ushort>(
                         decompressedchunk.AsSpan(0, p.SizeX * p.SizeY * 2));
@@ -146,6 +145,20 @@ public class ModNetworkProcess : ModBase
                     break;
                 }
         }
+    }
+
+    private static void GzipDecompress(byte[] compressed, int compressedLength, byte[] ret)
+    {
+        // MemoryStream(byte[], int, int) wraps the existing array without copying.
+        // GZipStream reads from it and writes the decompressed bytes directly into
+        // ret via the Read loop — no intermediate byte[] allocation at any point.
+        using var source = new MemoryStream(compressed, 0, compressedLength, writable: false);
+        using var gz = new GZipStream(source, CompressionMode.Decompress);
+
+        int totalRead = 0;
+        int bytesRead;
+        while ((bytesRead = gz.Read(ret, totalRead, ret.Length - totalRead)) > 0)
+            totalRead += bytesRead;
     }
 
     // a private Handle*() method to make this switch a clean dispatch table

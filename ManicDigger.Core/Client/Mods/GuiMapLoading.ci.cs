@@ -30,8 +30,8 @@ public class ModGuiMapLoading : ModBase
     {
         if (game.GuiState != GuiState.MapLoading) return;
 
-        int width = platform.GetCanvasWidth();
-        int height = platform.GetCanvasHeight();
+        int width = platform.CanvasWidth;
+        int height = platform.CanvasHeight;
         int centerY = height / 2;
 
         DrawBackground(width, height);

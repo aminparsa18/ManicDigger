@@ -853,8 +853,8 @@ public class ModPicking : ModBase
         int mouseX, mouseY;
         if (game.CameraType == CameraType.Fpp || game.CameraType == CameraType.Tpp)
         {
-            mouseX = platform.GetCanvasWidth() / 2;
-            mouseY = platform.GetCanvasHeight() / 2;
+            mouseX = platform.CanvasWidth / 2;
+            mouseY = platform.CanvasHeight / 2;
         }
         else
         {
@@ -871,10 +871,10 @@ public class ModPicking : ModBase
 
         _tempViewport[0] = 0;
         _tempViewport[1] = 0;
-        _tempViewport[2] = platform.GetCanvasWidth();
-        _tempViewport[3] = platform.GetCanvasHeight();
+        _tempViewport[2] = platform.CanvasWidth;
+        _tempViewport[3] = platform.CanvasHeight;
 
-        int flippedY = platform.GetCanvasHeight() - mouseY;
+        int flippedY = platform.CanvasHeight - mouseY;
         VectorUtils.UnProject(mouseX, flippedY, 1, game.mvMatrix.Peek(), game.pMatrix.Peek(), _tempViewport, out Vector3 rayEnd);
         VectorUtils.UnProject(mouseX, flippedY, 0, game.mvMatrix.Peek(), game.pMatrix.Peek(), _tempViewport, out Vector3 rayStart);
 

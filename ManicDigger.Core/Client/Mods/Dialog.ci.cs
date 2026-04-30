@@ -32,8 +32,8 @@ public class ModDialog : ModBase
             VisibleDialog d = game.Dialogs[i];
             if (d == null) continue;
 
-            d.screen.screenx = platform.GetCanvasWidth() / 2 - d.value.Width / 2;
-            d.screen.screeny = platform.GetCanvasHeight() / 2 - d.value.Height / 2;
+            d.screen.screenx = platform.CanvasWidth / 2 - d.value.Width / 2;
+            d.screen.screeny = platform.CanvasHeight / 2 - d.value.Height / 2;
             d.screen.DrawWidgets();
         }
     }

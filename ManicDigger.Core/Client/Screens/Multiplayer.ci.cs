@@ -138,42 +138,42 @@ public class MultiplayerScreen : ScreenBase
         float scale = Renderer.GetScale();
 
         back.x = 40 * scale;
-        back.y = Platform.GetCanvasHeight() - 104 * scale;
+        back.y = Platform.CanvasHeight - 104 * scale;
         back.sizex = 256 * scale;
         back.sizey = 64 * scale;
         back.fontSize = 14 * scale;
 
-        connect.x = Platform.GetCanvasWidth() / 2 - 300 * scale;
-        connect.y = Platform.GetCanvasHeight() - 104 * scale;
+        connect.x = Platform.CanvasWidth / 2 - 300 * scale;
+        connect.y = Platform.CanvasHeight - 104 * scale;
         connect.sizex = 256 * scale;
         connect.sizey = 64 * scale;
         connect.fontSize = 14 * scale;
 
-        connectToIp.x = Platform.GetCanvasWidth() / 2 - 0 * scale;
-        connectToIp.y = Platform.GetCanvasHeight() - 104 * scale;
+        connectToIp.x = Platform.CanvasWidth / 2 - 0 * scale;
+        connectToIp.y = Platform.CanvasHeight - 104 * scale;
         connectToIp.sizex = 256 * scale;
         connectToIp.sizey = 64 * scale;
         connectToIp.fontSize = 14 * scale;
 
-        refresh.x = Platform.GetCanvasWidth() / 2 + 350 * scale;
-        refresh.y = Platform.GetCanvasHeight() - 104 * scale;
+        refresh.x = Platform.CanvasWidth / 2 + 350 * scale;
+        refresh.y = Platform.CanvasHeight - 104 * scale;
         refresh.sizex = 256 * scale;
         refresh.sizey = 64 * scale;
         refresh.fontSize = 14 * scale;
 
-        pageUp.x = Platform.GetCanvasWidth() - 94 * scale;
+        pageUp.x = Platform.CanvasWidth - 94 * scale;
         pageUp.y = 100 * scale + (serversPerPage - 1) * 70 * scale;
         pageUp.sizex = 64 * scale;
         pageUp.sizey = 64 * scale;
         pageUp.image = "serverlist_nav_down.png";
 
-        pageDown.x = Platform.GetCanvasWidth() - 94 * scale;
+        pageDown.x = Platform.CanvasWidth - 94 * scale;
         pageDown.y = 100 * scale;
         pageDown.sizex = 64 * scale;
         pageDown.sizey = 64 * scale;
         pageDown.image = "serverlist_nav_up.png";
 
-        loggedInName.x = Platform.GetCanvasWidth() - 228 * scale;
+        loggedInName.x = Platform.CanvasWidth - 228 * scale;
         loggedInName.y = 32 * scale;
         loggedInName.sizex = 128 * scale;
         loggedInName.sizey = 32 * scale;
@@ -187,7 +187,7 @@ public class MultiplayerScreen : ScreenBase
         }
         logout.visible = loggedInName.text != "";
 
-        logout.x = Platform.GetCanvasWidth() - 228 * scale;
+        logout.x = Platform.CanvasWidth - 228 * scale;
         logout.y = 62 * scale;
         logout.sizex = 128 * scale;
         logout.sizey = 32 * scale;
@@ -195,8 +195,8 @@ public class MultiplayerScreen : ScreenBase
         logout.text = "Logout";
 
         Renderer.DrawBackground();
-        Renderer.DrawText(title, 20 * scale, Platform.GetCanvasWidth() / 2, 10, TextAlign.Center, TextBaseline.Top);
-        Renderer.DrawText((page + 1).ToString(), 14 * scale, Platform.GetCanvasWidth() - 68 * scale, Platform.GetCanvasHeight() / 2, TextAlign.Center, TextBaseline.Middle);
+        Renderer.DrawText(title, 20 * scale, Platform.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
+        Renderer.DrawText((page + 1).ToString(), 14 * scale, Platform.CanvasWidth - 68 * scale, Platform.CanvasHeight / 2, TextAlign.Center, TextBaseline.Middle);
 
         if (loading)
         {
@@ -209,7 +209,7 @@ public class MultiplayerScreen : ScreenBase
             serverButtons[i].visible = false;
         }
 
-        serversPerPage = (int)((Platform.GetCanvasHeight() - (2 * 100 * scale)) / 70 * scale);
+        serversPerPage = (int)((Platform.CanvasHeight - (2 * 100 * scale)) / 70 * scale);
         if (serversPerPage <= 0)
         {
             // Do not let this get negative
@@ -239,7 +239,7 @@ public class MultiplayerScreen : ScreenBase
             serverButtons[i].text = t;
             serverButtons[i].x = 100 * scale;
             serverButtons[i].y = 100 * scale + i * 70 * scale;
-            serverButtons[i].sizex = Platform.GetCanvasWidth() - 200 * scale;
+            serverButtons[i].sizex = Platform.CanvasWidth - 200 * scale;
             serverButtons[i].sizey = 64 * scale;
             serverButtons[i].visible = true;
             serverButtons[i].buttonStyle = ButtonStyle.ServerEntry;

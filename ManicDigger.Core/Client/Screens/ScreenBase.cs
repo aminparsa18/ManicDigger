@@ -110,7 +110,7 @@ public class ScreenBase(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
         {
             if (w.type != UIWidgetType.Textbox || !w.editing) { continue; }
 
-            if (Platform.IsValidTypingChar(e.KeyChar))
+            if (StringUtils.IsValidTypingChar(e.KeyChar))
             {
                 w.text = string.Concat(w.text, (char)e.KeyChar);
             }

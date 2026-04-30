@@ -92,10 +92,10 @@ public class ModGuiInventory : ModBase
     }
 
     /// <summary>Returns the screen X coordinate of the inventory background's left edge.</summary>
-    public int InventoryStartX() => platform.GetCanvasWidth() / 2 - 560 / 2;
+    public int InventoryStartX() => platform.CanvasWidth / 2 - 560 / 2;
 
     /// <summary>Returns the screen Y coordinate of the inventory background's top edge.</summary>
-    public int InventoryStartY() => platform.GetCanvasHeight() / 2 - 600 / 2;
+    public int InventoryStartY() => platform.CanvasHeight / 2 - 600 / 2;
 
     /// <summary>Returns the screen X coordinate of the top-left inventory cell.</summary>
     public int CellsStartX() => 33 + InventoryStartX();
@@ -108,8 +108,8 @@ public class ModGuiInventory : ModBase
 
     private int MaterialSelectorStartX() => (int)(MaterialSelectorBgStartX() + 17 * game.Scale());
     private int MaterialSelectorStartY() => (int)(MaterialSelectorBgStartY() + 17 * game.Scale());
-    private int MaterialSelectorBgStartX() => (int)(platform.GetCanvasWidth() / 2 - 512 / 2 * game.Scale());
-    private int MaterialSelectorBgStartY() => (int)(platform.GetCanvasHeight() - 90 * game.Scale());
+    private int MaterialSelectorBgStartX() => (int)(platform.CanvasWidth / 2 - 512 / 2 * game.Scale());
+    private int MaterialSelectorBgStartY() => (int)(platform.CanvasHeight - 90 * game.Scale());
 
     private int ScrollButtonSize() => CellDrawSize;
     private int ScrollUpButtonX() => CellsStartX() + _cellCountInPageX * CellDrawSize;
@@ -403,8 +403,8 @@ public class ModGuiInventory : ModBase
         int w = tw + CellDrawSize * sizex;
         int h = th < CellDrawSize * sizey + 4 ? CellDrawSize * sizey + 4 : th;
 
-        screenposX = Math.Clamp(screenposX, w + 20, platform.GetCanvasWidth() - (w + 20));
-        screenposY = Math.Clamp(screenposY, h + 20, platform.GetCanvasHeight() - (h + 20));
+        screenposX = Math.Clamp(screenposX, w + 20, platform.CanvasWidth - (w + 20));
+        screenposY = Math.Clamp(screenposY, h + 20, platform.CanvasHeight - (h + 20));
 
         // Black border, grey fill.
         game.Draw2dTexture(game.GetOrCreateWhiteTexture(), screenposX - w, screenposY - h, w, h, null, 0, ColorUtils.ColorFromArgb(255, 0, 0, 0), false);

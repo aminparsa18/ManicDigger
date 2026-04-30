@@ -12,10 +12,10 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     // -------------------------------------------------------------------------
 
     /// <summary>The key char code for 'F' (uppercase), used to cycle texture filters.</summary>
-    private const int KeyF_Upper = 70;
+    private const char KeyF_Upper = 'F';
 
     /// <summary>The key char code for 'f' (lowercase), used to cycle texture filters.</summary>
-    private const int KeyF_Lower = 102;
+    private const char KeyF_Lower = 'f';
 
     /// <summary>The key char code for backtick '`', used to trigger back navigation.</summary>
     private const int KeyBacktick = 96;
@@ -196,8 +196,8 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
             _platformOpenGl.GlEnableDepthTest();
         }
 
-        viewportWidth = _platform.GetCanvasWidth();
-        viewportHeight = _platform.GetCanvasHeight();
+        viewportWidth = _platform.CanvasWidth;
+        viewportHeight = _platform.CanvasHeight;
 
         DrawScene(dt);
         Animate(dt);
@@ -220,8 +220,8 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
         _platformOpenGl.GlDisableCullFace();
 
         Matrix4.CreateOrthographicOffCenter(
-            0, _platform.GetCanvasWidth(),
-            _platform.GetCanvasHeight(), 0,
+            0, _platform.CanvasWidth,
+            _platform.            CanvasHeight, 0,
             0, 10,
             out pMatrix);
 
@@ -307,8 +307,8 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     {
         BackgroundW = BackgroundTileSize;
         BackgroundH = BackgroundTileSize;
-        WindowX = _platform.GetCanvasWidth();
-        WindowY = _platform.GetCanvasHeight();
+        WindowX = _platform.CanvasWidth;
+        WindowY = _platform.CanvasHeight;
 
         int countX = (int)((WindowX + 2 * overlap) / BackgroundW) + 1;
         int countY = (int)((WindowY + 2 * overlap) / BackgroundH) + 1;
@@ -525,7 +525,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// </summary>
     public float GetScale() =>
         _platform.IsSmallScreen()
-            ? _platform.GetCanvasWidth() / 1280f
+            ? _platform.CanvasWidth / 1280f
             : 1f;
 
     // -------------------------------------------------------------------------

@@ -132,13 +132,13 @@ public class ModDraw2dMisc : ModBase
         if (game.CurrentAimRadius() > 1)
         {
             float fov_ = game.CurrentFov();
-            game.Circle3i(platform.GetCanvasWidth() / 2, platform.GetCanvasHeight() / 2,
+            game.Circle3i(platform.CanvasWidth / 2, platform.CanvasHeight / 2,
                 game.CurrentAimRadius() * game.CurrentFov() / fov_);
         }
 
         game.Draw2dBitmapFile("target.png",
-            platform.GetCanvasWidth() / 2 - AimSize / 2,
-            platform.GetCanvasHeight() / 2 - AimSize / 2,
+            platform.            CanvasWidth / 2 - AimSize / 2,
+            platform.            CanvasHeight / 2 - AimSize / 2,
             AimSize, AimSize);
     }
 
@@ -166,15 +166,15 @@ public class ModDraw2dMisc : ModBase
             ? ColorUtils.ColorFromArgb(255, 255, 0, 0)
             : ColorUtils.ColorFromArgb(255, 255, 255, 255);
 
-        game.Draw2dText1(s, platform.GetCanvasWidth() - game.TextSizeWidth(s, 18) - 50,
-            platform.GetCanvasWidth() - game.TextSizeHeight(s, 18) - 50, 18, color, false);
+        game.Draw2dText1(s, platform.CanvasWidth - game.TextSizeWidth(s, 18) - 50,
+            platform.            CanvasWidth - game.TextSizeHeight(s, 18) - 50, 18, color, false);
 
         if (loaded == 0)
         {
             const string PressR = "Press R to reload"; // TODO: move to game.language
             game.Draw2dText1(PressR,
-                platform.GetCanvasWidth() - game.TextSizeWidth(PressR, 14) - 50,
-                platform.GetCanvasHeight() - game.TextSizeHeight(s, 14) - 80,
+                platform.                CanvasWidth - game.TextSizeWidth(PressR, 14) - 50,
+                platform.                CanvasHeight - game.TextSizeHeight(s, 14) - 80,
                 14, ColorUtils.ColorFromArgb(255, 255, 0, 0), false);
         }
     }
@@ -217,13 +217,13 @@ public class ModDraw2dMisc : ModBase
         if (game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
             return;
 
-        game.Draw2dBitmapFile("disconnected.png", platform.GetCanvasWidth() - 100, 50, 50, 50);
+        game.Draw2dBitmapFile("disconnected.png", platform.CanvasWidth - 100, 50, 50, 50);
 
         game.Draw2dText1(((int)lagSeconds).ToString(),
-            platform.GetCanvasWidth() - 100, 50 + 50 + 10, 12, null, false);
+            platform.            CanvasWidth - 100, 50 + 50 + 10, 12, null, false);
 
         const string Reconnect = "Press F6 to reconnect";
         game.Draw2dText1(Reconnect,
-            platform.GetCanvasWidth() / 2 - 200 / 2, 50, 12, null, false);
+            platform.            CanvasWidth / 2 - 200 / 2, 50, 12, null, false);
     }
 }

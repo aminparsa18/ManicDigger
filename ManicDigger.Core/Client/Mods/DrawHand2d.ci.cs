@@ -22,7 +22,7 @@ public class ModDrawHand2d : ModBase
         string img = HandImage2d();
         if (img == null) return;
 
-        game.OrthoMode(platform.GetCanvasWidth(), platform.GetCanvasHeight());
+        game.OrthoMode(platform.CanvasWidth, platform.CanvasHeight);
 
         if (lastHandImage != img)
         {
@@ -36,7 +36,7 @@ public class ModDrawHand2d : ModBase
             }
         }
 
-        game.Draw2dTexture(game.handTexture, platform.GetCanvasWidth() / 2, platform.GetCanvasHeight() - 512, 512, 512, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
+        game.Draw2dTexture(game.handTexture, platform.CanvasWidth / 2, platform.CanvasHeight - 512, 512, 512, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
         game.PerspectiveMode();
     }
 

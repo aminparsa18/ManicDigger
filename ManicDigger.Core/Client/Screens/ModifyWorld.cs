@@ -33,10 +33,10 @@ public class ModifyWorldScreen : ScreenBase
         float scale = Renderer.GetScale();
 
         Renderer.DrawBackground();
-        Renderer.DrawText(title, 14 * scale, Platform.GetCanvasWidth() / 2, 0, TextAlign.Center, TextBaseline.Top);
+        Renderer.DrawText(title, 14 * scale, Platform.CanvasWidth / 2, 0, TextAlign.Center, TextBaseline.Top);
 
         buttonBack.x = 40 * scale;
-        buttonBack.y = Platform.GetCanvasHeight() - 104 * scale;
+        buttonBack.y = Platform.CanvasHeight - 104 * scale;
         buttonBack.sizex = 256 * scale;
         buttonBack.sizey = 64 * scale;
         buttonBack.fontSize = 14 * scale;

@@ -6,9 +6,9 @@
 /// </summary>
 public class ModPush : ModBase
 {
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModPush(IGameClient game)
+    public ModPush(IGame game)
     {
         this.game = game;
     }

@@ -13,7 +13,7 @@ public class ServerSystemNotifyPing : ServerSystem
     {
         pingTimer.Update((Timer.Tick)(() =>
         {
-            if (server.GameExit.GetExit()) return;
+            if (server.GameExit.Exit) return;
 
             var timedOut = new List<int>();
 

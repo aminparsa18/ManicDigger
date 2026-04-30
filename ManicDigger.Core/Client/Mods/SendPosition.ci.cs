@@ -4,10 +4,10 @@
 public class ModSendPosition : ModBase
 {
     private const int SendIntervalMs = 100;
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
-    public ModSendPosition(IGameClient game, IGamePlatform platform)
+    public ModSendPosition(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;

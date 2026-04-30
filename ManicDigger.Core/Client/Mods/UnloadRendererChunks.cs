@@ -8,7 +8,7 @@
 public class ModUnloadRendererChunks : ModBase
 {
     /// <summary>Reference to the current game instance, refreshed every background tick.</summary>
-    private readonly IGameClient _game;
+    private readonly IGame _game;
 
     private int _pendingUnloadIndex = -1;
     private Action _unloadAction;
@@ -37,7 +37,7 @@ public class ModUnloadRendererChunks : ModBase
     /// <summary>Reusable output for <see cref="VectorIndexUtil.PosInt"/> to avoid per-frame allocation.</summary>
     private Vector3i _unloadXyzTemp;
 
-    public ModUnloadRendererChunks(IGameClient game, IGamePlatform platform)
+    public ModUnloadRendererChunks(IGame game, IGameService platform)
     {
         _game = game;
         _unloadXyzTemp = new Vector3i();

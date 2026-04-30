@@ -16,13 +16,13 @@ public partial class Game
     public void SetMatrixUniformProjection()
     {
         var p = pMatrix.Peek();
-        Platform.SetMatrixUniformProjection(ref p);
+        OpenGlService.SetMatrixUniformProjection(ref p);
     }
 
     public void SetMatrixUniformModelView()
     {
         var mv = mvMatrix.Peek();
-        Platform.SetMatrixUniformModelView(ref mv);
+        OpenGlService.SetMatrixUniformModelView(ref mv);
     }
 
     // -------------------------------------------------------------------------

@@ -9,8 +9,8 @@
 public class GameScreen : ModBase
 {
     /// <summary>Reference to the current game instance.</summary>
-    private IGameClient game;
-    private readonly IGamePlatform platform;
+    private IGame game;
+    private readonly IGameService platform;
 
     /// <summary>Maximum number of widgets this screen can hold.</summary>
     internal int WidgetCount;
@@ -25,7 +25,7 @@ public class GameScreen : ModBase
     internal int screeny;
 
     /// <summary>Initialises the widget pool with a capacity of 64.</summary>
-    public GameScreen(IGameClient game, IGamePlatform platform)
+    public GameScreen(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;
@@ -33,7 +33,7 @@ public class GameScreen : ModBase
         widgets = new MenuWidget[WidgetCount];
     }
 
-    public void SetGame(IGameClient game)
+    public void SetGame(IGame game)
     {
         this.game = game;
     }

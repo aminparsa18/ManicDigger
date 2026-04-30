@@ -4,9 +4,9 @@
 public class ModSendActiveMaterial : ModBase
 {
     private int previousActiveMaterialBlock;
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModSendActiveMaterial(IGameClient game)
+    public ModSendActiveMaterial(IGame game)
     {
         this.game = game;
     }

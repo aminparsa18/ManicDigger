@@ -2,7 +2,7 @@
 
 public class ModGuiChat : ModBase
 {
-    public ModGuiChat(IGameClient game, IGamePlatform platform)
+    public ModGuiChat(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;
@@ -14,8 +14,8 @@ public class ModGuiChat : ModBase
         chatlines2 = new Chatline[1024];
     }
 
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
     internal float ChatFontSize;
     internal int ChatScreenExpireTimeSeconds;

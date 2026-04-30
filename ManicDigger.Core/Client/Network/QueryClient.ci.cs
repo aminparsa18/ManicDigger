@@ -3,13 +3,11 @@
 //
 // The query is async with a real timeout — no busy-wait spin loop.
 
-using MemoryPack;
-
 public sealed class QueryClient
 {
-    private readonly IGamePlatform _platform;
+    private readonly INetworkService _platform;
 
-    public QueryClient(IGamePlatform platform)
+    public QueryClient(INetworkService platform)
     {
         _platform = platform;
     }

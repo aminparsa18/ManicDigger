@@ -54,7 +54,7 @@ public partial class Game
 
     private void SendGameResolution()
     {
-        SendPacketClient(ClientPackets.GameResolution(Platform.GetCanvasWidth(), Platform.GetCanvasHeight()));
+        SendPacketClient(ClientPackets.GameResolution(GameService.GetCanvasWidth(), GameService.GetCanvasHeight()));
     }
 
     public void SendLeave(PacketLeaveReason reason)
@@ -105,14 +105,14 @@ public partial class Game
     {
         NetClient.Start();
         NetClient.Connect(serverAddress, port);
-        SendPacketClient(ClientPackets.CreateLoginPacket(Platform, username, auth));
+        SendPacketClient(ClientPackets.CreateLoginPacket(GameService, username, auth));
     }
 
     private void Connect(string serverAddress, int port, string username, string auth, string serverPassword)
     {
         NetClient.Start();
         NetClient.Connect(serverAddress, port);
-        SendPacketClient(ClientPackets.CreateLoginPacket_(Platform, username, auth, serverPassword));
+        SendPacketClient(ClientPackets.CreateLoginPacket_(GameService, username, auth, serverPassword));
     }
 
     private void Reconnect()

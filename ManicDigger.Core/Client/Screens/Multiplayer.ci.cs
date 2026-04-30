@@ -2,8 +2,8 @@
 
 public class MultiplayerScreen : ScreenBase
 {
-    public MultiplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
-        : base(renderer, navigator, platform)
+    public MultiplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService _)
+        : base(renderer, navigator, platform, platformOpenGl, _)
     {
         // Tab chain (by list index): [0] Back → [1] Connect → [3] ConnectToIp → [2] Refresh → [0] Back
         back = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
@@ -283,8 +283,7 @@ public class MultiplayerScreen : ScreenBase
             if (!server.ThumbnailDownloading)
             {
                 //Not started downloading yet
-                thumbResponses[i] = new ThumbnailResponseCi();
-                Platform.ThumbnailDownloadAsync(server.Ip, server.Port, thumbResponses[i]);
+                // TODO check thumbnail after getting to multiplayer tests
                 server.ThumbnailDownloading = true;
             }
             else
@@ -298,7 +297,7 @@ public class MultiplayerScreen : ScreenBase
                         Bitmap bmp = PixelBuffer.BitmapFromPng(thumbResponses[i].Data, thumbResponses[i].Data.Length);
                         if (bmp != null)
                         {
-                            int texture = Platform.LoadTextureFromBitmap(bmp);
+                            int texture = PlatformOpenGl.LoadTextureFromBitmap(bmp);
                             Renderer.RegisterTexture(string.Format("serverlist_entry_{0}.png", server.Hash), texture);
                             bmp.Dispose();
                         }

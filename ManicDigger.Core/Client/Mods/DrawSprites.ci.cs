@@ -6,9 +6,9 @@
 public class ModDrawSprites : ModBase
 {
     private const float SpriteScale = 0.02f;
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModDrawSprites(IGameClient game)
+    public ModDrawSprites(IGame game)
     {
         this.game = game;
     }

@@ -8,9 +8,9 @@ public class ModCamera : ModBase
     private static readonly Vector3 Up = Vector3.UnitY;
     private Vector3 overheadCameraEye;
 
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModCamera(IGameClient game)
+    public ModCamera(IGame game)
     {
         this.game = game;
     }

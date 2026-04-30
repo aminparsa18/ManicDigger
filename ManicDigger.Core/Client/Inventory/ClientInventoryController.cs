@@ -1,6 +1,6 @@
 ﻿public class ClientInventoryController : IInventoryController
 {
-    public static ClientInventoryController Create(IGameClient game)
+    public static ClientInventoryController Create(IGame game)
     {
         ClientInventoryController c = new()
         {
@@ -9,7 +9,7 @@
         return c;
     }
 
-    private IGameClient g;
+    private IGame g;
 
     public void InventoryClick(Packet_InventoryPosition pos)
     {

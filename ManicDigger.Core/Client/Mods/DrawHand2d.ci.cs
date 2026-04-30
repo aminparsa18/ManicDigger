@@ -6,10 +6,10 @@
 public class ModDrawHand2d : ModBase
 {
     private string lastHandImage;
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
-    public ModDrawHand2d(IGameClient game, IGamePlatform platform)
+    public ModDrawHand2d(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;
@@ -31,7 +31,7 @@ public class ModDrawHand2d : ModBase
             Bitmap bmp = PixelBuffer.BitmapFromPng(file, file.Length);
             if (bmp != null)
             {
-                game.handTexture = platform.LoadTextureFromBitmap(bmp);
+                game.handTexture = game.OpenGlService.LoadTextureFromBitmap(bmp);
                 bmp.Dispose();
             }
         }

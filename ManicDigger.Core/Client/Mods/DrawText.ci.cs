@@ -9,9 +9,9 @@ public class ModDrawText : ModBase
     private const float TextDrawDistance = 20f;
 
     private static readonly Font Font = new("Arial", 14, FontStyle.Regular);
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModDrawText(IGameClient game)
+    public ModDrawText(IGame game)
     {
         this.game = game;
     }

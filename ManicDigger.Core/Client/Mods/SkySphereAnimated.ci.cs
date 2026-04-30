@@ -8,14 +8,14 @@ public class ModSkySphereAnimated : ModBase
     private const int NormalSegments = 20;
 
     private readonly ModBase stars;
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IOpenGlService platform;
     private GeometryModel skyModel;
     private int[] skyPixels;
     private int[] glowPixels;
     private bool started;
 
-    public ModSkySphereAnimated(IGameClient game, IGamePlatform platform)
+    public ModSkySphereAnimated(IGame game, IOpenGlService platform)
     {
         this.game = game;
         this.platform = platform;
@@ -64,7 +64,7 @@ public class ModSkySphereAnimated : ModBase
         int size = 1000;
         int segments = game.fancySkysphere ? FancySegments : NormalSegments;
 
-        skyModel = GetSphereModelData2(skyModel, platform, size, size, segments, segments,
+        skyModel = GetSphereModelData2(skyModel, size, size, segments, segments,
             skyPixels, glowPixels, game.sunPosition.X, game.sunPosition.Y, game.sunPosition.Z);
         
         platform.UpdateModel(skyModel);
@@ -79,7 +79,6 @@ public class ModSkySphereAnimated : ModBase
     }
 
     public static GeometryModel GetSphereModelData2(GeometryModel data,
-        IGamePlatform platform,
         float radius, float height, int segments, int rings,
         int[] skyPixels, int[] glowPixels,
         float sunX, float sunY, float sunZ)
@@ -129,8 +128,8 @@ public class ModSkySphereAnimated : ModBase
                 float dx = vxN - sunXN, dy = vyN - sunYN, dz = vzN - sunZN;
                 float proximityToSun = 1f - MathF.Sqrt(dx * dx + dy * dy + dz * dz) / 2f;
 
-                int skyColor = Texture2d(platform, skyPixels, (sunYN + 2f) / 4f, 1f - (vyN + 1f) / 2f);
-                int glowColor = Texture2d(platform, glowPixels, (sunYN + 1f) / 2f, 1f - proximityToSun);
+                int skyColor = Texture2d(skyPixels, (sunYN + 2f) / 4f, 1f - (vyN + 1f) / 2f);
+                int glowColor = Texture2d(glowPixels, (sunYN + 1f) / 2f, 1f - proximityToSun);
 
                 float skyA = ColorUtils.ColorA(skyColor) / 255f;
                 float skyR = ColorUtils.ColorR(skyColor) / 255f;
@@ -179,7 +178,7 @@ public class ModSkySphereAnimated : ModBase
         return indices;
     }
 
-    private static int Texture2d(IGamePlatform platform, int[] pixelsArgb, float x, float y)
+    private static int Texture2d(int[] pixelsArgb, float x, float y)
     {
         int px = PositiveMod((int)(x * (TextureSize - 1)), TextureSize - 1);
         int py = PositiveMod((int)(y * (TextureSize - 1)), TextureSize - 1);

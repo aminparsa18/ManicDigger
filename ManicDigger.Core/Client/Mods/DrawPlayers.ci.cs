@@ -6,10 +6,10 @@ using System.Text;
 /// </summary>
 public class ModDrawPlayers : ModBase
 {
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
-    public ModDrawPlayers(IGameClient game, IGamePlatform platform)
+    public ModDrawPlayers(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;
@@ -84,7 +84,7 @@ public class ModDrawPlayers : ModBase
         game.GLPushMatrix();
         game.GLTranslate(p.position.x, p.position.y, p.position.z);
         game.GLRotate(float.RadiansToDegrees(-p.position.roty + MathF.PI), 0, 1, 0);
-        platform.BindTexture2d(p.drawModel.CurrentTexture);
+        game.OpenGlService.BindTexture2d(p.drawModel.CurrentTexture);
         p.drawModel.renderer.Render(dt, float.RadiansToDegrees(p.position.rotx + MathF.PI), true, p.playerDrawInfo.moves, shadow);
         game.GLPopMatrix();
     }

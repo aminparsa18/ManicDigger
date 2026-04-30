@@ -15,7 +15,7 @@
 
         string linkTarget = ExtractLink(s);
         bool containsLink = linkTarget != null;
-        int now = Platform.TimeMillisecondsFromStart;
+        int now = GameService.TimeMillisecondsFromStart;
 
         if (s.Length > ChatLines.Count && ChatLines.Count > 0)
         {
@@ -216,7 +216,7 @@
                 string[] split = arguments.Split(':');
                 if (split.Length == 2)
                 {
-                    var (result, message) = Task.Run(() => new QueryClient(Platform).QueryAsync(split[0], int.Parse(split[1]))).GetAwaiter().GetResult();
+                    var (result, message) = Task.Run(() => new QueryClient(GameService.NetworkService).QueryAsync(split[0], int.Parse(split[1]))).GetAwaiter().GetResult();
 
                     if (result != null)
                     {

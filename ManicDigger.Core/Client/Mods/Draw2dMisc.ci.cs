@@ -3,12 +3,17 @@ using OpenTK.Mathematics;
 
 public class ModDraw2dMisc : ModBase
 {
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
-    public ModDraw2dMisc(IGameClient game, IGamePlatform platform)
+    private readonly IGame game;
+    private readonly IOpenGlService platformOpenGl;
+    private readonly IGameService platform;
+    private readonly ISinglePlayerService singlePlayerService;
+
+    public ModDraw2dMisc(IGame game, IOpenGlService platformOpenGl, IGameService platform, ISinglePlayerService singlePlayerService)
     {
         this.game = game;
+        this.platformOpenGl = platformOpenGl;
         this.platform = platform;
+        this.singlePlayerService = singlePlayerService;
     }
 
     public override void OnNewFrameDraw2d(float deltaTime)
@@ -122,7 +127,7 @@ public class ModDraw2dMisc : ModBase
         if (game.CameraType == CameraType.Overhead) return;
 
         const int AimSize = 32;
-        platform.BindTexture2d(0);
+        platformOpenGl.BindTexture2d(0);
 
         if (game.CurrentAimRadius() > 1)
         {
@@ -209,7 +214,7 @@ public class ModDraw2dMisc : ModBase
             return;
         if (game.InvalidVersionDrawMessage != null) 
             return;
-        if (game.IsSinglePlayer && !platform.SinglePlayerServerLoaded())
+        if (game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
             return;
 
         game.Draw2dBitmapFile("disconnected.png", platform.GetCanvasWidth() - 100, 50, 50, 50);

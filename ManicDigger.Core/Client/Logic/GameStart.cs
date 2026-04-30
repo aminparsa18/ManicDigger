@@ -38,7 +38,7 @@ public partial class Game
 
         Config3d config3d = new()
         {
-            ViewDistance = Platform.IsFastSystem() ? ViewDistanceFast : ViewDistanceSlow
+            ViewDistance = GameService.IsFastSystem() ? ViewDistanceFast : ViewDistanceSlow
         };
         Config3d = config3d;
 
@@ -46,9 +46,9 @@ public partial class Game
 
         FrustumCulling = new() { CameraMatrix = CameraMatrix };
 
-        TerrainChunkTesselator = new TerrainChunkTesselator(this, Platform);
+        TerrainChunkTesselator = new TerrainChunkTesselator(this, GameService);
 
-        Batcher = new MeshBatcher(Platform, this);
+        Batcher = new MeshBatcher(OpenGlService, this);
 
         SunMoonRenderer = new(this);
 
@@ -64,7 +64,7 @@ public partial class Game
 
         // ── Misc ──────────────────────────────────────────────────────────────
         rnd = new Random();
-        Platform.AddOnCrash(OnCrashHandlerLeave.Create(this));
+        GameService.AddOnCrash(OnCrashHandlerLeave.Create(this));
 
         // ── Mods ──────────────────────────────────────────────────────────────
         InitMods();
@@ -72,10 +72,10 @@ public partial class Game
         BlockOctreeSearcher = new();
 
         // Prevent the loading screen from immediately showing the lag symbol.
-        LastReceivedMilliseconds = Platform.TimeMillisecondsFromStart;
-        EnableDrawTestCharacter = Platform.IsDebuggerAttached();
+        LastReceivedMilliseconds = GameService.TimeMillisecondsFromStart;
+        EnableDrawTestCharacter = GameService.IsDebuggerAttached();
 
-        int detectedSize = Platform.GlGetMaxTextureSize();
+        int detectedSize = OpenGlService.GlGetMaxTextureSize();
         maxTextureSize = Math.Max(detectedSize, 1024);
 
         taskScheduler.Initialise();
@@ -89,57 +89,57 @@ public partial class Game
         // ── Core loop ─────────────────────────────────────────────────────────
         AddMod(new ModDrawMain(this));
         AddMod(new ModUpdateMain(this));
-        AddMod(new ModNetworkProcess(this, Platform));
+        AddMod(new ModNetworkProcess(this, GameService));
         AddMod(new ModNetworkEntity(this));
-        AddMod(new ModUnloadRendererChunks(this, Platform));
+        AddMod(new ModUnloadRendererChunks(this, GameService));
         AddMod(new ModDiagLog(this));
 
         // ── Camera ────────────────────────────────────────────────────────────
-        AddMod(new ModAutoCamera(this, Platform));
-        AddMod(new ModCameraKeys(this, Platform));
+        AddMod(new ModAutoCamera(this, GameService));
+        AddMod(new ModCameraKeys(this, GameService));
         AddMod(new ModCamera(this));
 
         // ── Player logic ──────────────────────────────────────────────────────
-        AddMod(new ModFallDamageToPlayer(this, Platform));
-        AddMod(new ModBlockDamageToPlayer(this, Platform));
-        AddMod(new ModLoadPlayerTextures(this, Platform));
-        AddMod(new ModSendPosition(this, Platform));
+        AddMod(new ModFallDamageToPlayer(this, GameService));
+        AddMod(new ModBlockDamageToPlayer(this, GameService));
+        AddMod(new ModLoadPlayerTextures(this, GameService));
+        AddMod(new ModSendPosition(this, GameService));
         AddMod(new ModInterpolatePositions(this));
         AddMod(new ModPush(this));
         AddMod(new ModFly(this));
 
         // ── Gameplay mechanics ────────────────────────────────────────────────
-        AddMod(new ModRail(this, Platform));
-        AddMod(new ModCompass(this, Platform));
+        AddMod(new ModRail(this, GameService));
+        AddMod(new ModCompass(this, GameService));
         AddMod(new ModGrenade(this));
         AddMod(new ModBullet(this));
         AddMod(new ModExpire(this));
-        AddMod(new ModPicking(this, Platform));
+        AddMod(new ModPicking(this, GameService));
 
         // ── Inventory / ammo ──────────────────────────────────────────────────
-        AddMod(new ModReloadAmmo(this, Platform));
+        AddMod(new ModReloadAmmo(this, GameService));
         AddMod(new ModSendActiveMaterial(this));
         AddMod(new ModGuiCrafting(this));
-        AddMod(new ModGuiInventory(this, Platform));
+        AddMod(new ModGuiInventory(this, GameService));
 
         // ── Audio ─────────────────────────────────────────────────────────────
         AddMod(new ModWalkSound(this));
-        AddMod(new ModAudio(this, Platform));
+        AddMod(new ModAudio(this, AudioService));
 
         // ── Sky / environment (must precede terrain) ──────────────────────────
-        if (Platform.IsFastSystem())
-            AddMod(new ModSkySphereAnimated(this, Platform));
+        if (GameService.IsFastSystem())
+            AddMod(new ModSkySphereAnimated(this, OpenGlService));
         else
-            AddMod(new ModSkySphereStatic(this, Platform));
+            AddMod(new ModSkySphereStatic(this, OpenGlService));
         AddMod(SunMoonRenderer);
 
         // ── World rendering ───────────────────────────────────────────────────
-        AddMod(new ModDrawTerrain(this, Platform));
-        AddMod(new ModDrawArea(this, Platform));
+        AddMod(new ModDrawTerrain(this, GameService));
+        AddMod(new ModDrawArea(this, OpenGlService));
         AddMod(new ModDrawSprites(this));
-        AddMod(new ModDrawMinecarts(this, Platform));
-        AddMod(new ModDrawLinesAroundSelectedBlock(this, Platform));
-        AddMod(new ModDebugChunk(this, Platform));
+        AddMod(new ModDrawMinecarts(this));
+        AddMod(new ModDrawLinesAroundSelectedBlock(this, OpenGlService));
+        AddMod(new ModDebugChunk(this, OpenGlService));
 
         // ── Particle effects ──────────────────────────────────────────────────
         // Create the instance, store the field reference, then register as a mod
@@ -150,38 +150,38 @@ public partial class Game
         AddMod(particleEffectBlockBreak);
 
         // ── Entity / player rendering ─────────────────────────────────────────
-        AddMod(new ModDrawPlayers(this, Platform));
+        AddMod(new ModDrawPlayers(this, GameService));
         AddMod(new ModDrawPlayerNames(this));
-        AddMod(new ModDrawTestModel(this, Platform));
-        AddMod(new ModClearInactivePlayersDrawInfo(this, Platform));
+        AddMod(new ModDrawTestModel(this, OpenGlService));
+        AddMod(new ModClearInactivePlayersDrawInfo(this, GameService));
 
         // ── HUD / 2D overlay ──────────────────────────────────────────────────
-        AddMod(new ModDrawHand2d(this, Platform));
-        AddMod(new ModDrawHand3d(this, Platform));
+        AddMod(new ModDrawHand2d(this, GameService));
+        AddMod(new ModDrawHand3d(this, OpenGlService));
         AddMod(new ModDrawText(this));
-        AddMod(new ModDraw2dMisc(this, Platform));
-        AddMod(new ModFpsHistoryGraph(this, Platform));
+        AddMod(new ModDraw2dMisc(this, OpenGlService, GameService, SinglePlayerService));
+        AddMod(new ModFpsHistoryGraph(this, GameService));
 
         // ── GUI (topmost — rendered last) ─────────────────────────────────────
-        AddMod(new ModDialog(this, Platform));
-        AddMod(new ModGuiTouchButtons(this, Platform));
-        AddMod(new ModGuiEscapeMenu(this, Platform));
-        AddMod(new ModGuiMapLoading(this, Platform));
-        AddMod(new ModGuiPlayerStats(this, Platform));
-        AddMod(new ModGuiChat(this, Platform));
-        AddMod(new ModScreenshot(this, Platform));
+        AddMod(new ModDialog(this, GameService));
+        AddMod(new ModGuiTouchButtons(this, GameService));
+        AddMod(new ModGuiEscapeMenu(this, GameService));
+        AddMod(new ModGuiMapLoading(this, GameService, SinglePlayerService));
+        AddMod(new ModGuiPlayerStats(this, GameService));
+        AddMod(new ModGuiChat(this, GameService));
+        AddMod(new ModScreenshot(this, GameService));
     }
 
     private void InitRenderer()
     {
-        Platform.GlClearColorRgbaf(0, 0, 0, 1);
+        OpenGlService.GlClearColorRgbaf(0, 0, 0, 1);
 
         if (Config3d.EnableBackfaceCulling)
         {
-            Platform.GlDepthMask(true);
-            Platform.GlEnableDepthTest();
-            Platform.GlCullFaceBack();
-            Platform.GlEnableCullFace();
+            OpenGlService.GlDepthMask(true);
+            OpenGlService.GlEnableDepthTest();
+            OpenGlService.GlCullFaceBack();
+            OpenGlService.GlEnableCullFace();
         }
     }
 

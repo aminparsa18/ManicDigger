@@ -25,7 +25,8 @@ public class Program
     private readonly DummyNetwork dummyNetwork;
     private string savefilename;
     public GameExit exit = new();
-    private GamePlatformNative platform;
+    private GameService platform;
+    private ISinglePlayerService singlePlayerService;
 
     // -------------------------------------------------------------------------
     // Startup
@@ -38,23 +39,28 @@ public class Program
 
         Log.Debug("Initialising GamePlatformNative");
 
-        platform = new GamePlatformNative
+        platform = new GameService
         {
             crashreporter = new CrashReporter(),
-            singlePlayerServerDummyNetwork = dummyNetwork
-        };
-        platform.SetExit(exit);
-        platform.StartSinglePlayerServer = filename =>
-        {
-            savefilename = filename;
-            new Thread(ServerThreadStart) { IsBackground = true }.Start();
+            GameExit = exit,
         };
 
         Log.Debug("Creating GameWindowNative");
         using GameWindowNative window = new();
-        platform.window = window;
+        platform.Window = window;
 
-        MainMenu mainmenu = new(platform);
+        singlePlayerService = new SinglePlayerService()
+        {
+            singlePlayerServerDummyNetwork = dummyNetwork,
+            StartSinglePlayerServer = filename =>
+            {
+                savefilename = filename;
+                new Thread(ServerThreadStart) { IsBackground = true }.Start();
+            }
+        };
+
+        MainMenu mainmenu = new(platform, new PlatformOpenGl(), singlePlayerService);
+
         mainmenu.Start();
         ReadArgs(mainmenu, args);
 
@@ -89,22 +95,22 @@ public class Program
         {
             server.Process();
             Thread.Sleep(1);
-            platform.singlePlayerServerLoaded = true;
+            singlePlayerService.SinglePlayerServerLoaded = true;
 
-            if (exit?.GetExit() == true)
+            if (exit?.Exit == true)
             {
                 server.Stop();
                 break;
             }
 
-            if (platform.singlepLayerServerExit)
+            if (singlePlayerService.SinglePlayerServerExit)
             {
                 server.Exit();
-                platform.singlepLayerServerExit = false;
+                singlePlayerService.SinglePlayerServerExit = false;
             }
         }
 
-        exit.SetExit(false);
+        exit.Exit = false;
         Log.Debug("Single-player server thread stopped cleanly");
     }
 }

@@ -16,36 +16,16 @@ public class LoginClientCi
 {
     internal LoginResult loginResult;
 
-    public void Login(IGamePlatform platform, string user, string password, string publicServerKey, string token, LoginResult result, LoginData resultLoginData_)
+    public void Login(IGameService platform, string user, string password, string publicServerKey, string token, LoginResult result, LoginData resultLoginData_)
     {
         loginResult = result;
     }
 }
 
-public class GameExit
+public class GameExit : IGameExit
 {
-    internal bool exit;
-    internal bool restart;
-
-    public void SetExit(bool p)
-    {
-        exit = p;
-    }
-
-    public bool GetExit()
-    {
-        return exit;
-    }
-
-    public void SetRestart(bool p)
-    {
-        restart = p;
-    }
-
-    public bool GetRestart()
-    {
-        return restart;
-    }
+    public bool Exit { get; set; }
+    public bool Restart { get; set; }
 }
 
 public class Sprite

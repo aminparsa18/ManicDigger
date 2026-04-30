@@ -10,10 +10,10 @@ public class ModSkySphereStatic : ModBase
     private int skySphereTexture = -1;
     private int skySphereNightTexture = -1;
     private GeometryModel skyModel;
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IOpenGlService platform;
 
-    public ModSkySphereStatic(IGameClient game, IGamePlatform platform)
+    public ModSkySphereStatic(IGame game, IOpenGlService platform)
     {
         this.game = game;
         this.platform = platform;

@@ -20,10 +20,10 @@ public class ModLoadPlayerTextures : ModBase
     /// <summary>Async HTTP response for the skin-server URL list.</summary>
     internal HttpResponse _skinServerResponse;
 
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
-    public ModLoadPlayerTextures(IGameClient game, IGamePlatform platform)
+    public ModLoadPlayerTextures(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;

@@ -31,7 +31,7 @@ public partial class Game
 
         if (mousePointerLockShouldBe)
         {
-            Platform.RequestMousePointerLock();
+            GameService.RequestMousePointerLock();
             mouseDeltaX = 0;
             mouseDeltaY = 0;
         }
@@ -116,9 +116,9 @@ public partial class Game
             mouseSmoothingVelY = mouseDeltaY;
         }
 
-        if (GuiState == GuiState.Normal && enableCameraControl && Platform.Focused())
+        if (GuiState == GuiState.Normal && enableCameraControl && GameService.Focused())
         {
-            if (!OverheadCamera && Platform.IsMousePointerLocked())
+            if (!OverheadCamera && GameService.IsMousePointerLocked())
             {
                 float rotScale = rotationspeed / 75f;
                 Player.position.roty += mouseSmoothingVelX * rotScale;
@@ -152,15 +152,15 @@ public partial class Game
     // Free mouse / pointer lock
     // -------------------------------------------------------------------------
 
-    public bool GetFreeMouse() => OverheadCamera || !Platform.IsMousePointerLocked();
+    public bool GetFreeMouse() => OverheadCamera || !GameService.IsMousePointerLocked();
 
     public void SetFreeMouse(bool value)
     {
         mousePointerLockShouldBe = !value;
         if (value)
-            Platform.ExitMousePointerLock();
+            GameService.ExitMousePointerLock();
         else
-            Platform.RequestMousePointerLock();
+            GameService.RequestMousePointerLock();
     }
 
     // -------------------------------------------------------------------------
@@ -259,7 +259,7 @@ public partial class Game
         // F6 outside of Normal state: reconnect if lagging or map loading.
         if (eKey.KeyChar == GetKey(Keys.F6))
         {
-            float lagSeconds = (Platform.TimeMillisecondsFromStart - LastReceivedMilliseconds) / 1000;
+            float lagSeconds = (GameService.TimeMillisecondsFromStart - LastReceivedMilliseconds) / 1000;
             if (lagSeconds >= DISCONNECTED_ICON_AFTER_SECONDS || GuiState == GuiState.MapLoading)
                 Reconnect();
         }

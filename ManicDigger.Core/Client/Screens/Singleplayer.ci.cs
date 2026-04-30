@@ -28,8 +28,8 @@ public class SingleplayerScreen : ScreenBase
 
     private string title;
 
-    public SingleplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
-        : base(renderer, navigator, platform)
+    public SingleplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService singlePlayerService)
+        : base(renderer, navigator, platform, default, singlePlayerService)
     {
         play = new MenuWidget
         {
@@ -141,7 +141,7 @@ public class SingleplayerScreen : ScreenBase
         // Only the Open button is active on supporting platforms.
         // Play, NewWorld, Modify, and worldButtons are reserved for a future
         // save-file browser and are hidden until that UI is implemented.
-        open.visible = Platform.SinglePlayerServerAvailable();
+        open.visible = SinglePlayerService.SinglePlayerServerAvailable();
         play.visible = false;
         newWorld.visible = false;
         modify.visible = false;
@@ -152,7 +152,7 @@ public class SingleplayerScreen : ScreenBase
 
         DrawWidgets();
 
-        if (!Platform.SinglePlayerServerAvailable())
+        if (!SinglePlayerService.SinglePlayerServerAvailable())
         {
             Renderer.DrawText(
                 "Singleplayer is only available on desktop (Windows, Linux, Mac) version of game.",
@@ -166,13 +166,13 @@ public class SingleplayerScreen : ScreenBase
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Scans <see cref="GamePlatformNative.PathSavegames"/> for <c>.mddbs</c> files
+    /// Scans <see cref="GameService.PathSavegames"/> for <c>.mddbs</c> files
     /// and returns their paths. Files without the expected extension are excluded.
     /// </summary>
     /// <returns>List of fully-qualified paths to every discovered <c>.mddbs</c> save file.</returns>
     private static List<string> GetSaveGames()
     {
-        string[] files = FileHelper.DirectoryGetFiles(GamePlatformNative.PathSavegames);
+        string[] files = FileHelper.DirectoryGetFiles(GameService.PathSavegames);
         List<string> savegames = [];
 
         foreach (string file in files)
@@ -224,8 +224,8 @@ public class SingleplayerScreen : ScreenBase
 
         if (w == open)
         {
-            string extension = Platform.SinglePlayerServerAvailable() ? "mddbs" : "mdss";
-            string result = Platform.FileOpenDialog(extension, "Manic Digger Savegame", GamePlatformNative.PathSavegames);
+            string extension = SinglePlayerService.SinglePlayerServerAvailable() ? "mddbs" : "mdss";
+            string result = Platform.FileOpenDialog(extension, "Manic Digger Savegame", GameService.PathSavegames);
             if (result != null)
             {
                 Navigator.ConnectToSingleplayer(result);

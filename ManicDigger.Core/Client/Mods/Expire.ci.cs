@@ -6,9 +6,9 @@ using OpenTK.Mathematics;
 /// </summary>
 public class ModExpire : ModBase
 {
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModExpire(IGameClient game)
+    public ModExpire(IGame game)
     {
         this.game = game;
     }

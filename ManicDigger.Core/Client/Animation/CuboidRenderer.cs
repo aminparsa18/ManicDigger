@@ -79,12 +79,12 @@ public static class CuboidRenderer
     /// <summary>
     /// Uploads and submits a <see cref="GeometryModel"/> buffer for a cuboid,
     /// disabling face culling during the draw call so all faces are visible.
-    /// Since cuboid geometry is rebuilt every draw call, <see cref="IGamePlatform.UpdateModel"/>
+    /// Since cuboid geometry is rebuilt every draw call, <see cref="IGameService.UpdateModel"/>
     /// is used to sync the CPU buffers to the GPU before drawing.
     /// </summary>
     /// <param name="game">The game instance used for GL draw calls.</param>
     /// <param name="data">The model data with all vertices already written.</param>
-    private static void SubmitCuboid(IGameClient game, GeometryModel data)
+    private static void SubmitCuboid(IGame game, GeometryModel data)
     {
         data.Indices = new int[FaceCount * IndicesPerFace];
         for (int i = 0; i < FaceCount; i++)
@@ -101,11 +101,11 @@ public static class CuboidRenderer
 
         // Sync all CPU buffers (xyz, rgba, uv, indices) to GPU.
         // CreateModel is called on first use; BufferSubData on subsequent frames.
-        game.Platform.UpdateModel(data);
+        game.OpenGlService.UpdateModel(data);
 
-        game.Platform.GlDisableCullFace();
+        game.OpenGlService.GlDisableCullFace();
         game.DrawModelData(data);
-        game.Platform.GlEnableCullFace();
+        game.OpenGlService.GlEnableCullFace();
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public static class CuboidRenderer
     /// Draws a cuboid using world-space winding order, where the front face
     /// is at minimum X. Used for static world geometry.
     /// </summary>
-    public static void DrawCuboidWorld(IGameClient game, float posX, float posY, float posZ,
+    public static void DrawCuboidWorld(IGame game, float posX, float posY, float posZ,
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {
@@ -186,7 +186,7 @@ public static class CuboidRenderer
     /// is at maximum Z. Used for animated model nodes rendered by
     /// <see cref="AnimatedModelRenderer"/>.
     /// </summary>
-    public static void DrawCuboidModel(IGameClient game, float posX, float posY, float posZ,
+    public static void DrawCuboidModel(IGame game, float posX, float posY, float posZ,
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {

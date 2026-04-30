@@ -9,9 +9,9 @@ public class ModWalkSound : ModBase
     private float walkSoundTimer;
     private int lastWalkSound;
     private Random random;
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModWalkSound(IGameClient game)
+    public ModWalkSound(IGame game)
     {
         this.game = game;
         random = new Random();

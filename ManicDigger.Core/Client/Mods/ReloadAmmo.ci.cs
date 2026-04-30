@@ -5,11 +5,11 @@
 /// </summary>
 public class ModReloadAmmo : ModBase
 {
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
     private readonly Random random;
 
-    public ModReloadAmmo(IGameClient game, IGamePlatform platform)
+    public ModReloadAmmo(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;

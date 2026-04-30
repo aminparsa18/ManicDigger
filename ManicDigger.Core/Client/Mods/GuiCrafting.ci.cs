@@ -57,9 +57,9 @@ public class ModGuiCrafting : ModBase
     /// </summary>
     private bool _handlerRegistered;
 
-    private IGameClient game;
+    private IGame game;
 
-    public ModGuiCrafting(IGameClient game)
+    public ModGuiCrafting(IGame game)
     {
         this.game = game;
         handler = new PacketHandlerCraftingRecipes { mod = this };

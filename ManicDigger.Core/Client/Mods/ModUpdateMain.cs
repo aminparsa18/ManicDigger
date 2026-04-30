@@ -1,8 +1,8 @@
 ﻿public class ModUpdateMain : ModBase
 {
-    private readonly IGameClient _game;
+    private readonly IGame _game;
 
-    public ModUpdateMain(IGameClient game)
+    public ModUpdateMain(IGame game)
     {
         _game = game;
     }

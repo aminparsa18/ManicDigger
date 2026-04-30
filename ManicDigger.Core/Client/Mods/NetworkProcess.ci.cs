@@ -18,10 +18,10 @@ namespace ManicDigger.Mods;
 
 public class ModNetworkProcess : ModBase
 {
-    private readonly IGameClient _game;
-    private readonly IGamePlatform _platform;
+    private readonly IGame _game;
+    private readonly IGameService _platform;
 
-    public ModNetworkProcess(IGameClient game, IGamePlatform gamePlatform)
+    public ModNetworkProcess(IGame game, IGameService gamePlatform)
     {
         _game = game;
         _platform = gamePlatform;

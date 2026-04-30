@@ -1,9 +1,9 @@
 public class ServerConsole
 {
     private readonly Server server;
-    public GameExit Exit;
+    public IGameExit Exit;
 
-    public ServerConsole(Server server, GameExit exit)
+    public ServerConsole(Server server, IGameExit exit)
     {
         this.server = server;
         this.Exit = exit;
@@ -15,7 +15,7 @@ public class ServerConsole
 
     public void CommandLineReader()
     {
-        while (!Exit.exit)
+        while (!Exit.Exit)
         {
             if (server.IsSinglePlayer)
             {

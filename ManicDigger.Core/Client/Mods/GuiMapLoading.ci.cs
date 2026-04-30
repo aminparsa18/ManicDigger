@@ -15,13 +15,15 @@ public class ModGuiMapLoading : ModBase
         ColorUtils.ColorFromArgb(255, 0,   255, 0),  // green
     ];
 
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
+    private readonly ISinglePlayerService singlePlayerService;
 
-    public ModGuiMapLoading(IGameClient game, IGamePlatform platform)
+    public ModGuiMapLoading(IGame game, IGameService platform, ISinglePlayerService singlePlayerService)
     {
         this.game = game;
         this.platform = platform;
+        this.singlePlayerService = singlePlayerService;
     }
 
     public override void OnNewFrameDraw2d(float deltaTime)
@@ -41,7 +43,7 @@ public class ModGuiMapLoading : ModBase
             return;
         }
 
-        string status = GetConnectionStatus(platform);
+        string status = GetConnectionStatus();
 
         DrawCentered(game.ServerInfo.ServerName, centerY - 150);
 
@@ -54,11 +56,11 @@ public class ModGuiMapLoading : ModBase
             DrawProgress(centerY);
     }
 
-    private string GetConnectionStatus(IGamePlatform platform)
+    private string GetConnectionStatus()
     {
         if (game.maploadingprogress.ProgressStatus != null)
             return game.maploadingprogress.ProgressStatus;
-        if (game.IsSinglePlayer && !platform.SinglePlayerServerLoaded())
+        if (game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
             return "Starting game...";
         return game.Language.Connecting();
     }

@@ -9,7 +9,7 @@ using static ManicDigger.Mods.ModNetworkProcess;
 
 public partial class Server : ICurrentTime, IDropItem
 {
-    private readonly IGamePlatform gameplatform;
+    private readonly IGameService gameplatform;
 
     public List<ServerSystem> Systems { get; set; }
 
@@ -40,7 +40,7 @@ public partial class Server : ICurrentTime, IDropItem
         // systems[systemsCount++] = new ServerSystemPermissionSign();
 
         //Load translations
-        gameplatform = new GamePlatformNative();
+        gameplatform = new GameService();
         Language.LoadTranslations();
 
         MainSockets = new NetServer[3];
@@ -255,7 +255,7 @@ public partial class Server : ICurrentTime, IDropItem
         if (MainSockets == null)
         {
             MainSockets = new NetServer[3];
-            MainSockets[0] = new EnetNetServer(gameplatform);
+            MainSockets[0] = new EnetNetServer(gameplatform.NetworkService);
             if (MainSockets[1] == null)
             {
                 MainSockets[1] = new WebSocketNetServer();
@@ -354,15 +354,17 @@ public partial class Server : ICurrentTime, IDropItem
     public void Restart()
     {
         //Server shall exit and be restarted
-        GameExit.SetRestart(true);
-        GameExit.SetExit(true);
+        GameExit.        //Server shall exit and be restarted
+        Restart = true;
+        GameExit.Exit = (true);
     }
 
     public void Exit()
     {
         //Server shall be shutdown
-        GameExit.SetRestart(false);
-        GameExit.SetExit(true);
+        GameExit.        //Server shall be shutdown
+        Restart = false;
+        GameExit.Exit = (true);
     }
 
     private ServerMonitor serverMonitor;
@@ -599,7 +601,7 @@ public partial class Server : ICurrentTime, IDropItem
         return i;
     }
 
-    public GamePlatformNative Platform { get; set; } = new();
+    public GameService Platform { get; set; } = new();
 
     private void ProcessNetMessage(NetIncomingMessage msg, NetServer mainSocket)
     {

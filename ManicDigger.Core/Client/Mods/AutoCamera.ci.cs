@@ -37,8 +37,8 @@ public class ModAutoCamera : ModBase
 
     // ── Dependencies ──────────────────────────────────────────────────────────
 
-    private readonly IGameClient _game;
-    private readonly IGamePlatform _platform;
+    private readonly IGame _game;
+    private readonly IGameService _platform;
 
     // ── Waypoint storage ──────────────────────────────────────────────────────
 
@@ -111,7 +111,7 @@ public class ModAutoCamera : ModBase
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ModAutoCamera(IGameClient game, IGamePlatform platform)
+    public ModAutoCamera(IGame game, IGameService platform)
     {
         _game = game;
         _platform = platform;

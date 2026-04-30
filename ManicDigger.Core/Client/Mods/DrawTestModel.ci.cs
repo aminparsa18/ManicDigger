@@ -2,13 +2,13 @@
 
 public class ModDrawTestModel : ModBase
 {
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IOpenGlService platformOpenGl;
 
-    public ModDrawTestModel(IGameClient game, IGamePlatform platform)
+    public ModDrawTestModel(IGame game, IOpenGlService platformOpenGl)
     {
         this.game = game;
-        this.platform = platform;
+        this.platformOpenGl = platformOpenGl;
     }
 
     public override void OnNewFrameDraw3d(float deltaTime)
@@ -38,7 +38,7 @@ public class ModDrawTestModel : ModBase
         }
         game.GLPushMatrix();
         game.GLTranslate(game.VoxelMap.MapSizeX / 2, game.Blockheight(game.VoxelMap.MapSizeX / 2, game.VoxelMap.MapSizeY / 2 - 2, 128), game.VoxelMap.MapSizeY / 2 - 2);
-        platform.BindTexture2d(game.GetTexture("mineplayer.png"));
+        platformOpenGl.BindTexture2d(game.GetTexture("mineplayer.png"));
         testmodel.Render(deltaTime, 0, true, true, 1);
         game.GLPopMatrix();
     }

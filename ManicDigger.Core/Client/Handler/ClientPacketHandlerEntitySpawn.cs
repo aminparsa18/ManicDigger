@@ -4,7 +4,7 @@
 /// </summary>
 public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
 {
-    public override void Handle(IGameClient game, Packet_Server packet)
+    public override void Handle(IGame game, Packet_Server packet)
     {
         int id = packet.EntitySpawn.Id;
         Entity entity = game.Entities[id] ?? new Entity();
@@ -54,13 +54,13 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
     /// <paramref name="old"/> entity object, allocating sub-objects only when
     /// the corresponding server field is present.
     /// </summary>
-    public static Entity ToClientEntity(IGameClient game, Packet_ServerEntity entity, Entity old, bool updatePosition)
+    public static Entity ToClientEntity(IGame game, Packet_ServerEntity entity, Entity old, bool updatePosition)
     {
         if (entity.Position != null && (old.position == null || updatePosition))
         {
             old.networkPosition = ToClientEntityPosition(entity.Position);
             old.networkPosition.PositionLoaded = true;
-            old.networkPosition.LastUpdateMilliseconds = game.Platform.TimeMillisecondsFromStart;
+            old.networkPosition.LastUpdateMilliseconds = game.GameService.TimeMillisecondsFromStart;
             old.position = ToClientEntityPosition(entity.Position);
         }
 

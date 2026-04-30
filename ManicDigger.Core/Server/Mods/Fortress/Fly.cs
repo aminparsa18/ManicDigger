@@ -15,11 +15,11 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 /// </summary>
 public class ModFly : ModBase
 {
-    private readonly IGameClient game;
+    private readonly IGame game;
 
     private bool flyActive = false;
 
-    public ModFly(IGameClient game)
+    public ModFly(IGame game)
     {
         this.game = game;
     }

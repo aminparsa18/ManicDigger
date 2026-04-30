@@ -275,7 +275,7 @@ public partial class Game
             y = y,
             z = z,
             blocktype = VoxelMap.GetBlock(x, y, z),
-            timeMilliseconds = Platform.TimeMillisecondsFromStart,
+            timeMilliseconds = GameService.TimeMillisecondsFromStart,
         });
         SetBlock(x, y, z, blockid);
         RedrawBlock(x, y, z);
@@ -306,7 +306,7 @@ public partial class Game
     /// </summary>
     private void RevertSpeculative(float dt)
     {
-        int now = Platform.TimeMillisecondsFromStart;
+        int now = GameService.TimeMillisecondsFromStart;
         for (int i = 0; i < speculativeCount; i++)
         {
             Speculative? s = speculative[i];
@@ -374,10 +374,10 @@ public partial class Game
             fogA = clearcolorA;
         }
 
-        Platform.GlEnableFog();
-        Platform.GlFogFogColor(fogR, fogG, fogB, fogA);
+        OpenGlService.GlEnableFog();
+        OpenGlService.GlFogFogColor(fogR, fogG, fogB, fogA);
         // Fix #9: FogDensity = 25f / 10000f — self-documenting constant.
-        Platform.GlFogFogDensity(FogDensity);
+        OpenGlService.GlFogFogDensity(FogDensity);
     }
 
     // ── Map events ────────────────────────────────────────────────────────────

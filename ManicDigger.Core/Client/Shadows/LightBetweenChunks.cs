@@ -68,7 +68,7 @@ public class LightBetweenChunks
     /// <param name="dataLightRadius">Per-block-type light emission radius lookup.</param>
     /// <param name="dataTransparent">Per-block-type transparency flag lookup.</param>
     public void CalculateLightBetweenChunks(
-        IGameClient game,
+        IGame game,
         int cx,
         int cy,
         int cz,
@@ -102,7 +102,7 @@ public class LightBetweenChunks
     /// <param name="cx">Target chunk X coordinate.</param>
     /// <param name="cy">Target chunk Y coordinate.</param>
     /// <param name="cz">Target chunk Z coordinate.</param>
-    private void Input(IGameClient game, int cx, int cy, int cz)
+    private void Input(IGame game, int cx, int cy, int cz)
     {
         for (int x = 0; x < NeighbourhoodSize; x++)
         {
@@ -272,7 +272,7 @@ public class LightBetweenChunks
     /// <param name="cx">Target chunk X coordinate.</param>
     /// <param name="cy">Target chunk Y coordinate.</param>
     /// <param name="cz">Target chunk Z coordinate.</param>
-    private void Output(IGameClient game, int cx, int cy, int cz)
+    private void Output(IGame game, int cx, int cy, int cz)
     {
         Chunk chunk = game.VoxelMap.GetChunkAt(cx, cy, cz);
 

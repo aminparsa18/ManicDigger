@@ -6,9 +6,9 @@ public class ModInterpolatePositions : ModBase
     private const int ExtrapolationTimeMs = 300;
     private const int MinDelayMs = 100;
 
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModInterpolatePositions(IGameClient game)
+    public ModInterpolatePositions(IGame game)
     {
         this.game = game;
     }

@@ -28,9 +28,9 @@ public partial class Game
             for (int i = 0; i < requiredMd5.Length; i++)
             {
                 string md5 = requiredMd5[i];
-                if (Platform.IsCached(md5))
+                if (GameService.IsCached(md5))
                 {
-                    Asset cachedAsset = Platform.LoadAssetFromCache(md5);
+                    Asset cachedAsset = GameService.LoadAssetFromCache(md5);
                     string name = requiredName != null ? requiredName[i] : cachedAsset.name;
                     SetFile(name, cachedAsset.md5, cachedAsset.data, cachedAsset.dataLength);
                 }
@@ -90,7 +90,7 @@ public partial class Game
     public void ExitAndSwitchServer(Packet_ServerRedirect newServer)
     {
         if (IsSinglePlayer)
-            Platform.SinglePlayerServerExit();
+            SinglePlayerService.SinglePlayerServerExit = true;
 
         redirectTo = newServer;
         exitToMainMenu = true;
@@ -99,7 +99,7 @@ public partial class Game
     public void ExitToMainMenu()
     {
         if (IsSinglePlayer)
-            Platform.SinglePlayerServerExit();
+            SinglePlayerService.SinglePlayerServerExit = true;
 
         redirectTo = null;
         exitToMainMenu = true;
@@ -113,7 +113,7 @@ public partial class Game
 
     public void ChatLog(string p)
     {
-        if (!Platform.ChatLog(ServerInfo.ServerName, p))
+        if (!GameService.ChatLog(ServerInfo.ServerName, p))
             Console.WriteLine(string.Format(Language.CannotWriteChatLog(), ServerInfo.ServerName));
     }
 }

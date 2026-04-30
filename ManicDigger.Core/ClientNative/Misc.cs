@@ -228,26 +228,6 @@ public static class GameStorePath
     public static string AllowedNameChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-";
 }
 
-public static class GameVersion
-{
-    private static string gameversion;
-    public static string Version
-    {
-        get
-        {
-            if (gameversion == null)
-            {
-                gameversion = "unknown";
-                if (File.Exists("version.txt"))
-                {
-                    gameversion = File.ReadAllText("version.txt").Trim();
-                }
-            }
-            return gameversion;
-        }
-    }
-}
-
 public interface ICompression
 {
     byte[] Compress(ReadOnlySpan<byte> data);

@@ -51,8 +51,8 @@
         if (!StringUtils.IsChecksum(asset.md5))
             return;
 
-        if (!Platform.IsCached(asset.md5))
-            Platform.SaveAssetToCache(asset);
+        if (!GameService.IsCached(asset.md5))
+            GameService.SaveAssetToCache(asset);
     }
 
     public void SetFile(string name, string md5, byte[] downloaded, int downloadedLength)
@@ -61,7 +61,7 @@
 
         // Update mouse cursor if the cursor asset changed.
         if (nameLower == "mousecursor.png")
-            Platform.SetWindowCursor(0, 0, 32, 32, downloaded, downloadedLength);
+            GameService.SetWindowCursor(0, 0, 32, 32, downloaded, downloadedLength);
 
         Asset newAsset = new()
         {

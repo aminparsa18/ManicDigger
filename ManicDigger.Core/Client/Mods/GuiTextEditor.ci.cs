@@ -20,9 +20,9 @@ public class ModGuiTextEditor : GameScreen
     private int cursorColumn;
     private int cursorLine;
     private bool visible;
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModGuiTextEditor(IGameClient game, IGamePlatform _) :base(game, _)
+    public ModGuiTextEditor(IGame game, IGameService _) :base(game, _)
     {
         this.game = game;
         for (int i = 0; i < MaxLines; i++)

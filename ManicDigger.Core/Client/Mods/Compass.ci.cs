@@ -13,9 +13,9 @@ public class ModCompass : ModBase
     private int needleId = -1;
     private float compassAngle;
     private float compassVelocity;
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
-    public ModCompass(IGameClient game, IGamePlatform platform)
+    private readonly IGame game;
+    private readonly IGameService platform;
+    public ModCompass(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;

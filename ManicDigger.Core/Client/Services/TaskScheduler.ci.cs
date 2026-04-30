@@ -25,10 +25,10 @@ public class TaskScheduler
     /// Per-mod background task state. Initialised once via <see cref="Initialise"/>.
     /// </summary>
     private BackgroundAction[] _actions;
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
-    public TaskScheduler(IGameClient game, IGamePlatform platform)
+    public TaskScheduler(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;
@@ -127,7 +127,7 @@ public class TaskScheduler
             int captured = i;
             _actions[captured].Active = true;
             _actions[captured].Finished = false;
-            game.Platform.QueueUserWorkItem(
+            game.GameService.QueueUserWorkItem(
                 CreateBackgroundAction(captured, dt, () => _actions[captured].Finished = true));
         }
     }

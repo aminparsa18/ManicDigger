@@ -993,7 +993,7 @@ public class ModManager1 : IModManager
         server.SendServerRedirect(player, ip, port);
     }
 
-    public bool IsShuttingDown => server.GameExit.GetExit();
+    public bool IsShuttingDown => server.GameExit.Exit;
 
     public void RegisterCheckOnBlockBuild(ModDelegates.CheckBlockBuild f)
     {

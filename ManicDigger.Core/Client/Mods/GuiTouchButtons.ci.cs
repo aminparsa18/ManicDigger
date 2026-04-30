@@ -43,11 +43,11 @@ public class ModGuiTouchButtons : GameScreen
     /// <summary>Screen Y position where the rotation touch began.</summary>
     private int _touchRotateStartY;
 
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
     /// <summary>Initialises all four touch buttons and assigns them to widget slots 0–3.</summary>
-    public ModGuiTouchButtons(IGameClient game, IGamePlatform platform) : base(game, platform)
+    public ModGuiTouchButtons(IGame game, IGameService platform) : base(game, platform)
     {
         this.game = game;
         this.platform = platform;

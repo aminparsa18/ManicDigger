@@ -61,7 +61,11 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     // -------------------------------------------------------------------------
 
     /// <summary>The active platform abstraction (windowing, GL, input, etc.).</summary>
-    private IGamePlatform _platform;
+    private IGameService _platform;
+
+    private IOpenGlService _platformOpenGl;
+    private ISinglePlayerService _singlePlayerService;
+
 
     /// <summary>Loaded localisation/translation data.</summary>
     private Language _lang;
@@ -114,12 +118,14 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     // Constructor
     // -------------------------------------------------------------------------
 
-    public MainMenu(IGamePlatform platform)
+    public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService)
     {
         _platform = platform;
+        _platformOpenGl = platformOpenGl;
+        _singlePlayerService = singlePlayerService;
         Textures = [];
         textTextureCache = [];
-        screen = new MainScreen(this, this, _platform);
+        screen = new MainScreen(this, this, _platform, singlePlayerService);
         loginClient = new LoginClientCi();
         Assets = [];
     }
@@ -185,9 +191,9 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
         if (!initialized)
         {
             initialized = true;
-            _platform.InitShaders();
-            _platform.GlClearColorRgbaf(0, 0, 0, 1);
-            _platform.GlEnableDepthTest();
+            _platformOpenGl.InitShaders();
+            _platformOpenGl.GlClearColorRgbaf(0, 0, 0, 1);
+            _platformOpenGl.GlEnableDepthTest();
         }
 
         viewportWidth = _platform.GetCanvasWidth();
@@ -208,10 +214,10 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <param name="dt">Delta time forwarded to the screen renderer.</param>
     private void DrawScene(float dt)
     {
-        _platform.GlViewport(0, 0, viewportWidth, viewportHeight);
-        _platform.GlClearColorBufferAndDepthBuffer();
-        _platform.GlDisableDepthTest();
-        _platform.GlDisableCullFace();
+        _platformOpenGl.GlViewport(0, 0, viewportWidth, viewportHeight);
+        _platformOpenGl.GlClearColorBufferAndDepthBuffer();
+        _platformOpenGl.GlDisableDepthTest();
+        _platformOpenGl.GlDisableCullFace();
 
         Matrix4.CreateOrthographicOffCenter(
             0, _platform.GetCanvasWidth(),
@@ -337,9 +343,9 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
         mvMatrix = centreShift * halfScale * scale * translation;
 
         SetMatrixUniforms();
-        cubeModel ??= _platform.CreateModel(Quad.Create());
-        _platform.BindTexture2d(textureid);
-        _platform.DrawModel(cubeModel);
+        cubeModel ??= _platformOpenGl.CreateModel(Quad.Create());
+        _platformOpenGl.BindTexture2d(textureid);
+        _platformOpenGl.DrawModel(cubeModel);
     }
 
     // -------------------------------------------------------------------------
@@ -404,8 +410,8 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <summary>Uploads the current projection and model-view matrices to the active shader.</summary>
     private void SetMatrixUniforms()
     {
-        _platform.SetMatrixUniformProjection(ref pMatrix);
-        _platform.SetMatrixUniformModelView(ref mvMatrix);
+        _platformOpenGl.SetMatrixUniformProjection(ref pMatrix);
+        _platformOpenGl.SetMatrixUniformModelView(ref mvMatrix);
     }
 
     // -------------------------------------------------------------------------
@@ -422,7 +428,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
         if (!Textures.TryGetValue(name, out int value))
         {
             Bitmap bmp = PixelBuffer.BitmapFromPng(GetFile(name), GetFileLength(name));
-            value = _platform.LoadTextureFromBitmap(bmp);
+            value = _platformOpenGl.LoadTextureFromBitmap(bmp);
             Textures[name] = value;
             bmp.Dispose();
         }
@@ -490,7 +496,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
         };
 
         Bitmap textBitmap = TextColorRenderer.CreateTextTexture(style);
-        int texture = _platform.LoadTextureFromBitmap(textBitmap);
+        int texture = _platformOpenGl.LoadTextureFromBitmap(textBitmap);
         TextRenderer.TextSize(text, fontSize, out int textWidth, out int textHeight);
 
         TextTexture entry = new()
@@ -529,21 +535,21 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <summary>Navigates to the main (home) screen and releases any mouse pointer lock.</summary>
     public void StartMainMenu()
     {
-        screen = new MainScreen(this, this, _platform);
+        screen = new MainScreen(this, this, _platform, default);
         _platform.ExitMousePointerLock();
     }
 
     /// <summary>Navigates to the single-player world selection screen.</summary>
     public void StartSingleplayer()
     {
-        screen = new SingleplayerScreen(this, this, _platform);
+        screen = new SingleplayerScreen(this, this, _platform, _singlePlayerService);
         screen.LoadTranslations();
     }
 
     /// <summary>Navigates to the multiplayer server-browser screen.</summary>
     public void StartMultiplayer()
     {
-        screen = new MultiplayerScreen(this, this, _platform);
+        screen = new MultiplayerScreen(this, this, _platform, default, default);
         screen.LoadTranslations();
     }
 
@@ -580,7 +586,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(this, this, _platform);
+        ScreenGame screenGame = new(this, this, _platform, _platformOpenGl, _singlePlayerService);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }

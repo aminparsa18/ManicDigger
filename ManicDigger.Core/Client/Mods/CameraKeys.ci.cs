@@ -7,10 +7,10 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 public class ModCameraKeys : ModBase
 {
     private const float OverheadCameraSpeed = 3f;
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
-    public ModCameraKeys(IGameClient game, IGamePlatform platform)
+    public ModCameraKeys(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;

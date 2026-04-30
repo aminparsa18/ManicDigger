@@ -31,7 +31,7 @@ public class ServerMonitor
 
     private void Process()
     {
-        while (!Exit.exit)
+        while (!Exit.Exit)
         {
             Thread.Sleep(TimeSpan.FromSeconds(config.TimeIntervall));
             foreach (var k in monitorClients)

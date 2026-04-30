@@ -32,7 +32,7 @@ public class Ping
     /// Completes the in-flight ping and records the round-trip time.
     /// </summary>
     /// <returns><see langword="true"/> if the ping was received; <see langword="false"/> if no ping was in-flight.</returns>
-    public bool Receive(IGamePlatform platform)
+    public bool Receive(IGameService platform)
     {
         if (IsReady) return false;
         RoundtripMilliseconds = platform.TimeMillisecondsFromStart - _sentAtMilliseconds;

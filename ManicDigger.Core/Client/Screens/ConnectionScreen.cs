@@ -24,8 +24,8 @@ public class ConnectionScreen : ScreenBase
     private string title;
     private bool loaded;
 
-    public ConnectionScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
-        : base(renderer, navigator, platform)
+    public ConnectionScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform)
+        : base(renderer, navigator, platform, default, default)
     {
         buttonConnect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
         textboxIp = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "IP", nextWidget = 2 };

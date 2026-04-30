@@ -11,12 +11,12 @@ using static ManicDigger.AudioOpenAl;
 public class ModAudio : ModBase
 {
     private readonly Dictionary<string, AudioData> audioData = new();
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IAudioService platform;
 
     private bool wasLoaded;
 
-    public ModAudio(IGameClient game, IGamePlatform gamePlatform)
+    public ModAudio(IGame game, IAudioService gamePlatform)
     {
         this.game = game;
         this.platform = gamePlatform;

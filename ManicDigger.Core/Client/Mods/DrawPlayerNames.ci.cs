@@ -9,9 +9,9 @@ public class ModDrawPlayerNames : ModBase
     private const float NameTagScale = 0.02f;
     private const float NameTagDrawDistance = 20f;
 
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModDrawPlayerNames(IGameClient game)
+    public ModDrawPlayerNames(IGame game)
     {
         this.game = game;
     }

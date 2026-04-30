@@ -27,8 +27,8 @@ public class ModDrawHand3d : ModBase
     private const float BobRange = 7f / 100f;
 
     /// <summary>Reference to the current game instance, set each frame in <see cref="OnNewFrameDraw3d"/>.</summary>
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IOpenGlService platform;
 
     /// <summary>Torch block renderer used to draw held torches and the empty-hand model.</summary>
     internal BlockRendererTorch d_BlockRendererTorch;
@@ -121,7 +121,7 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Initialises all animation parameters and creates the torch renderer dependency.
     /// </summary>
-    public ModDrawHand3d(IGameClient game, IGamePlatform platform)
+    public ModDrawHand3d(IGame game, IOpenGlService platform)
     {
         this.game = game;
         this.platform = platform;
@@ -640,7 +640,7 @@ public class ModDrawHand3d : ModBase
         /// <param name="y">Block-grid Y origin of the torch.</param>
         /// <param name="z">Block-grid Z (vertical) origin of the torch.</param>
         /// <param name="type">Mount type that determines the tilt direction.</param>
-        public void AddTorch(BlockTypeRegistry d_Data, IGameClient d_TerrainRenderer, GeometryModel m,
+        public void AddTorch(BlockTypeRegistry d_Data, IGame d_TerrainRenderer, GeometryModel m,
                              int x, int y, int z, TorchType type)
         {
             // --- Compute top-cap corners ---

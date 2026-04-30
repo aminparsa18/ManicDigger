@@ -30,8 +30,8 @@ public class TerrainChunkTesselator
 
     internal bool EnableSmoothLight;
 
-    private readonly IGameClient _terrain;
-    private readonly IGamePlatform _platform;
+    private readonly IGame _terrain;
+    private readonly IGameService _platform;
 
     private const int chunksize = 16;
 
@@ -90,7 +90,7 @@ public class TerrainChunkTesselator
 
     private readonly int[] tmpnPos;
 
-    public TerrainChunkTesselator(IGameClient terrain, IGamePlatform platform)
+    public TerrainChunkTesselator(IGame terrain, IGameService platform)
     {
         _terrain = terrain;
         _platform = platform;

@@ -11,9 +11,9 @@ public class ModNetworkEntity : ModBase
     /// <summary>True once the three packet handlers have been registered.</summary>
     private bool _handlersRegistered;
 
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModNetworkEntity(IGameClient game)
+    public ModNetworkEntity(IGame game)
     {
         this.game = game;
         _spawn = new ClientPacketHandlerEntitySpawn();

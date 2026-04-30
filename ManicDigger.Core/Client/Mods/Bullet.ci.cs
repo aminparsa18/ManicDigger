@@ -5,9 +5,9 @@
 /// </summary>
 public class ModBullet : ModBase
 {
-    private readonly IGameClient _game;
+    private readonly IGame _game;
 
-    public ModBullet(IGameClient game)
+    public ModBullet(IGame game)
     {
         _game = game;
     }

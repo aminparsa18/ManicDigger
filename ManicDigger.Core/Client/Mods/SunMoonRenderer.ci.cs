@@ -14,9 +14,9 @@ public class SunMoonRenderer : ModBase
     private float t;
     private int sunTexture = -1;
     private int moonTexture = -1;
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public SunMoonRenderer(IGameClient game)
+    public SunMoonRenderer(IGame game)
     {
         this.game = game;
     }

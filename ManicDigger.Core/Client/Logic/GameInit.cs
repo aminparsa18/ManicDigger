@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 /// for the core Game state. Fields owned by other subsystem partials are
 /// initialized via their own partial-class initializer methods called from here.
 /// </summary>
-public partial class Game : IGameClient
+public partial class Game : IGame
 {
     // -------------------------------------------------------------------------
     // Constants
@@ -35,7 +35,11 @@ public partial class Game : IGameClient
     // Platform & core subsystems
     // -------------------------------------------------------------------------
 
-    public IGamePlatform Platform { get; set; }
+    public IAudioService AudioService { get; set; }
+    public IGameService GameService { get; set; }
+    public IOpenGlService OpenGlService { get; set; }
+    public ISinglePlayerService SinglePlayerService { get; set; }
+
     public Language Language { get; set; }
     public Config3d Config3d { get; set; }
     public GameOption options { get; set; }
@@ -43,7 +47,6 @@ public partial class Game : IGameClient
     private Dictionary<string, string> performanceinfo;
     private TaskScheduler taskScheduler;
     public ConcurrentQueue<Action> commitActions { get; set; }
-    private GameExit d_Exit;
 
     // -------------------------------------------------------------------------
     // Rendering / textures
@@ -380,9 +383,11 @@ public partial class Game : IGameClient
     // Constructor
     // -------------------------------------------------------------------------
 
-    public Game(IGamePlatform platform)
+    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService)
     {
-        Platform = platform;
+        GameService = platform;
+        OpenGlService = platformOpenGl;
+        SinglePlayerService = singlePlayerService;
         InitCore();
         InitMap();
         InitTextures();
@@ -411,7 +416,7 @@ public partial class Game : IGameClient
         identityMatrix = Matrix4.Identity;
         Set3dProjectionTempMat4 = Matrix4.Identity;
         PlayerStats = new Packet_ServerPlayerStats();
-        taskScheduler = new TaskScheduler(this, Platform);
+        taskScheduler = new TaskScheduler(this, GameService);
         commitActions = new();
         Entities = [];
     }
@@ -543,6 +548,7 @@ public partial class Game : IGameClient
 
     private void InitAudio()
     {
+        AudioService = new AudioService(GameService.GameExit);
         Audio = new AudioControl();
     }
 }

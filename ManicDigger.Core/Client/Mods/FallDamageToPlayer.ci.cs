@@ -9,10 +9,10 @@ public class ModFallDamageToPlayer : ModBase
 
     private bool fallSoundPlaying;
     private int lastFallDamageTimeMilliseconds;
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
-    public ModFallDamageToPlayer(IGameClient game, IGamePlatform platform)
+    public ModFallDamageToPlayer(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;

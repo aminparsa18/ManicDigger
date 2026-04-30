@@ -6,11 +6,12 @@ namespace ManicDigger;
 
 public class AudioOpenAl
 {
-    public GameExit d_GameExit;
-    public AudioOpenAl()
+    public IGameExit d_GameExit;
+    public AudioOpenAl(IGameExit exit)
     {
         try
         {
+            d_GameExit = exit;
             var device = ALC.OpenDevice(null); // null = default device
             if (device == ALDevice.Null)
                 throw new Exception("No audio device found.");
@@ -88,9 +89,9 @@ public class AudioOpenAl
         };
     }
 
-    public class AudioTask(GameExit gameexit, AudioData sample, AudioOpenAl audio)
+    public class AudioTask(IGameExit gameexit, AudioData sample, AudioOpenAl audio)
     {
-        private readonly GameExit gameexit = gameexit;
+        private readonly IGameExit gameexit = gameexit;
         private readonly AudioData sample = sample;
         public Vector3 position;
 
@@ -144,7 +145,7 @@ public class AudioOpenAl
                 {
                     break;
                 }
-                if (gameexit.exit)
+                if (gameexit.Exit)
                 {
                     break;
                 }

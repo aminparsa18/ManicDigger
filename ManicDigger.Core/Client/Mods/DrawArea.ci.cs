@@ -4,9 +4,9 @@
 public class ModDrawArea : ModBase
 {
     private readonly DrawWireframeCube lines;
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModDrawArea(IGameClient game, IGamePlatform platform)
+    public ModDrawArea(IGame game, IOpenGlService platform)
     {
         this.game = game;
         lines = new DrawWireframeCube(platform);

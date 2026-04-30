@@ -50,8 +50,8 @@ public class LoginScreen : ScreenBase
     private bool triedSavedLogin;
     private string title;
 
-    public LoginScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
-        : base(renderer, navigator, platform)
+    public LoginScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform)
+        : base(renderer, navigator, platform, default, default)
     {
         // Tab chain (by list index):
         // [1] Username → [2] Password → [3] RememberMe → [0] Login → [8] Back → [1] Username

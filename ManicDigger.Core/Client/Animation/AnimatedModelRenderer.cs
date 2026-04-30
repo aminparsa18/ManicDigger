@@ -19,7 +19,7 @@ public class AnimatedModelRenderer
     private const float ModelUnitScale = 16f;
 
     /// <summary>The game instance used for GL draw calls.</summary>
-    internal IGameClient game;
+    internal IGame game;
 
     /// <summary>The model currently being rendered.</summary>
     private AnimatedModel m;
@@ -45,7 +45,7 @@ public class AnimatedModelRenderer
         keyframeCache = [];
     }
 
-    public void Start(IGameClient game_, AnimatedModel model_)
+    public void Start(IGame game_, AnimatedModel model_)
     {
         game = game_;
         m = model_;

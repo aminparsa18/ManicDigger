@@ -39,7 +39,7 @@ public partial class Game
         UpdateMouseSmoothing(deltaTime);
 
         // Required in Mono for running the terrain background thread.
-        Platform.ApplicationDoEvents();
+        GameService.ApplicationDoEvents();
 
         // Fixed-timestep accumulator — capped at 1 s to prevent spiral-of-death
         // when the renderer stalls (e.g. window resize, focus loss).
@@ -63,8 +63,8 @@ public partial class Game
            Thread.SpinWait(20_000_000);
 
         SetAmbientLight(Terraincolor());
-        Platform.GlClearColorBufferAndDepthBuffer();
-        Platform.BindTexture2d(TerrainTexture);
+        OpenGlService.GlClearColorBufferAndDepthBuffer();
+        OpenGlService.BindTexture2d(TerrainTexture);
 
         for (int i = 0; i < ClientMods.Count; i++)
             ClientMods[i]?.OnBeforeNewFrameDraw3d(deltaTime);
@@ -74,7 +74,7 @@ public partial class Game
         CameraMatrix.LastModelViewMatrix = Camera;
         FrustumCulling.CalcFrustumEquations();
 
-        Platform.GlEnableDepthTest();
+        OpenGlService.GlEnableDepthTest();
         for (int i = 0; i < ClientMods.Count; i++)
             ClientMods[i]?.OnNewFrameDraw3d(deltaTime);
 
@@ -107,7 +107,7 @@ public partial class Game
 
         float orientationX = MathF.Sin(Player.position.roty);
         float orientationZ = -MathF.Cos(Player.position.roty);
-        Platform.AudioUpdateListener(
+        AudioService.AudioUpdateListener(
             EyesPosX, EyesPosY, EyesPosZ,
             orientationX, 0, orientationZ);
 
@@ -161,8 +161,8 @@ public partial class Game
         if (startedconnecting) return;
 
         if (!IsSinglePlayer
-         || Platform.SinglePlayerServerLoaded()
-         || !Platform.SinglePlayerServerAvailable())
+         || SinglePlayerService.SinglePlayerServerLoaded
+         || !SinglePlayerService.SinglePlayerServerAvailable())
         {
             startedconnecting = true;
             Connect();
@@ -176,8 +176,8 @@ public partial class Game
     /// </summary>
     private void UpdateResize()
     {
-        int w = Platform.GetCanvasWidth();
-        int h = Platform.GetCanvasHeight();
+        int w = GameService.GetCanvasWidth();
+        int h = GameService.GetCanvasHeight();
         if (lastWidth == w && lastHeight == h) return;
 
         lastWidth = w;
@@ -188,7 +188,7 @@ public partial class Game
     /// <summary>Updates the OpenGL viewport and projection matrix after a resize.</summary>
     internal void OnResize()
     {
-        Platform.GlViewport(0, 0, Platform.GetCanvasWidth(), Platform.GetCanvasHeight());
+        OpenGlService.GlViewport(0, 0, GameService.GetCanvasWidth(), GameService.GetCanvasHeight());
         Set3dProjection2();
         if (sendResize)
             SendGameResolution();
@@ -203,7 +203,7 @@ public partial class Game
     {
         if (GuiState == GuiState.MapLoading)
         {
-            Platform.GlClearColorRgbaf(0f, 0f, 0f, 1f);
+            OpenGlService.GlClearColorRgbaf(0f, 0f, 0f, 1f);
             return;
         }
 
@@ -223,7 +223,7 @@ public partial class Game
             _lastClearColorA = clearcolorA;
         }
 
-        Platform.GlClearColorRgbaf(_clearColorRf, _clearColorGf, _clearColorBf, _clearColorAf);
+        OpenGlService.GlClearColorRgbaf(_clearColorRf, _clearColorGf, _clearColorBf, _clearColorAf);
     }
 
     /// <summary>

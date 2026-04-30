@@ -26,7 +26,7 @@ public class ScriptCharacterPhysics : IEntityScript
 {
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ScriptCharacterPhysics(IGameClient game)
+    public ScriptCharacterPhysics(IGame game)
     {
         this.game = game;
         // Only non-default values need explicit initialisation.
@@ -42,7 +42,7 @@ public class ScriptCharacterPhysics : IEntityScript
     // ── Dependencies ──────────────────────────────────────────────────────────
 
     /// <summary>Reference to the active game instance, assigned at the start of each tick.</summary>
-    private readonly IGameClient game;
+    private readonly IGame game;
 
     // ── Per-frame physics state ───────────────────────────────────────────────
 

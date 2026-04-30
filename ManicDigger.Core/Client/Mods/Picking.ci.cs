@@ -33,11 +33,11 @@ public class ModPicking : ModBase
     /// </summary>
     internal bool fastclicking;
 
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
     private readonly Random random;
 
-    public ModPicking(IGameClient game, IGamePlatform platform)
+    public ModPicking(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;

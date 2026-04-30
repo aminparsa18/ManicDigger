@@ -21,7 +21,7 @@ public class MeshBatcher
     /// <summary>Maximum number of distinct textures that can be batched.</summary>
     private const int MaxTextures = 10;
 
-    private readonly IGamePlatform _platform;
+    private readonly IOpenGlService _platform;
     private readonly IMeshDrawer _drawer;
 
     /// <summary>
@@ -55,7 +55,7 @@ public class MeshBatcher
     /// <summary>
     /// Initialises a new <see cref="MeshBatcher"/> with pre-allocated model slots.
     /// </summary>
-    public MeshBatcher(IGamePlatform platform, IMeshDrawer drawer)
+    public MeshBatcher(IOpenGlService platform, IMeshDrawer drawer)
     {
         _platform = platform;
         _drawer = drawer;

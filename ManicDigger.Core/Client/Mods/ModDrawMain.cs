@@ -11,9 +11,9 @@
 /// </remarks>
 public class ModDrawMain : ModBase
 {
-    private readonly IGameClient _game;
+    private readonly IGame _game;
 
-    public ModDrawMain(IGameClient game)
+    public ModDrawMain(IGame game)
     {
         _game = game;
     }

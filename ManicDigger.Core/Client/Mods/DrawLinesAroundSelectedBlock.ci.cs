@@ -6,9 +6,9 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
     private const float SelectionScale = 1.02f;
 
     private readonly DrawWireframeCube lines;
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModDrawLinesAroundSelectedBlock(IGameClient game, IGamePlatform platform)
+    public ModDrawLinesAroundSelectedBlock(IGame game, IOpenGlService platform)
     {
         this.game = game;
         lines = new DrawWireframeCube(platform);
@@ -54,14 +54,14 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
 public class DrawWireframeCube
 {
     private GeometryModel wireframeCube;
-    private readonly IGamePlatform platform;
+    private readonly IOpenGlService platform;
 
-    public DrawWireframeCube(IGamePlatform game)
+    public DrawWireframeCube(IOpenGlService game)
     {
         this.platform = game;
     }
 
-    public void DrawWireframeCube_(IGameClient game, float posX, float posY, float posZ, float scaleX, float scaleY, float scaleZ)
+    public void DrawWireframeCube_(IGame game, float posX, float posY, float posZ, float scaleX, float scaleY, float scaleZ)
     {
         platform.GLLineWidth(2);
         platform.BindTexture2d(0);

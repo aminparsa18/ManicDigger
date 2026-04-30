@@ -5,11 +5,11 @@
 /// Bridges platform input events to the game, manages the singleplayer
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
-public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform) 
-    : ScreenBase(renderer, navigator, platform)
+public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService) 
+    : ScreenBase(renderer, navigator, platform, platformOpenGl, singlePlayerService)
 {
     /// <summary>The game instance owned by this screen.</summary>
-    private readonly Game game = new(platform);
+    private readonly Game game = new(platform, platformOpenGl, singlePlayerService);
 
     private ConnectionData connectData;
     private bool singleplayer;
@@ -46,10 +46,10 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
     {
         if (singleplayer)
         {
-            DummyNetwork network = Platform.SinglePlayerServerGetNetwork();
+            DummyNetwork network = SinglePlayerService.SinglePlayerServerGetNetwork();
 
             // Platform provides its own singleplayer server (e.g. mobile).
-            Platform.SinglePlayerServerStart(singleplayerSavePath);
+            SinglePlayerService.SinglePlayerServerStart(singleplayerSavePath);
 
             // Prime the server inbox so the handshake starts immediately.
             network.ServerInbox.Enqueue([]);
@@ -71,9 +71,9 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
     /// </summary>
     private NetClient? CreateNetClient()
     {
-        if (Platform.TcpAvailable()) return new TcpNetClient();
-        if (Platform.EnetAvailable()) return new EnetNetClient(Platform);
-        if (Platform.WebSocketAvailable()) return new WebSocketNetClient();
+        if (Platform.NetworkService.TcpAvailable()) return new TcpNetClient();
+        if (Platform.NetworkService.EnetAvailable()) return new EnetNetClient(Platform.NetworkService);
+        if (Platform.NetworkService.WebSocketAvailable()) return new WebSocketNetClient();
         return null;
     }
 
@@ -122,7 +122,7 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameP
         // NOTE: This is a deliberate sync-over-async call on the render thread;
         // the game loop is already stopped at this point so blocking is acceptable.
         var (qresult, message) = Task.Run(() =>
-            new QueryClient(platform).QueryAsync(redirect.IP, redirect.Port)
+            new QueryClient(Platform.NetworkService).QueryAsync(redirect.IP, redirect.Port)
         ).GetAwaiter().GetResult();
 
         if (qresult == null)

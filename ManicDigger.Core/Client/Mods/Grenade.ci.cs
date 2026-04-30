@@ -9,9 +9,9 @@ public class ModGrenade : ModBase
     private const float BounceSpeedMultiply = 0.5f;
     private const float WallDistance = 0.3f;
 
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModGrenade(IGameClient game)
+    public ModGrenade(IGame game)
     {
         this.game = game;
     }

@@ -30,17 +30,17 @@ public partial class Game : IMeshDrawer
     // ── Screen / layout helpers ───────────────────────────────────────────────
 
     /// <summary>Returns the X coordinate that centres a region of <paramref name="width"/> pixels.</summary>
-    public int Xcenter(float width) => Platform.GetCanvasWidth() / 2 - (int)width / 2;
+    public int Xcenter(float width) => GameService.GetCanvasWidth() / 2 - (int)width / 2;
 
     /// <summary>Returns the Y coordinate that centres a region of <paramref name="height"/> pixels.</summary>
-    public int Ycenter(float height) => Platform.GetCanvasHeight() / 2 - (int)height / 2;
+    public int Ycenter(float height) => GameService.GetCanvasHeight() / 2 - (int)height / 2;
 
     /// <summary>
     /// UI scale factor. Returns a width-relative scale on small screens
     /// (mobile) and 1 on desktop.
     /// </summary>
     public float Scale() =>
-        Platform.IsSmallScreen() ? Platform.GetCanvasWidth() / 1280f : 1f;
+        GameService.IsSmallScreen() ? GameService.GetCanvasWidth() / 1280f : 1f;
 
     // ── Projection ────────────────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ public partial class Game : IMeshDrawer
     /// </summary>
     public void Set3dProjection(float zfar, float fov)
     {
-        float aspect = Platform.GetCanvasWidth() / (float)Platform.GetCanvasHeight();
+        float aspect = GameService.GetCanvasWidth() / (float)GameService.GetCanvasHeight();
         Matrix4.CreatePerspectiveFieldOfView(fov, aspect, znear, zfar, out Matrix4 projection);
         CameraMatrix.LastProjectionMatrix = projection;
         GLMatrixModeProjection();
@@ -218,7 +218,7 @@ public partial class Game : IMeshDrawer
 
     /// <summary>Uploads <paramref name="color"/> as the OpenGL ambient light value.</summary>
     internal void SetAmbientLight(int color) =>
-        Platform.GlLightModelAmbient(
+        OpenGlService.GlLightModelAmbient(
             ColorUtils.ColorR(color),
             ColorUtils.ColorG(color),
             ColorUtils.ColorB(color));
@@ -236,7 +236,7 @@ public partial class Game : IMeshDrawer
     // ── VSync / lag simulation ────────────────────────────────────────────────
 
     /// <summary>Applies the current VSync setting (disabled only when lag simulation is active).</summary>
-    public void UseVsync() => Platform.SetVSync(EnableLog != 1);
+    public void UseVsync() => GameService.SetVSync(EnableLog != 1);
 
     /// <summary>Cycles through lag-simulation modes (0 = off, 1 = no vsync, 2 = spin-wait).</summary>
     public void ToggleVsync()
@@ -268,7 +268,7 @@ public partial class Game : IMeshDrawer
         GuiState = GuiState.EscapeMenu;
         MenuState = new MenuState();
         EscapeMenuRestart = true;
-        Platform.ExitMousePointerLock();
+        GameService.ExitMousePointerLock();
     }
 
     /// <summary>Shows the escape menu in free-mouse mode.</summary>
@@ -317,21 +317,21 @@ public partial class Game : IMeshDrawer
     public void DrawModel(GeometryModel model)
     {
         SetMatrixUniformModelView();
-        Platform.DrawModel(model);
+        OpenGlService.DrawModel(model);
     }
 
     /// <summary>Sets the model-view matrix uniform and draws a list of models.</summary>
     public void DrawModels(List<GeometryModel> model, int count)
     {
         SetMatrixUniformModelView();
-        Platform.DrawModels(model, count);
+        OpenGlService.DrawModels(model, count);
     }
 
     /// <summary>Sets the model-view matrix uniform and draws raw geometry data.</summary>
     public void DrawModelData(GeometryModel data)
     {
         SetMatrixUniformModelView();
-        Platform.DrawModelData(data);
+        OpenGlService.DrawModelData(data);
     }
 
     // ── Per-frame update ──────────────────────────────────────────────────────
@@ -425,10 +425,10 @@ public partial class Game : IMeshDrawer
             ClientMods[i]?.Dispose();
 
         foreach (int id in textures.Values)
-            Platform.GLDeleteTexture(id);
+            OpenGlService.GLDeleteTexture(id);
 
         foreach (CachedTexture ct in CachedTextTextures.Values)
-            Platform.GLDeleteTexture(ct.textureId);
+            OpenGlService.GLDeleteTexture(ct.textureId);
     }
 
     // ── Stubs (candidates for removal) ───────────────────────────────────────
@@ -445,7 +445,7 @@ public partial class Game : IMeshDrawer
     /// </remarks>
     internal static bool EnablePlayerUpdatePositionContainsKey(int kKey) => false;
 
-    void IGameClient.SendChat(string message)
+    void IGame.SendChat(string message)
     {
         SendChat(message);
     }

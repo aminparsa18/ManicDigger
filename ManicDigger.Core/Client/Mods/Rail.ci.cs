@@ -62,13 +62,13 @@ public class ModRail : ModBase
     /// <summary>Index (0–3) of the last rail clack sound played, cycled round-robin.</summary>
     private int _lastRailSoundIndex;
 
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
     /// <summary>Returns the height of the minecart seat above the rail block origin.</summary>
     internal float MinecartHeight() => 1f / 2;
 
-    public ModRail(IGameClient game, IGamePlatform platform)
+    public ModRail(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;
@@ -511,7 +511,7 @@ public class TileEnterData
 
 public class RailMapUtil
 {
-    internal IGameClient game;
+    internal IGame game;
     public RailSlope GetRailSlope(int x, int y, int z)
     {
         int tiletype = game.VoxelMap.GetBlock(x, y, z);

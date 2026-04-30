@@ -1,6 +1,4 @@
-﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
-
-/// <summary>
+﻿/// <summary>
 /// The top-level main menu screen. Displays the game logo and the three primary
 /// navigation buttons: Singleplayer, Multiplayer, and Quit.
 /// </summary>
@@ -10,8 +8,8 @@
 /// </remarks>
 public class MainScreen : ScreenBase
 {
-    public MainScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGamePlatform platform)
-        : base(renderer, navigator, platform)
+    public MainScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService _)
+        : base(renderer, navigator, platform, default, _)
     {
         buttonSingleplayer = new MenuWidget { text = "Singleplayer" };
         buttonMultiplayer = new MenuWidget { text = "Multiplayer" };

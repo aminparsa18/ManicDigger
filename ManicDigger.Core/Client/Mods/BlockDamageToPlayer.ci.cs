@@ -17,10 +17,10 @@ public class ModBlockDamageToPlayer : ModBase
     private int lastOxygenTickMilliseconds;
     private readonly DamageTimer blockDamageTimer;
 
-    private readonly IGameClient _client;
-    private readonly IGamePlatform _platform;
+    private readonly IGame _client;
+    private readonly IGameService _platform;
 
-    public ModBlockDamageToPlayer(IGameClient client, IGamePlatform platform)
+    public ModBlockDamageToPlayer(IGame client, IGameService platform)
     {
         _client = client;
         _platform = platform;
@@ -98,9 +98,9 @@ public class ModBlockDamageToPlayer : ModBase
 
 public class DialogScreen : GameScreen
 {
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public DialogScreen(IGameClient game, IGamePlatform _) : base(game, _)
+    public DialogScreen(IGame game, IGameService _) : base(game, _)
     {
         this.game = game;
     }

@@ -1,0 +1,719 @@
+﻿using ManicDigger.ClientNative;
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Common.Input;
+using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO.Compression;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
+
+public class GameService : IGameService
+{
+    #region Misc
+    public GameService()
+    {
+        ThreadPool.SetMinThreads(32, 32);
+        ThreadPool.SetMaxThreads(128, 128);
+        start.Start();
+    }
+
+    public INetworkService NetworkService { get; set; }
+    public IGameExit GameExit { get; set; }
+
+    public bool TouchTest = false;
+
+    public static string PathSavegames => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+    private readonly Stopwatch start = new();
+
+    public int TimeMillisecondsFromStart => (int)start.ElapsedMilliseconds;
+
+    public bool IsMono = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+
+    public IAviWriter AviWriterCreate()
+    {
+        AviWriterCiCs avi = new();
+        return avi;
+    }
+
+    public string PathStorage()
+    {
+        return GameStorePath.GetStorePath();
+    }
+
+    public string GetGameVersion()
+    {
+        return GameVersion.Version;
+    }
+
+    public void GzipDecompress(byte[] compressed, int compressedLength, byte[] ret)
+    {
+        // MemoryStream(byte[], int, int) wraps the existing array without copying.
+        // GZipStream reads from it and writes the decompressed bytes directly into
+        // ret via the Read loop — no intermediate byte[] allocation at any point.
+        using var source = new MemoryStream(compressed, 0, compressedLength, writable: false);
+        using var gz = new GZipStream(source, CompressionMode.Decompress);
+
+        int totalRead = 0;
+        int bytesRead;
+        while ((bytesRead = gz.Read(ret, totalRead, ret.Length - totalRead)) > 0)
+            totalRead += bytesRead;
+    }
+
+    public byte[] GzipCompress(byte[] data, int dataLength)
+    {
+        using var output = new MemoryStream();
+        using (var gz = new GZipStream(output, CompressionMode.Compress, leaveOpen: true))
+            gz.Write(data, 0, dataLength);
+        // GZipStream must be disposed (flushed) before reading — leaveOpen keeps
+        // output accessible after gz is done writing the GZip footer.
+        byte[] result = output.ToArray();
+        return result;
+    }
+
+    public bool ENABLE_CHATLOG = true;
+    public string gamepathlogs() { return Path.Combine(PathStorage(), "Logs"); }
+    private static string MakeValidFileName(string name)
+    {
+        string invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
+        string invalidReStr = string.Format(@"[{0}]", invalidChars);
+        return Regex.Replace(name, invalidReStr, "_");
+    }
+    public bool ChatLog(string servername, string p)
+    {
+        if (!ENABLE_CHATLOG)
+        {
+            return true;
+        }
+        if (!Directory.Exists(gamepathlogs()))
+        {
+            Directory.CreateDirectory(gamepathlogs());
+        }
+        string filename = Path.Combine(gamepathlogs(), MakeValidFileName(servername) + ".txt");
+        File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
+        return true;
+    }
+
+    public bool IsValidTypingChar(int c_)
+    {
+        char c = (char)c_;
+        return (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)
+                    || char.IsPunctuation(c) || char.IsSeparator(c) || char.IsSymbol(c))
+                    && c != '\r' && c != '\t';
+    }
+
+    public void MessageBoxShowError(string text, string caption)
+    {
+        MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+    }
+
+    public string FileOpenDialog(string extension, string extensionName, string initialDirectory)
+    {
+        OpenFileDialog d = new()
+        {
+            InitialDirectory = initialDirectory,
+            FileName = "Default." + extension,
+            Filter = string.Format("{1}|*.{0}|All files|*.*", extension, extensionName),
+            CheckFileExists = false,
+            CheckPathExists = true
+        };
+        string dir = Environment.CurrentDirectory;
+        DialogResult result = d.ShowDialog();
+        Environment.CurrentDirectory = dir;
+        if (result == DialogResult.OK)
+        {
+            return d.FileName;
+        }
+        return null;
+    }
+
+    public void ApplicationDoEvents()
+    {
+        if (IsMono)
+        {
+            Application.DoEvents();
+            Thread.Sleep(0);
+        }
+    }
+
+    public void ShowKeyboard(bool show)
+    {
+    }
+
+    public bool IsFastSystem()
+    {
+        return false;
+    }
+
+    private static string GetPreferencesFilePath()
+    {
+        string path = GameStorePath.GetStorePath();
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+        return Path.Combine(path, "Preferences.txt");
+    }
+
+    public Preferences GetPreferences()
+    {
+        if (File.Exists(GetPreferencesFilePath()))
+        {
+            Preferences p = new()
+            {
+            };
+            string[] lines = File.ReadAllLines(GetPreferencesFilePath());
+            foreach (string l in lines)
+            {
+                int a = l.IndexOf("=", StringComparison.InvariantCultureIgnoreCase);
+                string name = l[..a];
+                string value = l[(a + 1)..];
+                p.SetString(name, value);
+            }
+            return p;
+        }
+        else
+        {
+            Preferences p = new()
+            {
+            };
+            return p;
+        }
+    }
+
+    public void SetPreferences(Preferences preferences)
+    {
+        File.WriteAllLines(GetPreferencesFilePath(), preferences.ToLines());
+    }
+
+    public bool IsMac = Environment.OSVersion.Platform == PlatformID.MacOSX;
+
+    public bool MultithreadingAvailable()
+    {
+        return true;
+    }
+
+    public void QueueUserWorkItem(Action action)
+    {
+        ThreadPool.QueueUserWorkItem((a) => { action(); });
+    }
+
+    public bool IsSmallScreen()
+    {
+        return TouchTest;
+    }
+
+    public void OpenLinkInBrowser(string url)
+    {
+        if (!(url.StartsWith("http://") || url.StartsWith("https://")))
+        {
+            //Check if string is an URL - if not, abort
+            return;
+        }
+        Process.Start(url);
+    }
+
+    public string Cachepath() { return Path.Combine(PathStorage(), "Cache"); }
+    public void Checkcachedir()
+    {
+        if (!Directory.Exists(Cachepath()))
+        {
+            Directory.CreateDirectory(Cachepath());
+        }
+    }
+
+    public void SaveAssetToCache(Asset tosave)
+    {
+        //Check if cache directory exists
+        Checkcachedir();
+        BinaryWriter bw = new(File.Create(Path.Combine(Cachepath(), tosave.md5)));
+        bw.Write(tosave.name);
+        bw.Write(tosave.dataLength);
+        bw.Write(tosave.data);
+        bw.Close();
+    }
+
+    public Asset LoadAssetFromCache(string md5)
+    {
+        //Check if cache directory exists
+        Checkcachedir();
+        BinaryReader br = new(File.OpenRead(Path.Combine(Cachepath(), md5)));
+        string contentName = br.ReadString();
+        int contentLength = br.ReadInt32();
+        byte[] content = br.ReadBytes(contentLength);
+        br.Close();
+        Asset a = new()
+        {
+            data = content,
+            dataLength = contentLength,
+            md5 = md5,
+            name = contentName
+        };
+        return a;
+    }
+
+    public bool IsCached(string md5)
+    {
+        if (!Directory.Exists(Cachepath()))
+            return false;
+        return File.Exists(Path.Combine(Cachepath(), md5));
+    }
+
+    public bool IsDebuggerAttached()
+    {
+        return Debugger.IsAttached;
+    }
+
+    public string QueryStringValue(string key)
+    {
+        return null;
+    }
+
+    #endregion
+
+    #region Game
+
+    public GameWindow Window { get; set; }
+
+    public int GetCanvasWidth()
+    {
+        return Window.ClientSize.X;
+    }
+
+    public int GetCanvasHeight()
+    {
+        return Window.ClientSize.Y;
+    }
+
+    public void Start()
+    {
+        Window.KeyDown += GameKeyDown;
+        Window.KeyUp += GameKeyUp;
+        Window.TextInput += GameTextInput;
+        Window.MouseDown += Mouse_ButtonDown;
+        Window.MouseUp += Mouse_ButtonUp;
+        Window.MouseMove += Mouse_Move;
+        Window.MouseWheel += Mouse_WheelChanged;
+        Window.RenderFrame += WindowRenderFrame;
+        Window.Closing += WindowClosed;
+        Window.Title = "Manic Digger";
+
+        GL.DebugMessageCallback((source, type, id, severity, length, message, param) =>
+        {
+            if (severity == DebugSeverity.DebugSeverityNotification)
+                return; // ignore info messages like this one
+            string msg = Marshal.PtrToStringAnsi(message, length);
+            Console.WriteLine($"[OpenGL] [{severity}] [{type}] {msg}");
+
+        }, IntPtr.Zero);
+    }
+
+    private void WindowClosed(CancelEventArgs e)
+    {
+        GameExit.Exit = e.Cancel;
+    }
+
+    public void SetVSync(bool enabled)
+    {
+        Window.VSync = enabled ? VSyncMode.On : VSyncMode.Off;
+    }
+
+    private readonly Screenshot screenshot = new();
+
+    public void SaveScreenshot()
+    {
+        screenshot.d_GameWindow = Window;
+        screenshot.SaveScreenshot();
+    }
+
+    public Bitmap GrabScreenshot()
+    {
+        screenshot.d_GameWindow = Window;
+        Bitmap bmp = screenshot.GrabScreenshot();
+        return bmp;
+    }
+
+    public void WindowExit()
+    {
+        GameExit?.Exit = true;
+        Window.Close();
+    }
+
+    public void SetTitle(string applicationname)
+    {
+        Window.Title = applicationname;
+    }
+
+    public string KeyName(int key)
+    {
+        if (Enum.IsDefined(typeof(Keys), key))
+        {
+            return Enum.GetName(typeof(Keys), key)!;
+        }
+        return key.ToString();
+    }
+
+    private List<DisplayResolutionCi> resolutions;
+
+    public List<DisplayResolutionCi> GetDisplayResolutions()
+    {
+        if (resolutions == null)
+        {
+            resolutions = [];
+            foreach (var screen in Screen.AllScreens)
+            {
+                var resolution = new DisplayResolutionCi
+                {
+                    Width = screen.Bounds.Width,
+                    Height = screen.Bounds.Height,
+                    BitsPerPixel = screen.BitsPerPixel,
+                    RefreshRate = 60 // Screen doesn't expose refresh rate
+                };
+
+                if (resolution.Width < 800 || resolution.Height < 600 || resolution.BitsPerPixel < 16)
+                    continue;
+
+                resolutions.Add(resolution);
+            }
+        }
+        return resolutions;
+    }
+
+    public WindowState GetWindowState()
+    {
+        return Window.WindowState;
+    }
+
+    public void SetWindowState(WindowState value)
+    {
+        Window.WindowState = value;
+    }
+
+    public void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate)
+    {
+        Window.Size = new Vector2i(width, height);
+    }
+
+    public DisplayResolutionCi GetDisplayResolutionDefault()
+    {
+        var screen = Screen.PrimaryScreen!;
+        var r = new DisplayResolutionCi
+        {
+            Width = screen.Bounds.Width,
+            Height = screen.Bounds.Height,
+            BitsPerPixel = screen.BitsPerPixel,
+            RefreshRate = 60
+        };
+        return r;
+    }
+
+    #endregion
+
+    #region Event handlers
+
+    public List<Action<float>> newFrameHandlers = new();
+    public void AddOnNewFrame(Action<float> handler)
+    {
+        newFrameHandlers.Add(handler);
+    }
+
+    public List<Action<KeyEventArgs>> KeyDownHandlers { get; set; } = [];
+    public List<Action<KeyEventArgs>> KeyUpHandlers = [];
+    public List<Action<KeyPressEventArgs>> KeyPressHandlers = [];
+
+    public event Action<TouchEventArgs> OnTouchStart;
+    public event Action<TouchEventArgs> OnTouchMove;
+    public event Action<TouchEventArgs> OnTouchEnd;
+
+    public event Action<MouseEventArgs> OnMouseDown;
+    public event Action<MouseEventArgs> OnMouseUp;
+    public event Action<MouseEventArgs> OnMouseMove;
+    public event Action<MouseWheelEventArgs> OnMouseWheel;
+
+    public void AddOnKeyEvent(
+        Action<KeyEventArgs> onKeyDown,
+        Action<KeyEventArgs> onKeyUp,
+        Action<KeyPressEventArgs> onKeyPress)
+    {
+        KeyDownHandlers.Add(onKeyDown);
+        KeyUpHandlers.Add(onKeyUp);
+        KeyPressHandlers.Add(onKeyPress);
+    }
+
+    public List<KeyEventHandler> keyEventHandlers = new();
+    public void AddOnKeyEvent(KeyEventHandler handler)
+    {
+        keyEventHandlers.Add(handler);
+    }
+
+    public void AddOnMouseEvent(
+        Action<MouseEventArgs> onMouseDown,
+        Action<MouseEventArgs> onMouseUp,
+        Action<MouseEventArgs> onMouseMove,
+        Action<MouseWheelEventArgs> onMouseWheel)
+    {
+        OnMouseDown += onMouseDown;
+        OnMouseUp += onMouseUp;
+        OnMouseMove += onMouseMove;
+        OnMouseWheel += onMouseWheel;
+    }
+
+    public void AddOnTouchEvent(Action<TouchEventArgs> onTouchStart,
+        Action<TouchEventArgs> onTouchMove,
+        Action<TouchEventArgs> onTouchEnd)
+    {
+        OnTouchStart += onTouchStart;
+        OnTouchMove += onTouchMove;
+        OnTouchEnd += onTouchEnd;
+    }
+
+    public CrashReporter crashreporter;
+    public void AddOnCrash(OnCrashHandler handler)
+    {
+        crashreporter.OnCrash += handler.OnCrash;
+    }
+
+    #endregion
+
+    #region Input
+
+    private bool mousePointerLocked;
+    private bool mouseCursorVisible = true;
+
+    public bool IsMousePointerLocked()
+    {
+        return mousePointerLocked;
+    }
+
+    public bool MouseCursorIsVisible()
+    {
+        return mouseCursorVisible;
+    }
+
+    public void SetWindowCursor(int hotx, int hoty, int sizex, int sizey, byte[] imgdata, int imgdataLength)
+    {
+        try
+        {
+            Bitmap bmp = new(new MemoryStream(imgdata, 0, imgdataLength)); //new Bitmap("data/local/gui/mousecursor.png");
+            if (bmp.Width > 32 || bmp.Height > 32)
+            {
+                // Limit cursor size to 32x32
+                return;
+            }
+            // Convert to required 0xBBGGRRAA format - see https://github.com/opentk/opentk/pull/107#issuecomment-41771702
+            int i = 0;
+            byte[] data = new byte[4 * bmp.Width * bmp.Height];
+            for (int y = 0; y < bmp.Width; y++)
+            {
+                for (int x = 0; x < bmp.Height; x++)
+                {
+                    Color color = bmp.GetPixel(x, y);
+                    data[i] = color.B;
+                    data[i + 1] = color.G;
+                    data[i + 2] = color.R;
+                    data[i + 3] = color.A;
+                    i += 4;
+                }
+            }
+            bmp.Dispose();
+            Window.Cursor = new MouseCursor(hotx, hoty, sizex, sizey, data);
+        }
+        catch
+        {
+            RestoreWindowCursor();
+        }
+    }
+
+    public void RestoreWindowCursor()
+    {
+        Window.Cursor = MouseCursor.Default;
+    }
+
+    public void MouseCursorSetVisible(bool value)
+    {
+        if (!value)
+        {
+            if (TouchTest)
+            {
+                return;
+            }
+            if (!mouseCursorVisible)
+            {
+                //Cursor already hidden. Do nothing.
+                return;
+            }
+            Window.CursorState = CursorState.Grabbed;
+            mouseCursorVisible = false;
+        }
+        else
+        {
+            if (mouseCursorVisible)
+            {
+                //Cursor already visible. Do nothing.
+                return;
+            }
+            Window.CursorState = CursorState.Normal;
+            mouseCursorVisible = true;
+        }
+    }
+
+    public void RequestMousePointerLock()
+    {
+        MouseCursorSetVisible(false);
+        mousePointerLocked = true;
+    }
+
+    public void ExitMousePointerLock()
+    {
+        MouseCursorSetVisible(true);
+        mousePointerLocked = false;
+    }
+
+    public bool Focused()
+    {
+        return Window.IsFocused;
+    }
+
+    private void WindowRenderFrame(FrameEventArgs e)
+    {
+        UpdateMousePosition();
+        foreach (Action<float> h in newFrameHandlers)
+            h((float)e.Time);
+        Window.SwapBuffers();
+    }
+
+    private void UpdateMousePosition()
+    {
+        if (!Window.IsFocused)
+            return;
+
+        var mouse = Window.MouseState;
+        float xdelta = mouse.Delta.X;
+        float ydelta = mouse.Delta.Y;
+
+        if (xdelta != 0 || ydelta != 0)
+        {
+            MouseEventArgs args = new();
+            args.SetX((int)mouse.Position.X);
+            args.SetY((int)mouse.Position.Y);
+            args.SetMovementX((int)xdelta);
+            args.SetMovementY((int)ydelta);
+            args.SetEmulated(true);
+            OnMouseMove?.Invoke(args);
+        }
+    }
+
+    private void Mouse_WheelChanged(MouseWheelEventArgs e)
+    {
+        OnMouseWheel?.Invoke(e);
+    }
+
+    private void Mouse_ButtonDown(MouseButtonEventArgs e)
+    {
+        var pos = Window.MousePosition;
+        if (TouchTest)
+        {
+            TouchEventArgs args = new();
+            args.SetX((int)pos.X);
+            args.SetY((int)pos.Y);
+            args.SetId(0);
+            OnTouchStart?.Invoke(args);
+        }
+        else
+        {
+            MouseEventArgs args = new();
+            args.SetX((int)pos.X);
+            args.SetY((int)pos.Y);
+            args.SetButton((int)e.Button);
+            OnMouseDown?.Invoke(args);
+        }
+    }
+
+    private void Mouse_ButtonUp(MouseButtonEventArgs e)
+    {
+        var pos = Window.MousePosition;
+        if (TouchTest)
+        {
+            TouchEventArgs args = new();
+            args.SetX((int)pos.X);
+            args.SetY((int)pos.Y);
+            args.SetId(0);
+            OnTouchEnd?.Invoke(args);
+        }
+        else
+        {
+            MouseEventArgs args = new();
+            args.SetX((int)pos.X);
+            args.SetY((int)pos.Y);
+            args.SetButton((int)e.Button);
+            OnMouseUp?.Invoke(args);
+        }
+    }
+
+    private void Mouse_Move(MouseMoveEventArgs e)
+    {
+        if (TouchTest)
+        {
+            Console.WriteLine("TouchTest path");
+            TouchEventArgs args = new();
+            args.SetX((int)e.X);
+            args.SetY((int)e.Y);
+            args.SetId(0);
+            OnTouchMove?.Invoke(args);
+        }
+        else
+        {
+            Console.WriteLine("Mouse path");
+            MouseEventArgs args = new();
+            args.SetX((int)e.X);
+            args.SetY((int)e.Y);
+            args.SetMovementX((int)e.DeltaX);
+            args.SetMovementY((int)e.DeltaY);
+            args.SetEmulated(false);
+            OnMouseMove?.Invoke(args);
+        }
+    }
+
+    private void GameTextInput(TextInputEventArgs e)
+    {
+        var args = new KeyPressEventArgs { KeyChar = e.Unicode };
+        foreach (var h in KeyPressHandlers)
+        {
+            h(args);
+            if (args.Handled) break;
+        }
+    }
+
+    private void GameKeyDown(KeyboardKeyEventArgs e)
+    {
+        KeyEventArgs args = new()
+        {
+            KeyChar = (int)(e.Key),
+            CtrlPressed = e.Modifiers == KeyModifiers.Control,
+            ShiftPressed = e.Modifiers == KeyModifiers.Shift,
+            AltPressed = e.Modifiers == KeyModifiers.Alt
+        };
+        foreach (var h in KeyDownHandlers)
+        {
+            h(args);
+            if (args.Handled) break;
+        }
+    }
+
+    private void GameKeyUp(KeyboardKeyEventArgs e)
+    {
+        KeyEventArgs args = new() { KeyChar = (int)(e.Key) };
+        foreach (var h in KeyUpHandlers)
+        {
+            h(args);
+            if (args.Handled) break;
+        }
+    }
+
+    #endregion
+}

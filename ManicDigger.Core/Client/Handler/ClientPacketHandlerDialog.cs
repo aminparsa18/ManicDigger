@@ -6,7 +6,7 @@
 /// </summary>
 public class ClientPacketHandlerDialog : ClientPacketHandler
 {
-    public override void Handle(IGameClient game, Packet_Server packet)
+    public override void Handle(IGame game, Packet_Server packet)
     {
         Packet_ServerDialog d = packet.Dialog;
 
@@ -61,7 +61,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         }
     }
 
-    private GameScreen ConvertDialog(IGameClient game, Dialog p)
+    private GameScreen ConvertDialog(IGame game, Dialog p)
     {
         DialogScreen s = new(game, default)
         {

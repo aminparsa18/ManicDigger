@@ -6,9 +6,9 @@ public class ModDebugChunk : ModBase
 {
     private bool draw;
     private readonly DrawWireframeCube lines;
-    private readonly IGameClient game;
+    private readonly IGame game;
 
-    public ModDebugChunk(IGameClient game, IGamePlatform platform)
+    public ModDebugChunk(IGame game, IOpenGlService platform)
     {
         this.game = game;
         lines = new DrawWireframeCube(platform);

@@ -3,10 +3,10 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 public class ModGuiEscapeMenu : ModBase
 {
-    private readonly IGameClient game;
-    private readonly IGamePlatform platform;
+    private readonly IGame game;
+    private readonly IGameService platform;
 
-    public ModGuiEscapeMenu(IGameClient game, IGamePlatform platform)
+    public ModGuiEscapeMenu(IGame game, IGameService platform)
     {
         this.game = game;
         this.platform = platform;
@@ -551,7 +551,7 @@ public class ModGuiEscapeMenu : ModBase
         // and are now invalid. Previously set list entries to null (leaking GPU
         // handles). Now explicitly delete each texture before clearing the dictionary.
         foreach (CachedTexture ct in game.CachedTextTextures.Values)
-            platform.GLDeleteTexture(ct.textureId);
+            game.OpenGlService.GLDeleteTexture(ct.textureId);
         game.CachedTextTextures.Clear();
     }
 

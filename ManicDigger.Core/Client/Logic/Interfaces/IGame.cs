@@ -8,14 +8,16 @@ using System.Collections.Concurrent;
 /// state, world access, networking, audio, UI, and platform services.
 /// Implemented by <see cref="Game"/>.
 /// </summary>
-public interface IGameClient
+public interface IGame
 {
     // =========================================================================
     // Platform & core
     // =========================================================================
 
     /// <summary>The host platform abstraction (windowing, GL, input, file I/O).</summary>
-    IGamePlatform Platform { get; set; }
+    IGameService GameService { get; set; }
+
+    IOpenGlService OpenGlService { get; set; }
 
     /// <summary>Active localisation data.</summary>
     Language Language { get; set; }

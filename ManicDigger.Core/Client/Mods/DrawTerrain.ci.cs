@@ -29,8 +29,8 @@ public class ModDrawTerrain : ModBase
     /// <summary>Volume of the extended chunk buffer (<see cref="BufferedChunkEdge"/>³).</summary>
     private const int BufferedChunkVolume = BufferedChunkEdge * BufferedChunkEdge * BufferedChunkEdge;
 
-    private readonly IGameClient _game;
-    private readonly IGamePlatform _platform;
+    private readonly IGame _game;
+    private readonly IGameService _platform;
 
     private readonly LightBase _lightBase;
     private readonly LightBetweenChunks _lightBetweenChunks;
@@ -59,7 +59,7 @@ public class ModDrawTerrain : ModBase
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
 
-    public ModDrawTerrain(IGameClient game, IGamePlatform platform)
+    public ModDrawTerrain(IGame game, IGameService platform)
     {
         _game = game;
         _platform = platform;

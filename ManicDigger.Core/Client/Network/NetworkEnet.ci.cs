@@ -65,10 +65,10 @@ public class EnetHostNative : EnetHost
 
 public sealed class EnetNetConnection : NetConnection
 {
-    private readonly IGamePlatform _platform;
+    private readonly INetworkService _platform;
     internal readonly EnetPeer Peer;
 
-    internal EnetNetConnection(IGamePlatform platform, EnetPeer peer)
+    internal EnetNetConnection(INetworkService platform, EnetPeer peer)
     {
         _platform = platform;
         Peer = peer;
@@ -107,7 +107,7 @@ public sealed class EnetNetConnection : NetConnection
 
 public sealed class EnetNetClient : NetClient
 {
-    private readonly IGamePlatform _platform;
+    private readonly INetworkService _platform;
 
     private EnetHost? _host;
     private EnetNetConnection? _connection;
@@ -123,7 +123,7 @@ public sealed class EnetNetClient : NetClient
     // Outgoing messages queued before the ENet handshake completed.
     private readonly Queue<ReadOnlyMemory<byte>> _pendingSend = new();
 
-    public EnetNetClient(IGamePlatform platform)
+    public EnetNetClient(INetworkService platform)
     {
         _platform = platform;
     }
@@ -227,7 +227,7 @@ public sealed class EnetNetClient : NetClient
 
 public sealed class EnetNetServer : NetServer
 {
-    private readonly IGamePlatform _platform;
+    private readonly INetworkService _platform;
 
     private EnetHost? _host;
     private int _port;
@@ -240,7 +240,7 @@ public sealed class EnetNetServer : NetServer
     // object rather than allocating a new one per event.
     private readonly Dictionary<int, EnetNetConnection> _connections = new();
 
-    public EnetNetServer(IGamePlatform platform)
+    public EnetNetServer(INetworkService platform)
     {
         _platform = platform;
     }

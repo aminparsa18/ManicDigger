@@ -6,7 +6,7 @@
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
 public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences) 
-    : ScreenBase(renderer, navigator, platform, platformOpenGl, singlePlayerService)
+    : ScreenBase(renderer, navigator, platform, platformOpenGl)
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences);
@@ -46,10 +46,10 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
     {
         if (singleplayer)
         {
-            DummyNetwork network = SinglePlayerService.SinglePlayerServerGetNetwork();
+            DummyNetwork network = singlePlayerService.SinglePlayerServerNetwork;
 
             // Platform provides its own singleplayer server (e.g. mobile).
-            SinglePlayerService.SinglePlayerServerStart(singleplayerSavePath);
+            singlePlayerService.SinglePlayerServerStart(singleplayerSavePath);
 
             // Prime the server inbox so the handshake starts immediately.
             network.ServerInbox.Enqueue([]);

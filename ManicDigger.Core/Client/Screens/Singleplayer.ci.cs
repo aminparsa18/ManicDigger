@@ -20,6 +20,8 @@ public class SingleplayerScreen : ScreenBase
     /// <summary>Dynamically populated buttons, one per discovered save file (up to <see cref="MaxWorldButtons"/>).</summary>
     private readonly MenuWidget[] worldButtons;
 
+    private readonly ISinglePlayerService singlePlayerService; 
+
     /// <summary>
     /// Save files discovered on first render. <c>null</c> until the first call to
     /// <see cref="Render"/> so that the file scan is deferred until the screen is actually shown.
@@ -29,7 +31,7 @@ public class SingleplayerScreen : ScreenBase
     private string title;
 
     public SingleplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService singlePlayerService)
-        : base(renderer, navigator, platform, default, singlePlayerService)
+        : base(renderer, navigator, platform, default)
     {
         play = new MenuWidget
         {
@@ -68,6 +70,8 @@ public class SingleplayerScreen : ScreenBase
             worldButtons[i] = new MenuWidget { visible = false };
             Widgets.Add(worldButtons[i]);
         }
+
+        this.singlePlayerService = singlePlayerService;
     }
 
     /// <inheritdoc/>
@@ -141,7 +145,7 @@ public class SingleplayerScreen : ScreenBase
         // Only the Open button is active on supporting platforms.
         // Play, NewWorld, Modify, and worldButtons are reserved for a future
         // save-file browser and are hidden until that UI is implemented.
-        open.visible = SinglePlayerService.SinglePlayerServerAvailable();
+        open.visible = singlePlayerService.SinglePlayerServerAvailable;
         play.visible = false;
         newWorld.visible = false;
         modify.visible = false;
@@ -152,7 +156,7 @@ public class SingleplayerScreen : ScreenBase
 
         DrawWidgets();
 
-        if (!SinglePlayerService.SinglePlayerServerAvailable())
+        if (!singlePlayerService.SinglePlayerServerAvailable)
         {
             Renderer.DrawText(
                 "Singleplayer is only available on desktop (Windows, Linux, Mac) version of game.",
@@ -224,7 +228,7 @@ public class SingleplayerScreen : ScreenBase
 
         if (w == open)
         {
-            string extension = SinglePlayerService.SinglePlayerServerAvailable() ? "mddbs" : "mdss";
+            string extension = singlePlayerService.SinglePlayerServerAvailable ? "mddbs" : "mdss";
             string result = Platform.FileOpenDialog(extension, "Manic Digger Savegame", Platform.GameSavePath);
             if (result != null)
             {

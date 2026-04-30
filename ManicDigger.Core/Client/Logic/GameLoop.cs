@@ -162,7 +162,7 @@ public partial class Game
 
         if (!IsSinglePlayer
          || SinglePlayerService.SinglePlayerServerLoaded
-         || !SinglePlayerService.SinglePlayerServerAvailable())
+         || !SinglePlayerService.SinglePlayerServerAvailable)
         {
             startedconnecting = true;
             Connect();

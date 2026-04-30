@@ -3,7 +3,7 @@
 public class MultiplayerScreen : ScreenBase
 {
     public MultiplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService _)
-        : base(renderer, navigator, platform, platformOpenGl, _)
+        : base(renderer, navigator, platform, platformOpenGl)
     {
         this.preferences = preferences;
         // Tab chain (by list index): [0] Back → [1] Connect → [3] ConnectToIp → [2] Refresh → [0] Back

@@ -8,17 +8,21 @@
 /// </remarks>
 public class MainScreen : ScreenBase
 {
-    public MainScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService singlePlayerService, IPreferences preferences)
-        : base(renderer, navigator, platform, default, singlePlayerService)
+    public MainScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService singlePlayerService)
+        : base(renderer, navigator, platform, default)
     {
         buttonSingleplayer = new MenuWidget { text = "Singleplayer" };
         buttonMultiplayer = new MenuWidget { text = "Multiplayer" };
         buttonExit = new MenuWidget { text = "Quit" };
 
+        this.singlePlayerService = singlePlayerService;
+
         Widgets.Add(buttonSingleplayer);
         Widgets.Add(buttonMultiplayer);
         Widgets.Add(buttonExit);
     }
+
+    private readonly ISinglePlayerService singlePlayerService;
 
     private readonly MenuWidget buttonSingleplayer;
     private readonly MenuWidget buttonMultiplayer;
@@ -142,7 +146,7 @@ public class MainScreen : ScreenBase
         // F5 — launch default singleplayer save (legacy .mdss format).
         if (e.KeyChar == (int)Keys.F5)
         {
-            SinglePlayerService.SinglePlayerServerDisable();
+            singlePlayerService.SinglePlayerServerAvailable = false;
             Navigator.StartGame(true, Path.Combine(Platform.GameSavePath, "Default.mdss"), null);
         }
         // F6 — launch default singleplayer save (database .mddbs format).

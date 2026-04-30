@@ -126,7 +126,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
         _preferences = preferences;
         Textures = [];
         textTextureCache = [];
-        screen = new MainScreen(this, this, _platform, singlePlayerService, _preferences);
+        screen = new MainScreen(this, this, _platform, singlePlayerService);
         loginClient = new LoginClientCi();
         Assets = [];
     }
@@ -536,7 +536,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <summary>Navigates to the main (home) screen and releases any mouse pointer lock.</summary>
     public void StartMainMenu()
     {
-        screen = new MainScreen(this, this, _platform, default, _preferences);
+        screen = new MainScreen(this, this, _platform, default);
         _platform.ExitMousePointerLock();
     }
 

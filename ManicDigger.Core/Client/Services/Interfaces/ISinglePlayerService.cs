@@ -5,11 +5,9 @@
 
 public interface ISinglePlayerService
 {
-    bool SinglePlayerServerAvailable();
+    bool SinglePlayerServerAvailable { get; set; }
     void SinglePlayerServerStart(string saveFilename);
     bool SinglePlayerServerExit { get; set; }
     bool SinglePlayerServerLoaded { get;set; }
-    void SinglePlayerServerDisable();
-    DummyNetwork SinglePlayerServerGetNetwork();
+    DummyNetwork SinglePlayerServerNetwork { get; set; }
 }
-

@@ -26,10 +26,23 @@ public class Program
         Start(args);
     }
 
-    private static void ConfigureServices(ServiceCollection services)
+    private void ConfigureServices(ServiceCollection services)
     {
         // Register your services here
         services.AddTransient<IPreferences, Preferences>();
+        services.AddTransient<ISinglePlayerService, SinglePlayerService>(factory =>
+        {
+            return new SinglePlayerService()
+            {
+                SinglePlayerServerNetwork = dummyNetwork,
+                StartSinglePlayerServer = filename =>
+                {
+                    savefilename = filename;
+                    new Thread(ServerThreadStart) { IsBackground = true }.Start();
+                }
+            };
+        });
+
     }
 
     // -------------------------------------------------------------------------
@@ -63,16 +76,8 @@ public class Program
         using GameWindowNative window = new();
         platform.Window = window;
 
-        singlePlayerService = new SinglePlayerService()
-        {
-            singlePlayerServerDummyNetwork = dummyNetwork,
-            StartSinglePlayerServer = filename =>
-            {
-                savefilename = filename;
-                new Thread(ServerThreadStart) { IsBackground = true }.Start();
-            }
-        };
         //temporary until DI is done;
+        singlePlayerService = ServiceProvider.GetRequiredService<ISinglePlayerService>();
         var preference = ServiceProvider.GetRequiredService<IPreferences>();
         MainMenu mainmenu = new(platform, new OpenGlService(), singlePlayerService, preference);
 

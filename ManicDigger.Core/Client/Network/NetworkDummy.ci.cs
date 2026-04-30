@@ -7,9 +7,7 @@
 // Both sides live in the same process on different threads, so the queues
 // are protected with standard lock(). No MonitorObject, no manual Enter/Exit.
 
-using MemoryPack;
 using System.Collections.Concurrent;
-using static ManicDigger.Mods.ModNetworkProcess;
 
 // ---------------------------------------------------------------------------
 // Shared in-process channel

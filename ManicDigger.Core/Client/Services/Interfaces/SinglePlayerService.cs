@@ -1,24 +1,10 @@
 ﻿public class SinglePlayerService : ISinglePlayerService
 {
-    private bool singlePlayerServerAvailable = true;
-
-    public bool SinglePlayerServerAvailable()
-    {
-        return singlePlayerServerAvailable;
-    }
-
-    public void SinglePlayerServerDisable()
-    {
-        singlePlayerServerAvailable = false;
-    }
+    public bool SinglePlayerServerAvailable { get; set; } = true;
 
     public bool SinglePlayerServerExit { get; set; }
 
-    public DummyNetwork singlePlayerServerDummyNetwork;
-    public DummyNetwork SinglePlayerServerGetNetwork()
-    {
-        return singlePlayerServerDummyNetwork;
-    }
+    public DummyNetwork SinglePlayerServerNetwork { get; set; }
 
     public Action<string> StartSinglePlayerServer;
     public bool SinglePlayerServerLoaded { get; set; }

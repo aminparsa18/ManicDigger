@@ -16,15 +16,18 @@ public class LightBase
     /// <summary>Reused flood-fill engine. Allocated once to avoid per-call allocation.</summary>
     private readonly LightFlood _flood;
 
+    private readonly IVoxelMap voxelMap;
+
     /// <summary>
     /// Reused flat block ID buffer, copied from the chunk before each light calculation
     /// so the original chunk data is never modified during lighting passes.
     /// </summary>
     private readonly int[] _workData;
 
-    public LightBase()
+    public LightBase(IVoxelMap voxelMap)
     {
         _flood = new LightFlood();
+        this.voxelMap = voxelMap;
         _workData = new int[ChunkVolume];
     }
 
@@ -47,7 +50,7 @@ public class LightBase
         int[] dataLightRadius,
         bool[] transparentForLight)
     {
-        Chunk chunk = game.VoxelMap.GetChunkAt(cx, cy, cz);
+        Chunk chunk = voxelMap.GetChunkAt(cx, cy, cz);
 
         // Copy block data into the working buffer via the chunk's unified accessor,
         // which handles both byte (data) and int (dataInt) storage transparently.

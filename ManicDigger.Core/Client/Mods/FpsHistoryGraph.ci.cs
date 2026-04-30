@@ -51,9 +51,9 @@ public class ModFpsHistoryGraph : ModBase
     /// <inheritdoc/>
     public override bool OnClientCommand(IGame game, ClientCommandArgs args)
     {
-        if (args.command != "fps") return false;
+        if (args.Command != "fps") return false;
 
-        (drawFpsText, drawFpsGraph) = args.arguments.Trim() switch
+        (drawFpsText, drawFpsGraph) = args.Arguments.Trim() switch
         {
             "" or "1" => (true, false),
             "2" => (true, true),

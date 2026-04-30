@@ -3,10 +3,12 @@
 public class ModDrawTestModel : ModBase
 {
     private readonly IOpenGlService platformOpenGl;
+    private readonly IVoxelMap voxelMap;
 
-    public ModDrawTestModel(IOpenGlService platformOpenGl)
+    public ModDrawTestModel(IOpenGlService platformOpenGl, IVoxelMap voxelMap)
     {
         this.platformOpenGl = platformOpenGl;
+        this.voxelMap = voxelMap;
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -35,7 +37,7 @@ public class ModDrawTestModel : ModBase
             testmodel.Start(game, model);
         }
         game.GLPushMatrix();
-        game.GLTranslate(game.VoxelMap.MapSizeX / 2, game.Blockheight(game.VoxelMap.MapSizeX / 2, game.VoxelMap.MapSizeY / 2 - 2, 128), game.VoxelMap.MapSizeY / 2 - 2);
+        game.GLTranslate(voxelMap.MapSizeX / 2, game.Blockheight(voxelMap.MapSizeX / 2, voxelMap.MapSizeY / 2 - 2, 128), voxelMap.MapSizeY / 2 - 2);
         platformOpenGl.BindTexture2d(game.GetTexture("mineplayer.png"));
         testmodel.Render(deltaTime, 0, true, true, 1);
         game.GLPopMatrix();
@@ -44,9 +46,9 @@ public class ModDrawTestModel : ModBase
 
     public override bool OnClientCommand(IGame game, ClientCommandArgs args)
     {
-        if (args.command == "testmodel")
+        if (args.Command == "testmodel")
         {
-            game.EnableDrawTestCharacter = game.BoolCommandArgument(args.arguments);
+            game.EnableDrawTestCharacter = game.BoolCommandArgument(args.Arguments);
             return true;
         }
         return false;

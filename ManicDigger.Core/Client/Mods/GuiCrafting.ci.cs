@@ -57,9 +57,11 @@ public class ModGuiCrafting : ModBase
     /// </summary>
     private bool _handlerRegistered;
 
+    private readonly IVoxelMap voxelMap;
 
-    public ModGuiCrafting()
+    public ModGuiCrafting(IVoxelMap voxelMap)
     {
+        this.voxelMap = voxelMap;
         handler = new PacketHandlerCraftingRecipes { mod = this };
     }
 
@@ -70,7 +72,7 @@ public class ModGuiCrafting : ModBase
         // Lazy-initialise the tool once.
         d_CraftingTableTool ??= new CraftingTableTool
         {
-            d_Map = new MapStorage(game.VoxelMap, game.SetBlock),
+            d_Map = new MapStorage(voxelMap, game.SetBlock),
             d_Data = game.BlockRegistry
         };
 
@@ -102,7 +104,7 @@ public class ModGuiCrafting : ModBase
         int posY = game.SelectedBlockPositionZ;
         int posZ = game.SelectedBlockPositionY;
 
-        if (game.VoxelMap.GetBlock(posX, posY, posZ) != game.BlockRegistry.BlockIdCraftingTable) return;
+        if (voxelMap.GetBlock(posX, posY, posZ) != game.BlockRegistry.BlockIdCraftingTable) return;
 
         // GetTable / GetOnTable return references to CraftingTableTool's internal
         // reusable buffers. CraftingRecipesStart copies the on-table data into

@@ -26,9 +26,10 @@ public class ScriptCharacterPhysics : IEntityScript
 {
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ScriptCharacterPhysics(IGame game)
+    public ScriptCharacterPhysics(IGame game, IVoxelMap voxelMap)
     {
         this.game = game;
+        this.voxelMap = voxelMap;
         // Only non-default values need explicit initialisation.
         // (movedz, curspeed, jumpacceleration, isplayeronground, etc. are
         //  already zero/false by C# default for their types.)
@@ -43,6 +44,7 @@ public class ScriptCharacterPhysics : IEntityScript
 
     /// <summary>Reference to the active game instance, assigned at the start of each tick.</summary>
     private readonly IGame game;
+    private readonly IVoxelMap voxelMap;
 
     // ── Per-frame physics state ───────────────────────────────────────────────
 
@@ -203,13 +205,13 @@ public class ScriptCharacterPhysics : IEntityScript
         int cx = (int)(game.Player.position.x / Game.chunksize);
         int cy = (int)(game.Player.position.z / Game.chunksize);
         int cz = (int)(game.Player.position.y / Game.chunksize);
-        if (game.VoxelMap.IsValidChunkPos(cx, cy, cz))
+        if (voxelMap.IsValidChunkPos(cx, cy, cz))
         {
             // Use cached chunk-count properties instead of recomputing / Game.chunksize.
-            if (game.VoxelMap.Chunks[VectorIndexUtil.Index3d(
+            if (voxelMap.Chunks[VectorIndexUtil.Index3d(
                     cx, cy, cz,
-                    game.VoxelMap.Mapsizexchunks,
-                    game.VoxelMap.Mapsizeychunks)] != null)
+                    voxelMap.Mapsizexchunks,
+                    voxelMap.Mapsizeychunks)] != null)
                 loaded = true;
         }
         else
@@ -358,11 +360,11 @@ public class ScriptCharacterPhysics : IEntityScript
     /// </summary>
     public bool IsTileEmptyForPhysics(int x, int y, int z)
     {
-        if (z >= game.VoxelMap.MapSizeZ) return true;
+        if (z >= voxelMap.MapSizeZ) return true;
         if (x < 0 || y < 0 || z < 0) return false;
-        if (x >= game.VoxelMap.MapSizeX || y >= game.VoxelMap.MapSizeY) return false;
+        if (x >= voxelMap.MapSizeX || y >= voxelMap.MapSizeY) return false;
 
-        int block = game.VoxelMap.GetBlockValid(x, y, z);
+        int block = voxelMap.GetBlockValid(x, y, z);
         if (block == 0) return true;
 
         BlockType blocktype = game.BlockTypes[block];
@@ -439,7 +441,7 @@ public class ScriptCharacterPhysics : IEntityScript
 
     private bool StandingOnHalfBlock(float x, float y, float z)
     {
-        int under = game.VoxelMap.GetBlock((int)x, (int)z, (int)y);
+        int under = voxelMap.GetBlock((int)x, (int)z, (int)y);
         return game.BlockTypes[under].DrawType == DrawType.HalfHeight;
     }
 
@@ -464,7 +466,7 @@ public class ScriptCharacterPhysics : IEntityScript
                 {
                     if (!IsTileEmptyForPhysics((int)cx, (int)cz, (int)cy))
                     {
-                        blockingBlocktype = game.VoxelMap.GetBlock((int)cx, (int)cz, (int)cy);
+                        blockingBlocktype = voxelMap.GetBlock((int)cx, (int)cz, (int)cy);
                         return false;
                     }
                 }

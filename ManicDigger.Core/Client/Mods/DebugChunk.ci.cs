@@ -14,7 +14,7 @@ public class ModDebugChunk : ModBase
 
     public override bool OnClientCommand(IGame game, ClientCommandArgs args)
     {
-        if (args.command != "chunk") return false;
+        if (args.Command != "chunk") return false;
         draw = !draw;
         return true;
     }

@@ -62,6 +62,7 @@ public class MainMenu : IMenu
 
     /// <summary>The active platform abstraction (windowing, GL, input, etc.).</summary>
     private readonly IGameService GameService;
+    private readonly IVoxelMap voxelMap;
     private readonly IGameExit _gameExit;
     private readonly IOpenGlService _platformOpenGl;
     private readonly ISinglePlayerService _singlePlayerService;
@@ -121,9 +122,10 @@ public class MainMenu : IMenu
     // -------------------------------------------------------------------------
 
     public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
-        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods)
+        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods, IVoxelMap voxelMap)
     {
         this.mods = mods;
+        this.voxelMap = voxelMap;
         GameService = platform;
         _platformOpenGl = platformOpenGl;
         _singlePlayerService = singlePlayerService;
@@ -599,7 +601,7 @@ public class MainMenu : IMenu
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork, mods);
+        ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork, mods, voxelMap);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }

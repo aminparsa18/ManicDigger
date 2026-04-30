@@ -29,7 +29,7 @@ public class Program
     {
         // Register your services here
         services.AddSingleton<GameWindowNative>();
-        services.AddSingleton<IGame, Game>();
+        services.AddSingleton<IVoxelMap, VoxelMap>();
 
         // ── Player logic ──────────────────────────────────────────────────────
         services.AddScoped<IModBase, ModDrawMain>();

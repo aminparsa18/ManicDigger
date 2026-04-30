@@ -6,12 +6,14 @@ public class ModDraw2dMisc : ModBase
     private readonly IOpenGlService platformOpenGl;
     private readonly IGameService platform;
     private readonly ISinglePlayerService singlePlayerService;
+    private readonly IVoxelMap voxelMap;
 
-    public ModDraw2dMisc(IOpenGlService platformOpenGl, IGameService platform, ISinglePlayerService singlePlayerService)
+    public ModDraw2dMisc(IOpenGlService platformOpenGl, IGameService platform, ISinglePlayerService singlePlayerService, IVoxelMap voxelMap)
     {
         this.platformOpenGl = platformOpenGl;
         this.platform = platform;
         this.singlePlayerService = singlePlayerService;
+        this.voxelMap = voxelMap;
     }
 
     public override void OnNewFrameDraw2d(IGame game, float deltaTime)
@@ -41,9 +43,9 @@ public class ModDraw2dMisc : ModBase
         int y = game.SelectedBlockPositionZ;
         int z = game.SelectedBlockPositionY;
 
-        if (!game.VoxelMap.IsValidPos(x, y, z)) return;
+        if (!voxelMap.IsValidPos(x, y, z)) return;
 
-        int blocktype = game.VoxelMap.GetBlock(x, y, z);
+        int blocktype = voxelMap.GetBlock(x, y, z);
         if (!game.IsValid(blocktype)) return;
 
         game.CurrentAttackedBlock = new Vector3i(x, y, z);
@@ -57,7 +59,7 @@ public class ModDraw2dMisc : ModBase
             int x = game.CurrentAttackedBlock.Value.X;
             int y = game.CurrentAttackedBlock.Value.Y;
             int z = game.CurrentAttackedBlock.Value.Z;
-            int blocktype = game.VoxelMap.GetBlock(x, y, z);
+            int blocktype = voxelMap.GetBlock(x, y, z);
             float health = game.GetCurrentBlockHealth(x, y, z);
             float progress = health / game.BlockRegistry.Strength[blocktype];
 

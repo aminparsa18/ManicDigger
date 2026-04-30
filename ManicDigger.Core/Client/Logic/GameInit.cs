@@ -50,7 +50,7 @@ public partial class Game : IGame
     public ServerInformation ServerInfo { get; set; }
     private Dictionary<string, string> performanceinfo;
     private TaskScheduler taskScheduler;
-    public ConcurrentQueue<Action<IGame>> commitActions { get; set; }
+    public ConcurrentQueue<Action<IGame>> CommitActions { get; set; }
 
     // -------------------------------------------------------------------------
     // Rendering / textures
@@ -94,7 +94,7 @@ public partial class Game : IGame
     // World / map
     // -------------------------------------------------------------------------
 
-    public VoxelMap VoxelMap { get; set; }
+    private IVoxelMap voxelMap;
     public ChunkedMap2d<int> Heightmap { get; set; }
 
     public int LastplacedblockX { get; set; }
@@ -383,7 +383,7 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
-        IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods)
+        IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods, IVoxelMap voxelMap)
     {
         GameService = platform;
         OpenGlService = platformOpenGl;
@@ -391,6 +391,7 @@ public partial class Game : IGame
         this.preferences = preferences;
         this.gameExit = gameExit;
         this.mods = mods;
+        this.voxelMap = voxelMap;
         InitCore();
         InitMap();
         InitTextures();
@@ -418,13 +419,12 @@ public partial class Game : IGame
         identityMatrix = Matrix4.Identity;
         PlayerStats = new Packet_ServerPlayerStats();
         taskScheduler = new TaskScheduler(this, GameService);
-        commitActions = new();
+        CommitActions = new();
         Entities = [];
     }
 
     private void InitMap()
     {
-        VoxelMap = new VoxelMap();
         LastplacedblockX = -1;
         LastplacedblockY = -1;
         LastplacedblockZ = -1;

@@ -10,6 +10,7 @@ public class ModFallDamageToPlayer : ModBase
     private bool fallSoundPlaying;
     private int lastFallDamageTimeMilliseconds;
     private readonly IGameService platform;
+    private readonly IVoxelMap voxelMap;
 
     public ModFallDamageToPlayer(IGameService platform)
     {
@@ -48,9 +49,9 @@ public class ModFallDamageToPlayer : ModBase
     private void ApplyFallDamage(IGame game, int posX, int posY, int posZ, float fallSpeed)
     {
         if (fallSpeed < 4f) return;
-        if (!game.VoxelMap.IsValidPos(posX, posY, posZ - 3)) return;
+        if (!voxelMap.IsValidPos(posX, posY, posZ - 3)) return;
 
-        int blockBelow = game.VoxelMap.GetBlock(posX, posY, posZ - 3);
+        int blockBelow = voxelMap.GetBlock(posX, posY, posZ - 3);
         if (blockBelow == 0 || game.IsWater(blockBelow)) return;
 
         // fallspeed 4 ≈ 10 blocks high, 5.5 ≈ 20 blocks high

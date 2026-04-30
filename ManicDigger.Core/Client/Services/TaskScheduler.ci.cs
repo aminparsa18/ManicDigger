@@ -149,9 +149,9 @@ public class TaskScheduler
     /// <summary>Executes all pending commit actions then clears the queue.</summary>
     private void FlushCommitActions()
     {
-        foreach (var action in game.commitActions)
+        foreach (var action in game.CommitActions)
             action(game);
-        game.commitActions.Clear();
+        game.CommitActions.Clear();
     }
 
     /// <summary>

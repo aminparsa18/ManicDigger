@@ -4,6 +4,13 @@
 /// </summary>
 public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
 {
+    private readonly IVoxelMap voxelMap;
+
+    public ClientPacketHandlerEntitySpawn(IVoxelMap voxelMap)
+    {
+        this.voxelMap = voxelMap;
+    }
+
     public override void Handle(IGame game, Packet_Server packet)
     {
         int id = packet.EntitySpawn.Id;
@@ -20,7 +27,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
             game.Player = entity;
             if (!game.Spawned)
             {
-                entity.scripts[entity.scriptsCount++] = new ScriptCharacterPhysics(game);
+                entity.scripts[entity.scriptsCount++] = new ScriptCharacterPhysics(game, voxelMap);
                 game.MapLoaded();
                 game.Spawned = true;
             }

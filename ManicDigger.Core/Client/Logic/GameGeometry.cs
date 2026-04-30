@@ -71,7 +71,7 @@ public partial class Game
     {
         for (int z = z_; z >= 0; z--)
         {
-            if (VoxelMap.GetBlock(x, y, z) != 0)
+            if (voxelMap.GetBlock(x, y, z) != 0)
                 return z + 1;
         }
         return 0;
@@ -84,9 +84,9 @@ public partial class Game
     /// </summary>
     public float Getblockheight(int x, int y, int z)
     {
-        if (!VoxelMap.IsValidPos(x, y, z)) return 1f;
+        if (!voxelMap.IsValidPos(x, y, z)) return 1f;
 
-        int block = VoxelMap.GetBlock(x, y, z);
+        int block = voxelMap.GetBlock(x, y, z);
         if (BlockTypes[block].Rail != 0) return RailBlockHeight;
         if (BlockTypes[block].DrawType == DrawType.HalfHeight) return 0.5f;
         if (BlockTypes[block].DrawType == DrawType.Flat) return 0.05f;

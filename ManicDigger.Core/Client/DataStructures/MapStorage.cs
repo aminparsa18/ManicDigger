@@ -9,10 +9,10 @@
 
 public class MapStorage : IMapStorage
 {
-    private readonly VoxelMap _voxelMap;
+    private readonly IVoxelMap _voxelMap;
     private readonly Action<int, int, int, int> _setBlock;
 
-    public MapStorage(VoxelMap voxelMap, Action<int, int, int, int> setBlock)
+    public MapStorage(IVoxelMap voxelMap, Action<int, int, int, int> setBlock)
     {
         _voxelMap = voxelMap;
         _setBlock = setBlock;

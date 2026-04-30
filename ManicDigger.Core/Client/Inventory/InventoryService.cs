@@ -43,7 +43,7 @@ public class InventoryService : IInventoryService
     /// </exception>
     public string ItemInfo(InventoryItem item)
     {
-        if (item == null) throw new ArgumentNullException(nameof(item));
+        ArgumentNullException.ThrowIfNull(item);
 
         if (item.InventoryItemType == InventoryItemType.Block)
         {

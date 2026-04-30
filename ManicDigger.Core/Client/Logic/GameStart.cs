@@ -51,8 +51,8 @@ public partial class Game
         Batcher = new MeshBatcher(OpenGlService, this);
 
         // ── World / map ───────────────────────────────────────────────────────
-        VoxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);
-        Heightmap = new ChunkedMap2d<int>(VoxelMap.MapSizeX, VoxelMap.MapSizeY);
+        voxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);
+        Heightmap = new ChunkedMap2d<int>(voxelMap.MapSizeX, voxelMap.MapSizeY);
 
         // ── Inventory ─────────────────────────────────────────────────────────
         Packet_Inventory inventory = new() { RightHand = new InventoryItem[10] };

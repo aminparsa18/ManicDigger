@@ -133,9 +133,9 @@ public partial class Game : IMeshDrawer
     /// <summary>Number of currently active (non-null) dialogs.</summary>
     internal int DialogsCount => Dialogs.Count(d => d != null);
 
-    public int MapSizeX => VoxelMap.MapSizeX;
-    public int MapSizeY => VoxelMap.MapSizeY;
-    public int MapSizeZ => VoxelMap.MapSizeZ;
+    public int MapSizeX => voxelMap.MapSizeX;
+    public int MapSizeY => voxelMap.MapSizeY;
+    public int MapSizeZ => voxelMap.MapSizeZ;
     public int TerrainTexturesPerAtlas { get; set; }
 
     public bool EnableDraw2d { get => ENABLE_DRAW2D; set => ENABLE_DRAW2D = value; }
@@ -309,7 +309,7 @@ public partial class Game : IMeshDrawer
     /// Enqueues <paramref name="action"/> for execution on the main thread at
     /// the end of the next frame. Thread-safe — see <see cref="ConcurrentQueue{T}"/>.
     /// </summary>
-    public void QueueActionCommit(Action<IGame> action) => commitActions.Enqueue(action);
+    public void QueueActionCommit(Action<IGame> action) => CommitActions.Enqueue(action);
 
     // ── Draw dispatch ─────────────────────────────────────────────────────────
 
@@ -372,9 +372,9 @@ public partial class Game : IMeshDrawer
         int minY = Math.Max((int)Math.Min(line.Start[1], line.End[1]), 0);
         int minZ = Math.Max((int)Math.Min(line.Start[2], line.End[2]), 0);
 
-        int maxX = Math.Min((int)Math.Max(line.Start[0], line.End[0]), VoxelMap.MapSizeX);
-        int maxY = Math.Min((int)Math.Max(line.Start[1], line.End[1]), VoxelMap.MapSizeZ);
-        int maxZ = Math.Min((int)Math.Max(line.Start[2], line.End[2]), VoxelMap.MapSizeY);
+        int maxX = Math.Min((int)Math.Max(line.Start[0], line.End[0]), voxelMap.MapSizeX);
+        int maxY = Math.Min((int)Math.Max(line.Start[1], line.End[1]), voxelMap.MapSizeZ);
+        int maxZ = Math.Min((int)Math.Max(line.Start[2], line.End[2]), voxelMap.MapSizeY);
 
         int size = (int)BitOperations.RoundUpToPowerOf2(
             (uint)Math.Max(maxX - minX + 1, Math.Max(maxY - minY + 1, maxZ - minZ + 1)));

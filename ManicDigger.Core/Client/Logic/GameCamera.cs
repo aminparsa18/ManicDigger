@@ -79,6 +79,6 @@ public partial class Game
         int by = (int)MathF.Floor(CameraEye.Z);
         int bz = (int)MathF.Floor(CameraEye.Y);
 
-        return VoxelMap.IsValidPos(bx, by, bz) ? VoxelMap.GetBlockValid(bx, by, bz) : 0;
+        return voxelMap.IsValidPos(bx, by, bz) ? voxelMap.GetBlockValid(bx, by, bz) : 0;
     }
 }

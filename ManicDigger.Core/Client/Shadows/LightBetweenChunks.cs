@@ -37,12 +37,15 @@ public class LightBetweenChunks
     /// </summary>
     private readonly int[][] _chunksData;
 
+    private readonly IVoxelMap _voxelMap;
+
     /// <summary>
     /// Initialises the calculator, pre-allocating all neighbourhood buffers
     /// to avoid per-frame allocation.
     /// </summary>
-    public LightBetweenChunks()
+    public LightBetweenChunks(IVoxelMap voxelMap)
     {
+        _voxelMap = voxelMap;
         _flood = new LightFlood();
 
         _chunksLight = new byte[NeighbourhoodVolume][];
@@ -116,14 +119,14 @@ public class LightBetweenChunks
                     int pcz = cz + z - 1;
 
                     // Zero out buffers for missing or out-of-bounds chunks.
-                    if (!game.VoxelMap.IsValidChunkPos(pcx, pcy, pcz))
+                    if (!_voxelMap.IsValidChunkPos(pcx, pcy, pcz))
                     {
                         Array.Clear(_chunksData[slotIndex], 0, ChunkVolume);
                         Array.Clear(_chunksLight[slotIndex], 0, ChunkVolume);
                         continue;
                     }
 
-                    Chunk chunk = game.VoxelMap.GetChunkAt(pcx, pcy, pcz);
+                    Chunk chunk = _voxelMap.GetChunkAt(pcx, pcy, pcz);
                     int[] dataSlot = _chunksData[slotIndex];
                     byte[] lightSlot = _chunksLight[slotIndex];
 
@@ -274,7 +277,7 @@ public class LightBetweenChunks
     /// <param name="cz">Target chunk Z coordinate.</param>
     private void Output(IGame game, int cx, int cy, int cz)
     {
-        Chunk chunk = game.VoxelMap.GetChunkAt(cx, cy, cz);
+        Chunk chunk = _voxelMap.GetChunkAt(cx, cy, cz);
 
         for (int x = 0; x < OutputSize; x++)
         {

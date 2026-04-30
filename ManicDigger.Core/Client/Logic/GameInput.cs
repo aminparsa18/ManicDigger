@@ -243,9 +243,9 @@ public partial class Game
 
         if (GuiState != GuiState.MapLoading)
         {
-            for (int i = 0; i < ClientMods.Count; i++)
+            foreach (var mod in ClientMods)
             {
-                ClientMods[i].OnKeyDown(this, eKey);
+                mod.OnKeyDown(this, eKey);
                 if (eKey.Handled) return;
             }
         }
@@ -338,7 +338,7 @@ public partial class Game
 
         int playerx = (int)Player.position.x;
         int playery = (int)Player.position.z;
-        if (playerx >= 0 && playerx < VoxelMap.MapSizeX && playery >= 0 && playery < VoxelMap.MapSizeY)
+        if (playerx >= 0 && playerx < voxelMap.MapSizeX && playery >= 0 && playery < voxelMap.MapSizeY)
             performanceinfo["height"] = string.Format("height:{0}", Heightmap.GetBlock(playerx, playery).ToString());
 
         if (eKey == GetKey(Keys.F5))
@@ -414,7 +414,7 @@ public partial class Game
             int posX = CurrentAttackedBlock.Value.X;
             int posY = CurrentAttackedBlock.Value.Y;
             int posZ = CurrentAttackedBlock.Value.Z;
-            int blocktype = VoxelMap.GetBlock(posX, posY, posZ);
+            int blocktype = voxelMap.GetBlock(posX, posY, posZ);
 
             if (IsUsableBlock(blocktype))
             {
@@ -435,10 +435,10 @@ public partial class Game
         if (CurrentlyAttackedEntity != -1 && Entities[CurrentlyAttackedEntity].usable)
         {
             OnUseEntityArgs args = new() { Id = CurrentlyAttackedEntity };
-            for (int i = 0; i < ClientMods.Count; i++)
+            foreach (var t in ClientMods)
             {
-                if (ClientMods[i] == null) continue;
-                ClientMods[i].OnUseEntity(this, args);
+                if (t == null) continue;
+                t.OnUseEntity(this, args);
             }
             SendPacketClient(ClientPackets.UseEntity(CurrentlyAttackedEntity));
         }

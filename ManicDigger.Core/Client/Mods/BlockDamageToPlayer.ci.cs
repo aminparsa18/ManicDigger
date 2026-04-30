@@ -18,11 +18,13 @@ public class ModBlockDamageToPlayer : ModBase
     private readonly DamageTimer blockDamageTimer;
 
     private readonly IGameService _platform;
+    private readonly IVoxelMap voxelMap;
 
-    public ModBlockDamageToPlayer( IGameService platform)
+    public ModBlockDamageToPlayer(IGameService platform, IVoxelMap voxelMap)
     {
         _platform = platform;
         blockDamageTimer = new DamageTimer(BlockDamageToPlayerEvery, BlockDamageToPlayerEvery * 2);
+        this.voxelMap = voxelMap;
     }
 
     public override void OnNewFrameFixed(IGame game, float args)
@@ -46,8 +48,8 @@ public class ModBlockDamageToPlayer : ModBase
         float pY = game.LocalPositionY + game.LocalEyeHeight;
         float pZ = game.LocalPositionZ;
 
-        int block1 = GetBlockAt(game, pX, pY, pZ);
-        int block2 = GetBlockAt(game, pX, pY - 1, pZ);
+        int block1 = GetBlockAt(pX, pY, pZ);
+        int block2 = GetBlockAt(pX, pY - 1, pZ);
 
         int damage = game.BlockRegistry.DamageToPlayer[block1] + game.BlockRegistry.DamageToPlayer[block2];
         if (damage <= 0) return;
@@ -85,12 +87,12 @@ public class ModBlockDamageToPlayer : ModBase
         lastOxygenTickMilliseconds = _platform.TimeMillisecondsFromStart;
     }
 
-    private int GetBlockAt(IGame game, float x, float y, float z)
+    private int GetBlockAt(float x, float y, float z)
     {
         int bx = (int)MathF.Floor(x);
         int by = (int)MathF.Floor(y);
         int bz = (int)MathF.Floor(z);
-        return game.VoxelMap.IsValidPos(bx, bz, by) ? game.VoxelMap.GetBlock((int)x, (int)z, (int)y) : 0;
+        return voxelMap.IsValidPos(bx, bz, by) ? voxelMap.GetBlock((int)x, (int)z, (int)y) : 0;
     }
 }
 

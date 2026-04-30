@@ -121,12 +121,12 @@ public class ModAutoCamera : ModBase
     /// <inheritdoc/>
     public override bool OnClientCommand(IGame _game, ClientCommandArgs args)
     {
-        if (args.command != "cam")
+        if (args.Command != "cam")
             return false;
 
-        string[] arguments = args.arguments.Split(" ");
+        string[] arguments = args.Arguments.Split(" ");
 
-        if (string.IsNullOrWhiteSpace(args.arguments))
+        if (string.IsNullOrWhiteSpace(args.Arguments))
         {
             PrintHelp();
             return true;

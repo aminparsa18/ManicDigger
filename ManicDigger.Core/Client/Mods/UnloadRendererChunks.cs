@@ -9,6 +9,7 @@ public class ModUnloadRendererChunks : ModBase
 {
     /// <summary>Reference to the current game instance, refreshed every background tick.</summary>
     private readonly IGame _game;
+    private readonly IVoxelMap _voxelMap;
 
     private int _pendingUnloadIndex = -1;
     private readonly Action<IGame> _unloadAction;
@@ -37,9 +38,10 @@ public class ModUnloadRendererChunks : ModBase
     /// <summary>Reusable output for <see cref="VectorIndexUtil.PosInt"/> to avoid per-frame allocation.</summary>
     private Vector3i _unloadXyzTemp;
 
-    public ModUnloadRendererChunks(IGame game, IGameService platform)
+    public ModUnloadRendererChunks(IGame game, IVoxelMap voxelMap)
     {
         _game = game;
+        _voxelMap = voxelMap;
         _unloadXyzTemp = new Vector3i();
         _unloadXyzTemp = new Vector3i();
         _unloadAction = ExecuteUnload; // allocated once, reused forever
@@ -67,7 +69,7 @@ public class ModUnloadRendererChunks : ModBase
         int chunkFlatIndex = _pendingUnloadIndex;
         if (chunkFlatIndex == -1) return;
 
-        Chunk chunk = _game.VoxelMap.Chunks[chunkFlatIndex];
+        Chunk chunk = _voxelMap.Chunks[chunkFlatIndex];
         if (chunk == null) return;
 
         RenderedChunk rendered = chunk.rendered;
@@ -86,7 +88,7 @@ public class ModUnloadRendererChunks : ModBase
         }
 
         chunk.Release();
-        _game.VoxelMap.Chunks[chunkFlatIndex] = null;
+        _voxelMap.Chunks[chunkFlatIndex] = null;
     }
 
     /// <inheritdoc/>
@@ -99,15 +101,15 @@ public class ModUnloadRendererChunks : ModBase
         // They must be freed as soon as the lighting pass that created them
         // is done, which is always before this background tick runs.
         int phantomDrainLimit = 64;
-        while (phantomDrainLimit-- > 0
-            && _game.VoxelMap.PhantomChunkIndices.TryDequeue(out int phantomIndex))
+        while (phantomDrainLimit-- > 0)
+            //&& game.PhantomChunkIndices.TryDequeue(out int phantomIndex))
         {
-            Chunk phantom = _game.VoxelMap.Chunks[phantomIndex];
-            if (phantom == null) continue;
-            // Only free if it hasn't been promoted to a real chunk
-            // (real chunks have rendered != null or were sent by the server)
-            if (phantom.rendered != null) continue;
-            _game.QueueActionCommit(CreatePhantomUnloadCommit(phantomIndex));
+            //Chunk phantom = _voxelMap.Chunks[phantomIndex];
+            //if (phantom == null) continue;
+            //// Only free if it hasn't been promoted to a real chunk
+            //// (real chunks have rendered != null or were sent by the server)
+            //if (phantom.rendered != null) continue;
+            //_game.QueueActionCommit(CreatePhantomUnloadCommit(phantomIndex));
         }
 
         // Compute the view-distance box in chunk coordinates.
@@ -142,7 +144,7 @@ public class ModUnloadRendererChunks : ModBase
             int z = _unloadXyzTemp.Z;
 
             int flatIndex = VectorIndexUtil.Index3d(x, y, z, _mapSizeXChunks, _mapSizeYChunks);
-            Chunk chunk = _game.VoxelMap.Chunks[flatIndex];
+            Chunk chunk = _voxelMap.Chunks[flatIndex];
 
             // Skip empty slots — nothing to free.
             if (chunk == null) { continue; }
@@ -179,10 +181,10 @@ public class ModUnloadRendererChunks : ModBase
     {
         return (game) =>
         {
-            Chunk chunk = _game.VoxelMap.Chunks[flatIndex];
+            Chunk chunk = _voxelMap.Chunks[flatIndex];
             if (chunk == null || chunk.rendered != null) return;
             chunk.Release();
-            _game.VoxelMap.Chunks[flatIndex] = null;
+            _voxelMap.Chunks[flatIndex] = null;
         };
     }
 
@@ -194,9 +196,9 @@ public class ModUnloadRendererChunks : ModBase
     {
         _chunkSize = Game.chunksize;
         _invertedChunk = 1.0f / _chunkSize;
-        _mapSizeXChunks = (int)(_game.VoxelMap.MapSizeX * _invertedChunk);
-        _mapSizeYChunks = (int)(_game.VoxelMap.MapSizeY * _invertedChunk);
-        _mapSizeZChunks = (int)(_game.VoxelMap.MapSizeZ * _invertedChunk);
+        _mapSizeXChunks = (int)(_voxelMap.MapSizeX * _invertedChunk);
+        _mapSizeYChunks = (int)(_voxelMap.MapSizeY * _invertedChunk);
+        _mapSizeZChunks = (int)(_voxelMap.MapSizeZ * _invertedChunk);
     }
 
     /// <summary>View-distance-based side length of the active area in blocks.</summary>

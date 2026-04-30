@@ -57,11 +57,11 @@ public partial class Game
         SendRequestBlob(getAsset, getCount);
         ChatLog("[GAME] Sent BLOB request");
 
-        if (packet.Identification.MapSizeX != VoxelMap.MapSizeX
-            || packet.Identification.MapSizeY != VoxelMap.MapSizeY
-            || packet.Identification.MapSizeZ != VoxelMap.MapSizeZ)
+        if (packet.Identification.MapSizeX != voxelMap.MapSizeX
+            || packet.Identification.MapSizeY != voxelMap.MapSizeY
+            || packet.Identification.MapSizeZ != voxelMap.MapSizeZ)
         {
-            VoxelMap.Reset(packet.Identification.MapSizeX,
+            voxelMap.Reset(packet.Identification.MapSizeX,
                 packet.Identification.MapSizeY,
                 packet.Identification.MapSizeZ);
             Heightmap.Restart(packet.Identification.MapSizeX,

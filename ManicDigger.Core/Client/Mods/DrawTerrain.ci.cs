@@ -1,7 +1,6 @@
 ﻿using ManicDigger;
 using OpenTK.Mathematics;
 using System.Buffers;
-using System.Xml.Linq;
 
 /// <summary>
 /// Client-side mod responsible for tessellating, lighting, and drawing the voxel terrain.
@@ -31,6 +30,7 @@ public class ModDrawTerrain : ModBase
     private const int BufferedChunkVolume = BufferedChunkEdge * BufferedChunkEdge * BufferedChunkEdge;
 
     private readonly IGameService _platform;
+    private readonly IVoxelMap _voxelMap;
 
     private readonly LightBase _lightBase;
     private readonly LightBetweenChunks _lightBetweenChunks;
@@ -59,17 +59,18 @@ public class ModDrawTerrain : ModBase
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
 
-    public ModDrawTerrain(IGameService platform)
+    public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap)
     {
         _platform = platform;
+        _voxelMap = voxelMap;
         _currentChunk = new int[BufferedChunkVolume];
         _currentChunkShadows = new byte[BufferedChunkVolume];
         _batcherIds = new int[1024];
         _redrawQueue = new TerrainRendererRedraw[128];
         _shadowLightRadius = new int[GlobalVar.MAX_BLOCKTYPES];
         _shadowIsTransparent = new bool[GlobalVar.MAX_BLOCKTYPES];
-        _lightBase = new LightBase();
-        _lightBetweenChunks = new LightBetweenChunks();
+        _lightBase = new LightBase(voxelMap);
+        _lightBetweenChunks = new LightBetweenChunks(voxelMap);
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -121,7 +122,7 @@ public class ModDrawTerrain : ModBase
 
         for (int i = 0; i < chunksLength; i++)
         {
-            Chunk c = _game.VoxelMap.Chunks[i];
+            Chunk c = _voxelMap.Chunks[i];
             if (c == null) continue;
             c.rendered ??= new RenderedChunk();
             c.rendered.Dirty = true;
@@ -148,9 +149,9 @@ public class ModDrawTerrain : ModBase
          && _game.LastplacedblockZ == NoChunk)
             return;
 
-        int mapSizeX = InvertChunk(_game.VoxelMap.MapSizeX);
-        int mapSizeY = InvertChunk(_game.VoxelMap.MapSizeY);
-        int mapSizeZ = InvertChunk(_game.VoxelMap.MapSizeZ);
+        int mapSizeX = InvertChunk(_voxelMap.MapSizeX);
+        int mapSizeY = InvertChunk(_voxelMap.MapSizeY);
+        int mapSizeZ = InvertChunk(_voxelMap.MapSizeZ);
 
         BlocksAround7Inplace(
             new(_game.LastplacedblockX, _game.LastplacedblockY, _game.LastplacedblockZ),
@@ -166,7 +167,7 @@ public class ModDrawTerrain : ModBase
                 continue;
 
             int idx = VectorIndexUtil.Index3d(cx, cy, cz, mapSizeX, mapSizeY);
-            Chunk c = _game.VoxelMap.Chunks[idx];
+            Chunk c = _voxelMap.Chunks[idx];
             if (c?.rendered == null) continue;
             c.rendered.Dirty = true;
         }
@@ -194,7 +195,7 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     private (int x, int y, int z)? NearestDirty(IGame _game)
     {
-        if (_game.VoxelMap?.Chunks == null) return null;
+        if (_voxelMap?.Chunks == null) return null;
 
         int px = InvertChunk((int)_game.LocalPositionX);
         int py = InvertChunk((int)_game.LocalPositionZ);
@@ -220,7 +221,7 @@ public class ModDrawTerrain : ModBase
                 for (int iz = startZ; iz <= endZ; iz++)
                 {
                     int i = VectorIndexUtil.Index3d(ix, iy, iz, mxc, myc);
-                    Chunk c = _game.VoxelMap.Chunks[i];
+                    Chunk c = _voxelMap.Chunks[i];
                     if (c?.rendered == null || !c.rendered.Dirty) continue;
 
                     int dx = px - ix, dy = py - iy, dz = pz - iz;
@@ -232,7 +233,7 @@ public class ModDrawTerrain : ModBase
 
         if (bestIdx == -1) return null;
 
-        _game.VoxelMap.Chunks[bestIdx].rendered.Dirty = false;
+        _voxelMap.Chunks[bestIdx].rendered.Dirty = false;
 
         int biz = bestIdx / (mxc * myc);
         int biy = (bestIdx % (mxc * myc)) / mxc;
@@ -296,7 +297,7 @@ public class ModDrawTerrain : ModBase
 
     private void RedrawChunk(IGame _game, int x, int y, int z)
     {
-        Chunk c = _game.VoxelMap.Chunks[
+        Chunk c = _voxelMap.Chunks[
             VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(_game), MapsizeYChunks(_game))];
         if (c == null) return;
 
@@ -336,7 +337,7 @@ public class ModDrawTerrain : ModBase
 
     private void GetExtendedChunk(IGame _game, int x, int y, int z)
     {
-        _game.VoxelMap.GetMapPortion(
+        _voxelMap.GetMapPortion(
             _currentChunk,
             x * chunksize - 1, y * chunksize - 1, z * chunksize - 1,
             bufferedChunkSize, bufferedChunkSize, bufferedChunkSize);
@@ -373,13 +374,13 @@ public class ModDrawTerrain : ModBase
                     int cx1 = cx + xx - 1;
                     int cy1 = cy + yy - 1;
                     int cz1 = cz + zz - 1;
-                    if (!_game.VoxelMap.IsValidChunkPos(cx1, cy1, cz1)) continue;
+                    if (!_voxelMap.IsValidChunkPos(cx1, cy1, cz1)) continue;
 
                     int nIdx = VectorIndexUtil.Index3d(
                         cx1, cy1, cz1,
-                        _game.VoxelMap.Mapsizexchunks,
-                        _game.VoxelMap.Mapsizeychunks);
-                    Chunk neighbour = _game.VoxelMap.Chunks[nIdx];
+                        _voxelMap.Mapsizexchunks,
+                        _voxelMap.Mapsizeychunks);
+                    Chunk neighbour = _voxelMap.Chunks[nIdx];
                     if (neighbour == null) continue;
 
                     if (neighbour.baseLightDirty)
@@ -391,7 +392,7 @@ public class ModDrawTerrain : ModBase
                     }
                 }
 
-        RenderedChunk rendered = _game.VoxelMap
+        RenderedChunk rendered = _voxelMap
             .GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).rendered;
 
         if (rendered.Light == null)
@@ -449,9 +450,9 @@ public class ModDrawTerrain : ModBase
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>View-distance-based side length of the active map area in blocks.</summary>
-    private int MapsizeXChunks(IGame _game) => _game.VoxelMap.Mapsizexchunks;
-    private int MapsizeYChunks(IGame _game) => _game.VoxelMap.Mapsizeychunks;
-    private int MapsizeZChunks(IGame _game) => _game.VoxelMap.Mapsizezchunks;
+    private int MapsizeXChunks(IGame _game) => _voxelMap.Mapsizexchunks;
+    private int MapsizeYChunks(IGame _game) => _voxelMap.Mapsizeychunks;
+    private int MapsizeZChunks(IGame _game) => _voxelMap.Mapsizezchunks;
 
     private static VerticesIndicesToLoad CloneVerticesIndicesToLoad(VerticesIndicesToLoad source)
         => new()

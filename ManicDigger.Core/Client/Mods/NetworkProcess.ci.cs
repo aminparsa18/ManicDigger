@@ -19,10 +19,12 @@ namespace ManicDigger.Mods;
 public class ModNetworkProcess : ModBase
 {
     private readonly IGameService _platform;
+    private readonly IVoxelMap voxelMap;
 
-    public ModNetworkProcess(IGameService gamePlatform)
+    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap)
     {
         _platform = gamePlatform;
+        this.voxelMap = voxelMap;
         CurrentChunk = new byte[1024 * 64];
         CurrentChunkCount = 0;
         receivedchunk = new int[32 * 32 * 32];
@@ -123,7 +125,7 @@ public class ModNetworkProcess : ModBase
                         Array.Clear(receivedchunk, 0, p.SizeX * p.SizeY * p.SizeZ);
                     }
 
-                    _game.VoxelMap.SetMapPortion(p.X, p.Y, p.Z, receivedchunk, p.SizeX, p.SizeY, p.SizeZ);
+                    voxelMap.SetMapPortion(p.X, p.Y, p.Z, receivedchunk, p.SizeX, p.SizeY, p.SizeZ);
                     _game.ReceivedMapLength += compressedLength;
                     break;
                 }

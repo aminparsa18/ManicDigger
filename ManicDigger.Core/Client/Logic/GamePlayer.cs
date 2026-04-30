@@ -24,10 +24,10 @@ public partial class Game
         int by = (int)MathF.Floor(EyesPosZ);
         int bz = (int)MathF.Floor(EyesPosY);
 
-        if (!VoxelMap.IsValidPos(bx, by, bz))
+        if (!voxelMap.IsValidPos(bx, by, bz))
             return Player.position.y < WaterLevel() ? -1 : 0;
 
-        return VoxelMap.GetBlockValid(bx, by, bz);
+        return voxelMap.GetBlockValid(bx, by, bz);
     }
 
     // -------------------------------------------------------------------------
@@ -43,7 +43,7 @@ public partial class Game
 
     public bool SwimmingBody()
     {
-        int block = VoxelMap.GetBlock((int)Player.position.x, (int)Player.position.z, (int)(Player.position.y + 1));
+        int block = voxelMap.GetBlock((int)Player.position.x, (int)Player.position.z, (int)(Player.position.y + 1));
         if (block == -1) return true;
         return BlockRegistry.WalkableType[block] == WalkableType.Fluid;
     }
@@ -61,10 +61,10 @@ public partial class Game
 
     public int BlockUnderPlayer()
     {
-        if (!VoxelMap.IsValidPos((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1))
+        if (!voxelMap.IsValidPos((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1))
             return -1;
 
-        return VoxelMap.GetBlock((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1);
+        return voxelMap.GetBlock((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1);
     }
 
     public int? BlockInHand()

@@ -1,21 +1,18 @@
-﻿using OpenTK.Mathematics;
-using System.Buffers;
-using System.Net;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
+﻿using System.Buffers;
 
 /// <summary>
 /// Represents the voxel world, storing block data in a sparse grid of <see cref="Chunk"/> objects.
 /// Block-space coordinates are in individual block units; chunk coordinates are derived by
 /// dividing by <see cref="Game.chunksize"/> (or right-shifting by <see cref="Game.chunksizebits"/>).
 /// </summary>
-public class VoxelMap
+public class VoxelMap : IVoxelMap
 {
     public Chunk[] Chunks { get; private set; }
     public readonly System.Collections.Concurrent.ConcurrentQueue<int> PhantomChunkIndices = new();
 
-    internal int MapSizeX;
-    internal int MapSizeY;
-    internal int MapSizeZ;
+    public int MapSizeX { get; set; }
+    public int MapSizeY { get; set; }
+    public int MapSizeZ {  get; set; }
 
     /// <summary>
     /// Converts 3D coordinates into a flat array index using the layout: <c>(h * sizeY + y) * sizeX + x</c>.
@@ -325,7 +322,7 @@ public class VoxelMap
     /// Copies a sub-cube of <paramref name="source"/> (offset by the given source coordinates)
     /// into <paramref name="destination"/>, filling every block position in the destination chunk.
     /// </summary>
-    public static void FillChunk(Chunk destination, int dcs, int srcX, int srcY, int srcZ, int[] source, int srcSizeX, int srcSizeY, int srcSizeZ)
+    private static void FillChunk(Chunk destination, int dcs, int srcX, int srcY, int srcZ, int[] source, int srcSizeX, int srcSizeY, int srcSizeZ)
     {
         int csBits = Game.chunksizebits;
 

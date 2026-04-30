@@ -34,11 +34,13 @@ public class ModPicking : ModBase
     internal bool fastclicking;
 
     private readonly IGameService platform;
+    private readonly IVoxelMap voxelMap;
     private readonly Random random;
 
-    public ModPicking(IGameService platform)
+    public ModPicking(IGameService platform, IVoxelMap voxelMap)
     {
         this.platform = platform;
+        this.voxelMap = voxelMap;
         _tempViewport = new int[4];
         fillarea = new();
         random = new Random();
@@ -207,7 +209,7 @@ public class ModPicking : ModBase
             int ntileX = (int)pick0.Current()[0];
             int ntileY = (int)pick0.Current()[1];
             int ntileZ = (int)pick0.Current()[2];
-            if (game.IsUsableBlock(game.VoxelMap.GetBlock(ntileX, ntileZ, ntileY)))
+            if (game.IsUsableBlock(voxelMap.GetBlock(ntileX, ntileZ, ntileY)))
             {
                 game.CurrentAttackedBlock = new Vector3i(ntileX, ntileZ, ntileY);
             }
@@ -285,13 +287,13 @@ public class ModPicking : ModBase
             int newtileY = right ? (int)pick0.Translated()[1] : (int)pick0.Current()[1];
             int newtileZ = right ? (int)pick0.Translated()[2] : (int)pick0.Current()[2];
 
-            if (!game.VoxelMap.IsValidPos(newtileX, newtileZ, newtileY)) { return; }
+            if (!voxelMap.IsValidPos(newtileX, newtileZ, newtileY)) { return; }
 
             bool pickIsInvalid = pick0.blockPos[0] == -1 && pick0.blockPos[1] == -1 && pick0.blockPos[2] == -1;
             if (!pickIsInvalid)
             {
                 int blocktype = left
-                    ? game.VoxelMap.GetBlock(newtileX, newtileZ, newtileY)
+                    ? voxelMap.GetBlock(newtileX, newtileZ, newtileY)
                     : (game.BlockInHand() == null ? 1 : game.BlockInHand() ?? -1);
 
                 if (left && blocktype == game.BlockRegistry.BlockIdAdminium)
@@ -310,7 +312,7 @@ public class ModPicking : ModBase
                 return;
             }
 
-            if (!game.VoxelMap.IsValidPos(newtileX, newtileZ, newtileY))
+            if (!voxelMap.IsValidPos(newtileX, newtileZ, newtileY))
             {
                 throw new ArgumentException("Error in picking - NextBullet()");
             }
@@ -363,9 +365,9 @@ public class ModPicking : ModBase
         int newtileY = (int)pick0.Current()[1];
         int newtileZ = (int)pick0.Current()[2];
 
-        if (!game.VoxelMap.IsValidPos(newtileX, newtileZ, newtileY)) { return; }
+        if (!voxelMap.IsValidPos(newtileX, newtileZ, newtileY)) { return; }
 
-        int cloneSource = game.VoxelMap.GetBlock(newtileX, newtileZ, newtileY);
+        int cloneSource = voxelMap.GetBlock(newtileX, newtileZ, newtileY);
         int cloneSource2 = game.BlockRegistry.WhenPlayerPlacesGetsConvertedTo[cloneSource];
 
         // Search the hotbar first.
@@ -598,7 +600,7 @@ public class ModPicking : ModBase
                 ? PickHorizontalVertical(xFract, zFract)
                 : PickCorners(xFract, zFract);
 
-            int dir = game.BlockRegistry.Rail[game.VoxelMap.GetBlock(blockposOldX, blockposOldY, blockposOldZ)];
+            int dir = game.BlockRegistry.Rail[voxelMap.GetBlock(blockposOldX, blockposOldY, blockposOldZ)];
             if (dir != 0)
             {
                 blockposX = blockposOldX;
@@ -630,16 +632,16 @@ public class ModPicking : ModBase
                 if (fillstart != null)
                 {
                     Vector3i f = fillstart.Value;
-                    if (!game.IsFillBlock(game.VoxelMap.GetBlock(f.X, f.Y, f.Z)))
+                    if (!game.IsFillBlock(voxelMap.GetBlock(f.X, f.Y, f.Z)))
                     {
-                        fillarea[(f.X, f.Y, f.Z)] = game.VoxelMap.GetBlock(f.X, f.Y, f.Z);
+                        fillarea[(f.X, f.Y, f.Z)] = voxelMap.GetBlock(f.X, f.Y, f.Z);
                     }
                     game.SetBlock(f.X, f.Y, f.Z, game.BlockRegistry.BlockIdFillStart);
                     FillFill(game, v, fillstart);
                 }
-                if (!game.IsFillBlock(game.VoxelMap.GetBlock(v.X, v.Y, v.Z)))
+                if (!game.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
                 {
-                    fillarea[(v.X, v.Y, v.Z)] = game.VoxelMap.GetBlock(v.X, v.Y, v.Z);
+                    fillarea[(v.X, v.Y, v.Z)] = voxelMap.GetBlock(v.X, v.Y, v.Z);
                 }
                 game.SetBlock(v.X, v.Y, v.Z, game.BlockRegistry.BlockIdCuboid);
                 fillend = v;
@@ -649,9 +651,9 @@ public class ModPicking : ModBase
             if (activeMaterial == game.BlockRegistry.BlockIdFillStart)
             {
                 ClearFillArea(game);
-                if (!game.IsFillBlock(game.VoxelMap.GetBlock(v.X, v.Y, v.Z)))
+                if (!game.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
                 {
-                    fillarea[(v.X, v.Y, v.Z)] = game.VoxelMap.GetBlock(v.X, v.Y, v.Z);
+                    fillarea[(v.X, v.Y, v.Z)] = voxelMap.GetBlock(v.X, v.Y, v.Z);
                 }
                 game.SetBlock(v.X, v.Y, v.Z, game.BlockRegistry.BlockIdFillStart);
                 fillstart = v;
@@ -726,9 +728,9 @@ public class ModPicking : ModBase
                 for (int z = startZ; z <= endZ; z++)
                 {
                     if (fillarea.Count > game.FillAreaLimit) { ClearFillArea(game); return; }
-                    if (!game.IsFillBlock(game.VoxelMap.GetBlock(x, y, z)))
+                    if (!game.IsFillBlock(voxelMap.GetBlock(x, y, z)))
                     {
-                        fillarea[(x, y, z)] = game.VoxelMap.GetBlock(x, y, z);
+                        fillarea[(x, y, z)] = voxelMap.GetBlock(x, y, z);
                         game.SetBlock(x, y, z, game.BlockRegistry.BlockIdFillArea);
                         game.RedrawBlock(x, y, z);
                     }

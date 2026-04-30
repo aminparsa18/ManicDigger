@@ -32,7 +32,7 @@ public interface IGame
     Dictionary<string, string> PerformanceInfo { get; }
 
     /// <summary>Thread-safe queue of actions to run on the main/commit thread.</summary>
-    ConcurrentQueue<Action<IGame>> commitActions { get; set; }
+    ConcurrentQueue<Action<IGame>> CommitActions { get; set; }
 
     /// <summary>Enqueues an action to be executed on the main commit thread.</summary>
     void QueueActionCommit(Action<IGame> action);
@@ -272,9 +272,6 @@ public interface IGame
     // =========================================================================
     // World / map
     // =========================================================================
-
-    /// <summary>The voxel storage for the loaded map.</summary>
-    VoxelMap VoxelMap { get; set; }
 
     /// <summary>Cached surface height map.</summary>
     ChunkedMap2d<int> Heightmap { get; set; }

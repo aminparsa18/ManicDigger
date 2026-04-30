@@ -134,7 +134,7 @@ public partial class Game
         // Cap at 32 actions per frame so a sudden flood can't stall rendering.
         // Unprocessed actions stay in the queue and drain over subsequent frames.
         int maxCommitsPerFrame = 32;
-        while (maxCommitsPerFrame-- > 0 && commitActions.TryDequeue(out Action<IGame> action))
+        while (maxCommitsPerFrame-- > 0 && CommitActions.TryDequeue(out Action<IGame> action))
             action(this);
 
         SetAmbientLight(ColorUtils.ColorFromArgb(255, 255, 255, 255));

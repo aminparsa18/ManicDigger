@@ -8,7 +8,7 @@ public partial class Game
     // Mouse button events
     // -------------------------------------------------------------------------
 
-    internal void MouseDown(MouseEventArgs args)
+    public void MouseDown(MouseEventArgs args)
     {
         int btn = args.GetButton();
 
@@ -39,7 +39,7 @@ public partial class Game
         InvalidVersionAllow();
     }
 
-    internal void MouseUp(MouseEventArgs args)
+    public void MouseUp(MouseEventArgs args)
     {
         int btn = args.GetButton();
 
@@ -80,7 +80,7 @@ public partial class Game
         }
     }
 
-    internal void MouseWheelChanged(MouseWheelEventArgs e)
+    public void MouseWheelChanged(MouseWheelEventArgs e)
     {
         float delta = e.OffsetY;
 
@@ -100,7 +100,7 @@ public partial class Game
         }
     }
 
-    internal void UpdateMouseViewportControl(float dt)
+    public void UpdateMouseViewportControl(float dt)
     {
         if (mouseSmoothing)
         {
@@ -211,7 +211,7 @@ public partial class Game
     // Keyboard events
     // -------------------------------------------------------------------------
 
-    internal void KeyUp(KeyEventArgs eKey)
+    public void KeyUp(KeyEventArgs eKey)
     {
         KeyboardStateRaw[eKey.KeyChar] = false;
 
@@ -227,7 +227,7 @@ public partial class Game
             IsShiftPressed = false;
     }
 
-    internal void KeyPress(KeyPressEventArgs eKeyChar)
+    public void KeyPress(KeyPressEventArgs eKeyChar)
     {
         for (int i = 0; i < ClientMods.Count; i++)
         {
@@ -237,7 +237,7 @@ public partial class Game
         }
     }
 
-    internal void KeyDown(KeyEventArgs eKey)
+    public void KeyDown(KeyEventArgs eKey)
     {
         KeyboardStateRaw[eKey.KeyChar] = true;
 
@@ -434,7 +434,7 @@ public partial class Game
 
         if (CurrentlyAttackedEntity != -1 && Entities[CurrentlyAttackedEntity].usable)
         {
-            OnUseEntityArgs args = new() { entityId = CurrentlyAttackedEntity };
+            OnUseEntityArgs args = new() { Id = CurrentlyAttackedEntity };
             for (int i = 0; i < ClientMods.Count; i++)
             {
                 if (ClientMods[i] == null) continue;
@@ -444,7 +444,7 @@ public partial class Game
         }
     }
 
-    internal void HandleMaterialKeys(int eKey)
+    private void HandleMaterialKeys(int eKey)
     {
         if (eKey == GetKey(Keys.KeyPad1)) { ActiveMaterial = 0; }
         if (eKey == GetKey(Keys.KeyPad2)) { ActiveMaterial = 1; }

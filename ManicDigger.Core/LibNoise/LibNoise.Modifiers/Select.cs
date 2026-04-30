@@ -10,7 +10,7 @@ namespace LibNoise.Modifiers;
 /// adds a smooth transition band of that width on each side of both bounds,
 /// using a cubic S-curve blend.
 /// </summary>
-public class Select : Math, IModule
+public class Select : IModule
 {
     private float _lowerBound;
     private float _upperBound;

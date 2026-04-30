@@ -10,21 +10,21 @@ public class AnimatedModel
     /// </summary>
     public AnimatedModel()
     {
-        nodes = [];
+        Nodes = [];
         Keyframes = [];
         Animations = [];
         Global = new AnimationGlobal();
     }
 
     /// <summary>The node (bone) hierarchy that makes up the model's skeleton.</summary>
-    internal List<Node> nodes;
+    public List<Node> Nodes { get; set; }
 
     /// <summary>All keyframes across all animations and nodes.</summary>
-    internal List<Keyframe> Keyframes;
+    public List<Keyframe> Keyframes { get; set; }
 
     /// <summary>The set of named animations defined for this model.</summary>
-    internal List<Animation> Animations;
+    public List<Animation> Animations { get; set; }
 
     /// <summary>Texture dimensions shared across all nodes in this model.</summary>
-    internal AnimationGlobal Global;
+    public AnimationGlobal Global { get; set; }
 }

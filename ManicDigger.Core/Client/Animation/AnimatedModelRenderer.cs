@@ -116,9 +116,9 @@ public class AnimatedModelRenderer
     /// <param name="light">Light intensity in the range 0-1.</param>
     private void DrawNode(string parent, float headDeg, float light)
     {
-        for (int i = 0; i < m.nodes.Count; i++)
+        for (int i = 0; i < m.Nodes.Count; i++)
         {
-            Node n = m.nodes[i];
+            Node n = m.Nodes[i];
             if (n == null)
             {
                 continue;

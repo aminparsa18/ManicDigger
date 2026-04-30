@@ -17,7 +17,7 @@ namespace LibNoise;
 ///  - RandomVectors is read through a ReadOnlySpan to suppress bounds checks on
 ///    the hot three-component read.
 /// </summary>
-public class GradientNoiseBasis : Math
+public class GradientNoiseBasis
 {
     // ── Gradient table (float) ────────────────────────────────────────────────
 

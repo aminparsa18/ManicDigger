@@ -31,7 +31,7 @@ public class ModDrawArea : ModBase
 
     public override void OnHitEntity(OnUseEntityArgs e)
     {
-        var area = game.Entities[e.entityId]?.drawArea;
+        var area = game.Entities[e.Id]?.drawArea;
         if (area == null) return;
         area.visible = !area.visible;
     }

@@ -14,7 +14,7 @@ public class AnimatedModelSerializer
     {
         AnimatedModel model = new()
         {
-            nodes = [],
+            Nodes = [],
             Keyframes = [],
             Animations = []
         };

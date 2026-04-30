@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace LibNoise;
 
 /// <summary>
@@ -22,6 +20,7 @@ namespace LibNoise;
 public class Voronoi : ValueNoiseBasis, IModule
 {
     // ── Parameters ────────────────────────────────────────────────────────────
+    private static readonly float Sqrt3 = 1.7320508075688772f;
 
     /// <summary>
     /// Scales the input coordinates before cell lookup.
@@ -107,8 +106,7 @@ public class Voronoi : ValueNoiseBasis, IModule
             float dx = nearestX - x;
             float dy = nearestY - y;
             float dz = nearestZ - z;
-            distanceContribution = MathF.Sqrt(dx * dx + dy * dy + dz * dz)
-                                   * (float)Math.Sqrt3 - 1f;
+            distanceContribution = MathF.Sqrt(dx * dx + dy * dy + dz * dz) * Sqrt3 - 1f;
         }
 
         // Cell colour: noise value at the nearest feature point's integer cell.

@@ -820,7 +820,7 @@ public class ModPicking : ModBase
         for (int i = 0; i < game.ClientMods.Count; i++)
         {
             if (game.ClientMods[i] == null) { continue; }
-            game.ClientMods[i].OnHitEntity(new OnUseEntityArgs { entityId = game.CurrentlyAttackedEntity });
+            game.ClientMods[i].OnHitEntity(new OnUseEntityArgs { Id = game.CurrentlyAttackedEntity });
         }
         game.SendPacketClient(ClientPackets.HitEntity(game.CurrentlyAttackedEntity));
     }

@@ -127,16 +127,16 @@ public class ModRail : ModBase
     /// <summary>Copies current rail state onto the minecart entity for rendering.</summary>
     private void SyncMinecartEntity()
     {
-        localMinecart.minecart.enabled = railriding;
+        localMinecart.minecart.Enabled = railriding;
         if (!railriding) { return; }
 
         Minecart m = localMinecart.minecart;
-        m.positionX = localMinecart.position?.x ?? 0;
-        m.positionY = localMinecart.position?.y ?? 0;
-        m.positionZ = localMinecart.position?.z ?? 0;
-        m.direction = currentdirection;
-        m.lastdirection = lastdirection;
-        m.progress = currentrailblockprogress;
+        m.PositionX = localMinecart.position?.x ?? 0;
+        m.PositionY = localMinecart.position?.y ?? 0;
+        m.PositionZ = localMinecart.position?.z ?? 0;
+        m.Direction = currentdirection;
+        m.LastDirection = lastdirection;
+        m.Progress = currentrailblockprogress;
     }
 
     /// <summary>

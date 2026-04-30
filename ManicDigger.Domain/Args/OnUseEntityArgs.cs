@@ -1,4 +1,4 @@
 ﻿public class OnUseEntityArgs
 {
-    internal int entityId;
+    public int Id { get; set; }
 }

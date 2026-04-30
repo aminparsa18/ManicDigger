@@ -9,30 +9,30 @@ public class AnimationHint
     /// Whether the player is currently inside a vehicle.
     /// Used to switch to a seated animation pose.
     /// </summary>
-    internal bool InVehicle { get; set; }
+    public bool InVehicle { get; set; }
 
     /// <summary>
     /// World-space draw offset applied to the model's render position.
     /// Used to fine-tune alignment when the model origin does not match
     /// the entity's logical position.
     /// </summary>
-    internal float DrawFixX { get; set; }
+    public float DrawFixX { get; set; }
 
     /// <inheritdoc cref="DrawFixX"/>
-    internal float DrawFixY { get; set; }
+    public float DrawFixY { get; set; }
 
     /// <inheritdoc cref="DrawFixX"/>
-    internal float DrawFixZ { get; set; }
+    public float DrawFixZ { get; set; }
 
     /// <summary>
     /// Whether the player is pressing the strafe-left key (A).
     /// Used to trigger a lean-left animation.
     /// </summary>
-    internal bool LeanLeft { get; set; }
+    public bool LeanLeft { get; set; }
 
     /// <summary>
     /// Whether the player is pressing the strafe-right key (D).
     /// Used to trigger a lean-right animation.
     /// </summary>
-    internal bool LeanRight { get; set; }
+    public bool LeanRight { get; set; }
 }

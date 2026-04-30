@@ -6,8 +6,8 @@
 public class AnimationGlobal
 {
     /// <summary>Width of the texture atlas, in pixels.</summary>
-    internal int TexW { get; set; }
+    public int TexW { get; set; }
 
     /// <summary>Height of the texture atlas, in pixels.</summary>
-    internal int TexH { get; set; }
+    public int TexH { get; set; }
 }

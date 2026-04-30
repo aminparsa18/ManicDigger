@@ -13,7 +13,7 @@ namespace LibNoise;
 /// surrounding the sample point using those gradients.
 /// </para>
 /// </summary>
-public class FastNoiseBasis : Math
+public class FastNoiseBasis
 {
     // ── Permutation / gradient tables ─────────────────────────────────────────
 

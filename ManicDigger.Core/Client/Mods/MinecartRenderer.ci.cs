@@ -1,14 +1,4 @@
-﻿/// <summary>Represents a minecart entity moving along rails.</summary>
-public class Minecart
-{
-    internal bool enabled;
-    internal float positionX, positionY, positionZ;
-    internal VehicleDirection12 direction;
-    internal VehicleDirection12 lastdirection;
-    internal float progress;
-}
-
-/// <summary>
+﻿/// <summary>
 /// Renders minecart entities in the 3D world with interpolated rotation.
 /// </summary>
 public class ModDrawMinecarts : ModBase
@@ -30,7 +20,7 @@ public class ModDrawMinecarts : ModBase
         for (int i = 0; i < game.Entities.Count; i++)
         {
             Minecart m = game.Entities[i]?.minecart;
-            if (m == null || !m.enabled) continue;
+            if (m == null || !m.Enabled) continue;
             Draw(m);
         }
     }
@@ -40,15 +30,15 @@ public class ModDrawMinecarts : ModBase
         minecartTexture = minecartTexture == -1 ? game.GetTexture("minecart.png") : minecartTexture;
 
         float rot = AngleInterpolation.InterpolateAngle360(
-            VehicleRotation(m.lastdirection),
-            VehicleRotation(m.direction),
-            m.progress);
+            VehicleRotation(m.LastDirection),
+            VehicleRotation(m.Direction),
+            m.Progress);
 
         RectangleF[] cc = CuboidRenderer.CuboidNet(8, 8, 8, 0, 0);
         CuboidRenderer.CuboidNetNormalize(cc, 32, 16);
 
         game.GLPushMatrix();
-        game.GLTranslate(m.positionX, m.positionY + VerticalOffset, m.positionZ);
+        game.GLTranslate(m.PositionX, m.PositionY + VerticalOffset, m.PositionZ);
         game.GLRotate(-rot - 90, 0, 1, 0);
         game.OpenGlService.BindTexture2d(minecartTexture);
         CuboidRenderer.DrawCuboidWorld(game, HalfSize, HeightOffset, HalfSize, 1, 1, 1, cc, 1);
@@ -67,4 +57,17 @@ public class ModDrawMinecarts : ModBase
         VehicleDirection12.UpRightUp or VehicleDirection12.DownLeftLeft => 315,
         _ => 0,
     };
+}
+
+
+/// <summary>Represents a minecart entity moving along rails.</summary>
+public class Minecart
+{
+    public bool Enabled { get; set; }
+    public float PositionX { get; set; }
+    public float PositionY { get; set; }
+    public float PositionZ { get; set; }
+    public VehicleDirection12 Direction { get; set; }
+    public VehicleDirection12 LastDirection { get; set; }
+    public float Progress { get; set; }
 }

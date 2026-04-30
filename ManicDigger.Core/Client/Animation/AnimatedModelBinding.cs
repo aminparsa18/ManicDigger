@@ -12,12 +12,12 @@ public class AnimatedModelBinding : ITableBinding
     {
         if (table == "nodes")
         {
-            if (index >= m.nodes.Count)
+            if (index >= m.Nodes.Count)
             {
-                m.nodes.Add(new Node());
+                m.Nodes.Add(new Node());
             }
-            if (m.nodes[index] == null) { m.nodes[index] = new Node(); }
-            Node k = m.nodes[index];
+            if (m.Nodes[index] == null) { m.Nodes[index] = new Node(); }
+            Node k = m.Nodes[index];
             if (column == "name") { k.Name = value; }
             if (column == "paren") { k.ParentName = value; }
             if (column == "x") { k.PosX = FloatParse(value); }
@@ -70,7 +70,7 @@ public class AnimatedModelBinding : ITableBinding
     {
         if (table == "nodes")
         {
-            Node k = m.nodes[index];
+            Node k = m.Nodes[index];
             items["name"] = k.Name;
             items["paren"] = k.ParentName;
             items["x"] = k.PosX.ToString();
@@ -119,7 +119,7 @@ public class AnimatedModelBinding : ITableBinding
     /// <inheritdoc/>
     public void GetTables(string[] names, int[] counts)
     {
-        names[0] = "nodes"; counts[0] = m.nodes.Count;
+        names[0] = "nodes"; counts[0] = m.Nodes.Count;
         names[1] = "keyframes"; counts[1] = m.Keyframes.Count;
         names[2] = "animations"; counts[2] = m.Animations.Count;
         names[3] = "global"; counts[3] = 1;

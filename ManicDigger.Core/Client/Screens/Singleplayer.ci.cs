@@ -188,6 +188,26 @@ public class SingleplayerScreen : ScreenBase
         return savegames;
     }
 
+    private static string FileOpenDialog(string extension, string extensionName, string initialDirectory)
+    {
+        OpenFileDialog d = new()
+        {
+            InitialDirectory = initialDirectory,
+            FileName = "Default." + extension,
+            Filter = string.Format("{1}|*.{0}|All files|*.*", extension, extensionName),
+            CheckFileExists = false,
+            CheckPathExists = true
+        };
+        string dir = Environment.CurrentDirectory;
+        DialogResult result = d.ShowDialog();
+        Environment.CurrentDirectory = dir;
+        if (result == DialogResult.OK)
+        {
+            return d.FileName;
+        }
+        return null;
+    }
+
     /// <inheritdoc/>
     public override void OnBackPressed() => Menu.StartMainMenu();
 
@@ -229,7 +249,7 @@ public class SingleplayerScreen : ScreenBase
         if (w == open)
         {
             string extension = singlePlayerService.SinglePlayerServerAvailable ? "mddbs" : "mdss";
-            string result = GameService.FileOpenDialog(extension, "Manic Digger Savegame", GameService.GameSavePath);
+            string result = FileOpenDialog(extension, "Manic Digger Savegame", GameService.GameSavePath);
             if (result != null)
             {
                 Menu.ConnectToSingleplayer(result);

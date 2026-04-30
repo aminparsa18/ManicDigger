@@ -27,6 +27,8 @@ public class Program
     private static void ConfigureServices(ServiceCollection services)
     {
         // Register your services here
+        services.AddSingleton<GameWindowNative>();
+
         services.AddTransient<IMenu, MainMenu>();
 
         services.AddTransient<IGameExit, GameExit>();
@@ -53,15 +55,11 @@ public class Program
 
         Log.Debug("Creating GameWindowNative");
 
-        using GameWindowNative window = new();
-        mainmenu.GameService.Window = window;
-
         mainmenu.Start();
 
         ReadArgs(mainmenu, args);
 
         mainmenu.GameService.Start();
-        window.Run();
     }
 
     private static void ReadArgs(IMenu mainmenu, string[] args)

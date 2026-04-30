@@ -231,8 +231,6 @@ public partial class Game : IGame
     private float TPP_CAMERA_DISTANCE_MAX;
     private bool currentMatrixModeProjection;
     private Matrix4 identityMatrix;
-    private Matrix4 Set3dProjectionTempMat4;
-    private int selectedmodelid;
     private int maxdrawdistance;
 
     // -------------------------------------------------------------------------
@@ -417,7 +415,6 @@ public partial class Game : IGame
         options = new GameOption();
         getAsset = new string[1024 * 2];
         identityMatrix = Matrix4.Identity;
-        Set3dProjectionTempMat4 = Matrix4.Identity;
         PlayerStats = new Packet_ServerPlayerStats();
         taskScheduler = new TaskScheduler(this, GameService);
         commitActions = new();
@@ -449,7 +446,6 @@ public partial class Game : IGame
         Player = new Entity { position = new EntityPosition_() };
         LocalPlayerId = -1;
         CurrentlyAttackedEntity = -1;
-        selectedmodelid = -1;
         playertexturedefault = -1;
 
         PlayerPositionSpawnX = 15.5f;

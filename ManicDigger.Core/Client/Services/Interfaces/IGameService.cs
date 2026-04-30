@@ -44,7 +44,6 @@ public interface IGameService
     void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate);
     DisplayResolutionCi GetDisplayResolutionDefault();
    
-    string FileOpenDialog(string extension, string extensionName, string initialDirectory);
     void MouseCursorSetVisible(bool value);
     bool MouseCursorIsVisible();
     void ApplicationDoEvents();

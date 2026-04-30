@@ -17,9 +17,10 @@ public class GameService : IGameService
 
     public readonly IGameExit _gameExit;
 
-    public GameService(IGameExit gameExit)
+    public GameService(IGameExit gameExit, GameWindowNative gameWindowNative)
     {
         _gameExit = gameExit;
+        Window = gameWindowNative;
         crashreporter = new CrashReporter();
         ThreadPool.SetMinThreads(32, 32);
         ThreadPool.SetMaxThreads(128, 128);
@@ -68,26 +69,6 @@ public class GameService : IGameService
     public void MessageBoxShowError(string text, string caption)
     {
         MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-    }
-
-    public string FileOpenDialog(string extension, string extensionName, string initialDirectory)
-    {
-        OpenFileDialog d = new()
-        {
-            InitialDirectory = initialDirectory,
-            FileName = "Default." + extension,
-            Filter = string.Format("{1}|*.{0}|All files|*.*", extension, extensionName),
-            CheckFileExists = false,
-            CheckPathExists = true
-        };
-        string dir = Environment.CurrentDirectory;
-        DialogResult result = d.ShowDialog();
-        Environment.CurrentDirectory = dir;
-        if (result == DialogResult.OK)
-        {
-            return d.FileName;
-        }
-        return null;
     }
 
     public void ApplicationDoEvents()
@@ -222,6 +203,8 @@ public class GameService : IGameService
             Console.WriteLine($"[OpenGL] [{severity}] [{type}] {msg}");
 
         }, IntPtr.Zero);
+
+        Window.Run();
     }
 
     private void WindowClosed(CancelEventArgs e)

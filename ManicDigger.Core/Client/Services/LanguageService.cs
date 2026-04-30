@@ -6,7 +6,7 @@
 /// or an explicit <see cref="OverrideLanguage"/>. Falls back to English when a
 /// string is missing in the active language.
 /// </summary>
-public class Language
+public class LanguageService
 {
     // -------------------------------------------------------------------------
     // State
@@ -16,7 +16,7 @@ public class Language
     /// When set, overrides the system locale for all lookups.
     /// Set to <c>null</c> to restore automatic locale detection.
     /// </summary>
-    public string OverrideLanguage { get; set; }
+    public string? OverrideLanguage { get; set; }
 
     /// <summary>
     /// All loaded translation strings, keyed by <c>(language code, string ID)</c>.
@@ -49,7 +49,7 @@ public class Language
             string language = Path.GetFileNameWithoutExtension(file);
             string json = File.ReadAllText(file, System.Text.Encoding.UTF8);
 
-            Dictionary<string, string> entries =
+            Dictionary<string, string>? entries =
                 System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json);
 
             if (entries == null) continue;

@@ -58,6 +58,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="Client\Mods\Models\" />
 	  <Folder Include="Server\Logic\" />
 	</ItemGroup>
 

@@ -68,7 +68,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     private readonly IPreferences _preferences;
 
     /// <summary>Loaded localisation/translation data.</summary>
-    private Language _lang;
+    private LanguageService _lang;
 
     private int viewportWidth;
     private int viewportHeight;
@@ -143,7 +143,7 @@ public class MainMenu : IMenuRenderer, IMenuNavigator
     /// <param name="platform">The platform implementation to bind to.</param>
     public void Start()
     {
-        _lang = new Language();
+        _lang = new LanguageService();
         _lang.LoadTranslations();
         _platform.SetTitle(_lang.GameName());
 

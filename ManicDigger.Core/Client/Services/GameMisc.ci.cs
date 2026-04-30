@@ -469,36 +469,9 @@ public class Grenade
     internal int sourcePlayer;
 }
 
-/// <summary>
-/// Stores and provides the most recently set modelview and projection matrices.
-/// Updated each frame by the rendering pipeline via <see cref="LastModelViewMatrix"/>
-/// and <see cref="LastProjectionMatrix"/>.
-/// </summary>
-public class CameraMatrixProvider : ICameraMatrixProvider
-{
-    /// <summary>The most recently set modelview matrix.</summary>
-    internal Matrix4 LastModelViewMatrix;
-
-    /// <summary>The most recently set projection matrix.</summary>
-    internal Matrix4 LastProjectionMatrix;
-
-    /// <inheritdoc/>
-    public Matrix4 GetModelViewMatrix() => LastModelViewMatrix;
-
-    /// <inheritdoc/>
-    public Matrix4 GetProjectionMatrix() => LastProjectionMatrix;
-}
-
 public class MenuState
 {
     internal int selected;
-}
-
-public class MapLoadingProgressEventArgs
-{
-    internal int ProgressPercent;
-    internal int ProgressBytes;
-    internal string ProgressStatus;
 }
 
 public class Draw2dData
@@ -518,22 +491,11 @@ public interface IAviWriter
     void Close();
 }
 
-public class FreemoveLevelEnum
+public enum FreemoveLevel
 {
-    public const int None = 0;
-    public const int Freemove = 1;
-    public const int Noclip = 2;
-}
-
-public class OnUseEntityArgs
-{
-    internal int entityId;
-}
-
-public class ClientCommandArgs
-{
-    internal string command;
-    internal string arguments;
+    None = 0,
+    Freemove = 1,
+    Noclip = 2
 }
 
 public sealed class CachedTexture

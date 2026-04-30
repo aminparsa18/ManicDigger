@@ -61,7 +61,7 @@ public class Program
         };
         preferences = new Preferences().Instance;
 
-        MainMenu mainmenu = new(platform, new PlatformOpenGl(), singlePlayerService, preferences);
+        MainMenu mainmenu = new(platform, new OpenGlService(), singlePlayerService, preferences);
 
         mainmenu.Start();
         ReadArgs(mainmenu, args);

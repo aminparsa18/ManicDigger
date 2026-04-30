@@ -139,10 +139,10 @@ public class ScriptCharacterPhysics : IEntityScript
     public void Update(EntityPosition_ stateplayerposition, Controls move, float dt,
         out bool soundnow, Vector3 push, float modelheight)
     {
-        if (game.stopPlayerMove)
+        if (game.StopPlayerMove)
         {
             movedz = 0;
-            game.stopPlayerMove = false;
+            game.StopPlayerMove = false;
         }
 
         // ── Cache per-tick queries called multiple times ───────────────────────

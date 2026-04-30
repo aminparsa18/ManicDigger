@@ -75,7 +75,7 @@ public class ModCameraKeys : ModBase
         game.OverheadCameraK.Center = new Vector3(game.Player.position.x,
             game.Player.position.y, game.Player.position.z);
 
-        CameraMove m = new()
+        CameraMoveArgs m = new()
         {
             Distance = game.OverHeadCameraDistance,
             AngleUp = game.KeyboardState[game.GetKey(Keys.W)],

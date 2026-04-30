@@ -176,15 +176,15 @@ public class TaskScheduler
 /// <summary>
 /// Tracks the execution state of a single background task slot.
 /// </summary>
-internal class BackgroundAction
+public class BackgroundAction
 {
     /// <summary>
     /// Whether this slot has been dispatched to the thread pool and not yet reset.
     /// </summary>
-    internal bool Active;
+    public bool Active { get; set; }
 
     /// <summary>
     /// Whether the background work has completed. Set to <c>true</c> by the worker thread.
     /// </summary>
-    internal volatile bool Finished;
+    public volatile bool Finished;
 }

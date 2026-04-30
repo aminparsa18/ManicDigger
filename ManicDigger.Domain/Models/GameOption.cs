@@ -7,7 +7,6 @@ public class GameOption
 {
     public GameOption()
     {
-        float one = 1;
         Shadows = false;
         Font = 0;
         DrawDistance = 32;
@@ -19,7 +18,7 @@ public class GameOption
         Resolution = 0;
         Fullscreen = false;
         Smoothshadows = true;
-        BlockShadowSave = one * 6 / 10;
+        BlockShadowSave = 6f / 10;
         EnableBlockShadow = true;
         Keys = new int[360];
     }

@@ -73,7 +73,7 @@ public partial class Server : ICurrentTime, IDropItem
     }
 
     public bool EnableShadows { get; set; } = true;
-    public Language Language { get; set; } = new();
+    public LanguageService Language { get; set; } = new();
 
     private readonly DateTimeOffset startedAt = DateTimeOffset.UtcNow;
     public TimeSpan Uptime => DateTimeOffset.UtcNow - startedAt;

@@ -13,7 +13,7 @@
 /// the active count. Call <see cref="Add"/> to register a model and
 /// <see cref="Remove"/> to release it. Call <see cref="Draw"/> once per frame.
 /// </remarks>
-public class MeshBatcher
+public class MeshBatcher : IMeshBatcher
 {
     /// <summary>Maximum number of model slots in the pool.</summary>
     private const int ModelsMax = 1024 * 16;
@@ -70,8 +70,8 @@ public class MeshBatcher
         _tocallTransparent = new List<GeometryModel>[MaxTextures];
         for (int i = 0; i < MaxTextures; i++)
         {
-            _tocallSolid[i] = new List<GeometryModel>();
-            _tocallTransparent[i] = new List<GeometryModel>();
+            _tocallSolid[i] = [];
+            _tocallTransparent[i] = [];
         }
 
         BindTexture = true;

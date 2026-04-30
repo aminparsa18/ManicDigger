@@ -315,7 +315,7 @@ public partial class Game
         if (eKey == GetKey(Keys.F3))
         {
             if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
-            stopPlayerMove = true;
+            StopPlayerMove = true;
             if (!Controls.FreeMove)
             {
                 Controls.FreeMove = true;

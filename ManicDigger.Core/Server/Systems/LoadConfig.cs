@@ -160,7 +160,7 @@ public class ServerSystemLoadConfig : ServerSystem
     /// <returns>A new <see cref="ServerConfig"/> populated with the operator's choices.</returns>
     private static ServerConfig CreateConfigInteractively(Server server)
     {
-        Language lang = server.Language;
+        LanguageService lang = server.Language;
 
         var config = new ServerConfig
         {
@@ -189,7 +189,7 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Reads a yes/no answer from the console and returns <c>true</c> if the
     /// input matches the localised accept word (case-insensitive).
     /// </summary>
-    private static bool ReadAccept(Language lang)
+    private static bool ReadAccept(LanguageService lang)
     {
         string line = Console.ReadLine();
         return !string.IsNullOrEmpty(line) &&
@@ -197,7 +197,7 @@ public class ServerSystemLoadConfig : ServerSystem
     }
 
     /// <summary>Prompts for a boolean yes/no answer and returns the result.</summary>
-    private static bool PromptBool(string prompt, Language lang)
+    private static bool PromptBool(string prompt, LanguageService lang)
     {
         Console.WriteLine(prompt);
         return ReadAccept(lang);
@@ -219,7 +219,7 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Returns the <see cref="ServerConfig"/> default if the input is empty,
     /// out of range, or non-numeric.
     /// </summary>
-    private static int PromptPort(Language lang)
+    private static int PromptPort(LanguageService lang)
     {
         Console.WriteLine(lang.ServerSetupPort());
         string line = Console.ReadLine();
@@ -243,7 +243,7 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Returns the <see cref="ServerConfig"/> default if input is empty,
     /// non-positive, or non-numeric.
     /// </summary>
-    private static int PromptMaxClients(Language lang)
+    private static int PromptMaxClients(LanguageService lang)
     {
         Console.WriteLine(lang.ServerSetupMaxClients());
         string line = Console.ReadLine();

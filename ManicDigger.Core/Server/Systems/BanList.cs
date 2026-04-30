@@ -57,7 +57,7 @@ public class ServerSystemBanList : ServerSystem
     public override bool OnCommand(Server server, int sourceClientId, string command, string argument)
     {
         string[] args = argument.Split(' ');
-        Language lang = server.Language;
+        LanguageService lang = server.Language;
         string colorError = server.colorError;
 
         void SendInvalidArgs() =>

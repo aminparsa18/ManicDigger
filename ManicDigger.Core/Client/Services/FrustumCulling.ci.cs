@@ -9,7 +9,7 @@
 //(like the walls of a pyramid pointing away from the camera). Then for any object, it checks if the object is on the wrong side of any of those 6 planes — if so,
 //skip drawing it entirely. This is called frustum culling and is a fundamental rendering optimisation.
 /// </summary>
-public class FrustumCulling
+public class FrustumCulling : IFrustumCulling
 {
     // Plane indices for clarity when accessing the frustum array.
     private const int Right = 0;

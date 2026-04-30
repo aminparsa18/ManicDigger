@@ -41,7 +41,7 @@ public partial class Game : IGame
     public ISinglePlayerService SinglePlayerService { get; set; }
     public IPreferences Preferences { get; set; }
 
-    public Language Language { get; set; }
+    public LanguageService Language { get; set; }
     public Config3d Config3d { get; set; }
     public GameOption options { get; set; }
     public ServerInformation ServerInfo { get; set; }
@@ -180,7 +180,7 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
 
     public bool EnableMove { get; set; }
-    public bool stopPlayerMove { get; set; }
+    public bool StopPlayerMove { get; set; }
     public float MoveSpeed { get; set; }
     public float Basemovespeed { get; set; }
     public float PICK_DISTANCE { get; set; }
@@ -223,7 +223,7 @@ public partial class Game : IGame
     public bool EnableTppView { get; set; }
     public float TppCameraDistance { get; set; }
     public float OverHeadCameraDistance { get; set; }
-    public Camera OverheadCameraK { get; set; }
+    public CameraService OverheadCameraK { get; set; }
     public bool OverheadCamera { get; set; }
     private bool enableCameraControl;
     private float znear;
@@ -366,17 +366,17 @@ public partial class Game : IGame
     public float LocalEyeHeight =>
         Entities[LocalPlayerId].drawModel.eyeHeight;
 
-    public int FreemoveLevel
+    public FreemoveLevel FreemoveLevel
     {
         get
         {
-            if (!Controls.FreeMove) return FreemoveLevelEnum.None;
-            return Controls.NoClip ? FreemoveLevelEnum.Noclip : FreemoveLevelEnum.Freemove;
+            if (!Controls.FreeMove) return FreemoveLevel.None;
+            return Controls.NoClip ? FreemoveLevel.Noclip : FreemoveLevel.Freemove;
         }
         set
         {
-            Controls.FreeMove = value != FreemoveLevelEnum.None;
-            Controls.NoClip = value == FreemoveLevelEnum.Noclip;
+            Controls.FreeMove = value != FreemoveLevel.None;
+            Controls.NoClip = value == FreemoveLevel.Noclip;
         }
     }
 
@@ -410,7 +410,7 @@ public partial class Game : IGame
     private void InitCore()
     {
         performanceinfo = [];
-        Language = new Language();
+        Language = new LanguageService();
         particleEffectBlockBreak = new ModDrawParticleEffectBlockBreak();
         ServerInfo = new ServerInformation();
         options = new GameOption();
@@ -495,7 +495,7 @@ public partial class Game : IGame
         znear = 1f / 10;
         ENABLE_ZFAR = true;
         OverHeadCameraDistance = 10;
-        OverheadCameraK = new Camera();
+        OverheadCameraK = new CameraService();
         TppCameraDistance = 3;
         TPP_CAMERA_DISTANCE_MIN = 1;
         TPP_CAMERA_DISTANCE_MAX = 10;

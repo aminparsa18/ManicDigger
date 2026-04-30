@@ -5,7 +5,7 @@ using System.Numerics;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
 
-public class PlatformOpenGl : IOpenGlService
+public class OpenGlService : IOpenGlService
 {
     public bool ALLOW_NON_POWER_OF_TWO = false;
     public bool ENABLE_MIPMAPS = true;

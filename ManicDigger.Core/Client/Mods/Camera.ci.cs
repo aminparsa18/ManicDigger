@@ -20,7 +20,7 @@ public class ModCamera : ModBase
         game.Camera = game.OverheadCamera ? OverheadCamera() : FppCamera();
     }
 
-    internal Matrix4 OverheadCamera()
+    private Matrix4 OverheadCamera()
     {
         game.OverheadCameraK.GetPosition(ref overheadCameraEye);
         Vector3 eye = overheadCameraEye;
@@ -34,7 +34,7 @@ public class ModCamera : ModBase
         return Matrix4.LookAt(eye, target, Up);
     }
 
-    internal Matrix4 FppCamera()
+    private Matrix4 FppCamera()
     {
         Vector3 forward = new();
         VectorUtils.ToVectorInFixedSystem(0, 0, 1, game.Player.position.rotx, game.Player.position.roty, ref forward);
@@ -67,7 +67,7 @@ public class ModCamera : ModBase
     /// Casts a ray from the camera target toward the eye and pulls the camera
     /// in if terrain blocks the view, with a minimum distance of 0.3 units.
     /// </summary>
-    internal float LimitThirdPersonCameraToWalls(ref Vector3 eye, ref Vector3 target, float distance)
+    private float LimitThirdPersonCameraToWalls(ref Vector3 eye, ref Vector3 target, float distance)
     {
         const float MinDistance = 0.3f;
 

@@ -32,7 +32,7 @@ public class ModGuiEscapeMenu : ModBase
     private int widgetsCount;
     private void MainSet()
     {
-        Language language = game.Language;
+        LanguageService language = game.Language;
         buttonMainReturnToGame = new Button
         {
             Text = language.ReturnToGame()
@@ -75,7 +75,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button optionsReturnToMainMenu;
     private void OptionsSet()
     {
-        Language language = game.Language;
+        LanguageService language = game.Language;
         optionsGraphics = new Button
         {
             Text = language.Graphics()
@@ -132,7 +132,7 @@ public class ModGuiEscapeMenu : ModBase
     private void GraphicsSet()
     {
         GameOption options = game.options;
-        Language language = game.Language;
+        LanguageService language = game.Language;
         graphicsOptionSmoothShadows = new Button
         {
             Text = string.Format(language.OptionSmoothShadows(), options.Smoothshadows ? language.On() : language.Off())
@@ -244,7 +244,7 @@ public class ModGuiEscapeMenu : ModBase
     private Button otherLanguageSetting;
     private void OtherSet()
     {
-        Language language = game.Language;
+        LanguageService language = game.Language;
 
         otherSoundOption = new Button
         {
@@ -299,7 +299,7 @@ public class ModGuiEscapeMenu : ModBase
     private const int keyButtonsCount = 1024;
     private void KeysSet()
     {
-        Language language = game.Language;
+        LanguageService language = game.Language;
 
         keyButtons = new Button[keyButtonsCount];
         for (int i = 0; i < keyButtonsCount; i++)
@@ -405,7 +405,7 @@ public class ModGuiEscapeMenu : ModBase
 
     private void SetEscapeMenuState(EscapeMenuState state)
     {
-        Language language = game.Language;
+        LanguageService language = game.Language;
         escapemenustate = state;
         WidgetsClear();
         if (state == EscapeMenuState.Main)
@@ -618,7 +618,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             helps[i] = null;
         }
-        Language language = game.Language;
+        LanguageService language = game.Language;
         int count = 0;
         helps[count++] = KeyHelpCreate(language.KeyMoveFoward(), Keys.W);
         helps[count++] = KeyHelpCreate(language.KeyMoveBack(), Keys.S);

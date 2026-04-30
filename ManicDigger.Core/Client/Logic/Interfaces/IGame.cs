@@ -21,7 +21,7 @@ public interface IGame
     IPreferences Preferences { get; set; }
 
     /// <summary>Active localisation data.</summary>
-    Language Language { get; set; }
+    LanguageService Language { get; set; }
 
     /// <summary>3-D rendering configuration (culling, mipmaps, view distance).</summary>
     Config3d Config3d { get; set; }
@@ -259,7 +259,7 @@ public interface IGame
     float OverHeadCameraDistance { get; set; }
 
     /// <summary>Overhead camera state object.</summary>
-    Camera OverheadCameraK { get; set; }
+    CameraService OverheadCameraK { get; set; }
 
     /// <summary>Whether the overhead camera mode is active.</summary>
     bool OverheadCamera { get; set; }
@@ -513,7 +513,7 @@ public interface IGame
     /// <summary>Whether player movement input is processed.</summary>
     bool EnableMove { get; set; }
 
-    bool stopPlayerMove { get; set; }
+    bool StopPlayerMove { get; set; }
 
     /// <summary>Current movement speed multiplier.</summary>
     float MoveSpeed { get; set; }
@@ -543,7 +543,7 @@ public interface IGame
     /// Gets or sets the current freemove level.
     /// See <see cref="FreemoveLevelEnum"/> for valid values.
     /// </summary>
-    int FreemoveLevel { get; set; }
+    FreemoveLevel FreemoveLevel { get; set; }
 
     /// <summary>Whether auto-jump is enabled.</summary>
     bool AutoJumpEnabled { get; set; }

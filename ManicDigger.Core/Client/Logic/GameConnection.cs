@@ -65,7 +65,7 @@ public partial class Game
     private void Respawn()
     {
         SendPacketClient(ClientPackets.SpecialKeyRespawn());
-        stopPlayerMove = true;
+        StopPlayerMove = true;
     }
 
     // -------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 ﻿using OpenTK.Windowing.Common;
+using Serilog;
 
 /// <summary>
 /// Menu screen that owns and drives the active <see cref="Game"/> session.
@@ -15,6 +16,8 @@ public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService p
     private ConnectionData connectData;
     private bool singleplayer;
     private string singleplayerSavePath;
+    private readonly IGameExit gameExit = gameExit;
+    private readonly IDummyNetwork dummyNetwork = dummyNetwork;
 
     /// <summary>
     /// Initialises the game with the given connection parameters and starts the
@@ -47,10 +50,13 @@ public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService p
     {
         if (singleplayer)
         {
-            DummyNetwork network = singlePlayerService.SinglePlayerServerNetwork;
+            IDummyNetwork network = singlePlayerService.SinglePlayerServerNetwork;
 
             // Platform provides its own singleplayer server (e.g. mobile).
-            singlePlayerService.SinglePlayerServerStart(singleplayerSavePath);
+            Task.Run(() =>
+            {
+                    ServerThreadStart(singleplayerSavePath);
+            });
 
             // Prime the server inbox so the handshake starts immediately.
             network.ServerInbox.Enqueue([]);
@@ -63,6 +69,41 @@ public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService p
             game.NetClient = CreateNetClient()
                 ?? throw new InvalidOperationException("No network transport available.");
         }
+    }
+
+    private void ServerThreadStart(string singleplayerSavePath)
+    {
+        Log.Debug("Single-player server thread started");
+        DummyNetServer netServer = new(dummyNetwork);
+
+        Server server = new(gameExit)
+        {
+            SaveFilenameOverride = singleplayerSavePath,
+            MainSockets = new NetServer[3]
+        };
+        server.MainSockets[0] = netServer;
+
+        while (true)
+        {
+            server.Process();
+            Thread.Sleep(1);
+            singlePlayerService.SinglePlayerServerLoaded = true;
+
+            if (gameExit?.Exit == true)
+            {
+                server.Stop();
+                break;
+            }
+
+            if (singlePlayerService.SinglePlayerServerExit)
+            {
+                server.Exit();
+                singlePlayerService.SinglePlayerServerExit = false;
+            }
+        }
+
+        gameExit.Exit = false;
+        Log.Debug("Single-player server thread stopped cleanly");
     }
 
     /// <summary>

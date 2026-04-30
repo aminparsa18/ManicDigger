@@ -17,11 +17,11 @@ using System.Collections.Concurrent;
 /// Shared state between DummyNetClient and DummyNetServer.
 /// Create one instance per single-player session and hand it to both sides.
 /// </summary>
-public sealed class DummyNetwork
+public sealed class DummyNetwork : IDummyNetwork
 {
     // Thread-safe queues — no manual locking needed at call sites.
-    internal readonly ConcurrentQueue<byte[]> ServerInbox = new();
-    internal readonly ConcurrentQueue<byte[]> ClientInbox = new();
+    public ConcurrentQueue<byte[]> ServerInbox { get; } = new();
+    public ConcurrentQueue<byte[]> ClientInbox { get; } = new();
 
     /// <summary>
     /// Clears all pending messages from both queues.
@@ -34,16 +34,23 @@ public sealed class DummyNetwork
     }
 }
 
+public interface IDummyNetwork
+{
+    ConcurrentQueue<byte[]> ServerInbox { get; }
+    ConcurrentQueue<byte[]> ClientInbox { get; }
+    void Clear();
+}
+
 // ---------------------------------------------------------------------------
 // Client side
 // ---------------------------------------------------------------------------
 
 public sealed class DummyNetClient : NetClient
 {
-    private readonly DummyNetwork _network;
+    private readonly IDummyNetwork _network;
     private DummyNetConnection? _connection;
 
-    public DummyNetClient(DummyNetwork network)
+    public DummyNetClient(IDummyNetwork network)
     {
         _network = network;
     }
@@ -81,9 +88,9 @@ public sealed class DummyNetClient : NetClient
 
 public sealed class DummyNetConnection : NetConnection
 {
-    private readonly DummyNetwork _network;
+    private readonly IDummyNetwork _network;
 
-    internal DummyNetConnection(DummyNetwork network)
+    internal DummyNetConnection(IDummyNetwork network)
     {
         _network = network;
     }
@@ -107,14 +114,14 @@ public sealed class DummyNetConnection : NetConnection
 
 public sealed class DummyNetServer : NetServer
 {
-    private readonly DummyNetwork _network;
+    private readonly IDummyNetwork _network;
 
     // The one connection object we hand back in Connect lifecycle messages.
     // The server needs it so it can call SendMessage back to the client.
     private DummyNetConnection? _clientConnection;
     private bool _connectionAnnounced;
 
-    public DummyNetServer(DummyNetwork network)
+    public DummyNetServer(IDummyNetwork network)
     {
         _network = network;
     }

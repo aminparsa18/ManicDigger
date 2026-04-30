@@ -16,8 +16,6 @@ public class Program
 
     public Program(string[] args)
     {
-        dummyNetwork = new DummyNetwork();
-
         var serviceCollection = new ServiceCollection();
         ConfigureServices(serviceCollection);
 
@@ -35,18 +33,15 @@ public class Program
         services.AddTransient<IGameService, GameService>();
         services.AddTransient<IPreferences, Preferences>();
         services.AddTransient<IOpenGlService, OpenGlService>();
-        services.AddTransient<ISinglePlayerService, SinglePlayerService>(factory =>
-        {
-            return new SinglePlayerService()
-            {
-                SinglePlayerServerNetwork = dummyNetwork,
-                StartSinglePlayerServer = filename =>
-                {
-                    savefilename = filename;
-                    new Thread(ServerThreadStart) { IsBackground = true }.Start();
-                }
-            };
-        });
+        services.AddTransient<ISinglePlayerService, SinglePlayerService>();
+          
+                //StartSinglePlayerServer = filename =>
+                //{
+                //    savefilename = filename;
+                //    new Thread(ServerThreadStart) { IsBackground = true }.Start();
+                //}
+
+        services.AddSingleton<IDummyNetwork, DummyNetwork>();
 
     }
 
@@ -54,7 +49,6 @@ public class Program
     // Fields
     // -------------------------------------------------------------------------
 
-    private readonly DummyNetwork dummyNetwork;
     private string savefilename;
     public IGameExit exit;
     private ISinglePlayerService singlePlayerService;
@@ -94,43 +88,4 @@ public class Program
     // -------------------------------------------------------------------------
     // Single-player server thread
     // -------------------------------------------------------------------------
-
-    public void ServerThreadStart()
-    {
-        Log.Debug("Single-player server thread started");
-        DummyNetServer netServer = new(dummyNetwork);
-
-        singlePlayerService = ServiceProvider.GetRequiredService<ISinglePlayerService>();
-        var gameService = ServiceProvider.GetRequiredService<IGameService>();
-
-        exit ??= ServiceProvider.GetRequiredService<IGameExit>();
-        Server server = new(exit, gameService)
-        {
-            SaveFilenameOverride = savefilename,
-            MainSockets = new NetServer[3]
-        };
-        server.MainSockets[0] = netServer;
-
-        while (true)
-        {
-            server.Process();
-            Thread.Sleep(1);
-            singlePlayerService.SinglePlayerServerLoaded = true;
-
-            if (exit?.Exit == true)
-            {
-                server.Stop();
-                break;
-            }
-
-            if (singlePlayerService.SinglePlayerServerExit)
-            {
-                server.Exit();
-                singlePlayerService.SinglePlayerServerExit = false;
-            }
-        }
-
-        exit.Exit = false;
-        Log.Debug("Single-player server thread stopped cleanly");
-    }
 }

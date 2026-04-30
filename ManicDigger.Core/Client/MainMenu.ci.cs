@@ -66,6 +66,7 @@ public class MainMenu : IMenu
     private readonly IOpenGlService _platformOpenGl;
     private readonly ISinglePlayerService _singlePlayerService;
     private readonly IPreferences _preferences;
+    private readonly IDummyNetwork dummyNetwork;
 
     /// <summary>Loaded localisation/translation data.</summary>
     private LanguageService _lang;
@@ -119,13 +120,15 @@ public class MainMenu : IMenu
     // Constructor
     // -------------------------------------------------------------------------
 
-    public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit)
+    public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
+        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork)
     {
         GameService = platform;
         _platformOpenGl = platformOpenGl;
         _singlePlayerService = singlePlayerService;
         _preferences = preferences;
         _gameExit = gameExit;
+        this.dummyNetwork = dummyNetwork;
         Textures = [];
         textTextureCache = [];
         screen = new MainScreen(this, GameService, singlePlayerService);
@@ -589,7 +592,7 @@ public class MainMenu : IMenu
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences, _gameExit);
+        ScreenGame screenGame = new(this, this, _platform, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }

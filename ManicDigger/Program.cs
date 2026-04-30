@@ -24,7 +24,7 @@ public class Program
         Start(args);
     }
 
-    private void ConfigureServices(ServiceCollection services)
+    private static void ConfigureServices(ServiceCollection services)
     {
         // Register your services here
         services.AddTransient<IMenu, MainMenu>();
@@ -35,23 +35,8 @@ public class Program
         services.AddTransient<IOpenGlService, OpenGlService>();
         services.AddTransient<ISinglePlayerService, SinglePlayerService>();
           
-                //StartSinglePlayerServer = filename =>
-                //{
-                //    savefilename = filename;
-                //    new Thread(ServerThreadStart) { IsBackground = true }.Start();
-                //}
-
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
-
     }
-
-    // -------------------------------------------------------------------------
-    // Fields
-    // -------------------------------------------------------------------------
-
-    private string savefilename;
-    public IGameExit exit;
-    private ISinglePlayerService singlePlayerService;
 
     // -------------------------------------------------------------------------
     // Startup
@@ -84,8 +69,4 @@ public class Program
         if (args.Length > 0)
             mainmenu.StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));
     }
-
-    // -------------------------------------------------------------------------
-    // Single-player server thread
-    // -------------------------------------------------------------------------
 }

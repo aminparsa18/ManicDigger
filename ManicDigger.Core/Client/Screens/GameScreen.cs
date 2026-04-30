@@ -7,7 +7,7 @@ using Serilog;
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
 public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService platformOpenGl,
-    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit) 
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork) 
     : ScreenBase(navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
@@ -76,7 +76,7 @@ public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService p
         Log.Debug("Single-player server thread started");
         DummyNetServer netServer = new(dummyNetwork);
 
-        Server server = new(gameExit)
+        Server server = new(gameExit, GameService)
         {
             SaveFilenameOverride = singleplayerSavePath,
             MainSockets = new NetServer[3]

@@ -592,7 +592,7 @@ public class MainMenu : IMenu
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(this, this, _platform, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork);
+        ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }

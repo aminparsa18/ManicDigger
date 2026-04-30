@@ -1,11 +1,10 @@
-﻿
-using ManicDigger;
+﻿using ManicDigger;
 
 /// <summary>
 /// Provides client-side metadata and operations for inventory items, including
 /// display names, grid sizes, stacking rules, and wear eligibility.
 /// </summary>
-public class InventoryUtils
+public class InventoryService : IInventoryService
 {
     // -------------------------------------------------------------------------
     // Fields
@@ -19,13 +18,13 @@ public class InventoryUtils
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Initialises a new <see cref="InventoryUtils"/> bound to the given game.
+    /// Initialises a new <see cref="InventoryService"/> bound to the given game.
     /// </summary>
     /// <param name="game">The active <see cref="Game"/> instance. Must not be <c>null</c>.</param>
     /// <exception cref="ArgumentNullException">
     ///     Thrown if <paramref name="game"/> is <c>null</c>.
     /// </exception>
-    public InventoryUtils(IGame game)
+    public InventoryService(IGame game)
     {
         _game = game ?? throw new ArgumentNullException(nameof(game));
     }
@@ -63,15 +62,15 @@ public class InventoryUtils
     /// <exception cref="NotSupportedException">
     ///     Thrown if the item's <see cref="InventoryItemType"/> is not yet handled.
     /// </exception>
-    public int ItemSizeX(InventoryItem item)
+    public static int ItemSizeX(InventoryItem item)
     {
         return item == null
             ? throw new ArgumentNullException(nameof(item))
             : item.InventoryItemType switch
-        {
-            InventoryItemType.Block => 1,
-            _ => throw new NotSupportedException($"ItemSizeX not implemented for ItemClass '{item.InventoryItemType}'.")
-        };
+            {
+                InventoryItemType.Block => 1,
+                _ => throw new NotSupportedException($"ItemSizeX not implemented for ItemClass '{item.InventoryItemType}'.")
+            };
     }
 
     /// <summary>
@@ -84,46 +83,13 @@ public class InventoryUtils
     /// </exception>
     public static int ItemSizeY(InventoryItem item)
     {
-        if (item == null) throw new ArgumentNullException(nameof(item));
-
-        return item.InventoryItemType switch
-        {
-            InventoryItemType.Block => 1,
-            _ => throw new NotSupportedException($"ItemSizeY not implemented for ItemClass '{item.InventoryItemType}'.")
-        };
-    }
-
-    /// <summary>
-    /// Attempts to stack two items together, returning a new combined item on success.
-    /// Both items must be of the same class and block type.
-    /// </summary>
-    /// <param name="itemA">The first item. Must not be <c>null</c>.</param>
-    /// <param name="itemB">The second item to merge into <paramref name="itemA"/>.</param>
-    /// <returns>
-    ///     A new <see cref="Packet_Item"/> with combined count if stacking is valid;
-    ///     <c>null</c> if the items cannot be stacked.
-    /// </returns>
-    /// <remarks>
-    ///     TODO: Enforce a per-item-type stack size limit once balancing is finalised.
-    /// </remarks>
-    public static InventoryItem? Stack(InventoryItem itemA, InventoryItem itemB)
-    {
-        if (itemA == null || itemB == null)
-            return null;
-
-        if (itemA.InventoryItemType == InventoryItemType.Block
-            && itemB.InventoryItemType == InventoryItemType.Block
-            && itemA.BlockId == itemB.BlockId)
-        {
-            return new InventoryItem
+        return item == null
+            ? throw new ArgumentNullException(nameof(item))
+            : item.InventoryItemType switch
             {
-                InventoryItemType = itemA.InventoryItemType,
-                BlockId = itemA.BlockId,
-                BlockCount = itemA.BlockCount + itemB.BlockCount,
+                InventoryItemType.Block => 1,
+                _ => throw new NotSupportedException($"ItemSizeY not implemented for ItemClass '{item.InventoryItemType}'.")
             };
-        }
-
-        return null;
     }
 
     /// <summary>

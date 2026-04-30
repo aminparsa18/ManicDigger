@@ -15,7 +15,7 @@ public class ModGuiInventory : ModBase
     private readonly IGameService platform;
 
     /// <summary>Item data helpers (texture IDs, sizes, display info).</summary>
-    internal InventoryUtils dataItems;
+    private IInventoryService inventoryService;
 
     /// <summary>Client-side inventory query utilities (cell lookups, area checks).</summary>
     internal InventoryUtilClient inventoryUtil;
@@ -31,9 +31,6 @@ public class ModGuiInventory : ModBase
 
     /// <summary>Number of cells visible per page vertically.</summary>
     private readonly int _cellCountInPageY;
-
-    /// <summary>Total cell columns in the full inventory grid.</summary>
-    private readonly int _cellCountTotalX;
 
     /// <summary>Total cell rows across all pages of the inventory grid.</summary>
     private readonly int _cellCountTotalY;
@@ -69,7 +66,7 @@ public class ModGuiInventory : ModBase
 
     /// <summary>Initialises cell dimensions and wear-place layout data.</summary>
     public ModGuiInventory(IGame game, IGameService platform)
-    {   
+    {
         this.game = game;
         this.platform = platform;
         // Wear-place slot origins (relative to inventory background image origin).
@@ -86,7 +83,6 @@ public class ModGuiInventory : ModBase
 
         _cellCountInPageX = 12;
         _cellCountInPageY = 7;
-        _cellCountTotalX = 12;
         _cellCountTotalY = 7 * 6;
         CellDrawSize = 40;
     }
@@ -261,9 +257,9 @@ public class ModGuiInventory : ModBase
     /// <inheritdoc/>
     public override void OnNewFrameDraw2d(float deltaTime)
     {
-        if (dataItems == null)
+        if (inventoryService == null)
         {
-            dataItems = new InventoryUtils(game);
+            inventoryService = new InventoryService(game);
             controller = ClientInventoryController.Create(game);
             inventoryUtil = game.InventoryUtil;
         }
@@ -356,8 +352,8 @@ public class ModGuiInventory : ModBase
     {
         if (item == null) { return; }
 
-        int sizex = dataItems.ItemSizeX(item);
-        int sizey = InventoryUtils.ItemSizeY(item);
+        int sizex = InventoryService.ItemSizeX(item);
+        int sizey = InventoryService.ItemSizeY(item);
 
         if (drawsizeX == 0 || drawsizeX == -1)
         {
@@ -371,8 +367,8 @@ public class ModGuiInventory : ModBase
 
             game.Draw2dTexture(game.TerrainTexture, screenposX, screenposY,
                 drawsizeX, drawsizeY,
-                dataItems.TextureIdForInventory()[item.BlockId],
-                Game.                TexturesPacked, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
+                inventoryService.TextureIdForInventory()[item.BlockId],
+                Game.TexturesPacked, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
 
             if (item.BlockCount > 1)
             {
@@ -383,7 +379,7 @@ public class ModGuiInventory : ModBase
         }
         else
         {
-            game.Draw2dBitmapFile(InventoryUtils.ItemGraphics(item), screenposX, screenposY, drawsizeX, drawsizeY);
+            game.Draw2dBitmapFile(InventoryService.ItemGraphics(item), screenposX, screenposY, drawsizeX, drawsizeY);
         }
     }
 
@@ -393,10 +389,10 @@ public class ModGuiInventory : ModBase
     /// </summary>
     public void DrawItemInfo(int screenposX, int screenposY, InventoryItem item)
     {
-        int sizex = dataItems.ItemSizeX(item);
-        int sizey = InventoryUtils.ItemSizeY(item);
+        int sizex = InventoryService.ItemSizeX(item);
+        int sizey = InventoryService.ItemSizeY(item);
 
-        TextRenderer.TextSize(dataItems.ItemInfo(item), 11.5f, out int tw, out int th);
+        TextRenderer.TextSize(inventoryService.ItemInfo(item), 11.5f, out int tw, out int th);
         tw += 6;
         th += 4;
 
@@ -410,7 +406,7 @@ public class ModGuiInventory : ModBase
         game.Draw2dTexture(game.GetOrCreateWhiteTexture(), screenposX - w, screenposY - h, w, h, null, 0, ColorUtils.ColorFromArgb(255, 0, 0, 0), false);
         game.Draw2dTexture(game.GetOrCreateWhiteTexture(), screenposX - w + 2, screenposY - h + 2, w - 4, h - 4, null, 0, ColorUtils.ColorFromArgb(255, 105, 105, 105), false);
 
-        game.Draw2dText(dataItems.ItemInfo(item),
+        game.Draw2dText(inventoryService.ItemInfo(item),
             new Font("Arial", 10),
             screenposX - tw + 4, screenposY - h + 2, null, false);
 
@@ -447,8 +443,8 @@ public class ModGuiInventory : ModBase
         Point? cellInPage = SelectedCell(mouse);
         if (cellInPage != null)
         {
-            int sizex = dataItems.ItemSizeX(game.Inventory.DragDropItem);
-            int sizey = InventoryUtils.ItemSizeY(game.Inventory.DragDropItem);
+            int sizex = InventoryService.ItemSizeX(game.Inventory.DragDropItem);
+            int sizey = InventoryService.ItemSizeY(game.Inventory.DragDropItem);
 
             if (cellInPage.Value.X + sizex <= _cellCountInPageX
              && cellInPage.Value.Y + sizey <= _cellCountInPageY)
@@ -475,7 +471,7 @@ public class ModGuiInventory : ModBase
                                _wearPlaceStart[wearSlot.Value].Y + InventoryStartY());
             Point cells = _wearPlaceCells[wearSlot.Value];
 
-            int color = InventoryUtils.CanWear((WearPlace)wearSlot.Value, game.Inventory.DragDropItem)
+            int color = InventoryService.CanWear((WearPlace)wearSlot.Value, game.Inventory.DragDropItem)
                 ? ColorUtils.ColorFromArgb(100, 0, 255, 0)   // green — can equip
                 : ColorUtils.ColorFromArgb(100, 255, 0, 0);  // red — cannot equip
 

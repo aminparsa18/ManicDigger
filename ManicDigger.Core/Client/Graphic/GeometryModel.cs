@@ -7,7 +7,7 @@
 /// GPU handles (<see cref="VaoId"/>, <see cref="VertexVboId"/> etc.) are populated by
 /// <see cref="IGameService.CreateModel"/> and must not be modified directly.
 /// </summary>
-public class GeometryModel
+public partial class GeometryModel
 {
     // GPU handles (set by CreateModel)
     public int VaoId { get; set; }
@@ -31,16 +31,6 @@ public class GeometryModel
     public int XyzCount => VerticesCount * 3;
     public int UvCount => VerticesCount * 2;
     public int RgbaCount => VerticesCount * 4;
-
-    /// Maximum vertex capacity derived from the allocated xyz array size
-    public int VerticesMax => Xyz.Length / 3;
-
-    /// Maximum index capacity derived from the allocated indices array size.
-    public int IndicesMax => Indices.Length;
-}
-
-public class ModelDataTool
-{
 
     /// <summary>Full white, fully opaque vertex colour.</summary>
     private static readonly int White = ColorUtils.ColorFromArgb(255, 255, 255, 255);
@@ -127,10 +117,4 @@ public class ModelDataTool
         }
         model.Indices[model.IndicesCount++] = index;
     }
-}
-
-public enum DrawMode
-{
-    Triangles = 0,
-    Lines = 1
 }

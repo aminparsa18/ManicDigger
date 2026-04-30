@@ -10,7 +10,7 @@ using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 /// widget interactions. Override <see cref="Render"/> to draw screen-specific
 /// content on top of the shared widget layer.
 /// </remarks>
-public class ScreenBase(IMenu menu, IGameService gameService)
+public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
 {
     protected IMenu Menu { get; set; } = menu;
     protected IGameService GameService { get; set; } = gameService;

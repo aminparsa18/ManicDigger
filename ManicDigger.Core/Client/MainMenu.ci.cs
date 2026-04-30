@@ -61,7 +61,7 @@ public class MainMenu : IMenu
     // -------------------------------------------------------------------------
 
     /// <summary>The active platform abstraction (windowing, GL, input, etc.).</summary>
-    private readonly IGameService _gameService;
+    private readonly IGameService GameService;
     private readonly IGameExit _gameExit;
     private readonly IOpenGlService _platformOpenGl;
     private readonly ISinglePlayerService _singlePlayerService;
@@ -122,7 +122,7 @@ public class MainMenu : IMenu
     public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
         IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork)
     {
-        _gameService = platform;
+        GameService = platform;
         _platformOpenGl = platformOpenGl;
         _singlePlayerService = singlePlayerService;
         _preferences = preferences;
@@ -130,7 +130,7 @@ public class MainMenu : IMenu
         this.dummyNetwork = dummyNetwork;
         Textures = [];
         textTextureCache = [];
-        screen = new MainScreen(this, _gameService, singlePlayerService);
+        screen = new MainScreen(this, GameService, singlePlayerService);
         loginClient = new LoginClientCi();
         Assets = [];
     }
@@ -150,7 +150,7 @@ public class MainMenu : IMenu
 
         _lang = new LanguageService();
         _lang.LoadTranslations();
-        _gameService.SetTitle(_lang.GameName());
+        GameService.SetTitle(_lang.GameName());
 
         TextColorRenderer = new TextColorRenderer();
         var assetLoader = new AssetLoader([PathHelper.DataRoot, "data"]);
@@ -176,15 +176,15 @@ public class MainMenu : IMenu
 
         currentlyPressedKeys = new bool[360];
 
-        _gameService.AddOnNewFrame(OnNewFrame);
-        _gameService.AddOnKeyEvent(HandleKeyDown, HandleKeyUp, HandleKeyPress);
-        _gameService.AddOnMouseEvent(HandleMouseDown, HandleMouseUp, HandleMouseMove, HandleMouseWheel);
-        _gameService.AddOnTouchEvent(HandleTouchStart, HandleTouchMove, HandleTouchEnd);
+        GameService.AddOnNewFrame(OnNewFrame);
+        GameService.AddOnKeyEvent(HandleKeyDown, HandleKeyUp, HandleKeyPress);
+        GameService.AddOnMouseEvent(HandleMouseDown, HandleMouseUp, HandleMouseMove, HandleMouseWheel);
+        GameService.AddOnTouchEvent(HandleTouchStart, HandleTouchMove, HandleTouchEnd);
 
         if (args.Length > 0)
             StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));
 
-        _gameService.Start();
+        GameService.Start();
     }
 
     // -------------------------------------------------------------------------
@@ -207,8 +207,8 @@ public class MainMenu : IMenu
             _platformOpenGl.GlEnableDepthTest();
         }
 
-        viewportWidth = _gameService.CanvasWidth;
-        viewportHeight = _gameService.CanvasHeight;
+        viewportWidth = GameService.CanvasWidth;
+        viewportHeight = GameService.CanvasHeight;
 
         DrawScene(dt);
         Animate(dt);
@@ -231,8 +231,8 @@ public class MainMenu : IMenu
         _platformOpenGl.GlDisableCullFace();
 
         Matrix4.CreateOrthographicOffCenter(
-            0, _gameService.CanvasWidth,
-            _gameService.            CanvasHeight, 0,
+            0, GameService.CanvasWidth,
+            GameService.            CanvasHeight, 0,
             0, 10,
             out pMatrix);
 
@@ -318,8 +318,8 @@ public class MainMenu : IMenu
     {
         BackgroundW = BackgroundTileSize;
         BackgroundH = BackgroundTileSize;
-        WindowX = _gameService.CanvasWidth;
-        WindowY = _gameService.CanvasHeight;
+        WindowX = GameService.CanvasWidth;
+        WindowY = GameService.CanvasHeight;
 
         int countX = (int)((WindowX + 2 * overlap) / BackgroundW) + 1;
         int countY = (int)((WindowY + 2 * overlap) / BackgroundH) + 1;
@@ -535,8 +535,8 @@ public class MainMenu : IMenu
     /// to a 1280-pixel reference width; on desktop it returns exactly 1.
     /// </summary>
     public float GetScale() =>
-        _gameService.IsSmallScreen()
-            ? _gameService.CanvasWidth / 1280f
+        GameService.IsSmallScreen()
+            ? GameService.CanvasWidth / 1280f
             : 1f;
 
     // -------------------------------------------------------------------------
@@ -546,21 +546,21 @@ public class MainMenu : IMenu
     /// <summary>Navigates to the main (home) screen and releases any mouse pointer lock.</summary>
     public void StartMainMenu()
     {
-        screen = new MainScreen(this, _gameService, default);
-        _gameService.ExitMousePointerLock();
+        screen = new MainScreen(this, GameService, default);
+        GameService.ExitMousePointerLock();
     }
 
     /// <summary>Navigates to the single-player world selection screen.</summary>
     public void StartSingleplayer()
     {
-        screen = new SingleplayerScreen(this, _gameService, _singlePlayerService);
+        screen = new SingleplayerScreen(this, GameService, _singlePlayerService);
         screen.LoadTranslations();
     }
 
     /// <summary>Navigates to the multiplayer server-browser screen.</summary>
     public void StartMultiplayer()
     {
-        screen = new MultiplayerScreen(this, _gameService, default, default);
+        screen = new MultiplayerScreen(this, GameService, default, default);
         screen.LoadTranslations();
     }
 
@@ -572,7 +572,7 @@ public class MainMenu : IMenu
     /// <param name="port">Server port number.</param>
     public void StartLogin(string serverHash, string ip, int port)
     {
-        screen = new LoginScreen(this, _gameService)
+        screen = new LoginScreen(this, GameService)
         {
             serverHash = serverHash,
             serverIp = ip,
@@ -584,7 +584,7 @@ public class MainMenu : IMenu
     /// <summary>Navigates to the direct-connect / manual IP entry screen.</summary>
     public void StartConnectToIp()
     {
-        screen = new ConnectionScreen(this, _gameService, _preferences);
+        screen = new ConnectionScreen(this, GameService, _preferences);
         screen.LoadTranslations();
     }
 
@@ -597,7 +597,7 @@ public class MainMenu : IMenu
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(this, _gameService, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork);
+        ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }
@@ -647,7 +647,7 @@ public class MainMenu : IMenu
             loginResult = LoginResult.Failed;
             return;
         }
-        loginClient.Login(_gameService, user, password, serverHash, token, loginResult, loginResultData);
+        loginClient.Login(GameService, user, password, serverHash, token, loginResult, loginResultData);
     }
 
     /// <summary>

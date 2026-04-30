@@ -516,40 +516,40 @@ public class ModDrawHand3d : ModBase
         switch (side)
         {
             case TileSide.Top:
-                ModelDataTool.AddVertex(m, x + 0, z + 1, y + 0, r.Left, r.Top, c);
-                ModelDataTool.AddVertex(m, x + 0, z + 1, y + 1, r.Left, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 1, y + 0, r.Right, r.Top, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 1, y + 1, r.Right, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 0, z + 1, y + 0, r.Left, r.Top, c);
+                GeometryModel.AddVertex(m, x + 0, z + 1, y + 1, r.Left, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 1, z + 1, y + 0, r.Right, r.Top, c);
+                GeometryModel.AddVertex(m, x + 1, z + 1, y + 1, r.Right, r.Bottom, c);
                 break;
             case TileSide.Bottom:
-                ModelDataTool.AddVertex(m, x + 0, z + 0, y + 0, r.Left, r.Top, c);
-                ModelDataTool.AddVertex(m, x + 0, z + 0, y + 1, r.Left, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 0, y + 0, r.Right, r.Top, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 0, y + 1, r.Right, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 0, z + 0, y + 0, r.Left, r.Top, c);
+                GeometryModel.AddVertex(m, x + 0, z + 0, y + 1, r.Left, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 1, z + 0, y + 0, r.Right, r.Top, c);
+                GeometryModel.AddVertex(m, x + 1, z + 0, y + 1, r.Right, r.Bottom, c);
                 break;
             case TileSide.Front:
-                ModelDataTool.AddVertex(m, x + 0, z + 0, y + 0, r.Left, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 0, z + 0, y + 1, r.Right, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 0, z + 1, y + 0, r.Left, r.Top, c);
-                ModelDataTool.AddVertex(m, x + 0, z + 1, y + 1, r.Right, r.Top, c);
+                GeometryModel.AddVertex(m, x + 0, z + 0, y + 0, r.Left, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 0, z + 0, y + 1, r.Right, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 0, z + 1, y + 0, r.Left, r.Top, c);
+                GeometryModel.AddVertex(m, x + 0, z + 1, y + 1, r.Right, r.Top, c);
                 break;
             case TileSide.Back:
-                ModelDataTool.AddVertex(m, x + 1, z + 0, y + 0, r.Left, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 0, y + 1, r.Right, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 1, y + 0, r.Left, r.Top, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 1, y + 1, r.Right, r.Top, c);
+                GeometryModel.AddVertex(m, x + 1, z + 0, y + 0, r.Left, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 1, z + 0, y + 1, r.Right, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 1, z + 1, y + 0, r.Left, r.Top, c);
+                GeometryModel.AddVertex(m, x + 1, z + 1, y + 1, r.Right, r.Top, c);
                 break;
             case TileSide.Left:
-                ModelDataTool.AddVertex(m, x + 0, z + 0, y + 0, r.Left, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 0, z + 1, y + 0, r.Left, r.Top, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 0, y + 0, r.Right, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 1, y + 0, r.Right, r.Top, c);
+                GeometryModel.AddVertex(m, x + 0, z + 0, y + 0, r.Left, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 0, z + 1, y + 0, r.Left, r.Top, c);
+                GeometryModel.AddVertex(m, x + 1, z + 0, y + 0, r.Right, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 1, z + 1, y + 0, r.Right, r.Top, c);
                 break;
             case TileSide.Right:
-                ModelDataTool.AddVertex(m, x + 0, z + 0, y + 1, r.Left, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 0, z + 1, y + 1, r.Left, r.Top, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 0, y + 1, r.Right, r.Bottom, c);
-                ModelDataTool.AddVertex(m, x + 1, z + 1, y + 1, r.Right, r.Top, c);
+                GeometryModel.AddVertex(m, x + 0, z + 0, y + 1, r.Left, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 0, z + 1, y + 1, r.Left, r.Top, c);
+                GeometryModel.AddVertex(m, x + 1, z + 0, y + 1, r.Right, r.Bottom, c);
+                GeometryModel.AddVertex(m, x + 1, z + 1, y + 1, r.Right, r.Top, c);
                 break;
         }
 
@@ -722,10 +722,10 @@ public class ModDrawHand3d : ModBase
         {
             RectangleF r = GetTexRect(TopTexture);
             int b = m.VerticesCount;
-            ModelDataTool.AddVertex(m, v00, r.Left, r.Top, White);
-            ModelDataTool.AddVertex(m, v01, r.Left, r.Bottom, White);
-            ModelDataTool.AddVertex(m, v10, r.Right, r.Top, White);
-            ModelDataTool.AddVertex(m, v11, r.Right, r.Bottom, White);
+            GeometryModel.AddVertex(m, v00, r.Left, r.Top, White);
+            GeometryModel.AddVertex(m, v01, r.Left, r.Bottom, White);
+            GeometryModel.AddVertex(m, v10, r.Right, r.Top, White);
+            GeometryModel.AddVertex(m, v11, r.Right, r.Bottom, White);
             EmitQuadCcw(m, b);
         }
 
@@ -738,10 +738,10 @@ public class ModDrawHand3d : ModBase
         {
             RectangleF r = GetTexRect(SideTexture);
             int b = m.VerticesCount;
-            ModelDataTool.AddVertex(m, v00, r.Left, r.Top, White);
-            ModelDataTool.AddVertex(m, v01, r.Left, r.Bottom, White);
-            ModelDataTool.AddVertex(m, v10, r.Right, r.Top, White);
-            ModelDataTool.AddVertex(m, v11, r.Right, r.Bottom, White);
+            GeometryModel.AddVertex(m, v00, r.Left, r.Top, White);
+            GeometryModel.AddVertex(m, v01, r.Left, r.Bottom, White);
+            GeometryModel.AddVertex(m, v10, r.Right, r.Top, White);
+            GeometryModel.AddVertex(m, v11, r.Right, r.Bottom, White);
             EmitQuadCw(m, b);
         }
 
@@ -751,10 +751,10 @@ public class ModDrawHand3d : ModBase
         {
             RectangleF r = GetTexRect(SideTexture);
             int b = m.VerticesCount;
-            ModelDataTool.AddVertex(m, b00, r.Left, r.Bottom, White);
-            ModelDataTool.AddVertex(m, b01, r.Right, r.Bottom, White);
-            ModelDataTool.AddVertex(m, t00, r.Left, r.Top, White);
-            ModelDataTool.AddVertex(m, t01, r.Right, r.Top, White);
+            GeometryModel.AddVertex(m, b00, r.Left, r.Bottom, White);
+            GeometryModel.AddVertex(m, b01, r.Right, r.Bottom, White);
+            GeometryModel.AddVertex(m, t00, r.Left, r.Top, White);
+            GeometryModel.AddVertex(m, t01, r.Right, r.Top, White);
             EmitQuadCcw(m, b);
         }
 
@@ -764,10 +764,10 @@ public class ModDrawHand3d : ModBase
         {
             RectangleF r = GetTexRect(SideTexture);
             int b = m.VerticesCount;
-            ModelDataTool.AddVertex(m, b10, r.Right, r.Bottom, White);
-            ModelDataTool.AddVertex(m, b11, r.Left, r.Bottom, White);
-            ModelDataTool.AddVertex(m, t10, r.Right, r.Top, White);
-            ModelDataTool.AddVertex(m, t11, r.Left, r.Top, White);
+            GeometryModel.AddVertex(m, b10, r.Right, r.Bottom, White);
+            GeometryModel.AddVertex(m, b11, r.Left, r.Bottom, White);
+            GeometryModel.AddVertex(m, t10, r.Right, r.Top, White);
+            GeometryModel.AddVertex(m, t11, r.Left, r.Top, White);
             EmitQuadCw(m, b);
         }
 
@@ -777,10 +777,10 @@ public class ModDrawHand3d : ModBase
         {
             RectangleF r = GetTexRect(SideTexture);
             int b = m.VerticesCount;
-            ModelDataTool.AddVertex(m, b00, r.Right, r.Bottom, White);
-            ModelDataTool.AddVertex(m, t00, r.Right, r.Top, White);
-            ModelDataTool.AddVertex(m, b10, r.Left, r.Bottom, White);
-            ModelDataTool.AddVertex(m, t10, r.Left, r.Top, White);
+            GeometryModel.AddVertex(m, b00, r.Right, r.Bottom, White);
+            GeometryModel.AddVertex(m, t00, r.Right, r.Top, White);
+            GeometryModel.AddVertex(m, b10, r.Left, r.Bottom, White);
+            GeometryModel.AddVertex(m, t10, r.Left, r.Top, White);
             EmitQuadCcw(m, b);
         }
 
@@ -790,10 +790,10 @@ public class ModDrawHand3d : ModBase
         {
             RectangleF r = GetTexRect(SideTexture);
             int b = m.VerticesCount;
-            ModelDataTool.AddVertex(m, b01, r.Left, r.Bottom, White);
-            ModelDataTool.AddVertex(m, t01, r.Left, r.Top, White);
-            ModelDataTool.AddVertex(m, b11, r.Right, r.Bottom, White);
-            ModelDataTool.AddVertex(m, t11, r.Right, r.Top, White);
+            GeometryModel.AddVertex(m, b01, r.Left, r.Bottom, White);
+            GeometryModel.AddVertex(m, t01, r.Left, r.Top, White);
+            GeometryModel.AddVertex(m, b11, r.Right, r.Bottom, White);
+            GeometryModel.AddVertex(m, t11, r.Right, r.Top, White);
             EmitQuadCw(m, b);
         }
 

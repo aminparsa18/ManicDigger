@@ -575,7 +575,7 @@ public class TerrainChunkTesselator
 
         {
             Vector3i v = vNeighbors[(int)TileDirection.TopRight] + new Vector3i(1, 1, 1);
-            ModelDataTool.AddVertex(toreturn,
+            GeometryModel.AddVertex(toreturn,
                 x + vOffsetX + v.X * 0.5f * vScaleX,
                 AddVertex_GetZ(Corner.TopRight),
                 y + vOffsetY + v.Y * 0.5f * vScaleY,
@@ -583,7 +583,7 @@ public class TerrainChunkTesselator
         }
         {
             Vector3i v = vNeighbors[(int)TileDirection.TopLeft] + new Vector3i(1, 1, 1);
-            ModelDataTool.AddVertex(toreturn,
+            GeometryModel.AddVertex(toreturn,
                 x + vOffsetX + v.X * 0.5f * vScaleX,
                 AddVertex_GetZ(Corner.TopLeft),
                 y + vOffsetY + v.Y * 0.5f * vScaleY,
@@ -591,7 +591,7 @@ public class TerrainChunkTesselator
         }
         {
             Vector3i v = vNeighbors[(int)TileDirection.BottomRight] + new Vector3i(1, 1, 1);
-            ModelDataTool.AddVertex(toreturn,
+            GeometryModel.AddVertex(toreturn,
                 x + vOffsetX + v.X * 0.5f * vScaleX,
                 AddVertex_GetZ(Corner.BottomRight),
                 y + vOffsetY + v.Y * 0.5f * vScaleY,
@@ -599,19 +599,19 @@ public class TerrainChunkTesselator
         }
         {
             Vector3i v = vNeighbors[(int)TileDirection.BottomLeft] + new Vector3i(1, 1, 1);
-            ModelDataTool.AddVertex(toreturn,
+            GeometryModel.AddVertex(toreturn,
                 x + vOffsetX + v.X * 0.5f * vScaleX,
                 AddVertex_GetZ(Corner.BottomLeft),
                 y + vOffsetY + v.Y * 0.5f * vScaleY,
                 _texrecLeft, texrecBottom, ColorMultiply(color, fShadowRation[(int)Corner.BottomLeft]));
         }
 
-        ModelDataTool.AddIndex(toreturn, lastelement + 0);
-        ModelDataTool.AddIndex(toreturn, lastelement + 1);
-        ModelDataTool.AddIndex(toreturn, lastelement + 2);
-        ModelDataTool.AddIndex(toreturn, lastelement + 1);
-        ModelDataTool.AddIndex(toreturn, lastelement + 3);
-        ModelDataTool.AddIndex(toreturn, lastelement + 2);
+        GeometryModel.AddIndex(toreturn, lastelement + 0);
+        GeometryModel.AddIndex(toreturn, lastelement + 1);
+        GeometryModel.AddIndex(toreturn, lastelement + 2);
+        GeometryModel.AddIndex(toreturn, lastelement + 1);
+        GeometryModel.AddIndex(toreturn, lastelement + 3);
+        GeometryModel.AddIndex(toreturn, lastelement + 2);
     }
 
     /// <summary>
@@ -906,22 +906,22 @@ public class TerrainChunkTesselator
         int color, bool flipWinding = false)
     {
         int e = model.VerticesCount;
-        ModelDataTool.AddVertex(model, v00.X, v00.Y, v00.Z, uLeft, vTop, color);
-        ModelDataTool.AddVertex(model, v01.X, v01.Y, v01.Z, uRight, vTop, color);
-        ModelDataTool.AddVertex(model, v10.X, v10.Y, v10.Z, uLeft, vBottom, color);
-        ModelDataTool.AddVertex(model, v11.X, v11.Y, v11.Z, uRight, vBottom, color);
+        GeometryModel.AddVertex(model, v00.X, v00.Y, v00.Z, uLeft, vTop, color);
+        GeometryModel.AddVertex(model, v01.X, v01.Y, v01.Z, uRight, vTop, color);
+        GeometryModel.AddVertex(model, v10.X, v10.Y, v10.Z, uLeft, vBottom, color);
+        GeometryModel.AddVertex(model, v11.X, v11.Y, v11.Z, uRight, vBottom, color);
 
         if (!flipWinding)
         {
-            ModelDataTool.AddIndex(model, e + 0); ModelDataTool.AddIndex(model, e + 1);
-            ModelDataTool.AddIndex(model, e + 2); ModelDataTool.AddIndex(model, e + 1);
-            ModelDataTool.AddIndex(model, e + 3); ModelDataTool.AddIndex(model, e + 2);
+            GeometryModel.AddIndex(model, e + 0); GeometryModel.AddIndex(model, e + 1);
+            GeometryModel.AddIndex(model, e + 2); GeometryModel.AddIndex(model, e + 1);
+            GeometryModel.AddIndex(model, e + 3); GeometryModel.AddIndex(model, e + 2);
         }
         else
         {
-            ModelDataTool.AddIndex(model, e + 1); ModelDataTool.AddIndex(model, e + 0);
-            ModelDataTool.AddIndex(model, e + 2); ModelDataTool.AddIndex(model, e + 3);
-            ModelDataTool.AddIndex(model, e + 1); ModelDataTool.AddIndex(model, e + 2);
+            GeometryModel.AddIndex(model, e + 1); GeometryModel.AddIndex(model, e + 0);
+            GeometryModel.AddIndex(model, e + 2); GeometryModel.AddIndex(model, e + 3);
+            GeometryModel.AddIndex(model, e + 1); GeometryModel.AddIndex(model, e + 2);
         }
     }
 

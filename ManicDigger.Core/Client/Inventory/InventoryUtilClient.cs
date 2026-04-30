@@ -3,7 +3,7 @@
 /// <summary>
 /// Provides utility methods for querying and manipulating the client-side inventory grid.
 /// This class does not own inventory state — it reads from an injected
-/// <see cref="Packet_Inventory"/> and <see cref="InventoryUtils"/>.
+/// <see cref="Packet_Inventory"/> and <see cref="InventoryService"/>.
 /// </summary>
 public class InventoryUtilClient
 {
@@ -24,7 +24,7 @@ public class InventoryUtilClient
     private Packet_Inventory _inventory;
 
     /// <summary>Item metadata and sizing rules.</summary>
-    private readonly InventoryUtils _items;
+    private readonly InventoryService _items;
 
     /// <summary>
     /// A flat lookup table mapping every grid cell (<see cref="Point"/>) to the
@@ -61,7 +61,7 @@ public class InventoryUtilClient
     /// <exception cref="ArgumentNullException">
     ///     Thrown if <paramref name="inventory"/> or <paramref name="items"/> is <c>null</c>.
     /// </exception>
-    public InventoryUtilClient(Packet_Inventory inventory, InventoryUtils items)
+    public InventoryUtilClient(Packet_Inventory inventory, InventoryService items)
     {
         _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
         _items = items ?? throw new ArgumentNullException(nameof(items));
@@ -214,8 +214,8 @@ public class InventoryUtilClient
             InventoryItem item = posItem.Value_;
             var origin = new Point(posItem.X, posItem.Y);
 
-            int w = _items.ItemSizeX(item);
-            int h = InventoryUtils.ItemSizeY(item);
+            int w = InventoryService.ItemSizeX(item);
+            int h = InventoryService.ItemSizeY(item);
 
             for (int x = 0; x < w; x++)
             {

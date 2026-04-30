@@ -54,10 +54,10 @@ public class WireframeCube
     {
         int start = m.VerticesCount;
 
-        ModelDataTool.AddVertex(m, p0.X, p0.Y, p0.Z);
-        ModelDataTool.AddVertex(m, p1.X, p1.Y, p1.Z);
-        ModelDataTool.AddVertex(m, p2.X, p2.Y, p2.Z);
-        ModelDataTool.AddVertex(m, p3.X, p3.Y, p3.Z);
+        GeometryModel.AddVertex(m, p0.X, p0.Y, p0.Z);
+        GeometryModel.AddVertex(m, p1.X, p1.Y, p1.Z);
+        GeometryModel.AddVertex(m, p2.X, p2.Y, p2.Z);
+        GeometryModel.AddVertex(m, p3.X, p3.Y, p3.Z);
 
         // Each edge is two indices — connect corners in a loop: 0→1→2→3→0.
         m.Indices[m.IndicesCount++] = start + 0;

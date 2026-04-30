@@ -6,7 +6,7 @@
 /// On first render (after assets finish loading) the screen checks for an
 /// <c>?ip=&amp;port=</c> query string and auto-connects if one is present.
 /// </remarks>
-public class MainScreen : ScreenBase
+public class MainScreen : ScreenBase, IMainScreen
 {
     public MainScreen(IMenu navigator, IGameService platform, ISinglePlayerService singlePlayerService)
         : base(navigator, platform)

@@ -58,7 +58,7 @@ public partial class Game
 
         // ── Inventory ─────────────────────────────────────────────────────────
         Packet_Inventory inventory = new() { RightHand = new InventoryItem[10] };
-        InventoryUtils dataItems = new(this);
+        InventoryService dataItems = new(this);
         Inventory = inventory;
         InventoryUtil = new InventoryUtilClient(inventory, dataItems);
 
@@ -185,7 +185,7 @@ public partial class Game
         }
     }
 
-    public void AddMod(ModBase mod)
+    private void AddMod(ModBase mod)
     {
         ClientMods.Add(mod);
     }

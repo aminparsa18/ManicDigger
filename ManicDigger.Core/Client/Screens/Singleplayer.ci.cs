@@ -30,8 +30,8 @@ public class SingleplayerScreen : ScreenBase
 
     private string title;
 
-    public SingleplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService singlePlayerService)
-        : base(renderer, navigator, platform)
+    public SingleplayerScreen(IMenu navigator, IGameService platform, ISinglePlayerService singlePlayerService)
+        : base(navigator, platform)
     {
         play = new MenuWidget
         {
@@ -77,21 +77,21 @@ public class SingleplayerScreen : ScreenBase
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        back.text = Renderer.Translate("MainMenu_ButtonBack");
-        open.text = Renderer.Translate("MainMenu_SingleplayerButtonCreate");
-        title = Renderer.Translate("MainMenu_Singleplayer");
+        back.text = Menu.Translate("MainMenu_ButtonBack");
+        open.text = Menu.Translate("MainMenu_SingleplayerButtonCreate");
+        title = Menu.Translate("MainMenu_Singleplayer");
     }
 
     /// <inheritdoc/>
     public override void Render(float dt)
     {
-        float scale = Renderer.GetScale();
+        float scale = Menu.GetScale();
 
-        Renderer.DrawBackground();
-        Renderer.DrawText(title, 20 * scale, Platform.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
+        Menu.DrawBackground();
+        Menu.DrawText(title, 20 * scale, GameService.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
 
-        float leftx = Platform.CanvasWidth / 2 - 128 * scale;
-        float y = Platform.CanvasHeight / 2 + 0 * scale;
+        float leftx = GameService.CanvasWidth / 2 - 128 * scale;
+        float y = GameService.CanvasHeight / 2 + 0 * scale;
 
         play.x = leftx;
         play.y = y + 100 * scale;
@@ -112,7 +112,7 @@ public class SingleplayerScreen : ScreenBase
         modify.fontSize = 14 * scale;
 
         back.x = 40 * scale;
-        back.y = Platform.CanvasHeight - 104 * scale;
+        back.y = GameService.CanvasHeight - 104 * scale;
         back.sizex = 256 * scale;
         back.sizey = 64 * scale;
         back.fontSize = 14 * scale;
@@ -158,9 +158,9 @@ public class SingleplayerScreen : ScreenBase
 
         if (!singlePlayerService.SinglePlayerServerAvailable)
         {
-            Renderer.DrawText(
+            Menu.DrawText(
                 "Singleplayer is only available on desktop (Windows, Linux, Mac) version of game.",
-                16 * scale, Platform.CanvasWidth / 2, Platform.CanvasHeight / 2,
+                16 * scale, GameService.CanvasWidth / 2, GameService.CanvasHeight / 2,
                 TextAlign.Center, TextBaseline.Middle);
         }
     }
@@ -176,7 +176,7 @@ public class SingleplayerScreen : ScreenBase
     /// <returns>List of fully-qualified paths to every discovered <c>.mddbs</c> save file.</returns>
     private List<string> GetSaveGames()
     {
-        string[] files = FileHelper.DirectoryGetFiles(Platform.GameSavePath);
+        string[] files = FileHelper.DirectoryGetFiles(GameService.GameSavePath);
         List<string> savegames = [];
 
         foreach (string file in files)
@@ -189,7 +189,7 @@ public class SingleplayerScreen : ScreenBase
     }
 
     /// <inheritdoc/>
-    public override void OnBackPressed() => Navigator.StartMainMenu();
+    public override void OnBackPressed() => Menu.StartMainMenu();
 
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
@@ -229,10 +229,10 @@ public class SingleplayerScreen : ScreenBase
         if (w == open)
         {
             string extension = singlePlayerService.SinglePlayerServerAvailable ? "mddbs" : "mdss";
-            string result = Platform.FileOpenDialog(extension, "Manic Digger Savegame", Platform.GameSavePath);
+            string result = GameService.FileOpenDialog(extension, "Manic Digger Savegame", GameService.GameSavePath);
             if (result != null)
             {
-                Navigator.ConnectToSingleplayer(result);
+                Menu.ConnectToSingleplayer(result);
             }
         }
     }

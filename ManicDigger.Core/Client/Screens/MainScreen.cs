@@ -8,8 +8,8 @@
 /// </remarks>
 public class MainScreen : ScreenBase
 {
-    public MainScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService singlePlayerService)
-        : base(renderer, navigator, platform)
+    public MainScreen(IMenu navigator, IGameService platform, ISinglePlayerService singlePlayerService)
+        : base(navigator, platform)
     {
         buttonSingleplayer = new MenuWidget { text = "Singleplayer" };
         buttonMultiplayer = new MenuWidget { text = "Multiplayer" };
@@ -45,39 +45,39 @@ public class MainScreen : ScreenBase
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonSingleplayer.text = Renderer.Translate("MainMenu_Singleplayer");
-        buttonMultiplayer.text = Renderer.Translate("MainMenu_Multiplayer");
-        buttonExit.text = Renderer.Translate("MainMenu_Quit");
+        buttonSingleplayer.text = Menu.Translate("MainMenu_Singleplayer");
+        buttonMultiplayer.text = Menu.Translate("MainMenu_Multiplayer");
+        buttonExit.text = Menu.Translate("MainMenu_Quit");
     }
 
     /// <inheritdoc/>
     public override void Render(float dt)
     {
-        windowX = Platform.CanvasWidth;
-        windowY = Platform.CanvasHeight;
+        windowX = GameService.CanvasWidth;
+        windowY = GameService.CanvasHeight;
 
-        float scale = Renderer.GetScale();
+        float scale = Menu.GetScale();
 
-        if (Renderer.AssetsLoadProgress != 1)
+        if (Menu.AssetsLoadProgress != 1)
         {
-            string s = string.Format(Renderer.Translate("MainMenu_AssetsLoadProgress"),
-                ((int)(Renderer.AssetsLoadProgress * 100)).ToString());
-            Renderer.DrawText(s, 20 * scale, windowX / 2, windowY / 2, TextAlign.Center, TextBaseline.Middle);
+            string s = string.Format(Menu.Translate("MainMenu_AssetsLoadProgress"),
+                ((int)(Menu.AssetsLoadProgress * 100)).ToString());
+            Menu.DrawText(s, 20 * scale, windowX / 2, windowY / 2, TextAlign.Center, TextBaseline.Middle);
             return;
         }
 
         if (!cursorLoaded)
         {
-            Platform.SetWindowCursor(0, 0, 32, 32,
-                Renderer.GetFile("mousecursor.png"),
-                Renderer.GetFileLength("mousecursor.png"));
+            GameService.SetWindowCursor(0, 0, 32, 32,
+                Menu.GetFile("mousecursor.png"),
+                Menu.GetFileLength("mousecursor.png"));
             cursorLoaded = true;
         }
 
         UseQueryStringIpAndPort();
 
-        Renderer.DrawBackground();
-        Renderer.Draw2dQuad(Renderer.GetTexture("logo.png"),
+        Menu.DrawBackground();
+        Menu.Draw2dQuad(Menu.GetTexture("logo.png"),
             windowX / 2 - 1024 * scale / 2, 0, 1024 * scale, 512 * scale);
 
         float centerX = windowX / 2 - ButtonWidth / 2 * scale;
@@ -117,22 +117,22 @@ public class MainScreen : ScreenBase
         if (queryStringChecked) { return; }
         queryStringChecked = true;
 
-        string ip = Platform.QueryStringValue("ip");
-        string port = Platform.QueryStringValue("port");
+        string ip = GameService.QueryStringValue("ip");
+        string port = GameService.QueryStringValue("port");
 
         int portInt = int.TryParse(port, out int parsedPort) ? parsedPort : 25565;
 
         if (ip != null)
         {
-            Navigator.StartLogin(null, ip, portInt);
+            Menu.StartLogin(null, ip, portInt);
         }
     }
 
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
     {
-        if (w == buttonSingleplayer) { Navigator.StartSingleplayer(); return; }
-        if (w == buttonMultiplayer) { Navigator.StartMultiplayer(); return; }
+        if (w == buttonSingleplayer) { Menu.StartSingleplayer(); return; }
+        if (w == buttonMultiplayer) { Menu.StartMultiplayer(); return; }
         if (w == buttonExit) { Environment.Exit(0); return; }
     }
 
@@ -147,12 +147,12 @@ public class MainScreen : ScreenBase
         if (e.KeyChar == (int)Keys.F5)
         {
             singlePlayerService.SinglePlayerServerAvailable = false;
-            Navigator.StartGame(true, Path.Combine(Platform.GameSavePath, "Default.mdss"), null);
+            Menu.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mdss"), null);
         }
         // F6 — launch default singleplayer save (database .mddbs format).
         if (e.KeyChar == (int)Keys.F6)
         {
-            Navigator.StartGame(true, Path.Combine(Platform.GameSavePath, "Default.mddbs"), null);
+            Menu.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mddbs"), null);
         }
 #endif
     }

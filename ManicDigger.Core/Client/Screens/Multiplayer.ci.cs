@@ -4,8 +4,8 @@ public class MultiplayerScreen : ScreenBase
 {
     private readonly IOpenGlService openGlService;
 
-    public MultiplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService openGlService, IPreferences preferences)
-        : base(renderer, navigator, platform)
+    public MultiplayerScreen(IMenu navigator, IGameService platform, IOpenGlService openGlService, IPreferences preferences)
+        : base(navigator, platform)
     {
         this.preferences = preferences;
         this.openGlService = openGlService;
@@ -89,11 +89,11 @@ public class MultiplayerScreen : ScreenBase
 
     public override void LoadTranslations()
     {
-        back.text = Renderer.Translate("MainMenu_ButtonBack");
-        connect.text = Renderer.Translate("MainMenu_MultiplayerConnect");
-        connectToIp.text = Renderer.Translate("MainMenu_MultiplayerConnectIP");
-        refresh.text = Renderer.Translate("MainMenu_MultiplayerRefresh");
-        title = Renderer.Translate("MainMenu_Multiplayer");
+        back.text = Menu.Translate("MainMenu_ButtonBack");
+        connect.text = Menu.Translate("MainMenu_MultiplayerConnect");
+        connectToIp.text = Menu.Translate("MainMenu_MultiplayerConnectIP");
+        refresh.text = Menu.Translate("MainMenu_MultiplayerRefresh");
+        title = Menu.Translate("MainMenu_Multiplayer");
     }
 
     public override void Render(float dt)
@@ -141,45 +141,45 @@ public class MultiplayerScreen : ScreenBase
         }
 
 
-        float scale = Renderer.GetScale();
+        float scale = Menu.GetScale();
 
         back.x = 40 * scale;
-        back.y = Platform.CanvasHeight - 104 * scale;
+        back.y = GameService.CanvasHeight - 104 * scale;
         back.sizex = 256 * scale;
         back.sizey = 64 * scale;
         back.fontSize = 14 * scale;
 
-        connect.x = Platform.CanvasWidth / 2 - 300 * scale;
-        connect.y = Platform.CanvasHeight - 104 * scale;
+        connect.x = GameService.CanvasWidth / 2 - 300 * scale;
+        connect.y = GameService.CanvasHeight - 104 * scale;
         connect.sizex = 256 * scale;
         connect.sizey = 64 * scale;
         connect.fontSize = 14 * scale;
 
-        connectToIp.x = Platform.CanvasWidth / 2 - 0 * scale;
-        connectToIp.y = Platform.CanvasHeight - 104 * scale;
+        connectToIp.x = GameService.CanvasWidth / 2 - 0 * scale;
+        connectToIp.y = GameService.CanvasHeight - 104 * scale;
         connectToIp.sizex = 256 * scale;
         connectToIp.sizey = 64 * scale;
         connectToIp.fontSize = 14 * scale;
 
-        refresh.x = Platform.CanvasWidth / 2 + 350 * scale;
-        refresh.y = Platform.CanvasHeight - 104 * scale;
+        refresh.x = GameService.CanvasWidth / 2 + 350 * scale;
+        refresh.y = GameService.CanvasHeight - 104 * scale;
         refresh.sizex = 256 * scale;
         refresh.sizey = 64 * scale;
         refresh.fontSize = 14 * scale;
 
-        pageUp.x = Platform.CanvasWidth - 94 * scale;
+        pageUp.x = GameService.CanvasWidth - 94 * scale;
         pageUp.y = 100 * scale + (serversPerPage - 1) * 70 * scale;
         pageUp.sizex = 64 * scale;
         pageUp.sizey = 64 * scale;
         pageUp.image = "serverlist_nav_down.png";
 
-        pageDown.x = Platform.CanvasWidth - 94 * scale;
+        pageDown.x = GameService.CanvasWidth - 94 * scale;
         pageDown.y = 100 * scale;
         pageDown.sizex = 64 * scale;
         pageDown.sizey = 64 * scale;
         pageDown.image = "serverlist_nav_up.png";
 
-        loggedInName.x = Platform.CanvasWidth - 228 * scale;
+        loggedInName.x = GameService.CanvasWidth - 228 * scale;
         loggedInName.y = 32 * scale;
         loggedInName.sizex = 128 * scale;
         loggedInName.sizey = 32 * scale;
@@ -193,20 +193,20 @@ public class MultiplayerScreen : ScreenBase
         }
         logout.visible = loggedInName.text != "";
 
-        logout.x = Platform.CanvasWidth - 228 * scale;
+        logout.x = GameService.CanvasWidth - 228 * scale;
         logout.y = 62 * scale;
         logout.sizex = 128 * scale;
         logout.sizey = 32 * scale;
         logout.fontSize = 12 * scale;
         logout.text = "Logout";
 
-        Renderer.DrawBackground();
-        Renderer.DrawText(title, 20 * scale, Platform.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
-        Renderer.DrawText((page + 1).ToString(), 14 * scale, Platform.CanvasWidth - 68 * scale, Platform.CanvasHeight / 2, TextAlign.Center, TextBaseline.Middle);
+        Menu.DrawBackground();
+        Menu.DrawText(title, 20 * scale, GameService.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
+        Menu.DrawText((page + 1).ToString(), 14 * scale, GameService.CanvasWidth - 68 * scale, GameService.CanvasHeight / 2, TextAlign.Center, TextBaseline.Middle);
 
         if (loading)
         {
-            Renderer.DrawText(Renderer.Translate("MainMenu_MultiplayerLoading"), 14 * scale, 100 * scale, 50 * scale, TextAlign.Left, TextBaseline.Top);
+            Menu.DrawText(Menu.Translate("MainMenu_MultiplayerLoading"), 14 * scale, 100 * scale, 50 * scale, TextAlign.Left, TextBaseline.Top);
         }
 
         UpdateThumbnails();
@@ -215,7 +215,7 @@ public class MultiplayerScreen : ScreenBase
             serverButtons[i].visible = false;
         }
 
-        serversPerPage = (int)((Platform.CanvasHeight - (2 * 100 * scale)) / 70 * scale);
+        serversPerPage = (int)((GameService.CanvasHeight - (2 * 100 * scale)) / 70 * scale);
         if (serversPerPage <= 0)
         {
             // Do not let this get negative
@@ -245,7 +245,7 @@ public class MultiplayerScreen : ScreenBase
             serverButtons[i].text = t;
             serverButtons[i].x = 100 * scale;
             serverButtons[i].y = 100 * scale + i * 70 * scale;
-            serverButtons[i].sizex = Platform.CanvasWidth - 200 * scale;
+            serverButtons[i].sizex = GameService.CanvasWidth - 200 * scale;
             serverButtons[i].sizey = 64 * scale;
             serverButtons[i].visible = true;
             serverButtons[i].buttonStyle = ButtonStyle.ServerEntry;
@@ -304,7 +304,7 @@ public class MultiplayerScreen : ScreenBase
                         if (bmp != null)
                         {
                             int texture = openGlService.LoadTextureFromBitmap(bmp);
-                            Renderer.RegisterTexture(string.Format("serverlist_entry_{0}.png", server.Hash), texture);
+                            Menu.RegisterTexture(string.Format("serverlist_entry_{0}.png", server.Hash), texture);
                             bmp.Dispose();
                         }
                         server.ThumbnailDownloading = false;
@@ -389,7 +389,7 @@ public class MultiplayerScreen : ScreenBase
 
     public override void OnBackPressed()
     {
-        Navigator.StartMainMenu();
+        Menu.StartMainMenu();
     }
     public override void OnMouseWheel(MouseWheelEventArgs e)
     {
@@ -436,12 +436,12 @@ public class MultiplayerScreen : ScreenBase
         {
             if (selectedServerHash != null)
             {
-                Navigator.StartLogin(selectedServerHash, null, 0);
+                Menu.StartLogin(selectedServerHash, null, 0);
             }
         }
         if (w == connectToIp)
         {
-            Navigator.StartConnectToIp();
+            Menu.StartConnectToIp();
         }
         if (w == refresh)
         {

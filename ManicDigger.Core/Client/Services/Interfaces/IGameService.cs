@@ -1,4 +1,5 @@
 ﻿using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Composite — the full platform contract used throughout the game.
@@ -65,7 +66,7 @@ public interface IGameService
     void SetWindowCursor(int hotx, int hoty, int sizex, int sizey, byte[] imgdata, int imgdataLength);
     void RestoreWindowCursor();
 
-    GameWindowNative Window { get; set; }
+    GameWindow Window { get; set; }
     void Start();
 }
 

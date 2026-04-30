@@ -3,6 +3,7 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Common.Input;
+using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -194,7 +195,7 @@ public class GameService : IGameService
 
     #region Game
 
-    public GameWindowNative Window { get; set; }
+    public GameWindow Window { get; set; }
 
     public int CanvasWidth => Window.ClientSize.X;
 

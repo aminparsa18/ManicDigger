@@ -5,9 +5,9 @@
 /// Bridges platform input events to the game, manages the singleplayer
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
-public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl,
+public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService platformOpenGl,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit) 
-    : ScreenBase(renderer, navigator, platform)
+    : ScreenBase(navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences, gameExit);
@@ -33,8 +33,8 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
         connectData = connectData_;
 
         game.IsSinglePlayer = singleplayer;
-        game.Assets = Renderer.Assets;
-        game.AssetsLoadProgress = Renderer.AssetsLoadProgress;
+        game.Assets = Menu.Assets;
+        game.AssetsLoadProgress = Menu.AssetsLoadProgress;
 
         game.Start();
         Connect();
@@ -72,9 +72,9 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
     /// </summary>
     private NetClient? CreateNetClient()
     {
-        if (Platform.NetworkService.TcpAvailable()) return new TcpNetClient();
-        if (Platform.NetworkService.EnetAvailable()) return new EnetNetClient(Platform.NetworkService);
-        if (Platform.NetworkService.WebSocketAvailable()) return new WebSocketNetClient();
+        if (GameService.NetworkService.TcpAvailable()) return new TcpNetClient();
+        if (GameService.NetworkService.EnetAvailable()) return new EnetNetClient(GameService.NetworkService);
+        if (GameService.NetworkService.WebSocketAvailable()) return new WebSocketNetClient();
         return null;
     }
 
@@ -90,7 +90,7 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
         if (game.reconnect)
         {
             game.Dispose();
-            Navigator.StartGame(singleplayer, singleplayerSavePath, connectData);
+            Menu.StartGame(singleplayer, singleplayerSavePath, connectData);
             return;
         }
 
@@ -115,7 +115,7 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
 
         if (redirect == null)
         {
-            Navigator.StartMainMenu();
+            Menu.StartMainMenu();
             return;
         }
 
@@ -123,13 +123,13 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
         // NOTE: This is a deliberate sync-over-async call on the render thread;
         // the game loop is already stopped at this point so blocking is acceptable.
         var (qresult, message) = Task.Run(() =>
-            new QueryClient(Platform.NetworkService).QueryAsync(redirect.IP, redirect.Port)
+            new QueryClient(GameService.NetworkService).QueryAsync(redirect.IP, redirect.Port)
         ).GetAwaiter().GetResult();
 
         if (qresult == null)
         {
             platform.MessageBoxShowError(message, "Redirection error");
-            Navigator.StartMainMenu();
+            Menu.StartMainMenu();
             return;
         }
 
@@ -144,15 +144,15 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
         if (!lidata.ServerCorrect)
         {
             platform.MessageBoxShowError("Invalid server address!", "Redirection error!");
-            Navigator.StartMainMenu();
+            Menu.StartMainMenu();
         }
         else if (!lidata.PasswordCorrect)
         {
-            Navigator.StartLogin(token, null, 0);
+            Menu.StartLogin(token, null, 0);
         }
         else if (!string.IsNullOrEmpty(lidata.ServerAddress))
         {
-            Navigator.ConnectToGame(lidata, connectData.Username);
+            Menu.ConnectToGame(lidata, connectData.Username);
         }
     }
 
@@ -160,7 +160,7 @@ public class ScreenGame(IMenuRenderer renderer, IMenuNavigator navigator, IGameS
     /// Returns <see langword="true"/> when the platform window has focus.
     /// Mouse events are suppressed while focus is lost to avoid unintended actions.
     /// </summary>
-    private bool IsFocused => Platform.Focused();
+    private bool IsFocused => GameService.Focused();
 
     public override void OnKeyDown(KeyEventArgs e) => game.KeyDown(e);
     public override void OnKeyUp(KeyEventArgs e) => game.KeyUp(e);

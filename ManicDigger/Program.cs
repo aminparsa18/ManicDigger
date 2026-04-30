@@ -29,6 +29,8 @@ public class Program
     private void ConfigureServices(ServiceCollection services)
     {
         // Register your services here
+        services.AddTransient<IMenu, MainMenu>();
+
         services.AddTransient<IGameExit, GameExit>();
         services.AddTransient<IGameService, GameService>();
         services.AddTransient<IPreferences, Preferences>();
@@ -55,41 +57,35 @@ public class Program
     private readonly DummyNetwork dummyNetwork;
     private string savefilename;
     public IGameExit exit;
-    private IGameService gameService;
     private ISinglePlayerService singlePlayerService;
 
     // -------------------------------------------------------------------------
     // Startup
     // -------------------------------------------------------------------------
 
-    private void Start(string[] args)
+    private static void Start(string[] args)
     {
         if (!Debugger.IsAttached)
             Environment.CurrentDirectory = Path.GetDirectoryName(Application.ExecutablePath)!;
 
         Log.Debug("Initialising GamePlatformNative");
 
-        gameService = ServiceProvider.GetRequiredService<IGameService>();
+        var mainmenu = ServiceProvider.GetRequiredService<IMenu>();
 
         Log.Debug("Creating GameWindowNative");
-        using GameWindowNative window = new();
-        gameService.Window = window;
 
-        //temporary until DI is done;
-        exit ??= ServiceProvider.GetRequiredService<IGameExit>();
-        singlePlayerService = ServiceProvider.GetRequiredService<ISinglePlayerService>();
-        var openGlService = ServiceProvider.GetRequiredService<IOpenGlService>();
-        var preference = ServiceProvider.GetRequiredService<IPreferences>();
-        MainMenu mainmenu = new(gameService, openGlService, singlePlayerService, preference, exit);
+        using GameWindowNative window = new();
+        mainmenu.GameService.Window = window;
 
         mainmenu.Start();
+
         ReadArgs(mainmenu, args);
 
-        gameService.Start();
+        mainmenu.GameService.Start();
         window.Run();
     }
 
-    private static void ReadArgs(MainMenu mainmenu, string[] args)
+    private static void ReadArgs(IMenu mainmenu, string[] args)
     {
         if (args.Length > 0)
             mainmenu.StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));
@@ -104,8 +100,11 @@ public class Program
         Log.Debug("Single-player server thread started");
         DummyNetServer netServer = new(dummyNetwork);
 
+        singlePlayerService = ServiceProvider.GetRequiredService<ISinglePlayerService>();
+        var gameService = ServiceProvider.GetRequiredService<IGameService>();
+
         exit ??= ServiceProvider.GetRequiredService<IGameExit>();
-        Server server = new(exit)
+        Server server = new(exit, gameService)
         {
             SaveFilenameOverride = savefilename,
             MainSockets = new NetServer[3]

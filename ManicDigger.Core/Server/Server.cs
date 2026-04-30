@@ -14,9 +14,9 @@ public partial class Server : ICurrentTime, IDropItem
 
     public List<ServerSystem> Systems { get; set; }
 
-    public Server(IGameExit gameExit)
+    public Server(IGameExit gameExit, IGameService gameService)
     {
-        gameplatform = new GameService(gameExit);
+        gameplatform = gameService;
         _gameExit = gameExit;
 
         Systems =

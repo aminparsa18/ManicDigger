@@ -9,7 +9,7 @@ public class ModifyWorldScreen : ScreenBase
     private string title = "Modify World";
 
     public ModifyWorldScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform)
-        : base(renderer, navigator, platform, default)
+        : base(renderer, navigator, platform)
     {
         buttonBack = new MenuWidget
         {

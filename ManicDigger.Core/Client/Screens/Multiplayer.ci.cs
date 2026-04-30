@@ -2,10 +2,14 @@
 
 public class MultiplayerScreen : ScreenBase
 {
-    public MultiplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService _)
-        : base(renderer, navigator, platform, platformOpenGl)
+    private readonly IOpenGlService openGlService;
+
+    public MultiplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, IOpenGlService openGlService, IPreferences preferences)
+        : base(renderer, navigator, platform)
     {
         this.preferences = preferences;
+        this.openGlService = openGlService;
+
         // Tab chain (by list index): [0] Back → [1] Connect → [3] ConnectToIp → [2] Refresh → [0] Back
         back = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
         connect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
@@ -299,7 +303,7 @@ public class MultiplayerScreen : ScreenBase
                         Bitmap bmp = PixelBuffer.BitmapFromPng(thumbResponses[i].Data, thumbResponses[i].Data.Length);
                         if (bmp != null)
                         {
-                            int texture = PlatformOpenGl.LoadTextureFromBitmap(bmp);
+                            int texture = openGlService.LoadTextureFromBitmap(bmp);
                             Renderer.RegisterTexture(string.Format("serverlist_entry_{0}.png", server.Hash), texture);
                             bmp.Dispose();
                         }

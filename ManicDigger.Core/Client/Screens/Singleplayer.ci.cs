@@ -31,7 +31,7 @@ public class SingleplayerScreen : ScreenBase
     private string title;
 
     public SingleplayerScreen(IMenuRenderer renderer, IMenuNavigator navigator, IGameService platform, ISinglePlayerService singlePlayerService)
-        : base(renderer, navigator, platform, default)
+        : base(renderer, navigator, platform)
     {
         play = new MenuWidget
         {

@@ -6,11 +6,9 @@ using Serilog;
 /// Bridges platform input events to the game, manages the singleplayer
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
-public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService platformOpenGl,
-    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, 
-    IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService,
-    IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer, IGame game) 
-    : ScreenBase(navigator, platform)
+public class ScreenGame(IMenu navigator, IGameService platform,
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit,
+    IDummyNetwork dummyNetwork,  IGame game) : ScreenBase(navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;

@@ -78,9 +78,9 @@ public class LightBetweenChunks
         int[] dataLightRadius,
         bool[] dataTransparent)
     {
-        Input(game, cx, cy, cz);
+        Input(cx, cy, cz);
         FloodBetweenChunks(dataLightRadius, dataTransparent);
-        Output(game, cx, cy, cz);
+        Output(cx, cy, cz);
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public class LightBetweenChunks
     /// <param name="cx">Target chunk X coordinate.</param>
     /// <param name="cy">Target chunk Y coordinate.</param>
     /// <param name="cz">Target chunk Z coordinate.</param>
-    private void Input(IGame game, int cx, int cy, int cz)
+    private void Input( int cx, int cy, int cz)
     {
         for (int x = 0; x < NeighbourhoodSize; x++)
         {
@@ -275,7 +275,7 @@ public class LightBetweenChunks
     /// <param name="cx">Target chunk X coordinate.</param>
     /// <param name="cy">Target chunk Y coordinate.</param>
     /// <param name="cz">Target chunk Z coordinate.</param>
-    private void Output(IGame game, int cx, int cy, int cz)
+    private void Output( int cx, int cy, int cz)
     {
         Chunk chunk = _voxelMap.GetChunkAt(cx, cy, cz);
 
@@ -286,9 +286,9 @@ public class LightBetweenChunks
                 for (int z = 0; z < OutputSize; z++)
                 {
                     // Map output buffer coordinates to neighbourhood chunk + local position.
-                    int globalX = Game.chunksize - 1 + x;
-                    int globalY = Game.chunksize - 1 + y;
-                    int globalZ = Game.chunksize - 1 + z;
+                    int globalX = GameConstants.CHUNK_SIZE - 1 + x;
+                    int globalY = GameConstants.CHUNK_SIZE - 1 + y;
+                    int globalZ = GameConstants.CHUNK_SIZE - 1 + z;
 
                     int ncx = globalX / ChunkSize;
                     int ncy = globalY / ChunkSize;

@@ -227,7 +227,7 @@ public class TerrainChunkTesselator
         mapsizez = _terrain.MapSizeZ;
         started = true;
 
-        _blockFlags = new BlockRenderFlags[GlobalVar.MAX_BLOCKTYPES];
+        _blockFlags = new BlockRenderFlags[GameConstants.MAX_BLOCKTYPES];
 
         maxlightInverse = 1f / maxlight;
         terrainTexturesPerAtlas = _terrain.TerrainTexturesPerAtlas;
@@ -242,7 +242,7 @@ public class TerrainChunkTesselator
         _texrecLeft = AtiArtifactFix;
         _texrecRight = _texrecLeft + _texrecWidth;
 
-        toreturnatlas1dLength = Math.Max(1, GlobalVar.MAX_BLOCKTYPES / _terrain.TerrainTexturesPerAtlas);
+        toreturnatlas1dLength = Math.Max(1, GameConstants.MAX_BLOCKTYPES / _terrain.TerrainTexturesPerAtlas);
         toreturnatlas1d = new GeometryModel[toreturnatlas1dLength];
         toreturnatlas1dtransparent = new GeometryModel[toreturnatlas1dLength];
 
@@ -1184,12 +1184,4 @@ public struct VerticesIndicesToLoad
     public float PositionZ { get; set; }
     public bool Transparent { get; set; }
     public int Texture { get; set; }
-}
-
-// ── Retained constants ────────────────────────────────────────────────────────
-
-public static class GlobalVar
-{
-    public const int MAX_BLOCKTYPES = 1024;
-    public const int MAX_BLOCKTYPES_SQRT = 32;
 }

@@ -20,70 +20,70 @@ public class ModBlockDamageToPlayer : ModBase
     private readonly IGameService _platform;
     private readonly IVoxelMap voxelMap;
 
-    public ModBlockDamageToPlayer(IGameService platform, IVoxelMap voxelMap)
+    public ModBlockDamageToPlayer(IGameService platform, IGame game, IVoxelMap voxelMap) : base(game)
     {
         _platform = platform;
         blockDamageTimer = new DamageTimer(BlockDamageToPlayerEvery, BlockDamageToPlayerEvery * 2);
         this.voxelMap = voxelMap;
     }
 
-    public override void OnNewFrameFixed(IGame game, float args)
+    public override void OnNewFrameFixed( float args)
     {
-        if (game.GuiState == GuiState.MapLoading || game.FollowId() != null)
+        if (Game.GuiState == GuiState.MapLoading || Game.FollowId() != null)
             return;
 
-        UpdateBlockDamageToPlayer(game, args);
+        UpdateBlockDamageToPlayer(args);
     }
 
-    private void UpdateBlockDamageToPlayer(IGame game, float dt)
+    private void UpdateBlockDamageToPlayer( float dt)
     {
-        UpdateBlockDamage(game, dt);
-        UpdateDrowning(game);
+        UpdateBlockDamage(dt);
+        UpdateDrowning();
     }
 
     /// <summary>Applies damage from damaging blocks (e.g. lava) the player is standing in or near.</summary>
-    private void UpdateBlockDamage(IGame game, float dt)
+    private void UpdateBlockDamage( float dt)
     {
-        float pX = game.LocalPositionX;
-        float pY = game.LocalPositionY + game.LocalEyeHeight;
-        float pZ = game.LocalPositionZ;
+        float pX = Game.LocalPositionX;
+        float pY = Game.LocalPositionY + Game.LocalEyeHeight;
+        float pZ = Game.LocalPositionZ;
 
         int block1 = GetBlockAt(pX, pY, pZ);
         int block2 = GetBlockAt(pX, pY - 1, pZ);
 
-        int damage = game.BlockRegistry.DamageToPlayer[block1] + game.BlockRegistry.DamageToPlayer[block2];
+        int damage = Game.BlockRegistry.DamageToPlayer[block1] + Game.BlockRegistry.DamageToPlayer[block2];
         if (damage <= 0) return;
 
         // Prefer eye-level block as damage source; fall back to feet block
-        int hurtingBlock = (block1 != 0 && game.BlockRegistry.DamageToPlayer[block1] > 0) ? block1 : block2;
+        int hurtingBlock = (block1 != 0 && Game.BlockRegistry.DamageToPlayer[block1] > 0) ? block1 : block2;
         int times = blockDamageTimer.Update(dt);
         for (int i = 0; i < times; i++)
-            game.ApplyDamageToPlayer(damage, DeathReason.BlockDamage, hurtingBlock);
+            Game.ApplyDamageToPlayer(damage, DeathReason.BlockDamage, hurtingBlock);
     }
 
     /// <summary>Drains oxygen while underwater and applies drowning damage when oxygen is depleted.</summary>
-    private void UpdateDrowning(IGame game)
+    private void UpdateDrowning()
     {
         int deltaMs = _platform.TimeMillisecondsFromStart - lastOxygenTickMilliseconds;
         if (deltaMs < 1000) return;
 
-        if (game.WaterSwimmingEyes())
+        if (Game.WaterSwimmingEyes())
         {
-            game.PlayerStats.CurrentOxygen -= 1;
-            if (game.PlayerStats.CurrentOxygen <= 0)
+            Game.PlayerStats.CurrentOxygen -= 1;
+            if (Game.PlayerStats.CurrentOxygen <= 0)
             {
-                game.PlayerStats.CurrentOxygen = 0;
-                int dmg = Math.Max(1, game.PlayerStats.MaxHealth / 10);
-                game.ApplyDamageToPlayer(dmg, DeathReason.Drowning, 0);
+                Game.PlayerStats.CurrentOxygen = 0;
+                int dmg = Math.Max(1, Game.PlayerStats.MaxHealth / 10);
+                Game.ApplyDamageToPlayer(dmg, DeathReason.Drowning, 0);
             }
         }
         else
         {
-            game.PlayerStats.CurrentOxygen = game.PlayerStats.MaxOxygen;
+            Game.PlayerStats.CurrentOxygen = Game.PlayerStats.MaxOxygen;
         }
 
-        if (GameVersionHelper.ServerVersionAtLeast(game.ServerGameVersion, 2014, 3, 31))
-            game.SendPacketClient(ClientPackets.Oxygen(game.PlayerStats.CurrentOxygen));
+        if (GameVersionHelper.ServerVersionAtLeast(Game.ServerGameVersion, 2014, 3, 31))
+            Game.SendPacketClient(ClientPackets.Oxygen(Game.PlayerStats.CurrentOxygen));
         lastOxygenTickMilliseconds = _platform.TimeMillisecondsFromStart;
     }
 
@@ -98,11 +98,11 @@ public class ModBlockDamageToPlayer : ModBase
 
 public class DialogScreen : GameScreen
 {
-    public DialogScreen(IGameService gameService) : base(gameService)
+    public DialogScreen(IGameService gameService, IGame game) : base(gameService, game)
     {
     }
 
-    public override void OnButton(IGame game, MenuWidget w)
+    public override void OnButton( MenuWidget w)
     {
         if (w.isbutton)
         {
@@ -113,7 +113,7 @@ public class DialogScreen : GameScreen
                 s ??= "";
                 textValues[i] = s;
             }
-            game.SendPacketClient(ClientPackets.DialogClick(w.id, textValues, WidgetCount));
+            Game.SendPacketClient(ClientPackets.DialogClick(w.id, textValues, WidgetCount));
         }
     }
 }

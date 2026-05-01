@@ -20,36 +20,35 @@ public class ModGuiTextEditor : GameScreen
     private int cursorColumn;
     private int cursorLine;
     private bool visible;
-    private readonly IGame game;
 
-    public ModGuiTextEditor(IGameService game) : base(game)
+    public ModGuiTextEditor(IGameService gameService, IGame game) : base(gameService, game)
     {
         for (int i = 0; i < MaxLines; i++)
             buffer[i] = new int[MaxColumns];
     }
 
-    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw2d( float deltaTime)
     {
         if (!visible) return;
 
-        game.Draw2dTexture(game.GetOrCreateWhiteTexture(), StartX, StartY, MaxColumns * CharSize, MaxLines * CharSize, null, 0, BackgroundColor, false);
+        Game.Draw2dTexture(Game.GetOrCreateWhiteTexture(), StartX, StartY, MaxColumns * CharSize, MaxLines * CharSize, null, 0, BackgroundColor, false);
 
         for (int i = 0; i < MaxLines; i++)
-            game.Draw2dText(LineToString(buffer[i]), Font, StartX, StartY + CharSize * i, null, false);
+            Game.Draw2dText(LineToString(buffer[i]), Font, StartX, StartY + CharSize * i, null, false);
 
         // Draw cursor on current line
         int[] spaces = new int[MaxColumns];
         Array.Fill(spaces, CharSpace);
         spaces[cursorColumn] = CharCursor;
-        string cursorRow = StringUtils.CharArrayToString(spaces, cursorColumn + 1);
-        game.Draw2dText(cursorRow, Font, StartX, StartY + cursorLine * CharSize, null, false);
+        string cursorRow = EncodingHelper.CharArrayToString(spaces, cursorColumn + 1);
+        Game.Draw2dText(cursorRow, Font, StartX, StartY + cursorLine * CharSize, null, false);
     }
 
-    public override void OnKeyDown(IGame game, KeyEventArgs e)
+    public override void OnKeyDown( KeyEventArgs e)
     {
         int key = e.KeyChar;
 
-        if (key == game.GetKey(Keys.F9))
+        if (key == Game.GetKey(Keys.F9))
         {
             visible = !visible;
             return;
@@ -81,7 +80,7 @@ public class ModGuiTextEditor : GameScreen
         e.Handled = true;
     }
 
-    public override void OnKeyPress(IGame game, KeyPressEventArgs e)
+    public override void OnKeyPress( KeyPressEventArgs e)
     {
         if (!visible) return;
         if (e.KeyChar == 8) return; // backspace handled in OnKeyDown
@@ -96,7 +95,7 @@ public class ModGuiTextEditor : GameScreen
     }
 
     private static string LineToString(int[] line) =>
-        line == null ? "" : StringUtils.CharArrayToString(line, LineLength(line));
+        line == null ? "" : EncodingHelper.CharArrayToString(line, LineLength(line));
 
     private static int LineLength(int[] line)
     {

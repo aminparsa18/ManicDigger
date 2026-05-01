@@ -15,12 +15,12 @@ public class ModScreenshot : ModBase
 
     private readonly IGameService platform;
 
-    public ModScreenshot(IGameService platform)
+    public ModScreenshot(IGameService platform, IGame game) : base(game)
     {
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw2d( float deltaTime)
     {
         if (takeScreenshot)
         {
@@ -31,22 +31,22 @@ public class ModScreenshot : ModBase
 
         if (screenshotFlashFramesLeft > 0)
         {
-            DrawScreenshotFlash(game);
+            DrawScreenshotFlash();
             screenshotFlashFramesLeft--;
         }
     }
 
-    public override void OnKeyDown(IGame game, KeyEventArgs args)
+    public override void OnKeyDown( KeyEventArgs args)
     {
-        if (args.KeyChar != game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.F12)) return;
+        if (args.KeyChar != Game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.F12)) return;
         takeScreenshot = true;
         args.Handled = true;
     }
 
-    internal void DrawScreenshotFlash(IGame game)
+    internal void DrawScreenshotFlash()
     {
-        game.Draw2dTexture(game.GetOrCreateWhiteTexture(), 0, 0, platform.CanvasWidth, platform.CanvasHeight, null, 0, White, false);
+        Game.Draw2dTexture(Game.GetOrCreateWhiteTexture(), 0, 0, platform.CanvasWidth, platform.CanvasHeight, null, 0, White, false);
         TextRenderer.TextSize(ScreenshotText, FlashFontSize, out int textWidth, out int textHeight);
-        game.Draw2dText(ScreenshotText, FlashFont, game.Xcenter(textWidth), game.Ycenter(textHeight), null, false);
+        Game.Draw2dText(ScreenshotText, FlashFont, Game.Xcenter(textWidth), Game.Ycenter(textHeight), null, false);
     }
 }

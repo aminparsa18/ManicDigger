@@ -41,7 +41,7 @@ public class ModPicking : ModBase
     private readonly Random random;
 
     public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService, 
-        IMeshDrawer meshDrawer, IModRegistry modRegistry)
+        IMeshDrawer meshDrawer, IModRegistry modRegistry, IGame game) : base(game)
     {
         this.platform = platform;
         this.voxelMap = voxelMap;
@@ -54,24 +54,24 @@ public class ModPicking : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameReadOnlyMainThread(IGame game, float deltaTime)
+    public override void OnNewFrameReadOnlyMainThread( float deltaTime)
     {
-        if (game.GuiState == GuiState.Normal) { UpdatePicking(game); }
+        if (Game.GuiState == GuiState.Normal) { UpdatePicking(); }
     }
 
     /// <inheritdoc/>
-    public override void OnMouseUp(IGame game, MouseEventArgs args)
+    public override void OnMouseUp( MouseEventArgs args)
     {
-        if (game.GuiState == GuiState.Normal) { UpdatePicking(game); }
+        if (Game.GuiState == GuiState.Normal) { UpdatePicking(); }
     }
 
     /// <inheritdoc/>
-    public override void OnMouseDown(IGame game, MouseEventArgs args)
+    public override void OnMouseDown( MouseEventArgs args)
     {
-        if (game.GuiState == GuiState.Normal)
+        if (Game.GuiState == GuiState.Normal)
         {
-            UpdatePicking(game);
-            UpdateEntityHit(game);
+            UpdatePicking();
+            UpdateEntityHit();
         }
     }
 
@@ -79,16 +79,16 @@ public class ModPicking : ModBase
     /// Main picking entry point. Clears the selected block when the player is
     /// following an entity (spectator), otherwise begins the bullet/block trace.
     /// </summary>
-    internal void UpdatePicking(IGame game)
+    internal void UpdatePicking()
     {
-        if (game.FollowId() != null)
+        if (Game.FollowId() != null)
         {
-            game.SelectedBlockPositionX = -1;
-            game.SelectedBlockPositionY = -1;
-            game.SelectedBlockPositionZ = -1;
+            Game.SelectedBlockPositionX = -1;
+            Game.SelectedBlockPositionY = -1;
+            Game.SelectedBlockPositionZ = -1;
             return;
         }
-        NextBullet(game, bulletsShot: 0);
+        NextBullet(bulletsShot: 0);
     }
 
     /// <summary>
@@ -98,81 +98,79 @@ public class ModPicking : ModBase
     /// </summary>
     /// <param name="game">Current game instance.</param>
     /// <param name="bulletsShot">Number of bullets already fired in this burst.</param>
-    internal void NextBullet(IGame game, int bulletsShot)
+    internal void NextBullet( int bulletsShot)
     {
-        bool left = game.mouseLeft;
-        bool middle = game.mouseMiddle;
-        bool right = game.mouseRight;
+        bool left = Game.mouseLeft;
+        bool middle = Game.mouseMiddle;
+        bool right = Game.mouseRight;
         bool isNextShot = bulletsShot != 0;
 
         // Latch left-mouse so that held-down is treated as continuous fire.
-        if (!game.leftpressedpicking)
+        if (!Game.leftpressedpicking)
         {
-            if (game.MouseLeftClick) { game.leftpressedpicking = true; }
+            if (Game.MouseLeftClick) { Game.leftpressedpicking = true; }
             else { left = false; }
         }
         else
         {
-            if (game.mouseleftdeclick)
+            if (Game.mouseleftdeclick)
             {
-                game.leftpressedpicking = false;
+                Game.leftpressedpicking = false;
                 left = false;
             }
         }
-        if (!left) { game.CurrentAttackedBlock = null; }
-
-        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
-        bool isPistol = item != null && game.BlockTypes[item.BlockId].IsPistol;
-        bool isGrenade = isPistol && game.BlockTypes[item.BlockId].PistolType == PistolType.Grenade;
+        if (!left) { Game.CurrentAttackedBlock = null; }
+        InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
+        bool isPistol = item != null && Game.BlockTypes[item.BlockId].IsPistol;
+        bool isGrenade = isPistol && Game.BlockTypes[item.BlockId].PistolType == PistolType.Grenade;
         bool isPistolShoot = isPistol && left;
-        if (isPistol && isGrenade) { isPistolShoot = game.mouseleftdeclick; }
+        if (isPistol && isGrenade) { isPistolShoot = Game.mouseleftdeclick; }
 
         // Grenade cooking — start timer on left-click, auto-fire when cooked.
         // TODO: fix instant explosion when closing ESC menu.
-        if (game.MouseLeftClick)
+        if (Game.MouseLeftClick)
         {
-            game.grenadecookingstartMilliseconds = platform.TimeMillisecondsFromStart;
-            if (isPistol && isGrenade && game.BlockTypes[item.BlockId].Sounds.Shoot.Length > 0)
+            Game.grenadecookingstartMilliseconds = platform.TimeMillisecondsFromStart;
+            if (isPistol && isGrenade && Game.BlockTypes[item.BlockId].Sounds.Shoot.Length > 0)
             {
-                game.PlayAudio(string.Format("{0}.ogg", game.BlockTypes[item.BlockId].Sounds.Shoot[0]));
+                Game.PlayAudio(string.Format("{0}.ogg", Game.BlockTypes[item.BlockId].Sounds.Shoot[0]));
             }
         }
 
-        float cookWait = (platform.TimeMillisecondsFromStart - game.grenadecookingstartMilliseconds) / 1000f;
-
+        float cookWait = (platform.TimeMillisecondsFromStart - Game.grenadecookingstartMilliseconds) / 1000f;
         if (isGrenade && left)
         {
-            if (cookWait >= game.grenadetime && game.grenadecookingstartMilliseconds != 0)
+            if (cookWait >= Game.grenadetime && Game.grenadecookingstartMilliseconds != 0)
             {
                 isPistolShoot = true;
-                game.mouseleftdeclick = true;
+                Game.mouseleftdeclick = true;
             }
             else { return; }
         }
         else
         {
-            game.grenadecookingstartMilliseconds = 0;
+            Game.grenadecookingstartMilliseconds = 0;
         }
 
         // Iron sights toggle (right-click with pistol, 500 ms cooldown).
-        if (isPistol && game.mouserightclick
-         && (platform.TimeMillisecondsFromStart - game.lastironsightschangeMilliseconds) >= 500)
+        if (isPistol && Game.mouserightclick
+         && (platform.TimeMillisecondsFromStart - Game.lastironsightschangeMilliseconds) >= 500)
         {
-            game.IronSights = !game.IronSights;
-            game.lastironsightschangeMilliseconds = platform.TimeMillisecondsFromStart;
+            Game.IronSights = !Game.IronSights;
+            Game.lastironsightschangeMilliseconds = platform.TimeMillisecondsFromStart;
         }
 
         Line3D pick = new();
-        GetPickingLine(game, pick, isPistolShoot);
-        ArraySegment<BlockPosSide> pick2 = game.Pick(cameraService.BlockOctreeSearcher, pick, out int pick2count);
+        GetPickingLine(pick, isPistolShoot);
+        ArraySegment<BlockPosSide> pick2 = Game.Pick(cameraService.BlockOctreeSearcher, pick, out int pick2count);
 
-        if (left) { game.handSetAttackDestroy = true; }
-        else if (right) { game.handSetAttackBuild = true; }
+        if (left) { Game.handSetAttackDestroy = true; }
+        else if (right) { Game.handSetAttackBuild = true; }
 
         // Overhead camera: walk toward clicked block.
-        if (game.OverheadCamera && pick2count > 0 && left && game.Follow == null)
+        if (Game.OverheadCamera && pick2count > 0 && left && Game.Follow == null)
         {
-            game.PlayerDestination = new Vector3(pick2[0].blockPos[0], pick2[0].blockPos[1] + 1, pick2[0].blockPos[2]);
+            Game.PlayerDestination = new Vector3(pick2[0].blockPos[0], pick2[0].blockPos[1] + 1, pick2[0].blockPos[2]);
         }
 
         // Distance check.
@@ -182,70 +180,70 @@ public class ModPicking : ModBase
             float pickDist = Vector3.Distance(
                 new Vector3(pick2[0].blockPos[0] + 0.5f, pick2[0].blockPos[1] + 0.5f, pick2[0].blockPos[2] + 0.5f),
                 new Vector3(pick.Start[0], pick.Start[1], pick.Start[2]));
-            if (pickDist > CurrentPickDistance(game)) { pickDistanceOk = false; }
+            if (pickDist > CurrentPickDistance()) { pickDistanceOk = false; }
         }
 
-        bool playerTileEmpty = game.IsTileEmptyForPhysics(
-            (int)game.Player.position.x, (int)game.Player.position.z, (int)(game.Player.position.y + 0.5f));
-        bool playerTileEmptyClose = game.IsTileEmptyForPhysicsClose(
-            (int)game.Player.position.x, (int)game.Player.position.z, (int)(game.Player.position.y + 0.5f));
+        bool playerTileEmpty = Game.IsTileEmptyForPhysics(
+            (int)Game.Player.position.x, (int)Game.Player.position.z, (int)(Game.Player.position.y + 0.5f));
+        bool playerTileEmptyClose = Game.IsTileEmptyForPhysicsClose(
+            (int)Game.Player.position.x, (int)Game.Player.position.z, (int)(Game.Player.position.y + 0.5f));
 
         BlockPosSide pick0 = new();
-        if (pick2count > 0 && ((pickDistanceOk && (playerTileEmpty || playerTileEmptyClose)) || game.OverheadCamera))
+        if (pick2count > 0 && ((pickDistanceOk && (playerTileEmpty || playerTileEmptyClose)) || Game.OverheadCamera))
         {
-            game.SelectedBlockPositionX = (int)pick2[0].Current()[0];
-            game.SelectedBlockPositionY = (int)pick2[0].Current()[1];
-            game.SelectedBlockPositionZ = (int)pick2[0].Current()[2];
+            Game.SelectedBlockPositionX = (int)pick2[0].Current()[0];
+            Game.SelectedBlockPositionY = (int)pick2[0].Current()[1];
+            Game.SelectedBlockPositionZ = (int)pick2[0].Current()[2];
             pick0 = pick2[0];
         }
         else
         {
-            game.SelectedBlockPositionX = -1;
-            game.SelectedBlockPositionY = -1;
-            game.SelectedBlockPositionZ = -1;
+            Game.SelectedBlockPositionX = -1;
+            Game.SelectedBlockPositionY = -1;
+            Game.SelectedBlockPositionZ = -1;
             pick0.blockPos = Vector3.Zero;
             pick0.blockPos[0] = -1;
             pick0.blockPos[1] = -1;
             pick0.blockPos[2] = -1;
         }
 
-        PickEntity(game, pick, pick2, pick2count);
+        PickEntity(pick, pick2, pick2count);
 
-        if (game.CameraType == CameraType.Fpp || game.CameraType == CameraType.Tpp)
+        if (Game.CameraType == CameraType.Fpp || Game.CameraType == CameraType.Tpp)
         {
             int ntileX = (int)pick0.Current()[0];
             int ntileY = (int)pick0.Current()[1];
             int ntileZ = (int)pick0.Current()[2];
-            if (game.IsUsableBlock(voxelMap.GetBlock(ntileX, ntileZ, ntileY)))
+            if (Game.IsUsableBlock(voxelMap.GetBlock(ntileX, ntileZ, ntileY)))
             {
-                game.CurrentAttackedBlock = new Vector3i(ntileX, ntileZ, ntileY);
+                Game.CurrentAttackedBlock = new Vector3i(ntileX, ntileZ, ntileY);
             }
         }
 
-        if (game.GetFreeMouse())
+        if (Game.GetFreeMouse())
         {
             if (pick2count > 0) { OnPick_(pick0); }
             return;
         }
 
-        bool buildDelayElapsed = (platform.TimeMillisecondsFromStart - lastbuildMilliseconds) / 1000f >= BuildDelay(game);
+        bool buildDelayElapsed = (platform.TimeMillisecondsFromStart - lastbuildMilliseconds) / 1000f >= BuildDelay();
         if (!buildDelayElapsed && !isNextShot) { PickingEnd(left, right, middle, isPistol); return; }
 
-        if (left && game.Inventory.RightHand[game.ActiveMaterial] == null)
+        if (left && Game.Inventory.RightHand[Game.ActiveMaterial] == null)
         {
-            game.SendPacketClient(ClientPackets.MonsterHit(2 + random.Next() * 4));
+            Game.SendPacketClient(ClientPackets.MonsterHit(2 + random.Next() * 4));
         }
 
         if ((left || right || middle) && !isGrenade)
         {
             lastbuildMilliseconds = platform.TimeMillisecondsFromStart;
         }
-        if (isGrenade && game.mouseleftdeclick)
+        if (isGrenade && Game.mouseleftdeclick)
         {
             lastbuildMilliseconds = platform.TimeMillisecondsFromStart;
         }
 
-        if (game.ReloadStartMilliseconds != 0)
+        if (Game.ReloadStartMilliseconds != 0)
         {
             PickingEnd(left, right, middle, isPistol);
             return;
@@ -253,14 +251,14 @@ public class ModPicking : ModBase
 
         if (isPistolShoot)
         {
-            if (!(game.LoadedAmmo[item.BlockId] > 0) || !(game.TotalAmmo[item.BlockId] > 0))
+            if (!(Game.LoadedAmmo[item.BlockId] > 0) || !(Game.TotalAmmo[item.BlockId] > 0))
             {
-                game.PlayAudio("Dry Fire Gun-SoundBible.com-2053652037.ogg");
+                Game.PlayAudio("Dry Fire Gun-SoundBible.com-2053652037.ogg");
                 PickingEnd(left, right, middle, isPistol);
                 return;
             }
 
-            FirePistol(game, pick, pick2, pick2count, item, isGrenade, cookWait, ref bulletsShot);
+            FirePistol(pick, pick2, pick2count, item, isGrenade, cookWait, ref bulletsShot);
             PickingEnd(left, right, middle, isPistol);
             return;
         }
@@ -269,7 +267,7 @@ public class ModPicking : ModBase
 
         if (pick2count > 0)
         {
-            HandleBlockInteraction(game, pick0, pick2, pick2count, left, right, middle, isPistol, isGrenade);
+            HandleBlockInteraction(pick0, pick2, pick2count, left, right, middle, isPistol, isGrenade);
         }
 
         PickingEnd(left, right, middle, isPistol);
@@ -279,13 +277,13 @@ public class ModPicking : ModBase
     /// Handles all block interactions: middle-click clone, left-click destroy,
     /// and right-click place.
     /// </summary>
-    private void HandleBlockInteraction(IGame game, BlockPosSide pick0,
+    private void HandleBlockInteraction( BlockPosSide pick0,
         ArraySegment<BlockPosSide> pick2, int pick2count,
         bool left, bool right, bool middle, bool isPistol, bool isGrenade)
     {
         if (middle)
         {
-            HandleMiddleClickClone(game, pick0);
+            HandleMiddleClickClone(pick0);
         }
 
         if (left || right)
@@ -301,21 +299,21 @@ public class ModPicking : ModBase
             {
                 int blocktype = left
                     ? voxelMap.GetBlock(newtileX, newtileZ, newtileY)
-                    : (game.BlockInHand() == null ? 1 : game.BlockInHand() ?? -1);
+                    : (Game.BlockInHand() == null ? 1 : Game.BlockInHand() ?? -1);
 
-                if (left && blocktype == game.BlockRegistry.BlockIdAdminium)
+                if (left && blocktype == Game.BlockRegistry.BlockIdAdminium)
                 {
                     PickingEnd(left, right, middle, isPistol);
                     return;
                 }
 
-                string[] sound = left ? game.BlockRegistry.BreakSound[blocktype] : game.BlockRegistry.BuildSound[blocktype];
-                if (sound != null) { game.PlayAudio(sound[0]); } // TODO: sound cycle
+                string[] sound = left ? Game.BlockRegistry.BreakSound[blocktype] : Game.BlockRegistry.BuildSound[blocktype];
+                if (sound != null) { Game.PlayAudio(sound[0]); } // TODO: sound cycle
             }
 
             if (!right)
             {
-                HandleAttack(game, pick0, newtileX, newtileZ, newtileY, left, right, middle, isPistol);
+                HandleAttack(pick0, newtileX, newtileZ, newtileY, left, right, middle, isPistol);
                 return;
             }
 
@@ -323,7 +321,7 @@ public class ModPicking : ModBase
             {
                 throw new ArgumentException("Error in picking - NextBullet()");
             }
-            OnPick(game, newtileX, newtileZ, newtileY,
+            OnPick( newtileX, newtileZ, newtileY,
                 (int)pick0.Current()[0], (int)pick0.Current()[2], (int)pick0.Current()[1],
                 pick0.collisionPos, right);
         }
@@ -333,28 +331,28 @@ public class ModPicking : ModBase
     /// Handles a left-click attack on a block: reduces block health and destroys
     /// it when health reaches zero.
     /// </summary>
-    private void HandleAttack(IGame game, BlockPosSide tile,
+    private void HandleAttack( BlockPosSide tile,
         int newtileX, int newtileY, int newtileZ,
         bool left, bool right, bool middle, bool isPistol)
     {
         int posx = newtileX;
         int posy = newtileY;
         int posz = newtileZ;
-        game.CurrentAttackedBlock = new Vector3i(posx, posy, posz);
+        Game.CurrentAttackedBlock = new Vector3i(posx, posy, posz);
         var key = (posx, posy, posz);
 
-        if (!game.blockHealth.ContainsKey(key))
+        if (!Game.blockHealth.ContainsKey(key))
         {
-            game.blockHealth[key] = game.GetCurrentBlockHealth(posx, posy, posz);
+            Game.blockHealth[key] = Game.GetCurrentBlockHealth(posx, posy, posz);
         }
 
-        game.blockHealth[key] -= random.Next(2, 4);
+        Game.blockHealth[key] -= random.Next(2, 4);
 
-        if (game.GetCurrentBlockHealth(posx, posy, posz) <= 0)
+        if (Game.GetCurrentBlockHealth(posx, posy, posz) <= 0)
         {
-            game.blockHealth.Remove(key);
-            game.CurrentAttackedBlock = null;
-            OnPick(game, newtileX, posy, posz,
+            Game.blockHealth.Remove(key);
+            Game.CurrentAttackedBlock = null;
+            OnPick(newtileX, posy, posz,
                 (int)tile.Current()[0], (int)tile.Current()[2], (int)tile.Current()[1],
                 tile.collisionPos, right: false);
         }
@@ -366,7 +364,7 @@ public class ModPicking : ModBase
     /// Handles middle-click: finds the pointed-at block type in the hotbar or
     /// inventory and selects or moves it to the active material slot.
     /// </summary>
-    private void HandleMiddleClickClone(IGame game, BlockPosSide pick0)
+    private void HandleMiddleClickClone( BlockPosSide pick0)
     {
         int newtileX = (int)pick0.Current()[0];
         int newtileY = (int)pick0.Current()[1];
@@ -375,48 +373,48 @@ public class ModPicking : ModBase
         if (!voxelMap.IsValidPos(newtileX, newtileZ, newtileY)) { return; }
 
         int cloneSource = voxelMap.GetBlock(newtileX, newtileZ, newtileY);
-        int cloneSource2 = game.BlockRegistry.WhenPlayerPlacesGetsConvertedTo[cloneSource];
+        int cloneSource2 = Game.BlockRegistry.WhenPlayerPlacesGetsConvertedTo[cloneSource];
 
         // Search the hotbar first.
         bool found = false;
         for (int i = 0; i < 10; i++)
         {
-            if (game.Inventory.RightHand[i]?.InventoryItemType == InventoryItemType.Block
-             && game.Inventory.RightHand[i].BlockId == cloneSource2)
+            if (Game.Inventory.RightHand[i]?.InventoryItemType == InventoryItemType.Block
+             && Game.Inventory.RightHand[i].BlockId == cloneSource2)
             {
-                game.ActiveMaterial = i;
+                Game.ActiveMaterial = i;
                 found = true;
             }
         }
 
         if (!found)
         {
-            int freeHand = game.InventoryUtil.FreeHand(game.ActiveMaterial) ?? -1;
+            int freeHand = Game.InventoryUtil.FreeHand(Game.ActiveMaterial) ?? -1;
 
-            for (int i = 0; i < game.Inventory.Items.Length; i++)
+            for (int i = 0; i < Game.Inventory.Items.Length; i++)
             {
-                Packet_PositionItem k = game.Inventory.Items[i];
+                Packet_PositionItem k = Game.Inventory.Items[i];
                 if (k == null) { continue; }
                 if (k.Value_.InventoryItemType != InventoryItemType.Block || k.Value_.BlockId != cloneSource2) { continue; }
 
                 if (freeHand != -1)
                 {
-                    game.WearItem(InventoryPositionMainArea(k.X, k.Y),
+                    Game.WearItem(InventoryPositionMainArea(k.X, k.Y),
                                   InventoryPositionMaterialSelector(freeHand));
                     break;
                 }
 
-                if (game.Inventory.RightHand[game.ActiveMaterial]?.InventoryItemType == InventoryItemType.Block)
+                if (Game.Inventory.RightHand[Game.ActiveMaterial]?.InventoryItemType == InventoryItemType.Block)
                 {
-                    game.MoveToInventory(InventoryPositionMaterialSelector(game.ActiveMaterial));
-                    game.WearItem(InventoryPositionMainArea(k.X, k.Y),
-                                  InventoryPositionMaterialSelector(game.ActiveMaterial));
+                    Game.MoveToInventory(InventoryPositionMaterialSelector(Game.ActiveMaterial));
+                    Game.WearItem(InventoryPositionMainArea(k.X, k.Y),
+                                  InventoryPositionMaterialSelector(Game.ActiveMaterial));
                 }
             }
         }
 
-        string[] sound = game.BlockRegistry.CloneSound[cloneSource];
-        if (sound != null) { game.PlayAudio(sound[0]); } // TODO: sound cycle
+        string[] sound = Game.BlockRegistry.CloneSound[cloneSource];
+        if (sound != null) { Game.PlayAudio(sound[0]); } // TODO: sound cycle
     }
 
     /// <summary>
@@ -424,7 +422,7 @@ public class ModPicking : ModBase
     /// spawns bullet/grenade entities, decrements ammo, applies recoil, and
     /// triggers the next shot in a burst if required.
     /// </summary>
-    private void FirePistol(IGame game, Line3D pick,
+    private void FirePistol( Line3D pick,
         ArraySegment<BlockPosSide> pick2, int pick2count,
         InventoryItem item, bool isGrenade, float cookWait, ref int bulletsShot)
     {
@@ -433,48 +431,48 @@ public class ModPicking : ModBase
 
         Packet_ClientShot shot = new()
         {
-            FromX = Game.EncodeFixedPoint(pick.Start[0]),
-            FromY = Game.EncodeFixedPoint(pick.Start[1]),
-            FromZ = Game.EncodeFixedPoint(pick.Start[2]),
-            ToX = Game.EncodeFixedPoint(toX),
-            ToY = Game.EncodeFixedPoint(toY),
-            ToZ = Game.EncodeFixedPoint(toZ),
+            FromX = EncodingHelper.EncodeFixedPoint(pick.Start[0]),
+            FromY = EncodingHelper.EncodeFixedPoint(pick.Start[1]),
+            FromZ = EncodingHelper.EncodeFixedPoint(pick.Start[2]),
+            ToX = EncodingHelper.EncodeFixedPoint(toX),
+            ToY = EncodingHelper.EncodeFixedPoint(toY),
+            ToZ = EncodingHelper.EncodeFixedPoint(toZ),
             HitPlayer = -1
         };
 
-        CheckEntityHitsForShot(game, pick, pick2, pick2count, isGrenade, ref shot);
+        CheckEntityHitsForShot(pick, pick2, pick2count, isGrenade, ref shot);
 
         shot.WeaponBlock = item.BlockId;
-        game.LoadedAmmo[item.BlockId]--;
-        game.TotalAmmo[item.BlockId]--;
+        Game.LoadedAmmo[item.BlockId]--;
+        Game.TotalAmmo[item.BlockId]--;
 
-        float projectileSpeed = game.BlockTypes[item.BlockId].ProjectileSpeed;
+        float projectileSpeed = Game.BlockTypes[item.BlockId].ProjectileSpeed;
         if (projectileSpeed == 0)
         {
-            game.EntityAddLocal(Game.CreateBulletEntity(pick.Start[0], pick.Start[1], pick.Start[2], toX, toY, toZ, 150));
+            Game.EntityAddLocal(Entity.CreateBullet(pick.Start[0], pick.Start[1], pick.Start[2], toX, toY, toZ, 150));
         }
         else
         {
-            SpawnGrenadeEntity(game, pick, item, toX, toY, toZ, projectileSpeed, cookWait, ref shot);
+            SpawnGrenadeEntity( pick, item, toX, toY, toZ, projectileSpeed, cookWait, ref shot);
         }
 
-        game.SendPacketClient(new Packet_Client { Id = PacketType.Shot, Shot = shot });
+        Game.SendPacketClient(new Packet_Client { Id = PacketType.Shot, Shot = shot });
 
-        if (game.BlockTypes[item.BlockId].Sounds.ShootEnd.Length > 0)
+        if (Game.BlockTypes[item.BlockId].Sounds.ShootEnd.Length > 0)
         {
-            game.pistolcycle = random.Next() % game.BlockTypes[item.BlockId].Sounds.ShootEnd.Length;
-            game.PlayAudio(string.Format("{0}.ogg", game.BlockTypes[item.BlockId].Sounds.ShootEnd[game.pistolcycle]));
+            Game.pistolcycle = random.Next() % Game.BlockTypes[item.BlockId].Sounds.ShootEnd.Length;
+            Game.PlayAudio(string.Format("{0}.ogg", Game.BlockTypes[item.BlockId].Sounds.ShootEnd[Game.pistolcycle]));
         }
 
         // Apply recoil.
-        game.Player.position.rotx -= random.Next() * game.CurrentRecoil();
-        game.Player.position.roty += random.Next() * game.CurrentRecoil() * 2 - game.CurrentRecoil();
+        Game.Player.position.rotx -= random.Next() * Game.CurrentRecoil();
+        Game.Player.position.roty += random.Next() * Game.CurrentRecoil() * 2 - Game.CurrentRecoil();
 
         // Burst fire.
         bulletsShot++;
-        if (bulletsShot < game.BlockTypes[item.BlockId].BulletsPerShot)
+        if (bulletsShot < Game.BlockTypes[item.BlockId].BulletsPerShot)
         {
-            NextBullet(game, bulletsShot);
+            NextBullet(bulletsShot);
         }
     }
 
@@ -483,15 +481,15 @@ public class ModPicking : ModBase
     /// boxes, and records any hit (preventing shots through terrain).
     /// Spawns a blood-splatter sprite for non-grenade hits.
     /// </summary>
-    private void CheckEntityHitsForShot(IGame game, Line3D pick,
+    private void CheckEntityHitsForShot( Line3D pick,
         ArraySegment<BlockPosSide> pick2, int pick2count,
         bool isGrenade, ref Packet_ClientShot shot)
     {
-        float eyeX = game.Player.position.x, eyeY = game.Player.position.y, eyeZ = game.Player.position.z;
+        float eyeX = Game.Player.position.x, eyeY = Game.Player.position.y, eyeZ = Game.Player.position.z;
 
-        for (int i = 0; i < game.Entities.Count; i++)
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Entity entity = game.Entities[i];
+            Entity entity = Game.Entities[i];
             if (entity?.drawModel == null || entity.networkPosition == null) { continue; }
             if (!entity.networkPosition.PositionLoaded) { continue; }
 
@@ -521,7 +519,7 @@ public class ModPicking : ModBase
                     sprite = new Sprite { positionX = hit.Value.X, positionY = hit.Value.Y, positionZ = hit.Value.Z, image = "blood.png" },
                     expires = Expires.Create(0.2f)
                 };
-                game.EntityAddLocal(blood);
+                Game.EntityAddLocal(blood);
             }
 
             shot.HitPlayer = i;
@@ -533,7 +531,7 @@ public class ModPicking : ModBase
     /// Creates and spawns a grenade entity with the correct velocity, fuse time,
     /// and sprite, and writes the explosion timer into <paramref name="shot"/>.
     /// </summary>
-    private void SpawnGrenadeEntity(IGame game, Line3D pick, InventoryItem item,
+    private void SpawnGrenadeEntity( Line3D pick, InventoryItem item,
         float toX, float toY, float toZ, float projectileSpeed, float cookWait,
         ref Packet_ClientShot shot)
     {
@@ -545,8 +543,8 @@ public class ModPicking : ModBase
         vY = vY / len * projectileSpeed;
         vZ = vZ / len * projectileSpeed;
 
-        float fuseRemaining = game.grenadetime - cookWait;
-        shot.ExplodesAfter = Game.EncodeFixedPoint(fuseRemaining);
+        float fuseRemaining = Game.grenadetime - cookWait;
+        shot.ExplodesAfter = EncodingHelper.EncodeFixedPoint(fuseRemaining);
 
         Entity grenadeEntity = new()
         {
@@ -565,11 +563,11 @@ public class ModPicking : ModBase
                 velocityY = vY,
                 velocityZ = vZ,
                 block = item.BlockId,
-                sourcePlayer = game.LocalPlayerId
+                sourcePlayer = Game.LocalPlayerId
             },
             expires = Expires.Create(fuseRemaining)
         };
-        game.EntityAddLocal(grenadeEntity);
+        Game.EntityAddLocal(grenadeEntity);
     }
 
     /// <summary>
@@ -590,15 +588,15 @@ public class ModPicking : ModBase
     /// Applies a block-set action at the picked position, taking into account
     /// rail direction snapping, the cuboid fill tool, and the fill-start marker.
     /// </summary>
-    internal void OnPick(IGame game, int blockposX, int blockposY, int blockposZ,
+    internal void OnPick( int blockposX, int blockposY, int blockposZ,
         int blockposOldX, int blockposOldY, int blockposOldZ,
         Vector3 collisionPos, bool right)
     {
         float xFract = collisionPos[0] - MathF.Floor(collisionPos[0]);
         float zFract = collisionPos[2] - MathF.Floor(collisionPos[2]);
 
-        int activeMaterial = game.MaterialSlots(game.ActiveMaterial);
-        int railStart = game.BlockRegistry.BlockIdRailStart;
+        int activeMaterial = Game.MaterialSlots(Game.ActiveMaterial);
+        int railStart = Game.BlockRegistry.BlockIdRailStart;
 
         if (activeMaterial == railStart + (int)RailDirectionFlags.TwoHorizontalVertical
          || activeMaterial == railStart + (int)RailDirectionFlags.Corners)
@@ -607,7 +605,7 @@ public class ModPicking : ModBase
                 ? PickHorizontalVertical(xFract, zFract)
                 : PickCorners(xFract, zFract);
 
-            int dir = game.BlockRegistry.Rail[voxelMap.GetBlock(blockposOldX, blockposOldY, blockposOldZ)];
+            int dir = Game.BlockRegistry.Rail[voxelMap.GetBlock(blockposOldX, blockposOldY, blockposOldZ)];
             if (dir != 0)
             {
                 blockposX = blockposOldX;
@@ -622,58 +620,58 @@ public class ModPicking : ModBase
         int z = blockposZ;
         PacketBlockSetMode mode = right ? PacketBlockSetMode.Create : PacketBlockSetMode.Destroy;
 
-        if (game.IsAnyPlayerInPos(x, y, z) || activeMaterial == 151 /* Compass */) { return; }
+        if (Game.IsAnyPlayerInPos(x, y, z) || activeMaterial == 151 /* Compass */) { return; }
 
         Vector3i v = new(x, y, z);
 
         if (mode == PacketBlockSetMode.Create)
         {
-            if (game.BlockTypes[activeMaterial].IsTool)
+            if (Game.BlockTypes[activeMaterial].IsTool)
             {
-                OnPickUseWithTool(game, blockposX, blockposY, blockposZ);
+                OnPickUseWithTool(blockposX, blockposY, blockposZ);
                 return;
             }
-            if (activeMaterial == game.BlockRegistry.BlockIdCuboid)
+            if (activeMaterial == Game.BlockRegistry.BlockIdCuboid)
             {
-                ClearFillArea(game);
+                ClearFillArea();
                 if (fillstart != null)
                 {
                     Vector3i f = fillstart.Value;
-                    if (!game.IsFillBlock(voxelMap.GetBlock(f.X, f.Y, f.Z)))
+                    if (!Game.IsFillBlock(voxelMap.GetBlock(f.X, f.Y, f.Z)))
                     {
                         fillarea[(f.X, f.Y, f.Z)] = voxelMap.GetBlock(f.X, f.Y, f.Z);
                     }
-                    game.SetBlock(f.X, f.Y, f.Z, game.BlockRegistry.BlockIdFillStart);
-                    FillFill(game, v, fillstart);
+                    Game.SetBlock(f.X, f.Y, f.Z, Game.BlockRegistry.BlockIdFillStart);
+                    FillFill(v, fillstart);
                 }
-                if (!game.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
+                if (!Game.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
                 {
                     fillarea[(v.X, v.Y, v.Z)] = voxelMap.GetBlock(v.X, v.Y, v.Z);
                 }
-                game.SetBlock(v.X, v.Y, v.Z, game.BlockRegistry.BlockIdCuboid);
+                Game.SetBlock(v.X, v.Y, v.Z, Game.BlockRegistry.BlockIdCuboid);
                 fillend = v;
-                game.RedrawBlock(v.X, v.Y, v.Z);
+                Game.RedrawBlock(v.X, v.Y, v.Z);
                 return;
             }
-            if (activeMaterial == game.BlockRegistry.BlockIdFillStart)
+            if (activeMaterial == Game.BlockRegistry.BlockIdFillStart)
             {
-                ClearFillArea(game);
-                if (!game.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
+                ClearFillArea();
+                if (!Game.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
                 {
                     fillarea[(v.X, v.Y, v.Z)] = voxelMap.GetBlock(v.X, v.Y, v.Z);
                 }
-                game.SetBlock(v.X, v.Y, v.Z, game.BlockRegistry.BlockIdFillStart);
+                Game.SetBlock(v.X, v.Y, v.Z, Game.BlockRegistry.BlockIdFillStart);
                 fillstart = v;
                 fillend = null;
-                game.RedrawBlock(v.X, v.Y, v.Z);
+                Game.RedrawBlock(v.X, v.Y, v.Z);
                 return;
             }
             if (fillarea.ContainsKey((v.X, v.Y, v.Z)))
             {
-                game.SendFillArea(fillstart.Value.X, fillstart.Value.Y, fillstart.Value.Z,
+                Game.SendFillArea(fillstart.Value.X, fillstart.Value.Y, fillstart.Value.Z,
                                    fillend.Value.X, fillend.Value.Y, fillend.Value.Z,
                                    activeMaterial);
-                ClearFillArea(game);
+                ClearFillArea();
                 fillstart = null;
                 fillend = null;
                 return;
@@ -681,39 +679,39 @@ public class ModPicking : ModBase
         }
         else
         {
-            if (game.BlockTypes[activeMaterial].IsTool)
+            if (Game.BlockTypes[activeMaterial].IsTool)
             {
-                OnPickUseWithTool(game, blockposX, blockposY, blockposOldZ);
+                OnPickUseWithTool(blockposX, blockposY, blockposOldZ);
                 return;
             }
             if (fillstart?.X == v.X && fillstart?.Y == v.Y && fillstart?.Z == v.Z)
             {
-                ClearFillArea(game);
+                ClearFillArea();
                 fillstart = null;
                 fillend = null;
                 return;
             }
             if (fillend?.X == v.X && fillend?.Y == v.Y && fillend?.Z == v.Z)
             {
-                ClearFillArea(game);
+                ClearFillArea();
                 fillend = null;
                 return;
             }
         }
 
-        game.SendSetBlockAndUpdateSpeculative(activeMaterial, x, y, z, mode);
+        Game.SendSetBlockAndUpdateSpeculative(activeMaterial, x, y, z, mode);
     }
 
     /// <summary>
     /// Restores all blocks overwritten by the fill-area tool to their original
     /// values and clears the fill-area dictionary.
     /// </summary>
-    internal void ClearFillArea(IGame game)
+    internal void ClearFillArea()
     {
         foreach (var ((x, y, z), value) in fillarea)
         {
-            game.SetBlock(x, y, z, (int)value);
-            game.RedrawBlock(x, y, z);
+            Game.SetBlock(x, y, z, (int)value);
+            Game.RedrawBlock(x, y, z);
         }
         fillarea.Clear();
     }
@@ -724,7 +722,7 @@ public class ModPicking : ModBase
     /// overwritten block so it can be restored by <see cref="ClearFillArea"/>.
     /// Aborts if the fill would exceed the game's fill-area limit.
     /// </summary>
-    internal void FillFill(IGame game, Vector3i a, Vector3i? b)
+    internal void FillFill( Vector3i a, Vector3i? b)
     {
         int startX = Math.Min(a.X, b.Value.X), endX = Math.Max(a.X, b.Value.X);
         int startY = Math.Min(a.Y, b.Value.Y), endY = Math.Max(a.Y, b.Value.Y);
@@ -734,21 +732,21 @@ public class ModPicking : ModBase
             for (int y = startY; y <= endY; y++)
                 for (int z = startZ; z <= endZ; z++)
                 {
-                    if (fillarea.Count > game.FillAreaLimit) { ClearFillArea(game); return; }
-                    if (!game.IsFillBlock(voxelMap.GetBlock(x, y, z)))
+                    if (fillarea.Count > Game.FillAreaLimit) { ClearFillArea(); return; }
+                    if (!Game.IsFillBlock(voxelMap.GetBlock(x, y, z)))
                     {
                         fillarea[(x, y, z)] = voxelMap.GetBlock(x, y, z);
-                        game.SetBlock(x, y, z, game.BlockRegistry.BlockIdFillArea);
-                        game.RedrawBlock(x, y, z);
+                        Game.SetBlock(x, y, z, Game.BlockRegistry.BlockIdFillArea);
+                        Game.RedrawBlock(x, y, z);
                     }
                 }
     }
 
     /// <summary>Sends a <c>UseWithTool</c> block-set packet for the block at the given position.</summary>
-    internal void OnPickUseWithTool(IGame game, int posX, int posY, int posZ)
-        => game.SendSetBlock(posX, posY, posZ, PacketBlockSetMode.UseWithTool,
-                             game.Inventory.RightHand[game.ActiveMaterial].BlockId,
-                             game.ActiveMaterial);
+    internal void OnPickUseWithTool( int posX, int posY, int posZ)
+        => Game.SendSetBlock(posX, posY, posZ, PacketBlockSetMode.UseWithTool,
+                             Game.Inventory.RightHand[Game.ActiveMaterial].BlockId,
+                             Game.ActiveMaterial);
 
     /// <summary>
     /// Determines the rail direction for a two-state (horizontal/vertical) rail
@@ -778,23 +776,23 @@ public class ModPicking : ModBase
     /// (distinct from the shooting hit-detection in <see cref="CheckEntityHitsForShot"/>).
     /// Sets <c>game.SelectedEntityId</c> and <c>game.currentlyAttackedEntity</c>.
     /// </summary>
-    private void PickEntity(IGame game, Line3D pick,
+    private void PickEntity( Line3D pick,
         ArraySegment<BlockPosSide> pick2, int pick2count)
     {
-        game.SelectedEntityId = -1;
-        game.CurrentlyAttackedEntity = -1;
+        Game.SelectedEntityId = -1;
+        Game.CurrentlyAttackedEntity = -1;
 
-        float eyeX = game.Player.position.x, eyeY = game.Player.position.y, eyeZ = game.Player.position.z;
+        float eyeX = Game.Player.position.x, eyeY = Game.Player.position.y, eyeZ = Game.Player.position.z;
 
-        for (int i = 0; i < game.Entities.Count; i++)
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Entity entity = game.Entities[i];
-            if (entity?.drawModel == null || i == game.LocalPlayerId) { continue; }
+            Entity entity = Game.Entities[i];
+            if (entity?.drawModel == null || i == Game.LocalPlayerId) { continue; }
             if (entity.networkPosition == null || !entity.networkPosition.PositionLoaded) { continue; }
             if (!entity.usable) { continue; }
 
             float fx = entity.position.x, fy = entity.position.y, fz = entity.position.z;
-            if (Vector3.Distance(new Vector3(fx, fy, fz), new Vector3(game.Player.position.x, game.Player.position.y, game.Player.position.z)) > 5) { continue; }
+            if (Vector3.Distance(new Vector3(fx, fy, fz), new Vector3(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z)) > 5) { continue; }
 
             const float r = 0.35f;
             float h = entity.drawModel.ModelHeight;
@@ -808,10 +806,10 @@ public class ModPicking : ModBase
                 <= Vector3.Distance(new Vector3(hit.Value.X, hit.Value.Y, hit.Value.Z), new Vector3(eyeX, eyeY, eyeZ));
             if (blockedByTerrain) { continue; }
 
-            game.SelectedEntityId = i;
-            if (game.CameraType == CameraType.Fpp || game.CameraType == CameraType.Tpp)
+            Game.SelectedEntityId = i;
+            if (Game.CameraType == CameraType.Fpp || Game.CameraType == CameraType.Tpp)
             {
-                game.CurrentlyAttackedEntity = i;
+                Game.CurrentlyAttackedEntity = i;
             }
         }
     }
@@ -820,16 +818,16 @@ public class ModPicking : ModBase
     /// When the player left-clicks and an entity is targeted, notifies all client
     /// mods and sends a hit packet to the server.
     /// </summary>
-    private void UpdateEntityHit(IGame game)
+    private void UpdateEntityHit()
     {
-        if (game.CurrentlyAttackedEntity == -1 || !game.mouseLeft) { return; }
+        if (Game.CurrentlyAttackedEntity == -1 || !Game.mouseLeft) { return; }
 
         for (int i = 0; i < modRegistry.Mods.Count; i++)
         {
             if (modRegistry.Mods[i] == null) { continue; }
-            modRegistry.Mods[i].OnHitEntity(game, new OnUseEntityArgs { Id = game.CurrentlyAttackedEntity });
+            modRegistry.Mods[i].OnHitEntity(new OnUseEntityArgs { Id = Game.CurrentlyAttackedEntity });
         }
-        game.SendPacketClient(ClientPackets.HitEntity(game.CurrentlyAttackedEntity));
+        Game.SendPacketClient(ClientPackets.HitEntity(Game.CurrentlyAttackedEntity));
     }
 
     /// <summary>Placeholder called when the player picks a block in free-mouse mode.</summary>
@@ -840,13 +838,13 @@ public class ModPicking : ModBase
     /// currently held item. Derived from the item's <c>DelayFloat</c> field,
     /// or a movement-speed-scaled default when no delay is specified.
     /// </summary>
-    internal float BuildDelay(IGame game)
+    internal float BuildDelay()
     {
-        float defaultDelay = 0.95f / game.Basemovespeed;
-        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
+        float defaultDelay = 0.95f / Game.Basemovespeed;
+        InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
         if (item == null || item.InventoryItemType != InventoryItemType.Block) { return defaultDelay; }
 
-        float delay = game.BlockTypes[item.BlockId].Delay;
+        float delay = Game.BlockTypes[item.BlockId].Delay;
         return delay == 0 ? defaultDelay : delay;
     }
 
@@ -855,21 +853,21 @@ public class ModPicking : ModBase
     /// centre (FPP/TPP) or mouse position (other camera types), optionally
     /// applying weapon spread for pistol shots.
     /// </summary>
-    public void GetPickingLine(IGame game, Line3D retPick, bool isPistolShoot)
+    public void GetPickingLine( Line3D retPick, bool isPistolShoot)
     {
         int mouseX, mouseY;
-        if (game.CameraType == CameraType.Fpp || game.CameraType == CameraType.Tpp)
+        if (Game.CameraType == CameraType.Fpp || Game.CameraType == CameraType.Tpp)
         {
             mouseX = platform.CanvasWidth / 2;
             mouseY = platform.CanvasHeight / 2;
         }
         else
         {
-            mouseX = game.MouseCurrentX;
-            mouseY = game.MouseCurrentY;
+            mouseX = Game.MouseCurrentX;
+            mouseY = Game.MouseCurrentY;
         }
 
-        PointF aim = GetAim(game);
+        PointF aim = GetAim();
         if (isPistolShoot && (aim.X != 0 || aim.Y != 0))
         {
             mouseX += (int)aim.X;
@@ -891,7 +889,7 @@ public class ModPicking : ModBase
         float len = new Vector3(rdX, rdY, rdZ).Length;
         rdX /= len; rdY /= len; rdZ /= len;
 
-        float pickDist = CurrentPickDistance(game) * (isPistolShoot ? 100 : 1) + 1;
+        float pickDist = CurrentPickDistance() * (isPistolShoot ? 100 : 1) + 1;
 
         retPick.Start = new Vector3(rayStart.X, rayStart.Y, rayStart.Z);
         retPick.End = new Vector3(rayStart.X + rdX * pickDist,
@@ -903,11 +901,11 @@ public class ModPicking : ModBase
     /// Returns a random offset within the weapon's aim circle for spread simulation.
     /// Returns <see cref="PointF.Empty"/> when the aim radius is 1 or less.
     /// </summary>
-    internal PointF GetAim(IGame game)
+    internal PointF GetAim()
     {
-        if (game.CurrentAimRadius() <= 1) { return new PointF(0, 0); }
+        if (Game.CurrentAimRadius() <= 1) { return new PointF(0, 0); }
 
-        float radius = game.CurrentAimRadius();
+        float radius = Game.CurrentAimRadius();
         float x, y;
         do
         {
@@ -924,21 +922,21 @@ public class ModPicking : ModBase
     /// Overhead camera uses a fixed or distance-doubled range; TPP adds the camera
     /// offset; FPP uses the item's configured distance or the global default.
     /// </summary>
-    private float CurrentPickDistance(IGame game)
+    private float CurrentPickDistance()
     {
-        float distance = game.PICK_DISTANCE;
-        int? inHand = game.BlockInHand();
+        float distance = Game.PICK_DISTANCE;
+        int? inHand = Game.BlockInHand();
 
-        if (inHand.HasValue && game.BlockTypes[inHand.Value].PickDistanceWhenUsed > 0)
+        if (inHand.HasValue && Game.BlockTypes[inHand.Value].PickDistanceWhenUsed > 0)
         {
-            distance = game.BlockTypes[inHand.Value].PickDistanceWhenUsed;
+            distance = Game.BlockTypes[inHand.Value].PickDistanceWhenUsed;
         }
 
-        if (game.CameraType == CameraType.Tpp)
+        if (Game.CameraType == CameraType.Tpp)
         {
-            distance = game.TppCameraDistance + game.PICK_DISTANCE;
+            distance = Game.TppCameraDistance + Game.PICK_DISTANCE;
         }
-        if (game.CameraType == CameraType.Overhead)
+        if (Game.CameraType == CameraType.Overhead)
         {
             distance = platform.IsFastSystem() ? 100 : cameraService.OverHeadCameraDistance * 2;
         }

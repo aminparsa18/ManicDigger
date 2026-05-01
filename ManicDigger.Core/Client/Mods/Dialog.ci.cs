@@ -12,16 +12,16 @@ public class ModDialog : ModBase
     private readonly ClientPacketHandler packetHandler;
     private readonly IGameService platform;
 
-    public ModDialog(IGameService platform)
+    public ModDialog(IGameService platform, IGame game) : base(game)
     {
         this.platform = platform;
-        this.packetHandler = new ClientPacketHandlerDialog(platform);
+        this.packetHandler = new ClientPacketHandlerDialog(platform, game);
     }
 
-    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw2d( float deltaTime)
     {
-        game.PacketHandlers[(int)Packet_ServerIdEnum.Dialog] = packetHandler;
-        DrawDialogs(game);
+        Game.PacketHandlers[(int)Packet_ServerIdEnum.Dialog] = packetHandler;
+        DrawDialogs(Game);
     }
 
     internal void DrawDialogs(IGame game)
@@ -37,16 +37,16 @@ public class ModDialog : ModBase
         }
     }
 
-    public override void OnKeyPress(IGame game, KeyPressEventArgs args)
+    public override void OnKeyPress( KeyPressEventArgs args)
     {
-        if (game.GuiState != GuiState.ModalDialog && game.GuiState != GuiState.Normal) return;
-        if (game.IsTyping) return;
+        if (Game.GuiState != GuiState.ModalDialog && Game.GuiState != GuiState.Normal) return;
+        if (Game.IsTyping) return;
 
-        ForEachDialog(game, d => d.screen.OnKeyPress(game, args));
+        ForEachDialog(d => d.screen.OnKeyPress(args));
 
-        for (int k = 0; k < game.Dialogs.Length; k++)
+        for (int k = 0; k < Game.Dialogs.Length; k++)
         {
-            VisibleDialog d = game.Dialogs[k];
+            VisibleDialog d = Game.Dialogs[k];
             if (d == null) continue;
 
             for (int i = 0; i < d.value.Widgets.Length; i++)
@@ -57,73 +57,73 @@ public class ModDialog : ModBase
                 // Only typeable characters are handled here; special characters use KeyDown
                 if (TypableChars.Contains((char)w.ClickKey) && args.KeyChar == w.ClickKey)
                 {
-                    game.SendPacketClient(ClientPackets.DialogClick(w.Id, Empty, 0));
+                    Game.SendPacketClient(ClientPackets.DialogClick(w.Id, Empty, 0));
                     return;
                 }
             }
         }
     }
 
-    public override void OnKeyDown(IGame game, KeyEventArgs args)
+    public override void OnKeyDown( KeyEventArgs args)
     {
-        ForEachDialog(game, d => d.screen.OnKeyDown(game, args));
+        ForEachDialog(d => d.screen.OnKeyDown(args));
 
         bool isEsc = args.KeyChar == (int)Keys.Escape;
 
-        if (game.GuiState == GuiState.Normal && isEsc)
+        if (Game.GuiState == GuiState.Normal && isEsc)
         {
-            for (int i = 0; i < game.Dialogs.Length; i++)
+            for (int i = 0; i < Game.Dialogs.Length; i++)
             {
-                VisibleDialog d = game.Dialogs[i];
+                VisibleDialog d = Game.Dialogs[i];
                 if (d == null) continue;
                 if (d.value.IsModal)
                 {
-                    game.Dialogs[i] = null;
+                    Game.Dialogs[i] = null;
                     return;
                 }
             }
-            game.ShowEscapeMenu();
+            Game.ShowEscapeMenu();
             args.Handled=true;
             return;
         }
 
-        if (game.GuiState == GuiState.ModalDialog)
+        if (Game.GuiState == GuiState.ModalDialog)
         {
             if (isEsc)
             {
                 // Close all modal dialogs
-                for (int i = 0; i < game.Dialogs.Length; i++)
+                for (int i = 0; i < Game.Dialogs.Length; i++)
                 {
-                    if (game.Dialogs[i]?.value.IsModal == true)
-                        game.Dialogs[i] = null;
+                    if (Game.Dialogs[i]?.value.IsModal == true)
+                        Game.Dialogs[i] = null;
                 }
-                game.SendPacketClient(ClientPackets.DialogClick("Esc", Empty, 0));
-                game.GuiStateBackToGame();
+                Game.SendPacketClient(ClientPackets.DialogClick("Esc", Empty, 0));
+                Game.GuiStateBackToGame();
                 args.Handled=true;
             }
-            else if (args.KeyChar == game.GetKey(Keys.Tab))
+            else if (args.KeyChar == Game.GetKey(Keys.Tab))
             {
-                game.SendPacketClient(ClientPackets.DialogClick("Tab", Empty, 0));
+                Game.SendPacketClient(ClientPackets.DialogClick("Tab", Empty, 0));
                 args.Handled=true;
             }
         }
     }
 
-    public override void OnKeyUp(IGame game, KeyEventArgs args) =>
-        ForEachDialog(game, d => d.screen.OnKeyUp(game, args));
+    public override void OnKeyUp( KeyEventArgs args) =>
+        ForEachDialog(d => d.screen.OnKeyUp(args));
 
-    public override void OnMouseDown(IGame game, MouseEventArgs args) =>
-        ForEachDialog(game, d => d.screen.OnMouseDown(game, args));
-    public override void OnMouseUp(IGame game, MouseEventArgs args) =>
-        ForEachDialog(game, d => d.screen.OnMouseUp(game, args));
+    public override void OnMouseDown( MouseEventArgs args) =>
+        ForEachDialog(d => d.screen.OnMouseDown(args));
+    public override void OnMouseUp( MouseEventArgs args) =>
+        ForEachDialog(d => d.screen.OnMouseUp(args));
 
     /// <summary>Iterates all non-null dialogs and applies an action to each.</summary>
-    private static void ForEachDialog(IGame game, Action<VisibleDialog> action)
+    private void ForEachDialog( Action<VisibleDialog> action)
     {
-        for (int i = 0; i < game.Dialogs.Length; i++)
+        for (int i = 0; i < Game.Dialogs.Length; i++)
         {
-            if (game.Dialogs[i] != null)
-                action(game.Dialogs[i]);
+            if (Game.Dialogs[i] != null)
+                action(Game.Dialogs[i]);
         }
     }
 }

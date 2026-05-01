@@ -141,6 +141,33 @@ public class Entity
     internal bool usable;
     internal Packet_ServerPlayerStats playerStats;
     internal EntityDrawArea drawArea;
+
+    /// <summary>Creates a bullet entity travelling from <paramref name="fromX/Y/Z"/> to <paramref name="toX/Y/Z"/>.</summary>
+    public static Entity CreateBullet(
+        float fromX, float fromY, float fromZ,
+        float toX, float toY, float toZ,
+        float speed)
+    {
+        return new Entity
+        {
+            bullet = new Bullet
+            {
+                fromX = fromX,
+                fromY = fromY,
+                fromZ = fromZ,
+                toX = toX,
+                toY = toY,
+                toZ = toZ,
+                speed = speed,
+            },
+            sprite = new Sprite
+            {
+                image = "Sponge.png",
+                size = 4,
+                animationcount = 0,
+            },
+        };
+    }
 }
 
 public class EntityDrawArea

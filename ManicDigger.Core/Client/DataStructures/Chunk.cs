@@ -14,7 +14,7 @@
 public class Chunk
 {
     /// <summary>Total number of blocks in a full chunk volume (ChunkSide³).</summary>
-    private static readonly int ChunkVolume = Game.chunksize * Game.chunksize * Game.chunksize;
+    private static readonly int ChunkVolume = GameConstants.CHUNK_SIZE * GameConstants.CHUNK_SIZE * GameConstants.CHUNK_SIZE;
 
     // ── Backing stores ───────────────────────────────────────────────────────
     // Exactly one of data/dataInt is active at any time; the other is null.

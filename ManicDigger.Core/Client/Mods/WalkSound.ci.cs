@@ -10,27 +10,27 @@ public class ModWalkSound : ModBase
     private int lastWalkSound;
     private readonly Random random;
 
-    public ModWalkSound()
+    public ModWalkSound(IGame game) : base(game)
     {
         random = new Random();
     }
 
-    public override void OnNewFrameFixed(IGame game, float args)
+    public override void OnNewFrameFixed( float args)
     {
-        if (game.FollowId() != null) return;
+        if (Game.FollowId() != null) return;
 
-        if (game.soundnow)
-            UpdateWalkSound(game, StepSoundDuration / 2);
+        if (Game.soundnow)
+            UpdateWalkSound(StepSoundDuration / 2);
 
-        if (game.IsPlayerOnGround && (game.Controls.MovedX != 0 || game.Controls.MovedY != 0))
-            UpdateWalkSound(game, args);
+        if (Game.IsPlayerOnGround && (Game.Controls.MovedX != 0 || Game.Controls.MovedY != 0))
+            UpdateWalkSound(args);
     }
 
-    internal void UpdateWalkSound(IGame game, float dt)
+    internal void UpdateWalkSound( float dt)
     {
         walkSoundTimer += dt;
 
-        string[] sounds = CurrentWalkSounds(game);
+        string[] sounds = CurrentWalkSounds();
         int soundCount = GetSoundCount(sounds);
         if (soundCount == 0) return;
 
@@ -42,13 +42,13 @@ public class ModWalkSound : ModBase
         if (random.Next() % 100 < RandomSoundChance)
             lastWalkSound = random.Next() % soundCount;
 
-        game.PlayAudio(sounds[lastWalkSound]);
+        Game.PlayAudio(sounds[lastWalkSound]);
     }
 
-    internal string[] CurrentWalkSounds(IGame game)
+    internal string[] CurrentWalkSounds()
     {
-        int b = game.BlockUnderPlayer();
-        return game.BlockRegistry.WalkSound[b != -1 ? b : 0];
+        int b = Game.BlockUnderPlayer();
+        return Game.BlockRegistry.WalkSound[b != -1 ? b : 0];
     }
 
     internal static int GetSoundCount(string[] sounds)

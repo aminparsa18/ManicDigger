@@ -32,7 +32,7 @@
 /// <remarks>
 /// <para>
 /// Each public array property is indexed by block-type ID in the range
-/// [0, <see cref="GlobalVar.MAX_BLOCKTYPES"/>). All arrays are allocated in
+/// [0, <see cref="GameConstants.MAX_BLOCKTYPES"/>). All arrays are allocated in
 /// <see cref="Start"/> and populated via <see cref="UseBlockTypes"/>.
 /// </para>
 /// <para>

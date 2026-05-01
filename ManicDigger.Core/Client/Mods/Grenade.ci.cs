@@ -9,24 +9,24 @@ public class ModGrenade : ModBase
     private const float BounceSpeedMultiply = 0.5f;
     private const float WallDistance = 0.3f;
 
-    public ModGrenade()
+    public ModGrenade(IGame game) : base(game)
     {
     }
 
-    public override void OnNewFrameFixed(IGame game, float args)
+    public override void OnNewFrameFixed( float args)
     {
         float dt = args;
-        for (int i = 0; i < game.Entities.Count; i++)
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Entity entity = game.Entities[i];
+            Entity entity = Game.Entities[i];
             if (entity?.grenade == null) continue;
-            UpdateGrenade(game, i, dt);
+            UpdateGrenade(i, dt);
         }
     }
 
-    internal void UpdateGrenade(IGame game, int grenadeEntityId, float dt)
+    internal void UpdateGrenade( int grenadeEntityId, float dt)
     {
-        Entity grenadeEntity = game.Entities[grenadeEntityId];
+        Entity grenadeEntity = Game.Entities[grenadeEntityId];
         Sprite grenadeSprite = grenadeEntity.sprite;
         Grenade grenade = grenadeEntity.grenade;
 
@@ -35,7 +35,7 @@ public class ModGrenade : ModBase
         grenade.velocityY -= ProjectileGravity * dt;
 
         Vector3 velocity = new(grenade.velocityX, grenade.velocityY, grenade.velocityZ);
-        Vector3 finalPos = GrenadeBounce(game, oldPos, newPos, ref velocity, dt);
+        Vector3 finalPos = GrenadeBounce(oldPos, newPos, ref velocity, dt);
 
         grenade.velocityX = velocity.X;
         grenade.velocityY = velocity.Y;
@@ -45,7 +45,7 @@ public class ModGrenade : ModBase
         grenadeSprite.positionZ = finalPos.Z;
     }
 
-    internal Vector3 GrenadeBounce(IGame game, Vector3 oldPos, Vector3 newPos, ref Vector3 velocity, float dt)
+    internal Vector3 GrenadeBounce( Vector3 oldPos, Vector3 newPos, ref Vector3 velocity, float dt)
     {
         bool isMoving = velocity.Length > 100 * dt;
 
@@ -56,50 +56,47 @@ public class ModGrenade : ModBase
 
         // Left (+Z)
         if (newPos.Z > oldPos.Z)
-            TryBounceAxis(game, newPos, new Vector3(0, 0, WallDistance), ref velocity, ref pos, isMoving, axis: 2);
+            TryBounceAxis(newPos, new Vector3(0, 0, WallDistance), ref velocity, ref pos, isMoving, axis: 2);
 
         // Right (-Z)
         if (newPos.Z < oldPos.Z)
-            TryBounceAxis(game, newPos, new Vector3(0, 0, -WallDistance), ref velocity, ref pos, isMoving, axis: 2);
-
+            TryBounceAxis(newPos, new Vector3(0, 0, -WallDistance), ref velocity, ref pos, isMoving, axis: 2);
         // Front (+X)
         if (newPos.X > oldPos.X)
-            TryBounceAxis(game, newPos, new Vector3(WallDistance, 0, 0), ref velocity, ref pos, isMoving, axis: 0);
+            TryBounceAxis(newPos, new Vector3(WallDistance, 0, 0), ref velocity, ref pos, isMoving, axis: 0);
 
         // Back (-X)
         if (newPos.X < oldPos.X)
-            TryBounceAxis(game, newPos, new Vector3(-WallDistance, 0, 0), ref velocity, ref pos, isMoving, axis: 0);
-
+            TryBounceAxis(newPos, new Vector3(-WallDistance, 0, 0), ref velocity, ref pos, isMoving, axis: 0);
         // Bottom (falling down)
         if (newPos.Y < oldPos.Y)
-            TryBounceFloor(game, newPos, oldPos, ref velocity, ref pos, isMoving);
+            TryBounceFloor(newPos, oldPos, ref velocity, ref pos, isMoving);
 
         // Top (moving up)
         if (newPos.Y > oldPos.Y)
-            TryBounceCeiling(game, newPos, ref velocity, ref pos, isMoving);
-
+            TryBounceCeiling(newPos, ref velocity, ref pos, isMoving);
         pos.Y -= WallDistance;
         return pos;
     }
 
     /// <summary>Checks and applies a bounce for X or Z axis wall collisions.</summary>
-    private void TryBounceAxis(IGame game, Vector3 newPos, Vector3 offset, ref Vector3 velocity, ref Vector3 pos, bool isMoving, int axis)
+    private void TryBounceAxis( Vector3 newPos, Vector3 offset, ref Vector3 velocity, ref Vector3 pos, bool isMoving, int axis)
     {
         Vector3 probe = newPos + offset;
         int px = (int)MathF.Floor(probe.X);
         int py = (int)MathF.Floor(probe.Z);
         int pz = (int)MathF.Floor(probe.Y);
 
-        bool empty = game.IsTileEmptyForPhysics(px, py, pz)
-                  && game.IsTileEmptyForPhysics(px, py, pz + 1);
+        bool empty = Game.IsTileEmptyForPhysics(px, py, pz)
+                  && Game.IsTileEmptyForPhysics(px, py, pz + 1);
         if (empty) return;
 
         velocity[axis] = -velocity[axis];
-        ApplyBounce(game, ref velocity, newPos, isMoving);
+        ApplyBounce(ref velocity, newPos, isMoving);
     }
 
     /// <summary>Checks and applies a bounce when the grenade hits a floor (moving down).</summary>
-    private void TryBounceFloor(IGame game, Vector3 newPos, Vector3 oldPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
+    private void TryBounceFloor( Vector3 newPos, Vector3 oldPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
     {
         float a = WallDistance;
         Vector3 probe = new(newPos.X, newPos.Y - WallDistance, newPos.Z);
@@ -110,36 +107,36 @@ public class ModGrenade : ModBase
         float fracX = probe.X - x;
         float fracZ = probe.Z - y;
 
-        bool full = !game.IsTileEmptyForPhysics(x, y, z)
-            || (fracX <= a && !game.IsTileEmptyForPhysics(x - 1, y, z) && game.IsTileEmptyForPhysics(x - 1, y, z + 1))
-            || (fracX >= 1 - a && !game.IsTileEmptyForPhysics(x + 1, y, z) && game.IsTileEmptyForPhysics(x + 1, y, z + 1))
-            || (fracZ <= a && !game.IsTileEmptyForPhysics(x, y - 1, z) && game.IsTileEmptyForPhysics(x, y - 1, z + 1))
-            || (fracZ >= 1 - a && !game.IsTileEmptyForPhysics(x, y + 1, z) && game.IsTileEmptyForPhysics(x, y + 1, z + 1));
+        bool full = !Game.IsTileEmptyForPhysics(x, y, z)
+            || (fracX <= a && !Game.IsTileEmptyForPhysics(x - 1, y, z) && Game.IsTileEmptyForPhysics(x - 1, y, z + 1))
+            || (fracX >= 1 - a && !Game.IsTileEmptyForPhysics(x + 1, y, z) && Game.IsTileEmptyForPhysics(x + 1, y, z + 1))
+            || (fracZ <= a && !Game.IsTileEmptyForPhysics(x, y - 1, z) && Game.IsTileEmptyForPhysics(x, y - 1, z + 1))
+            || (fracZ >= 1 - a && !Game.IsTileEmptyForPhysics(x, y + 1, z) && Game.IsTileEmptyForPhysics(x, y + 1, z + 1));
 
         if (!full) return;
         velocity.Y = -velocity.Y;
-        ApplyBounce(game, ref velocity, newPos, isMoving);
+        ApplyBounce(ref velocity, newPos, isMoving);
     }
 
     /// <summary>Checks and applies a bounce when the grenade hits a ceiling (moving up).</summary>
-    private void TryBounceCeiling(IGame game, Vector3 newPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
+    private void TryBounceCeiling( Vector3 newPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
     {
         Vector3 probe = new(newPos.X, newPos.Y + WallDistance, newPos.Z);
-        bool empty = game.IsTileEmptyForPhysics(
+        bool empty = Game.IsTileEmptyForPhysics(
             (int)MathF.Floor(probe.X),
             (int)MathF.Floor(probe.Z),
             (int)MathF.Floor(probe.Y));
 
         if (empty) return;
         velocity.Y = -velocity.Y;
-        ApplyBounce(game, ref velocity, newPos, isMoving);
+        ApplyBounce(ref velocity, newPos, isMoving);
     }
 
     /// <summary>Applies bounce speed damping and plays bounce sound if the grenade is moving.</summary>
-    private void ApplyBounce(IGame game, ref Vector3 velocity, Vector3 pos, bool isMoving)
+    private void ApplyBounce( ref Vector3 velocity, Vector3 pos, bool isMoving)
     {
         velocity *= BounceSpeedMultiply;
         if (isMoving)
-            game.PlayAudioAt("grenadebounce.ogg", pos.X, pos.Y, pos.Z);
+            Game.PlayAudioAt("grenadebounce.ogg", pos.X, pos.Y, pos.Z);
     }
 }

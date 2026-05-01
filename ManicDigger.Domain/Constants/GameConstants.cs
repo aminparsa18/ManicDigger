@@ -1,0 +1,21 @@
+﻿public static class GameConstants
+{
+    public const int MAX_BLOCKTYPES = 1024;
+    public const int MAX_BLOCKTYPES_SQRT = 32;
+    public const int CHUNK_SIZE = 16;
+    public const int chunksizebits = 4;
+
+    public const int entityMonsterIdStart = 128;
+    public const int entityMonsterIdCount = 128;
+
+    public const int HourDetail = 4;
+    public const int ChatFontSize = 11;
+    public const int DISCONNECTED_ICON_AFTER_SECONDS = 10;
+
+    public const int speculativeMax = 8 * 1024;
+
+    public const int minlight = 0;
+    public const int maxlight = 15;
+
+    public const int entityLocalIdStart = 256;
+}

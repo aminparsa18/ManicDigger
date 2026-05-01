@@ -48,7 +48,7 @@
         if (asset.md5 == null)
             return;
 
-        if (!StringUtils.IsChecksum(asset.md5))
+        if (!EncodingHelper.IsChecksum(asset.md5))
             return;
 
         if (!gameService.IsCached(asset.md5))

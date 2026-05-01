@@ -1,12 +1,12 @@
 ﻿public class ModUpdateMain : ModBase
 {
-    public ModUpdateMain()
+    public ModUpdateMain(IGame game) : base(game)
     {
     }
 
     // Should use ReadWrite to be correct but that would be too slow
-    public override void OnReadOnlyMainThread(IGame game, float dt)
+    public override void OnReadOnlyMainThread( float dt)
     {
-        game.Update(dt);
+        Game.Update(dt);
     }
 }

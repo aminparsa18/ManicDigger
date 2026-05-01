@@ -11,21 +11,21 @@ public class ModNetworkEntity : ModBase
     /// <summary>True once the three packet handlers have been registered.</summary>
     private bool _handlersRegistered;
 
-    public ModNetworkEntity(IGameService gameService, IVoxelMap voxelMap)
+    public ModNetworkEntity(IGameService gameService, IVoxelMap voxelMap, IGame game) : base(game)
     {
-        _spawn = new ClientPacketHandlerEntitySpawn(gameService, voxelMap);
-        _position = new ClientPacketHandlerEntityPosition(gameService);
-        _despawn = new ClientPacketHandlerEntityDespawn(gameService);
+        _spawn = new ClientPacketHandlerEntitySpawn(gameService, voxelMap, game);
+        _position = new ClientPacketHandlerEntityPosition(gameService, game);
+        _despawn = new ClientPacketHandlerEntityDespawn(gameService, game);
     }
 
-    public override void OnNewFrame(IGame game, float args)
+    public override void OnNewFrame( float args)
     {
         // Register once — previously wrote to the handler dictionary every frame.
         if (!_handlersRegistered)
         {
-            game.PacketHandlers[(int)Packet_ServerIdEnum.EntitySpawn] = _spawn;
-            game.PacketHandlers[(int)Packet_ServerIdEnum.EntityPosition] = _position;
-            game.PacketHandlers[(int)Packet_ServerIdEnum.EntityDespawn] = _despawn;
+            Game.PacketHandlers[(int)Packet_ServerIdEnum.EntitySpawn] = _spawn;
+            Game.PacketHandlers[(int)Packet_ServerIdEnum.EntityPosition] = _position;
+            Game.PacketHandlers[(int)Packet_ServerIdEnum.EntityDespawn] = _despawn;
             _handlersRegistered = true;
         }
     }

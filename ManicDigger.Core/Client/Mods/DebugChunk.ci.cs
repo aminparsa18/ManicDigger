@@ -7,26 +7,26 @@ public class ModDebugChunk : ModBase
     private bool draw;
     private readonly DrawWireframeCube lines;
 
-    public ModDebugChunk(IOpenGlService platform, IMeshDrawer meshDrawer)
+    public ModDebugChunk(IOpenGlService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
     {
         lines = new DrawWireframeCube(platform, meshDrawer);
     }
 
-    public override bool OnClientCommand(IGame game, ClientCommandArgs args)
+    public override bool OnClientCommand(ClientCommandArgs args)
     {
         if (args.Command != "chunk") return false;
         draw = !draw;
         return true;
     }
 
-    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         if (!draw) return;
 
-        int cs = Game.chunksize;
-        int cx = (int)(game.Player.position.x / cs) * cs;
-        int cy = (int)(game.Player.position.y / cs) * cs;
-        int cz = (int)(game.Player.position.z / cs) * cs;
+        int cs = GameConstants.CHUNK_SIZE;
+        int cx = (int)(Game.Player.position.x / cs) * cs;
+        int cy = (int)(Game.Player.position.y / cs) * cs;
+        int cz = (int)(Game.Player.position.z / cs) * cs;
 
         lines.DrawWireframeCube_(
             cx + cs / 2,

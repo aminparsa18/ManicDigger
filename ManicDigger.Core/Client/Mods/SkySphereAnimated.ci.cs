@@ -15,33 +15,33 @@ public class ModSkySphereAnimated : ModBase
     private int[] glowPixels;
     private bool started;
 
-    public ModSkySphereAnimated(IOpenGlService platform, IMeshDrawer meshDrawer)
+    public ModSkySphereAnimated(IOpenGlService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
-        stars = new ModSkySphereStatic(platform, meshDrawer);
+        stars = new ModSkySphereStatic(platform, meshDrawer, game);
     }
 
-    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw3d( float deltaTime)
     {
-        game.SkySphereNight = false;
-        stars.OnNewFrameDraw3d(game, deltaTime);
+        Game.SkySphereNight = false;
+        stars.OnNewFrameDraw3d( deltaTime);
         platform.GlDisableFog();
-        DrawSkySphere(game);
-        game.SetFog();
+        DrawSkySphere();
+        Game.SetFog();
     }
 
-    internal void DrawSkySphere(IGame game)
+    internal void DrawSkySphere()
     {
         if (!started)
         {
             started = true;
-            LoadPixels(game, "sky.png", ref skyPixels);
-            LoadPixels(game, "glow.png", ref glowPixels);
+            LoadPixels("sky.png", ref skyPixels);
+            LoadPixels("glow.png", ref glowPixels);
         }
 
         platform.GlDisableDepthTest();
-        Draw(game, game.CurrentFov());
+        Draw(Game.CurrentFov());
         platform.GlEnableDepthTest();
     }
 
@@ -51,31 +51,31 @@ public class ModSkySphereAnimated : ModBase
     /// <param name="game">Used to access the platform and asset file system.</param>
     /// <param name="filename">Asset filename including extension (e.g. <c>"terrain.png"</c>).</param>
     /// <param name="pixels">Receives the loaded ARGB pixel data.</param>
-    private void LoadPixels(IGame game, string filename, ref int[] pixels)
+    private void LoadPixels( string filename, ref int[] pixels)
     {
-        Bitmap bmp = PixelBuffer.BitmapFromPng(game.GetAssetFile(filename), game.GetAssetFileLength(filename));
+        Bitmap bmp = PixelBuffer.BitmapFromPng(Game.GetAssetFile(filename), Game.GetAssetFileLength(filename));
         PixelBuffer buffer = PixelBuffer.FromBitmap(bmp);
         bmp.Dispose();
         pixels = buffer.Argb;
     }
 
-    public void Draw(IGame game, float fov)
+    public void Draw( float fov)
     {
         int size = 1000;
-        int segments = game.fancySkysphere ? FancySegments : NormalSegments;
+        int segments = Game.fancySkysphere ? FancySegments : NormalSegments;
 
         skyModel = GetSphereModelData2(skyModel, size, size, segments, segments,
-            skyPixels, glowPixels, game.sunPosition.X, game.sunPosition.Y, game.sunPosition.Z);
+            skyPixels, glowPixels, Game.sunPosition.X, Game.sunPosition.Y, Game.sunPosition.Z);
         
         platform.UpdateModel(skyModel);
-        game.Set3dProjection(size * 2, fov);
+        Game.Set3dProjection(size * 2, fov);
         meshDrawer.GLMatrixModeModelView();
         meshDrawer.GLPushMatrix();
-        meshDrawer.GLTranslate(game.Player.position.x, game.Player.position.y, game.Player.position.z);
+        meshDrawer.GLTranslate(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z);
         platform.BindTexture2d(0);
         meshDrawer.DrawModelData(skyModel);
         meshDrawer.GLPopMatrix();
-        game.Set3dProjection(game.Zfar(), fov);
+        Game.Set3dProjection(Game.Zfar(), fov);
     }
 
     public static GeometryModel GetSphereModelData2(GeometryModel data,

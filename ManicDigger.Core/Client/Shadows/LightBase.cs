@@ -100,7 +100,7 @@ public class LightBase
         int[] dataLightRadius,
         int sunlight)
     {
-        int baseHeight = cz * Game.chunksize;
+        int baseHeight = cz * GameConstants.CHUNK_SIZE;
 
         for (int xx = 0; xx < ChunkSize; xx++)
         {
@@ -146,7 +146,7 @@ public class LightBase
             return 0;
 
         return heightmapChunk[
-            VectorIndexUtil.Index2d(xx % Game.chunksize, yy % Game.chunksize, Game.chunksize)];
+            VectorIndexUtil.Index2d(xx % GameConstants.CHUNK_SIZE, yy % GameConstants.CHUNK_SIZE, GameConstants.CHUNK_SIZE)];
     }
 
     /// <summary>

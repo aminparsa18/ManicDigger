@@ -13,32 +13,32 @@ public class ModGuiPlayerStats : ModBase
 
     private readonly IGameService platform;
 
-    public ModGuiPlayerStats(IGameService platform)
+    public ModGuiPlayerStats(IGameService platform, IGame game) : base(game)
     {
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw2d( float deltaTime)
     {
-        if (game.GuiState == GuiState.MapLoading || game.PlayerStats == null) return;
+        if (Game.GuiState == GuiState.MapLoading || Game.PlayerStats == null) return;
 
         int barY = platform.CanvasHeight - 122;
         int healthX = platform.CanvasWidth / 2 - BarWidth - CenterOffset;
         int oxygenX = platform.CanvasWidth / 2 + CenterOffset;
 
-        DrawBar(game, healthX, barY, (float)game.PlayerStats.CurrentHealth / game.PlayerStats.MaxHealth, Red);
+        DrawBar(healthX, barY, (float)Game.PlayerStats.CurrentHealth / Game.PlayerStats.MaxHealth, Red);
 
-        if (game.PlayerStats.CurrentOxygen < game.PlayerStats.MaxOxygen)
-            DrawBar(game, oxygenX, barY, (float)game.PlayerStats.CurrentOxygen / game.PlayerStats.MaxOxygen, Blue);
+        if (Game.PlayerStats.CurrentOxygen < Game.PlayerStats.MaxOxygen)
+            DrawBar(oxygenX, barY, (float)Game.PlayerStats.CurrentOxygen / Game.PlayerStats.MaxOxygen, Blue);
     }
 
     /// <summary>Draws a background + filled progress bar at the given position.</summary>
-    private void DrawBar(IGame game, int x, int y, float progress, int color)
+    private void DrawBar( int x, int y, float progress, int color)
     {
-        int bgTex = game.GetTexture("ui_bar_background.png");
-        int barTex = game.GetTexture("ui_bar_inner.png");
+        int bgTex = Game.GetTexture("ui_bar_background.png");
+        int barTex = Game.GetTexture("ui_bar_inner.png");
 
-        game.Draw2dTexture(bgTex, x, y, BarWidth, BarHeight, null, 0, White, false);
-        game.Draw2dTexturePart(barTex, progress, 1, x, y, progress * BarWidth, BarHeight, color, false);
+        Game.Draw2dTexture(bgTex, x, y, BarWidth, BarHeight, null, 0, White, false);
+        Game.Draw2dTexturePart(barTex, progress, 1, x, y, progress * BarWidth, BarHeight, color, false);
     }
 }

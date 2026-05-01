@@ -106,7 +106,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
         {
             if (w.type != UIWidgetType.Textbox || !w.editing) { continue; }
 
-            if (StringUtils.IsValidTypingChar(e.KeyChar))
+            if (EncodingHelper.IsValidTypingChar(e.KeyChar))
             {
                 w.text = string.Concat(w.text, (char)e.KeyChar);
             }

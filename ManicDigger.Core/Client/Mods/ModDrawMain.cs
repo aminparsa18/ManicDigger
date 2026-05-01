@@ -12,13 +12,13 @@
 public class ModDrawMain : ModBase
 {
     private readonly IGame game;
-    public ModDrawMain(IGame game)
+    public ModDrawMain(IGame game) : base(game)
     {
         this.game = game;
     }
 
     /// <inheritdoc/>
-    public override void OnReadOnlyMainThread(IGame game, float dt)
+    public override void OnReadOnlyMainThread( float dt)
     {
         game.MainThreadOnRenderFrame(dt);
     }

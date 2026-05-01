@@ -7,19 +7,19 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
 
     private readonly DrawWireframeCube lines;
 
-    public ModDrawLinesAroundSelectedBlock(IOpenGlService platform, IMeshDrawer meshDrawer)
+    public ModDrawLinesAroundSelectedBlock(IOpenGlService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
     {
         lines = new DrawWireframeCube(platform, meshDrawer);
     }
 
-    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw3d( float deltaTime)
     {
-        if (!game.ENABLE_DRAW2D) return;
+        if (!Game.ENABLE_DRAW2D) return;
 
-        if (game.SelectedEntityId != -1)
-            DrawEntityOutline(game);
-        else if (game.SelectedBlockPositionX != -1)
-            DrawBlockOutline(game);
+        if (Game.SelectedEntityId != -1)
+            DrawEntityOutline(Game);
+        else if (Game.SelectedBlockPositionX != -1)
+            DrawBlockOutline(Game);
     }
 
     private void DrawEntityOutline(IGame game)

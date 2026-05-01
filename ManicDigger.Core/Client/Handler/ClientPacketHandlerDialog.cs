@@ -6,11 +6,11 @@
 /// </summary>
 public class ClientPacketHandlerDialog : ClientPacketHandler
 {
-    public ClientPacketHandlerDialog(IGameService gameService) : base(gameService)
+    public ClientPacketHandlerDialog(IGameService gameService, IGame game) : base(gameService, game)
     {
     }
 
-    public override void Handle(IGame game, Packet_Server packet)
+    public override void Handle(Packet_Server packet)
     {
         Packet_ServerDialog d = packet.Dialog;
 
@@ -37,7 +37,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
                 key = d.DialogId,
                 value = d.Dialog,
             };
-            d2.screen = ConvertDialog(game, d2.value);
+            d2.screen = ConvertDialog(d2.value);
             d2.screen.SetGame(game);
 
             if (dialogIdx == -1)
@@ -65,9 +65,9 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         }
     }
 
-    private GameScreen ConvertDialog(IGame game, Dialog p)
+    private GameScreen ConvertDialog(Dialog p)
     {
-        DialogScreen s = new(gameService)
+        DialogScreen s = new(gameService, game)
         {
             widgets = new MenuWidget[p.Widgets.Length],
             WidgetCount = p.Widgets.Length,
@@ -109,7 +109,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
             {
                 b.font = new Font(
                     game.ValidFont(a.Font.FamilyName),
-                    game.DecodeFixedPoint((int)a.Font.Size),
+                    EncodingHelper.DecodeFixedPoint((int)a.Font.Size),
                     (FontStyle)a.Font.FontStyle);
             }
 

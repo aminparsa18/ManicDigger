@@ -26,7 +26,7 @@ public class ScriptCharacterPhysics : IEntityScript
 {
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ScriptCharacterPhysics(IGame game, IVoxelMap voxelMap)
+    public ScriptCharacterPhysics(IVoxelMap voxelMap, IGame game)
     {
         this.game = game;
         this.voxelMap = voxelMap;
@@ -202,12 +202,12 @@ public class ScriptCharacterPhysics : IEntityScript
 
         // ── Gravity: only after the chunk under the player has arrived ─────────
         bool loaded = false;
-        int cx = (int)(game.Player.position.x / Game.chunksize);
-        int cy = (int)(game.Player.position.z / Game.chunksize);
-        int cz = (int)(game.Player.position.y / Game.chunksize);
+        int cx = (int)(game.Player.position.x / GameConstants.CHUNK_SIZE);
+        int cy = (int)(game.Player.position.z / GameConstants.CHUNK_SIZE);
+        int cz = (int)(game.Player.position.y / GameConstants.CHUNK_SIZE);
         if (voxelMap.IsValidChunkPos(cx, cy, cz))
         {
-            // Use cached chunk-count properties instead of recomputing / Game.chunksize.
+            // Use cached chunk-count properties instead of recomputing / BlockConstants.CHUNK_SIZE.
             if (voxelMap.Chunks[VectorIndexUtil.Index3d(
                     cx, cy, cz,
                     voxelMap.Mapsizexchunks,

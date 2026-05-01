@@ -2,7 +2,7 @@
 
 public class ModGuiChat : ModBase
 {
-    public ModGuiChat(IGameService platform)
+    public ModGuiChat(IGameService platform, IGame game) : base(game)
     {
         this.platform = platform;
         ChatFontSize = 11;
@@ -22,20 +22,20 @@ public class ModGuiChat : ModBase
     private float currentFontSize = 11;
     private FontStyle currentFontStyle = FontStyle.Regular;
 
-    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw2d( float deltaTime)
     {
-        if (game.GuiState == GuiState.MapLoading)
+        if (Game.GuiState == GuiState.MapLoading)
         {
             return;
         }
-        DrawChatLines(game, game.GuiTyping == TypingState.Typing);
-        if (game.GuiTyping == TypingState.Typing)
+        DrawChatLines(Game.GuiTyping == TypingState.Typing);
+        if (Game.GuiTyping == TypingState.Typing)
         {
-            DrawTypingBuffer(game);
+            DrawTypingBuffer(Game);
         }
     }
 
-    public override void OnMouseDown(IGame game, MouseEventArgs args)
+    public override void OnMouseDown( MouseEventArgs args)
     {
         for (int i = 0; i < chatlines2Count; i++)
         {
@@ -44,10 +44,10 @@ public class ModGuiChat : ModBase
             {
                 dx += 100;
             }
-            float chatlineStartX = dx * game.Scale();
-            float chatlineStartY = (90 + i * 25) * game.Scale();
-            float chatlineSizeX = 500 * game.Scale();
-            float chatlineSizeY = 20 * game.Scale();
+            float chatlineStartX = dx * Game.Scale();
+            float chatlineStartY = (90 + i * 25) * Game.Scale();
+            float chatlineSizeX = 500 * Game.Scale();
+            float chatlineSizeY = 20 * Game.Scale();
             if (args.GetX() > chatlineStartX && args.GetX() < chatlineStartX + chatlineSizeX)
             {
                 if (args.GetY() > chatlineStartY && args.GetY() < chatlineStartY + chatlineSizeY)
@@ -64,7 +64,7 @@ public class ModGuiChat : ModBase
 
     private readonly Chatline[] chatlines2;
     private int chatlines2Count;
-    public void DrawChatLines(IGame game, bool all)
+    public void DrawChatLines( bool all)
     {
         chatlines2Count = 0;
         int timeNow = platform.TimeMillisecondsFromStart;
@@ -77,25 +77,25 @@ public class ModGuiChat : ModBase
         {
             scroll = ChatPageScroll;
         }
-        int first = game.ChatLinesCount - ChatLinesMaxToDraw * (scroll + 1);
+        int first = Game.ChatLinesCount - ChatLinesMaxToDraw * (scroll + 1);
         if (first < 0)
         {
             first = 0;
         }
-        int count = game.ChatLinesCount;
+        int count = Game.ChatLinesCount;
         if (count > ChatLinesMaxToDraw)
         {
             count = ChatLinesMaxToDraw;
         }
         for (int i = first; i < first + count; i++)
         {
-            Chatline c = game.ChatLines[i];
+            Chatline c = Game.ChatLines[i];
             if (all || ((1f * (timeNow - c.timeMilliseconds) / 1000) < ChatScreenExpireTimeSeconds))
             {
                 chatlines2[chatlines2Count++] = c;
             }
         }
-        currentFontSize= ChatFontSize * game.Scale();
+        currentFontSize= ChatFontSize * Game.Scale();
         font = new Font("Arial", currentFontSize, currentFontStyle);
 
         float dx = 20;
@@ -120,11 +120,11 @@ public class ModGuiChat : ModBase
                 currentFontStyle = FontStyle.Bold;
                 font = new Font("Arial", currentFontSize, currentFontStyle);
             }
-            game.Draw2dText(chatlines2[i].text, font, dx * game.Scale(), (90 + i * 25) * game.Scale(), null, false);
+            Game.Draw2dText(chatlines2[i].text, font, dx * Game.Scale(), (90 + i * 25) * Game.Scale(), null, false);
         }
         if (ChatPageScroll != 0)
         {
-            game.Draw2dText(string.Format("&7Page: {0}", ChatPageScroll.ToString()), font, dx * game.Scale(), (90 + (-1) * 25) * game.Scale(), null, false);
+            Game.Draw2dText(string.Format("&7Page: {0}", ChatPageScroll.ToString()), font, dx * Game.Scale(), (90 + (-1) * 25) * Game.Scale(), null, false);
         }
     }
     private Font font;
@@ -147,112 +147,112 @@ public class ModGuiChat : ModBase
         }
     }
 
-    public override void OnKeyDown(IGame game, KeyEventArgs args)
+    public override void OnKeyDown( KeyEventArgs args)
     {
-        if (game.GuiState != GuiState.Normal)
+        if (Game.GuiState != GuiState.Normal)
         {
             //Don't open chat when not in normal game
             return;
         }
         int eKey = args.KeyChar;
-        if (eKey == game.GetKey(Keys.KeyPad7) && game.IsShiftPressed && game.GuiTyping == TypingState.None) // don't need to hit enter for typing commands starting with slash
+        if (eKey == Game.GetKey(Keys.KeyPad7) && Game.IsShiftPressed && Game.GuiTyping == TypingState.None) // don't need to hit enter for typing commands starting with slash
         {
-            game.GuiTyping = TypingState.Typing;
-            game.IsTyping = true;
-            game.GuiTypingBuffer = "";
-            game.IsTeamchat = false;
+            Game.GuiTyping = TypingState.Typing;
+            Game.IsTyping = true;
+            Game.GuiTypingBuffer = "";
+            Game.IsTeamchat = false;
             args.Handled=true;
             return;
         }
-        if (eKey == game.GetKey(Keys.PageUp) && game.GuiTyping == TypingState.Typing)
+        if (eKey == Game.GetKey(Keys.PageUp) && Game.GuiTyping == TypingState.Typing)
         {
             ChatPageScroll++;
             args.Handled=true;
         }
-        if (eKey == game.GetKey(Keys.PageDown) && game.GuiTyping == TypingState.Typing)
+        if (eKey == Game.GetKey(Keys.PageDown) && Game.GuiTyping == TypingState.Typing)
         {
             ChatPageScroll--;
             args.Handled=true;
         }
-        ChatPageScroll = Math.Clamp(ChatPageScroll, 0, game.ChatLinesCount / ChatLinesMaxToDraw);
-        if (eKey == game.GetKey(Keys.Enter) || eKey == game.GetKey(Keys.KeyPadEnter))
+        ChatPageScroll = Math.Clamp(ChatPageScroll, 0, Game.ChatLinesCount / ChatLinesMaxToDraw);
+        if (eKey == Game.GetKey(Keys.Enter) || eKey == Game.GetKey(Keys.KeyPadEnter))
         {
-            if (game.GuiTyping == TypingState.Typing)
+            if (Game.GuiTyping == TypingState.Typing)
             {
-                game.TypingLog.Add(game.GuiTypingBuffer);
-                game.TypingLogPos = game.TypingLog.Count;
-                game.ExecuteChat(game.GuiTypingBuffer);
+                Game.TypingLog.Add(Game.GuiTypingBuffer);
+                Game.TypingLogPos = Game.TypingLog.Count;
+                Game.ExecuteChat(Game.GuiTypingBuffer);
 
-                game.GuiTypingBuffer = "";
-                game.IsTyping = false;
+                Game.GuiTypingBuffer = "";
+                Game.IsTyping = false;
 
-                game.GuiTyping = TypingState.None;
+                Game.GuiTyping = TypingState.None;
                 platform.ShowKeyboard(false);
             }
-            else if (game.GuiTyping == TypingState.None)
+            else if (Game.GuiTyping == TypingState.None)
             {
-                game.StartTyping();
+                Game.StartTyping();
             }
-            else if (game.GuiTyping == TypingState.Ready)
+            else if (Game.GuiTyping == TypingState.Ready)
             {
                 Console.WriteLine("Keyboard_KeyDown ready");
             }
             args.Handled=true;
             return;
         }
-        if (game.GuiTyping == TypingState.Typing)
+        if (Game.GuiTyping == TypingState.Typing)
         {
             int key = eKey;
-            if (key == game.GetKey(Keys.Backspace))
+            if (key == Game.GetKey(Keys.Backspace))
             {
-                if (game.GuiTypingBuffer.Length > 0)
+                if (Game.GuiTypingBuffer.Length > 0)
                 {
-                    game.GuiTypingBuffer = game.GuiTypingBuffer[..^1];
+                    Game.GuiTypingBuffer = Game.GuiTypingBuffer[..^1];
                 }
                 args.Handled=true;
                 return;
             }
-            if (game.KeyboardStateRaw[game.GetKey(Keys.LeftControl)] || game.KeyboardStateRaw[game.GetKey(Keys.RightControl)])
+            if (Game.KeyboardStateRaw[Game.GetKey(Keys.LeftControl)] || Game.KeyboardStateRaw[Game.GetKey(Keys.RightControl)])
             {
-                if (key == game.GetKey(Keys.V))
+                if (key == Game.GetKey(Keys.V))
                 {
                     if (Clipboard.ContainsText())
                     {
-                        game.GuiTypingBuffer = string.Concat(game.GuiTypingBuffer, Clipboard.GetText());
+                        Game.GuiTypingBuffer = string.Concat(Game.GuiTypingBuffer, Clipboard.GetText());
                     }
                     args.Handled=true;
                     return;
                 }
             }
-            if (key == game.GetKey(Keys.Up))
+            if (key == Game.GetKey(Keys.Up))
             {
-                game.TypingLogPos--;
-                if (game.TypingLogPos < 0) { game.TypingLogPos = 0; }
-                if (game.TypingLogPos >= 0 && game.TypingLogPos < game.TypingLog.Count)
+                Game.TypingLogPos--;
+                if (Game.TypingLogPos < 0) { Game.TypingLogPos = 0; }
+                if (Game.TypingLogPos >= 0 && Game.TypingLogPos < Game.TypingLog.Count)
                 {
-                    game.GuiTypingBuffer = game.TypingLog[game.TypingLogPos];
+                    Game.GuiTypingBuffer = Game.TypingLog[Game.TypingLogPos];
                 }
                 args.Handled=true;
             }
-            if (key == game.GetKey(Keys.Down))
+            if (key == Game.GetKey(Keys.Down))
             {
-                game.TypingLogPos++;
-                if (game.TypingLogPos > game.TypingLog.Count) { game.TypingLogPos = game.TypingLog.Count; }
-                if (game.TypingLogPos >= 0 && game.TypingLogPos < game.TypingLog.Count)
+                Game.TypingLogPos++;
+                if (Game.TypingLogPos > Game.TypingLog.Count) { Game.TypingLogPos = Game.TypingLog.Count; }
+                if (Game.TypingLogPos >= 0 && Game.TypingLogPos < Game.TypingLog.Count)
                 {
-                    game.GuiTypingBuffer = game.TypingLog[game.TypingLogPos];
+                    Game.GuiTypingBuffer = Game.TypingLog[Game.TypingLogPos];
                 }
-                if (game.TypingLogPos == game.TypingLog.Count)
+                if (Game.TypingLogPos == Game.TypingLog.Count)
                 {
-                    game.GuiTypingBuffer = "";
+                    Game.GuiTypingBuffer = "";
                 }
                 args.Handled=true;
             }
             //Handles player name autocomplete in chat
-            if (eKey == game.GetKey(Keys.Tab) && game.GuiTypingBuffer.Trim() != "")
+            if (eKey == Game.GetKey(Keys.Tab) && Game.GuiTypingBuffer.Trim() != "")
             {
-                string[] parts = game.GuiTypingBuffer.Split(" ");
-                string completed = DoAutocomplete(game, parts[parts.Length - 1]);
+                string[] parts = Game.GuiTypingBuffer.Split(" ");
+                string completed = DoAutocomplete(parts[parts.Length - 1]);
                 if (completed == "")
                 {
                     //No completion available. Abort.
@@ -262,13 +262,13 @@ public class ModGuiChat : ModBase
                 else if (parts.Length == 1)
                 {
                     //Part is first word. Format as "<name>: "
-                    game.GuiTypingBuffer = string.Concat(completed, ": ");
+                    Game.GuiTypingBuffer = string.Concat(completed, ": ");
                 }
                 else
                 {
                     //Part is not first. Just complete "<name> "
                     parts[parts.Length - 1] = completed;
-                    game.GuiTypingBuffer = string.Concat(string.Join(" ", parts), " ");
+                    Game.GuiTypingBuffer = string.Concat(string.Join(" ", parts), " ");
                 }
                 args.Handled=true;
                 return;
@@ -278,9 +278,9 @@ public class ModGuiChat : ModBase
         }
     }
 
-    public override void OnKeyPress(IGame game, KeyPressEventArgs args)
+    public override void OnKeyPress( KeyPressEventArgs args)
     {
-        if (game.GuiState != GuiState.Normal)
+        if (Game.GuiState != GuiState.Normal)
         {
             //Don't open chat when not in normal game
             return;
@@ -290,37 +290,37 @@ public class ModGuiChat : ModBase
         int charT = 84;
         int chary = 121;
         int charY = 89;
-        if ((eKeyChar == chart || eKeyChar == charT) && game.GuiTyping == TypingState.None)
+        if ((eKeyChar == chart || eKeyChar == charT) && Game.GuiTyping == TypingState.None)
         {
-            game.GuiTyping = TypingState.Typing;
-            game.GuiTypingBuffer = "";
-            game.IsTeamchat = false;
+            Game.GuiTyping = TypingState.Typing;
+            Game.GuiTypingBuffer = "";
+            Game.IsTeamchat = false;
             return;
         }
-        if ((eKeyChar == chary || eKeyChar == charY) && game.GuiTyping == TypingState.None)
+        if ((eKeyChar == chary || eKeyChar == charY) && Game.GuiTyping == TypingState.None)
         {
-            game.GuiTyping = TypingState.Typing;
-            game.GuiTypingBuffer = "";
-            game.IsTeamchat = true;
+            Game.GuiTyping = TypingState.Typing;
+            Game.GuiTypingBuffer = "";
+            Game.IsTeamchat = true;
             return;
         }
-        if (game.GuiTyping == TypingState.Typing)
+        if (Game.GuiTyping == TypingState.Typing)
         {
             int c = eKeyChar;
-            if (StringUtils.IsValidTypingChar(c))
+            if (EncodingHelper.IsValidTypingChar(c))
             {
-                game.GuiTypingBuffer = string.Concat(game.GuiTypingBuffer, (char)c);
+                Game.GuiTypingBuffer = string.Concat(Game.GuiTypingBuffer, (char)c);
             }
         }
     }
 
-    public string DoAutocomplete(IGame game, string text)
+    public string DoAutocomplete( string text)
     {
         if (!string.IsNullOrEmpty(text))
         {
-            for (int i = 0; i < game.Entities.Count; i++)
+            for (int i = 0; i < Game.Entities.Count; i++)
             {
-                Entity entity = game.Entities[i];
+                Entity entity = Game.Entities[i];
                 if (entity == null) { continue; }
                 if (entity.drawName == null) { continue; }
                 if (!entity.drawName.ClientAutoComplete) { continue; }

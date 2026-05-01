@@ -11,25 +11,25 @@ public class ModDrawMinecarts : ModBase
     private readonly IMeshDrawer meshDrawer;
     private readonly IOpenGlService openGlService;
 
-    public ModDrawMinecarts(IMeshDrawer meshDrawer, IOpenGlService openGlService)
+    public ModDrawMinecarts(IMeshDrawer meshDrawer, IOpenGlService openGlService, IGame game) : base(game)
     {
         this.meshDrawer = meshDrawer;
         this.openGlService = openGlService;
     }
 
-    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw3d( float deltaTime)
     {
-        for (int i = 0; i < game.Entities.Count; i++)
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Minecart m = game.Entities[i]?.minecart;
+            Minecart m = Game.Entities[i]?.minecart;
             if (m == null || !m.Enabled) continue;
-            Draw(game, m);
+            Draw(m);
         }
     }
 
-    private void Draw(IGame game, Minecart m)
+    private void Draw( Minecart m)
     {
-        minecartTexture = minecartTexture == -1 ? game.GetTexture("minecart.png") : minecartTexture;
+        minecartTexture = minecartTexture == -1 ? Game.GetTexture("minecart.png") : minecartTexture;
 
         float rot = AngleInterpolation.InterpolateAngle360(
             VehicleRotation(m.LastDirection),

@@ -11,47 +11,47 @@ public sealed class ModAudio : ModBase
     private bool _preloaded;
 
     /// <param name="audioService">Audio backend used for all playback operations.</param>
-    public ModAudio(IAudioService audioService)
+    public ModAudio(IAudioService audioService, IGame game) : base(game)
     {
         _audioService = audioService;
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame(IGame game, float dt)
+    public override void OnNewFrame(float dt)
     {
-        if (game.AssetsLoadProgress < 1f) return;
+        if (Game.AssetsLoadProgress < 1f) return;
 
         if (!_preloaded)
         {
             _preloaded = true;
-            Preload(game);
+            Preload();
         }
 
-        ProcessSounds(game);
+        ProcessSounds();
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameFixed(IGame game, float dt)
+    public override void OnNewFrameFixed(float dt)
     {
-        if (game.GuiState == GuiState.MapLoading) return;
+        if (Game.GuiState == GuiState.MapLoading) return;
 
-        float orientationX = MathF.Sin(game.Player.position.roty);
-        float orientationZ = -MathF.Cos(game.Player.position.roty);
+        float orientationX = MathF.Sin(Game.Player.position.roty);
+        float orientationZ = -MathF.Cos(Game.Player.position.roty);
         _audioService.UpdateListener(
-            game.Player.position.x, game.Player.position.y, game.Player.position.z,
+            Game.Player.position.x, Game.Player.position.y, Game.Player.position.z,
             orientationX, 0f, orientationZ);
     }
 
     // ── Per-frame sound processing ────────────────────────────────────────────
 
-    private void ProcessSounds(IGame game)
+    private void ProcessSounds()
     {
         for (int i = 0; i < _audioService.SoundsCount; i++)
         {
             Sound? sound = _audioService.Sounds[i];
             if (sound is null) continue;
 
-            TryLoad(game, i, sound);
+            TryLoad(sound);
             TryUpdatePosition(sound);
             TryStop(i, sound);
             TryFinish(i, sound);
@@ -63,11 +63,11 @@ public sealed class ModAudio : ModBase
     /// yet been allocated. Sets <see cref="AudioTask.Loop"/> before playing so the
     /// backend handles looping internally without requiring task recreation.
     /// </summary>
-    private void TryLoad(IGame game, int i, Sound sound)
+    private void TryLoad(Sound sound)
     {
         if (sound.Task is not null) return;
 
-        AudioData data = GetOrLoadAudioData(game, sound.Name);
+        AudioData data = GetOrLoadAudioData(sound.Name);
         if (!_audioService.IsAudioDataLoaded(data)) return;
 
         AudioTask task = _audioService.CreateAudio(data);
@@ -105,12 +105,12 @@ public sealed class ModAudio : ModBase
     // ── Asset helpers ─────────────────────────────────────────────────────────
 
     /// <summary>Preloads all <c>.ogg</c> assets so the first playback request is instant.</summary>
-    private void Preload(IGame game)
+    private void Preload()
     {
-        foreach (Asset asset in game.Assets)
+        foreach (Asset asset in Game.Assets)
         {
             if (asset.name.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
-                GetOrLoadAudioData(game, asset.name);
+                GetOrLoadAudioData(asset.name);
         }
     }
 
@@ -118,13 +118,13 @@ public sealed class ModAudio : ModBase
     /// Returns cached <see cref="AudioData"/> for <paramref name="name"/>,
     /// decoding the asset on first access.
     /// </summary>
-    private AudioData GetOrLoadAudioData(IGame game, string name)
+    private AudioData GetOrLoadAudioData(string name)
     {
         if (!_audioCache.TryGetValue(name, out AudioData? data))
         {
             data = _audioService.CreateAudioData(
-                game.GetAssetFile(name),
-                game.GetAssetFileLength(name));
+                Game.GetAssetFile(name),
+                Game.GetAssetFileLength(name));
             _audioCache[name] = data;
         }
         return data;

@@ -14,7 +14,7 @@ public class ModManager : IModManager
 
     public int GetMaxBlockTypes()
     {
-        return GlobalVar.MAX_BLOCKTYPES;
+        return GameConstants.MAX_BLOCKTYPES;
     }
 
     public void SetBlockType(int id, string name, BlockType block)

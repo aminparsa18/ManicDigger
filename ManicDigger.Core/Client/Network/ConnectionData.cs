@@ -39,7 +39,7 @@ public class ConnectionData
             Port = uri.Port != -1 ? uri.Port : 25565,
             Username = query["user"] ?? "gamer",
             Auth = query["auth"],
-            IsServerPasswordProtected = StringUtils.ReadBool(query["serverPassword"])
+            IsServerPasswordProtected = EncodingHelper.ReadBool(query["serverPassword"])
         };
     }
 }

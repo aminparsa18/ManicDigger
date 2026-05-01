@@ -11,16 +11,16 @@ public class ModDrawText : ModBase
     private static readonly Font Font = new("Arial", 14, FontStyle.Regular);
     private readonly IMeshDrawer meshDrawer;
 
-    public ModDrawText(IMeshDrawer meshDrawer)
+    public ModDrawText(IMeshDrawer meshDrawer, IGame game) : base(game)
     {
         this.meshDrawer = meshDrawer;
     }
 
-    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw3d( float deltaTime)
     {
-        for (int i = 0; i < game.Entities.Count; i++)
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Entity e = game.Entities[i];
+            Entity e = Game.Entities[i];
             if (e?.drawText == null) continue;
             if (e.networkPosition != null && !e.networkPosition.PositionLoaded) continue;
 
@@ -29,22 +29,22 @@ public class ModDrawText : ModBase
             float posY = p.dy + e.position.y;
             float posZ = MathF.Cos(e.position.roty) * p.dz + e.position.z;
 
-            bool nearEnough = Vector3.Distance(new Vector3(game.Player.position.x, game.Player.position.y, game.Player.position.z), new Vector3(posX, posY, posZ)) < TextDrawDistance;
-            bool altHeld = game.KeyboardState[Game.KeyAltLeft] || game.KeyboardState[Game.KeyAltRight];
+            bool nearEnough = Vector3.Distance(new Vector3(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z), new Vector3(posX, posY, posZ)) < TextDrawDistance;
+            bool altHeld = Game.KeyboardState[KeyConstants.KeyAltLeft] || Game.KeyboardState[KeyConstants.KeyAltRight];
             if (!nearEnough && !altHeld) continue;
 
-            DrawText(game, e, p, posX, posY, posZ);
+            DrawText(e, p, posX, posY, posZ);
         }
     }
 
-    private void DrawText(IGame game, Entity e, EntityDrawText p, float posX, float posY, float posZ)
+    private void DrawText( Entity e, EntityDrawText p, float posX, float posY, float posZ)
     {
         meshDrawer.GLPushMatrix();
         meshDrawer.GLTranslate(posX, posY, posZ);
         meshDrawer.GLRotate(180, 1, 0, 0);
         meshDrawer.GLRotate(float.RadiansToDegrees(e.position.roty), 0, 1, 0);
         meshDrawer.GLScale(TextScale, TextScale, TextScale);
-        game.Draw2dText(p.text, Font, -game.TextSizeWidth(p.text, 14) / 2, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), true);
+        Game.Draw2dText(p.text, Font, -Game.TextSizeWidth(p.text, 14) / 2, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), true);
         meshDrawer.GLPopMatrix();
     }
 }

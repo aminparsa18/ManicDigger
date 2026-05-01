@@ -24,7 +24,7 @@ public class GameScreen : ModBase
     internal int screeny;
 
     /// <summary>Initialises the widget pool with a capacity of 64.</summary>
-    public GameScreen(IGameService platform)
+    public GameScreen(IGameService platform, IGame game) : base(game)
     {
         this.platform = platform;
         WidgetCount = 64;
@@ -36,20 +36,20 @@ public class GameScreen : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnKeyPress(IGame game, KeyPressEventArgs args) => KeyPress(args);
+    public override void OnKeyPress( KeyPressEventArgs args) => KeyPress(args);
 
     /// <inheritdoc/>
-    public override void OnTouchStart(IGame game, TouchEventArgs e)
+    public override void OnTouchStart( TouchEventArgs e)
         => e.SetHandled(MouseDown(e.GetX(), e.GetY()));
 
     /// <inheritdoc/>
-    public override void OnTouchEnd(IGame game, TouchEventArgs e) => MouseUp(game, e.GetX(), e.GetY());
+    public override void OnTouchEnd( TouchEventArgs e) => MouseUp(e.GetX(), e.GetY());
 
     /// <inheritdoc/>
-    public override void OnMouseDown(IGame game, MouseEventArgs args) => MouseDown(args.GetX(), args.GetY());
+    public override void OnMouseDown( MouseEventArgs args) => MouseDown(args.GetX(), args.GetY());
 
     /// <inheritdoc/>
-    public override void OnMouseUp(IGame game, MouseEventArgs args) => MouseUp(game, args.GetX(), args.GetY());
+    public override void OnMouseUp( MouseEventArgs args) => MouseUp(args.GetX(), args.GetY());
 
     /// <inheritdoc/>
     public override void OnMouseMove(MouseEventArgs args) => MouseMove(args);
@@ -65,7 +65,7 @@ public class GameScreen : ModBase
     /// Override to respond to button presses.
     /// </summary>
     /// <param name="w">The widget that was clicked.</param>
-    public virtual void OnButton(IGame game, MenuWidget w) { }
+    public virtual void OnButton( MenuWidget w) { }
 
     /// <summary>
     /// Handles keyboard character input, routing it to whichever text-box widget
@@ -95,7 +95,7 @@ public class GameScreen : ModBase
                 if (Clipboard.ContainsText()) { w.text = string.Concat(w.text, Clipboard.GetText()); }
                 return;
             }
-            if (StringUtils.IsValidTypingChar(key))
+            if (EncodingHelper.IsValidTypingChar(key))
             {
                 w.text = string.Concat(w.text, ((char)key).ToString());
             }
@@ -156,7 +156,7 @@ public class GameScreen : ModBase
     /// Clears all pressed states and fires <see cref="OnButton"/> for any button
     /// whose bounds contain the release point.
     /// </summary>
-    private void MouseUp(IGame game, int x, int y)
+    private void MouseUp( int x, int y)
     {
         for (int i = 0; i < WidgetCount; i++)
         {
@@ -171,7 +171,7 @@ public class GameScreen : ModBase
 
             if (VectorUtils.PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey))
             {
-                OnButton(game, w);
+                OnButton(w);
             }
         }
     }

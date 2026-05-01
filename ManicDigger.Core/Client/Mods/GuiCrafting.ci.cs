@@ -41,9 +41,9 @@ public class ModGuiCrafting : ModBase
     /// Built once in <see cref="CraftingRecipesStart"/> and read in
     /// <see cref="DrawCraftingRecipes"/>. Replaces the O(n) <c>CountBlock</c>
     /// scan that ran for every ingredient of every recipe, every frame.
-    /// Indexed by block type ID; size must be at least <see cref="GlobalVar.MAX_BLOCKTYPES"/>.
+    /// Indexed by block type ID; size must be at least <see cref="GameConstants.MAX_BLOCKTYPES"/>.
     /// </summary>
-    private readonly int[] _blockTypeCounts = new int[GlobalVar.MAX_BLOCKTYPES];
+    private readonly int[] _blockTypeCounts = new int[GameConstants.MAX_BLOCKTYPES];
 
     // ── Injected dependencies ─────────────────────────────────────────────────
     internal CraftingRecipe[] d_CraftingRecipes;
@@ -59,52 +59,52 @@ public class ModGuiCrafting : ModBase
 
     private readonly IVoxelMap voxelMap;
 
-    public ModGuiCrafting(IGameService gameService, IVoxelMap voxelMap)
+    public ModGuiCrafting(IGameService gameService, IVoxelMap voxelMap, IGame game) : base(game)
     {
         this.voxelMap = voxelMap;
-        handler = new PacketHandlerCraftingRecipes(gameService) { mod = this };
+        handler = new PacketHandlerCraftingRecipes(gameService, game) { mod = this };
     }
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
-    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw2d( float deltaTime)
     {
         // Lazy-initialise the tool once.
         d_CraftingTableTool ??= new CraftingTableTool
         {
-            d_Map = new MapStorage(voxelMap, game.SetBlock),
-            d_Data = game.BlockRegistry
+            d_Map = new MapStorage(voxelMap, Game.SetBlock),
+            d_Data = Game.BlockRegistry
         };
 
         // Register the packet handler once, not every frame.
         if (!_handlerRegistered)
         {
-            game.PacketHandlers[(int)Packet_ServerIdEnum.CraftingRecipes] = handler;
+            Game.PacketHandlers[(int)Packet_ServerIdEnum.CraftingRecipes] = handler;
             _handlerRegistered = true;
         }
 
-        if (game.GuiState == GuiState.CraftingRecipes)
-            DrawCraftingRecipes(game);
+        if (Game.GuiState == GuiState.CraftingRecipes)
+            DrawCraftingRecipes();
     }
 
-    public override void OnNewFrameFixed(IGame game, float args)
+    public override void OnNewFrameFixed( float args)
     {
-        if (game.GuiState == GuiState.CraftingRecipes)
-            CraftingMouse(game);
+        if (Game.GuiState == GuiState.CraftingRecipes)
+            CraftingMouse();
     }
 
-    public override void OnKeyDown(IGame game, KeyEventArgs args)
+    public override void OnKeyDown( KeyEventArgs args)
     {
-        if (args.KeyChar != game.GetKey(Keys.E) || game.GuiTyping != TypingState.None) return;
-        if (game.SelectedBlockPositionX == -1
-         && game.SelectedBlockPositionY == -1
-         && game.SelectedBlockPositionZ == -1) return;
+        if (args.KeyChar != Game.GetKey(Keys.E) || Game.GuiTyping != TypingState.None) return;
+        if (Game.SelectedBlockPositionX == -1
+         && Game.SelectedBlockPositionY == -1
+         && Game.SelectedBlockPositionZ == -1) return;
 
-        int posX = game.SelectedBlockPositionX;
-        int posY = game.SelectedBlockPositionZ;
-        int posZ = game.SelectedBlockPositionY;
+        int posX = Game.SelectedBlockPositionX;
+        int posY = Game.SelectedBlockPositionZ;
+        int posZ = Game.SelectedBlockPositionY;
 
-        if (voxelMap.GetBlock(posX, posY, posZ) != game.BlockRegistry.BlockIdCraftingTable) return;
+        if (voxelMap.GetBlock(posX, posY, posZ) != Game.BlockRegistry.BlockIdCraftingTable) return;
 
         // GetTable / GetOnTable return references to CraftingTableTool's internal
         // reusable buffers. CraftingRecipesStart copies the on-table data into
@@ -113,7 +113,7 @@ public class ModGuiCrafting : ModBase
         Vector3i[] table = d_CraftingTableTool.GetTable(posX, posY, posZ, out int tableCount);
         int[] onTable = d_CraftingTableTool.GetOnTable(table, tableCount, out int onTableCount);
 
-        CraftingRecipesStart(game, d_CraftingRecipes, d_CraftingRecipesCount,
+        CraftingRecipesStart(d_CraftingRecipes, d_CraftingRecipesCount,
             onTable, onTableCount,
             posX, posY, posZ);
 
@@ -122,7 +122,7 @@ public class ModGuiCrafting : ModBase
 
     // ── Drawing ───────────────────────────────────────────────────────────────
 
-    internal void DrawCraftingRecipes(IGame game)
+    internal void DrawCraftingRecipes()
     {
         // ── Filter recipes for which the player has all materials ─────────────
         // Uses _blockTypeCounts (built once in CraftingRecipesStart) for O(1)
@@ -151,13 +151,13 @@ public class ModGuiCrafting : ModBase
 
         if (currentRecipesCount == 0)
         {
-            game.Draw2dText1(game.Language.NoMaterialsForCrafting(),
-                game.Xcenter(200), game.Ycenter(20), FontSize, null, false);
+            Game.Draw2dText1(Game.Language.NoMaterialsForCrafting(),
+                Game.Xcenter(200), Game.Ycenter(20), FontSize, null, false);
             return;
         }
 
-        int menuX = game.Xcenter(MenuWidth);
-        int menuY = game.Ycenter(currentRecipesCount * RecipeRowHeight);
+        int menuX = Game.Xcenter(MenuWidth);
+        int menuY = Game.Ycenter(currentRecipesCount * RecipeRowHeight);
 
         for (int i = 0; i < currentRecipesCount; i++)
         {
@@ -172,49 +172,49 @@ public class ModGuiCrafting : ModBase
             {
                 Ingredient ing = r.Ingredients[ii];
                 int colX = menuX + 20 + ii * 130;
-                game.Draw2dTexture(game.TerrainTexture,
+                Game.Draw2dTexture(Game.TerrainTexture,
                     colX, rowY, 32, 32,
-                    game.TextureIdForInventory[ing.Type], Game.TexturesPacked, white, false);
-                game.Draw2dText1($"{ing.Amount} {game.BlockTypes[ing.Type].Name}",
+                    Game.TextureIdForInventory[ing.Type], GameConstants.MAX_BLOCKTYPES_SQRT, white, false);
+                Game.Draw2dText1($"{ing.Amount} {Game.BlockTypes[ing.Type].Name}",
                     colX + 50, rowY, FontSize, color, false);
             }
 
             int outX = menuX + 20 + OutputColumnOffset;
-            game.Draw2dTexture(game.TerrainTexture,
+            Game.Draw2dTexture(Game.TerrainTexture,
                 outX, rowY, 32, 32,
-                game.TextureIdForInventory[r.Output.Type], Game.TexturesPacked, white, false);
-            game.Draw2dText1($"{r.Output.Amount} {game.BlockTypes[r.Output.Type].Name}",
+                Game.TextureIdForInventory[r.Output.Type], GameConstants.MAX_BLOCKTYPES_SQRT, white, false);
+            Game.Draw2dText1($"{r.Output.Amount} {Game.BlockTypes[r.Output.Type].Name}",
                 outX + 50, rowY, FontSize, color, false);
         }
     }
 
     // ── Input ─────────────────────────────────────────────────────────────────
 
-    internal void CraftingMouse(IGame game)
+    internal void CraftingMouse()
     {
         if (currentRecipesCount == 0) return;
 
-        int menuY = game.Ycenter(currentRecipesCount * RecipeRowHeight);
+        int menuY = Game.Ycenter(currentRecipesCount * RecipeRowHeight);
 
-        if (game.MouseCurrentY >= menuY
-         && game.MouseCurrentY < menuY + currentRecipesCount * RecipeRowHeight)
+        if (Game.MouseCurrentY >= menuY
+         && Game.MouseCurrentY < menuY + currentRecipesCount * RecipeRowHeight)
         {
-            craftingSelectedRecipe = (game.MouseCurrentY - menuY) / RecipeRowHeight;
+            craftingSelectedRecipe = (Game.MouseCurrentY - menuY) / RecipeRowHeight;
         }
 
-        if (!game.MouseLeftClick) return;
+        if (!Game.MouseLeftClick) return;
 
-        game.SendPacketClient(ClientPackets.Craft(
+        Game.SendPacketClient(ClientPackets.Craft(
             craftingTablePosX, craftingTablePosY, craftingTablePosZ,
             currentRecipes[craftingSelectedRecipe]));
 
-        game.MouseLeftClick = false;
-        game.GuiStateBackToGame();
+        Game.MouseLeftClick = false;
+        Game.GuiStateBackToGame();
     }
 
     // ── Session management ────────────────────────────────────────────────────
 
-    internal void CraftingRecipesStart(IGame game, CraftingRecipe[] recipes, int recipesCount,
+    internal void CraftingRecipesStart( CraftingRecipe[] recipes, int recipesCount,
         int[] blocks, int blocksCount,
         int posX, int posY, int posZ)
     {
@@ -234,17 +234,17 @@ public class ModGuiCrafting : ModBase
         // ── Build O(1) lookup table from the copied block list ────────────────
         // Clear only the range that was previously populated to avoid a full
         // MAX_BLOCKTYPES clear on every open (most block IDs will be zero anyway).
-        Array.Clear(_blockTypeCounts, 0, GlobalVar.MAX_BLOCKTYPES);
+        Array.Clear(_blockTypeCounts, 0, GameConstants.MAX_BLOCKTYPES);
         for (int i = 0; i < blocksCount; i++)
         {
             int blockId = _craftingBlocksCopy[i];
-            if ((uint)blockId < (uint)GlobalVar.MAX_BLOCKTYPES)
+            if ((uint)blockId < (uint)GameConstants.MAX_BLOCKTYPES)
                 _blockTypeCounts[blockId]++;
         }
 
-        game.GuiState = GuiState.CraftingRecipes;
-        game.MenuState = new MenuState();
-        game.SetFreeMouse(true);
+        Game.GuiState = GuiState.CraftingRecipes;
+        Game.MenuState = new MenuState();
+        Game.SetFreeMouse(true);
     }
 }
 

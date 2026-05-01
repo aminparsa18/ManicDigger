@@ -10,18 +10,18 @@ public class ModDrawHand2d : ModBase
     private readonly IMeshDrawer meshDrawer;
     private readonly IOpenGlService openGlService;
 
-    public ModDrawHand2d(IGameService platform, IMeshDrawer meshDrawer, IOpenGlService openGlService)
+    public ModDrawHand2d(IGameService platform, IMeshDrawer meshDrawer, IOpenGlService openGlService, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
         this.openGlService = openGlService;
     }
 
-    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw3d( float deltaTime)
     {
-        if (!ShouldDrawHand(game)) return;
+        if (!ShouldDrawHand()) return;
 
-        string img = HandImage2d(game);
+        string img = HandImage2d();
         if (img == null) return;
 
         meshDrawer.OrthoMode(platform.CanvasWidth, platform.CanvasHeight);
@@ -29,30 +29,30 @@ public class ModDrawHand2d : ModBase
         if (lastHandImage != img)
         {
             lastHandImage = img;
-            byte[] file = game.GetAssetFile(img);
+            byte[] file = Game.GetAssetFile(img);
             Bitmap bmp = PixelBuffer.BitmapFromPng(file, file.Length);
             if (bmp != null)
             {
-                game.handTexture = openGlService.LoadTextureFromBitmap(bmp);
+                Game.handTexture = openGlService.LoadTextureFromBitmap(bmp);
                 bmp.Dispose();
             }
         }
 
-        game.Draw2dTexture(game.handTexture, platform.CanvasWidth / 2, platform.CanvasHeight - 512, 512, 512, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
+        Game.Draw2dTexture(Game.handTexture, platform.CanvasWidth / 2, platform.CanvasHeight - 512, 512, 512, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
         meshDrawer.PerspectiveMode();
     }
 
     /// <summary>Returns true if the hand should be drawn (first-person view with 2D enabled).</summary>
-    public bool ShouldDrawHand(IGame game) => !game.EnableTppView && game.ENABLE_DRAW2D;
+    public bool ShouldDrawHand() => !Game.EnableTppView && Game.ENABLE_DRAW2D;
 
     /// <summary>Returns the appropriate hand image path for the currently held item, or null if none.</summary>
-    public string HandImage2d(IGame game)
+    public string HandImage2d()
     {
-        InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
+        InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
         if (item == null) return null;
 
-        return game.IronSights
-            ? game.BlockTypes[item.BlockId].IronSightsImage
-            : game.BlockTypes[item.BlockId].handimage;
+        return Game.IronSights
+            ? Game.BlockTypes[item.BlockId].IronSightsImage
+            : Game.BlockTypes[item.BlockId].handimage;
     }
 }

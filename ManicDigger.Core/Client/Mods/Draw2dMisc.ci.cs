@@ -8,7 +8,8 @@ public class ModDraw2dMisc : ModBase
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IVoxelMap voxelMap;
 
-    public ModDraw2dMisc(IOpenGlService platformOpenGl, IGameService platform, ISinglePlayerService singlePlayerService, IVoxelMap voxelMap)
+    public ModDraw2dMisc(IOpenGlService platformOpenGl, IGameService platform, ISinglePlayerService singlePlayerService,
+        IVoxelMap voxelMap, IGame game) : base(game)
     {
         this.platformOpenGl = platformOpenGl;
         this.platform = platform;
@@ -16,21 +17,21 @@ public class ModDraw2dMisc : ModBase
         this.voxelMap = voxelMap;
     }
 
-    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw2d( float deltaTime)
     {
-        if (game.GuiState == GuiState.Normal)
-            DrawAim(game);
+        if (Game.GuiState == GuiState.Normal)
+            DrawAim(Game);
 
-        if (game.GuiState != GuiState.MapLoading)
+        if (Game.GuiState != GuiState.MapLoading)
         {
-            DrawEnemyHealthBlock(game);
-            DrawAmmo(game);
-            DrawLocalPosition(game);
-            DrawBlockInfo(game);
+            DrawEnemyHealthBlock(Game);
+            DrawAmmo(Game);
+            DrawLocalPosition();
+            DrawBlockInfo(Game);
         }
 
-        DrawMouseCursor(game);
-        DrawDisconnected(game);
+        DrawMouseCursor(Game);
+        DrawDisconnected();
     }
 
     // ── Block / entity health display ─────────────────────────────────────────
@@ -66,15 +67,15 @@ public class ModDraw2dMisc : ModBase
             // Cache the translated name — used in up to two calls below.
             string name = game.Language.Get("Block_" + game.BlockTypes[blocktype].Name);
 
-            if (game.IsUsableBlock(blocktype))
-                DrawEnemyHealthUseInfo(game, name, progress, true);
+            if (Game.IsUsableBlock(blocktype))
+                DrawEnemyHealthUseInfo(name, progress, true);
 
-            DrawEnemyHealthBackground(game, name);
+            DrawEnemyHealthBackground(name);
         }
 
-        if (game.CurrentlyAttackedEntity != -1)
+        if (Game.CurrentlyAttackedEntity != -1)
         {
-            Entity e = game.Entities[game.CurrentlyAttackedEntity];
+            Entity e = Game.Entities[Game.CurrentlyAttackedEntity];
             if (e == null) return;
 
             float health = e.playerStats != null
@@ -85,9 +86,9 @@ public class ModDraw2dMisc : ModBase
             string translatedName = game.Language.Get(name);
 
             if (e.usable)
-                DrawEnemyHealthUseInfo(game, translatedName, health, useInfo: true);
+                DrawEnemyHealthUseInfo(translatedName, health, useInfo: true);
 
-            DrawEnemyHealthBackground(game, translatedName);
+            DrawEnemyHealthBackground(translatedName);
         }
     }
 
@@ -96,27 +97,26 @@ public class ModDraw2dMisc : ModBase
     /// Replaces the old <c>DrawEnemyHealthCommon</c> which accepted a <c>progress</c>
     /// parameter it silently ignored.
     /// </summary>
-    internal void DrawEnemyHealthBackground(IGame game, string name)
-        => DrawEnemyHealthUseInfo(game, name, progress: 1f, useInfo: false);
+    internal void DrawEnemyHealthBackground( string name)
+        => DrawEnemyHealthUseInfo(name, progress: 1f, useInfo: false);
 
-    internal void DrawEnemyHealthUseInfo(IGame game, string name, float progress, bool useInfo)
+    internal void DrawEnemyHealthUseInfo( string name, float progress, bool useInfo)
     {
         int barHeight = useInfo ? 55 : 35;
-        int whiteTexId = game.GetOrCreateWhiteTexture(); // cache — was called twice
+        int whiteTexId = Game.GetOrCreateWhiteTexture(); // cache — was called twice
 
-        game.Draw2dTexture(whiteTexId, game.Xcenter(300), 40, 300, barHeight, null, 0,
+        Game.Draw2dTexture(whiteTexId, Game.Xcenter(300), 40, 300, barHeight, null, 0,
             ColorUtils.ColorFromArgb(255, 0, 0, 0), false);
-        game.Draw2dTexture(whiteTexId, game.Xcenter(300), 40, 300 * progress, barHeight, null, 0,
+        Game.Draw2dTexture(whiteTexId, Game.Xcenter(300), 40, 300 * progress, barHeight, null, 0,
             ColorUtils.ColorFromArgb(255, 255, 0, 0), false);
 
         TextRenderer.TextSize(name, 14, out int w, out _);
-        game.Draw2dText1(name, game.Xcenter(w), 40, 14, null, false);
-
+        Game.Draw2dText1(name, Game.Xcenter(w), 40, 14, null, false);
         if (useInfo)
         {
-            string hint = string.Format(game.Language.PressToUse(), "E");
+            string hint = string.Format(Game.Language.PressToUse(), "E");
             TextRenderer.TextSize(hint, 10, out w, out _);
-            game.Draw2dText1(hint, game.Xcenter(w), 70, 10, null, false);
+            Game.Draw2dText1(hint, Game.Xcenter(w), 70, 10, null, false);
         }
     }
 
@@ -181,49 +181,49 @@ public class ModDraw2dMisc : ModBase
 
     // ── Debug position overlay ────────────────────────────────────────────────
 
-    private void DrawLocalPosition(IGame game)
+    private void DrawLocalPosition()
     {
-        if (!game.EnableDrawPosition) return;
+        if (!Game.EnableDrawPosition) return;
 
-        float heading = Game.HeadingByte(
-            game.Player.position.rotx, game.Player.position.roty, game.Player.position.rotz);
-        float pitch = Game.PitchByte(
-            game.Player.position.rotx, game.Player.position.roty, game.Player.position.rotz);
+        float heading = EncodingHelper.HeadingByte(
+            Game.Player.position.rotx, Game.Player.position.roty, Game.Player.position.rotz);
+        float pitch = EncodingHelper.PitchByte(
+            Game.Player.position.rotx, Game.Player.position.roty, Game.Player.position.rotz);
 
         // Single interpolated string replaces seven string.Concat calls.
         string postext =
-            $"X: {MathF.Floor(game.Player.position.x)},\t" +
-            $"Y: {MathF.Floor(game.Player.position.z)},\t" +
-            $"Z: {MathF.Floor(game.Player.position.y)}\n" +
+            $"X: {MathF.Floor(Game.Player.position.x)},\t" +
+            $"Y: {MathF.Floor(Game.Player.position.z)},\t" +
+            $"Z: {MathF.Floor(Game.Player.position.y)}\n" +
             $"Heading: {MathF.Floor(heading)}\n" +
             $"Pitch: {MathF.Floor(pitch)}";
 
-        game.Draw2dText1(postext, 100, 460, Game.ChatFontSize, null, false);
+        Game.Draw2dText1(postext, 100, 460, GameConstants.ChatFontSize, null, false);
     }
 
     // ── Disconnected overlay ──────────────────────────────────────────────────
 
-    private void DrawDisconnected(IGame game)
+    private void DrawDisconnected()
     {
         float lagSeconds =
-            (platform.TimeMillisecondsFromStart - game.LastReceivedMilliseconds) / 1000f;
+            (platform.TimeMillisecondsFromStart - Game.LastReceivedMilliseconds) / 1000f;
 
-        if (lagSeconds < Game.DISCONNECTED_ICON_AFTER_SECONDS) 
+        if (lagSeconds < GameConstants.DISCONNECTED_ICON_AFTER_SECONDS) 
             return;
         if (lagSeconds >= 60 * 60 * 24) 
             return;
-        if (game.InvalidVersionDrawMessage != null) 
+        if (Game.InvalidVersionDrawMessage != null) 
             return;
-        if (game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
+        if (Game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
             return;
 
-        game.Draw2dBitmapFile("disconnected.png", platform.CanvasWidth - 100, 50, 50, 50);
+        Game.Draw2dBitmapFile("disconnected.png", platform.CanvasWidth - 100, 50, 50, 50);
 
-        game.Draw2dText1(((int)lagSeconds).ToString(),
+        Game.Draw2dText1(((int)lagSeconds).ToString(),
             platform.            CanvasWidth - 100, 50 + 50 + 10, 12, null, false);
 
         const string Reconnect = "Press F6 to reconnect";
-        game.Draw2dText1(Reconnect,
+        Game.Draw2dText1(Reconnect,
             platform.            CanvasWidth / 2 - 200 / 2, 50, 12, null, false);
     }
 }

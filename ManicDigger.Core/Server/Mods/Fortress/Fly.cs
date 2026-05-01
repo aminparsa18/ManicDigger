@@ -18,51 +18,50 @@ public class ModFly : ModBase
 
     private bool flyActive = false;
 
-    public ModFly()
+    public ModFly(IGame game) : base(game)
     {
     }
 
     // ── Toggle on F ───────────────────────────────────────────────────────────
-    public override void OnKeyDown(IGame game, KeyEventArgs args)
+    public override void OnKeyDown( KeyEventArgs args)
     {
-        if (game.GuiState != GuiState.Normal || game.GuiTyping != TypingState.None)
+        if (Game.GuiState != GuiState.Normal || Game.GuiTyping != TypingState.None)
             return;
 
-        if (args.KeyChar != game.GetKey(Keys.F))
+        if (args.KeyChar != Game.GetKey(Keys.F))
             return;
 
         flyActive = !flyActive;
         DiagLog.Write($"Flight mode {(flyActive ? "On" : "Off")}");
         if (flyActive)
         {
-            game.AddChatLine("&aFlight ON  –  Space: rise  |  Shift: sink  |  F: exit");
+            Game.AddChatLine("&aFlight ON  –  Space: rise  |  Shift: sink  |  F: exit");
         }
         else
         {
             // Clear fly controls so physics resumes normally on the very next tick
-            game.Controls.FreeMove = false;
-            game.Controls.MoveUp = false;
-            game.Controls.MoveDown = false;
-            game.playervelocity = new OpenTK.Mathematics.Vector3(
-                game.playervelocity.X, 0f, game.playervelocity.Z);
-
-            game.AddChatLine("&cFlight OFF");
+            Game.Controls.FreeMove = false;
+            Game.Controls.MoveUp = false;
+            Game.Controls.MoveDown = false;
+            Game.playervelocity = new OpenTK.Mathematics.Vector3(
+                Game.playervelocity.X, 0f, Game.playervelocity.Z);
+            Game.AddChatLine("&cFlight OFF");
         }
     }
 
     // ── Feed freemove + vertical intent into Controls every physics tick ──────
-    public override void OnNewFrameFixed(IGame game, float dt)
+    public override void OnNewFrameFixed( float dt)
     {
         if (!flyActive) return;
 
-        game.Controls.FreeMove = true;
+        Game.Controls.FreeMove = true;
 
-        bool space = game.KeyboardStateRaw[game.GetKey(Keys.Space)];
-        bool shift = game.KeyboardStateRaw[game.GetKey(Keys.LeftControl)];
+        bool space = Game.KeyboardStateRaw[Game.GetKey(Keys.Space)];
+        bool shift = Game.KeyboardStateRaw[Game.GetKey(Keys.LeftControl)];
 
         // Both or neither → hover (moveup and movedown both false keeps Y still)
-        game.Controls.MoveUp = space && !shift;
-        game.Controls.MoveDown = shift && !space;
+        Game.Controls.MoveUp = space && !shift;
+        Game.Controls.MoveDown = shift && !space;
     }
 
     // ── Cleanup on mod unload ─────────────────────────────────────────────────

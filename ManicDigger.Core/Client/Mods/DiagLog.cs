@@ -2,7 +2,7 @@
 
 public class ModDiagLog : ModBase
 {
-    public ModDiagLog()
+    public ModDiagLog(IGame game) : base(game)
     {
         DiagLog.Write("ModDiagLog started");
     }

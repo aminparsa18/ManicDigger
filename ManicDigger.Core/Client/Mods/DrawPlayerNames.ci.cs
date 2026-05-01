@@ -10,18 +10,18 @@ public class ModDrawPlayerNames : ModBase
     private const float NameTagDrawDistance = 20f;
 
     private readonly IMeshDrawer meshDrawer;
-    public ModDrawPlayerNames(IMeshDrawer meshDrawer)
+    public ModDrawPlayerNames(IMeshDrawer meshDrawer, IGame game) : base(game)
     {
         this.meshDrawer = meshDrawer;
     }
 
-    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw3d( float deltaTime)
     {
-        for (int i = 0; i < game.Entities.Count; i++)
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Entity e = game.Entities[i];
+            Entity e = Game.Entities[i];
             if (e?.drawName == null) continue;
-            if (i == game.LocalPlayerId) continue;
+            if (i == Game.LocalPlayerId) continue;
             if (e.networkPosition != null && !e.networkPosition.PositionLoaded) continue;
 
             DrawName p = e.drawName;
@@ -30,15 +30,15 @@ public class ModDrawPlayerNames : ModBase
             float posX = p.TextX + e.position.x;
             float posY = p.TextY + e.position.y + e.drawModel.ModelHeight + NameTagHeightOffset;
             float posZ = p.TextZ + e.position.z;
-            bool nearEnough = Vector3.Distance(new(game.Player.position.x, game.Player.position.y, game.Player.position.z), new(posX, posY, posZ)) < NameTagDrawDistance;
-            bool altHeld = game.KeyboardState[Game.KeyAltLeft] || game.KeyboardState[Game.KeyAltRight];
+            bool nearEnough = Vector3.Distance(new(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z), new(posX, posY, posZ)) < NameTagDrawDistance;
+            bool altHeld = Game.KeyboardState[KeyConstants.KeyAltLeft] || Game.KeyboardState[KeyConstants.KeyAltRight];
             if (!nearEnough && !altHeld) continue;
 
-            DrawNameTag(game, p, posX, posY, posZ);
+            DrawNameTag(p, posX, posY, posZ);
         }
     }
 
-    private void DrawNameTag(IGame game, DrawName p, float posX, float posY, float posZ)
+    private void DrawNameTag( DrawName p, float posX, float posY, float posZ)
     {
         meshDrawer.GLPushMatrix();
         meshDrawer.GLTranslate(posX, posY, posZ);
@@ -47,12 +47,12 @@ public class ModDrawPlayerNames : ModBase
 
         if (p.DrawHealth)
         {
-            game.Draw2dTexture(game.GetOrCreateWhiteTexture(), -26, -11, 52, 12, null, 0, ColorUtils.ColorFromArgb(255, 0, 0, 0), false);
-            game.Draw2dTexture(game.GetOrCreateWhiteTexture(), -25, -10, 50 * p.Health, 10, null, 0, ColorUtils.ColorFromArgb(255, 255, 0, 0), false);
+            Game.Draw2dTexture(Game.GetOrCreateWhiteTexture(), -26, -11, 52, 12, null, 0, ColorUtils.ColorFromArgb(255, 0, 0, 0), false);
+            Game.Draw2dTexture(Game.GetOrCreateWhiteTexture(), -25, -10, 50 * p.Health, 10, null, 0, ColorUtils.ColorFromArgb(255, 255, 0, 0), false);
         }
 
         Font font = new("Arial", 14);
-        game.Draw2dText(p.Name, font, -game.TextSizeWidth(p.Name, 14) / 2, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), true);
+        Game.Draw2dText(p.Name, font, -Game.TextSizeWidth(p.Name, 14) / 2, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), true);
 
         meshDrawer.GLPopMatrix();
     }

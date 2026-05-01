@@ -5,18 +5,18 @@ public class ModDrawArea : ModBase
 {
     private readonly DrawWireframeCube lines;
 
-    public ModDrawArea(IOpenGlService platform, IMeshDrawer meshDrawer)
+    public ModDrawArea(IOpenGlService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
     {
         lines = new DrawWireframeCube(platform, meshDrawer);
     }
 
-    public override void OnNewFrameDraw3d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw3d( float deltaTime)
     {
-        if (!game.ENABLE_DRAW2D) return;
+        if (!Game.ENABLE_DRAW2D) return;
 
-        for (int i = 0; i < game.Entities.Count; i++)
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Entity e = game.Entities[i];
+            Entity e = Game.Entities[i];
             if (e?.drawArea == null || !e.drawArea.visible) continue;
 
             float cx = e.drawArea.x + e.drawArea.sizex / 2f;
@@ -27,9 +27,9 @@ public class ModDrawArea : ModBase
         }
     }
 
-    public override void OnHitEntity(IGame game, OnUseEntityArgs e)
+    public override void OnHitEntity( OnUseEntityArgs e)
     {
-        var area = game.Entities[e.Id]?.drawArea;
+        var area = Game.Entities[e.Id]?.drawArea;
         if (area == null) return;
         area.visible = !area.visible;
     }

@@ -71,27 +71,6 @@ public partial class Game
     /// <summary>Sets the 3D projection using <see cref="Zfar"/> and the current FOV.</summary>
     internal void Set3dProjection2() => Set3dProjection1(Zfar());
 
-    // ── Fixed-point encoding ──────────────────────────────────────────────────
-
-    /// <summary>Decodes a Q5 fixed-point integer (value / 32) to a float.</summary>
-    public float DecodeFixedPoint(int value) => value / 32f;
-
-    /// <summary>Encodes a float to Q5 fixed-point (value × 32).</summary>
-    public static int EncodeFixedPoint(float p) => (int)(p * 32);
-
-    // ── Orientation encoding ──────────────────────────────────────────────────
-
-    /// <summary>Encodes a yaw angle (radians) as a 0–255 byte.</summary>
-    public static byte HeadingByte(float orientationX, float orientationY, float orientationZ) =>
-        (byte)(int)(orientationY % (2 * MathF.PI) / (2 * MathF.PI) * 256);
-
-    /// <summary>Encodes a pitch angle (radians) as a 0–255 byte.</summary>
-    public static byte PitchByte(float orientationX, float orientationY, float orientationZ)
-    {
-        float xx = (orientationX + MathF.PI) % (2 * MathF.PI);
-        return (byte)(int)(xx / (2 * MathF.PI) * 256);
-    }
-
     // ── Texture helpers ───────────────────────────────────────────────────────
 
     /// <summary>Draws a full-size 2D quad using a named PNG asset.</summary>
@@ -176,32 +155,7 @@ public partial class Game
         return null;
     }
 
-    /// <summary>Creates a bullet entity travelling from <paramref name="fromX/Y/Z"/> to <paramref name="toX/Y/Z"/>.</summary>
-    internal static Entity CreateBulletEntity(
-        float fromX, float fromY, float fromZ,
-        float toX, float toY, float toZ,
-        float speed)
-    {
-        return new Entity
-        {
-            bullet = new Bullet
-            {
-                fromX = fromX,
-                fromY = fromY,
-                fromZ = fromZ,
-                toX = toX,
-                toY = toY,
-                toZ = toZ,
-                speed = speed,
-            },
-            sprite = new Sprite
-            {
-                image = "Sponge.png",
-                size = 4,
-                animationcount = 0,
-            },
-        };
-    }
+    
 
     // ── Lighting / colour ─────────────────────────────────────────────────────
 
@@ -309,15 +263,15 @@ public partial class Game
     /// Enqueues <paramref name="action"/> for execution on the main thread at
     /// the end of the next frame. Thread-safe — see <see cref="ConcurrentQueue{T}"/>.
     /// </summary>
-    public void QueueActionCommit(Action<IGame> action) => CommitActions.Enqueue(action);
+    public void QueueActionCommit(Action action) => CommitActions.Enqueue(action);
 
     // ── Per-frame update ──────────────────────────────────────────────────────
 
     /// <summary>Calls the read-only main-thread hook on all registered mods.</summary>
     public void Update(float dt)
     {
-        for (int i = 0; i < clientMods.Count; i++)
-            clientMods[i]?.OnNewFrameReadOnlyMainThread(this, dt);
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.OnNewFrameReadOnlyMainThread(dt);
     }
 
     // ── Block picking ─────────────────────────────────────────────────────────
@@ -398,8 +352,8 @@ public partial class Game
     /// </summary>
     public void Dispose()
     {
-        for (int i = 0; i < clientMods.Count; i++)
-            clientMods[i]?.Dispose();
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.Dispose();
 
         foreach (int id in textures.Values)
             openGlService.GLDeleteTexture(id);
@@ -416,11 +370,6 @@ public partial class Game
     /// </remarks>
     internal static bool EnablePlayerUpdatePosition(int kKey) => true;
 
-    /// <remarks>
-    /// Cito stub — always returns <see langword="false"/>.
-    /// All call sites can be replaced with a literal <c>false</c> and this method removed.
-    /// </remarks>
-    internal static bool EnablePlayerUpdatePositionContainsKey(int kKey) => false;
 
     void IGame.SendChat(string message)
     {

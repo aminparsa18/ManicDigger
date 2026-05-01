@@ -60,7 +60,7 @@ public class ModDrawTerrain : ModBase
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
 
-    public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap, IMeshBatcher meshBatcher)
+    public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap, IMeshBatcher meshBatcher, IGame game) : base(game)
     {
         _platform = platform;
         _voxelMap = voxelMap;
@@ -69,8 +69,8 @@ public class ModDrawTerrain : ModBase
         _currentChunkShadows = new byte[BufferedChunkVolume];
         _batcherIds = new int[1024];
         _redrawQueue = new TerrainRendererRedraw[128];
-        _shadowLightRadius = new int[GlobalVar.MAX_BLOCKTYPES];
-        _shadowIsTransparent = new bool[GlobalVar.MAX_BLOCKTYPES];
+        _shadowLightRadius = new int[GameConstants.MAX_BLOCKTYPES];
+        _shadowIsTransparent = new bool[GameConstants.MAX_BLOCKTYPES];
         _lightBase = new LightBase(voxelMap);
         _lightBetweenChunks = new LightBetweenChunks(voxelMap);
     }
@@ -83,21 +83,21 @@ public class ModDrawTerrain : ModBase
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
-    public override void OnNewFrameDraw3d(IGame _game, float _)
+    public override void OnNewFrameDraw3d(float _)
     {
-        if (_game.ShouldRedrawAllBlocks)
+        if (Game.ShouldRedrawAllBlocks)
         {
-            _game.ShouldRedrawAllBlocks = false;
-            RedrawAllBlocks(_game);
+            Game.ShouldRedrawAllBlocks = false;
+            RedrawAllBlocks(Game);
         }
-        DrawTerrain(_game);
-        UpdatePerformanceInfo(_game);
+        DrawTerrain(Game);
+        UpdatePerformanceInfo(Game);
     }
 
-    public override void OnReadOnlyBackgroundThread(IGame _game, float dt)
+    public override void OnReadOnlyBackgroundThread(float dt)
     {
-        UpdateTerrain(_game);
-        _game.QueueActionCommit(MainThreadCommit);
+        UpdateTerrain(Game);
+        Game.QueueActionCommit(MainThreadCommit);
     }
 
     //public override void Dispose() => Clear();
@@ -107,7 +107,7 @@ public class ModDrawTerrain : ModBase
     public void StartTerrain(IGame _game)
     {
         _sqrt3Half = MathF.Sqrt(3) * 0.5f;
-        chunksize = Game.chunksize;
+        chunksize = GameConstants.CHUNK_SIZE;
         bufferedChunkSize = chunksize + 2;
         invertedChunkSize = 1.0f / chunksize;
         _game.TerrainChunkTesselator.Start();
@@ -246,18 +246,18 @@ public class ModDrawTerrain : ModBase
 
     // ── Main-thread commit ────────────────────────────────────────────────────
 
-    public void MainThreadCommit(IGame _game)
+    public void MainThreadCommit()
     {
         for (int i = 0; i < _redrawQueueCount; i++)
         {
-            DoRedraw(_game, _redrawQueue[i]);
+            DoRedraw(_redrawQueue[i]);
             if (_redrawQueue[i].DataRented)
                 ArrayPool<VerticesIndicesToLoad>.Shared.Return(_redrawQueue[i].Data);
         }
         _redrawQueueCount = 0;
     }
 
-    private void DoRedraw(IGame _game, TerrainRendererRedraw r)
+    private void DoRedraw(TerrainRendererRedraw r)
     {
         _batcherIdsCount = 0;
         RenderedChunk rendered = r.Chunk.rendered;

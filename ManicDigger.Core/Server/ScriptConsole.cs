@@ -46,7 +46,7 @@ public class ScriptConsole
 
     public void PrintMaterials()
     {
-        PrintMaterials(0, GlobalVar.MAX_BLOCKTYPES);
+        PrintMaterials(0, GameConstants.MAX_BLOCKTYPES);
     }
 
     public void PrintMaterials(double start, double end)
@@ -59,7 +59,7 @@ public class ScriptConsole
 
     public void FindMaterial(string search_string)
     {
-        for (int i = 0; i < GlobalVar.MAX_BLOCKTYPES; i++)
+        for (int i = 0; i < GameConstants.MAX_BLOCKTYPES; i++)
         {
             if (m_server.BlockTypes[i].Name.Contains(search_string))
             {

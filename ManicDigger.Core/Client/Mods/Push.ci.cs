@@ -7,29 +7,28 @@
 public class ModPush : ModBase
 {
 
-    public ModPush()
+    public ModPush(IGame game) : base(game)
     {
     }
 
-    public override void OnNewFrameFixed(IGame game, float args)
+    public override void OnNewFrameFixed( float args)
     {
-        game.PushX = 0;
-        game.PushY = 0;
-        game.PushZ = 0;
+        Game.PushX = 0;
+        Game.PushY = 0;
+        Game.PushZ = 0;
 
-        float pX = game.Player.position.x;
-        float pY = game.Player.position.y;
-        float pZ = game.Player.position.z;
-
-        for (int i = 0; i < game.Entities.Count; i++)
+        float pX = Game.Player.position.x;
+        float pY = Game.Player.position.y;
+        float pZ = Game.Player.position.z;
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Entity entity = game.Entities[i];
+            Entity entity = Game.Entities[i];
             if (entity?.push == null) continue;
             if (entity.networkPosition != null && !entity.networkPosition.PositionLoaded) continue;
 
-            float kX = game.DecodeFixedPoint(entity.push.XFloat);
-            float kY = game.DecodeFixedPoint(entity.push.ZFloat);
-            float kZ = game.DecodeFixedPoint(entity.push.YFloat);
+            float kX = EncodingHelper.DecodeFixedPoint(entity.push.XFloat);
+            float kY = EncodingHelper.DecodeFixedPoint(entity.push.ZFloat);
+            float kZ = EncodingHelper.DecodeFixedPoint(entity.push.YFloat);
 
             if (entity.push.IsRelativeToPlayerPosition != 0)
             {
@@ -38,11 +37,11 @@ public class ModPush : ModBase
                 kZ += pZ;
             }
 
-            if (Vector3.Distance(new Vector3(kX, kY, kZ), new Vector3(pX, pY, pZ)) < game.DecodeFixedPoint(entity.push.RangeFloat))
+            if (Vector3.Distance(new Vector3(kX, kY, kZ), new Vector3(pX, pY, pZ)) < EncodingHelper.DecodeFixedPoint(entity.push.RangeFloat))
             {
-                game.PushX += pX - kX;
-                game.PushY += pY - kY;
-                game.PushZ += pZ - kZ;
+                Game.PushX += pX - kX;
+                Game.PushY += pY - kY;
+                Game.PushZ += pZ - kZ;
             }
         }
     }

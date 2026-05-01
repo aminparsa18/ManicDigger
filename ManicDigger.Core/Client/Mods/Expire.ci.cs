@@ -7,43 +7,43 @@ using OpenTK.Mathematics;
 public class ModExpire : ModBase
 {
 
-    public ModExpire()
+    public ModExpire(IGame game) : base(game)
     {
     }
 
-    public override void OnNewFrameFixed(IGame game, float args)
+    public override void OnNewFrameFixed( float args)
     {
         float dt = args;
-        for (int i = 0; i < game.Entities.Count; i++)
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Entity entity = game.Entities[i];
+            Entity entity = Game.Entities[i];
             if (entity?.expires == null) continue;
 
             entity.expires.timeLeft -= dt;
             if (entity.expires.timeLeft > 0) continue;
 
             if (entity.grenade != null)
-                GrenadeExplosion(game, i);
+                GrenadeExplosion(i);
 
-            game.Entities[i] = null;
+            Game.Entities[i] = null;
         }
     }
 
-    private void GrenadeExplosion(IGame game, int grenadeEntityId)
+    private void GrenadeExplosion( int grenadeEntityId)
     {
-        Entity grenadeEntity = game.Entities[grenadeEntityId];
+        Entity grenadeEntity = Game.Entities[grenadeEntityId];
         Sprite sprite = grenadeEntity.sprite;
         Grenade grenade = grenadeEntity.grenade;
-        var blockType = game.BlockTypes[grenade.block];
+        var blockType = Game.BlockTypes[grenade.block];
 
         float posX = sprite.positionX;
         float posY = sprite.positionY;
         float posZ = sprite.positionZ;
 
-        game.PlayAudioAt("grenadeexplosion.ogg", posX, posY, posZ);
+        Game.PlayAudioAt("grenadeexplosion.ogg", posX, posY, posZ);
 
         // Spawn explosion animation sprite
-        game.EntityAddLocal(new Entity
+        Game.EntityAddLocal(new Entity
         {
             sprite = new Sprite
             {
@@ -61,13 +61,13 @@ public class ModExpire : ModBase
         float explosionTime = blockType.ExplosionTime;
         float explosionRange = blockType.ExplosionRange;
 
-        game.EntityAddLocal(new Entity
+        Game.EntityAddLocal(new Entity
         {
             push = new Packet_ServerExplosion
             {
-                XFloat = Game.EncodeFixedPoint(posX),
-                YFloat = Game.EncodeFixedPoint(posZ),
-                ZFloat = Game.EncodeFixedPoint(posY),
+                XFloat = EncodingHelper.EncodeFixedPoint(posX),
+                YFloat = EncodingHelper.EncodeFixedPoint(posZ),
+                ZFloat = EncodingHelper.EncodeFixedPoint(posY),
                 RangeFloat = (int)blockType.ExplosionRange,
                 IsRelativeToPlayerPosition = 0,
                 TimeFloat = (int)blockType.ExplosionTime
@@ -76,9 +76,9 @@ public class ModExpire : ModBase
         });
 
         // Apply damage to local player based on distance
-        float dist = Vector3.Distance(new Vector3(game.Player.position.x, game.Player.position.y, game.Player.position.z), new Vector3(posX, posY, posZ));
+        float dist = Vector3.Distance(new Vector3(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z), new Vector3(posX, posY, posZ));
         float dmg = (1f - dist / explosionRange) * blockType.DamageBody;
         if (dmg > 0)
-            game.ApplyDamageToPlayer((int)dmg, DeathReason.Explosion, grenade.sourcePlayer);
+            Game.ApplyDamageToPlayer((int)dmg, DeathReason.Explosion, grenade.sourcePlayer);
     }
 }

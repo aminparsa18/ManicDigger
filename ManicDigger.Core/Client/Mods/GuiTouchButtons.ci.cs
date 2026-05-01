@@ -47,7 +47,7 @@ public class ModGuiTouchButtons : GameScreen
     private readonly IGameService platform;
 
     /// <summary>Initialises all four touch buttons and assigns them to widget slots 0–3.</summary>
-    public ModGuiTouchButtons(IGameService platform) : base(platform)
+    public ModGuiTouchButtons(IGameService platform, IGame game) : base(platform, game)
     {
         this.game = game;
         this.platform = platform;
@@ -67,7 +67,7 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw2d(IGame game, float deltaTime)
+    public override void OnNewFrameDraw2d( float deltaTime)
     {
         if (!_touchButtonsEnabled) { return; }
 
@@ -94,7 +94,7 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnButton(IGame game, MenuWidget w)
+    public override void OnButton( MenuWidget w)
     {
         if (w == _buttonMenu) { game.ShowEscapeMenu(); }
         if (w == _buttonInventory) { game.ShowInventory(); }
@@ -116,13 +116,13 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnTouchStart(IGame game, TouchEventArgs e)
+    public override void OnTouchStart( TouchEventArgs e)
     {
         // First touch activates the button overlay.
         _touchButtonsEnabled = true;
 
         // Let the base class handle widget hit-testing via the overridden OnTouchStart.
-        base.OnTouchStart(game, e);
+        base.OnTouchStart(e);
         if (e.GetHandled()) { return; }
 
         bool isLeftSide = e.GetX() <= platform.CanvasWidth / 2;
@@ -181,9 +181,9 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnTouchEnd(IGame game, TouchEventArgs e)
+    public override void OnTouchEnd( TouchEventArgs e)
     {
-        base.OnTouchEnd(game, e);
+        base.OnTouchEnd(e);
         if (e.GetHandled()) { return; }
 
         if (e.GetId() == _touchIdMove)

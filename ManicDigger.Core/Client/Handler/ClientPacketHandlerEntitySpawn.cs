@@ -6,17 +6,17 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
 {
     private readonly IVoxelMap voxelMap;
 
-    public ClientPacketHandlerEntitySpawn(IGameService gameService, IVoxelMap voxelMap) : base(gameService)
+    public ClientPacketHandlerEntitySpawn(IGameService gameService, IVoxelMap voxelMap, IGame game) : base(gameService, game)
     {
         this.voxelMap = voxelMap;
     }
 
-    public override void Handle(IGame game, Packet_Server packet)
+    public override void Handle( Packet_Server packet)
     {
         int id = packet.EntitySpawn.Id;
         Entity entity = game.Entities[id] ?? new Entity();
 
-        ToClientEntity(game, packet.EntitySpawn.Entity_, entity,
+        ToClientEntity(packet.EntitySpawn.Entity_, entity,
             updatePosition: id != game.LocalPlayerId);
 
         game.Entities[id] = entity;
@@ -27,7 +27,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
             game.Player = entity;
             if (!game.Spawned)
             {
-                entity.scripts[entity.scriptsCount++] = new ScriptCharacterPhysics(game, voxelMap);
+                entity.scripts[entity.scriptsCount++] = new ScriptCharacterPhysics(voxelMap, game);
                 game.MapLoaded();
                 game.Spawned = true;
             }
@@ -61,7 +61,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
     /// <paramref name="old"/> entity object, allocating sub-objects only when
     /// the corresponding server field is present.
     /// </summary>
-    public Entity ToClientEntity(IGame game, Packet_ServerEntity entity, Entity old, bool updatePosition)
+    public Entity ToClientEntity( Packet_ServerEntity entity, Entity old, bool updatePosition)
     {
         if (entity.Position != null && (old.position == null || updatePosition))
         {
@@ -75,8 +75,8 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
         {
             old.drawModel = new EntityDrawModel
             {
-                eyeHeight = game.DecodeFixedPoint(entity.DrawModel.EyeHeight),
-                ModelHeight = game.DecodeFixedPoint(entity.DrawModel.ModelHeight),
+                eyeHeight = EncodingHelper.DecodeFixedPoint(entity.DrawModel.EyeHeight),
+                ModelHeight = EncodingHelper.DecodeFixedPoint(entity.DrawModel.ModelHeight),
                 Texture_ = entity.DrawModel.Texture_,
                 Model_ = entity.DrawModel.Model_ ?? "player.txt",
                 DownloadSkin = entity.DrawModel.DownloadSkin != 0,

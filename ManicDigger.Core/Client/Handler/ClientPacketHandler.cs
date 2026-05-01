@@ -5,12 +5,15 @@
 /// </summary>
 public abstract class ClientPacketHandler
 {
+    protected readonly IGame game;
     protected readonly IGameService gameService;
-    public ClientPacketHandler(IGameService gameService)
+
+    public ClientPacketHandler(IGameService gameService, IGame game)
     {
         this.gameService = gameService;
+        this.game = game;
     }
 
     /// <summary>Applies the effect of <paramref name="packet"/> to <paramref name="game"/>.</summary>
-    public abstract void Handle(IGame game, Packet_Server packet);
+    public abstract void Handle( Packet_Server packet);
 }

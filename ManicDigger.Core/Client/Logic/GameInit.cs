@@ -10,28 +10,6 @@ using System.Collections.Concurrent;
 public partial class Game : IGame
 {
     // -------------------------------------------------------------------------
-    // Constants
-    // -------------------------------------------------------------------------
-
-    public const int HourDetail = 4;
-    public const int ChatFontSize = 11;
-    public const int DISCONNECTED_ICON_AFTER_SECONDS = 10;
-
-    internal const int chunksize = 16;
-    internal const int chunksizebits = 4;
-    internal const int speculativeMax = 8 * 1024;
-
-    public const int minlight = 0;
-    public const int maxlight = 15;
-
-    public const int entityMonsterIdStart = 128;
-    public const int entityMonsterIdCount = 128;
-    public const int entityLocalIdStart = 256;
-
-    public const int KeyAltLeft = 5;
-    public const int KeyAltRight = 6;
-
-    // -------------------------------------------------------------------------
     // Platform & core subsystems
     // -------------------------------------------------------------------------
 
@@ -48,7 +26,7 @@ public partial class Game : IGame
     public ServerInformation ServerInfo { get; set; }
     private Dictionary<string, string> performanceinfo;
     private TaskScheduler taskScheduler;
-    public ConcurrentQueue<Action<IGame>> CommitActions { get; set; }
+    public ConcurrentQueue<Action> CommitActions { get; set; }
 
     // -------------------------------------------------------------------------
     // Rendering / textures
@@ -69,8 +47,8 @@ public partial class Game : IGame
     internal int maxTextureSize;
     internal int Atlas1dheight() => maxTextureSize;
 
-    internal static int TexturesPacked => GlobalVar.MAX_BLOCKTYPES_SQRT;
-    internal static int Atlas2DTiles => GlobalVar.MAX_BLOCKTYPES_SQRT;
+    internal static int TexturesPacked => GameConstants.MAX_BLOCKTYPES_SQRT;
+    internal static int Atlas2DTiles => GameConstants.MAX_BLOCKTYPES_SQRT;
 
     public int handTexture { get; set; }
     public bool HandRedraw { get; set; }
@@ -326,7 +304,7 @@ public partial class Game : IGame
     private readonly IFrustumCulling FrustumCulling;
 
     public List<Entity> Entities { get; set; }
-    private IReadOnlyList<IModBase> clientMods => modRegistry.Mods;
+    private IReadOnlyList<IModBase> ClientMods => modRegistry.Mods;
     public TerrainChunkTesselator TerrainChunkTesselator { get; set; }
     private readonly IMeshBatcher Batcher;
     private readonly IMeshDrawer meshDrawer;
@@ -470,8 +448,8 @@ public partial class Game : IGame
         AudioEnabled = true;
         AutoJumpEnabled = false;
 
-        TotalAmmo = new int[GlobalVar.MAX_BLOCKTYPES];
-        LoadedAmmo = new int[GlobalVar.MAX_BLOCKTYPES];
+        TotalAmmo = new int[GameConstants.MAX_BLOCKTYPES];
+        LoadedAmmo = new int[GameConstants.MAX_BLOCKTYPES];
         blockHealth = [];
         Dialogs = new VisibleDialog[512];
         TypingLog = [];
@@ -530,7 +508,7 @@ public partial class Game : IGame
         PacketHandlers = new ClientPacketHandler[256];
         NewBlockTypes = [];
         speculativeCount = 0;
-        speculative = new Speculative?[speculativeMax];
+        speculative = new Speculative?[GameConstants.speculativeMax];
     }
 
     private void InitChat()

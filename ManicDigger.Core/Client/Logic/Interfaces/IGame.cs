@@ -28,10 +28,10 @@ public interface IGame : IDisposable
     Dictionary<string, string> PerformanceInfo { get; }
 
     /// <summary>Thread-safe queue of actions to run on the main/commit thread.</summary>
-    ConcurrentQueue<Action<IGame>> CommitActions { get; set; }
+    ConcurrentQueue<Action> CommitActions { get; set; }
 
     /// <summary>Enqueues an action to be executed on the main commit thread.</summary>
-    void QueueActionCommit(Action<IGame> action);
+    void QueueActionCommit(Action action);
 
     // =========================================================================
     // Frame / update loop
@@ -652,12 +652,12 @@ public interface IGame : IDisposable
 
     void KeyDown(KeyEventArgs eKey);
 
-    void KeyUp(IGame game, KeyEventArgs eKey);
-    void KeyPress(IGame game, KeyPressEventArgs eKeyChar);
+    void KeyUp( KeyEventArgs eKey);
+    void KeyPress( KeyPressEventArgs eKeyChar);
     void OnTouchStart(TouchEventArgs e);
     void OnTouchMove(TouchEventArgs e);
-    void OnTouchEnd(IGame game, TouchEventArgs e);
-    void MouseWheelChanged(IGame game, MouseWheelEventArgs e);
+    void OnTouchEnd( TouchEventArgs e);
+    void MouseWheelChanged( MouseWheelEventArgs e);
     void MouseDown(MouseEventArgs args);
     void MouseMove(MouseEventArgs e);
     void MouseUp(MouseEventArgs e);
@@ -865,9 +865,6 @@ public interface IGame : IDisposable
 
     /// <summary>Sends a leave notification to the server.</summary>
     void SendLeave(PacketLeaveReason reason);
-
-    /// <summary>Decodes a fixed-point integer to a float.</summary>
-    float DecodeFixedPoint(int value);
 
     /// <summary>Number of milliseconds since the last server packet was received.</summary>
     int LastReceivedMilliseconds { get; set; }

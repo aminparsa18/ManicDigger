@@ -37,7 +37,6 @@ public class ModAutoCamera : ModBase
 
     // ── Dependencies ──────────────────────────────────────────────────────────
 
-    private readonly IGame _game;
     private readonly IGameService _platform;
 
     // ── Waypoint storage ──────────────────────────────────────────────────────
@@ -111,7 +110,7 @@ public class ModAutoCamera : ModBase
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ModAutoCamera(IGameService platform)
+    public ModAutoCamera(IGameService platform, IGame game): base(game)
     {
         _platform = platform;
     }
@@ -119,7 +118,7 @@ public class ModAutoCamera : ModBase
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
     /// <inheritdoc/>
-    public override bool OnClientCommand(IGame _game, ClientCommandArgs args)
+    public override bool OnClientCommand(ClientCommandArgs args)
     {
         if (args.Command != "cam")
             return false;
@@ -145,12 +144,12 @@ public class ModAutoCamera : ModBase
                 break;
 
             case "stop":
-                _game.AddChatLine("Camera stopped.");
+                Game.AddChatLine("Camera stopped.");
                 Stop();
                 break;
 
             case "clear":
-                _game.AddChatLine("Camera points cleared.");
+                Game.AddChatLine("Camera points cleared.");
                 _cameraPointsCount = 0;
                 Stop();
                 break;
@@ -169,7 +168,7 @@ public class ModAutoCamera : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame(IGame game, float dt)
+    public override void OnNewFrame(float dt)
     {
         if (!_isPlaying) return;
 
@@ -205,14 +204,14 @@ public class ModAutoCamera : ModBase
     /// <summary>Displays the in-game help text for all <c>.cam</c> sub-commands.</summary>
     private void PrintHelp()
     {
-        _game.AddChatLine("&6AutoCamera help.");
-        _game.AddChatLine("&6.cam p&f - add a point to path");
-        _game.AddChatLine("&6.cam start [real seconds]&f - play the path");
-        _game.AddChatLine("&6.cam rec [real seconds] [video seconds]&f - play and record to .avi file");
-        _game.AddChatLine("&6.cam stop&f - stop playing and recording");
-        _game.AddChatLine("&6.cam clear&f - remove all points from path");
-        _game.AddChatLine("&6.cam save&f - copy path points to clipboard");
-        _game.AddChatLine("&6.cam load [points]&f - load path points");
+        Game.AddChatLine("&6AutoCamera help.");
+        Game.AddChatLine("&6.cam p&f - add a point to path");
+        Game.AddChatLine("&6.cam start [real seconds]&f - play the path");
+        Game.AddChatLine("&6.cam rec [real seconds] [video seconds]&f - play and record to .avi file");
+        Game.AddChatLine("&6.cam stop&f - stop playing and recording");
+        Game.AddChatLine("&6.cam clear&f - remove all points from path");
+        Game.AddChatLine("&6.cam save&f - copy path points to clipboard");
+        Game.AddChatLine("&6.cam load [points]&f - load path points");
     }
 
     /// <summary>
@@ -222,14 +221,14 @@ public class ModAutoCamera : ModBase
     {
         _cameraPoints[_cameraPointsCount++] = new CameraPoint
         {
-            PositionGlX = _game.LocalPositionX,
-            PositionGlY = _game.LocalPositionY,
-            PositionGlZ = _game.LocalPositionZ,
-            OrientationGlX = _game.LocalOrientationX,
-            OrientationGlY = _game.LocalOrientationY,
-            OrientationGlZ = _game.LocalOrientationZ,
+            PositionGlX = Game.LocalPositionX,
+            PositionGlY = Game.LocalPositionY,
+            PositionGlZ = Game.LocalPositionZ,
+            OrientationGlX = Game.LocalOrientationX,
+            OrientationGlY = Game.LocalOrientationY,
+            OrientationGlZ = Game.LocalOrientationZ,
         };
-        _game.AddChatLine("Point defined.");
+        Game.AddChatLine("Point defined.");
     }
 
     /// <summary>
@@ -238,15 +237,15 @@ public class ModAutoCamera : ModBase
     /// </summary>
     private void StartPlayback(string[] arguments)
     {
-        if (!_game.AllowFreeMove)
+        if (!Game.AllowFreeMove)
         {
-            _game.AddChatLine("Free move not allowed.");
+            Game.AddChatLine("Free move not allowed.");
             return;
         }
 
         if (_cameraPointsCount == 0)
         {
-            _game.AddChatLine("No points defined. Enter points with \".cam p\" command.");
+            Game.AddChatLine("No points defined. Enter points with \".cam p\" command.");
             return;
         }
 
@@ -260,7 +259,7 @@ public class ModAutoCamera : ModBase
                 // ── Fix #5: TryParse instead of Parse ─────────────────────────
                 if (!float.TryParse(arguments[2], out totalRecTime))
                 {
-                    _game.AddChatLine("Invalid video duration. Usage: .cam rec [real seconds] [video seconds]");
+                    Game.AddChatLine("Invalid video duration. Usage: .cam rec [real seconds] [video seconds]");
                     return;
                 }
             }
@@ -278,7 +277,7 @@ public class ModAutoCamera : ModBase
             // ── Fix #5: TryParse instead of Parse ─────────────────────────────
             if (!float.TryParse(arguments[1], out float totalTime))
             {
-                _game.AddChatLine("Invalid duration. Usage: .cam start [real seconds]");
+                Game.AddChatLine("Invalid duration. Usage: .cam start [real seconds]");
                 _avi?.Close();
                 _avi = null;
                 return;
@@ -304,17 +303,17 @@ public class ModAutoCamera : ModBase
         _isPlaying = true;
 
         // Save current camera state so it can be restored when playback ends.
-        _previousPositionX = _game.LocalPositionX;
-        _previousPositionY = _game.LocalPositionY;
-        _previousPositionZ = _game.LocalPositionZ;
-        _previousOrientationX = _game.LocalOrientationX;
-        _previousOrientationY = _game.LocalOrientationY;
-        _previousOrientationZ = _game.LocalOrientationZ;
+        _previousPositionX = Game.LocalPositionX;
+        _previousPositionY = Game.LocalPositionY;
+        _previousPositionZ = Game.LocalPositionZ;
+        _previousOrientationX = Game.LocalOrientationX;
+        _previousOrientationY = Game.LocalOrientationY;
+        _previousOrientationZ = Game.LocalOrientationZ;
 
-        _game.EnableDraw2d = false;
-        _previousFreemove = _game.FreemoveLevel;
-        _game.FreemoveLevel = FreemoveLevel.Noclip;
-        _game.EnableCameraControl = false;
+        Game.EnableDraw2d = false;
+        _previousFreemove = Game.FreemoveLevel;
+        Game.FreemoveLevel = FreemoveLevel.Noclip;
+        Game.EnableCameraControl = false;
     }
 
     /// <summary>
@@ -342,7 +341,7 @@ public class ModAutoCamera : ModBase
                 sb.Append(',');
         }
         Clipboard.SetText(sb.ToString());
-        _game.AddChatLine("Camera points copied to clipboard.");
+        Game.AddChatLine("Camera points copied to clipboard.");
     }
 
     /// <summary>
@@ -369,7 +368,7 @@ public class ModAutoCamera : ModBase
             };
         }
 
-        _game.AddChatLine($"Camera points loaded: {n}");
+        Game.AddChatLine($"Camera points loaded: {n}");
     }
 
     /// <summary>
@@ -379,18 +378,18 @@ public class ModAutoCamera : ModBase
     /// </summary>
     private void Stop()
     {
-        _game.EnableDraw2d = true;
-        _game.EnableCameraControl = true;
+        Game.EnableDraw2d = true;
+        Game.EnableCameraControl = true;
 
         if (_isPlaying)
         {
-            _game.FreemoveLevel = _previousFreemove;
-            _game.LocalPositionX = _previousPositionX;
-            _game.LocalPositionY = _previousPositionY;
-            _game.LocalPositionZ = _previousPositionZ;
-            _game.LocalOrientationX = _previousOrientationX;
-            _game.LocalOrientationY = _previousOrientationY;
-            _game.LocalOrientationZ = _previousOrientationZ;
+            Game.FreemoveLevel = _previousFreemove;
+            Game.LocalPositionX = _previousPositionX;
+            Game.LocalPositionY = _previousPositionY;
+            Game.LocalPositionZ = _previousPositionZ;
+            Game.LocalOrientationX = _previousOrientationX;
+            Game.LocalOrientationY = _previousOrientationY;
+            Game.LocalOrientationZ = _previousOrientationZ;
         }
 
         // ── Fix #3: bool flag instead of sentinel float ───────────────────────
@@ -416,13 +415,13 @@ public class ModAutoCamera : ModBase
 
         float t = (playingDist - segmentStartDist) / Distance(a, b);
 
-        _game.LocalPositionX = CatmullRom(t, aMinus.PositionGlX, a.PositionGlX, b.PositionGlX, bPlus.PositionGlX);
-        _game.LocalPositionY = CatmullRom(t, aMinus.PositionGlY, a.PositionGlY, b.PositionGlY, bPlus.PositionGlY);
-        _game.LocalPositionZ = CatmullRom(t, aMinus.PositionGlZ, a.PositionGlZ, b.PositionGlZ, bPlus.PositionGlZ);
+        Game.LocalPositionX = CatmullRom(t, aMinus.PositionGlX, a.PositionGlX, b.PositionGlX, bPlus.PositionGlX);
+        Game.LocalPositionY = CatmullRom(t, aMinus.PositionGlY, a.PositionGlY, b.PositionGlY, bPlus.PositionGlY);
+        Game.LocalPositionZ = CatmullRom(t, aMinus.PositionGlZ, a.PositionGlZ, b.PositionGlZ, bPlus.PositionGlZ);
 
-        _game.LocalOrientationX = CatmullRom(t, aMinus.OrientationGlX, a.OrientationGlX, b.OrientationGlX, bPlus.OrientationGlX);
-        _game.LocalOrientationY = CatmullRom(t, aMinus.OrientationGlY, a.OrientationGlY, b.OrientationGlY, bPlus.OrientationGlY);
-        _game.LocalOrientationZ = CatmullRom(t, aMinus.OrientationGlZ, a.OrientationGlZ, b.OrientationGlZ, bPlus.OrientationGlZ);
+        Game.LocalOrientationX = CatmullRom(t, aMinus.OrientationGlX, a.OrientationGlX, b.OrientationGlX, bPlus.OrientationGlX);
+        Game.LocalOrientationY = CatmullRom(t, aMinus.OrientationGlY, a.OrientationGlY, b.OrientationGlY, bPlus.OrientationGlY);
+        Game.LocalOrientationZ = CatmullRom(t, aMinus.OrientationGlZ, a.OrientationGlZ, b.OrientationGlZ, bPlus.OrientationGlZ);
     }
 
     /// <summary>

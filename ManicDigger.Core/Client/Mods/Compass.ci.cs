@@ -16,16 +16,16 @@ public class ModCompass : ModBase
     private readonly IGameService platform;
     private readonly IMeshDrawer meshDrawer;
 
-    public ModCompass(IGameService platform, IMeshDrawer meshDrawer)
+    public ModCompass(IGameService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
     }
 
-    public override void OnNewFrameDraw2d(IGame game, float dt)
+    public override void OnNewFrameDraw2d( float dt)
     {
-        if (game.GuiState == GuiState.MapLoading) return;
-        DrawCompass(game);
+        if (Game.GuiState == GuiState.MapLoading) return;
+        DrawCompass(Game);
     }
 
     private bool CompassInActiveMaterials(IGame game)

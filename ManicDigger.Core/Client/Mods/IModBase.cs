@@ -2,26 +2,26 @@
 
 public interface IModBase : IDisposable
 {
-    void OnBeforeNewFrameDraw3d(IGame game, float deltaTime);
-    bool OnClientCommand(IGame _game, ClientCommandArgs args);
-    void OnHitEntity(IGame game, OnUseEntityArgs e);
-    void OnKeyDown(IGame game, KeyEventArgs args);
-    void OnKeyPress(IGame game, KeyPressEventArgs args);
-    void OnKeyUp(IGame _game, KeyEventArgs args);
-    void OnMouseDown(IGame game, MouseEventArgs args);
+    void OnBeforeNewFrameDraw3d(float deltaTime);
+    bool OnClientCommand(ClientCommandArgs args);
+    void OnHitEntity(OnUseEntityArgs e);
+    void OnKeyDown(KeyEventArgs args);
+    void OnKeyPress(KeyPressEventArgs args);
+    void OnKeyUp(KeyEventArgs args);
+    void OnMouseDown(MouseEventArgs args);
     void OnMouseMove(MouseEventArgs args);
-    void OnMouseUp(IGame game, MouseEventArgs args);
-    void OnMouseWheelChanged(IGame game, MouseWheelEventArgs args);
-    void OnNewFrame(IGame game, float args);
-    void OnNewFrameDraw2d(IGame game, float deltaTime);
-    void OnNewFrameDraw3d(IGame _game, float deltaTime);
-    void OnNewFrameFixed(IGame game, float args);
-    void OnNewFrameReadOnlyMainThread(IGame game, float deltaTime);
-    void OnReadOnlyBackgroundThread(IGame game, float dt);
-    void OnReadOnlyMainThread(IGame game, float dt);
+    void OnMouseUp(MouseEventArgs args);
+    void OnMouseWheelChanged(MouseWheelEventArgs args);
+    void OnNewFrame(float args);
+    void OnNewFrameDraw2d(float deltaTime);
+    void OnNewFrameDraw3d(float deltaTime);
+    void OnNewFrameFixed(float args);
+    void OnNewFrameReadOnlyMainThread(float deltaTime);
+    void OnReadOnlyBackgroundThread(float dt);
+    void OnReadOnlyMainThread(float dt);
     void OnReadWriteMainThread(float dt);
-    void OnTouchEnd(IGame game, TouchEventArgs e);
+    void OnTouchEnd(TouchEventArgs e);
     void OnTouchMove(TouchEventArgs e);
-    void OnTouchStart(IGame game, TouchEventArgs e);
-    void OnUseEntity(IGame game, OnUseEntityArgs e);
+    void OnTouchStart(TouchEventArgs e);
+    void OnUseEntity(OnUseEntityArgs e);
 }

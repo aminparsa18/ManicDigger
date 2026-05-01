@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents the voxel world, storing block data in a sparse grid of <see cref="Chunk"/> objects.
 /// Block-space coordinates are in individual block units; chunk coordinates are derived by
-/// dividing by <see cref="Game.chunksize"/> (or right-shifting by <see cref="Game.chunksizebits"/>).
+/// dividing by <see cref="GameConstants.CHUNK_SIZE"/> (or right-shifting by <see cref="GameConstants.chunksizebits"/>).
 /// </summary>
 public class VoxelMap : IVoxelMap
 {
@@ -30,17 +30,17 @@ public class VoxelMap : IVoxelMap
     /// </summary>
     public int GetBlockValid(int x, int y, int z)
     {
-        int cx = x >> Game.chunksizebits;
-        int cy = y >> Game.chunksizebits;
-        int cz = z >> Game.chunksizebits;
-        int chunkpos = Index3d(cx, cy, cz, MapSizeX >> Game.chunksizebits, MapSizeY >> Game.chunksizebits);
+        int cx = x >> GameConstants.chunksizebits;
+        int cy = y >> GameConstants.chunksizebits;
+        int cz = z >> GameConstants.chunksizebits;
+        int chunkpos = Index3d(cx, cy, cz, MapSizeX >> GameConstants.chunksizebits, MapSizeY >> GameConstants.chunksizebits);
         if (Chunks[chunkpos] == null)
         {
             return 0;
         }
         else
         {
-            int pos = Index3d(x & (Game.chunksize - 1), y & (Game.chunksize - 1), z & (Game.chunksize - 1), Game.chunksize, Game.chunksize);
+            int pos = Index3d(x & (GameConstants.CHUNK_SIZE - 1), y & (GameConstants.CHUNK_SIZE - 1), z & (GameConstants.CHUNK_SIZE - 1), GameConstants.CHUNK_SIZE, GameConstants.CHUNK_SIZE);
             return Chunks[chunkpos].GetBlock(pos);
         }
     }
@@ -53,9 +53,9 @@ public class VoxelMap : IVoxelMap
     {
         if (x < 0 || y < 0 || z < 0)
             Console.WriteLine($"[WARN] GetChunk negative input: ({x}, {y}, {z})");
-        x >>= Game.chunksizebits;
-        y >>= Game.chunksizebits;
-        z >>= Game.chunksizebits;
+        x >>= GameConstants.chunksizebits;
+        y >>= GameConstants.chunksizebits;
+        z >>= GameConstants.chunksizebits;
         return GetChunkAt(x, y, z);
     }
 
@@ -66,7 +66,7 @@ public class VoxelMap : IVoxelMap
     /// </summary>
     public Chunk GetChunkAt(int cx, int cy, int cz)
     {
-        int csBits = Game.chunksizebits;
+        int csBits = GameConstants.chunksizebits;
         int mapsizexchunks = MapSizeX >> csBits;
         int mapsizeychunks = MapSizeY >> csBits;
         int flatIndex = Index3d(cx, cy, cz, mapsizexchunks, mapsizeychunks);
@@ -74,7 +74,7 @@ public class VoxelMap : IVoxelMap
 
         if (chunk == null)
         {
-            int n = Game.chunksize * Game.chunksize * Game.chunksize;
+            int n = GameConstants.CHUNK_SIZE * GameConstants.CHUNK_SIZE * GameConstants.CHUNK_SIZE;
 
             // Rent from the shared pool; Rent(n) may return a larger array — always use n as the
             // logical size. Clear before use because the pool may return dirty memory.
@@ -103,13 +103,13 @@ public class VoxelMap : IVoxelMap
     public void SetBlockRaw(int x, int y, int z, int tileType)
     {
         Chunk chunk = GetChunk(x, y, z);
-        int pos = Index3d(x & (Game.chunksize - 1), y & (Game.chunksize - 1), z & (Game.chunksize - 1), Game.chunksize, Game.chunksize);
+        int pos = Index3d(x & (GameConstants.CHUNK_SIZE - 1), y & (GameConstants.CHUNK_SIZE - 1), z & (GameConstants.CHUNK_SIZE - 1), GameConstants.CHUNK_SIZE, GameConstants.CHUNK_SIZE);
         chunk.SetBlock(pos, tileType);
     }
 
     /// <summary>
     /// Reinitialises the map with new dimensions, discarding all existing chunk data.
-    /// All sizes must be exact multiples of <see cref="Game.chunksize"/>.
+    /// All sizes must be exact multiples of <see cref="GameConstants.CHUNK_SIZE"/>.
     /// </summary>
     /// <remarks>
     /// Every live chunk's pooled arrays are returned to <see cref="ArrayPool{T}.Shared"/>
@@ -130,7 +130,7 @@ public class VoxelMap : IVoxelMap
         MapSizeX = sizex;
         MapSizeY = sizey;
         MapSizeZ = sizez;
-        Chunks = new Chunk[sizex / Game.chunksize * (sizey / Game.chunksize) * (sizez / Game.chunksize)];
+        Chunks = new Chunk[sizex / GameConstants.CHUNK_SIZE * (sizey / GameConstants.CHUNK_SIZE) * (sizez / GameConstants.CHUNK_SIZE)];
     }
 
     /// <summary>
@@ -140,8 +140,8 @@ public class VoxelMap : IVoxelMap
     /// </summary>
     public void GetMapPortion(int[] outPortion, int x, int y, int z, int portionsizex, int portionsizey, int portionsizez)
     {
-        int csBits = Game.chunksizebits;
-        int cs = Game.chunksize;
+        int csBits = GameConstants.chunksizebits;
+        int cs = GameConstants.CHUNK_SIZE;
         int mapchunksx = MapSizeX >> csBits;
         int mapchunksy = MapSizeY >> csBits;
         int mapsizechunks = mapchunksx * mapchunksy * (MapSizeZ >> csBits);
@@ -217,9 +217,9 @@ public class VoxelMap : IVoxelMap
     public bool IsValidChunkPos(int cx, int cy, int cz)
     {
         return cx >= 0 && cy >= 0 && cz >= 0
-            && cx < MapSizeX / Game.chunksize
-            && cy < MapSizeY / Game.chunksize
-            && cz < MapSizeZ / Game.chunksize;
+            && cx < MapSizeX / GameConstants.CHUNK_SIZE
+            && cy < MapSizeY / GameConstants.CHUNK_SIZE
+            && cz < MapSizeZ / GameConstants.CHUNK_SIZE;
     }
 
     /// <summary>
@@ -254,13 +254,13 @@ public class VoxelMap : IVoxelMap
     }
 
     /// <summary>Width of the map measured in chunks.</summary>
-    public int Mapsizexchunks => MapSizeX >> Game.chunksizebits;
+    public int Mapsizexchunks => MapSizeX >> GameConstants.chunksizebits;
 
     /// <summary>Depth of the map measured in chunks.</summary>
-    public int Mapsizeychunks => MapSizeY >> Game.chunksizebits;
+    public int Mapsizeychunks => MapSizeY >> GameConstants.chunksizebits;
 
     /// <summary>Height of the map measured in chunks.</summary>
-    public int Mapsizezchunks => MapSizeZ >> Game.chunksizebits;
+    public int Mapsizezchunks => MapSizeZ >> GameConstants.chunksizebits;
 
     /// <summary>
     /// Marks the six face-adjacent neighbour chunks of the chunk at the given chunk-space coordinates
@@ -283,8 +283,8 @@ public class VoxelMap : IVoxelMap
     /// </summary>
     public void SetMapPortion(int x, int y, int z, int[] chunk, int sizeX, int sizeY, int sizeZ)
     {
-        int cs = Game.chunksize;
-        int csBits = Game.chunksizebits;
+        int cs = GameConstants.CHUNK_SIZE;
+        int csBits = GameConstants.chunksizebits;
         int chunksX = sizeX >> csBits;
         int chunksY = sizeY >> csBits;
         int chunksZ = sizeZ >> csBits;
@@ -324,7 +324,7 @@ public class VoxelMap : IVoxelMap
     /// </summary>
     private static void FillChunk(Chunk destination, int dcs, int srcX, int srcY, int srcZ, int[] source, int srcSizeX, int srcSizeY, int srcSizeZ)
     {
-        int csBits = Game.chunksizebits;
+        int csBits = GameConstants.chunksizebits;
 
         for (int z = 0; z < dcs; z++)
         {
@@ -351,9 +351,9 @@ public class VoxelMap : IVoxelMap
     {
         if (!IsValidPos(x, y, z)) return -1;
 
-        int csBits = Game.chunksizebits;
-        int csMask = Game.chunksize - 1;
-        int lightCS = Game.chunksize + 2; // light array stride with padding
+        int csBits = GameConstants.chunksizebits;
+        int csMask = GameConstants.CHUNK_SIZE - 1;
+        int lightCS = GameConstants.CHUNK_SIZE + 2; // light array stride with padding
 
         int cx = x >> csBits;
         int cy = y >> csBits;
@@ -377,7 +377,7 @@ public class VoxelMap : IVoxelMap
     /// </summary>
     public void SetBlockDirty(int x, int y, int z)
     {
-        int csBits = Game.chunksizebits;
+        int csBits = GameConstants.chunksizebits;
 
         // center + 6 neighbors
         Span<(int x, int y, int z)> offsets =

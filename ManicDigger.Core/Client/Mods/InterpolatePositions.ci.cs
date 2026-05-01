@@ -7,31 +7,31 @@ public class ModInterpolatePositions : ModBase
     private const int MinDelayMs = 100;
 
 
-    public ModInterpolatePositions()
+    public ModInterpolatePositions(IGame game) : base(game)
     {
     }
 
-    public override void OnNewFrame(IGame game, float dt)
+    public override void OnNewFrame( float dt)
     {
-        InterpolatePositions(game);
+        InterpolatePositions();
     }
 
-    internal void InterpolatePositions(IGame game)
+    internal void InterpolatePositions()
     {
-        for (int i = 0; i < game.Entities.Count; i++)
+        for (int i = 0; i < Game.Entities.Count; i++)
         {
-            Entity e = game.Entities[i];
+            Entity e = Game.Entities[i];
             if (e?.networkPosition == null) continue;
-            if (i == game.LocalPlayerId) continue;
+            if (i == Game.LocalPlayerId) continue;
             if (!e.networkPosition.PositionLoaded) continue;
 
             e.playerDrawInfo ??= new PlayerDrawInfo();
             EnsureInterpolation(e);
 
             e.playerDrawInfo.interpolation.DelayMilliseconds =
-                Math.Max(MinDelayMs, game.ServerInfo.ServerPing.RoundtripMilliseconds);
+                Math.Max(MinDelayMs, Game.ServerInfo.ServerPing.RoundtripMilliseconds);
 
-            UpdateInterpolation(game, i, e);
+            UpdateInterpolation(i, e);
         }
     }
 
@@ -51,7 +51,7 @@ public class ModInterpolatePositions : ModBase
         };
     }
 
-    private void UpdateInterpolation(IGame game, int entityId, Entity e)
+    private void UpdateInterpolation( int entityId, Entity e)
     {
         PlayerDrawInfo info = e.playerDrawInfo;
         EntityPosition_ net = e.networkPosition;
@@ -77,21 +77,12 @@ public class ModInterpolatePositions : ModBase
                 rotx = float.RadiansToDegrees(net.rotx),
                 roty = float.RadiansToDegrees(net.roty),
                 rotz = float.RadiansToDegrees(net.rotz),
-            }, game.TotalTimeMilliseconds);
+            }, Game.TotalTimeMilliseconds);
         }
 
         PlayerInterpolationState cur =
-          (PlayerInterpolationState)info.interpolation.InterpolatedState(game.TotalTimeMilliseconds)
+          (PlayerInterpolationState)info.interpolation.InterpolatedState(Game.TotalTimeMilliseconds)
             ?? new PlayerInterpolationState();
-
-        // Bypass interpolation if the game world is controlling this entity's position.
-        if (Game.EnablePlayerUpdatePositionContainsKey(entityId)
-         && !Game.EnablePlayerUpdatePosition(entityId))
-        {
-            cur.positionX = net.x;
-            cur.positionY = net.y;
-            cur.positionZ = net.z;
-        }
 
         info.Velocity = new(
             cur.positionX - info.lastcurposX,

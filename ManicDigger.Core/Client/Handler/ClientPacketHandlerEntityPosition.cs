@@ -5,11 +5,11 @@
 /// </summary>
 public class ClientPacketHandlerEntityPosition : ClientPacketHandler
 {
-    public ClientPacketHandlerEntityPosition(IGameService gameService) : base(gameService)
+    public ClientPacketHandlerEntityPosition(IGameService gameService, IGame game) : base(gameService, game)
     {
     }
 
-    public override void Handle(IGame game, Packet_Server packet)
+    public override void Handle( Packet_Server packet)
     {
         int id = packet.EntityPosition.Id;
         Entity entity = game.Entities[id];

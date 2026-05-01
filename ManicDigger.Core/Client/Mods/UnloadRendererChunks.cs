@@ -8,12 +8,11 @@
 public class ModUnloadRendererChunks : ModBase
 {
     /// <summary>Reference to the current game instance, refreshed every background tick.</summary>
-    private readonly IGame _game;
     private readonly IVoxelMap _voxelMap;
     private readonly IMeshBatcher meshBatcher;
 
     private int _pendingUnloadIndex = -1;
-    private readonly Action<IGame> _unloadAction;
+    private readonly Action _unloadAction;
 
     /// <summary>Edge length of one chunk in blocks.</summary>
     private int _chunkSize;
@@ -39,9 +38,8 @@ public class ModUnloadRendererChunks : ModBase
     /// <summary>Reusable output for <see cref="VectorIndexUtil.PosInt"/> to avoid per-frame allocation.</summary>
     private Vector3i _unloadXyzTemp;
 
-    public ModUnloadRendererChunks(IGame game, IVoxelMap voxelMap, IMeshBatcher meshBatcher)
+    public ModUnloadRendererChunks(IVoxelMap voxelMap, IMeshBatcher meshBatcher, IGame game) : base(game)
     {
-        _game = game;
         _voxelMap = voxelMap;
         this.meshBatcher = meshBatcher;
         _unloadXyzTemp = new Vector3i();
@@ -66,7 +64,7 @@ public class ModUnloadRendererChunks : ModBase
     /// Passing <c>-1</c> is a no-op.
     /// </param>
     /// <returns>An <see cref="Action"/> safe to enqueue via <see cref="Game.QueueActionCommit"/>.</returns>
-    private void ExecuteUnload(IGame game)
+    private void ExecuteUnload()
     {
         int chunkFlatIndex = _pendingUnloadIndex;
         if (chunkFlatIndex == -1) return;
@@ -94,7 +92,7 @@ public class ModUnloadRendererChunks : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnReadOnlyBackgroundThread(IGame game, float dt)
+    public override void OnReadOnlyBackgroundThread( float dt)
     {
         RefreshChunkGridDimensions();
 
@@ -115,9 +113,9 @@ public class ModUnloadRendererChunks : ModBase
         }
 
         // Compute the view-distance box in chunk coordinates.
-        int px = (int)(_game.LocalPositionX * _invertedChunk);
-        int py = (int)(_game.LocalPositionZ * _invertedChunk);
-        int pz = (int)(_game.LocalPositionY * _invertedChunk);
+        int px = (int)(Game.LocalPositionX * _invertedChunk);
+        int py = (int)(Game.LocalPositionZ * _invertedChunk);
+        int pz = (int)(Game.LocalPositionY * _invertedChunk);
 
         int halfXY = (int)(MapAreaSize() * _invertedChunk * 0.5f);
         int halfZ = (int)(MapAreaSizeZ() * _invertedChunk * 0.5f);
@@ -169,7 +167,7 @@ public class ModUnloadRendererChunks : ModBase
              || x > endX || y > endY || z > endZ)
             {
                 _pendingUnloadIndex = flatIndex;
-                _game.QueueActionCommit(_unloadAction);
+                Game.QueueActionCommit(_unloadAction);
                 // Rate-limit only for rendered chunks (GPU removal needed).
                 // Data-only chunks are CPU-only and cheap — continue scanning
                 // so we can drain multiple per tick and keep pace with the
@@ -196,7 +194,7 @@ public class ModUnloadRendererChunks : ModBase
     /// </summary>
     private void RefreshChunkGridDimensions()
     {
-        _chunkSize = Game.chunksize;
+        _chunkSize = GameConstants.CHUNK_SIZE;
         _invertedChunk = 1.0f / _chunkSize;
         _mapSizeXChunks = (int)(_voxelMap.MapSizeX * _invertedChunk);
         _mapSizeYChunks = (int)(_voxelMap.MapSizeY * _invertedChunk);
@@ -204,7 +202,7 @@ public class ModUnloadRendererChunks : ModBase
     }
 
     /// <summary>View-distance-based side length of the active area in blocks.</summary>
-    private int MapAreaSize() => (int)_game.Config3d.ViewDistance * 2;
+    private int MapAreaSize() => (int)Game.Config3d.ViewDistance * 2;
 
     /// <summary>Vertical counterpart of <see cref="MapAreaSize"/>.</summary>
     private int MapAreaSizeZ() => MapAreaSize();

@@ -128,7 +128,7 @@ public partial class Game
     public void SetBlock(int x, int y, int z, int tileType)
     {
         voxelMap.SetBlockRaw(x, y, z, tileType);
-        voxelMap.SetChunkDirty(x / chunksize, y / chunksize, z / chunksize, true, true);
+        voxelMap.SetChunkDirty(x / GameConstants.CHUNK_SIZE, y / GameConstants.CHUNK_SIZE, z / GameConstants.CHUNK_SIZE, true, true);
         ShadowsOnSetBlock(x, y, z);
         LastplacedblockX = x;
         LastplacedblockY = y;
@@ -165,7 +165,7 @@ public partial class Game
          && z >= Heightmap.GetBlock(x, y))
             return Sunlight;
 
-        return minlight;
+        return GameConstants.minlight;
     }
 
     /// <summary>
@@ -221,8 +221,8 @@ public partial class Game
         int max = Math.Max(oldheight, newheight);
         for (int i = min; i < max; i++)
         {
-            if (i / chunksize != z / chunksize)
-                voxelMap.SetChunkDirty(x / chunksize, y / chunksize, i / chunksize, true, true);
+            if (i / GameConstants.CHUNK_SIZE != z / GameConstants.CHUNK_SIZE)
+                voxelMap.SetChunkDirty(x / GameConstants.CHUNK_SIZE, y / GameConstants.CHUNK_SIZE, i / GameConstants.CHUNK_SIZE, true, true);
         }
 
         // TODO (#7): too many redraws — placing a block currently updates 27 chunks,
@@ -231,9 +231,9 @@ public partial class Game
             for (int yy = 0; yy < 3; yy++)
                 for (int zz = 0; zz < 3; zz++)
                 {
-                    int cx = x / chunksize + xx - 1;
-                    int cy = y / chunksize + yy - 1;
-                    int cz = z / chunksize + zz - 1;
+                    int cx = x / GameConstants.CHUNK_SIZE + xx - 1;
+                    int cy = y / GameConstants.CHUNK_SIZE + yy - 1;
+                    int cz = z / GameConstants.CHUNK_SIZE + zz - 1;
                     if (voxelMap.IsValidChunkPos(cx, cy, cz))
                         voxelMap.SetChunkDirty(cx, cy, cz, true, false);
                 }

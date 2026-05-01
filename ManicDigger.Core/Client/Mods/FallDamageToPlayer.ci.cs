@@ -12,48 +12,47 @@ public class ModFallDamageToPlayer : ModBase
     private readonly IGameService platform;
     private readonly IVoxelMap voxelMap;
 
-    public ModFallDamageToPlayer(IGameService platform, IVoxelMap voxelMap)
+    public ModFallDamageToPlayer(IGameService platform, IVoxelMap voxelMap, IGame game) : base(game)
     {
         this.platform = platform;
         this.voxelMap = voxelMap;
     }
 
-    public override void OnNewFrameFixed(IGame game, float args)
+    public override void OnNewFrameFixed( float args)
     {
-        if (game.GuiState == GuiState.MapLoading) return;
+        if (Game.GuiState == GuiState.MapLoading) return;
 
-        if (game.Controls.FreeMove)
+        if (Game.Controls.FreeMove)
         {
-            if (fallSoundPlaying) SetFallSoundActive(game, false);
+            if (fallSoundPlaying) SetFallSoundActive(false);
             return;
         }
 
-        if (game.FollowId() == null)
-            UpdateFallDamageToPlayer(game, args);
+        if (Game.FollowId() == null)
+            UpdateFallDamageToPlayer(args);
     }
 
-    internal void UpdateFallDamageToPlayer(IGame game, float dt)
+    internal void UpdateFallDamageToPlayer( float dt)
     {
-        float fallSpeed = game.MovedZ / -game.Basemovespeed;
+        float fallSpeed = Game.MovedZ / -Game.Basemovespeed;
 
-        int posX = game.PlayerEyesBlockX;
-        int posY = game.PlayerEyesBlockY;
-        int posZ = game.PlayerEyesBlockZ;
-
+        int posX = Game.PlayerEyesBlockX;
+        int posY = Game.PlayerEyesBlockY;
+        int posZ = Game.PlayerEyesBlockZ;
         // Play falling wind sound when high up or falling fast
-        bool highUp = game.Blockheight(posX, posY, posZ) < posZ - 8;
-        SetFallSoundActive(game, (highUp || fallSpeed > 3) && fallSpeed > 2);
+        bool highUp = Game.Blockheight(posX, posY, posZ) < posZ - 8;
+        SetFallSoundActive((highUp || fallSpeed > 3) && fallSpeed > 2);
 
-        ApplyFallDamage(game, posX, posY, posZ, fallSpeed);
+        ApplyFallDamage(posX, posY, posZ, fallSpeed);
     }
 
-    private void ApplyFallDamage(IGame game, int posX, int posY, int posZ, float fallSpeed)
+    private void ApplyFallDamage(int posX, int posY, int posZ, float fallSpeed)
     {
         if (fallSpeed < 4f) return;
         if (!voxelMap.IsValidPos(posX, posY, posZ - 3)) return;
 
         int blockBelow = voxelMap.GetBlock(posX, posY, posZ - 3);
-        if (blockBelow == 0 || game.IsWater(blockBelow)) return;
+        if (blockBelow == 0 || Game.IsWater(blockBelow)) return;
 
         // fallspeed 4 ≈ 10 blocks high, 5.5 ≈ 20 blocks high
         float severity = fallSpeed switch
@@ -69,12 +68,12 @@ public class ModFallDamageToPlayer : ModBase
         if ((now - lastFallDamageTimeMilliseconds) / 1000f < FallDamageCooldownSeconds) return;
 
         lastFallDamageTimeMilliseconds = now;
-        game.ApplyDamageToPlayer((int)(severity * game.PlayerStats.MaxHealth), DeathReason.FallDamage, 0);
+        Game.ApplyDamageToPlayer((int)(severity * Game.PlayerStats.MaxHealth), DeathReason.FallDamage, 0);
     }
 
-    internal void SetFallSoundActive(IGame game, bool active)
+    internal void SetFallSoundActive( bool active)
     {
-        game.AudioPlayLoop("fallloop.wav", active, true);
+        Game.AudioPlayLoop("fallloop.wav", active, true);
         fallSoundPlaying = active;
     }
 }

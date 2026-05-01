@@ -23,7 +23,7 @@ public class ModFpsHistoryGraph : ModBase
     private bool drawFpsText;
     private bool drawFpsGraph;
 
-    public ModFpsHistoryGraph(IGameService platform, IMeshDrawer meshDrawer)
+    public ModFpsHistoryGraph(IGameService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
     {
         _platform = platform;
         this.meshDrawer = meshDrawer;
@@ -33,15 +33,15 @@ public class ModFpsHistoryGraph : ModBase
     }
     
     /// <inheritdoc/>
-    public override void OnNewFrame(IGame game, float dt)
+    public override void OnNewFrame( float dt)
     {
         UpdateGraph(dt);
-        UpdateTitleFps(game, dt);
-        Draw(game);
+        UpdateTitleFps(dt);
+        Draw();
     }
 
     /// <inheritdoc/>
-    public override void OnKeyDown(IGame game, KeyEventArgs args)
+    public override void OnKeyDown( KeyEventArgs args)
     {
         if (args.KeyChar == (int)Keys.F7)
         {
@@ -51,7 +51,7 @@ public class ModFpsHistoryGraph : ModBase
     }
 
     /// <inheritdoc/>
-    public override bool OnClientCommand(IGame game, ClientCommandArgs args)
+    public override bool OnClientCommand( ClientCommandArgs args)
     {
         if (args.Command != "fps") return false;
 
@@ -76,7 +76,7 @@ public class ModFpsHistoryGraph : ModBase
     }
 
     /// <summary>Updates the FPS counter and performance info string once per second.</summary>
-    private void UpdateTitleFps(IGame _game, float dt)
+    private void UpdateTitleFps(float dt)
     {
         fpsCount++;
         longestFrameDt = Math.Max(longestFrameDt, dt);
@@ -93,14 +93,14 @@ public class ModFpsHistoryGraph : ModBase
         longestFrameDt = 0;
         fpsCount = 0;
 
-        _game.PerformanceInfo["fps"] = $"FPS: {fps} (min: {minFps})";
+        Game.PerformanceInfo["fps"] = $"FPS: {fps} (min: {minFps})";
 
         var sb = new System.Text.StringBuilder();
         int idx = 0;
-        foreach (string value in _game.PerformanceInfo.Values)
+        foreach (string value in Game.PerformanceInfo.Values)
         {
             sb.Append(value);
-            if (idx % PerLine == 0 && idx != _game.PerformanceInfo.Count - 1)
+            if (idx % PerLine == 0 && idx != Game.PerformanceInfo.Count - 1)
                 sb.Append(", ");
             else if (idx % PerLine != 0)
                 sb.Append('\n');
@@ -109,17 +109,17 @@ public class ModFpsHistoryGraph : ModBase
         fpsText = sb.ToString();
     }
 
-    private void Draw(IGame _game)
+    private void Draw()
     {
         if (!drawFpsGraph && !drawFpsText) return;
 
         meshDrawer.OrthoMode(_platform.CanvasWidth, _platform.CanvasHeight);
-        if (drawFpsGraph) DrawGraph(_game);
-        if (drawFpsText) _game.Draw2dText(fpsText, new Font("Arial", ChatFontSize), 20, 20, null, false);
+        if (drawFpsGraph) DrawGraph();
+        if (drawFpsText) Game.Draw2dText(fpsText, new Font("Arial", ChatFontSize), 20, 20, null, false);
         meshDrawer.PerspectiveMode();
     }
 
-    private void DrawGraph(IGame _game)
+    private void DrawGraph()
     {
         int posx = GraphPosX;
         int posy = _platform.CanvasHeight - GraphHeight - 20;
@@ -130,7 +130,7 @@ public class ModFpsHistoryGraph : ModBase
             ColorUtils.ColorFromArgb(255, 255, 0, 0)
         ];
 
-        int whiteTexture = _game.GetOrCreateWhiteTexture();
+        int whiteTexture = Game.GetOrCreateWhiteTexture();
 
         for (int i = 0; i < MaxCount; i++)
         {
@@ -142,14 +142,14 @@ public class ModFpsHistoryGraph : ModBase
             todraw[i].inAtlasId = -1;
             todraw[i].color = ColorUtils.InterpolateColor((float)i / MaxCount, colors, 2);
         }
-        _game.Draw2dTextures(todraw, MaxCount, whiteTexture);
+        Game.Draw2dTextures(todraw, MaxCount, whiteTexture);
 
         // Reference FPS lines
         int lineColor = ColorUtils.ColorFromArgb(255, 255, 255, 255);
-        DrawFpsLine(_game, posy, 30, lineColor);
-        DrawFpsLine(_game, posy, 60, lineColor);
-        DrawFpsLine(_game, posy, 75, lineColor);
-        DrawFpsLine(_game, posy, 150, lineColor);
+        DrawFpsLine(Game, posy, 30, lineColor);
+        DrawFpsLine(Game, posy, 60, lineColor);
+        DrawFpsLine(Game, posy, 75, lineColor);
+        DrawFpsLine(Game, posy, 150, lineColor);
     }
 
     /// <summary>Draws a horizontal reference line at the given target FPS level.</summary>

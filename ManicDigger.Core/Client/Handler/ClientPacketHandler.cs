@@ -3,16 +3,10 @@
 /// Implementations receive a fully-deserialized <see cref="Packet_Server"/> and
 /// are responsible for applying its effect to the game state.
 /// </summary>
-public abstract class ClientPacketHandler
+public abstract class ClientPacketHandler(IGameService gameService, IGame game)
 {
-    protected readonly IGame game;
-    protected readonly IGameService gameService;
-
-    public ClientPacketHandler(IGameService gameService, IGame game)
-    {
-        this.gameService = gameService;
-        this.game = game;
-    }
+    protected readonly IGame game = game;
+    protected readonly IGameService gameService = gameService;
 
     /// <summary>Applies the effect of <paramref name="packet"/> to <paramref name="game"/>.</summary>
     public abstract void Handle(Packet_Server packet);

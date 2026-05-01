@@ -97,7 +97,10 @@ public class ScriptCharacterPhysics : IEntityScript
     /// </summary>
     public void OnNewFrameFixed(int entity, float dt)
     {
-        if (game.GuiState == GuiState.MapLoading) return;
+        if (game.GuiState == GuiState.MapLoading)
+        {
+            return;
+        }
 
         movespeednow = game.MoveSpeedNow();
         game.Controls.MovedX = Math.Clamp(game.Controls.MovedX, -1, 1);
@@ -214,7 +217,9 @@ public class ScriptCharacterPhysics : IEntityScript
                     cx, cy, cz,
                     voxelMap.Mapsizexchunks,
                     voxelMap.Mapsizeychunks)] != null)
+            {
                 loaded = true;
+            }
         }
         else
         {
@@ -260,7 +265,9 @@ public class ScriptCharacterPhysics : IEntityScript
             // Instant response: no ramp-up.
             // LengthSquared avoids sqrt for the zero-check.
             if (diff1.LengthSquared > 0)
+            {
                 diff1 = Vector3.Normalize(diff1);
+            }
 
             curspeed.X = diff1.X * movespeednow;
             curspeed.Y = diff1.Y * movespeednow;
@@ -275,7 +282,9 @@ public class ScriptCharacterPhysics : IEntityScript
             newposition.Z = stateplayerposition.z + curspeed.Z;
             // Horizontal-only movement when not swimming (vertical handled by movedz).
             if (!swimmingBody)
+            {
                 newposition.Y = stateplayerposition.y;
+            }
 
             // Re-normalise horizontal displacement then scale by actual speed.
             float diffx = newposition.X - stateplayerposition.x;
@@ -362,12 +371,26 @@ public class ScriptCharacterPhysics : IEntityScript
     /// </summary>
     private bool IsTileEmptyForPhysics(int x, int y, int z)
     {
-        if (z >= voxelMap.MapSizeZ) return true;
-        if (x < 0 || y < 0 || z < 0) return false;
-        if (x >= voxelMap.MapSizeX || y >= voxelMap.MapSizeY) return false;
+        if (z >= voxelMap.MapSizeZ)
+        {
+            return true;
+        }
+
+        if (x < 0 || y < 0 || z < 0)
+        {
+            return false;
+        }
+
+        if (x >= voxelMap.MapSizeX || y >= voxelMap.MapSizeY)
+        {
+            return false;
+        }
 
         int block = voxelMap.GetBlockValid(x, y, z);
-        if (block == 0) return true;
+        if (block == 0)
+        {
+            return true;
+        }
 
         BlockType blocktype = game.BlockTypes[block];
         return blocktype.WalkableType == WalkableType.Fluid
@@ -409,14 +432,23 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(newposition.X, tmpPlayerPosition.Y + 0.5f, tmpPlayerPosition.Z, out _))
             {
                 game.ReachedWall1BlockHigh = true;
-                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.ReachedHalfBlock = true;
-                if (StandingOnHalfBlock(newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z)) game.ReachedHalfBlock = true;
+                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight)
+                {
+                    game.ReachedHalfBlock = true;
+                }
+
+                if (StandingOnHalfBlock(newposition.X, tmpPlayerPosition.Y, tmpPlayerPosition.Z))
+                {
+                    game.ReachedHalfBlock = true;
+                }
             }
         }
 
         // Y axis
         if (IsEmptySpaceForPlayer(high, tmpPlayerPosition.X, newposition.Y, tmpPlayerPosition.Z, out _))
+        {
             tmpPlayerPosition.Y = newposition.Y;
+        }
 
         // Z axis
         if (IsEmptySpaceForPlayer(high, tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z, out tmpBlockingBlockType))
@@ -429,8 +461,15 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(tmpPlayerPosition.X, tmpPlayerPosition.Y + 0.5f, newposition.Z, out _))
             {
                 game.ReachedWall1BlockHigh = true;
-                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight) game.ReachedHalfBlock = true;
-                if (StandingOnHalfBlock(tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z)) game.ReachedHalfBlock = true;
+                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight)
+                {
+                    game.ReachedHalfBlock = true;
+                }
+
+                if (StandingOnHalfBlock(tmpPlayerPosition.X, tmpPlayerPosition.Y, newposition.Z))
+                {
+                    game.ReachedHalfBlock = true;
+                }
             }
         }
 
@@ -463,7 +502,9 @@ public class ScriptCharacterPhysics : IEntityScript
         float[] zs = { z - r, z + r };
 
         foreach (float cx in xs)
+        {
             foreach (float cy in ys)
+            {
                 foreach (float cz in zs)
                 {
                     if (!IsTileEmptyForPhysics((int)cx, (int)cz, (int)cy))
@@ -472,6 +513,8 @@ public class ScriptCharacterPhysics : IEntityScript
                         return false;
                     }
                 }
+            }
+        }
 
         blockingBlocktype = 0;
         return true;
@@ -500,8 +543,14 @@ public class ScriptCharacterPhysics : IEntityScript
     /// </summary>
     public static float MakeCloserToZero(float a, float b)
     {
-        if (a > 0) return Math.Max(a - b, 0);
-        else return Math.Min(a + b, 0);
+        if (a > 0)
+        {
+            return Math.Max(a - b, 0);
+        }
+        else
+        {
+            return Math.Min(a + b, 0);
+        }
     }
 
     /// <summary>Returns the largest of three float values.</summary>

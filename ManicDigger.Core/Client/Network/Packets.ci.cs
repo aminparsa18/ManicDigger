@@ -31,6 +31,7 @@ public class ClientPackets
             p.MdProtocolVersion = platform.GetGameVersion();
             p.VerificationKey = verificationKey;
         }
+
         Packet_Client pp = new()
         {
             Id = PacketType.PlayerIdentification,
@@ -48,6 +49,7 @@ public class ClientPackets
             p.VerificationKey = verificationKey;
             p.ServerPassword = serverPassword;
         }
+
         Packet_Client pp = new()
         {
             Id = PacketType.PlayerIdentification,
@@ -107,6 +109,7 @@ public class ClientPackets
             p.BlockType = type;
             p.MaterialSlot = materialslot;
         }
+
         Packet_Client pp = new()
         {
             Id = PacketType.SetBlock,
@@ -125,6 +128,7 @@ public class ClientPackets
                 Key_ = SpecialKey.Respawn
             };
         }
+
         return p;
     }
 
@@ -141,6 +145,7 @@ public class ClientPackets
             p.BlockType = blockType;
             p.MaterialSlot = ActiveMaterial;
         }
+
         Packet_Client pp = new()
         {
             Id = PacketType.FillArea,
@@ -206,6 +211,7 @@ public class ClientPackets
             p.Death.Reason = reason;
             p.Death.SourcePlayer = sourcePlayer;
         }
+
         return p;
     }
 
@@ -219,6 +225,7 @@ public class ClientPackets
                 CurrentHealth = currentHealth
             };
         }
+
         return p;
     }
 
@@ -229,6 +236,7 @@ public class ClientPackets
         {
             p.RequestedMd5 = (required);
         }
+
         Packet_Client pp = new()
         {
             Id = PacketType.RequestBlob,
@@ -319,6 +327,7 @@ public class ClientPackets
                 Key_ = SpecialKey.SelectTeam
             };
         }
+
         return p;
     }
 
@@ -332,6 +341,7 @@ public class ClientPackets
                 Key_ = SpecialKey.SetSpawn
             };
         }
+
         return p;
     }
 
@@ -345,6 +355,7 @@ public class ClientPackets
                 ActiveMaterialSlot = ActiveMaterial
             };
         }
+
         return p;
     }
 

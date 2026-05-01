@@ -26,7 +26,10 @@ public class ModGuiMapLoading : ModBase
 
     public override void OnNewFrameDraw2d(float deltaTime)
     {
-        if (Game.GuiState != GuiState.MapLoading) return;
+        if (Game.GuiState != GuiState.MapLoading)
+        {
+            return;
+        }
 
         int width = platform.CanvasWidth;
         int height = platform.CanvasHeight;
@@ -46,20 +49,30 @@ public class ModGuiMapLoading : ModBase
         DrawCentered(Game.ServerInfo.ServerName, centerY - 150);
 
         if (Game.ServerInfo.ServerMotd != null)
+        {
             DrawCentered(Game.ServerInfo.ServerMotd, centerY - 100);
+        }
 
         DrawCentered(status, centerY - 50);
 
         if (Game.maploadingprogress.ProgressPercent > 0)
+        {
             DrawProgress(centerY);
+        }
     }
 
     private string GetConnectionStatus()
     {
         if (Game.maploadingprogress.ProgressStatus != null)
+        {
             return Game.maploadingprogress.ProgressStatus;
+        }
+
         if (Game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
+        {
             return "Starting game...";
+        }
+
         return Game.Language.Connecting();
     }
 
@@ -93,7 +106,11 @@ public class ModGuiMapLoading : ModBase
         int white = ColorUtils.ColorFromArgb(255, 255, 255, 255);
 
         for (int x = 0; x < countX; x++)
+        {
             for (int y = 0; y < countY; y++)
+            {
                 Game.Draw2dTexture(tex, x * BackgroundTileSize, y * BackgroundTileSize, BackgroundTileSize, BackgroundTileSize, null, 0, white, false);
+            }
+        }
     }
 }

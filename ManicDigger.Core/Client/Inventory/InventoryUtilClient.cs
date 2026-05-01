@@ -102,10 +102,14 @@ public class InventoryUtilClient
                 var cell = new Point(pX + dx, pY + dy);
 
                 if (!IsValidCell(cell))
+                {
                     return null; // Area partially out-of-bounds — abort.
+                }
 
                 if (_cellToItemOrigin.TryGetValue(cell, out Point origin))
+                {
                     found.Add(origin); // HashSet handles deduplication automatically.
+                }
             }
         }
 
@@ -189,12 +193,16 @@ public class InventoryUtilClient
     public int? FreeHand(int activeMaterial)
     {
         if (_inventory.RightHand[activeMaterial] == null)
+        {
             return activeMaterial;
+        }
 
         for (int i = 0; i < HandSlotCount; i++)
         {
             if (_inventory.RightHand[i] == null)
+            {
                 return i;
+            }
         }
 
         return null;

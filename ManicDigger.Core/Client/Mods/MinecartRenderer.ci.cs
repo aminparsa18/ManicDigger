@@ -22,7 +22,11 @@ public class ModDrawMinecarts : ModBase
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Minecart m = Game.Entities[i]?.minecart;
-            if (m == null || !m.Enabled) continue;
+            if (m == null || !m.Enabled)
+            {
+                continue;
+            }
+
             Draw(m);
         }
     }

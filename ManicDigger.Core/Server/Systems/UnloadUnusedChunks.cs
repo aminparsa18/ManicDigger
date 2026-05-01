@@ -67,9 +67,15 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
         foreach (var (_, client) in server.Clients)
         {
-            if (client.IsBot) continue;
+            if (client.IsBot)
+            {
+                continue;
+            }
+
             if (VectorUtils.DistanceSquared(Server.PlayerBlockPosition(client), globalPos) <= unloadDistSq)
+            {
                 return false;
+            }
         }
         return true;
     }
@@ -86,12 +92,16 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     private static void UnloadChunk(Server server, Vector3i chunkPos, ServerChunk chunk)
     {
         if (chunk.DirtyForSaving)
+        {
             server.DoSaveChunk(chunkPos.X, chunkPos.Y, chunkPos.Z, chunk);
+        }
 
         server.Map.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);
 
         foreach (var (clientId, _) in server.Clients)
+        {
             server.ClientSeenChunkRemove(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z);
+        }
     }
 
     // -------------------------------------------------------------------------

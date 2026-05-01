@@ -465,7 +465,10 @@ public class ModGuiEscapeMenu : ModBase
         if (Game.EnableLog == 0) { return "Vsync"; }
         else if (Game.EnableLog == 1) { return "Unlimited"; }
         else if (Game.EnableLog == 2) { return "Lag"; }
-        else return null; //throw new Exception();
+        else
+        {
+            return null; //throw new Exception();
+        }
     }
 
     private string ResolutionString()
@@ -554,7 +557,10 @@ public class ModGuiEscapeMenu : ModBase
         // and are now invalid. Previously set list entries to null (leaking GPU
         // handles). Now explicitly delete each texture before clearing the dictionary.
         foreach (CachedTexture ct in Game.CachedTextTextures.Values)
+        {
             openGlService.GLDeleteTexture(ct.textureId);
+        }
+
         Game.CachedTextTextures.Clear();
     }
 

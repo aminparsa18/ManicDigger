@@ -3,12 +3,8 @@
 /// updating networked entity positions and orientations each time the server
 /// sends a movement update.
 /// </summary>
-public class ClientPacketHandlerEntityPosition : ClientPacketHandler
+public class ClientPacketHandlerEntityPosition(IGameService gameService, IGame game) : ClientPacketHandler(gameService, game)
 {
-    public ClientPacketHandlerEntityPosition(IGameService gameService, IGame game) : base(gameService, game)
-    {
-    }
-
     public override void Handle(Packet_Server packet)
     {
         int id = packet.EntityPosition.Id;

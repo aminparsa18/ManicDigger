@@ -14,8 +14,5 @@ public sealed class SinglePlayerService(IDummyNetwork dummyNetwork) : ISinglePla
     public IDummyNetwork SinglePlayerServerNetwork { get; set; } = dummyNetwork;
 
     /// <inheritdoc/>
-    public void SinglePlayerServerStart(string saveFilename)
-    {
-        SinglePlayerServerExit = false;
-    }
+    public void SinglePlayerServerStart(string saveFilename) => SinglePlayerServerExit = false;
 }

@@ -95,10 +95,12 @@ public class VectorUtils
         {
             return false;
         }
+
         if (x >= map.MapSizeX || y >= map.MapSizeY || z >= map.MapSizeZ)
         {
             return false;
         }
+
         return true;
     }
 
@@ -108,10 +110,12 @@ public class VectorUtils
         {
             return false;
         }
+
         if (x >= map.MapSizeX || y >= map.MapSizeY)
         {
             return false;
         }
+
         return true;
     }
 
@@ -151,6 +155,7 @@ public class VectorUtils
                 return z + 1;
             }
         }
+
         return map.MapSizeZ / 2;
     }
 

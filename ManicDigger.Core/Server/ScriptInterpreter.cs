@@ -37,7 +37,9 @@ public class JavaScriptInterpreter : IScriptInterpreter
     public void SetVariables(Dictionary<string, object> variables)
     {
         foreach (var pair in variables)
+        {
             SetVariable(pair.Key, pair.Value);
+        }
     }
 
     public void SetVariable(string name, object value)

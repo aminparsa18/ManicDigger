@@ -15,9 +15,20 @@ public class ServerSystemSign : ServerSystem
 
     private void OnUseWithTool(int player, int x, int y, int z, int tool)
     {
-        if (server.ModManager.GetBlockName(tool) != "Sign") return;
-        if (server.Map.GetChunk(x, y, z) == null) return;
-        if (!server.CheckBuildPrivileges(player, x, y, z, PacketBlockSetMode.Create)) return;
+        if (server.ModManager.GetBlockName(tool) != "Sign")
+        {
+            return;
+        }
+
+        if (server.Map.GetChunk(x, y, z) == null)
+        {
+            return;
+        }
+
+        if (!server.CheckBuildPrivileges(player, x, y, z, PacketBlockSetMode.Create))
+        {
+            return;
+        }
 
         var e = new ServerEntity
         {
@@ -43,7 +54,10 @@ public class ServerSystemSign : ServerSystem
     private void UpdateEntity(int chunkx, int chunky, int chunkz, int id)
     {
         ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
-        if (e.Sign == null) return;
+        if (e.Sign == null)
+        {
+            return;
+        }
 
         e.DrawModel ??= new ServerEntityAnimatedModel();
         e.DrawModel.Model = "signmodel.txt";
@@ -67,8 +81,15 @@ public class ServerSystemSign : ServerSystem
     private void OnUseEntity(int player, int chunkx, int chunky, int chunkz, int id)
     {
         ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
-        if (e.Sign == null) return;
-        if (!server.CheckBuildPrivileges(player, (int)e.Position.X, (int)e.Position.Z, (int)e.Position.Y, PacketBlockSetMode.Use)) return;
+        if (e.Sign == null)
+        {
+            return;
+        }
+
+        if (!server.CheckBuildPrivileges(player, (int)e.Position.X, (int)e.Position.Z, (int)e.Position.Y, PacketBlockSetMode.Use))
+        {
+            return;
+        }
 
         var font = new DialogFont("Verdana", 11f, DialogFontStyle.Bold);
 
@@ -103,7 +124,10 @@ public class ServerSystemSign : ServerSystem
 
     private void OnDialogClick(DialogClickArgs args)
     {
-        if (args.WidgetId != "UseSign_OK") return;
+        if (args.WidgetId != "UseSign_OK")
+        {
+            return;
+        }
 
         var client = server.Clients[args.Player];
         string newText = args.TextBoxValue[1];

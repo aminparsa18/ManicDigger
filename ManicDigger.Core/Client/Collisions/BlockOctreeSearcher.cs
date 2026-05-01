@@ -96,10 +96,7 @@ public class BlockOctreeSearcher
     /// </summary>
     /// <param name="box">The box to test.</param>
     /// <returns><c>true</c> if the line intersects <paramref name="box"/>.</returns>
-    public bool BoxHit(Box3 box)
-    {
-        return Intersection.CheckLineBox(box, currentLine, out _);
-    }
+    public bool BoxHit(Box3 box) => Intersection.CheckLineBox(box, currentLine, out _);
 
     /// <summary>
     /// Finds all non-empty blocks intersected by <paramref name="line"/>,

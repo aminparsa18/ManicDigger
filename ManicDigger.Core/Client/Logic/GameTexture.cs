@@ -47,7 +47,9 @@ public partial class Game
         foreach (var (style, tex) in CachedTextTextures)
         {
             if ((now - tex.lastuseMilliseconds) / 1000f > 1f)
+            {
                 _textStylesToRemove.Add(style);
+            }
         }
 
         foreach (TextStyle key in _textStylesToRemove)
@@ -162,10 +164,16 @@ public partial class Game
 
         for (int i = 0; i < textureIdsCount; i++)
         {
-            if (textureIds[i] == null) continue;
+            if (textureIds[i] == null)
+            {
+                continue;
+            }
 
             byte[] fileData = GetAssetFile(string.Concat(textureIds[i], ".png")) ?? unknownPng;
-            if (fileData == null) continue;
+            if (fileData == null)
+            {
+                continue;
+            }
 
             using Bitmap bmp = PixelBuffer.BitmapFromPng(fileData, fileData.Length);
 

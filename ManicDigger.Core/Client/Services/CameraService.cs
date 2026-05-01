@@ -48,12 +48,35 @@ public sealed class CameraService : ICameraService
         float turn = dt * 4f;
         float tilt = dt * 40f;
 
-        if (args.TurnLeft) TurnLeft(turn);
-        if (args.TurnRight) TurnRight(turn);
-        if (args.DistanceUp) _distance += turn;
-        if (args.DistanceDown) _distance -= turn;
-        if (args.AngleUp) TurnUp(tilt);
-        if (args.AngleDown) TurnDown(tilt);
+        if (args.TurnLeft)
+        {
+            TurnLeft(turn);
+        }
+
+        if (args.TurnRight)
+        {
+            TurnRight(turn);
+        }
+
+        if (args.DistanceUp)
+        {
+            _distance += turn;
+        }
+
+        if (args.DistanceDown)
+        {
+            _distance -= turn;
+        }
+
+        if (args.AngleUp)
+        {
+            TurnUp(tilt);
+        }
+
+        if (args.AngleDown)
+        {
+            TurnDown(tilt);
+        }
 
         _distance = MathF.Max(args.Distance, _minimumDistance);
     }

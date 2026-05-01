@@ -26,10 +26,14 @@ public class ModFly : ModBase
     public override void OnKeyDown(KeyEventArgs args)
     {
         if (Game.GuiState != GuiState.Normal || Game.GuiTyping != TypingState.None)
+        {
             return;
+        }
 
         if (args.KeyChar != Game.GetKey(Keys.F))
+        {
             return;
+        }
 
         flyActive = !flyActive;
         DiagLog.Write($"Flight mode {(flyActive ? "On" : "Off")}");
@@ -52,7 +56,10 @@ public class ModFly : ModBase
     // ── Feed freemove + vertical intent into Controls every physics tick ──────
     public override void OnNewFrameFixed(float dt)
     {
-        if (!flyActive) return;
+        if (!flyActive)
+        {
+            return;
+        }
 
         Game.Controls.FreeMove = true;
 
@@ -67,7 +74,10 @@ public class ModFly : ModBase
     // ── Cleanup on mod unload ─────────────────────────────────────────────────
     public override void Dispose()
     {
-        if (!flyActive) return;
+        if (!flyActive)
+        {
+            return;
+        }
 
         Game.Controls.FreeMove = false;
         Game.Controls.MoveUp = false;

@@ -145,18 +145,24 @@ public sealed class EnetNetClient : NetClient
     public override NetIncomingMessage? ReadMessage()
     {
         if (!_connecting)
+        {
             return null;
+        }
 
         // Flush pending sends now that we know the handshake is complete.
         if (_handshakeComplete)
         {
             while (_pendingSend.TryDequeue(out ReadOnlyMemory<byte> pending))
+            {
                 _connection!.SendMessage(pending, MyNetDeliveryMethod.ReliableOrdered);
+            }
         }
 
         // Return any already-queued messages before polling ENet again.
         if (_inbox.TryDequeue(out NetIncomingMessage? queued))
+        {
             return queued;
+        }
 
         PollEnetEvents();
 
@@ -178,7 +184,9 @@ public sealed class EnetNetClient : NetClient
     {
         EnetEvent? ev = _platform.EnetHostService(_host!, timeout: 0);
         if (ev is null)
+        {
             return;
+        }
 
         do
         {
@@ -256,7 +264,9 @@ public sealed class EnetNetServer : NetServer
     public override NetIncomingMessage? ReadMessage()
     {
         if (_inbox.TryDequeue(out NetIncomingMessage? queued))
+        {
             return queued;
+        }
 
         PollEnetEvents();
 
@@ -268,7 +278,9 @@ public sealed class EnetNetServer : NetServer
     {
         EnetEvent? ev = _platform.EnetHostService(_host!, timeout: 0);
         if (ev is null)
+        {
             return;
+        }
 
         do
         {

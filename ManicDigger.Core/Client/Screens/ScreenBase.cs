@@ -64,6 +64,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
                     OnButton(w);
                     return;
                 }
+
                 if (w.nextWidget != -1)
                 {
                     w.LoseFocus();
@@ -82,6 +83,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
                 {
                     w.text = string.Concat(w.text, Clipboard.GetText());
                 }
+
                 return;
             }
 
@@ -91,6 +93,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
                 {
                     w.text = w.text[..^1];
                 }
+
                 return;
             }
         }
@@ -239,6 +242,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
                 {
                     Menu.Draw2dQuad(Menu.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
                 }
+
                 Menu.DrawText(text, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Left, TextBaseline.Middle);
                 break;
 
@@ -248,6 +252,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
                 {
                     Menu.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
                 }
+
                 break;
 
             default:
@@ -279,6 +284,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
                     Menu.Draw2dQuad(Menu.GetTexture("serverlist_entry_differentversion.png"),
                         w.x - 38 * Menu.GetScale(), w.y + w.sizey / 2, w.sizey / 2, w.sizey / 2);
                 }
+
                 break;
         }
     }
@@ -290,6 +296,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
     private void DrawTextbox(MenuWidget w, string text)
     {
         if (w.password) { text = new string('*', w.text.Length); }
+
         if (w.editing) { text = string.Concat(text, "_"); }
 
         if (w.buttonStyle == ButtonStyle.Text)
@@ -298,6 +305,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
             {
                 Menu.Draw2dQuad(Menu.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
             }
+
             Menu.DrawText(text, w.fontSize, w.x, w.y, TextAlign.Left, TextBaseline.Top);
         }
         else

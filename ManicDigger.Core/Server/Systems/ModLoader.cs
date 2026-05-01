@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
@@ -20,7 +21,7 @@ namespace ManicDigger;
 /// mods in topological order.
 /// </para>
 /// </summary>
-public class ServerSystemModLoader : ServerSystem
+public class ServerSystemModLoader(IGameExit gameExit) : ServerSystem
 {
     /// <summary>All successfully compiled and instantiated mods, keyed by type name.</summary>
     private readonly Dictionary<string, IMod> mods = [];
@@ -36,22 +37,14 @@ public class ServerSystemModLoader : ServerSystem
 
     private static readonly string[] ExtraAssemblyReferences = ["ScriptingApi.dll"];
 
-    private readonly IGameExit gameExit;
-
-    public ServerSystemModLoader(IGameExit gameExit)
-    {
-        this.gameExit = gameExit;
-    }
+    private readonly IGameExit gameExit = gameExit;
 
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------
 
     /// <inheritdoc/>
-    protected override void Initialize(Server server)
-    {
-        LoadMods(server, restart: false);
-    }
+    protected override void Initialize(Server server) => LoadMods(server, restart: false);
 
     /// <inheritdoc/>
     public override bool OnCommand(Server server, int sourceClientId, string command, string argument)
@@ -61,6 +54,7 @@ public class ServerSystemModLoader : ServerSystem
             RestartMods(server, sourceClientId);
             return true;
         }
+
         return false;
     }
 
@@ -115,13 +109,15 @@ public class ServerSystemModLoader : ServerSystem
     private void LoadMods(Server server, bool restart)
     {
         server.ModManager = new ModManager(gameExit);
-        var manager = server.ModManager;
+        ModManager manager = server.ModManager;
         manager.Start(server);
 
-        var scripts = GetScriptSources(server);
+        Dictionary<string, string> scripts = GetScriptSources(server);
         Console.WriteLine($"[ModLoader] GetScriptSources returned {scripts.Count} scripts:");
-        foreach (var k in scripts)
+        foreach (KeyValuePair<string, string> k in scripts)
+        {
             Console.WriteLine($"  '{k.Key}' ({k.Value.Length} chars) - is .js: {k.Key.EndsWith(".js")}");
+        }
 
         CompileScripts(scripts, restart);
         Console.WriteLine($"[ModLoader] After CompileScripts, mods.Count = {mods.Count}");
@@ -152,7 +148,9 @@ public class ServerSystemModLoader : ServerSystem
         ];
 
         foreach (string modPath in modPaths)
+        {
             Console.WriteLine($"[ModLoader] Checking modpath: {Path.GetFullPath(modPath)} - exists: {Directory.Exists(modPath)}");
+        }
 
         // Resolve the active game mode from / into each path
         for (int i = 0; i < modPaths.Length; i++)
@@ -164,28 +162,44 @@ public class ServerSystemModLoader : ServerSystem
             }
             else if (Directory.Exists(modPaths[i]))
             {
-                try { File.WriteAllText(currentTxt, server.GameMode); }
+                try
+                {
+                    File.WriteAllText(currentTxt, server.GameMode);
+                }
                 catch { }
             }
+
             modPaths[i] = Path.Combine(modPaths[i], server.GameMode);
         }
 
-        var scripts = new Dictionary<string, string>();
+        Dictionary<string, string> scripts = [];
         foreach (string modPath in modPaths)
         {
-            if (!Directory.Exists(modPath)) continue;
+            if (!Directory.Exists(modPath))
+            {
+                continue;
+            }
+
             server.ModPaths.Add(modPath);
 
             foreach (string file in Directory.GetFiles(modPath))
             {
                 string ext = Path.GetExtension(file);
-                if (!GameStorePath.IsValidName(Path.GetFileNameWithoutExtension(file))) continue;
+                if (!GameStorePath.IsValidName(Path.GetFileNameWithoutExtension(file)))
+                {
+                    continue;
+                }
+
                 if (!ext.Equals(".cs", StringComparison.InvariantCultureIgnoreCase) &&
-                    !ext.Equals(".js", StringComparison.InvariantCultureIgnoreCase)) continue;
+                    !ext.Equals(".js", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
 
                 scripts[new FileInfo(file).Name] = File.ReadAllText(file);
             }
         }
+
         return scripts;
     }
 
@@ -205,10 +219,13 @@ public class ServerSystemModLoader : ServerSystem
     /// </summary>
     public void CompileScripts(Dictionary<string, string> scripts, bool restart)
     {
-        if (restart) return; // JavaScript-only reload; nothing to compile
+        if (restart)
+        {
+            return; // JavaScript-only reload; nothing to compile
+        }
 
-        var references = BuildMetadataReferences();
-        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+        List<MetadataReference> references = BuildMetadataReferences();
+        CSharpParseOptions parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
 
         if (TryCompileScripts(scripts, references, parseOptions,
                 assemblyName: "ManicDiggerMods",
@@ -227,7 +244,7 @@ public class ServerSystemModLoader : ServerSystem
 
         Console.WriteLine("[ModLoader] Combined compilation failed, falling back to per-script compilation.");
 
-        foreach (var script in scripts)
+        foreach (KeyValuePair<string, string> script in scripts)
         {
             if (!TryCompileScripts(
                     new Dictionary<string, string> { { script.Key, script.Value } },
@@ -245,7 +262,9 @@ public class ServerSystemModLoader : ServerSystem
             }
 
             if (modAssembly != null)
+            {
                 RegisterModsFromAssembly(modAssembly);
+            }
         }
     }
 
@@ -256,15 +275,16 @@ public class ServerSystemModLoader : ServerSystem
     /// </summary>
     private List<MetadataReference> BuildMetadataReferences()
     {
-        var references = AppDomain.CurrentDomain.GetAssemblies()
+        List<MetadataReference> references = [.. AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
             .Select(a => MetadataReference.CreateFromFile(a.Location))
-            .Cast<MetadataReference>()
-            .ToList();
+            .Cast<MetadataReference>()];
 
-        var parallelAsm = typeof(Parallel).Assembly;
+        Assembly parallelAsm = typeof(Parallel).Assembly;
         if (!string.IsNullOrEmpty(parallelAsm.Location))
+        {
             references.Add(MetadataReference.CreateFromFile(parallelAsm.Location));
+        }
 
         string assemblyDir = Path.GetDirectoryName(GetType().Assembly.Location)!;
 
@@ -316,7 +336,7 @@ public class ServerSystemModLoader : ServerSystem
         out IEnumerable<Diagnostic> diagnostics)
     {
         // Work on a local copy so we don't mutate the caller's dictionary
-        var allSources = new Dictionary<string, string>(scripts)
+        Dictionary<string, string> allSources = new(scripts)
         {
             ["GlobalUsings.cs"] = """
                 global using System;
@@ -331,34 +351,34 @@ public class ServerSystemModLoader : ServerSystem
         };
 
         Console.WriteLine($"[Roslyn] Script count: {allSources.Count}");
-        foreach (var k in allSources)
+        foreach (KeyValuePair<string, string> k in allSources)
         {
             Console.WriteLine($"[Roslyn] Script '{k.Key}': {k.Value.Length} chars");
             Console.WriteLine($"[Roslyn] First 200 chars: {k.Value[..Math.Min(200, k.Value.Length)]}");
         }
 
-        var syntaxTrees = allSources
-            .Select(k => CSharpSyntaxTree.ParseText(k.Value, parseOptions, path: k.Key, Encoding.UTF8))
-            .ToList();
+        List<SyntaxTree> syntaxTrees = [.. allSources.Select(k => CSharpSyntaxTree.ParseText(k.Value, parseOptions, path: k.Key, Encoding.UTF8))];
 
         Console.WriteLine($"[Roslyn] Syntax trees: {syntaxTrees.Count}");
-        foreach (var tree in syntaxTrees)
+        foreach (SyntaxTree tree in syntaxTrees)
+        {
             Console.WriteLine($"[Roslyn] Tree '{tree.FilePath}': {tree.GetRoot().DescendantNodes().Count()} nodes");
+        }
 
-        var compilationOptions = new CSharpCompilationOptions(
+        CSharpCompilationOptions compilationOptions = new(
             OutputKind.DynamicallyLinkedLibrary,
             allowUnsafe: true,
             optimizationLevel: OptimizationLevel.Release);
 
-        var compilation = CSharpCompilation.Create(assemblyName, syntaxTrees, references, compilationOptions);
+        CSharpCompilation compilation = CSharpCompilation.Create(assemblyName, syntaxTrees, references, compilationOptions);
 
-        var ms = new MemoryStream();
+        MemoryStream ms = new();
 
 #if DEBUG
-        var pdbStream = new MemoryStream();
-        var emitOptions = new Microsoft.CodeAnalysis.Emit.EmitOptions(
-            debugInformationFormat: Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb);
-        var result = compilation.Emit(ms, pdbStream, options: emitOptions);
+        MemoryStream pdbStream = new();
+        EmitOptions emitOptions = new(
+            debugInformationFormat: DebugInformationFormat.PortablePdb);
+        EmitResult result = compilation.Emit(ms, pdbStream, options: emitOptions);
 #else
         var result = compilation.Emit(ms);
 #endif
@@ -368,11 +388,12 @@ public class ServerSystemModLoader : ServerSystem
         syntaxTrees.Clear();
         compilation = null!;  // allow GC to collect the AST
 
-        foreach (var diag in result.Diagnostics)
+        foreach (Diagnostic diag in result.Diagnostics)
         {
             Console.WriteLine($"[Roslyn] {diag.Severity} {diag.Id}: {diag.GetMessage()} " +
                               $"(line {diag.Location.GetLineSpan().StartLinePosition.Line + 1})");
         }
+
         Console.WriteLine($"[Roslyn] Emit success: {result.Success}, stream length: {ms.Length}");
 
         diagnostics = result.Diagnostics.Where(d => d.Severity >= DiagnosticSeverity.Warning);
@@ -383,7 +404,7 @@ public class ServerSystemModLoader : ServerSystem
             return false;
         }
 
-        var loadContext = new AssemblyLoadContext(name: "ModLoader", isCollectible: true);
+        AssemblyLoadContext loadContext = new(name: "ModLoader", isCollectible: true);
         ms.Seek(0, SeekOrigin.Begin);
 
 #if DEBUG
@@ -398,8 +419,11 @@ public class ServerSystemModLoader : ServerSystem
 
         // Explicitly clear parse trees before returning
         // so the load context doesn't root them
-        foreach (var tree in syntaxTrees)
+        foreach (SyntaxTree tree in syntaxTrees)
+        {
             ((CSharpSyntaxTree)tree).GetRoot(); // force lazy evaluation then release
+        }
+
         syntaxTrees.Clear();
 
         Console.WriteLine($"[Roslyn] Assembly name: {assembly.FullName}");
@@ -440,15 +464,17 @@ public class ServerSystemModLoader : ServerSystem
         modRequirements.Clear();
         loadedMods.Clear();
 
-        foreach (var k in mods)
+        foreach (KeyValuePair<string, IMod> k in mods)
         {
             k.Value.PreStart(manager);
-            modRequirements[k.Key] = currentRequires.ToArray();
+            modRequirements[k.Key] = [.. currentRequires];
             currentRequires.Clear();
         }
 
-        foreach (var k in mods)
+        foreach (KeyValuePair<string, IMod> k in mods)
+        {
             StartModWithDependencies(k.Key, k.Value, manager);
+        }
     }
 
     /// <summary>
@@ -457,7 +483,10 @@ public class ServerSystemModLoader : ServerSystem
     /// </summary>
     private void StartModWithDependencies(string name, IMod mod, IModManager manager)
     {
-        if (loadedMods.ContainsKey(name)) return;
+        if (loadedMods.ContainsKey(name))
+        {
+            return;
+        }
 
         if (modRequirements.TryGetValue(name, out string[]? requirements))
         {
@@ -468,6 +497,7 @@ public class ServerSystemModLoader : ServerSystem
                     TryShowMessageBox($"Can't load mod {name} because its dependency {dependency} couldn't be loaded.");
                     continue;
                 }
+
                 StartModWithDependencies(dependency, depMod, manager);
             }
         }
@@ -486,7 +516,13 @@ public class ServerSystemModLoader : ServerSystem
     /// </summary>
     private static void TryShowMessageBox(string message)
     {
-        try { MessageBox.Show(message); }
-        catch { Console.WriteLine($"[Mod error] {message}"); }
+        try
+        {
+            MessageBox.Show(message);
+        }
+        catch
+        {
+            Console.WriteLine($"[Mod error] {message}");
+        }
     }
 }

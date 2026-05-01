@@ -78,8 +78,11 @@ public sealed class FastBillow : FastNoiseBasis, IModule
         set
         {
             if ((uint)(value - 1) >= MaxOctaves)
+            {
                 throw new ArgumentException(
                     $"OctaveCount must be between 1 and {MaxOctaves}, got {value}.");
+            }
+
             _octaveCount = value;
             _tablesDirty = true;
         }
@@ -96,7 +99,10 @@ public sealed class FastBillow : FastNoiseBasis, IModule
     /// <summary>Evaluates the billowing fBm signal at the given world position.</summary>
     public float GetValue(float x, float y, float z)
     {
-        if (_tablesDirty) RebuildTables();
+        if (_tablesDirty)
+        {
+            RebuildTables();
+        }
 
         float sum = 0f;
         int seed = Seed;

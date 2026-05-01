@@ -16,7 +16,10 @@ public class ModDrawSprites : ModBase
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity entity = Game.Entities[i];
-            if (entity?.sprite == null) continue;
+            if (entity?.sprite == null)
+            {
+                continue;
+            }
 
             Sprite b = entity.sprite;
             int? frame = null;

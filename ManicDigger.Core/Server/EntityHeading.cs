@@ -11,10 +11,12 @@ public class EntityHeading
         {
             headingDeg = -headingDeg - 180.0;
         }
+
         if (headingDeg < 0)
         {
             headingDeg += 360.0;
         }
+
         if (headingDeg > 360.0)
         {
             headingDeg -= 360.0;

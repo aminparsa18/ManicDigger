@@ -14,10 +14,7 @@ public class ModCamera : ModBase
         this.cameraService = cameraService;
     }
 
-    public override void OnBeforeNewFrameDraw3d(float deltaTime)
-    {
-        Game.Camera = Game.OverheadCamera ? OverheadCamera() : FppCamera();
-    }
+    public override void OnBeforeNewFrameDraw3d(float deltaTime) => Game.Camera = Game.OverheadCamera ? OverheadCamera() : FppCamera();
 
     private Matrix4 OverheadCamera()
     {
@@ -93,8 +90,5 @@ public class ModCamera : ModBase
     }
 
     /// <summary>Writes the eye position back to the game for other systems to use.</summary>
-    private void SetCameraEye(Vector3 eye)
-    {
-        Game.CameraEye = eye;
-    }
+    private void SetCameraEye(Vector3 eye) => Game.CameraEye = eye;
 }

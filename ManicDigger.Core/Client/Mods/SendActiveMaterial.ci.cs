@@ -14,7 +14,9 @@ public class ModSendActiveMaterial : ModBase
         int activeBlock = Game.Inventory.RightHand[Game.ActiveMaterial]?.BlockId ?? 0;
 
         if (activeBlock != previousActiveMaterialBlock)
+        {
             Game.SendPacketClient(ClientPackets.ActiveMaterialSlot(Game.ActiveMaterial));
+        }
 
         previousActiveMaterialBlock = activeBlock;
     }

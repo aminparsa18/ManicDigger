@@ -44,10 +44,25 @@ public class ServerSystemPermissionSign : ServerSystem
     /// </summary>
     private void OnUseWithTool(int player, int x, int y, int z, int tool)
     {
-        if (server.ModManager.GetBlockName(tool) != "PermissionSign") return;
-        if (server.Map.GetChunk(x, y, z) == null) return;
-        if (!server.CheckBuildPrivileges(player, x, y, z, PacketBlockSetMode.Create)) return;
-        if (!CheckAreaPrivilege(player)) return;
+        if (server.ModManager.GetBlockName(tool) != "PermissionSign")
+        {
+            return;
+        }
+
+        if (server.Map.GetChunk(x, y, z) == null)
+        {
+            return;
+        }
+
+        if (!server.CheckBuildPrivileges(player, x, y, z, PacketBlockSetMode.Create))
+        {
+            return;
+        }
+
+        if (!CheckAreaPrivilege(player))
+        {
+            return;
+        }
 
         var e = new ServerEntity
         {
@@ -84,7 +99,10 @@ public class ServerSystemPermissionSign : ServerSystem
     private void UpdateEntity(int chunkx, int chunky, int chunkz, int id)
     {
         ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
-        if (e.PermissionSign == null) return;
+        if (e.PermissionSign == null)
+        {
+            return;
+        }
 
         // Model
         e.DrawModel ??= new ServerEntityAnimatedModel();
@@ -152,8 +170,15 @@ public class ServerSystemPermissionSign : ServerSystem
     private void OnUseEntity(int player, int chunkx, int chunky, int chunkz, int id)
     {
         ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
-        if (e.PermissionSign == null) return;
-        if (!CheckAreaPrivilege(player)) return;
+        if (e.PermissionSign == null)
+        {
+            return;
+        }
+
+        if (!CheckAreaPrivilege(player))
+        {
+            return;
+        }
 
         var font = new DialogFont("Verdana", 11f, DialogFontStyle.Bold);
         var groups = server.ServerClient.Groups;
@@ -212,7 +237,9 @@ public class ServerSystemPermissionSign : ServerSystem
     private void OnDialogClick(DialogClickArgs args)
     {
         if (!TryResolveDialogTarget(args, out string name, out PermissionSignType type))
+        {
             return;
+        }
 
         ClientOnServer client = server.Clients[args.Player];
         ServerEntityId id = client.EditingSign;
@@ -249,7 +276,10 @@ public class ServerSystemPermissionSign : ServerSystem
                 .FirstOrDefault(g => g.Name == candidate);
             name = candidate;
             if (matchedGroup != null)
+            {
                 type = PermissionSignType.Group;
+            }
+
             return true;
         }
 
@@ -257,7 +287,11 @@ public class ServerSystemPermissionSign : ServerSystem
         {
             Group matchedGroup = server.ServerClient.Groups
                 .FirstOrDefault(g => GroupIdPrefix + g.Name == args.WidgetId);
-            if (matchedGroup == null) return false;
+            if (matchedGroup == null)
+            {
+                return false;
+            }
+
             name = matchedGroup.Name;
             type = PermissionSignType.Group;
             return true;
@@ -283,26 +317,39 @@ public class ServerSystemPermissionSign : ServerSystem
         int blockZ = args.Z;
 
         for (int dx = -1; dx <= 1; dx++)
+        {
             for (int dy = -1; dy <= 1; dy++)
+            {
                 for (int dz = -1; dz <= 1; dz++)
                 {
                     int cx = blockX / Server.ChunkSize + dx;
                     int cy = blockY / Server.ChunkSize + dy;
                     int cz = blockZ / Server.ChunkSize + dz;
 
-                    if (!VectorUtils.IsValidChunkPos(server.Map, cx, cy, cz, Server.ChunkSize)) continue;
+                    if (!VectorUtils.IsValidChunkPos(server.Map, cx, cy, cz, Server.ChunkSize))
+                    {
+                        continue;
+                    }
 
                     ServerChunk chunk = server.Map.GetChunk_(cx, cy, cz);
-                    if (chunk == null) return;
+                    if (chunk == null)
+                    {
+                        return;
+                    }
 
                     foreach (var (_, entity) in chunk.Entities)
                     {
-                        if (entity?.PermissionSign == null || entity.DrawArea == null) continue;
+                        if (entity?.PermissionSign == null || entity.DrawArea == null)
+                        {
+                            continue;
+                        }
 
                         if (!InArea(blockX, blockY, blockZ,
                                 entity.DrawArea.X, entity.DrawArea.Z, entity.DrawArea.Y,
                                 entity.DrawArea.SizeX, entity.DrawArea.SizeZ, entity.DrawArea.SizeY))
+                        {
                             continue;
+                        }
 
                         ClientOnServer client = server.Clients[args.Player];
 
@@ -320,6 +367,8 @@ public class ServerSystemPermissionSign : ServerSystem
                         }
                     }
                 }
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -333,7 +382,9 @@ public class ServerSystemPermissionSign : ServerSystem
     private bool CheckAreaPrivilege(int player)
     {
         if (server.PlayerHasPrivilege(player, ServerClientMisc.Privilege.area_add))
+        {
             return true;
+        }
 
         server.SendMessage(player,
             server.colorError + server.Language.Get("Server_CommandInsufficientPrivileges"));

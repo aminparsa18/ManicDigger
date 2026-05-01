@@ -36,7 +36,9 @@ public partial class Game
     {
         // Prevent switching camera mode when following an entity.
         if (Follow != null)
+        {
             return;
+        }
 
         switch (CameraType)
         {

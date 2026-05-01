@@ -111,7 +111,9 @@ public sealed class TcpNetConnection : NetConnection
 
         // Flush messages that were sent before the connection was ready.
         while (_pendingSend.TryRead(out ReadOnlyMemory<byte> queued))
+        {
             await WriteFramedAsync(queued);
+        }
 
         // Receive loop and drain of any further sends run concurrently.
         await Task.WhenAll(ReceiveLoopAsync(), SendLoopAsync());
@@ -137,7 +139,9 @@ public sealed class TcpNetConnection : NetConnection
     private async Task SendLoopAsync()
     {
         await foreach (ReadOnlyMemory<byte> payload in _pendingSend.ReadAllAsync(_ct))
+        {
             await WriteFramedAsync(payload);
+        }
     }
 
     public override async void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
@@ -145,7 +149,9 @@ public sealed class TcpNetConnection : NetConnection
         // Called from the game loop. Fire-and-forget via the send channel
         // so the game loop is never blocked on I/O.
         if (_stream is not null)
+        {
             await WriteFramedAsync(payload);
+        }
     }
 
     private async Task WriteFramedAsync(ReadOnlyMemory<byte> payload)

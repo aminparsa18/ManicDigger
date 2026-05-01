@@ -35,12 +35,18 @@ public class GameTimer
 
     internal bool Tick()
     {
-        if (!_running || SpeedOfTime == 0) return false;
+        if (!_running || SpeedOfTime == 0)
+        {
+            return false;
+        }
 
         long elapsed = Stopwatch.GetTimestamp() - _startTimestamp;
         long elapsedSeconds = elapsed / Stopwatch.Frequency;
 
-        if (elapsedSeconds <= _lastIngameSecond) return false;
+        if (elapsedSeconds <= _lastIngameSecond)
+        {
+            return false;
+        }
 
         long delta = elapsedSeconds - _lastIngameSecond;
         _lastIngameSecond = elapsedSeconds;

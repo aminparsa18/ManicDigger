@@ -1212,7 +1212,10 @@ public partial class Server
                     //Format:	Name: Reason
                     string reason = currentUser.Reason;
                     if (string.IsNullOrEmpty(reason))
+                    {
                         reason = "";
+                    }
+
                     SendMessage(sourceClientId, string.Format("{0}:{1}", currentUser.UserName, reason));
                 }
                 return true;
@@ -1229,7 +1232,10 @@ public partial class Server
                     //Format:	IP: Reason
                     string reason = currentIP.Reason;
                     if (string.IsNullOrEmpty(reason))
+                    {
                         reason = "";
+                    }
+
                     SendMessage(sourceClientId, string.Format("{0}:{1}", currentIP.IPAdress, reason));
                 }
                 return true;
@@ -1281,7 +1287,10 @@ public partial class Server
             int maxStack = 9999; //TODO: Fetch this dynamically for each item - stacking
             foreach (var (id, blockType) in BlockTypes)
             {
-                if (!blockType.IsBuildable) continue;
+                if (!blockType.IsBuildable)
+                {
+                    continue;
+                }
 
                 Inventory inventory = GetPlayerInventory(targetName);
                 InventoryUtil util = GetInventoryUtil(inventory);
@@ -1293,7 +1302,11 @@ public partial class Server
                     for (int xx = 0; xx < util.CellCountX && !found; xx++)
                     {
                         var key = new GridPoint(xx, yy);
-                        if (!inventory.Items.TryGetValue(key, out InventoryItem currentItem)) continue;
+                        if (!inventory.Items.TryGetValue(key, out InventoryItem currentItem))
+                        {
+                            continue;
+                        }
+
                         if (currentItem?.InventoryItemType == InventoryItemType.Block && currentItem.BlockId == id)
                         {
                             currentItem.BlockCount = maxStack;
@@ -1360,8 +1373,15 @@ public partial class Server
             InventoryUtil util = GetInventoryUtil(inventory);
             foreach (var (id, blockType) in BlockTypes)
             {
-                if (!blockType.IsBuildable) continue;
-                if (!blockType.Name.Equals(blockname, StringComparison.InvariantCultureIgnoreCase)) continue;
+                if (!blockType.IsBuildable)
+                {
+                    continue;
+                }
+
+                if (!blockType.Name.Equals(blockname, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
 
                 // Try to find existing stack
                 bool found = false;
@@ -1370,13 +1390,24 @@ public partial class Server
                     for (int yy = 0; yy < util.CellCountY && !found; yy++)
                     {
                         var key = new GridPoint(xx, yy);
-                        if (!inventory.Items.TryGetValue(key, out InventoryItem currentItem)) continue;
-                        if (currentItem?.InventoryItemType != InventoryItemType.Block || currentItem.BlockId != id) continue;
+                        if (!inventory.Items.TryGetValue(key, out InventoryItem currentItem))
+                        {
+                            continue;
+                        }
+
+                        if (currentItem?.InventoryItemType != InventoryItemType.Block || currentItem.BlockId != id)
+                        {
+                            continue;
+                        }
 
                         if (amount == 0)
+                        {
                             inventory.Items.Remove(key);
+                        }
                         else
+                        {
                             currentItem.BlockCount = Math.Min(currentItem.BlockCount + amount, maxStack);
+                        }
 
                         found = true;
                     }
@@ -1389,7 +1420,11 @@ public partial class Server
                     {
                         for (int yy = 0; yy < util.CellCountY && !found; yy++)
                         {
-                            if (util.ItemAtCell(new Point(xx, yy)) != null) continue;
+                            if (util.ItemAtCell(new Point(xx, yy)) != null)
+                            {
+                                continue;
+                            }
+
                             inventory.Items[new GridPoint(xx, yy)] = new InventoryItem
                             {
                                 InventoryItemType = InventoryItemType.Block,

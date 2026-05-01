@@ -89,7 +89,9 @@ public sealed class WebSocketClientConnection : NetConnection
         _ws.SendAsync(payload.ToArray(), completed =>
         {
             if (!completed)
+            {
                 Log.Warning("WebSocket client send did not complete.");
+            }
         });
     }
 

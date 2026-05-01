@@ -1,9 +1,5 @@
-﻿public class ModDrawParticleEffectBlockBreak : ModBase
+﻿public class ModDrawParticleEffectBlockBreak(IGame game) : ModBase(game)
 {
-    public ModDrawParticleEffectBlockBreak(IGame game) : base(game)
-    {
-    }
-
     public override void OnNewFrameDraw3d(float deltaTime)
     {
     }

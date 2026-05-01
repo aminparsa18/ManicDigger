@@ -11,10 +11,7 @@ public class CoreBlocks : IMod
     private SoundSet? noSound;
     private int lastseason;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreWar");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreWar");
 
     public void Start(IModManager manager)
     {

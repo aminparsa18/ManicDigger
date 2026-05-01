@@ -45,7 +45,9 @@ public class ModSkySphereStatic : ModBase
     public void Draw(float fov)
     {
         if (SkyTexture == -1)
+        {
             throw new InvalidOperationException($"error in {nameof(ModSkySphereStatic)} - {nameof(DrawSkySphere)}");
+        }
 
         skyModel ??= platform.CreateModel(Sphere.Create(SphereSize, SphereSize, SphereSegments, SphereSegments));
 

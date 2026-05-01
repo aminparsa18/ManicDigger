@@ -162,7 +162,10 @@ public class AdvanceWorldGenerator : IMod
 
         float raw = c1 * 0.85f + c2 * 0.15f;
 
-        if (!float.IsFinite(raw)) raw = 0f;
+        if (!float.IsFinite(raw))
+        {
+            raw = 0f;
+        }
 
         float biased = raw + ContinentBias((int)wx, (int)wy); // bias can stay int-based
         return Math.Clamp((biased + 0.3f) / 1.6f, 0f, 1f);
@@ -183,9 +186,20 @@ public class AdvanceWorldGenerator : IMod
         float sRaw = heightSmooth.GetValue(hx, 0f, hy);
         float dRaw = heightDetail.GetValue(hx * 2f, 0f, hy * 2f);
 
-        if (!float.IsFinite(rRaw)) rRaw = 0f;
-        if (!float.IsFinite(sRaw)) sRaw = 0f;
-        if (!float.IsFinite(dRaw)) dRaw = 0f;
+        if (!float.IsFinite(rRaw))
+        {
+            rRaw = 0f;
+        }
+
+        if (!float.IsFinite(sRaw))
+        {
+            sRaw = 0f;
+        }
+
+        if (!float.IsFinite(dRaw))
+        {
+            dRaw = 0f;
+        }
 
         float rNorm = Math.Clamp((rRaw + 1.0f) / 2.0f, 0f, 1f);
         float sNorm = Math.Clamp((sRaw + 0.5f) / 2.0f, 0f, 1f);
@@ -220,6 +234,7 @@ public class AdvanceWorldGenerator : IMod
         int oz = cz * chunksize;
 
         for (int xx = 0; xx < chunksize; xx++)
+        {
             for (int yy = 0; yy < chunksize; yy++)
             {
                 int wx = ox + xx;
@@ -268,6 +283,7 @@ public class AdvanceWorldGenerator : IMod
                     chunk[m.Index3d(xx, yy, zz, chunksize, chunksize)] = (ushort)block;
                 }
             }
+        }
 
         totalGetChunkMs += watch.ElapsedMilliseconds;
         watch.Stop();
@@ -279,9 +295,21 @@ public class AdvanceWorldGenerator : IMod
     // Water level is 30 — anything below that fills with water automatically.
     private static float ContinentToBaseZ(float cont)
     {
-        if (cont < 0.18f) return Lerp(5f, 14f, cont / 0.18f);                    // deep ocean  z= 5→14
-        if (cont < 0.28f) return Lerp(14f, 22f, (cont - 0.18f) / 0.10f);          // ocean       z=14→22
-        if (cont < 0.36f) return Lerp(22f, 30f, (cont - 0.28f) / 0.08f);          // shore slope z=22→30
+        if (cont < 0.18f)
+        {
+            return Lerp(5f, 14f, cont / 0.18f);                    // deep ocean  z= 5→14
+        }
+
+        if (cont < 0.28f)
+        {
+            return Lerp(14f, 22f, (cont - 0.18f) / 0.10f);          // ocean       z=14→22
+        }
+
+        if (cont < 0.36f)
+        {
+            return Lerp(22f, 30f, (cont - 0.28f) / 0.08f);          // shore slope z=22→30
+        }
+
         return Lerp(30f, 36f, Math.Clamp((cont - 0.36f) / 0.64f, 0f, 1f));        // land base   z=30→36
     }
 
@@ -339,7 +367,9 @@ public class AdvanceWorldGenerator : IMod
     private int BuildBlock(BiomeWeights w, int wz, int surfaceZ, int wx, int wy)
     {
         if (wz <= 0)
+        {
             return BLOCK_ADMINIUM;
+        }
 
         int depth = surfaceZ - wz;
 
@@ -348,7 +378,9 @@ public class AdvanceWorldGenerator : IMod
         {
             // deep underground
             if (depth > 6)
+            {
                 return BLOCK_STONE;
+            }
 
             // blended material selection
             float sandness = w.Desert;
@@ -371,24 +403,38 @@ public class AdvanceWorldGenerator : IMod
                 {
                     float dune = heightDetail.GetValue(wx * 0.08f, 0f, wy * 0.08f);
                     if (dune > 0.2f)
+                    {
                         return BLOCK_SAND;
+                    }
                     else
+                    {
                         return BLOCK_REDSAND;
+                    }
                 }
-                if (rockness > 0.6f) return BLOCK_STONE;
+                if (rockness > 0.6f)
+                {
+                    return BLOCK_STONE;
+                }
+
                 return BLOCK_GRASS;
             }
 
             // subsurface
             if (depth <= 3)
             {
-                if (sandness > 0.5f) return BLOCK_SAND;
+                if (sandness > 0.5f)
+                {
+                    return BLOCK_SAND;
+                }
+
                 return BLOCK_DIRT;
             }
 
             // transition to stone
             if (rockness > 0.5f)
+            {
                 return BLOCK_STONE;
+            }
 
             return BLOCK_DIRT;
         }
@@ -396,7 +442,9 @@ public class AdvanceWorldGenerator : IMod
         // ── ABOVE SURFACE ─────────────────────────────────────────────
 
         if (wz <= WATER_LEVEL)
+        {
             return BLOCK_WATER;
+        }
 
         // simple vegetation (can improve later)
         if (wz == surfaceZ + 1)
@@ -405,7 +453,9 @@ public class AdvanceWorldGenerator : IMod
             float detail = vegetationNoise.GetValue(wx / 3f, wy / 3f, 0f);     // fine variation
 
             if (density > 0.2f && detail > 0.5f && (w.Plains + w.Forest) > 0.4f)
+            {
                 return BLOCK_GRASSPLANT;
+            }
         }
 
         return BLOCK_AIR;
@@ -442,7 +492,9 @@ public class AdvanceWorldGenerator : IMod
 
         // Skip chunks outside safe bounds entirely
         if (cx < 0 || cy < 0 || cx * chunksize >= mapSizeX || cy * chunksize >= mapSizeY)
+        {
             return;
+        }
 
         int ox = cx * chunksize;
         int oy = cy * chunksize;
@@ -453,12 +505,19 @@ public class AdvanceWorldGenerator : IMod
             int x = ox + rnd.Next(chunksize);
             int y = oy + rnd.Next(chunksize);
 
-            if (!m.IsValidPos(x, y, oz)) continue; // skip whole column if base invalid
+            if (!m.IsValidPos(x, y, oz))
+            {
+                continue; // skip whole column if base invalid
+            }
 
             int surfaceZ = -1;
             for (int z = oz + chunksize - 1; z >= oz; z--)
             {
-                if (!m.IsValidPos(x, y, z)) break; // break not continue — if one is invalid, rest below are too
+                if (!m.IsValidPos(x, y, z))
+                {
+                    break; // break not continue — if one is invalid, rest below are too
+                }
+
                 int b = m.GetBlock(x, y, z);
                 if (b != BLOCK_AIR && b != BLOCK_WATER &&
                     m.IsValidPos(x, y, z + 1) && m.GetBlock(x, y, z + 1) == BLOCK_AIR)
@@ -467,12 +526,24 @@ public class AdvanceWorldGenerator : IMod
                     break;
                 }
             }
-            if (surfaceZ == -1) continue;
+            if (surfaceZ == -1)
+            {
+                continue;
+            }
 
             int at = m.GetBlock(x, y, surfaceZ);
-            if (at == BLOCK_GRASS) PlaceGrass(x, y, surfaceZ);
-            else if (at == BLOCK_SAND || at == BLOCK_REDSAND) PlaceDesert(x, y, surfaceZ);
-            else if (at == BLOCK_MUD) PlaceSwamp(x, y, surfaceZ);
+            if (at == BLOCK_GRASS)
+            {
+                PlaceGrass(x, y, surfaceZ);
+            }
+            else if (at == BLOCK_SAND || at == BLOCK_REDSAND)
+            {
+                PlaceDesert(x, y, surfaceZ);
+            }
+            else if (at == BLOCK_MUD)
+            {
+                PlaceSwamp(x, y, surfaceZ);
+            }
         }
 
         totalPopulateMs += watch.ElapsedMilliseconds;
@@ -481,7 +552,10 @@ public class AdvanceWorldGenerator : IMod
 
     private void PlaceGrass(int x, int y, int z)
     {
-        if (rnd.Next(10) == 0) TrySet(x, y, z + 1, BLOCK_GRASSPLANT);
+        if (rnd.Next(10) == 0)
+        {
+            TrySet(x, y, z + 1, BLOCK_GRASSPLANT);
+        }
     }
 
     private void PlaceDesert(int x, int y, int z)
@@ -491,7 +565,13 @@ public class AdvanceWorldGenerator : IMod
             case 0:
                 int h = rnd.Next(2, 5);
                 for (int j = 1; j <= h; j++)
-                    if (!TrySet(x, y, z + j, BLOCK_CACTUS)) break;
+                {
+                    if (!TrySet(x, y, z + j, BLOCK_CACTUS))
+                    {
+                        break;
+                    }
+                }
+
                 break;
             case 1:
                 TrySet(x, y, z + 1, BLOCK_DEADPLANT);
@@ -501,13 +581,24 @@ public class AdvanceWorldGenerator : IMod
 
     private void PlaceSwamp(int x, int y, int z)
     {
-        if (rnd.Next(7) == 0) TrySet(x, y, z + 1, BLOCK_GRASSPLANT);
+        if (rnd.Next(7) == 0)
+        {
+            TrySet(x, y, z + 1, BLOCK_GRASSPLANT);
+        }
     }
 
     private bool TrySet(int x, int y, int z, int block)
     {
-        if (!m.IsValidPos(x, y, z)) return false;
-        if (m.GetBlock(x, y, z) != BLOCK_AIR) return false;
+        if (!m.IsValidPos(x, y, z))
+        {
+            return false;
+        }
+
+        if (m.GetBlock(x, y, z) != BLOCK_AIR)
+        {
+            return false;
+        }
+
         m.SetBlock(x, y, z, block);
         return true;
     }
@@ -549,7 +640,10 @@ public class AdvanceWorldGenerator : IMod
         public void Normalize()
         {
             float sum = Plains + Desert + Forest + Mountains + Snow;
-            if (sum <= 0f) return;
+            if (sum <= 0f)
+            {
+                return;
+            }
 
             Plains /= sum;
             Desert /= sum;

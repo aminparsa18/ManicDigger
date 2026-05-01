@@ -92,9 +92,13 @@
     private void Connect()
     {
         if (string.IsNullOrEmpty(ConnectData.ServerPassword))
+        {
             Connect(ConnectData.Ip, ConnectData.Port, ConnectData.Username, ConnectData.Auth);
+        }
         else
+        {
             Connect(ConnectData.Ip, ConnectData.Port, ConnectData.Username, ConnectData.Auth, ConnectData.ServerPassword);
+        }
 
         MapLoadingStart();
     }

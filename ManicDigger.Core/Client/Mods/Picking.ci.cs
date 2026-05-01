@@ -731,7 +731,9 @@ public class ModPicking : ModBase
         int startZ = Math.Min(a.Z, b.Value.Z), endZ = Math.Max(a.Z, b.Value.Z);
 
         for (int x = startX; x <= endX; x++)
+        {
             for (int y = startY; y <= endY; y++)
+            {
                 for (int z = startZ; z <= endZ; z++)
                 {
                     if (fillarea.Count > Game.FillAreaLimit) { ClearFillArea(); return; }
@@ -742,6 +744,8 @@ public class ModPicking : ModBase
                         Game.RedrawBlock(x, y, z);
                     }
                 }
+            }
+        }
     }
 
     /// <summary>Sends a <c>UseWithTool</c> block-set packet for the block at the given position.</summary>

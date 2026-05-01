@@ -138,10 +138,14 @@ public class ServerSystemLoadConfig : ServerSystem
         Directory.CreateDirectory(GameStorePath.gamepathconfig);
 
         if (server.Config == null)
+        {
             server.Config = CreateConfigInteractively(server);
+        }
 
         if (server.Config.Areas.Count == 0)
+        {
             server.Config.Areas = ServerConfigMisc.getDefaultAreas();
+        }
 
         File.WriteAllText(
             Path.Combine(GameStorePath.gamepathconfig, ConfigFilename),
@@ -172,7 +176,9 @@ public class ServerSystemLoadConfig : ServerSystem
         Console.WriteLine(lang.ServerSetupQuestion());
 
         if (!ReadAccept(lang))
+        {
             return config;
+        }
 
         config.Public = PromptBool(lang.ServerSetupPublic(), lang);
         config.Name = PromptString(lang.ServerSetupName());
@@ -223,12 +229,18 @@ public class ServerSystemLoadConfig : ServerSystem
     {
         Console.WriteLine(lang.ServerSetupPort());
         string line = Console.ReadLine();
-        if (string.IsNullOrEmpty(line)) return new ServerConfig().Port;
+        if (string.IsNullOrEmpty(line))
+        {
+            return new ServerConfig().Port;
+        }
 
         if (int.TryParse(line, out int port))
         {
             if (port > 0 && port <= 65565)
+            {
                 return port;
+            }
+
             Console.WriteLine(lang.ServerSetupPortInvalidValue());
         }
         else
@@ -247,12 +259,18 @@ public class ServerSystemLoadConfig : ServerSystem
     {
         Console.WriteLine(lang.ServerSetupMaxClients());
         string line = Console.ReadLine();
-        if (string.IsNullOrEmpty(line)) return new ServerConfig().MaxClients;
+        if (string.IsNullOrEmpty(line))
+        {
+            return new ServerConfig().MaxClients;
+        }
 
         if (int.TryParse(line, out int players))
         {
             if (players > 0)
+            {
                 return players;
+            }
+
             Console.WriteLine(lang.ServerSetupMaxClientsInvalidValue());
         }
         else

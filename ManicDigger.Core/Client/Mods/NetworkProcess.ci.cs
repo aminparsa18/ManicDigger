@@ -54,7 +54,10 @@ public class ModNetworkProcess : ModBase
     public void NetworkProcess()
     {
         Game.CurrentTimeMilliseconds = _platform.TimeMillisecondsFromStart;
-        if (Game.NetClient == null) return;
+        if (Game.NetClient == null)
+        {
+            return;
+        }
 
         // ── Fix #7: while loop instead of for(;;) with two break conditions ───
         NetIncomingMessage msg;
@@ -115,14 +118,21 @@ public class ModNetworkProcess : ModBase
 
                         int i = 0;
                         for (int zz = 0; zz < p.SizeZ; zz++)
+                        {
                             for (int yy = 0; yy < p.SizeY; yy++)
+                            {
                                 for (int xx = 0; xx < p.SizeX; xx++)
                                 {
                                     int block = (decompressedchunk[i + 1] << 8) + decompressedchunk[i];
                                     if (block < GameConstants.MAX_BLOCKTYPES)
+                                    {
                                         receivedchunk[Index3d(xx, yy, zz, p.SizeX, p.SizeY)] = block;
+                                    }
+
                                     i += 2;
                                 }
+                            }
+                        }
                     }
                     else
                     {
@@ -142,10 +152,15 @@ public class ModNetworkProcess : ModBase
                     ReadOnlySpan<ushort> heights = MemoryMarshal.Cast<byte, ushort>(
                         decompressedchunk.AsSpan(0, p.SizeX * p.SizeY * 2));
                     for (int xx = 0; xx < p.SizeX; xx++)
+                    {
                         for (int yy = 0; yy < p.SizeY; yy++)
+                        {
                             Game.Heightmap.SetBlock(
                                 p.X + xx, p.Y + yy,
                                 heights[VectorIndexUtil.Index2d(xx, yy, p.SizeX)]);
+                        }
+                    }
+
                     break;
                 }
         }
@@ -162,7 +177,9 @@ public class ModNetworkProcess : ModBase
         int totalRead = 0;
         int bytesRead;
         while ((bytesRead = gz.Read(ret, totalRead, ret.Length - totalRead)) > 0)
+        {
             totalRead += bytesRead;
+        }
     }
 
     // a private Handle*() method to make this switch a clean dispatch table
@@ -235,12 +252,17 @@ public class ModNetworkProcess : ModBase
                     int blockCount = packet.FillArea.BlockCount;
 
                     for (int x = startx; x <= endx && blockCount > 0; x++)
+                    {
                         for (int y = starty; y <= endy && blockCount > 0; y++)
+                        {
                             for (int z = startz; z <= endz && blockCount > 0; z++)
                             {
                                 Game.SetTileAndUpdate(x, y, z, packet.FillArea.BlockType);
                                 blockCount--;
                             }
+                        }
+                    }
+
                     break;
                 }
 
@@ -280,7 +302,10 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.DisconnectPlayer:
                 Game.ChatLog($"[GAME] Disconnected by the server ({packet.DisconnectPlayer.DisconnectReason})");
                 if (_platform.IsMousePointerLocked())
+                {
                     _platform.ExitMousePointerLock();
+                }
+
                 _platform.MessageBoxShowError(
                     packet.DisconnectPlayer.DisconnectReason, "Disconnected from server");
                 Game.ExitToMainMenu();
@@ -292,15 +317,30 @@ public class ModNetworkProcess : ModBase
 
             case Packet_ServerIdEnum.FiniteInventory:
                 if (packet.Inventory.Inventory != null)
+                {
                     Game.UseInventory(packet.Inventory.Inventory);
+                }
+
                 break;
 
             case Packet_ServerIdEnum.Season:
                 {
                     packet.Season.Hour -= 1;
-                    if (packet.Season.Hour < 0) packet.Season.Hour = 12 * GameConstants.HourDetail;
-                    if (Game.NightLevels == null) break;
-                    if (packet.Season.Hour >= Game.NightLevels.Length) break;
+                    if (packet.Season.Hour < 0)
+                    {
+                        packet.Season.Hour = 12 * GameConstants.HourDetail;
+                    }
+
+                    if (Game.NightLevels == null)
+                    {
+                        break;
+                    }
+
+                    if (packet.Season.Hour >= Game.NightLevels.Length)
+                    {
+                        break;
+                    }
+
                     int sunlight = Game.NightLevels[packet.Season.Hour];
                     Game.SkySphereNight = sunlight < 8;
                     //Game.SunMoonRenderer.day_length_in_seconds =
@@ -334,8 +374,11 @@ public class ModNetworkProcess : ModBase
                 {
                     byte[] downloaded = Game.BlobDownload.ToArray();
                     if (Game.BlobDownloadName != null)
+                    {
                         Game.SetFile(Game.BlobDownloadName, Game.BlobDownloadMd5,
                             downloaded, (int)Game.BlobDownload.Length);
+                    }
+
                     Game.BlobDownload = null;
                     break;
                 }
@@ -349,7 +392,10 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.RemoveMonsters:
                 for (int i = GameConstants.entityMonsterIdStart;
                      i < GameConstants.entityMonsterIdStart + GameConstants.entityMonsterIdCount; i++)
+                {
                     Game.Entities[i] = null;
+                }
+
                 break;
 
             case Packet_ServerIdEnum.Translation:
@@ -369,7 +415,10 @@ public class ModNetworkProcess : ModBase
 
             case Packet_ServerIdEnum.LightLevels:
                 for (int i = 0; i < packet.LightLevels.Lightlevels.Length; i++)
+                {
                     Game.LightLevels[i] = EncodingHelper.DecodeFixedPoint(packet.LightLevels.Lightlevels[i]);
+                }
+
                 break;
 
             case Packet_ServerIdEnum.Follow:
@@ -411,12 +460,19 @@ public class ModNetworkProcess : ModBase
                     }
 
                     if (Game.TotalAmmo == null)
+                    {
                         Game.TotalAmmo = new int[GameConstants.MAX_BLOCKTYPES];
+                    }
                     else
+                    {
                         Array.Clear(Game.TotalAmmo, 0, GameConstants.MAX_BLOCKTYPES);
+                    }
 
                     for (int i = 0; i < packet.Ammo.TotalAmmo.Length; i++)
+                    {
                         Game.TotalAmmo[packet.Ammo.TotalAmmo[i].Key_] = packet.Ammo.TotalAmmo[i].Value_;
+                    }
+
                     break;
                 }
 
@@ -482,8 +538,12 @@ public class ModNetworkProcess : ModBase
                         scratch[6] = blockType.TextureIdForInventory;
 
                         for (int k = 0; k < 7; k++)
+                        {
                             if (textureSet.Add(scratch[k]))
+                            {
                                 textureList.Add(scratch[k]);
+                            }
+                        }
                     }
 
                     // Convert to array for downstream APIs that expect string[].

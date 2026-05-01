@@ -14,18 +14,28 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
 
     public override void OnNewFrameDraw3d(float deltaTime)
     {
-        if (!Game.ENABLE_DRAW2D) return;
+        if (!Game.ENABLE_DRAW2D)
+        {
+            return;
+        }
 
         if (Game.SelectedEntityId != -1)
+        {
             DrawEntityOutline(Game);
+        }
         else if (Game.SelectedBlockPositionX != -1)
+        {
             DrawBlockOutline(Game);
+        }
     }
 
     private void DrawEntityOutline(IGame game)
     {
         Entity e = game.Entities[game.SelectedEntityId];
-        if (e == null) return;
+        if (e == null)
+        {
+            return;
+        }
 
         float height = e.drawModel.ModelHeight;
         lines.DrawWireframeCube_(e.position.x, e.position.y + height / 2, e.position.z,

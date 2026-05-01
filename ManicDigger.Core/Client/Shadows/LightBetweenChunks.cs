@@ -132,7 +132,9 @@ public class LightBetweenChunks
 
                     // Copy block data via the chunk's unified accessor.
                     for (int i = 0; i < ChunkVolume; i++)
+                    {
                         dataSlot[i] = chunk.GetBlock(i);
+                    }
 
                     // Copy base light computed by LightBase.
                     Array.Copy(chunk.baseLight, lightSlot, ChunkVolume);
@@ -165,8 +167,12 @@ public class LightBetweenChunks
                         {
                             byte[] dcLight = _chunksLight[Index3d(x, y, z + 1, NeighbourhoodSize, NeighbourhoodSize)];
                             for (int xx = 0; xx < ChunkSize; xx++)
+                            {
                                 for (int yy = 0; yy < ChunkSize; yy++)
+                                {
                                     FloodAcrossBoundary(cLight, dcLight, x, y, z, x, y, z + 1, xx, yy, 15, xx, yy, 0, dataLightRadius, dataTransparent);
+                                }
+                            }
                         }
 
                         // Z- face: bottom edge of this chunk → top edge of chunk below.
@@ -174,8 +180,12 @@ public class LightBetweenChunks
                         {
                             byte[] dcLight = _chunksLight[Index3d(x, y, z - 1, NeighbourhoodSize, NeighbourhoodSize)];
                             for (int xx = 0; xx < ChunkSize; xx++)
+                            {
                                 for (int yy = 0; yy < ChunkSize; yy++)
+                                {
                                     FloodAcrossBoundary(cLight, dcLight, x, y, z, x, y, z - 1, xx, yy, 0, xx, yy, 15, dataLightRadius, dataTransparent);
+                                }
+                            }
                         }
 
                         // X+ face: right edge → left edge of chunk to the right.
@@ -183,8 +193,12 @@ public class LightBetweenChunks
                         {
                             byte[] dcLight = _chunksLight[Index3d(x + 1, y, z, NeighbourhoodSize, NeighbourhoodSize)];
                             for (int yy = 0; yy < ChunkSize; yy++)
+                            {
                                 for (int zz = 0; zz < ChunkSize; zz++)
+                                {
                                     FloodAcrossBoundary(cLight, dcLight, x, y, z, x + 1, y, z, 15, yy, zz, 0, yy, zz, dataLightRadius, dataTransparent);
+                                }
+                            }
                         }
 
                         // X- face: left edge → right edge of chunk to the left.
@@ -192,8 +206,12 @@ public class LightBetweenChunks
                         {
                             byte[] dcLight = _chunksLight[Index3d(x - 1, y, z, NeighbourhoodSize, NeighbourhoodSize)];
                             for (int yy = 0; yy < ChunkSize; yy++)
+                            {
                                 for (int zz = 0; zz < ChunkSize; zz++)
+                                {
                                     FloodAcrossBoundary(cLight, dcLight, x, y, z, x - 1, y, z, 0, yy, zz, 15, yy, zz, dataLightRadius, dataTransparent);
+                                }
+                            }
                         }
 
                         // Y+ face: front edge → back edge of chunk in front.
@@ -201,8 +219,12 @@ public class LightBetweenChunks
                         {
                             byte[] dcLight = _chunksLight[Index3d(x, y + 1, z, NeighbourhoodSize, NeighbourhoodSize)];
                             for (int xx = 0; xx < ChunkSize; xx++)
+                            {
                                 for (int zz = 0; zz < ChunkSize; zz++)
+                                {
                                     FloodAcrossBoundary(cLight, dcLight, x, y, z, x, y + 1, z, xx, 15, zz, xx, 0, zz, dataLightRadius, dataTransparent);
+                                }
+                            }
                         }
 
                         // Y- face: back edge → front edge of chunk behind.
@@ -210,8 +232,12 @@ public class LightBetweenChunks
                         {
                             byte[] dcLight = _chunksLight[Index3d(x, y - 1, z, NeighbourhoodSize, NeighbourhoodSize)];
                             for (int xx = 0; xx < ChunkSize; xx++)
+                            {
                                 for (int zz = 0; zz < ChunkSize; zz++)
+                                {
                                     FloodAcrossBoundary(cLight, dcLight, x, y, z, x, y - 1, z, xx, 0, zz, xx, 15, zz, dataLightRadius, dataTransparent);
+                                }
+                            }
                         }
                     }
                 }
@@ -258,7 +284,9 @@ public class LightBetweenChunks
 
         // Only propagate if the destination would gain light.
         if (targetLight >= sourceLight - 1)
+        {
             return;
+        }
 
         dstLight[dstIndex] = (byte)(sourceLight - 1);
         _flood.FloodLight(

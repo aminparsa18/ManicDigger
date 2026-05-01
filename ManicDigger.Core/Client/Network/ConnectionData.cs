@@ -1,4 +1,6 @@
-﻿/// <summary>Holds all parameters needed to establish a connection to a server.</summary>
+﻿using System.Collections.Specialized;
+
+/// <summary>Holds all parameters needed to establish a connection to a server.</summary>
 public class ConnectionData
 {
     /// <summary>The display name the player will use on the server.</summary>
@@ -32,7 +34,7 @@ public class ConnectionData
     /// <returns>A populated <see cref="ConnectionData"/> instance.</returns>
     public static ConnectionData FromUri(Uri uri)
     {
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        NameValueCollection query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         return new ConnectionData
         {
             Ip = uri.Host,

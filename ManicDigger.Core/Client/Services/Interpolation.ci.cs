@@ -101,9 +101,13 @@ public class NetworkInterpolation : INetworkInterpolation
         };
 
         if (_count < MaxPackets)
+        {
             _count++;
+        }
         else
+        {
             _head = (_head + 1) % MaxPackets; // oldest evicted
+        }
     }
 
     /// <summary>
@@ -113,7 +117,10 @@ public class NetworkInterpolation : INetworkInterpolation
     /// </summary>
     public IInterpolatedObject? InterpolatedState(int timeMilliseconds)
     {
-        if (_count == 0) return null;
+        if (_count == 0)
+        {
+            return null;
+        }
 
         int interpolationTime = timeMilliseconds - DelayMilliseconds;
 
@@ -143,7 +150,9 @@ public class NetworkInterpolation : INetworkInterpolation
         }
 
         if (p1 == p2)
+        {
             return GetPacket(p1).content;
+        }
 
         ref readonly Packet before = ref GetPacketRef(p1);
         ref readonly Packet after = ref GetPacketRef(p2);
@@ -218,7 +227,11 @@ public static class AngleInterpolation
         if (progress != 0 && b != a)
         {
             int diff = NormalizeAngle256(b - a);
-            if (diff >= CircleHalf256) diff -= CircleFull256;
+            if (diff >= CircleHalf256)
+            {
+                diff -= CircleFull256;
+            }
+
             a += (int)(progress * diff);
         }
         return NormalizeAngle256(a);
@@ -232,7 +245,11 @@ public static class AngleInterpolation
         if (progress != 0 && b != a)
         {
             float diff = NormalizeAngle360(b - a);
-            if (diff >= CircleHalf360) diff -= CircleFull360;
+            if (diff >= CircleHalf360)
+            {
+                diff -= CircleFull360;
+            }
+
             a += progress * diff;
         }
         return NormalizeAngle360(a);

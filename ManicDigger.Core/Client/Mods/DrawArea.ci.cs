@@ -12,12 +12,18 @@ public class ModDrawArea : ModBase
 
     public override void OnNewFrameDraw3d(float deltaTime)
     {
-        if (!Game.ENABLE_DRAW2D) return;
+        if (!Game.ENABLE_DRAW2D)
+        {
+            return;
+        }
 
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity e = Game.Entities[i];
-            if (e?.drawArea == null || !e.drawArea.visible) continue;
+            if (e?.drawArea == null || !e.drawArea.visible)
+            {
+                continue;
+            }
 
             float cx = e.drawArea.x + e.drawArea.sizex / 2f;
             float cy = e.drawArea.y + e.drawArea.sizey / 2f;
@@ -30,7 +36,11 @@ public class ModDrawArea : ModBase
     public override void OnHitEntity(OnUseEntityArgs e)
     {
         var area = Game.Entities[e.Id]?.drawArea;
-        if (area == null) return;
+        if (area == null)
+        {
+            return;
+        }
+
         area.visible = !area.visible;
     }
 }

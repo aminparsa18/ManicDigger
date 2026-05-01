@@ -26,7 +26,6 @@ public interface IGame : IDisposable
     /// <summary>Live performance counters (FPS, chunk updates, triangles, etc.).</summary>
     Dictionary<string, string> PerformanceInfo { get; }
 
-
     // =========================================================================
     // Frame / update loop
     // =========================================================================
@@ -616,8 +615,6 @@ public interface IGame : IDisposable
     // =========================================================================
     // Block picking / raycasting
     // =========================================================================
-
-
 
     /// <summary>Casts <paramref name="line"/> through the octree and returns all hit block faces.</summary>
     ArraySegment<BlockPosSide> Pick(BlockOctreeSearcher s_, Line3D line, out int retCount);

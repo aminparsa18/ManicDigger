@@ -79,11 +79,22 @@ public sealed class AudioService : IAudioService, IDisposable
     /// <summary>Destroys the OpenAL context and closes the audio device.</summary>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         ALC.MakeContextCurrent(ALContext.Null);
-        if (_context != ALContext.Null) ALC.DestroyContext(_context);
-        if (_device != ALDevice.Null) ALC.CloseDevice(_device);
+        if (_context != ALContext.Null)
+        {
+            ALC.DestroyContext(_context);
+        }
+
+        if (_device != ALDevice.Null)
+        {
+            ALC.CloseDevice(_device);
+        }
     }
 
     // ── Internal (used by AudioTask) ──────────────────────────────────────────
@@ -102,15 +113,26 @@ public sealed class AudioService : IAudioService, IDisposable
 
     private void EnsureInitialised()
     {
-        if (_initialised) return;
+        if (_initialised)
+        {
+            return;
+        }
+
         lock (_initLock)
         {
-            if (_initialised) return;
+            if (_initialised)
+            {
+                return;
+            }
+
             try
             {
                 _device = ALC.OpenDevice(null);
                 if (_device == ALDevice.Null)
+                {
                     throw new InvalidOperationException("No audio device found.");
+                }
+
                 _context = ALC.CreateContext(_device, (int[])null);
                 ALC.MakeContextCurrent(_context);
                 _initialised = true;
@@ -150,7 +172,10 @@ public sealed class AudioService : IAudioService, IDisposable
         reader.ReadInt16();
         int bitsPerSample = reader.ReadInt16();
 
-        if (fmtSize > 16) reader.ReadBytes(fmtSize - 16);
+        if (fmtSize > 16)
+        {
+            reader.ReadBytes(fmtSize - 16);
+        }
 
         Expect(new string(reader.ReadChars(4)), "data", "Missing data chunk.");
         byte[] pcm = reader.ReadBytes(reader.ReadInt32());
@@ -160,13 +185,20 @@ public sealed class AudioService : IAudioService, IDisposable
 
     private static void Expect(string actual, string expected, string message)
     {
-        if (actual != expected) throw new NotSupportedException(message);
+        if (actual != expected)
+        {
+            throw new NotSupportedException(message);
+        }
     }
 
     private static void TryLaunchOpenAlInstaller()
     {
         const string installer = "oalinst.exe";
-        if (!File.Exists(installer)) return;
+        if (!File.Exists(installer))
+        {
+            return;
+        }
+
         try { Process.Start(installer, "/s"); } catch { }
     }
 
@@ -198,7 +230,9 @@ public sealed class AudioService : IAudioService, IDisposable
         }
 
         if (SoundsCount < SoundsMax)
+        {
             Sounds[SoundsCount++] = sound;
+        }
     }
 
     /// <inheritdoc/>
@@ -207,7 +241,9 @@ public sealed class AudioService : IAudioService, IDisposable
         for (int i = 0; i < SoundsCount; i++)
         {
             if (Sounds[i] is not null)
+            {
                 Sounds[i]!.Stop = true;
+            }
         }
     }
 }

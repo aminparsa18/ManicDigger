@@ -177,7 +177,10 @@ public class ModDrawHand3d : ModBase
     private string HandImage2d()
     {
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
-        if (item == null) return null;
+        if (item == null)
+        {
+            return null;
+        }
 
         return Game.IronSights
             ? Game.BlockTypes[item.BlockId].IronSightsImage

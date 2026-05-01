@@ -116,8 +116,12 @@ public class TerrainChunkTesselator
 
         // Default everything to -1 (no modification).
         for (int s = 0; s < sides; s++)
+        {
             for (int c = 0; c < corners; c++)
+            {
                 _cornerHeightLookup[s, c] = -1;
+            }
+        }
 
         // Top: corners map to themselves.
         _cornerHeightLookup[(int)TileSide.Top, (int)Corner.TopLeft] = (int)Corner.TopLeft;
@@ -146,7 +150,9 @@ public class TerrainChunkTesselator
         // ── Occlusion neighbour offsets ───────────────────────────────────────
         c_OcclusionNeighbors = new Vector3i[TileSideExt.Count][];
         for (int i = 0; i < TileSideExt.Count; i++)
+        {
             c_OcclusionNeighbors[i] = new Vector3i[(int)TileDirection.Count];
+        }
 
         // Top
         c_OcclusionNeighbors[(int)TileSide.Top][(int)TileDirection.Center] = new Vector3i(0, 0, 1);
@@ -288,15 +294,21 @@ public class TerrainChunkTesselator
             BlockRenderFlags flags = BlockRenderFlags.None;
 
             if (b.DrawType != DrawType.Solid && b.DrawType != DrawType.Fluid)
+            {
                 flags |= BlockRenderFlags.Transparent;
+            }
 
             if (b.DrawType == DrawType.HalfHeight
              || b.DrawType == DrawType.Flat
              || b.Rail != 0)
+            {
                 flags |= BlockRenderFlags.Lowered;
+            }
 
             if (b.DrawType == DrawType.Fluid)
+            {
                 flags |= BlockRenderFlags.Fluid;
+            }
 
             _blockFlags[id] = flags;
         }
@@ -316,7 +328,10 @@ public class TerrainChunkTesselator
                 {
                     int pos = posstart + xx;
                     int tt = currentChunk[pos];
-                    if (tt == 0) continue;
+                    if (tt == 0)
+                    {
+                        continue;
+                    }
 
                     TileSideFlags draw = TileSideFlags.None;
 
@@ -344,7 +359,9 @@ public class TerrainChunkTesselator
                         {
                             if (draw.HasFlag(TileSideFlags.Front | TileSideFlags.Back
                                            | TileSideFlags.Right | TileSideFlags.Left))
+                            {
                                 draw |= TileSideFlags.Top;
+                            }
                         }
 
                         int nRail = Rail(tt);
@@ -387,7 +404,9 @@ public class TerrainChunkTesselator
                     int movez = (chunksize + 2) * (chunksize + 2);
                     int nPos2 = nPos[(int)side] - movez;
                     if (nPos2 > 0 && IsFluid(currentChunk[nPos2]))
+                    {
                         nReturn |= side.ToFlags();
+                    }
                 }
             }
         }
@@ -395,11 +414,17 @@ public class TerrainChunkTesselator
         if (IsLowered(tt2) && side != TileSide.Top)
         {
             if (!blnIsLowered)
+            {
                 nReturn |= side.ToFlags();
+            }
             else if (side == TileSide.Bottom)
+            {
                 nReturn |= TileSideFlags.Bottom;
+            }
             else
+            {
                 nReturn |= TileSideFlags.Top;
+            }
         }
 
         return nReturn;
@@ -418,17 +443,46 @@ public class TerrainChunkTesselator
                 {
                     int drawCountBase = Index3d(xx - 1, yy - 1, zz - 1, chunksize, chunksize) * 6;
                     int tt = currentChunk[pos + xx];
-                    if (tt == 0) continue;
+                    if (tt == 0)
+                    {
+                        continue;
+                    }
 
                     int draw = currentChunkDraw16[Index3d(xx - 1, yy - 1, zz - 1, chunksize, chunksize)];
-                    if (draw == 0) continue;
+                    if (draw == 0)
+                    {
+                        continue;
+                    }
 
-                    if ((draw & (int)TileSideFlags.Top) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Top] = 1;
-                    if ((draw & (int)TileSideFlags.Bottom) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Bottom] = 1;
-                    if ((draw & (int)TileSideFlags.Right) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Left] = 1;
-                    if ((draw & (int)TileSideFlags.Left) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Right] = 1;
-                    if ((draw & (int)TileSideFlags.Front) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Back] = 1;
-                    if ((draw & (int)TileSideFlags.Back) != 0) currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Front] = 1;
+                    if ((draw & (int)TileSideFlags.Top) != 0)
+                    {
+                        currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Top] = 1;
+                    }
+
+                    if ((draw & (int)TileSideFlags.Bottom) != 0)
+                    {
+                        currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Bottom] = 1;
+                    }
+
+                    if ((draw & (int)TileSideFlags.Right) != 0)
+                    {
+                        currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Left] = 1;
+                    }
+
+                    if ((draw & (int)TileSideFlags.Left) != 0)
+                    {
+                        currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Right] = 1;
+                    }
+
+                    if ((draw & (int)TileSideFlags.Front) != 0)
+                    {
+                        currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Back] = 1;
+                    }
+
+                    if ((draw & (int)TileSideFlags.Back) != 0)
+                    {
+                        currentChunkDrawCount16Flat[drawCountBase + (int)TileSide.Front] = 1;
+                    }
                 }
             }
         }
@@ -442,10 +496,18 @@ public class TerrainChunkTesselator
     private void BuildBlockPolygons(int x, int y, int z)
     {
         for (int xx = 0; xx < chunksize; xx++)
+        {
             for (int yy = 0; yy < chunksize; yy++)
+            {
                 for (int zz = 0; zz < chunksize; zz++)
+                {
                     if (currentChunkDraw16[Index3d(xx, yy, zz, chunksize, chunksize)] != 0)
+                    {
                         BuildSingleBlockPolygon(x * chunksize + xx, y * chunksize + yy, z * chunksize + zz, currentChunk18);
+                    }
+                }
+            }
+        }
     }
 
     private static int ColorMultiply(int color, float fValue)
@@ -535,7 +597,9 @@ public class TerrainChunkTesselator
             fShadowRation[c] /= facesconsidered;
 
             if (occupied[d1] || occupied[d2] || occupied[db])
+            {
                 fShadowRation[c] *= occ;
+            }
         }
     }
 
@@ -633,12 +697,36 @@ public class TerrainChunkTesselator
         ReadOnlySpan<byte> drawFlags = currentChunkDrawCount16Flat.AsSpan(baseIdx, 6);
 
         TileSideFlags nToDraw = TileSideFlags.None;
-        if (drawFlags[(int)TileSide.Top] > 0) nToDraw |= TileSideFlags.Top;
-        if (drawFlags[(int)TileSide.Bottom] > 0) nToDraw |= TileSideFlags.Bottom;
-        if (drawFlags[(int)TileSide.Left] > 0) nToDraw |= TileSideFlags.Right;
-        if (drawFlags[(int)TileSide.Right] > 0) nToDraw |= TileSideFlags.Left;
-        if (drawFlags[(int)TileSide.Back] > 0) nToDraw |= TileSideFlags.Front;
-        if (drawFlags[(int)TileSide.Front] > 0) nToDraw |= TileSideFlags.Back;
+        if (drawFlags[(int)TileSide.Top] > 0)
+        {
+            nToDraw |= TileSideFlags.Top;
+        }
+
+        if (drawFlags[(int)TileSide.Bottom] > 0)
+        {
+            nToDraw |= TileSideFlags.Bottom;
+        }
+
+        if (drawFlags[(int)TileSide.Left] > 0)
+        {
+            nToDraw |= TileSideFlags.Right;
+        }
+
+        if (drawFlags[(int)TileSide.Right] > 0)
+        {
+            nToDraw |= TileSideFlags.Left;
+        }
+
+        if (drawFlags[(int)TileSide.Back] > 0)
+        {
+            nToDraw |= TileSideFlags.Front;
+        }
+
+        if (drawFlags[(int)TileSide.Front] > 0)
+        {
+            nToDraw |= TileSideFlags.Back;
+        }
+
         return nToDraw;
     }
 
@@ -656,15 +744,37 @@ public class TerrainChunkTesselator
         float vOffsetX = 0, vOffsetY = 0, vOffsetZ = 0;
         float vScaleX = 1, vScaleY = 1, vScaleZ = 1;
 
-        if (!Isvalid(tiletype) || nToDraw == TileSideFlags.None) return;
+        if (!Isvalid(tiletype) || nToDraw == TileSideFlags.None)
+        {
+            return;
+        }
 
         if (option_DoNotDrawEdges)
         {
-            if (z == 0) nToDraw &= ~TileSideFlags.Bottom;
-            if (x == 0) nToDraw &= ~TileSideFlags.Front;
-            if (x == mapsizex - 1) nToDraw &= ~TileSideFlags.Back;
-            if (y == 0) nToDraw &= ~TileSideFlags.Left;
-            if (y == mapsizey - 1) nToDraw &= ~TileSideFlags.Right;
+            if (z == 0)
+            {
+                nToDraw &= ~TileSideFlags.Bottom;
+            }
+
+            if (x == 0)
+            {
+                nToDraw &= ~TileSideFlags.Front;
+            }
+
+            if (x == mapsizex - 1)
+            {
+                nToDraw &= ~TileSideFlags.Back;
+            }
+
+            if (y == 0)
+            {
+                nToDraw &= ~TileSideFlags.Left;
+            }
+
+            if (y == mapsizey - 1)
+            {
+                nToDraw &= ~TileSideFlags.Right;
+            }
         }
 
         if (IsFlower(tiletype))
@@ -720,7 +830,10 @@ public class TerrainChunkTesselator
             if (!blnSideDrawn ||
                 currentChunk[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)] != 0 ||
                 currentChunk[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)] != 0)
+            {
                 BuildBlockFace(x, y, z, tiletype, 0.5f, 0, 0, vScaleX, vScaleY, vScaleZ, currentChunk, TileSide.Left);
+            }
+
             return;
         }
         else if (drawType == DrawType.Ladder)
@@ -734,8 +847,14 @@ public class TerrainChunkTesselator
             {
                 int below = GetBestLadderInDirection(xx, yy, zz, currentChunk, -1);
                 int above = GetBestLadderInDirection(xx, yy, zz, currentChunk, 1);
-                if (below != 0) ladderWall = GetBestLadderWall(xx, yy, zz + below, currentChunk);
-                else if (above != 0) ladderWall = GetBestLadderWall(xx, yy, zz + above, currentChunk);
+                if (below != 0)
+                {
+                    ladderWall = GetBestLadderWall(xx, yy, zz + below, currentChunk);
+                }
+                else if (above != 0)
+                {
+                    ladderWall = GetBestLadderWall(xx, yy, zz + above, currentChunk);
+                }
             }
             // TODO: remove magic numbers
             nToDraw = ladderWall switch
@@ -760,10 +879,25 @@ public class TerrainChunkTesselator
             TorchTopTexture = TextureId(tiletype, TileSide.Top);
 
             TorchType type = TorchType.Normal;
-            if (CanSupportTorch(currentChunk[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)])) type = TorchType.Front;
-            if (CanSupportTorch(currentChunk[Index3d(xx + 1, yy, zz, chunksize + 2, chunksize + 2)])) type = TorchType.Back;
-            if (CanSupportTorch(currentChunk[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)])) type = TorchType.Left;
-            if (CanSupportTorch(currentChunk[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)])) type = TorchType.Right;
+            if (CanSupportTorch(currentChunk[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)]))
+            {
+                type = TorchType.Front;
+            }
+
+            if (CanSupportTorch(currentChunk[Index3d(xx + 1, yy, zz, chunksize + 2, chunksize + 2)]))
+            {
+                type = TorchType.Back;
+            }
+
+            if (CanSupportTorch(currentChunk[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)]))
+            {
+                type = TorchType.Left;
+            }
+
+            if (CanSupportTorch(currentChunk[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)]))
+            {
+                type = TorchType.Right;
+            }
 
             AddTorch(x, y, z, type, tiletype);
             return;
@@ -775,9 +909,13 @@ public class TerrainChunkTesselator
             if (fluidId >= 0 && tiletype == fluidId)
             {
                 if (currentChunk[Index3d(xx, yy, zz - 1, chunksize + 2, chunksize + 2)] == fluidId)
+                {
                     vOffsetZ = -0.1f;
+                }
                 else
+                {
                     vScaleZ = 0.9f;
+                }
             }
             else
             {
@@ -802,8 +940,10 @@ public class TerrainChunkTesselator
         {
             var side = (TileSide)i;
             if ((nToDraw & side.ToFlags()) != TileSideFlags.None)
+            {
                 BuildBlockFace(x, y, z, tiletype, vOffsetX, vOffsetY, vOffsetZ,
                                vScaleX, vScaleY, vScaleZ, currentChunk, side);
+            }
         }
     }
 
@@ -837,19 +977,27 @@ public class TerrainChunkTesselator
 
         blocknear = currentChunk18[Index3d(xx + 1, yy, zz, chunksize + 2, chunksize + 2)];
         if (rail == (int)RailDirectionFlags.Horizontal && blocknear != 0 && Rail(blocknear) == (int)RailDirectionFlags.None)
+        {
             return RailSlope.TwoRightRaised;
+        }
 
         blocknear = currentChunk18[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)];
         if (rail == (int)RailDirectionFlags.Horizontal && blocknear != 0 && Rail(blocknear) == (int)RailDirectionFlags.None)
+        {
             return RailSlope.TwoLeftRaised;
+        }
 
         blocknear = currentChunk18[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)];
         if (rail == (int)RailDirectionFlags.Vertical && blocknear != 0 && Rail(blocknear) == (int)RailDirectionFlags.None)
+        {
             return RailSlope.TwoUpRaised;
+        }
 
         blocknear = currentChunk18[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)];
         if (rail == (int)RailDirectionFlags.Vertical && blocknear != 0 && Rail(blocknear) == (int)RailDirectionFlags.None)
+        {
             return RailSlope.TwoDownRaised;
+        }
 
         return RailSlope.Flat;
     }
@@ -872,10 +1020,26 @@ public class TerrainChunkTesselator
         if (currentChunk[Index3d(x - 1, y, z, chunksize + 2, chunksize + 2)] != 0) { left = true; wallscount++; }
         if (currentChunk[Index3d(x + 1, y, z, chunksize + 2, chunksize + 2)] != 0) { wallscount++; }
 
-        if (wallscount != 1) return -1;
-        if (front) return 0;
-        if (back) return 1;
-        if (left) return 2;
+        if (wallscount != 1)
+        {
+            return -1;
+        }
+
+        if (front)
+        {
+            return 0;
+        }
+
+        if (back)
+        {
+            return 1;
+        }
+
+        if (left)
+        {
+            return 2;
+        }
+
         return 3;
     }
 
@@ -891,7 +1055,11 @@ public class TerrainChunkTesselator
             && currentChunk[Index3d(x, y, z + dz, chunksize + 2, chunksize + 2)] == LadderBlockId)
         {
             int result = dz;
-            if (GetBestLadderWall(x, y, z + dz, currentChunk) != -1) return result;
+            if (GetBestLadderWall(x, y, z + dz, currentChunk) != -1)
+            {
+                return result;
+            }
+
             dz += dir;
         }
         return 0;
@@ -937,10 +1105,25 @@ public class TerrainChunkTesselator
         float botx = topx;
         float boty = topy;
 
-        if (type == TorchType.Front) botx = x - sxy;
-        if (type == TorchType.Back) botx = x + 1;
-        if (type == TorchType.Left) boty = y - sxy;
-        if (type == TorchType.Right) boty = y + 1;
+        if (type == TorchType.Front)
+        {
+            botx = x - sxy;
+        }
+
+        if (type == TorchType.Back)
+        {
+            botx = x + 1;
+        }
+
+        if (type == TorchType.Left)
+        {
+            boty = y - sxy;
+        }
+
+        if (type == TorchType.Right)
+        {
+            boty = y + 1;
+        }
 
         float tz = z;
         Vector3 t00 = new(topx, tz + 0.9f, topy);
@@ -1031,7 +1214,11 @@ public class TerrainChunkTesselator
         // Call RefreshBlockTypeCache() externally when block definitions change.
 
         if (x < 0 || y < 0 || z < 0) { retCount = 0; return []; }
-        if (!started) throw new ArgumentException("not started");
+        if (!started)
+        {
+            throw new ArgumentException("not started");
+        }
+
         if (x >= mapsizex / chunksize
          || y >= mapsizey / chunksize
          || z >= mapsizez / chunksize) { retCount = 0; return []; }

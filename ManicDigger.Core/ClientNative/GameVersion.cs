@@ -13,6 +13,7 @@
                     gameversion = File.ReadAllText("version.txt").Trim();
                 }
             }
+
             return gameversion;
         }
     }

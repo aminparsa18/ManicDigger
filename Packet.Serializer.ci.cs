@@ -4,7 +4,6 @@ using ManicDigger;
 // Count/Length fields and Set* methods removed — MemoryPack handles arrays natively.
 // Shared structures used by both client and server are defined once.
 
-
 // ---------------------------------------------------------------------------
 // Shared structures (used by both client and server)
 // ---------------------------------------------------------------------------
@@ -54,7 +53,6 @@ public partial class Packet_Inventory
     public InventoryItem DragDropItem { get; set; }
     public InventoryItem[] RightHand { get; set; }
 }
-
 
 [MemoryPackable]
 public partial class Packet_IntInt

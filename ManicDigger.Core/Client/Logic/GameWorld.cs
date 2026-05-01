@@ -96,9 +96,20 @@ public partial class Game
     /// </summary>
     public bool IsTileEmptyForPhysics(int x, int y, int z)
     {
-        if (z >= voxelMap.MapSizeZ) return true;
-        if (x < 0 || y < 0 || z < 0) return Controls.FreeMove;
-        if (x >= voxelMap.MapSizeX || y >= voxelMap.MapSizeY) return Controls.FreeMove;
+        if (z >= voxelMap.MapSizeZ)
+        {
+            return true;
+        }
+
+        if (x < 0 || y < 0 || z < 0)
+        {
+            return Controls.FreeMove;
+        }
+
+        if (x >= voxelMap.MapSizeX || y >= voxelMap.MapSizeY)
+        {
+            return Controls.FreeMove;
+        }
 
         int block = voxelMap.GetBlockValid(x, y, z);
         return block == SpecialBlockId.Empty
@@ -112,8 +123,15 @@ public partial class Game
     /// </summary>
     public bool IsTileEmptyForPhysicsClose(int x, int y, int z)
     {
-        if (IsTileEmptyForPhysics(x, y, z)) return true;
-        if (!voxelMap.IsValidPos(x, y, z)) return false;
+        if (IsTileEmptyForPhysics(x, y, z))
+        {
+            return true;
+        }
+
+        if (!voxelMap.IsValidPos(x, y, z))
+        {
+            return false;
+        }
 
         BlockType bt = BlockTypes[voxelMap.GetBlock(x, y, z)];
         return bt.DrawType == DrawType.HalfHeight || IsEmptyForPhysics(bt);
@@ -158,12 +176,17 @@ public partial class Game
     public int GetLight(int x, int y, int z)
     {
         int light = voxelMap.MaybeGetLight(x, y, z);
-        if (light != -1) return light;
+        if (light != -1)
+        {
+            return light;
+        }
 
         if (x >= 0 && x < voxelMap.MapSizeX
          && y >= 0 && y < voxelMap.MapSizeY
          && z >= Heightmap.GetBlock(x, y))
+        {
             return Sunlight;
+        }
 
         return GameConstants.minlight;
     }
@@ -201,7 +224,9 @@ public partial class Game
         {
             height = i;
             if (!IsTransparentForLight(BlockTypes[voxelMap.GetBlock(x, y, i)]))
+            {
                 break;
+            }
         }
         Heightmap.SetBlock(x, y, height);
     }
@@ -222,21 +247,29 @@ public partial class Game
         for (int i = min; i < max; i++)
         {
             if (i / GameConstants.CHUNK_SIZE != z / GameConstants.CHUNK_SIZE)
+            {
                 voxelMap.SetChunkDirty(x / GameConstants.CHUNK_SIZE, y / GameConstants.CHUNK_SIZE, i / GameConstants.CHUNK_SIZE, true, true);
+            }
         }
 
         // TODO (#7): too many redraws — placing a block currently updates 27 chunks,
         // each recalculating light from 27 chunks (729× overhead).
         for (int xx = 0; xx < 3; xx++)
+        {
             for (int yy = 0; yy < 3; yy++)
+            {
                 for (int zz = 0; zz < 3; zz++)
                 {
                     int cx = x / GameConstants.CHUNK_SIZE + xx - 1;
                     int cy = y / GameConstants.CHUNK_SIZE + yy - 1;
                     int cz = z / GameConstants.CHUNK_SIZE + zz - 1;
                     if (voxelMap.IsValidChunkPos(cx, cy, cz))
+                    {
                         voxelMap.SetChunkDirty(cx, cy, cz, true, false);
+                    }
                 }
+            }
+        }
     }
 
     // ── Block health ──────────────────────────────────────────────────────────
@@ -264,7 +297,9 @@ public partial class Game
 
         InventoryItem item = Inventory.RightHand[ActiveMaterial];
         if (item == null || item.InventoryItemType != InventoryItemType.Block)
+        {
             return;
+        }
 
         int blockid = mode == PacketBlockSetMode.Destroy ? SpecialBlockId.Empty : material;
 
@@ -310,7 +345,10 @@ public partial class Game
         for (int i = 0; i < speculativeCount; i++)
         {
             Speculative? s = speculative[i];
-            if (s == null) continue;
+            if (s == null)
+            {
+                continue;
+            }
 
             if ((now - s.Value.timeMilliseconds) / 1000f > SpeculativeTimeoutSeconds)
             {
@@ -335,8 +373,12 @@ public partial class Game
         // Fix #5: count with a plain loop — no LINQ allocation.
         int count = 0;
         for (int i = 0; i < FogDrawDistances.Length; i++)
+        {
             if (FogDrawDistances[i] <= maxdrawdistance || FogDrawDistances[i] == 32)
+            {
                 count++;
+            }
+        }
 
         for (int i = 0; i < count; i++)
         {
@@ -358,7 +400,10 @@ public partial class Game
     /// </summary>
     public void SetFog()
     {
-        if (Config3d.ViewDistance >= 512) return;
+        if (Config3d.ViewDistance >= 512)
+        {
+            return;
+        }
 
         int fogR, fogG, fogB, fogA;
         if (SkySphereNight && !shadowssimple)

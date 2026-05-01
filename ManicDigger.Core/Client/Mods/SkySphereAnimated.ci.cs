@@ -98,7 +98,11 @@ public class ModSkySphereAnimated : ModBase
 
         // Normalize sun direction once outside the vertex loop
         float sunLength = MathF.Sqrt(sunX * sunX + sunY * sunY + sunZ * sunZ);
-        if (sunLength == 0) sunLength = 1;
+        if (sunLength == 0)
+        {
+            sunLength = 1;
+        }
+
         float sunXN = sunX / sunLength;
         float sunYN = sunY / sunLength;
         float sunZN = sunZ / sunLength;

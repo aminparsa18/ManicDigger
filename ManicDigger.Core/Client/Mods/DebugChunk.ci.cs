@@ -14,14 +14,21 @@ public class ModDebugChunk : ModBase
 
     public override bool OnClientCommand(ClientCommandArgs args)
     {
-        if (args.Command != "chunk") return false;
+        if (args.Command != "chunk")
+        {
+            return false;
+        }
+
         draw = !draw;
         return true;
     }
 
     public override void OnNewFrameDraw3d(float deltaTime)
     {
-        if (!draw) return;
+        if (!draw)
+        {
+            return;
+        }
 
         int cs = GameConstants.CHUNK_SIZE;
         int cx = (int)(Game.Player.position.x / cs) * cs;

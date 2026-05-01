@@ -19,7 +19,11 @@ public class ModGrenade : ModBase
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity entity = Game.Entities[i];
-            if (entity?.grenade == null) continue;
+            if (entity?.grenade == null)
+            {
+                continue;
+            }
+
             UpdateGrenade(i, dt);
         }
     }
@@ -56,25 +60,38 @@ public class ModGrenade : ModBase
 
         // Left (+Z)
         if (newPos.Z > oldPos.Z)
+        {
             TryBounceAxis(newPos, new Vector3(0, 0, WallDistance), ref velocity, ref pos, isMoving, axis: 2);
+        }
 
         // Right (-Z)
         if (newPos.Z < oldPos.Z)
+        {
             TryBounceAxis(newPos, new Vector3(0, 0, -WallDistance), ref velocity, ref pos, isMoving, axis: 2);
+        }
         // Front (+X)
         if (newPos.X > oldPos.X)
+        {
             TryBounceAxis(newPos, new Vector3(WallDistance, 0, 0), ref velocity, ref pos, isMoving, axis: 0);
+        }
 
         // Back (-X)
         if (newPos.X < oldPos.X)
+        {
             TryBounceAxis(newPos, new Vector3(-WallDistance, 0, 0), ref velocity, ref pos, isMoving, axis: 0);
+        }
         // Bottom (falling down)
         if (newPos.Y < oldPos.Y)
+        {
             TryBounceFloor(newPos, oldPos, ref velocity, ref pos, isMoving);
+        }
 
         // Top (moving up)
         if (newPos.Y > oldPos.Y)
+        {
             TryBounceCeiling(newPos, ref velocity, ref pos, isMoving);
+        }
+
         pos.Y -= WallDistance;
         return pos;
     }
@@ -89,7 +106,10 @@ public class ModGrenade : ModBase
 
         bool empty = Game.IsTileEmptyForPhysics(px, py, pz)
                   && Game.IsTileEmptyForPhysics(px, py, pz + 1);
-        if (empty) return;
+        if (empty)
+        {
+            return;
+        }
 
         velocity[axis] = -velocity[axis];
         ApplyBounce(ref velocity, newPos, isMoving);
@@ -113,7 +133,11 @@ public class ModGrenade : ModBase
             || (fracZ <= a && !Game.IsTileEmptyForPhysics(x, y - 1, z) && Game.IsTileEmptyForPhysics(x, y - 1, z + 1))
             || (fracZ >= 1 - a && !Game.IsTileEmptyForPhysics(x, y + 1, z) && Game.IsTileEmptyForPhysics(x, y + 1, z + 1));
 
-        if (!full) return;
+        if (!full)
+        {
+            return;
+        }
+
         velocity.Y = -velocity.Y;
         ApplyBounce(ref velocity, newPos, isMoving);
     }
@@ -127,7 +151,11 @@ public class ModGrenade : ModBase
             (int)MathF.Floor(probe.Z),
             (int)MathF.Floor(probe.Y));
 
-        if (empty) return;
+        if (empty)
+        {
+            return;
+        }
+
         velocity.Y = -velocity.Y;
         ApplyBounce(ref velocity, newPos, isMoving);
     }
@@ -137,6 +165,8 @@ public class ModGrenade : ModBase
     {
         velocity *= BounceSpeedMultiply;
         if (isMoving)
+        {
             Game.PlayAudioAt("grenadebounce.ogg", pos.X, pos.Y, pos.Z);
+        }
     }
 }

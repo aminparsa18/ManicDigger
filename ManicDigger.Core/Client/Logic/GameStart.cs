@@ -39,7 +39,6 @@ public partial class Game
 
         // ── Rendering subsystems ──────────────────────────────────────────────
 
-
         TerrainChunkTesselator = new TerrainChunkTesselator(this, gameService, BlockRegistry);
 
         // ── World / map ───────────────────────────────────────────────────────

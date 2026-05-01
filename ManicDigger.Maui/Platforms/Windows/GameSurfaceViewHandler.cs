@@ -1,6 +1,5 @@
 ﻿using Microsoft.Maui.Handlers;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Serilog;
 using Application = Microsoft.Maui.Controls.Application;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
@@ -25,8 +24,6 @@ public class GameSurfaceViewHandler : ViewHandler<GameSurfaceView, Grid>
     // -----------------------------------------------------------------------
     // Game objects (mirrors what Program.cs used to own)
     // -----------------------------------------------------------------------
-    private DummyNetwork? _dummyNetwork;
-    private GamePlatformNative? _platform;
     private GameExit _exit = new();
     private string? _savefilename;
 
@@ -54,7 +51,6 @@ public class GameSurfaceViewHandler : ViewHandler<GameSurfaceView, Grid>
     protected override void DisconnectHandler(Grid platformView)
     {
         platformView.Loaded -= OnPanelLoaded;
-        _exit.SetExit(true);
         base.DisconnectHandler(platformView);
     }
 
@@ -64,7 +60,7 @@ public class GameSurfaceViewHandler : ViewHandler<GameSurfaceView, Grid>
 
     private void OnPanelLoaded(object sender, RoutedEventArgs e)
     {
-        var panel = (Grid)sender;
+        Grid panel = (Grid)sender;
         panel.Loaded -= OnPanelLoaded;
 
         Log.Debug("GameSurfaceViewHandler: panel loaded, bootstrapping game");
@@ -81,30 +77,6 @@ public class GameSurfaceViewHandler : ViewHandler<GameSurfaceView, Grid>
     {
         try
         {
-            _dummyNetwork = new DummyNetwork();
-
-            _platform = new GamePlatformNative
-            {
-                crashreporter = new CrashReporter(),
-                singlePlayerServerDummyNetwork = _dummyNetwork
-            };
-            _platform.SetExit(_exit);
-            _platform.StartSinglePlayerServer = filename =>
-            {
-                _savefilename = filename;
-                new Thread(ServerThreadStart) { IsBackground = true }.Start();
-            };
-
-            // Just new up GameWindowNative exactly like the old Program.cs did
-            // OpenTK creates its own Win32 window — MAUI's window is irrelevant
-            using GameWindowNative window = new();
-            _platform.window = window;
-
-            var mainmenu = new MainMenu(_platform);
-            mainmenu.Start();
-
-            _platform.Start();
-            window.Run(); // blocks here, OpenTK runs its own message pump
         }
         catch (Exception ex)
         {
@@ -124,34 +96,6 @@ public class GameSurfaceViewHandler : ViewHandler<GameSurfaceView, Grid>
     {
         Log.Debug("Single-player server thread started");
 
-        var netServer = new DummyNetServer(_dummyNetwork!);
-        var server = new Server
-        {
-            SaveFilenameOverride = _savefilename,
-            MainSockets = new NetServer[3]
-        };
-        server.MainSockets[0] = netServer;
-
-        while (true)
-        {
-            server.Process();
-            Thread.Sleep(1);
-            _platform!.singlePlayerServerLoaded = true;
-
-            if (_exit.GetExit())
-            {
-                server.Stop();
-                break;
-            }
-
-            if (_platform.singlepLayerServerExit)
-            {
-                server.Exit();
-                _platform.singlepLayerServerExit = false;
-            }
-        }
-
-        _exit.SetExit(false);
         Log.Debug("Single-player server thread stopped cleanly");
     }
 }

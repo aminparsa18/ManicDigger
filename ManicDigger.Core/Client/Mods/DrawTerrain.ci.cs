@@ -120,7 +120,9 @@ public class ModDrawTerrain : ModBase
     public void RedrawAllBlocks(IGame _game)
     {
         if (!_terrainStarted)
+        {
             StartTerrain(_game);
+        }
 
         int chunksLength = InvertChunk(_game.MapSizeX)
                          * InvertChunk(_game.MapSizeY)
@@ -129,7 +131,11 @@ public class ModDrawTerrain : ModBase
         for (int i = 0; i < chunksLength; i++)
         {
             Chunk c = _voxelMap.Chunks[i];
-            if (c == null) continue;
+            if (c == null)
+            {
+                continue;
+            }
+
             c.rendered ??= new RenderedChunk();
             c.rendered.Dirty = true;
             c.baseLightDirty = true;
@@ -140,12 +146,18 @@ public class ModDrawTerrain : ModBase
 
     public void UpdateTerrain(IGame _game)
     {
-        if (!_terrainStarted) return;
+        if (!_terrainStarted)
+        {
+            return;
+        }
+
         RedrawChunksAroundLastPlacedBlock(_game);
 
         var nearest = NearestDirty(_game);
         if (nearest.HasValue)
+        {
             RedrawChunk(_game, nearest.Value.x, nearest.Value.y, nearest.Value.z);
+        }
     }
 
     private void RedrawChunksAroundLastPlacedBlock(IGame _game)
@@ -153,7 +165,9 @@ public class ModDrawTerrain : ModBase
         if (_game.LastplacedblockX == NoChunk
          && _game.LastplacedblockY == NoChunk
          && _game.LastplacedblockZ == NoChunk)
+        {
             return;
+        }
 
         int mapSizeX = InvertChunk(_voxelMap.MapSizeX);
         int mapSizeY = InvertChunk(_voxelMap.MapSizeY);
@@ -170,11 +184,17 @@ public class ModDrawTerrain : ModBase
 
             if (cx < 0 || cy < 0 || cz < 0
              || cx >= mapSizeX || cy >= mapSizeY || cz >= mapSizeZ)
+            {
                 continue;
+            }
 
             int idx = VectorIndexUtil.Index3d(cx, cy, cz, mapSizeX, mapSizeY);
             Chunk c = _voxelMap.Chunks[idx];
-            if (c?.rendered == null) continue;
+            if (c?.rendered == null)
+            {
+                continue;
+            }
+
             c.rendered.Dirty = true;
         }
 
@@ -201,7 +221,10 @@ public class ModDrawTerrain : ModBase
     /// </summary>
     private (int x, int y, int z)? NearestDirty(IGame _game)
     {
-        if (_voxelMap?.Chunks == null) return null;
+        if (_voxelMap?.Chunks == null)
+        {
+            return null;
+        }
 
         int px = InvertChunk((int)_game.LocalPositionX);
         int py = InvertChunk((int)_game.LocalPositionZ);
@@ -223,21 +246,31 @@ public class ModDrawTerrain : ModBase
         int bestDist = int.MaxValue;
 
         for (int ix = startX; ix <= endX; ix++)
+        {
             for (int iy = startY; iy <= endY; iy++)
+            {
                 for (int iz = startZ; iz <= endZ; iz++)
                 {
                     int i = VectorIndexUtil.Index3d(ix, iy, iz, mxc, myc);
                     Chunk c = _voxelMap.Chunks[i];
-                    if (c?.rendered == null || !c.rendered.Dirty) continue;
+                    if (c?.rendered == null || !c.rendered.Dirty)
+                    {
+                        continue;
+                    }
 
                     int dx = px - ix, dy = py - iy, dz = pz - iz;
                     int dist = dx * dx + dy * dy + dz * dz;
                     if (dist < bestDist) { bestDist = dist; bestIdx = i; }
                 }
+            }
+        }
 
         // ─────────────────────────────────────────────────────────────────────
 
-        if (bestIdx == -1) return null;
+        if (bestIdx == -1)
+        {
+            return null;
+        }
 
         _voxelMap.Chunks[bestIdx].rendered.Dirty = false;
 
@@ -255,7 +288,9 @@ public class ModDrawTerrain : ModBase
         {
             DoRedraw(_redrawQueue[i]);
             if (_redrawQueue[i].DataRented)
+            {
                 ArrayPool<VerticesIndicesToLoad>.Shared.Return(_redrawQueue[i].Data);
+            }
         }
         _redrawQueueCount = 0;
     }
@@ -266,8 +301,12 @@ public class ModDrawTerrain : ModBase
         RenderedChunk rendered = r.Chunk.rendered;
 
         if (rendered?.Ids != null)
+        {
             for (int i = 0; i < rendered.IdsCount; i++)
+            {
                 meshBatcher.Remove(rendered.Ids[i]);
+            }
+        }
 
         for (int i = 0; i < r.DataCount; i++)
         {
@@ -291,10 +330,14 @@ public class ModDrawTerrain : ModBase
         }
 
         if (rendered?.Ids == null || rendered.Ids.Length != _batcherIdsCount)
+        {
             rendered?.Ids = new int[_batcherIdsCount];
+        }
 
         for (int i = 0; i < _batcherIdsCount; i++)
+        {
             rendered?.Ids[i] = _batcherIds[i];
+        }
 
         rendered?.IdsCount = _batcherIdsCount;
     }
@@ -305,7 +348,10 @@ public class ModDrawTerrain : ModBase
     {
         Chunk c = _voxelMap.Chunks[
             VectorIndexUtil.Index3d(x, y, z, MapsizeXChunks(_game), MapsizeYChunks(_game))];
-        if (c == null) return;
+        if (c == null)
+        {
+            return;
+        }
 
         c.rendered ??= new RenderedChunk();
         _chunkUpdates++;
@@ -328,7 +374,9 @@ public class ModDrawTerrain : ModBase
                 meshData = ArrayPool<VerticesIndicesToLoad>.Shared.Rent(meshCount);
                 dataRented = true;
                 for (int i = 0; i < meshCount; i++)
+                {
                     meshData[i] = CloneVerticesIndicesToLoad(meshes[i]);
+                }
             }
         }
 
@@ -357,7 +405,13 @@ public class ModDrawTerrain : ModBase
     {
         int first = chunk[0];
         for (int i = 1; i < length; i++)
-            if (chunk[i] != first) return false;
+        {
+            if (chunk[i] != first)
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -374,20 +428,28 @@ public class ModDrawTerrain : ModBase
         }
 
         for (int xx = 0; xx < 3; xx++)
+        {
             for (int yy = 0; yy < 3; yy++)
+            {
                 for (int zz = 0; zz < 3; zz++)
                 {
                     int cx1 = cx + xx - 1;
                     int cy1 = cy + yy - 1;
                     int cz1 = cz + zz - 1;
-                    if (!_voxelMap.IsValidChunkPos(cx1, cy1, cz1)) continue;
+                    if (!_voxelMap.IsValidChunkPos(cx1, cy1, cz1))
+                    {
+                        continue;
+                    }
 
                     int nIdx = VectorIndexUtil.Index3d(
                         cx1, cy1, cz1,
                         _voxelMap.Mapsizexchunks,
                         _voxelMap.Mapsizeychunks);
                     Chunk neighbour = _voxelMap.Chunks[nIdx];
-                    if (neighbour == null) continue;
+                    if (neighbour == null)
+                    {
+                        continue;
+                    }
 
                     if (neighbour.baseLightDirty)
                     {
@@ -397,6 +459,8 @@ public class ModDrawTerrain : ModBase
                         neighbour.baseLightDirty = false;
                     }
                 }
+            }
+        }
 
         RenderedChunk rendered = _voxelMap
             .GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).rendered;
@@ -441,7 +505,10 @@ public class ModDrawTerrain : ModBase
     {
         const float MsToSeconds = 1f / 1000f;
         float elapsed = (_platform.TimeMillisecondsFromStart - _lastPerfUpdateMs) * MsToSeconds;
-        if (elapsed < 1f) return;
+        if (elapsed < 1f)
+        {
+            return;
+        }
 
         _lastPerfUpdateMs = _platform.TimeMillisecondsFromStart;
         int updatesThisPeriod = _chunkUpdates - _lastChunkUpdatesSnapshot;

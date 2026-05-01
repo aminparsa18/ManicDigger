@@ -54,11 +54,17 @@ public class SandPhysics : IMod
     private bool IsSoftBlock(int blockType)
     {
         if (blockType == 0)
+        {
             return true;
+        }
         else if (m.IsBlockFluid(blockType))
+        {
             return true;
+        }
         else
+        {
             return false;
+        }
     }
 
     private bool IsSlideDown(int x, int y, int z, int blockType)

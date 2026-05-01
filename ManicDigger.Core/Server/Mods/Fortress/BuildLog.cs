@@ -8,10 +8,7 @@ public class BuildLog : IMod
 
     public int MaxEntries = 50 * 1000;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {

@@ -3,14 +3,9 @@
 /// <summary>
 /// Base class for all client-side mods. Override only the hooks you need.
 /// </summary>
-public abstract class ModBase : IModBase
+public abstract class ModBase(IGame game) : IModBase
 {
-    protected IGame Game;
-
-    public ModBase(IGame game)
-    {
-        Game = game;
-    }
+    protected IGame Game = game;
 
     /// <summary>Called each tick on the main thread; game state is read-only.</summary>
     public virtual void OnReadOnlyMainThread(float dt) { }

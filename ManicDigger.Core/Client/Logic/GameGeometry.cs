@@ -72,7 +72,9 @@ public partial class Game
         for (int z = z_; z >= 0; z--)
         {
             if (voxelMap.GetBlock(x, y, z) != 0)
+            {
                 return z + 1;
+            }
         }
         return 0;
     }
@@ -84,12 +86,27 @@ public partial class Game
     /// </summary>
     public float Getblockheight(int x, int y, int z)
     {
-        if (!voxelMap.IsValidPos(x, y, z)) return 1f;
+        if (!voxelMap.IsValidPos(x, y, z))
+        {
+            return 1f;
+        }
 
         int block = voxelMap.GetBlock(x, y, z);
-        if (BlockTypes[block].Rail != 0) return RailBlockHeight;
-        if (BlockTypes[block].DrawType == DrawType.HalfHeight) return 0.5f;
-        if (BlockTypes[block].DrawType == DrawType.Flat) return 0.05f;
+        if (BlockTypes[block].Rail != 0)
+        {
+            return RailBlockHeight;
+        }
+
+        if (BlockTypes[block].DrawType == DrawType.HalfHeight)
+        {
+            return 0.5f;
+        }
+
+        if (BlockTypes[block].DrawType == DrawType.Flat)
+        {
+            return 0.05f;
+        }
+
         return 1f;
     }
 
@@ -104,10 +121,14 @@ public partial class Game
         int? inAtlasId, int atlastextures, int color, bool enabledepthtest)
     {
         if (color == ColorUtils.ColorFromArgb(255, 255, 255, 255) && inAtlasId == null)
+        {
             Draw2dTextureSimple(textureid, x1, y1, width, height, enabledepthtest);
+        }
         else
+        {
             Draw2dTextureInAtlas(textureid, x1, y1, width, height,
                 inAtlasId, atlastextures, color, enabledepthtest);
+        }
     }
 
     /// <summary>
@@ -120,7 +141,10 @@ public partial class Game
     {
         openGlService.GlDisableCullFace();
         openGlService.BindTexture2d(textureid);
-        if (!enabledepthtest) openGlService.GlDisableDepthTest();
+        if (!enabledepthtest)
+        {
+            openGlService.GlDisableDepthTest();
+        }
 
         _quadModel ??= openGlService.CreateModel(Quad.Create());
 
@@ -132,7 +156,11 @@ public partial class Game
         meshDrawer.DrawModel(_quadModel);
         meshDrawer.GLPopMatrix();
 
-        if (!enabledepthtest) openGlService.GlEnableDepthTest();
+        if (!enabledepthtest)
+        {
+            openGlService.GlEnableDepthTest();
+        }
+
         openGlService.GlEnableCullFace();
     }
 
@@ -143,7 +171,10 @@ public partial class Game
     private void Draw2dTextureInAtlas(int textureid, float x1, float y1,
         float width, float height, int? inAtlasId, int atlastextures, int color, bool enabledepthtest)
     {
-        if (inAtlasId == null) return;
+        if (inAtlasId == null)
+        {
+            return;
+        }
 
         RectangleF rect = TextureAtlas.TextureCoords2d(inAtlasId.Value, atlastextures);
         FillAtlasQuadModel(rect.X, rect.Y, rect.Width, rect.Height,
@@ -151,10 +182,18 @@ public partial class Game
 
         openGlService.GlDisableCullFace();
         openGlService.BindTexture2d(textureid);
-        if (!enabledepthtest) openGlService.GlDisableDepthTest();
+        if (!enabledepthtest)
+        {
+            openGlService.GlDisableDepthTest();
+        }
+
         openGlService.UpdateModel(_atlasQuadModel);
         meshDrawer.DrawModelData(_atlasQuadModel);
-        if (!enabledepthtest) openGlService.GlEnableDepthTest();
+        if (!enabledepthtest)
+        {
+            openGlService.GlEnableDepthTest();
+        }
+
         openGlService.GlEnableCullFace();
     }
 
@@ -170,10 +209,18 @@ public partial class Game
 
         openGlService.GlDisableCullFace();
         openGlService.BindTexture2d(textureid);
-        if (!enabledepthtest) openGlService.GlDisableDepthTest();
+        if (!enabledepthtest)
+        {
+            openGlService.GlDisableDepthTest();
+        }
+
         openGlService.UpdateModel(_atlasQuadModel);
         meshDrawer.DrawModelData(_atlasQuadModel);
-        if (!enabledepthtest) openGlService.GlEnableDepthTest();
+        if (!enabledepthtest)
+        {
+            openGlService.GlEnableDepthTest();
+        }
+
         openGlService.GlEnableCullFace();
     }
 
@@ -306,12 +353,17 @@ public partial class Game
     /// <summary>Runs the 2D draw pass for all registered mods.</summary>
     private void Draw2d(float dt)
     {
-        if (!ENABLE_DRAW2D) return;
+        if (!ENABLE_DRAW2D)
+        {
+            return;
+        }
 
         meshDrawer.OrthoMode(gameService.CanvasWidth, gameService.CanvasHeight);
 
         for (int i = 0; i < ClientMods.Count; i++)
+        {
             ClientMods[i]?.OnNewFrameDraw2d(dt);
+        }
 
         // Fix #3: evict stale text textures once per frame here, not inside Draw2dText.
         DeleteUnusedCachedTextTextures();
@@ -359,7 +411,10 @@ public partial class Game
             int baseIndex = combined.IndicesCount;
 
             for (int k = 0; k < m.IndicesCount; k++)
+            {
                 combined.Indices[baseIndex + k] = m.Indices[k] + baseVertex;
+            }
+
             combined.IndicesCount += m.IndicesCount;
 
             m.Xyz.AsSpan(0, m.VerticesCount * 3)
@@ -396,7 +451,10 @@ public partial class Game
     public void ClearFontCache()
     {
         foreach (Font f in _fontCache.Values)
+        {
             f.Dispose();
+        }
+
         _fontCache.Clear();
     }
 
@@ -407,7 +465,10 @@ public partial class Game
     /// </summary>
     public void Draw2dText(string text, Font font, float x, float y, int? color, bool enabledepthtest)
     {
-        if (string.IsNullOrWhiteSpace(text)) return;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
 
         color ??= ColorUtils.ColorFromArgb(255, 255, 255, 255);
         TextStyle t = new()
@@ -422,7 +483,11 @@ public partial class Game
         if (!CachedTextTextures.TryGetValue(t, out CachedTexture cached))
         {
             cached = MakeTextTexture(t);
-            if (cached == null) return;
+            if (cached == null)
+            {
+                return;
+            }
+
             CachedTextTextures[t] = cached;
         }
 

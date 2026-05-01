@@ -7,10 +7,7 @@ public class CoreEvents : IMod
 {
     private IModManager m;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
     public void Start(IModManager manager)
     {
         m = manager;
@@ -48,11 +45,9 @@ public class CoreEvents : IMod
         m.SendMessage(player, "&7Respawn");
     }
 
-    private string ColoredPlayername(int player)
-    {
+    private string ColoredPlayername(int player) =>
         //Returns the player name in group color
-        return string.Format("{0}{1}", m.GetGroupColor(player), m.GetPlayerName(player));
-    }
+        string.Format("{0}{1}", m.GetGroupColor(player), m.GetPlayerName(player));
 
     private void OnPlayerDeath(int player, DeathReason reason, int sourceID)
     {

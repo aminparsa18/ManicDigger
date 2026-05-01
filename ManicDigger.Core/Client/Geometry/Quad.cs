@@ -146,6 +146,7 @@ public class Quad
                 rgba[i * ColorComponents + 2] = b;
                 rgba[i * ColorComponents + 3] = a;
             }
+
             m.Rgba = rgba;
             // NOTE: The caller is responsible for returning rgba to the pool
             // when the GeometryModel is destroyed. If the renderer that calls

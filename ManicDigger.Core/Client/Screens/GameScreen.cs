@@ -112,9 +112,21 @@ public class ScreenGame(IMenu navigator, IGameService platform,
     /// </summary>
     private NetClient? CreateNetClient()
     {
-        if (GameService.NetworkService.TcpAvailable()) return new TcpNetClient();
-        if (GameService.NetworkService.EnetAvailable()) return new EnetNetClient(GameService.NetworkService);
-        if (GameService.NetworkService.WebSocketAvailable()) return new WebSocketNetClient();
+        if (GameService.NetworkService.TcpAvailable())
+        {
+            return new TcpNetClient();
+        }
+
+        if (GameService.NetworkService.EnetAvailable())
+        {
+            return new EnetNetClient(GameService.NetworkService);
+        }
+
+        if (GameService.NetworkService.WebSocketAvailable())
+        {
+            return new WebSocketNetClient();
+        }
+
         return null;
     }
 

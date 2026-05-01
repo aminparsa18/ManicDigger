@@ -59,7 +59,9 @@ public class LightFlood
 
         // Nothing to propagate if the seed has no light.
         if (light[start] == MinLight)
+        {
             return;
+        }
 
         _q.Clear();
         _q.Enqueue(start);
@@ -70,25 +72,52 @@ public class LightFlood
             int vLight = light[vPos];
 
             if (vLight == MinLight)
+            {
                 continue;
+            }
 
             int vBlock = chunk[vPos];
 
             // Skip opaque non-emissive blocks — light cannot pass through or originate here.
             if (!dataTransparent[vBlock] && dataLightRadius[vBlock] == 0)
+            {
                 continue;
+            }
 
             int x = VectorIndexUtil.PosX(vPos, 16, 16);
             int y = VectorIndexUtil.PosY(vPos, 16, 16);
             int z = VectorIndexUtil.PosZ(vPos, 16, 16);
 
             // Propagate to each face-connected neighbour within chunk bounds.
-            if (x < 15) Push(light, vLight, vPos + XPlus);
-            if (x > 0) Push(light, vLight, vPos + XMinus);
-            if (y < 15) Push(light, vLight, vPos + YPlus);
-            if (y > 0) Push(light, vLight, vPos + YMinus);
-            if (z < 15) Push(light, vLight, vPos + ZPlus);
-            if (z > 0) Push(light, vLight, vPos + ZMinus);
+            if (x < 15)
+            {
+                Push(light, vLight, vPos + XPlus);
+            }
+
+            if (x > 0)
+            {
+                Push(light, vLight, vPos + XMinus);
+            }
+
+            if (y < 15)
+            {
+                Push(light, vLight, vPos + YPlus);
+            }
+
+            if (y > 0)
+            {
+                Push(light, vLight, vPos + YMinus);
+            }
+
+            if (z < 15)
+            {
+                Push(light, vLight, vPos + ZPlus);
+            }
+
+            if (z > 0)
+            {
+                Push(light, vLight, vPos + ZMinus);
+            }
         }
     }
 

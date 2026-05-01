@@ -23,12 +23,17 @@ public class BlockId : IMod
 
     public void OnLoad()
     {
-        if (DEBUG) Console.WriteLine("############# BlockID Mod #############");
+        if (DEBUG)
+        {
+            Console.WriteLine("############# BlockID Mod #############");
+        }
 
         // Assigned blocks (in Default.cs and other mod files).
         Dictionary<int, Block> assignedBlocks = [];
         if (DEBUG)
+        {
             Console.WriteLine("## Current assigned IDs:");
+        }
 
         for (int i = 0; i < m.GetMaxBlockTypes(); i++)
         {
@@ -37,12 +42,16 @@ public class BlockId : IMod
             {
                 assignedBlocks.Add(i, new Block { Name = s, Type = m.GetBlockType(i) });
                 if (DEBUG)
+                {
                     Console.WriteLine($"{i}: {s}");
+                }
             }
             else
             {
                 if (DEBUG)
+                {
                     Console.WriteLine($"{i}: not set");
+                }
             }
         }
 
@@ -80,11 +89,18 @@ public class BlockId : IMod
 
         // Finally save new block order to savegame.
         Dictionary<int, string> newBlockIDs = [];
-        if (DEBUG) Console.WriteLine("## New Block IDs (storing to savegame):");
+        if (DEBUG)
+        {
+            Console.WriteLine("## New Block IDs (storing to savegame):");
+        }
+
         foreach (var k in reassignedBlocks)
         {
             newBlockIDs.Add(k.Key, k.Value.Name);
-            if (DEBUG) Console.WriteLine($"{k.Key}: {k.Value.Name}");
+            if (DEBUG)
+            {
+                Console.WriteLine($"{k.Key}: {k.Value.Name}");
+            }
         }
         SaveBlockIdsToDatabase(newBlockIDs);
     }
@@ -98,12 +114,18 @@ public class BlockId : IMod
             if (b != null)
             {
                 blocks = MemoryPackSerializer.Deserialize<Dictionary<int, string>>(b);
-                if (DEBUG) Console.WriteLine("Block IDs loaded from savegame.");
+                if (DEBUG)
+                {
+                    Console.WriteLine("Block IDs loaded from savegame.");
+                }
             }
             else
             {
                 // No BlockIDs saved in savegame.
-                if (DEBUG) Console.WriteLine("Block IDs not found in savegame.");
+                if (DEBUG)
+                {
+                    Console.WriteLine("Block IDs not found in savegame.");
+                }
             }
         }
         catch
@@ -118,11 +140,17 @@ public class BlockId : IMod
         if (blocks != null)
         {
             m.SetGlobalData("BlockIDs", MemoryPackSerializer.Serialize(blocks));
-            if (DEBUG) Console.WriteLine("Block IDs have been written to savegame");
+            if (DEBUG)
+            {
+                Console.WriteLine("Block IDs have been written to savegame");
+            }
         }
         else
         {
-            if (DEBUG) Console.WriteLine("Block IDs not set");
+            if (DEBUG)
+            {
+                Console.WriteLine("Block IDs not set");
+            }
         }
     }
 
@@ -164,10 +192,18 @@ public class BlockId : IMod
             DrawType = DrawType.Solid,
             WalkableType = WalkableType.Solid,
         };
-        if (DEBUG) Console.WriteLine("# Missing block definitions which are expected:");
+        if (DEBUG)
+        {
+            Console.WriteLine("# Missing block definitions which are expected:");
+        }
+
         foreach (var k in expectedBlocks)
         {
-            if (DEBUG) Console.WriteLine(k.Key + ": " + k.Value);
+            if (DEBUG)
+            {
+                Console.WriteLine(k.Key + ": " + k.Value);
+            }
+
             reassignedBlocks.Add(k.Key, new Block { Name = k.Value, Type = unknownBlock });
         }
         // Add remaining blocks from assignedBlocks.

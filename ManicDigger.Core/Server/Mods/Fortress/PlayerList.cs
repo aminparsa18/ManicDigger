@@ -14,10 +14,7 @@ public class PlayerList : IMod
 
     private IModManager m;
 
-    public string GetPrefix(int playerID)
-    {
-        return $"[{m.GetGroupColor(playerID)}{m.GetGroupName(playerID)}&0] ";
-    }
+    public string GetPrefix(int playerID) => $"[{m.GetGroupColor(playerID)}{m.GetGroupName(playerID)}&0] ";
 
     private void OnTabKey(int player, SpecialKey key)
     {
@@ -212,25 +209,13 @@ public class PlayerList : IMod
         return false;
     }
 
-    private static float Xcenter(float outerWidth, float innerWidth)
-    {
-        return outerWidth / 2 - innerWidth / 2;
-    }
+    private static float Xcenter(float outerWidth, float innerWidth) => outerWidth / 2 - innerWidth / 2;
 
-    private static float Ycenter(float outerHeight, float innerHeight)
-    {
-        return outerHeight / 2 - innerHeight / 2;
-    }
+    private static float Ycenter(float outerHeight, float innerHeight) => outerHeight / 2 - innerHeight / 2;
 
-    private float TextWidth(string text, DialogFont font)
-    {
-        return m.MeasureTextSize(text, font)[0];
-    }
+    private float TextWidth(string text, DialogFont font) => m.MeasureTextSize(text, font)[0];
 
-    private float TextHeight(string text, DialogFont font)
-    {
-        return m.MeasureTextSize(text, font)[1];
-    }
+    private float TextHeight(string text, DialogFont font) => m.MeasureTextSize(text, font)[1];
 
     private string CutText(string text, DialogFont font, float maxWidth)
     {

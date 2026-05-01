@@ -8,10 +8,7 @@
     public AviWriter avi;
     public Bitmap openbmp;
 
-    public void Open(string filename, int framerate, int width, int height)
-    {
-        openbmp = avi.Open(filename, (uint)framerate, width, height);
-    }
+    public void Open(string filename, int framerate, int width, int height) => openbmp = avi.Open(filename, (uint)framerate, width, height);
 
     public void AddFrame(Bitmap bitmap)
     {
@@ -26,8 +23,5 @@
         avi.AddFrame();
     }
 
-    public void Close()
-    {
-        avi.Close();
-    }
+    public void Close() => avi.Close();
 }

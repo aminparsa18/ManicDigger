@@ -65,7 +65,9 @@ public class Select : IModule
             float uHigh = upperBound + falloff;
 
             if (control < lLow)
+            {
                 return SourceModule1.GetValue(x, y, z);
+            }
 
             if (control < lHigh)
             {
@@ -79,7 +81,9 @@ public class Select : IModule
             }
 
             if (control < uLow)
+            {
                 return SourceModule2.GetValue(x, y, z);
+            }
 
             if (control < uHigh)
             {

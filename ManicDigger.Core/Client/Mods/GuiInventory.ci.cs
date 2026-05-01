@@ -448,7 +448,7 @@ public class ModGuiInventory : ModBase
             if (cellInPage.Value.X + sizex <= _cellCountInPageX
              && cellInPage.Value.Y + sizey <= _cellCountInPageY)
             {
-                var itemsAtArea = inventoryUtil.ItemsAtArea(
+                HashSet<Point>? itemsAtArea = inventoryUtil.ItemsAtArea(
                     cellInPage.Value.X, cellInPage.Value.Y + ScrollLine, sizex, sizey);
 
                 int color = (itemsAtArea == null || itemsAtArea.Count > 1)

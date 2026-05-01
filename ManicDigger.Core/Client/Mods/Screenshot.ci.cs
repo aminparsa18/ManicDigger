@@ -38,7 +38,11 @@ public class ModScreenshot : ModBase
 
     public override void OnKeyDown(KeyEventArgs args)
     {
-        if (args.KeyChar != Game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.F12)) return;
+        if (args.KeyChar != Game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.F12))
+        {
+            return;
+        }
+
         takeScreenshot = true;
         args.Handled = true;
     }

@@ -5,10 +5,7 @@
 /// </summary>
 public class WarBlocks : IMod
 {
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
     public void Start(IModManager m)
     {
         SoundSet solidSounds = new()

@@ -25,7 +25,9 @@ public partial class Game
         int bz = (int)MathF.Floor(EyesPosY);
 
         if (!voxelMap.IsValidPos(bx, by, bz))
+        {
             return Player.position.y < WaterLevel() ? -1 : 0;
+        }
 
         return voxelMap.GetBlockValid(bx, by, bz);
     }
@@ -37,21 +39,33 @@ public partial class Game
     public bool SwimmingEyes()
     {
         int eyesBlock = GetPlayerEyesBlock();
-        if (eyesBlock == -1) return true;
+        if (eyesBlock == -1)
+        {
+            return true;
+        }
+
         return BlockRegistry.WalkableType[eyesBlock] == WalkableType.Fluid;
     }
 
     public bool SwimmingBody()
     {
         int block = voxelMap.GetBlock((int)Player.position.x, (int)Player.position.z, (int)(Player.position.y + 1));
-        if (block == -1) return true;
+        if (block == -1)
+        {
+            return true;
+        }
+
         return BlockRegistry.WalkableType[block] == WalkableType.Fluid;
     }
 
     public bool WaterSwimmingEyes()
     {
         int block = GetPlayerEyesBlock();
-        if (block == -1) return true;
+        if (block == -1)
+        {
+            return true;
+        }
+
         return IsWater(block);
     }
 
@@ -62,7 +76,9 @@ public partial class Game
     public int BlockUnderPlayer()
     {
         if (!voxelMap.IsValidPos((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1))
+        {
             return -1;
+        }
 
         return voxelMap.GetBlock((int)Player.position.x, (int)Player.position.z, (int)Player.position.y - 1);
     }
@@ -87,7 +103,10 @@ public partial class Game
         if (blockUnder != -1)
         {
             float floorSpeed = BlockRegistry.WalkSpeed[blockUnder];
-            if (floorSpeed != 0) speed *= floorSpeed;
+            if (floorSpeed != 0)
+            {
+                speed *= floorSpeed;
+            }
         }
 
         if (KeyboardState[GetKey(Keys.LeftControl)])
@@ -104,12 +123,18 @@ public partial class Game
         if (item != null && item.InventoryItemType == InventoryItemType.Block)
         {
             float itemSpeed = BlockTypes[item.BlockId].WalkSpeedWhenUsed;
-            if (itemSpeed != 0) speed *= itemSpeed;
+            if (itemSpeed != 0)
+            {
+                speed *= itemSpeed;
+            }
 
             if (IronSights)
             {
                 float ironSpeed = BlockTypes[item.BlockId].IronSightsMoveSpeed;
-                if (ironSpeed != 0) speed *= ironSpeed;
+                if (ironSpeed != 0)
+                {
+                    speed *= ironSpeed;
+                }
             }
         }
 
@@ -128,7 +153,10 @@ public partial class Game
             if (item != null && item.InventoryItemType == InventoryItemType.Block)
             {
                 float ironFov = BlockTypes[item.BlockId].IronSightsFov;
-                if (ironFov != 0) return fov * ironFov;
+                if (ironFov != 0)
+                {
+                    return fov * ironFov;
+                }
             }
         }
         return fov;
@@ -137,14 +165,21 @@ public partial class Game
     public float CurrentRecoil()
     {
         InventoryItem item = Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.InventoryItemType != InventoryItemType.Block) return 0;
+        if (item == null || item.InventoryItemType != InventoryItemType.Block)
+        {
+            return 0;
+        }
+
         return BlockTypes[item.BlockId].Recoil;
     }
 
     public float CurrentAimRadius()
     {
         InventoryItem item = Inventory.RightHand[ActiveMaterial];
-        if (item == null || item.InventoryItemType != InventoryItemType.Block) return 0;
+        if (item == null || item.InventoryItemType != InventoryItemType.Block)
+        {
+            return 0;
+        }
 
         float radius = IronSights
             ? BlockTypes[item.BlockId].IronSightsAimRadius / 800 * gameService.CanvasWidth
@@ -182,12 +217,18 @@ public partial class Game
         for (int i = 0; i < Entities.Count; i++)
         {
             Entity e = Entities[i];
-            if (e?.drawModel == null) continue;
+            if (e?.drawModel == null)
+            {
+                continue;
+            }
+
             if (e.networkPosition == null || e.networkPosition.PositionLoaded)
             {
                 if (IsPlayerInPos(e.position.x, e.position.y, e.position.z,
                     blockposX, blockposY, blockposZ, e.drawModel.ModelHeight))
+                {
                     return true;
+                }
             }
         }
         return IsPlayerInPos(Player.position.x, Player.position.y, Player.position.z,
@@ -203,7 +244,9 @@ public partial class Game
                 blockposX, blockposZ, blockposY,
                 blockposX + 1, blockposZ + 1, blockposY + 1,
                 playerposX, playerposY + i + WallDistance, playerposZ) < WallDistance)
+            {
                 return true;
+            }
         }
         return false;
     }

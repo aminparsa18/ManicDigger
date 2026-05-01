@@ -11,7 +11,9 @@
     public void AddChatLine(string s)
     {
         if (string.IsNullOrEmpty(s))
+        {
             return;
+        }
 
         string linkTarget = ExtractLink(s);
         bool containsLink = linkTarget != null;
@@ -45,7 +47,9 @@
                 foreach (string word in s.Split(' '))
                 {
                     if (word.Contains(prefix, StringComparison.InvariantCultureIgnoreCase))
+                    {
                         return word;
+                    }
                 }
             }
         }
@@ -58,7 +62,10 @@
         {
             Chatline[] lines2 = new Chatline[ChatLinesMax * 2];
             for (int i = 0; i < ChatLinesMax; i++)
+            {
                 lines2[i] = ChatLines[i];
+            }
+
             ChatLines = [.. lines2];
             ChatLinesMax *= 2;
         }
@@ -89,7 +96,9 @@
     public void ExecuteChat(string s_)
     {
         if (string.IsNullOrEmpty(s_))
+        {
             return;
+        }
 
         if (s_.StartsWith("."))
         {
@@ -124,7 +133,11 @@
                 for (int i = 0; i < Entities.Count; i++)
                 {
                     Entity entity = Entities[i];
-                    if (entity == null || entity.drawName == null || !entity.drawName.ClientAutoComplete) continue;
+                    if (entity == null || entity.drawName == null || !entity.drawName.ClientAutoComplete)
+                    {
+                        continue;
+                    }
+
                     AddChatLine(string.Format("{0} {1}", i.ToString(), entity.drawName.Name));
                 }
                 break;
@@ -157,7 +170,9 @@
 
             default:
                 if (arguments != "")
+                {
                     ExecuteClientCommandWithArg(cmd, arguments, strFreemoveNotAllowed);
+                }
                 else
                 {
                     // No matching command — send as chat.
@@ -182,7 +197,11 @@
             case "fog":
                 int foglevel = int.Parse(arguments);
                 foglevel = Math.Min(foglevel, 1024);
-                if (foglevel % 2 == 0) foglevel--;
+                if (foglevel % 2 == 0)
+                {
+                    foglevel--;
+                }
+
                 Config3d.ViewDistance = foglevel;
                 OnResize();
                 break;
@@ -192,7 +211,9 @@
                 int minfov = IsSinglePlayer ? 1 : 60;
                 int maxfov = 179;
                 if (arg < minfov || arg > maxfov)
+                {
                     AddChatLine(string.Format("Valid field of view: {0}-{1}", minfov, maxfov));
+                }
                 else
                 {
                     fov = 2 * MathF.PI * (arg / 360);
@@ -204,7 +225,9 @@
                 if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
                 float speed = float.Parse(arguments);
                 if (speed > 500)
+                {
                     AddChatLine("Entered movespeed to high! max. 500x");
+                }
                 else
                 {
                     MoveSpeed = Basemovespeed * speed;

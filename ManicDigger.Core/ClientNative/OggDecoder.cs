@@ -20,7 +20,7 @@ public static class OggDecoder
     /// </returns>
     public static AudioData OggToWav(Stream ogg)
     {
-        using var reader = new VorbisReader(ogg, closeOnDispose: false);
+        using VorbisReader reader = new VorbisReader(ogg, closeOnDispose: false);
 
         int channels = reader.Channels;
         int frameSize = ReadBufferSamples * channels;
@@ -28,7 +28,7 @@ public static class OggDecoder
         float[] floatBuf = new float[frameSize];
         byte[] pcmChunk = new byte[frameSize * 2];   // reused each iteration
 
-        using var output = new MemoryStream();
+        using MemoryStream output = new MemoryStream();
 
         int samplesRead;
         while ((samplesRead = reader.ReadSamples(floatBuf, 0, frameSize)) > 0)

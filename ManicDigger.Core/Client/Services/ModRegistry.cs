@@ -16,7 +16,10 @@ public sealed class ModRegistry : IModRegistry
     public void Initialise(IEnumerable<IModBase> mods)
     {
         if (_mods.Count > 0)
+        {
             throw new InvalidOperationException("ModRegistry already initialised.");
+        }
+
         _mods = [.. mods];
     }
 }

@@ -10,10 +10,7 @@ public class CoreBlocks : IMod
     private SoundSet snowSounds;
     private SoundSet noSound;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("Core");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("Core");
 
     public void Start(IModManager manager)
     {

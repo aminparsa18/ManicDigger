@@ -18,10 +18,7 @@ public class TreeGenerator : IMod
     private int BLOCK_BIRCHTRUNK;
     private int BLOCK_BIRCHLEAVES;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {

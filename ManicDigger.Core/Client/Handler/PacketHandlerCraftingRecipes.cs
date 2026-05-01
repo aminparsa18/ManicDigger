@@ -1,10 +1,6 @@
-﻿public class PacketHandlerCraftingRecipes : ClientPacketHandler
+﻿public class PacketHandlerCraftingRecipes(IGameService gameService, IGame game) : ClientPacketHandler(gameService, game)
 {
     internal ModGuiCrafting mod;
-
-    public PacketHandlerCraftingRecipes(IGameService gameService, IGame game) : base(gameService, game)
-    {
-    }
 
     public override void Handle(Packet_Server packet)
     {

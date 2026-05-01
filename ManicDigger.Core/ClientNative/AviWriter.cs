@@ -79,10 +79,7 @@ public class AviWriter
             }
         }
 
-        public string ErrMsg()
-        {
-            return err_msg;
-        }
+        public string ErrMsg() => err_msg;
         private const int AVIERR_BADPARAM = -2147205018;
         private readonly string err_msg;
     }

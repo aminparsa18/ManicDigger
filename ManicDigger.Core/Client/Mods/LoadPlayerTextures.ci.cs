@@ -71,9 +71,11 @@ public class ModLoadPlayerTextures : ModBase
         {
             Entity e = Game.Entities[i];
             if (e?.drawModel == null) { continue; }
+
             if (e.drawModel.CurrentTexture != -1) { continue; }
 
             if (TryLoadDownloadedSkin(e)) { continue; }
+
             if (TryLoadFileSkin(e)) { continue; }
         }
     }
@@ -108,6 +110,7 @@ public class ModLoadPlayerTextures : ModBase
         }
 
         if (e.drawModel.SkinDownloadResponse.Error) { return false; }
+
         if (!e.drawModel.SkinDownloadResponse.Done) { return true; }
 
         // Download finished — decode and upload.

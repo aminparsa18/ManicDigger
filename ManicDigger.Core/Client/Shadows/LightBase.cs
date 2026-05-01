@@ -55,7 +55,9 @@ public class LightBase
         // Copy block data into the working buffer via the chunk's unified accessor,
         // which handles both byte (data) and int (dataInt) storage transparently.
         for (int i = 0; i < ChunkVolume; i++)
+        {
             _workData[i] = chunk.GetBlock(i);
+        }
 
         byte[] workLight = chunk.baseLight;
         Array.Clear(workLight, 0, workLight.Length);
@@ -110,8 +112,15 @@ public class LightBase
 
                 // Convert world-space height to chunk-local Z.
                 int z = height - baseHeight;
-                if (z < 0) z = 0;
-                if (z > ChunkSize) continue; // Sunlight enters above this chunk entirely.
+                if (z < 0)
+                {
+                    z = 0;
+                }
+
+                if (z > ChunkSize)
+                {
+                    continue; // Sunlight enters above this chunk entirely.
+                }
 
                 int pos = Index3d(xx, yy, z, ChunkSize, ChunkSize);
 
@@ -143,7 +152,9 @@ public class LightBase
         int[] heightmapChunk = game.Heightmap.GetChunk(cx * ChunkedMap2d<int>.ChunkSize, cy * ChunkedMap2d<int>.ChunkSize);
 
         if (heightmapChunk == null)
+        {
             return 0;
+        }
 
         return heightmapChunk[
             VectorIndexUtil.Index2d(xx % GameConstants.CHUNK_SIZE, yy % GameConstants.CHUNK_SIZE, GameConstants.CHUNK_SIZE)];
@@ -171,7 +182,9 @@ public class LightBase
 
                     // Only propagate through transparent blocks.
                     if (!dataTransparent[workData[pos]])
+                    {
                         continue;
+                    }
 
                     int curLight = workLight[pos];
                     int posXNeighbour = pos + LightFlood.XPlus;
@@ -216,15 +229,21 @@ public class LightBase
 
             // Optimisation: no block with ID < 10 emits light.
             if (blockId < 10)
+            {
                 continue;
+            }
 
             int emitRadius = dataLightRadius[blockId];
             if (emitRadius == 0)
+            {
                 continue;
+            }
 
             // Only flood if the block emits more light than is already present.
             if (emitRadius <= workLight[pos])
+            {
                 continue;
+            }
 
             int xx = VectorIndexUtil.PosX(pos, ChunkSize, ChunkSize);
             int yy = VectorIndexUtil.PosY(pos, ChunkSize, ChunkSize);

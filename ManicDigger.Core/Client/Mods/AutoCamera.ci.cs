@@ -121,7 +121,9 @@ public class ModAutoCamera : ModBase
     public override bool OnClientCommand(ClientCommandArgs args)
     {
         if (args.Command != "cam")
+        {
             return false;
+        }
 
         string[] arguments = args.Arguments.Split(" ");
 
@@ -160,7 +162,10 @@ public class ModAutoCamera : ModBase
 
             case "load":
                 if (arguments.Length >= 2)
+                {
                     LoadPointsFromString(arguments[1]);
+                }
+
                 break;
         }
 
@@ -170,7 +175,10 @@ public class ModAutoCamera : ModBase
     /// <inheritdoc/>
     public override void OnNewFrame(float dt)
     {
-        if (!_isPlaying) return;
+        if (!_isPlaying)
+        {
+            return;
+        }
 
         _playingTime += dt;
 
@@ -294,8 +302,10 @@ public class ModAutoCamera : ModBase
         _segmentStartDists = new float[_cameraPointsCount];
         _segmentStartDists[0] = 0f;
         for (int i = 1; i < _cameraPointsCount; i++)
+        {
             _segmentStartDists[i] = _segmentStartDists[i - 1]
                                   + Distance(_cameraPoints[i - 1], _cameraPoints[i]);
+        }
 
         _playingTime = 0f;
         _writeAccum = 0f;
@@ -338,7 +348,9 @@ public class ModAutoCamera : ModBase
             sb.Append((int)(p.OrientationGlY * 1000)).Append(',');
             sb.Append((int)(p.OrientationGlZ * 1000));
             if (i != _cameraPointsCount - 1)
+            {
                 sb.Append(',');
+            }
         }
         Clipboard.SetText(sb.ToString());
         Game.AddChatLine("Camera points copied to clipboard.");
@@ -430,7 +442,10 @@ public class ModAutoCamera : ModBase
     /// </summary>
     private void UpdateAvi(float dt)
     {
-        if (_avi == null) return;
+        if (_avi == null)
+        {
+            return;
+        }
 
         if (!_firstFrameDone)
         {
@@ -460,7 +475,10 @@ public class ModAutoCamera : ModBase
     {
         float total = 0f;
         for (int i = 0; i < _cameraPointsCount - 1; i++)
+        {
             total += Distance(_cameraPoints[i], _cameraPoints[i + 1]);
+        }
+
         return total;
     }
 

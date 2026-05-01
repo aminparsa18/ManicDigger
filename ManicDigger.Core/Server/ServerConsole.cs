@@ -34,8 +34,5 @@ public class ServerConsole
         }
     }
 
-    public static void Receive(string message)
-    {
-        Console.WriteLine(message);
-    }
+    public static void Receive(string message) => Console.WriteLine(message);
 }

@@ -52,7 +52,9 @@ public class TaskScheduler : ITaskScheduler
     {
         _actions = new BackgroundAction[modRegistry.Mods.Count];
         for (int i = 0; i < modRegistry.Mods.Count; i++)
+        {
             _actions[i] = new BackgroundAction();
+        }
     }
 
     /// <summary>
@@ -66,9 +68,13 @@ public class TaskScheduler : ITaskScheduler
     public void Update(float dt)
     {
         if (platform.MultithreadingAvailable())
+        {
             UpdateMultithreaded(dt);
+        }
         else
+        {
             UpdateSingleThreaded(dt);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -85,7 +91,9 @@ public class TaskScheduler : ITaskScheduler
         RunReadOnlyMainThread(dt);
 
         if (!AllBackgroundTasksFinished())
+        {
             return;
+        }
 
         RunReadWriteMainThread(dt);
         FlushCommitActions();
@@ -101,7 +109,9 @@ public class TaskScheduler : ITaskScheduler
         RunReadOnlyMainThread(dt);
 
         for (int i = 0; i < modRegistry.Mods.Count; i++)
+        {
             modRegistry.Mods[i].OnReadOnlyBackgroundThread(dt);
+        }
 
         RunReadWriteMainThread(dt);
         FlushCommitActions();
@@ -116,7 +126,9 @@ public class TaskScheduler : ITaskScheduler
         {
             BackgroundAction action = _actions[i];
             if (action.Active && !action.Finished)
+            {
                 return false;
+            }
         }
         return true;
     }
@@ -140,21 +152,28 @@ public class TaskScheduler : ITaskScheduler
     private void RunReadOnlyMainThread(float dt)
     {
         for (int i = 0; i < modRegistry.Mods.Count; i++)
+        {
             modRegistry.Mods[i].OnReadOnlyMainThread(dt);
+        }
     }
 
     /// <summary>Calls <c>OnReadWriteMainThread</c> on every registered client mod.</summary>
     private void RunReadWriteMainThread(float dt)
     {
         for (int i = 0; i < modRegistry.Mods.Count; i++)
+        {
             modRegistry.Mods[i].OnReadWriteMainThread(dt);
+        }
     }
 
     /// <summary>Executes all pending commit actions then clears the queue.</summary>
     private void FlushCommitActions()
     {
         foreach (var action in CommitActions)
+        {
             action();
+        }
+
         CommitActions.Clear();
     }
 

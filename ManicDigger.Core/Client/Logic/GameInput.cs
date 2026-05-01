@@ -17,7 +17,10 @@ public partial class Game
             mouseLeft = true; MouseLeftClick = true;
         }
         if (btn == (int)MouseButton.Middle)
+        {
             mouseMiddle = true;
+        }
+
         if (btn == (int)MouseButton.Right)
         {
             mouseRight = true; mouserightclick = true;
@@ -25,7 +28,11 @@ public partial class Game
 
         for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (ClientMods[i] == null) continue;
+            if (ClientMods[i] == null)
+            {
+                continue;
+            }
+
             ClientMods[i].OnMouseDown(args);
         }
 
@@ -44,12 +51,20 @@ public partial class Game
         int btn = args.GetButton();
 
         if (btn == (int)MouseButton.Left) { mouseLeft = false; mouseleftdeclick = true; }
-        if (btn == (int)MouseButton.Middle) mouseMiddle = false;
+        if (btn == (int)MouseButton.Middle)
+        {
+            mouseMiddle = false;
+        }
+
         if (btn == (int)MouseButton.Right) { mouseRight = false; }
 
         for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (ClientMods[i] == null) continue;
+            if (ClientMods[i] == null)
+            {
+                continue;
+            }
+
             ClientMods[i].OnMouseUp(args);
         }
     }
@@ -75,7 +90,11 @@ public partial class Game
 
         for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (ClientMods[i] == null) continue;
+            if (ClientMods[i] == null)
+            {
+                continue;
+            }
+
             ClientMods[i].OnMouseMove(e);
         }
     }
@@ -87,15 +106,23 @@ public partial class Game
         if (KeyboardState[GetKey(Keys.LeftShift)])
         {
             if (CameraType == CameraType.Overhead)
+            {
                 OverHeadCameraDistance = Math.Clamp(OverHeadCameraDistance - delta, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
+            }
 
             if (CameraType == CameraType.Tpp)
+            {
                 TppCameraDistance = Math.Clamp(TppCameraDistance - delta, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
+            }
         }
 
         for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (ClientMods[i] == null) continue;
+            if (ClientMods[i] == null)
+            {
+                continue;
+            }
+
             ClientMods[i].OnMouseWheelChanged(e);
         }
     }
@@ -158,9 +185,13 @@ public partial class Game
     {
         mousePointerLockShouldBe = !value;
         if (value)
+        {
             gameService.ExitMousePointerLock();
+        }
         else
+        {
             gameService.RequestMousePointerLock();
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -176,9 +207,16 @@ public partial class Game
 
         for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (ClientMods[i] == null) continue;
+            if (ClientMods[i] == null)
+            {
+                continue;
+            }
+
             ClientMods[i].OnTouchStart(e);
-            if (e.GetHandled()) return;
+            if (e.GetHandled())
+            {
+                return;
+            }
         }
     }
 
@@ -186,9 +224,16 @@ public partial class Game
     {
         for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (ClientMods[i] == null) continue;
+            if (ClientMods[i] == null)
+            {
+                continue;
+            }
+
             ClientMods[i].OnTouchMove(e);
-            if (e.GetHandled()) return;
+            if (e.GetHandled())
+            {
+                return;
+            }
         }
     }
 
@@ -199,9 +244,16 @@ public partial class Game
 
         for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (ClientMods[i] == null) continue;
+            if (ClientMods[i] == null)
+            {
+                continue;
+            }
+
             ClientMods[i].OnTouchEnd(e);
-            if (e.GetHandled()) return;
+            if (e.GetHandled())
+            {
+                return;
+            }
         }
     }
 
@@ -218,22 +270,34 @@ public partial class Game
         for (int i = 0; i < ClientMods.Count; i++)
         {
             ClientMods[i].OnKeyUp(eKey);
-            if (eKey.Handled) return;
+            if (eKey.Handled)
+            {
+                return;
+            }
         }
 
         KeyboardState[eKey.KeyChar] = false;
 
         if (eKey.KeyChar == GetKey(Keys.LeftShift) || eKey.KeyChar == GetKey(Keys.RightShift))
+        {
             IsShiftPressed = false;
+        }
     }
 
     public void KeyPress(KeyPressEventArgs eKeyChar)
     {
         for (int i = 0; i < ClientMods.Count; i++)
         {
-            if (ClientMods[i] == null) continue;
+            if (ClientMods[i] == null)
+            {
+                continue;
+            }
+
             ClientMods[i].OnKeyPress(eKeyChar);
-            if (eKeyChar.Handled) return;
+            if (eKeyChar.Handled)
+            {
+                return;
+            }
         }
     }
 
@@ -246,7 +310,10 @@ public partial class Game
             foreach (var mod in ClientMods)
             {
                 mod.OnKeyDown(eKey);
-                if (eKey.Handled) return;
+                if (eKey.Handled)
+                {
+                    return;
+                }
             }
         }
 
@@ -254,36 +321,48 @@ public partial class Game
         InvalidVersionAllow();
 
         if (eKey.KeyChar == GetKey(Keys.LeftShift) || eKey.KeyChar == GetKey(Keys.RightShift))
+        {
             IsShiftPressed = true;
+        }
 
         // F6 outside of Normal state: reconnect if lagging or map loading.
         if (eKey.KeyChar == GetKey(Keys.F6))
         {
             float lagSeconds = (gameService.TimeMillisecondsFromStart - LastReceivedMilliseconds) / 1000;
             if (lagSeconds >= GameConstants.DISCONNECTED_ICON_AFTER_SECONDS || GuiState == GuiState.MapLoading)
+            {
                 Reconnect();
+            }
         }
 
         if (GuiState == GuiState.Normal)
+        {
             KeyDownNormal(eKey.KeyChar);
-
+        }
         else if (GuiState == GuiState.Inventory)
         {
             if (eKey.KeyChar == GetKey(Keys.B) || eKey.KeyChar == GetKey(Keys.Escape))
+            {
                 GuiStateBackToGame();
+            }
+
             return;
         }
 
         else if (GuiState == GuiState.MapLoading)
         {
             if (eKey.KeyChar == GetKey(Keys.Escape))
+            {
                 ExitToMainMenu();
+            }
         }
 
         else if (GuiState == GuiState.CraftingRecipes)
         {
             if (eKey.KeyChar == GetKey(Keys.Escape))
+            {
                 GuiStateBackToGame();
+            }
         }
 
         if (GuiState == GuiState.Normal)
@@ -334,52 +413,91 @@ public partial class Game
             }
         }
         if (eKey == GetKey(Keys.I))
+        {
             DrawBlockInfo = !DrawBlockInfo;
+        }
 
         int playerx = (int)Player.position.x;
         int playery = (int)Player.position.z;
         if (playerx >= 0 && playerx < voxelMap.MapSizeX && playery >= 0 && playery < voxelMap.MapSizeY)
+        {
             performanceinfo["height"] = string.Format("height:{0}", Heightmap.GetBlock(playerx, playery).ToString());
+        }
 
         if (eKey == GetKey(Keys.F5))
+        {
             CameraChange();
+        }
 
         if (eKey == GetKey(Keys.Equal))
         {
-            if (CameraType == CameraType.Overhead) OverHeadCameraDistance -= 1;
-            else if (CameraType == CameraType.Tpp) TppCameraDistance -= 1;
+            if (CameraType == CameraType.Overhead)
+            {
+                OverHeadCameraDistance -= 1;
+            }
+            else if (CameraType == CameraType.Tpp)
+            {
+                TppCameraDistance -= 1;
+            }
         }
         if (eKey == GetKey(Keys.Minus) || eKey == GetKey(Keys.KeyPadSubtract))
         {
-            if (CameraType == CameraType.Overhead) OverHeadCameraDistance += 1;
-            else if (CameraType == CameraType.Tpp) TppCameraDistance += 1;
+            if (CameraType == CameraType.Overhead)
+            {
+                OverHeadCameraDistance += 1;
+            }
+            else if (CameraType == CameraType.Tpp)
+            {
+                TppCameraDistance += 1;
+            }
         }
 
         OverHeadCameraDistance = Math.Clamp(OverHeadCameraDistance, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
         TppCameraDistance = Math.Clamp(TppCameraDistance, TPP_CAMERA_DISTANCE_MIN, TPP_CAMERA_DISTANCE_MAX);
 
         if (eKey == GetKey(Keys.F6))
+        {
             RedrawAllBlocks();
+        }
 
         if (eKey == (int)Keys.F8)
         {
             ToggleVsync();
-            if (EnableLog == 0) AddChatLine(Language.FrameRateVsync());
-            if (EnableLog == 1) AddChatLine(Language.FrameRateUnlimited());
-            if (EnableLog == 2) AddChatLine(Language.FrameRateLagSimulation());
+            if (EnableLog == 0)
+            {
+                AddChatLine(Language.FrameRateVsync());
+            }
+
+            if (EnableLog == 1)
+            {
+                AddChatLine(Language.FrameRateUnlimited());
+            }
+
+            if (EnableLog == 2)
+            {
+                AddChatLine(Language.FrameRateLagSimulation());
+            }
         }
 
         if (eKey == GetKey(Keys.Tab))
+        {
             SendPacketClient(ClientPackets.SpecialKeyTabPlayerList());
+        }
 
         if (eKey == GetKey(Keys.E))
+        {
             KeyDownUse();
+        }
 
         if (eKey == GetKey(Keys.O))
+        {
             Respawn();
+        }
 
         if (eKey == GetKey(Keys.L))
+        {
             SendPacketClient(ClientPackets.SpecialKeySelectTeam());
+        }
 
         if (eKey == GetKey(Keys.P))
         {
@@ -437,7 +555,11 @@ public partial class Game
             OnUseEntityArgs args = new() { Id = CurrentlyAttackedEntity };
             foreach (var t in ClientMods)
             {
-                if (t == null) continue;
+                if (t == null)
+                {
+                    continue;
+                }
+
                 t.OnUseEntity(args);
             }
             SendPacketClient(ClientPackets.UseEntity(CurrentlyAttackedEntity));

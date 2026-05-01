@@ -24,17 +24,24 @@ public class ModGuiTextEditor : GameScreen
     public ModGuiTextEditor(IGameService gameService, IGame game) : base(gameService, game)
     {
         for (int i = 0; i < MaxLines; i++)
+        {
             buffer[i] = new int[MaxColumns];
+        }
     }
 
     public override void OnNewFrameDraw2d(float deltaTime)
     {
-        if (!visible) return;
+        if (!visible)
+        {
+            return;
+        }
 
         Game.Draw2dTexture(Game.GetOrCreateWhiteTexture(), StartX, StartY, MaxColumns * CharSize, MaxLines * CharSize, null, 0, BackgroundColor, false);
 
         for (int i = 0; i < MaxLines; i++)
+        {
             Game.Draw2dText(LineToString(buffer[i]), Font, StartX, StartY + CharSize * i, null, false);
+        }
 
         // Draw cursor on current line
         int[] spaces = new int[MaxColumns];
@@ -54,7 +61,10 @@ public class ModGuiTextEditor : GameScreen
             return;
         }
 
-        if (!visible) return;
+        if (!visible)
+        {
+            return;
+        }
 
         switch (key)
         {
@@ -73,7 +83,10 @@ public class ModGuiTextEditor : GameScreen
         {
             // Shift characters left from cursor position
             for (int i = cursorColumn; i < MaxColumns - 1; i++)
+            {
                 buffer[cursorLine][i] = buffer[cursorLine][i + 1];
+            }
+
             buffer[cursorLine][MaxColumns - 1] = 0;
         }
 
@@ -82,12 +95,21 @@ public class ModGuiTextEditor : GameScreen
 
     public override void OnKeyPress(KeyPressEventArgs e)
     {
-        if (!visible) return;
-        if (e.KeyChar == 8) return; // backspace handled in OnKeyDown
+        if (!visible)
+        {
+            return;
+        }
+
+        if (e.KeyChar == 8)
+        {
+            return; // backspace handled in OnKeyDown
+        }
 
         // Shift characters right to make room
         for (int i = MaxColumns - 1; i > cursorColumn; i--)
+        {
             buffer[cursorLine][i] = buffer[cursorLine][i - 1];
+        }
 
         buffer[cursorLine][cursorColumn] = e.KeyChar;
         cursorColumn++;
@@ -100,7 +122,13 @@ public class ModGuiTextEditor : GameScreen
     private static int LineLength(int[] line)
     {
         for (int i = 0; i < MaxColumns; i++)
-            if (line[i] == 0) return i;
+        {
+            if (line[i] == 0)
+            {
+                return i;
+            }
+        }
+
         return MaxColumns;
     }
 }

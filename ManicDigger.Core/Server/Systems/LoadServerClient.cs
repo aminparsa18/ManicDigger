@@ -173,10 +173,14 @@ public class ServerSystemLoadServerClient : ServerSystem
         server.ServerClient ??= new ServerClient();
 
         if (server.ServerClient.Groups.Count == 0)
+        {
             server.ServerClient.Groups = ServerClientMisc.getDefaultGroups();
+        }
 
         if (server.ServerClient.Clients.Count == 0)
+        {
             server.ServerClient.Clients = ServerClientMisc.getDefaultClients();
+        }
 
         server.ServerClient.Clients.Sort();
 

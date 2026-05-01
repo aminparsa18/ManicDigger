@@ -25,7 +25,9 @@ public class RememberPosition : IMod
         positions = new PositionStorage();
 
         if (!File.Exists(Filename))
+        {
             return;
+        }
 
         try
         {
@@ -59,7 +61,9 @@ public class RememberPosition : IMod
 
             List<string> lines = [];
             foreach (UserEntry entry in positions.PlayerPositions)
+            {
                 lines.Add(string.Format("{0};{1}", entry.Name, entry.Position));
+            }
 
             File.WriteAllLines(Filename, lines.ToArray());
         }

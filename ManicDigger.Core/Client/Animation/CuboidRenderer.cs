@@ -97,6 +97,7 @@ public static class CuboidRenderer
             data.Indices[i * IndicesPerFace + 4] = i * VerticesPerFace + 1;
             data.Indices[i * IndicesPerFace + 5] = i * VerticesPerFace + 0;
         }
+
         data.IndicesCount = FaceCount * IndicesPerFace;
         data.Mode = (int)DrawMode.Triangles;
 

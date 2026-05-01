@@ -163,7 +163,9 @@
         foreach (UserEntry banneduser in BannedUsers)
         {
             if (username.Equals(banneduser.UserName, StringComparison.InvariantCultureIgnoreCase))
+            {
                 return banneduser;
+            }
         }
         return null;
     }
@@ -173,7 +175,9 @@
         foreach (IPEntry bannedip in BannedIPs)
         {
             if (bannedip.IPAdress == ipadress)
+            {
                 return bannedip;
+            }
         }
         return null;
     }

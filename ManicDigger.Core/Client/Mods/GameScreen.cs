@@ -84,17 +84,22 @@ public class GameScreen : ModBase
             if (key == 8) // backspace
             {
                 if (w.text.Length > 0) { w.text = w.text[..^1]; }
+
                 return;
             }
+
             if (key == 9 || key == 13) // tab, enter
             {
                 return;
             }
+
             if (key == 22) // paste (Ctrl+V)
             {
                 if (Clipboard.ContainsText()) { w.text = string.Concat(w.text, Clipboard.GetText()); }
+
                 return;
             }
+
             if (EncodingHelper.IsValidTypingChar(key))
             {
                 w.text = string.Concat(w.text, ((char)key).ToString());
@@ -141,6 +146,7 @@ public class GameScreen : ModBase
                     platform.ShowKeyboard(true);
                     editingChange = true;
                 }
+
                 if (!w.editing && wasEditing && !editingChange)
                 {
                     platform.ShowKeyboard(false);
@@ -221,6 +227,7 @@ public class GameScreen : ModBase
                     {
                         game.Draw2dTexture(game.GetOrCreateWhiteTexture(), screenx + w.x, screeny + w.y, w.sizex, w.sizey, null, 0, w.color, false);
                     }
+
                     game.Draw2dText1(text, screenx + (int)w.x, screeny + (int)(w.y + w.sizey / 2), (int)w.fontSize, null, false);
                 }
                 // ButtonStyle.Text rendering is not yet implemented.
@@ -229,7 +236,9 @@ public class GameScreen : ModBase
             if (w.type == UIWidgetType.Textbox)
             {
                 if (w.password) { text = new string('*', w.text.Length); }
+
                 if (w.editing) { text = string.Concat(platform, text, "_"); }
+
                 game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, null, false);
             }
 

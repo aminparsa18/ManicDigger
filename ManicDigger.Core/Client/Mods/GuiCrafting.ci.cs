@@ -86,27 +86,41 @@ public class ModGuiCrafting : ModBase
         }
 
         if (Game.GuiState == GuiState.CraftingRecipes)
+        {
             DrawCraftingRecipes();
+        }
     }
 
     public override void OnNewFrameFixed(float args)
     {
         if (Game.GuiState == GuiState.CraftingRecipes)
+        {
             CraftingMouse();
+        }
     }
 
     public override void OnKeyDown(KeyEventArgs args)
     {
-        if (args.KeyChar != Game.GetKey(Keys.E) || Game.GuiTyping != TypingState.None) return;
+        if (args.KeyChar != Game.GetKey(Keys.E) || Game.GuiTyping != TypingState.None)
+        {
+            return;
+        }
+
         if (Game.SelectedBlockPositionX == -1
          && Game.SelectedBlockPositionY == -1
-         && Game.SelectedBlockPositionZ == -1) return;
+         && Game.SelectedBlockPositionZ == -1)
+        {
+            return;
+        }
 
         int posX = Game.SelectedBlockPositionX;
         int posY = Game.SelectedBlockPositionZ;
         int posZ = Game.SelectedBlockPositionY;
 
-        if (voxelMap.GetBlock(posX, posY, posZ) != blockTypeRegistry.BlockIdCraftingTable) return;
+        if (voxelMap.GetBlock(posX, posY, posZ) != blockTypeRegistry.BlockIdCraftingTable)
+        {
+            return;
+        }
 
         // GetTable / GetOnTable return references to CraftingTableTool's internal
         // reusable buffers. CraftingRecipesStart copies the on-table data into
@@ -134,13 +148,20 @@ public class ModGuiCrafting : ModBase
         for (int i = 0; i < craftingRecipes2Count; i++)
         {
             CraftingRecipe r = craftingRecipes2[i];
-            if (r == null) continue;
+            if (r == null)
+            {
+                continue;
+            }
 
             bool canCraft = true;
             for (int k = 0; k < r.Ingredients.Length; k++)
             {
                 Ingredient ing = r.Ingredients[k];
-                if (ing == null) continue;
+                if (ing == null)
+                {
+                    continue;
+                }
+
                 if (_blockTypeCounts[ing.Type] < ing.Amount)
                 {
                     canCraft = false;
@@ -148,7 +169,9 @@ public class ModGuiCrafting : ModBase
                 }
             }
             if (canCraft)
+            {
                 currentRecipes[currentRecipesCount++] = i;
+            }
         }
 
         if (currentRecipesCount == 0)
@@ -194,7 +217,10 @@ public class ModGuiCrafting : ModBase
 
     internal void CraftingMouse()
     {
-        if (currentRecipesCount == 0) return;
+        if (currentRecipesCount == 0)
+        {
+            return;
+        }
 
         int menuY = Game.Ycenter(currentRecipesCount * RecipeRowHeight);
 
@@ -204,7 +230,10 @@ public class ModGuiCrafting : ModBase
             craftingSelectedRecipe = (Game.MouseCurrentY - menuY) / RecipeRowHeight;
         }
 
-        if (!Game.MouseLeftClick) return;
+        if (!Game.MouseLeftClick)
+        {
+            return;
+        }
 
         Game.SendPacketClient(ClientPackets.Craft(
             craftingTablePosX, craftingTablePosY, craftingTablePosZ,
@@ -241,7 +270,9 @@ public class ModGuiCrafting : ModBase
         {
             int blockId = _craftingBlocksCopy[i];
             if ((uint)blockId < (uint)GameConstants.MAX_BLOCKTYPES)
+            {
                 _blockTypeCounts[blockId]++;
+            }
         }
 
         Game.GuiState = GuiState.CraftingRecipes;
@@ -350,7 +381,9 @@ public class CraftingTableTool
             // Previously Vector3IntRefArrayContains scanned _tableBuffer linearly
             // — O(n) per check, O(n²) total for a table of n blocks.
             if (!_visited.Add(p))
+            {
                 continue;
+            }
 
             _tableBuffer[lCount++] = p;
 

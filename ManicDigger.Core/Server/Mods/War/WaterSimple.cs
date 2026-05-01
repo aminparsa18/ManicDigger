@@ -7,10 +7,7 @@ public class WaterSimple : IMod
     private readonly int spongerange = 2;
     private IModManager? m;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {
@@ -22,15 +19,9 @@ public class WaterSimple : IMod
         Sponge = m.GetBlockId("Sponge");
     }
 
-    private void BlockBuild(int player, int x, int y, int z)
-    {
-        BlockChange(player, x, y, z);
-    }
+    private void BlockBuild(int player, int x, int y, int z) => BlockChange(player, x, y, z);
 
-    private void BlockDelete(int player, int x, int y, int z, int oldblock)
-    {
-        BlockChange(player, x, y, z);
-    }
+    private void BlockDelete(int player, int x, int y, int z, int oldblock) => BlockChange(player, x, y, z);
 
     private void Update()
     {
@@ -122,10 +113,7 @@ public class WaterSimple : IMod
         return MathF.Sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-    private bool IsWater(int block)
-    {
-        return block == Water;
-    }
+    private bool IsWater(int block) => block == Water;
 
     private void BlockChangeFlood(int x, int y, int z)
     {

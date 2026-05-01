@@ -16,51 +16,85 @@ public class AnimatedModelBinding : ITableBinding
             {
                 m.Nodes.Add(new Node());
             }
+
             if (m.Nodes[index] == null) { m.Nodes[index] = new Node(); }
+
             Node k = m.Nodes[index];
             if (column == "name") { k.Name = value; }
+
             if (column == "paren") { k.ParentName = value; }
+
             if (column == "x") { k.PosX = FloatParse(value); }
+
             if (column == "y") { k.PosY = FloatParse(value); }
+
             if (column == "z") { k.PosZ = FloatParse(value); }
+
             if (column == "rotx") { k.RotateX = FloatParse(value); }
+
             if (column == "roty") { k.RotateY = FloatParse(value); }
+
             if (column == "rotz") { k.RotateZ = FloatParse(value); }
+
             if (column == "sizex") { k.SizeX = FloatParse(value); }
+
             if (column == "sizey") { k.SizeY = FloatParse(value); }
+
             if (column == "sizez") { k.SizeZ = FloatParse(value); }
+
             if (column == "u") { k.U = FloatParse(value); }
+
             if (column == "v") { k.V = FloatParse(value); }
+
             if (column == "pivx") { k.PivotX = FloatParse(value); }
+
             if (column == "pivy") { k.PivotY = FloatParse(value); }
+
             if (column == "pivz") { k.PivotZ = FloatParse(value); }
+
             if (column == "scalx") { k.ScaleX = FloatParse(value); }
+
             if (column == "scaly") { k.ScaleY = FloatParse(value); }
+
             if (column == "scalz") { k.ScaleZ = FloatParse(value); }
+
             if (column == "head") { k.Head = FloatParse(value); }
         }
+
         if (table == "keyframes")
         {
             while (m.Keyframes.Count <= index) { m.Keyframes.Add(new Keyframe()); }
+
             Keyframe k = m.Keyframes[index];
             if (column == "anim") { k.AnimationName = value; }
+
             if (column == "node") { k.NodeName = value; }
+
             if (column == "frame") { k.Frame = IntParse(value); }
+
             if (column == "type") { k.Type = KeyframeTypeExtensions.FromSerializedName(value); }
+
             if (column == "x") { k.X = FloatParse(value); }
+
             if (column == "y") { k.Y = FloatParse(value); }
+
             if (column == "z") { k.Z = FloatParse(value); }
         }
+
         if (table == "animations")
         {
             while (m.Animations.Count <= index) { m.Animations.Add(new Animation()); }
+
             Animation k = m.Animations[index];
             if (column == "name") { k.Name = value; }
+
             if (column == "len") { k.Length = IntParse(value); }
         }
+
         if (table == "global")
         {
             if (column == "texw") { m.Global.TexW = IntParse(value); }
+
             if (column == "texh") { m.Global.TexH = IntParse(value); }
         }
     }
@@ -92,6 +126,7 @@ public class AnimatedModelBinding : ITableBinding
             items["scalz"] = k.ScaleZ.ToString();
             items["head"] = k.Head.ToString();
         }
+
         if (table == "keyframes")
         {
             Keyframe k = m.Keyframes[index];
@@ -103,12 +138,14 @@ public class AnimatedModelBinding : ITableBinding
             items["y"] = k.Y.ToString();
             items["z"] = k.Z.ToString();
         }
+
         if (table == "animations")
         {
             Animation k = m.Animations[index];
             items["name"] = k.Name;
             items["len"] = k.Length.ToString();
         }
+
         if (table == "global")
         {
             items["texw"] = m.Global.TexW.ToString();

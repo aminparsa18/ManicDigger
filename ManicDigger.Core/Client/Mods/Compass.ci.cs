@@ -26,7 +26,11 @@ public class ModCompass : ModBase
 
     public override void OnNewFrameDraw2d(float dt)
     {
-        if (Game.GuiState == GuiState.MapLoading) return;
+        if (Game.GuiState == GuiState.MapLoading)
+        {
+            return;
+        }
+
         DrawCompass(Game);
     }
 
@@ -35,14 +39,19 @@ public class ModCompass : ModBase
         for (int i = 0; i < 10; i++)
         {
             if (game.MaterialSlots(i) == blockTypeRegistry.BlockIdCompass)
+            {
                 return true;
+            }
         }
         return false;
     }
 
     public void DrawCompass(IGame game)
     {
-        if (!CompassInActiveMaterials(game)) return;
+        if (!CompassInActiveMaterials(game))
+        {
+            return;
+        }
 
         if (compassId == -1)
         {

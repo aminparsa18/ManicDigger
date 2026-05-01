@@ -115,6 +115,7 @@ public class LoginScreen : ScreenBase
             {
                 SaveCredentials(loginResultData.Token);
             }
+
             Menu.ConnectToGame(loginResultData, textboxUsername.text);
         }
 
@@ -194,6 +195,7 @@ public class LoginScreen : ScreenBase
                 {
                     SaveUsername();
                 }
+
                 Menu.StartGame(false, null, new ConnectionData
                 {
                     Ip = serverIp,
@@ -201,6 +203,7 @@ public class LoginScreen : ScreenBase
                     Username = textboxUsername.text
                 });
             }
+
             return;
         }
 
@@ -248,6 +251,7 @@ public class LoginScreen : ScreenBase
         {
             preferences.SetString("Password", token);
         }
+
         preferences.SetValues();
     }
 

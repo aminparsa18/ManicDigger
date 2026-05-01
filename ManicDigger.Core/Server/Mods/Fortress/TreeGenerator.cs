@@ -89,7 +89,10 @@ public class TreeGenerator : IMod
             // Scan down from chunk top to find the actual surface grass block.
             // The original picked a random z, which almost never hit the surface.
             int surfaceZ = FindSurface(x, y, oz, oz + chunkSize - 1);
-            if (surfaceZ == -1) continue;
+            if (surfaceZ == -1)
+            {
+                continue;
+            }
 
             switch (_rnd.Next(3))
             {
@@ -108,8 +111,15 @@ public class TreeGenerator : IMod
     {
         for (int z = zTop; z >= zBottom; z--)
         {
-            if (!_m.IsValidPos(x, y, z)) continue;
-            if (_m.GetBlock(x, y, z) == BLOCK_GRASS) return z;
+            if (!_m.IsValidPos(x, y, z))
+            {
+                continue;
+            }
+
+            if (_m.GetBlock(x, y, z) == BLOCK_GRASS)
+            {
+                return z;
+            }
         }
         return -1;
     }
@@ -124,7 +134,9 @@ public class TreeGenerator : IMod
         int h = _rnd.Next(8, 12);
 
         for (int i = 0; i < h; i++)
+        {
             Set(x, y, z + i, BLOCK_SPRUCETRUNK);
+        }
 
         // Lower branch tier — wide spread
         SpruceCanopyTier(x, y, z + h - 3, maxK: 4);
@@ -142,7 +154,10 @@ public class TreeGenerator : IMod
             for (int k = 1; k < maxK; k++)
             {
                 int length = cardinal ? k : k / 2;
-                if (length == 0) continue;
+                if (length == 0)
+                {
+                    continue;
+                }
 
                 int bx = x + dx * length;
                 int by = y + dy * length;
@@ -166,14 +181,19 @@ public class TreeGenerator : IMod
         bool isAppleTree = _rnd.NextSingle() < 0.1f;
 
         for (int i = 0; i < h; i++)
+        {
             Set(x, y, z + i, BLOCK_OAKTRUNK);
+        }
 
         foreach (var (dx, dy) in Dirs8)
         {
             bool cardinal = dx == 0 || dy == 0;
             int bx = x + (cardinal ? dx : 0);
             int by = y + (cardinal ? dy : 0);
-            if (!cardinal) continue; // Oak crown is cross-shaped, skip diagonals
+            if (!cardinal)
+            {
+                continue; // Oak crown is cross-shaped, skip diagonals
+            }
 
             Set(bx, by, z + h - 1, BLOCK_OAKTRUNK);
 
@@ -229,7 +249,10 @@ public class TreeGenerator : IMod
             for (int k = 1; k < maxK; k++)
             {
                 int length = cardinal ? k : k / 2;
-                if (length == 0) continue;
+                if (length == 0)
+                {
+                    continue;
+                }
 
                 int bx = x + dx * length;
                 int by = y + dy * length;
@@ -250,13 +273,17 @@ public class TreeGenerator : IMod
     private void Set(int x, int y, int z, int block)
     {
         if (_m.IsValidPos(x, y, z))
+        {
             _m.SetBlock(x, y, z, block);
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SetIfEmpty(int x, int y, int z, int block)
     {
         if (_m.IsValidPos(x, y, z) && _m.GetBlock(x, y, z) == 0)
+        {
             _m.SetBlock(x, y, z, block);
+        }
     }
 }

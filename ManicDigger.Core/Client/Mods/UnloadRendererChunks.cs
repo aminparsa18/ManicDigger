@@ -68,16 +68,25 @@ public class ModUnloadRendererChunks : ModBase
     private void ExecuteUnload()
     {
         int chunkFlatIndex = _pendingUnloadIndex;
-        if (chunkFlatIndex == -1) return;
+        if (chunkFlatIndex == -1)
+        {
+            return;
+        }
 
         Chunk chunk = _voxelMap.Chunks[chunkFlatIndex];
-        if (chunk == null) return;
+        if (chunk == null)
+        {
+            return;
+        }
 
         RenderedChunk rendered = chunk.rendered;
         if (rendered != null)
         {
             for (int k = 0; k < rendered.IdsCount; k++)
+            {
                 meshBatcher.Remove(rendered.Ids[k]);
+            }
+
             rendered.Ids = null;
             rendered.Dirty = true;
             if (rendered.LightRented && rendered.Light != null)

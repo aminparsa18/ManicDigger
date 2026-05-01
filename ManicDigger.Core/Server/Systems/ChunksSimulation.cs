@@ -29,7 +29,9 @@ public class ServerSystemChunksSimulation : ServerSystem
         unchecked
         {
             for (int i = 0; i < ChunksSimulated; i++)
+            {
                 SimulateNextChunk(server);
+            }
         }
     }
 
@@ -51,18 +53,25 @@ public class ServerSystemChunksSimulation : ServerSystem
                 foreach (Vector3i chunkPos in ChunksAroundPlayer(server, playerPos))
                 {
                     if (!VectorUtils.IsValidPos(server.Map, chunkPos.X, chunkPos.Y, chunkPos.Z))
+                    {
                         continue;
+                    }
 
                     ServerChunk chunk = server.Map.GetChunkValid(
                         Server.InvertChunk(chunkPos.X),
                         Server.InvertChunk(chunkPos.Y),
                         Server.InvertChunk(chunkPos.Z));
 
-                    if (chunk?.Data == null) continue;
+                    if (chunk?.Data == null)
+                    {
+                        continue;
+                    }
 
                     // Guard against future timestamps
                     if (chunk.LastUpdate > server.SimulationCurrentFrame)
+                    {
                         chunk.LastUpdate = server.SimulationCurrentFrame;
+                    }
 
                     if (chunk.LastUpdate < oldestTime)
                     {
@@ -106,7 +115,9 @@ public class ServerSystemChunksSimulation : ServerSystem
             int y = (int)(chunkPos.Y * Server.InvertedChunkSize);
             int z = (int)(chunkPos.Z * Server.InvertedChunkSize);
             for (int i = 0; i < handlers.Count; i++)
+            {
                 handlers[i](x, y, z);
+            }
         }
     }
 
@@ -119,7 +130,9 @@ public class ServerSystemChunksSimulation : ServerSystem
         unchecked
         {
             if (server.Config.Monsters)
+            {
                 AddMonsters(server, chunkPos);
+            }
 
             var blockTicks = server.ModEventHandlers.blockticks;
             int tickCount = blockTicks.Count;
@@ -134,7 +147,9 @@ public class ServerSystemChunksSimulation : ServerSystem
                     {
                         int pz = zz + chunkPos.Z;
                         for (int i = 0; i < tickCount; i++)
+                        {
                             blockTicks[i](px, py, pz);
+                        }
                     }
                 }
             }
@@ -151,7 +166,9 @@ public class ServerSystemChunksSimulation : ServerSystem
         unchecked
         {
             for (int x = -server.ChunkDrawDistance; x <= server.ChunkDrawDistance; x++)
+            {
                 for (int y = -server.ChunkDrawDistance; y <= server.ChunkDrawDistance; y++)
+                {
                     for (int z = 0; z < zDrawDistance; z++)
                     {
                         var p = new Vector3i(
@@ -160,8 +177,12 @@ public class ServerSystemChunksSimulation : ServerSystem
                             z * Server.ChunkSize);
 
                         if (VectorUtils.IsValidPos(server.Map, p.X, p.Y, p.Z))
+                        {
                             yield return p;
+                        }
                     }
+                }
+            }
         }
     }
 
@@ -182,7 +203,10 @@ public class ServerSystemChunksSimulation : ServerSystem
             int py = chunkPos.Y + _rnd.Next(Server.ChunkSize);
             int pz = chunkPos.Z + _rnd.Next(Server.ChunkSize);
 
-            if (!IsValidSpawnPosition(server, px, py, pz)) continue;
+            if (!IsValidSpawnPosition(server, px, py, pz))
+            {
+                continue;
+            }
 
             int monsterType = ChooseMonsterType(server, px, py, pz);
 

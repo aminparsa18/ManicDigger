@@ -3,19 +3,11 @@ using System.Runtime.InteropServices;
 
 namespace ManicDigger;
 
-public class ModManager : IModManager
+public class ModManager(IGameExit gameExit) : IModManager
 {
-    private readonly IGameExit gameExit;
+    private readonly IGameExit gameExit = gameExit;
 
-    public ModManager(IGameExit gameExit)
-    {
-        this.gameExit = gameExit;
-    }
-
-    public int GetMaxBlockTypes()
-    {
-        return GameConstants.MAX_BLOCKTYPES;
-    }
+    public int GetMaxBlockTypes() => GameConstants.MAX_BLOCKTYPES;
 
     public void SetBlockType(int id, string name, BlockType block)
     {
@@ -31,11 +23,14 @@ public class ModManager : IModManager
 
     public int GetBlockId(string name)
     {
-        foreach (var (id, blockType) in server.BlockTypes)
+        foreach ((int id, BlockType? blockType) in server.BlockTypes)
         {
             if (blockType.Name == name)
+            {
                 return id;
+            }
         }
+
         throw new Exception(name);
     }
 
@@ -46,76 +41,46 @@ public class ModManager : IModManager
         {
             throw new Exception(blockType);
         }
+
         server.BlockTypes[id].IsBuildable = true;
         server.BlockTypeRegistry.RegisterBlockType(id, server.BlockTypes[id]);
     }
 
-    public void RegisterOnBlockBuild(ModDelegates.BlockBuild f)
-    {
-        server.ModEventHandlers.onbuild.Add(f);
-    }
+    public void RegisterOnBlockBuild(ModDelegates.BlockBuild f) => server.ModEventHandlers.onbuild.Add(f);
 
-    public void RegisterOnBlockDelete(ModDelegates.BlockDelete f)
-    {
-        server.ModEventHandlers.ondelete.Add(f);
-    }
+    public void RegisterOnBlockDelete(ModDelegates.BlockDelete f) => server.ModEventHandlers.ondelete.Add(f);
 
-    public void RegisterOnBlockUse(ModDelegates.BlockUse f)
-    {
-        server.ModEventHandlers.onuse.Add(f);
-    }
+    public void RegisterOnBlockUse(ModDelegates.BlockUse f) => server.ModEventHandlers.onuse.Add(f);
 
-    public void RegisterOnBlockUseWithTool(ModDelegates.BlockUseWithTool f)
-    {
-        server.ModEventHandlers.onusewithtool.Add(f);
-    }
+    public void RegisterOnBlockUseWithTool(ModDelegates.BlockUseWithTool f) => server.ModEventHandlers.onusewithtool.Add(f);
 
-    public int GetMapSizeX() { return server.Map.MapSizeX; }
-    public int GetMapSizeY() { return server.Map.MapSizeY; }
-    public int GetMapSizeZ() { return server.Map.MapSizeZ; }
+    public int GetMapSizeX() => server.Map.MapSizeX;
+    public int GetMapSizeY() => server.Map.MapSizeY;
+    public int GetMapSizeZ() => server.Map.MapSizeZ;
 
-    public int GetBlock(int x, int y, int z)
-    {
-        return server.Map.GetBlock(x, y, z);
-    }
+    public int GetBlock(int x, int y, int z) => server.Map.GetBlock(x, y, z);
 
-    public string GetBlockName(int blockType)
-    {
-        return server.BlockTypes[blockType].Name;
-    }
+    public string GetBlockName(int blockType) => server.BlockTypes[blockType].Name;
 
-    public string GetBlockNameAt(int x, int y, int z)
-    {
-        return GetBlockName(GetBlock(x, y, z));
-    }
+    public string GetBlockNameAt(int x, int y, int z) => GetBlockName(GetBlock(x, y, z));
 
-    public void SetBlock(int x, int y, int z, int tileType)
-    {
-        server.SetBlockAndNotify(x, y, z, tileType);
-    }
+    public void SetBlock(int x, int y, int z, int tileType) => server.SetBlockAndNotify(x, y, z, tileType);
 
     private Server server;
-    internal void Start(Server server)
-    {
-        this.server = server;
-    }
+    internal void Start(Server server) => this.server = server;
 
-    public void SetSunLevels(int[] sunLevels)
-    {
-        server.SetSunLevels(sunLevels);
-    }
+    public void SetSunLevels(int[] sunLevels) => server.SetSunLevels(sunLevels);
 
-    public void SetLightLevels(float[] lightLevels)
-    {
-        server.SetLightLevels(lightLevels);
-    }
+    public void SetLightLevels(float[] lightLevels) => server.SetLightLevels(lightLevels);
 
     private const string recipeError = "Recipe error:";
 
     public void AddCraftingRecipe(string output, int outputAmount, string Input0, int Input0Amount)
     {
         if (GetBlockId(output) == -1) { Console.WriteLine(recipeError + output); return; }
+
         if (GetBlockId(Input0) == -1) { Console.WriteLine(recipeError + Input0); return; }
+
         CraftingRecipe r = new()
         {
             Ingredients =
@@ -130,8 +95,11 @@ public class ModManager : IModManager
     public void AddCraftingRecipe2(string output, int outputAmount, string Input0, int Input0Amount, string Input1, int Input1Amount)
     {
         if (GetBlockId(output) == -1) { Console.WriteLine(recipeError + output); return; }
+
         if (GetBlockId(Input0) == -1) { Console.WriteLine(recipeError + Input0); return; }
+
         if (GetBlockId(Input1) == -1) { Console.WriteLine(recipeError + Input1); return; }
+
         CraftingRecipe r = new()
         {
             Ingredients =
@@ -147,9 +115,13 @@ public class ModManager : IModManager
     public void AddCraftingRecipe3(string output, int outputAmount, string Input0, int Input0Amount, string Input1, int Input1Amount, string Input2, int Input2Amount)
     {
         if (GetBlockId(output) == -1) { Console.WriteLine(recipeError + output); return; }
+
         if (GetBlockId(Input0) == -1) { Console.WriteLine(recipeError + Input0); return; }
+
         if (GetBlockId(Input1) == -1) { Console.WriteLine(recipeError + Input1); return; }
+
         if (GetBlockId(Input2) == -1) { Console.WriteLine(recipeError + Input2); return; }
+
         CraftingRecipe r = new()
         {
             Ingredients =
@@ -163,42 +135,25 @@ public class ModManager : IModManager
         server.CraftingRecipes.Add(r);
     }
 
-    public void SetString(string language, string id, string translation)
-    {
-        server.Language.Override(language, id, translation);
-    }
+    public void SetString(string language, string id, string translation) => server.Language.Override(language, id, translation);
 
-    public string GetString(string id)
-    {
+    public string GetString(string id) =>
         //Returns string depending on server language
-        return server.Language.Get(id);
-    }
+        server.Language.Get(id);
 
-    public bool IsValidPos(int x, int y, int z)
-    {
-        return VectorUtils.IsValidPos(server.Map, x, y, z);
-    }
+    public bool IsValidPos(int x, int y, int z) => VectorUtils.IsValidPos(server.Map, x, y, z);
 
-    public void RegisterTimer(Action a, double interval)
-    {
-        server.Timers[new Timer() { INTERVAL = interval }] = delegate { a(); };
-    }
+    public void RegisterTimer(Action a, double interval) => server.Timers[new Timer() { INTERVAL = interval }] = delegate { a(); };
 
-    public void PlaySoundAt(int posx, int posy, int posz, string sound)
-    {
-        server.PlaySoundAt(posx, posy, posz, sound);
-    }
+    public void PlaySoundAt(int posx, int posy, int posz, string sound) => server.PlaySoundAt(posx, posy, posz, sound);
 
-    public void PlaySoundAt(int x, int y, int z, string sound, int range)
-    {
-        server.PlaySoundAt(x, y, z, sound, range);
-    }
+    public void PlaySoundAt(int x, int y, int z, string sound, int range) => server.PlaySoundAt(x, y, z, sound, range);
 
     public int NearestPlayer(int x, int y, int z)
     {
         int closeplayer = -1;
         int closedistance = -1;
-        foreach (var k in server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
         {
             int distance = VectorUtils.DistanceSquared(new Vector3i(k.Value.PositionMul32GlX / 32, k.Value.PositionMul32GlZ / 32, k.Value.PositionMul32GlY / 32), new Vector3i(x, y, z));
             if (closedistance == -1 || distance < closedistance)
@@ -207,19 +162,17 @@ public class ModManager : IModManager
                 closeplayer = k.Key;
             }
         }
+
         return closeplayer;
     }
 
-    public void GrabBlock(int player, int block)
-    {
-        GrabBlocks(player, block, 1);
-    }
+    public void GrabBlock(int player, int block) => GrabBlocks(player, block, 1);
 
     public void GrabBlocks(int player, int block, int amount)
     {
         Inventory inventory = server.GetPlayerInventory(server.GetClient(player).PlayerName);
 
-        var item = new InventoryItem
+        InventoryItem item = new()
         {
             InventoryItemType = InventoryItemType.Block,
             BlockCount = amount,
@@ -228,17 +181,11 @@ public class ModManager : IModManager
         server.GetInventoryUtil(inventory).GrabItem(item, 0);
     }
 
-    public bool PlayerHasPrivilege(int player, string privilege)
-    {
-        return server.PlayerHasPrivilege(player, privilege);
-    }
+    public bool PlayerHasPrivilege(int player, string privilege) => server.PlayerHasPrivilege(player, privilege);
 
     public bool IsCreative => server.Config.IsCreative;
 
-    public bool IsBlockFluid(int block)
-    {
-        return server.BlockTypes[block].IsFluid();
-    }
+    public bool IsBlockFluid(int block) => server.BlockTypes[block].IsFluid();
 
     public void NotifyInventory(int player)
     {
@@ -248,10 +195,7 @@ public class ModManager : IModManager
 
     public string ColorError => server.colorError;
 
-    public void SendMessage(int player, string p)
-    {
-        server.SendMessage(player, p);
-    }
+    public void SendMessage(int player, string p) => server.SendMessage(player, p);
 
     public void RegisterPrivilege(string p)
     {
@@ -267,54 +211,27 @@ public class ModManager : IModManager
         }
     }
 
-    public void RegisterOnBlockUpdate(ModDelegates.BlockUpdate f)
-    {
-        server.ModEventHandlers.blockticks.Add(f);
-    }
+    public void RegisterOnBlockUpdate(ModDelegates.BlockUpdate f) => server.ModEventHandlers.blockticks.Add(f);
 
-    public bool IsTransparentForLight(int p)
-    {
-        return Game.IsTransparentForLight(server.BlockTypes[p]);
-    }
+    public bool IsTransparentForLight(int p) => Game.IsTransparentForLight(server.BlockTypes[p]);
 
-    public void RegisterWorldGenerator(ModDelegates.WorldGenerator f)
-    {
-        server.ModEventHandlers.getchunk.Add(f);
-    }
+    public void RegisterWorldGenerator(ModDelegates.WorldGenerator f) => server.ModEventHandlers.getchunk.Add(f);
 
-    public void RegisterOptionBool(string optionname, bool default_)
-    {
-        modoptions[optionname] = default_;
-    }
+    public void RegisterOptionBool(string optionname, bool default_) => modoptions[optionname] = default_;
 
     private readonly Dictionary<string, object> modoptions = [];
 
-    public int GetChunkSize()
-    {
-        return Server.ChunkSize;
-    }
+    public int GetChunkSize() => Server.ChunkSize;
 
-    public object GetOption(string optionname)
-    {
-        return modoptions[optionname];
-    }
+    public object GetOption(string optionname) => modoptions[optionname];
 
     public int Seed => server.Seed;
 
-    public int Index3d(int x, int y, int h, int sizex, int sizey)
-    {
-        return (h * sizey + y) * sizex + x;
-    }
+    public int Index3d(int x, int y, int h, int sizex, int sizey) => (h * sizey + y) * sizex + x;
 
-    public void RegisterPopulateChunk(ModDelegates.PopulateChunk f)
-    {
-        server.ModEventHandlers.populatechunk.Add(f);
-    }
+    public void RegisterPopulateChunk(ModDelegates.PopulateChunk f) => server.ModEventHandlers.populatechunk.Add(f);
 
-    public void SetDefaultSounds(SoundSet defaultSounds)
-    {
-        this.defaultSounds = defaultSounds;
-    }
+    public void SetDefaultSounds(SoundSet defaultSounds) => this.defaultSounds = defaultSounds;
     private SoundSet defaultSounds;
 
     public byte[] GetGlobalData(string name)
@@ -323,50 +240,27 @@ public class ModManager : IModManager
         {
             return value;
         }
+
         return null;
     }
 
-    public void SetGlobalData(string name, byte[] value)
-    {
-        server.ModData[name] = value;
-    }
+    public void SetGlobalData(string name, byte[] value) => server.ModData[name] = value;
 
-    public void RegisterOnLoad(Action f)
-    {
-        server.OnLoad.Add(f);
-    }
+    public void RegisterOnLoad(Action f) => server.OnLoad.Add(f);
 
-    public void RegisterOnSave(Action f)
-    {
-        server.OnSave.Add(f);
-    }
+    public void RegisterOnSave(Action f) => server.OnSave.Add(f);
 
-    public void RegisterOnCommand(ModDelegates.Command f)
-    {
-        server.ModEventHandlers.oncommand.Add(f);
-    }
+    public void RegisterOnCommand(ModDelegates.Command f) => server.ModEventHandlers.oncommand.Add(f);
 
-    public string GetPlayerIp(int player)
-    {
-        return server.GetClient(player).Socket.RemoteEndPoint().AddressToString();
-    }
+    public string GetPlayerIp(int player) => server.GetClient(player).Socket.RemoteEndPoint().AddressToString();
 
-    public string GetPlayerName(int player)
-    {
-        return server.GetClient(player).PlayerName;
-    }
+    public string GetPlayerName(int player) => server.GetClient(player).PlayerName;
 
-    public List<string> required = new();
+    public List<string> required = [];
 
-    public void RequireMod(string modname)
-    {
-        required.Add(modname);
-    }
+    public void RequireMod(string modname) => required.Add(modname);
 
-    public void SetGlobalDataNotSaved(string name, object value)
-    {
-        notsaved[name] = value;
-    }
+    public void SetGlobalDataNotSaved(string name, object value) => notsaved[name] = value;
 
     public object GetGlobalDataNotSaved(string name)
     {
@@ -374,29 +268,18 @@ public class ModManager : IModManager
         {
             return null;
         }
+
         return value;
     }
-    private readonly Dictionary<string, object> notsaved = new();
+    private readonly Dictionary<string, object> notsaved = [];
 
-    public void SendMessageToAll(string message)
-    {
-        server.SendMessageToAll(message);
-    }
+    public void SendMessageToAll(string message) => server.SendMessageToAll(message);
 
-    public void RegisterCommandHelp(string command, string help)
-    {
-        server.commandhelps[command] = help;
-    }
+    public void RegisterCommandHelp(string command, string help) => server.commandhelps[command] = help;
 
-    public void AddToStartInventory(string blocktype, int amount)
-    {
-        server.BlockTypeRegistry.StartInventoryAmount[GetBlockId(blocktype)] = amount;
-    }
+    public void AddToStartInventory(string blocktype, int amount) => server.BlockTypeRegistry.StartInventoryAmount[GetBlockId(blocktype)] = amount;
 
-    public long GetCurrentTick()
-    {
-        return server.GetSimulationCurrentFrame();
-    }
+    public long GetCurrentTick() => server.GetSimulationCurrentFrame();
 
     public void SetDaysPerYear(int days)
     {
@@ -410,44 +293,23 @@ public class ModManager : IModManager
         }
     }
 
-    public int GetDaysPerYear()
-    {
-        return server.GetTimer().DaysPerYear;
-    }
+    public int GetDaysPerYear() => server.GetTimer().DaysPerYear;
 
-    public int GetHour()
-    {
-        return server.GetTimer().Hour;
-    }
+    public int GetHour() => server.GetTimer().Hour;
 
-    public double GetTotalHours()
-    {
-        return server.GetTimer().HourTotal;
-    }
+    public double GetTotalHours() => server.GetTimer().HourTotal;
 
-    public int GetDay()
-    {
-        return server.GetTimer().Day;
-    }
+    public int GetDay() => server.GetTimer().Day;
 
-    public double GetTotalDays()
-    {
-        return server.GetTimer().DaysTotal;
-    }
+    public double GetTotalDays() => server.GetTimer().DaysTotal;
 
-    public int GetYear()
-    {
-        return server.GetTimer().Year;
-    }
+    public int GetYear() => server.GetTimer().Year;
 
-    public int GetSeason()
-    {
-        return server.GetTimer().Season;
-    }
+    public int GetSeason() => server.GetTimer().Season;
 
     public void UpdateBlockTypes()
     {
-        foreach (var k in server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
         {
             server.SendBlockTypes(k.Key);
         }
@@ -474,25 +336,13 @@ public class ModManager : IModManager
         server.GetTimer().SpeedOfTime = (int)(nSecondsPerDay / nSecondsGiven);
     }
 
-    public void EnableShadows(bool value)
-    {
-        server.EnableShadows = value;
-    }
+    public void EnableShadows(bool value) => server.EnableShadows = value;
 
-    public float GetPlayerPositionX(int player)
-    {
-        return (float)server.GetClient(player).PositionMul32GlX / 32;
-    }
+    public float GetPlayerPositionX(int player) => (float)server.GetClient(player).PositionMul32GlX / 32;
 
-    public float GetPlayerPositionY(int player)
-    {
-        return (float)server.GetClient(player).PositionMul32GlZ / 32;
-    }
+    public float GetPlayerPositionY(int player) => (float)server.GetClient(player).PositionMul32GlZ / 32;
 
-    public float GetPlayerPositionZ(int player)
-    {
-        return (float)server.GetClient(player).PositionMul32GlY / 32;
-    }
+    public float GetPlayerPositionZ(int player) => (float)server.GetClient(player).PositionMul32GlY / 32;
 
     public void SetPlayerPosition(int player, float x, float y, float z)
     {
@@ -507,26 +357,18 @@ public class ModManager : IModManager
             //Position has already been modified. Clone from override to prevent data loss
             pos = server.Clients[player].PositionOverride.Clone();
         }
+
         pos.X = x;
         pos.Y = z;
         pos.Z = y;
         server.Clients[player].PositionOverride = pos;
     }
 
-    public int GetPlayerHeading(int player)
-    {
-        return server.GetClient(player).PositionHeading;
-    }
+    public int GetPlayerHeading(int player) => server.GetClient(player).PositionHeading;
 
-    public int GetPlayerPitch(int player)
-    {
-        return server.GetClient(player).PositionPitch;
-    }
+    public int GetPlayerPitch(int player) => server.GetClient(player).PositionPitch;
 
-    public int GetPlayerStance(int player)
-    {
-        return server.GetClient(player).Stance;
-    }
+    public int GetPlayerStance(int player) => server.GetClient(player).Stance;
 
     public void SetPlayerOrientation(int player, int heading, int pitch, int stance)
     {
@@ -541,6 +383,7 @@ public class ModManager : IModManager
             //Position has already been modified. Clone from override to prevent data loss
             pos = server.Clients[player].PositionOverride.Clone();
         }
+
         pos.Heading = (byte)heading;
         pos.Pitch = (byte)pitch;
         pos.Stance = (byte)stance;
@@ -550,10 +393,11 @@ public class ModManager : IModManager
     public int[] AllPlayers()
     {
         List<int> players = [];
-        foreach (var k in server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
         {
             players.Add(k.Key);
         }
+
         return [.. players];
     }
 
@@ -564,10 +408,7 @@ public class ModManager : IModManager
         server.DrawDistance = size / 2;
     }
 
-    public bool IsSinglePlayer()
-    {
-        return server.IsSinglePlayer;
-    }
+    public bool IsSinglePlayer() => server.IsSinglePlayer;
 
     public void AddPermissionArea(int x1, int y1, int z1, int x2, int y2, int z2, int permissionLevel)
     {
@@ -593,60 +434,27 @@ public class ModManager : IModManager
         }
     }
 
-    public int GetPlayerPermissionLevel(int player)
-    {
-        return server.Clients[player].ClientGroup.Level;
-    }
+    public int GetPlayerPermissionLevel(int player) => server.Clients[player].ClientGroup.Level;
 
-    public void SetCreative(bool value)
-    {
-        server.Config.IsCreative = value;
-    }
+    public void SetCreative(bool value) => server.Config.IsCreative = value;
 
-    public void SetWorldSize(int x, int y, int z)
-    {
-        server.Map.Reset(x, y, z);
-    }
+    public void SetWorldSize(int x, int y, int z) => server.Map.Reset(x, y, z);
 
-    public void RegisterOnPlayerJoin(ModDelegates.PlayerJoin a)
-    {
-        server.ModEventHandlers.onplayerjoin.Add(a);
-    }
+    public void RegisterOnPlayerJoin(ModDelegates.PlayerJoin a) => server.ModEventHandlers.onplayerjoin.Add(a);
 
-    public void RegisterOnPlayerLeave(ModDelegates.PlayerLeave a)
-    {
-        server.ModEventHandlers.onplayerleave.Add(a);
-    }
+    public void RegisterOnPlayerLeave(ModDelegates.PlayerLeave a) => server.ModEventHandlers.onplayerleave.Add(a);
 
-    public void RegisterOnPlayerDisconnect(ModDelegates.PlayerDisconnect a)
-    {
-        server.ModEventHandlers.onplayerdisconnect.Add(a);
-    }
+    public void RegisterOnPlayerDisconnect(ModDelegates.PlayerDisconnect a) => server.ModEventHandlers.onplayerdisconnect.Add(a);
 
-    public void RegisterOnPlayerChat(ModDelegates.PlayerChat a)
-    {
-        server.ModEventHandlers.onplayerchat.Add(a);
-    }
+    public void RegisterOnPlayerChat(ModDelegates.PlayerChat a) => server.ModEventHandlers.onplayerchat.Add(a);
 
-    public void RegisterOnPlayerDeath(ModDelegates.PlayerDeath a)
-    {
-        server.ModEventHandlers.onplayerdeath.Add(a);
-    }
+    public void RegisterOnPlayerDeath(ModDelegates.PlayerDeath a) => server.ModEventHandlers.onplayerdeath.Add(a);
 
-    public int[] GetScreenResolution(int player)
-    {
-        return server.Clients[player].WindowSize;
-    }
+    public int[] GetScreenResolution(int player) => server.Clients[player].WindowSize;
 
-    public void SendDialog(int player, string id, Dialog dialog)
-    {
-        server.SendDialog(player, id, dialog);
-    }
+    public void SendDialog(int player, string id, Dialog dialog) => server.SendDialog(player, id, dialog);
 
-    public void RegisterOnDialogClick(ModDelegates.DialogClick a)
-    {
-        server.ModEventHandlers.ondialogclick.Add(a);
-    }
+    public void RegisterOnDialogClick(ModDelegates.DialogClick a) => server.ModEventHandlers.ondialogclick.Add(a);
 
     public void SetPlayerModel(int player, string model, string texture)
     {
@@ -654,14 +462,8 @@ public class ModManager : IModManager
         server.Clients[player].Texture = texture;
         server.PlayerEntitySetDirty(player);
     }
-    public void RenderHint(RenderHint hint)
-    {
-        server.RenderHint = hint;
-    }
-    public void EnableFreemove(int player, bool enable)
-    {
-        server.SendFreemoveState(player, enable);
-    }
+    public void RenderHint(RenderHint hint) => server.RenderHint = hint;
+    public void EnableFreemove(int player, bool enable) => server.SendFreemoveState(player, enable);
 
     public int GetPlayerHealth(int player)
     {
@@ -705,15 +507,9 @@ public class ModManager : IModManager
         server.NotifyPlayerStats(player);
     }
 
-    public void RegisterOnWeaponHit(ModDelegates.WeaponHit a)
-    {
-        server.ModEventHandlers.onweaponhit.Add(a);
-    }
+    public void RegisterOnWeaponHit(ModDelegates.WeaponHit a) => server.ModEventHandlers.onweaponhit.Add(a);
 
-    public void RegisterOnSpecialKey(ModDelegates.SpecialKey1 a)
-    {
-        server.ModEventHandlers.onspecialkey.Add(a);
-    }
+    public void RegisterOnSpecialKey(ModDelegates.SpecialKey1 a) => server.ModEventHandlers.onspecialkey.Add(a);
 
     public float[] GetDefaultSpawnPosition(int player)
     {
@@ -721,10 +517,7 @@ public class ModManager : IModManager
         return [(float)pos.X / 32, (float)pos.Z / 32, (float)pos.Y / 32];
     }
 
-    public int[] GetDefaultSpawnPosition()
-    {
-        return [server.DefaultPlayerSpawn.X, server.DefaultPlayerSpawn.Y, server.DefaultPlayerSpawn.Z];
-    }
+    public int[] GetDefaultSpawnPosition() => [server.DefaultPlayerSpawn.X, server.DefaultPlayerSpawn.Y, server.DefaultPlayerSpawn.Z];
 
     public void SetDefaultSpawnPosition(int x, int y, int z)
     {
@@ -757,7 +550,9 @@ public class ModManager : IModManager
         get
         {
             if (Environment.OSVersion.Platform != PlatformID.Unix)
+            {
                 return false;
+            }
 
             if (!checkedIsArm)
             {
@@ -775,6 +570,7 @@ public class ModManager : IModManager
                         }
                     }
                 }
+
                 Marshal.FreeHGlobal(buf);
                 checkedIsArm = true;
             }
@@ -807,10 +603,7 @@ public class ModManager : IModManager
 
     public string ServerPort => "!SERVER_PORT!";
 
-    public float GetPlayerPing(int player)
-    {
-        return server.Clients[player].LastPing;
-    }
+    public float GetPlayerPing(int player) => server.Clients[player].LastPing;
 
     public int AddBot(string name)
     {
@@ -833,10 +626,7 @@ public class ModManager : IModManager
         return id;
     }
 
-    public bool IsBot(int player)
-    {
-        return server.Clients[player].IsBot;
-    }
+    public bool IsBot(int player) => server.Clients[player].IsBot;
 
     public void SetPlayerHeight(int player, float eyeheight, float modelheight)
     {
@@ -845,60 +635,27 @@ public class ModManager : IModManager
         server.PlayerEntitySetDirty(player);
     }
 
-    public void DisablePrivilege(string privilege)
-    {
-        server.Disabledprivileges[privilege] = true;
-    }
+    public void DisablePrivilege(string privilege) => server.Disabledprivileges[privilege] = true;
 
-    public void RegisterChangedActiveMaterialSlot(ModDelegates.ChangedActiveMaterialSlot a)
-    {
-        server.ModEventHandlers.changedactivematerialslot.Add(a);
-    }
+    public void RegisterChangedActiveMaterialSlot(ModDelegates.ChangedActiveMaterialSlot a) => server.ModEventHandlers.changedactivematerialslot.Add(a);
 
-    public Inventory GetInventory(int player)
-    {
-        return server.GetPlayerInventory(server.Clients[player].PlayerName);
-    }
+    public Inventory GetInventory(int player) => server.GetPlayerInventory(server.Clients[player].PlayerName);
 
-    public int GetActiveMaterialSlot(int player)
-    {
-        return server.Clients[player].ActiveMaterialSlot;
-    }
+    public int GetActiveMaterialSlot(int player) => server.Clients[player].ActiveMaterialSlot;
 
-    public void FollowPlayer(int player, int target, bool tpp)
-    {
-        server.SendPacketFollow(player, target, tpp);
-    }
+    public void FollowPlayer(int player, int target, bool tpp) => server.SendPacketFollow(player, target, tpp);
 
-    public void SetPlayerSpectator(int player, bool isSpectator)
-    {
-        server.Clients[player].IsSpectator = isSpectator;
-    }
+    public void SetPlayerSpectator(int player, bool isSpectator) => server.Clients[player].IsSpectator = isSpectator;
 
-    public bool IsPlayerSpectator(int player)
-    {
-        return server.Clients[player].IsSpectator;
-    }
+    public bool IsPlayerSpectator(int player) => server.Clients[player].IsSpectator;
 
-    public BlockType GetBlockType(int block)
-    {
-        return server.BlockTypes[block];
-    }
+    public BlockType GetBlockType(int block) => server.BlockTypes[block];
 
-    public void NotifyAmmo(int player, Dictionary<int, int> totalAmmo)
-    {
-        server.SendAmmo(player, totalAmmo);
-    }
+    public void NotifyAmmo(int player, Dictionary<int, int> totalAmmo) => server.SendAmmo(player, totalAmmo);
 
-    public void RegisterOnWeaponShot(ModDelegates.WeaponShot a)
-    {
-        server.ModEventHandlers.onweaponshot.Add(a);
-    }
+    public void RegisterOnWeaponShot(ModDelegates.WeaponShot a) => server.ModEventHandlers.onweaponshot.Add(a);
 
-    public void LogChat(string s)
-    {
-        server.ChatLog(s);
-    }
+    public void LogChat(string s) => server.ChatLog(s);
 
     public void EnableExtraPrivilegeToAll(string privilege, bool enable)
     {
@@ -912,40 +669,21 @@ public class ModManager : IModManager
         }
     }
 
-    public void LogServerEvent(string serverEvent)
-    {
-        server.ServerEventLog(serverEvent);
-    }
+    public void LogServerEvent(string serverEvent) => server.ServerEventLog(serverEvent);
 
+    public void RegisterOnLoadWorld(ModDelegates.LoadWorld a) => server.ModEventHandlers.onloadworld.Add(a);
 
-    public void RegisterOnLoadWorld(ModDelegates.LoadWorld a)
-    {
-        server.ModEventHandlers.onloadworld.Add(a);
-    }
-
-    public void SetWorldDatabaseReadOnly(bool readOnly)
-    {
-        server.ChunkDb.ReadOnly = readOnly;
-    }
+    public void SetWorldDatabaseReadOnly(bool readOnly) => server.ChunkDb.ReadOnly = readOnly;
 
     public string CurrentWorld => server.GetSaveFilename();
 
-    public void LoadWorld(string filename)
-    {
-        server.LoadDatabase(filename);
-    }
+    public void LoadWorld(string filename) => server.LoadDatabase(filename);
 
-    public string[] ModPaths => server.ModPaths.ToArray();
+    public string[] ModPaths => [.. server.ModPaths];
 
-    public void SendExplosion(int player, float x, float y, float z, bool relativeposition, float range, float time)
-    {
-        server.SendExplosion(player, x, y, z, relativeposition, range, time);
-    }
+    public void SendExplosion(int player, float x, float y, float z, bool relativeposition, float range, float time) => server.SendExplosion(player, x, y, z, relativeposition, range, time);
 
-    public void DisconnectPlayer(int player)
-    {
-        server.KillPlayer(player);
-    }
+    public void DisconnectPlayer(int player) => server.KillPlayer(player);
 
     public void DisconnectPlayer(int player, string message)
     {
@@ -953,27 +691,15 @@ public class ModManager : IModManager
         server.KillPlayer(player);
     }
 
-    public string GetGroupColor(int player)
-    {
-        return server.GetGroupColor(player);
-    }
+    public string GetGroupColor(int player) => server.GetGroupColor(player);
 
-    public string GetGroupName(int player)
-    {
-        return server.GetGroupName(player);
-    }
+    public string GetGroupName(int player) => server.GetGroupName(player);
 
-    public void InstallHttpModule(string name, Func<string> description, IHttpModule module)
-    {
-        server.InstallHttpModule(name, description, module);
-    }
+    public void InstallHttpModule(string name, Func<string> description, IHttpModule module) => server.InstallHttpModule(name, description, module);
 
     public int MaxPlayers => server.Config.MaxClients;
 
-    public ServerClient GetServerClient()
-    {
-        return server.ServerClient;
-    }
+    public ServerClient GetServerClient() => server.ServerClient;
 
     public long TotalReceivedBytes => server.TotalReceivedBytes;
 
@@ -995,44 +721,20 @@ public class ModManager : IModManager
 
     public int ServerUptimeSeconds => (int)server.Uptime.TotalSeconds;
 
-    public void SendPlayerRedirect(int player, string ip, int port)
-    {
-        server.SendServerRedirect(player, ip, port);
-    }
+    public void SendPlayerRedirect(int player, string ip, int port) => server.SendServerRedirect(player, ip, port);
 
     public bool IsShuttingDown => gameExit.Exit;
 
-    public void RegisterCheckOnBlockBuild(ModDelegates.CheckBlockBuild f)
-    {
-        server.ModEventHandlers.checkonbuild.Add(f);
-    }
+    public void RegisterCheckOnBlockBuild(ModDelegates.CheckBlockBuild f) => server.ModEventHandlers.checkonbuild.Add(f);
 
-    public void RegisterCheckOnBlockDelete(ModDelegates.CheckBlockDelete f)
-    {
-        server.ModEventHandlers.checkondelete.Add(f);
-    }
+    public void RegisterCheckOnBlockDelete(ModDelegates.CheckBlockDelete f) => server.ModEventHandlers.checkondelete.Add(f);
 
-    public void RegisterCheckOnBlockUse(ModDelegates.CheckBlockUse f)
-    {
-        server.ModEventHandlers.checkonuse.Add(f);
-    }
+    public void RegisterCheckOnBlockUse(ModDelegates.CheckBlockUse f) => server.ModEventHandlers.checkonuse.Add(f);
 
     #region Deprecated methods
-    public double GetCurrentYearTotal()
-    {
-        return server.GetTimer().Year;
-    }
-    public double GetCurrentHourTotal()
-    {
-        return server.GetTimer().Hour;
-    }
-    public double GetGameYearRealHours()
-    {
-        return GetGameDayRealHours() * GetDaysPerYear();
-    }
-    public void SetGameYearRealHours(double hours)
-    {
-        throw new NotImplementedException("SetGameYearRealHours is no longer supported!");
-    }
+    public double GetCurrentYearTotal() => server.GetTimer().Year;
+    public double GetCurrentHourTotal() => server.GetTimer().Hour;
+    public double GetGameYearRealHours() => GetGameDayRealHours() * GetDaysPerYear();
+    public void SetGameYearRealHours(double hours) => throw new NotImplementedException("SetGameYearRealHours is no longer supported!");
     #endregion
 }

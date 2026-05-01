@@ -199,7 +199,9 @@ public class MainMenu : IMenu
         GameService.AddOnTouchEvent(HandleTouchStart, HandleTouchMove, HandleTouchEnd);
 
         if (args.Length > 0)
+        {
             StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));
+        }
 
         GameService.Start();
     }
@@ -486,7 +488,9 @@ public class MainMenu : IMenu
         for (int i = 0; i < Assets.Count; i++)
         {
             if (Assets[i].name == lower)
+            {
                 return Assets[i].data;
+            }
         }
         return null;
     }
@@ -501,7 +505,9 @@ public class MainMenu : IMenu
         for (int i = 0; i < Assets.Count; i++)
         {
             if (Assets[i].name == lower)
+            {
                 return Assets[i].dataLength;
+            }
         }
         return 0;
     }
@@ -513,7 +519,9 @@ public class MainMenu : IMenu
     private TextTexture GetTextTexture(string text, float fontSize)
     {
         if (textTextureCache.TryGetValue((text, fontSize), out TextTexture cached))
+        {
             return cached;
+        }
 
         TextStyle style = new()
         {
@@ -676,7 +684,9 @@ public class MainMenu : IMenu
     public static LoginResult CreateAccount(string user, string password)
     {
         if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(password))
+        {
             return LoginResult.Failed;
+        }
 
         return LoginResult.Ok;
     }
@@ -766,7 +776,9 @@ public class MainMenu : IMenu
         screen.OnTouchMove(e);
 
         if (e.GetId() != touchId)
+        {
             return;
+        }
 
         float dx = e.GetX() - previousTouchX;
         float dy = e.GetY() - previousTouchY;

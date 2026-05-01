@@ -223,7 +223,9 @@ public class ServerMonitor
     public void SaveConfig()
     {
         if (!Directory.Exists(GameStorePath.gamepathconfig))
+        {
             Directory.CreateDirectory(GameStorePath.gamepathconfig);
+        }
 
         this.config ??= new ServerMonitorConfig();
         File.WriteAllText(

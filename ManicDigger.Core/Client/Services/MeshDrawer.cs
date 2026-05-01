@@ -55,14 +55,19 @@ public sealed class MeshDrawer : IMeshDrawer
     public void GLPopMatrix()
     {
         if (ActiveMatrix.Count > 1)
+        {
             ActiveMatrix.Pop();
+        }
     }
 
     /// <inheritdoc/>
     public void GLLoadIdentity()
     {
         if (ActiveMatrix.Count > 0)
+        {
             ActiveMatrix.Pop();
+        }
+
         ActiveMatrix.Push(Matrix4.Identity);
     }
 
@@ -70,7 +75,10 @@ public sealed class MeshDrawer : IMeshDrawer
     public void GLLoadMatrix(Matrix4 m)
     {
         if (ActiveMatrix.Count > 0)
+        {
             ActiveMatrix.Pop();
+        }
+
         ActiveMatrix.Push(m);
     }
 
@@ -159,8 +167,10 @@ public sealed class MeshDrawer : IMeshDrawer
     private void SetOrtho(float left, float right, float bottom, float top, float zNear, float zFar)
     {
         if (!_projectionModeActive)
+        {
             throw new InvalidOperationException(
                 $"{nameof(SetOrtho)} must be called while in projection matrix mode.");
+        }
 
         Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, zNear, zFar, out Matrix4 ortho);
         pMatrix.Pop();

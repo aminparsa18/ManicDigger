@@ -17,7 +17,7 @@ namespace ManicDigger.Maui
             CrashReporter.DefaultFileName = "ManicDiggerClientCrash.txt";
             CrashReporter.EnableGlobalExceptionHandling(isConsole: false);
 
-            var builder = MauiApp.CreateBuilder();
+            MauiAppBuilder builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>

@@ -44,10 +44,7 @@
         return true;
     }
 
-    public static string DecodeHTMLEntities(string htmlEncodedString)
-    {
-        return System.Web.HttpUtility.HtmlDecode(htmlEncodedString);
-    }
+    public static string DecodeHTMLEntities(string htmlEncodedString) => System.Web.HttpUtility.HtmlDecode(htmlEncodedString);
 
     /// <summary>Encodes a yaw angle (radians) as a 0–255 byte.</summary>
     public static byte HeadingByte(float orientationX, float orientationY, float orientationZ) =>

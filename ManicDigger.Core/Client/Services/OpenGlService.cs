@@ -92,7 +92,9 @@ public sealed class OpenGlService : IOpenGlService
     {
         _ambientLight = new Vector3(r / 255f, g / 255f, b / 255f);
         if (_shaderProgram != -1)
+        {
             GL.Uniform3(_uAmbientLight, _ambientLight.X, _ambientLight.Y, _ambientLight.Z);
+        }
     }
 
     // ── Fog ───────────────────────────────────────────────────────────────────
@@ -100,27 +102,39 @@ public sealed class OpenGlService : IOpenGlService
     /// <inheritdoc/>
     public void GlEnableFog()
     {
-        if (_shaderProgram != -1) GL.Uniform1(_uFogEnabled, 1);
+        if (_shaderProgram != -1)
+        {
+            GL.Uniform1(_uFogEnabled, 1);
+        }
     }
 
     /// <inheritdoc/>
     public void GlDisableFog()
     {
-        if (_shaderProgram != -1) GL.Uniform1(_uFogEnabled, 0);
+        if (_shaderProgram != -1)
+        {
+            GL.Uniform1(_uFogEnabled, 0);
+        }
     }
 
     /// <inheritdoc/>
     public void GlFogFogColor(int r, int g, int b, int a)
     {
         _fogColor = new Vector4(r / 255f, g / 255f, b / 255f, a / 255f);
-        if (_shaderProgram != -1) GL.Uniform4(_uFogColor, _fogColor);
+        if (_shaderProgram != -1)
+        {
+            GL.Uniform4(_uFogColor, _fogColor);
+        }
     }
 
     /// <inheritdoc/>
     public void GlFogFogDensity(float density)
     {
         _fogDensity = density;
-        if (_shaderProgram != -1) GL.Uniform1(_uFogDensity, _fogDensity);
+        if (_shaderProgram != -1)
+        {
+            GL.Uniform1(_uFogDensity, _fogDensity);
+        }
     }
 
     // ── Textures ──────────────────────────────────────────────────────────────
@@ -130,7 +144,9 @@ public sealed class OpenGlService : IOpenGlService
     {
         GL.BindTexture(TextureTarget.Texture2D, texture);
         if (_shaderProgram != -1)
+        {
             GL.Uniform1(_uUseTexture, texture != 0 ? 1 : 0);
+        }
     }
 
     /// <inheritdoc/>
@@ -240,7 +256,9 @@ public sealed class OpenGlService : IOpenGlService
     public void DrawModels(List<GeometryModel> models, int count)
     {
         for (int i = 0; i < count; i++)
+        {
             DrawModelData(models[i]);
+        }
     }
 
     /// <inheritdoc/>
@@ -327,7 +345,9 @@ public sealed class OpenGlService : IOpenGlService
         GL.LinkProgram(_shaderProgram);
         GL.GetProgram(_shaderProgram, GetProgramParameterName.LinkStatus, out int linkStatus);
         if (linkStatus == 0)
+        {
             throw new Exception($"Shader link error: {GL.GetProgramInfoLog(_shaderProgram)}");
+        }
 
         // Shaders are baked into the program — intermediate objects can be released.
         GL.DetachShader(_shaderProgram, vert);
@@ -358,7 +378,9 @@ public sealed class OpenGlService : IOpenGlService
     {
         _projectionMatrix = pMatrix;
         if (_shaderProgram != -1)
+        {
             GL.UniformMatrix4(_uProjection, false, ref _projectionMatrix);
+        }
     }
 
     /// <inheritdoc/>
@@ -366,7 +388,9 @@ public sealed class OpenGlService : IOpenGlService
     {
         _modelViewMatrix = mvMatrix;
         if (_shaderProgram != -1)
+        {
             GL.UniformMatrix4(_uModelView, false, ref _modelViewMatrix);
+        }
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -382,7 +406,10 @@ public sealed class OpenGlService : IOpenGlService
         GL.CompileShader(shader);
         GL.GetShader(shader, ShaderParameter.CompileStatus, out int status);
         if (status == 0)
+        {
             throw new Exception($"{type} compile error: {GL.GetShaderInfoLog(shader)}");
+        }
+
         return shader;
     }
 
@@ -451,7 +478,11 @@ public sealed class OpenGlService : IOpenGlService
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
 
-        if (converted) bmp.Dispose();
+        if (converted)
+        {
+            bmp.Dispose();
+        }
+
         return id;
     }
 }

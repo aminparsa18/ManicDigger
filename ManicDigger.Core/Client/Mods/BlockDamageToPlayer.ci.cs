@@ -32,7 +32,9 @@ public class ModBlockDamageToPlayer : ModBase
     public override void OnNewFrameFixed(float args)
     {
         if (Game.GuiState == GuiState.MapLoading || Game.FollowId() != null)
+        {
             return;
+        }
 
         UpdateBlockDamageToPlayer(args);
     }
@@ -54,20 +56,28 @@ public class ModBlockDamageToPlayer : ModBase
         int block2 = GetBlockAt(pX, pY - 1, pZ);
 
         int damage = blockTypeRegistry.DamageToPlayer[block1] + blockTypeRegistry.DamageToPlayer[block2];
-        if (damage <= 0) return;
+        if (damage <= 0)
+        {
+            return;
+        }
 
         // Prefer eye-level block as damage source; fall back to feet block
         int hurtingBlock = (block1 != 0 && blockTypeRegistry.DamageToPlayer[block1] > 0) ? block1 : block2;
         int times = blockDamageTimer.Update(dt);
         for (int i = 0; i < times; i++)
+        {
             Game.ApplyDamageToPlayer(damage, DeathReason.BlockDamage, hurtingBlock);
+        }
     }
 
     /// <summary>Drains oxygen while underwater and applies drowning damage when oxygen is depleted.</summary>
     private void UpdateDrowning()
     {
         int deltaMs = _platform.TimeMillisecondsFromStart - lastOxygenTickMilliseconds;
-        if (deltaMs < 1000) return;
+        if (deltaMs < 1000)
+        {
+            return;
+        }
 
         if (Game.WaterSwimmingEyes())
         {
@@ -85,7 +95,10 @@ public class ModBlockDamageToPlayer : ModBase
         }
 
         if (GameVersionHelper.ServerVersionAtLeast(Game.ServerGameVersion, 2014, 3, 31))
+        {
             Game.SendPacketClient(ClientPackets.Oxygen(Game.PlayerStats.CurrentOxygen));
+        }
+
         lastOxygenTickMilliseconds = _platform.TimeMillisecondsFromStart;
     }
 
@@ -143,12 +156,16 @@ public class DamageTimer
     public int Update(float dt)
     {
         if (dt < 0)
+        {
             return 0; // or throw, depending on your engine philosophy
+        }
 
         _accumulator += dt;
 
         if (MaxDeltaTime.HasValue && _accumulator > MaxDeltaTime.Value)
+        {
             _accumulator = MaxDeltaTime.Value;
+        }
 
         int updates = (int)(_accumulator / Interval);
         _accumulator -= updates * Interval;

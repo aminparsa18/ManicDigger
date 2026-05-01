@@ -1,4 +1,7 @@
-﻿using Serilog;
+﻿using ManicDigger.Mods;
+using Serilog;
+using System.Diagnostics;
+using System.Text;
 
 namespace ManicDigger.Maui;
 
@@ -12,7 +15,7 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        var window = base.CreateWindow(activationState);
+        Window window = base.CreateWindow(activationState);
 
         // Hide the MAUI window — OpenTK will create its own
         window.Width = 0;
@@ -30,12 +33,11 @@ public partial class App : Application
     {
         // Run on a background thread so we don't block the MAUI UI thread
         // OpenTK's Run() is blocking so it must not run on the main thread
-        MainThread.BeginInvokeOnMainThread(() =>
+        MainThread.BeginInvokeOnMainThread(static () =>
         {
             try
             {
-                var gameRunner = new GameRunner();
-                gameRunner.Start([.. Environment.GetCommandLineArgs().Skip(1)]);
+                GameRunner.Start([.. Environment.GetCommandLineArgs().Skip(1)]);
             }
             catch (Exception ex)
             {
@@ -48,7 +50,7 @@ public partial class App : Application
 
     private static string FlattenException(Exception ex)
     {
-        var sb = new System.Text.StringBuilder();
+        StringBuilder sb = new();
         while (ex != null)
         {
             sb.AppendLine(ex.GetType().FullName);
@@ -63,71 +65,128 @@ public partial class App : Application
 
 public class GameRunner
 {
-    private readonly DummyNetwork _dummyNetwork = new();
-    private GamePlatformNative _platform;
-    private GameExit _exit = new();
-    private string? _savefilename;
+    /// <summary>The application-wide DI container, available after <see cref="Main"/> returns.</summary>
+    public static IServiceProvider ServiceProvider { get; private set; }
 
-    public void Start(string[] args)
+    // ── Service registration ──────────────────────────────────────────────────
+
+    private static void ConfigureServices(ServiceCollection services)
     {
-        Environment.CurrentDirectory = AppContext.BaseDirectory;
-        // Temporary: log what the loader will actually scan
-        Log.Information("Working dir: {Dir}", Environment.CurrentDirectory);
-        _platform = new GamePlatformNative
-        {
-            crashreporter = new CrashReporter(),
-            singlePlayerServerDummyNetwork = _dummyNetwork
-        };
-        _platform.SetExit(_exit);
-        _platform.StartSinglePlayerServer = filename =>
-        {
-            _savefilename = filename;
-            new Thread(ServerThreadStart) { IsBackground = true }.Start();
-        };
+        // ── Infrastructure ────────────────────────────────────────────────────
+        services.AddSingleton<GameWindowNative>();
+        services.AddSingleton<IVoxelMap, VoxelMap>();
+        services.AddSingleton<IGameExit, GameExit>();
+        services.AddSingleton<IGameService, GameService>();
+        services.AddSingleton<ICameraService, CameraService>();
+        services.AddSingleton<IAudioService, AudioService>();
+        services.AddSingleton<IPreferences, Preferences>();
+        services.AddSingleton<IOpenGlService, OpenGlService>();
+        services.AddSingleton<IFrustumCulling, FrustumCulling>();
+        services.AddSingleton<IMeshBatcher, MeshBatcher>();
+        services.AddSingleton<IMeshDrawer, MeshDrawer>();
+        services.AddSingleton<ISinglePlayerService, SinglePlayerService>();
+        services.AddSingleton<IDummyNetwork, DummyNetwork>();
+        services.AddSingleton<IMenu, MainMenu>();
+        services.AddSingleton<IModRegistry, ModRegistry>();
+        services.AddSingleton<ITaskScheduler, TaskScheduler>();
+        services.AddSingleton<IBlockTypeRegistry, BlockTypeRegistry>();
+        services.AddSingleton<IGame, Game>();
 
-        using GameWindowNative window = new();
-        _platform.window = window;
+        // ── Player logic ──────────────────────────────────────────────────────
+        services.AddScoped<IModBase, ModDrawMain>();
+        services.AddScoped<IModBase, ModUpdateMain>();
+        services.AddScoped<IModBase, ModNetworkProcess>();
+        services.AddScoped<IModBase, ModNetworkEntity>();
+        services.AddScoped<IModBase, ModFallDamageToPlayer>();
+        services.AddScoped<IModBase, ModBlockDamageToPlayer>();
+        services.AddScoped<IModBase, ModLoadPlayerTextures>();
+        services.AddScoped<IModBase, ModSendPosition>();
+        services.AddScoped<IModBase, ModInterpolatePositions>();
+        services.AddScoped<IModBase, ModPush>();
+        services.AddScoped<IModBase, ModFly>();
 
-        MainMenu mainmenu = new(_platform);
-        mainmenu.Start();
+        // ── Camera ────────────────────────────────────────────────────────────
+        services.AddScoped<IModBase, ModAutoCamera>();
+        services.AddScoped<IModBase, ModCameraKeys>();
+        services.AddScoped<IModBase, ModCamera>();
 
-        if (args.Length > 0)
-            mainmenu.StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));
+        // ── Gameplay mechanics ────────────────────────────────────────────────
+        services.AddScoped<IModBase, ModRail>();
+        services.AddScoped<IModBase, ModCompass>();
+        services.AddScoped<IModBase, ModGrenade>();
+        services.AddScoped<IModBase, ModBullet>();
+        services.AddScoped<IModBase, ModExpire>();
+        services.AddScoped<IModBase, ModPicking>();
 
-        _platform.Start();
-        window.Run(); // blocks here until game exits
+        // ── Inventory / ammo ──────────────────────────────────────────────────
+        services.AddScoped<IModBase, ModReloadAmmo>();
+        services.AddScoped<IModBase, ModSendActiveMaterial>();
+        services.AddScoped<IModBase, ModGuiCrafting>();
+        services.AddScoped<IModBase, ModGuiInventory>();
+
+        // ── Audio ─────────────────────────────────────────────────────────────
+        services.AddScoped<IModBase, ModWalkSound>();
+        services.AddScoped<IModBase, ModAudio>();
+
+        // ── World rendering ───────────────────────────────────────────────────
+        services.AddScoped<IModBase, ModSkySphereAnimated>();
+        services.AddScoped<IModBase, SunMoonRenderer>();
+        services.AddScoped<IModBase, ModDrawTerrain>();
+        services.AddScoped<IModBase, ModDrawArea>();
+        services.AddScoped<IModBase, ModDrawSprites>();
+        services.AddScoped<IModBase, ModDrawMinecarts>();
+        services.AddScoped<IModBase, ModDrawLinesAroundSelectedBlock>();
+        services.AddScoped<IModBase, ModDebugChunk>();
+        services.AddScoped<IModBase, ModDrawParticleEffectBlockBreak>();
+
+        // ── Entity / player rendering ─────────────────────────────────────────
+        services.AddScoped<IModBase, ModDrawPlayers>();
+        services.AddScoped<IModBase, ModDrawPlayerNames>();
+        services.AddScoped<IModBase, ModDrawTestModel>();
+        services.AddScoped<IModBase, ModClearInactivePlayersDrawInfo>();
+
+        // ── HUD / 2D overlay ──────────────────────────────────────────────────
+        services.AddScoped<IModBase, ModDrawHand2d>();
+        services.AddScoped<IModBase, ModDrawHand3d>();
+        services.AddScoped<IModBase, ModDrawText>();
+        services.AddScoped<IModBase, ModDraw2dMisc>();
+        services.AddScoped<IModBase, ModFpsHistoryGraph>();
+
+        // ── GUI (topmost — rendered last) ─────────────────────────────────────
+        services.AddScoped<IModBase, ModDialog>();
+        services.AddScoped<IModBase, ModGuiTouchButtons>();
+        services.AddScoped<IModBase, ModGuiEscapeMenu>();
+        services.AddScoped<IModBase, ModGuiMapLoading>();
+        services.AddScoped<IModBase, ModGuiPlayerStats>();
+        services.AddScoped<IModBase, ModGuiChat>();
+        services.AddScoped<IModBase, ModScreenshot>();
     }
 
-    private void ServerThreadStart()
+    // ── Startup ───────────────────────────────────────────────────────────────
+
+    public static void Start(string[] args)
     {
-        var netServer = new DummyNetServer(_dummyNetwork);
-        var server = new Server
+        if (!Debugger.IsAttached)
         {
-            SaveFilenameOverride = _savefilename,
-            GameExit = _exit,
-            MainSockets = new NetServer[3]
-        };
-        server.MainSockets[0] = netServer;
-
-        while (true)
-        {
-            server.Process();
-            Thread.Sleep(1);
-            _platform.singlePlayerServerLoaded = true;
-
-            if (_exit.GetExit())
-            {
-                server.Stop();
-                break;
-            }
-
-            if (_platform.singlepLayerServerExit)
-            {
-                server.Exit();
-                _platform.singlepLayerServerExit = false;
-            }
+            Environment.CurrentDirectory = Path.GetDirectoryName(AppContext.BaseDirectory)!;
         }
 
-        _exit.SetExit(false);
+        ServiceCollection services = new ServiceCollection();
+        ConfigureServices(services);
+        ServiceProvider = services.BuildServiceProvider();
+
+        // 1. Game constructed — reads _modRegistry.Mods (empty list, safe)
+        IGame game = ServiceProvider.GetRequiredService<IGame>();
+
+        // 2. Mods constructed — each gets IGame injected (Game already exists)
+        IEnumerable<IModBase> mods = ServiceProvider.GetServices<IModBase>();
+
+        // 3. Registry populated — Game.ClientMods and any other IModRegistry 
+        //    consumer now see the full list
+        IModRegistry registry = ServiceProvider.GetRequiredService<IModRegistry>();
+        registry.Initialise(mods);
+
+        // 4. Loop starts — ClientMods is fully populated
+        ServiceProvider.GetRequiredService<IMenu>().Start(args);
     }
 }

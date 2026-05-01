@@ -3,9 +3,9 @@ using PointG = System.Drawing.Point;
 
 public partial class Server
 {
-    internal int mapsizexchunks() { return Map.MapSizeX / ChunkSize; }
-    internal int mapsizeychunks() { return Map.MapSizeY / ChunkSize; }
-    internal int mapsizezchunks() { return Map.MapSizeZ / ChunkSize; }
+    internal int mapsizexchunks() => Map.MapSizeX / ChunkSize;
+    internal int mapsizeychunks() => Map.MapSizeY / ChunkSize;
+    internal int mapsizezchunks() => Map.MapSizeZ / ChunkSize;
 
     // generates a new spawn near initial spawn if initial spawn is in water
     public Vector3i DontSpawnPlayerInWater(Vector3i initialSpawn)
@@ -60,10 +60,7 @@ public partial class Server
     public int playerareasize = 256;
     public int centerareasize = 128;
 
-    private PointG PlayerArea(int playerId)
-    {
-        return VectorUtils.PlayerArea(playerareasize, centerareasize, PlayerBlockPosition(Clients[playerId]));
-    }
+    private PointG PlayerArea(int playerId) => VectorUtils.PlayerArea(playerareasize, centerareasize, PlayerBlockPosition(Clients[playerId]));
 
     private IEnumerable<Vector3i> PlayerAreaChunks(int playerId)
     {
@@ -102,10 +99,7 @@ public partial class Server
         return 0;
     }
 
-    public int GetHeight(int x, int y)
-    {
-        return VectorUtils.BlockHeight(Map, 0, x, y);
-    }
+    public int GetHeight(int x, int y) => VectorUtils.BlockHeight(Map, 0, x, y);
 
     public void SetChunk(int x, int y, int z, ushort[] data)
     {
@@ -249,10 +243,7 @@ public partial class Server
         }
     }
 
-    public int[] GetMapSize()
-    {
-        return [Map.MapSizeX, Map.MapSizeY, Map.MapSizeZ];
-    }
+    public int[] GetMapSize() => [Map.MapSizeX, Map.MapSizeY, Map.MapSizeZ];
 
     public ushort[] GetChunkFromDatabase(int x, int y, int z, string filename)
     {

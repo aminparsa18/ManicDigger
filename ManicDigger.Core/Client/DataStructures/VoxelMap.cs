@@ -52,7 +52,10 @@ public class VoxelMap : IVoxelMap
     public Chunk GetChunk(int x, int y, int z)
     {
         if (x < 0 || y < 0 || z < 0)
+        {
             Console.WriteLine($"[WARN] GetChunk negative input: ({x}, {y}, {z})");
+        }
+
         x >>= GameConstants.chunksizebits;
         y >>= GameConstants.chunksizebits;
         z >>= GameConstants.chunksizebits;
@@ -162,10 +165,16 @@ public class VoxelMap : IVoxelMap
                 for (int cz = startCZ; cz <= endCZ; cz++)
                 {
                     int cpos = (cz * mapchunksy + cy) * mapchunksx + cx;
-                    if ((uint)cpos >= (uint)mapsizechunks) continue;
+                    if ((uint)cpos >= (uint)mapsizechunks)
+                    {
+                        continue;
+                    }
 
                     Chunk chunk = Chunks[cpos];
-                    if (chunk == null || !chunk.HasData()) continue;
+                    if (chunk == null || !chunk.HasData())
+                    {
+                        continue;
+                    }
 
                     // block range this chunk contributes to the output
                     int chunkGlobalX = cx << csBits;
@@ -207,9 +216,15 @@ public class VoxelMap : IVoxelMap
     public bool IsValidPos(int x, int y, int z)
     {
         if (x < 0 || y < 0 || z < 0)
+        {
             return false;
+        }
+
         if (x >= MapSizeX || y >= MapSizeY || z >= MapSizeZ)
+        {
             return false;
+        }
+
         return true;
     }
 
@@ -229,7 +244,10 @@ public class VoxelMap : IVoxelMap
     public int GetBlock(int x, int y, int z)
     {
         if (!IsValidPos(x, y, z))
+        {
             return 0;
+        }
+
         return GetBlockValid(x, y, z);
     }
 
@@ -241,16 +259,22 @@ public class VoxelMap : IVoxelMap
     public void SetChunkDirty(int cx, int cy, int cz, bool dirty, bool blockschanged)
     {
         if (!IsValidChunkPos(cx, cy, cz))
+        {
             return;
+        }
 
         Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
         if (c == null)
+        {
             return;
+        }
 
         c.rendered ??= new RenderedChunk();
         c.rendered.Dirty = dirty;
         if (blockschanged)
+        {
             c.baseLightDirty = true;
+        }
     }
 
     /// <summary>Width of the map measured in chunks.</summary>
@@ -268,12 +292,35 @@ public class VoxelMap : IVoxelMap
     /// </summary>
     public void SetChunksAroundDirty(int cx, int cy, int cz)
     {
-        if (IsValidChunkPos(cx - 1, cy, cz)) SetChunkDirty(cx - 1, cy, cz, true, false);
-        if (IsValidChunkPos(cx + 1, cy, cz)) SetChunkDirty(cx + 1, cy, cz, true, false);
-        if (IsValidChunkPos(cx, cy - 1, cz)) SetChunkDirty(cx, cy - 1, cz, true, false);
-        if (IsValidChunkPos(cx, cy + 1, cz)) SetChunkDirty(cx, cy + 1, cz, true, false);
-        if (IsValidChunkPos(cx, cy, cz - 1)) SetChunkDirty(cx, cy, cz - 1, true, false);
-        if (IsValidChunkPos(cx, cy, cz + 1)) SetChunkDirty(cx, cy, cz + 1, true, false);
+        if (IsValidChunkPos(cx - 1, cy, cz))
+        {
+            SetChunkDirty(cx - 1, cy, cz, true, false);
+        }
+
+        if (IsValidChunkPos(cx + 1, cy, cz))
+        {
+            SetChunkDirty(cx + 1, cy, cz, true, false);
+        }
+
+        if (IsValidChunkPos(cx, cy - 1, cz))
+        {
+            SetChunkDirty(cx, cy - 1, cz, true, false);
+        }
+
+        if (IsValidChunkPos(cx, cy + 1, cz))
+        {
+            SetChunkDirty(cx, cy + 1, cz, true, false);
+        }
+
+        if (IsValidChunkPos(cx, cy, cz - 1))
+        {
+            SetChunkDirty(cx, cy, cz - 1, true, false);
+        }
+
+        if (IsValidChunkPos(cx, cy, cz + 1))
+        {
+            SetChunkDirty(cx, cy, cz + 1, true, false);
+        }
     }
 
     /// <summary>
@@ -349,7 +396,10 @@ public class VoxelMap : IVoxelMap
     /// </summary>
     public int MaybeGetLight(int x, int y, int z)
     {
-        if (!IsValidPos(x, y, z)) return -1;
+        if (!IsValidPos(x, y, z))
+        {
+            return -1;
+        }
 
         int csBits = GameConstants.chunksizebits;
         int csMask = GameConstants.CHUNK_SIZE - 1;
@@ -359,10 +409,16 @@ public class VoxelMap : IVoxelMap
         int cy = y >> csBits;
         int cz = z >> csBits;
 
-        if (!IsValidChunkPos(cx, cy, cz)) return -1;
+        if (!IsValidChunkPos(cx, cy, cz))
+        {
+            return -1;
+        }
 
         Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
-        if (c?.rendered?.Light == null) return -1;
+        if (c?.rendered?.Light == null)
+        {
+            return -1;
+        }
 
         int lx = (x & csMask) + 1;
         int ly = (y & csMask) + 1;
@@ -398,7 +454,9 @@ public class VoxelMap : IVoxelMap
             if ((uint)p.x >= (uint)MapSizeX ||
                 (uint)p.y >= (uint)MapSizeY ||
                 (uint)p.z >= (uint)MapSizeZ)
+            {
                 continue;
+            }
 
             SetChunkDirty(
                 p.x >> csBits,
@@ -417,7 +475,10 @@ public class VoxelMap : IVoxelMap
     {
         Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
         if (c == null)
+        {
             return false;
+        }
+
         return c.rendered != null && c.rendered.Ids != null;
     }
 }

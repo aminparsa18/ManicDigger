@@ -34,7 +34,11 @@ public class ServerSystemNotifyEntities : ServerSystem
             {
                 // Apply position overrides to keep bot positions current;
                 // bots do not receive any other position packets.
-                if (client.PositionOverride == null) continue;
+                if (client.PositionOverride == null)
+                {
+                    continue;
+                }
+
                 client.Entity.Position = client.PositionOverride;
                 client.PositionOverride = null;
                 continue;
@@ -60,8 +64,15 @@ public class ServerSystemNotifyEntities : ServerSystem
 
         foreach (var k in server.Clients)
         {
-            if (k.Value.State != ClientStateOnServer.Playing) continue;
-            if (!client.PlayersDirty[k.Key]) continue;
+            if (k.Value.State != ClientStateOnServer.Playing)
+            {
+                continue;
+            }
+
+            if (!client.PlayersDirty[k.Key])
+            {
+                continue;
+            }
 
             Packet_ServerEntity entity = ToNetworkEntity(k.Value.Entity);
             server.SendPacket(clientId, ServerPackets.EntitySpawn(k.Key, entity));
@@ -86,18 +97,33 @@ public class ServerSystemNotifyEntities : ServerSystem
     {
         ClientOnServer client = server.Clients[clientId];
         client.NotifyPlayerPositionsAccum += dt;
-        if (client.NotifyPlayerPositionsAccum < (One / PlayerPositionUpdatesPerSecond)) return;
+        if (client.NotifyPlayerPositionsAccum < (One / PlayerPositionUpdatesPerSecond))
+        {
+            return;
+        }
+
         client.NotifyPlayerPositionsAccum = 0;
 
         foreach (var k in server.Clients)
         {
-            if (k.Value.State != ClientStateOnServer.Playing) continue;
-            if (!client.IsSpectator && k.Value.IsSpectator) continue;
+            if (k.Value.State != ClientStateOnServer.Playing)
+            {
+                continue;
+            }
+
+            if (!client.IsSpectator && k.Value.IsSpectator)
+            {
+                continue;
+            }
 
             if (k.Key == clientId)
             {
                 // Apply any server-side position correction for the local player
-                if (k.Value.PositionOverride == null) continue;
+                if (k.Value.PositionOverride == null)
+                {
+                    continue;
+                }
+
                 k.Value.Entity.Position = k.Value.PositionOverride;
                 k.Value.PositionOverride = null;
             }
@@ -107,7 +133,10 @@ public class ServerSystemNotifyEntities : ServerSystem
                 Vector3i otherPos = Server.PlayerBlockPosition(server.Clients[k.Key]);
                 Vector3i selfPos = Server.PlayerBlockPosition(server.Clients[clientId]);
                 int drawDistanceSq = server.Config.PlayerDrawDistance * server.Config.PlayerDrawDistance;
-                if (VectorUtils.DistanceSquared(otherPos, selfPos) > drawDistanceSq) continue;
+                if (VectorUtils.DistanceSquared(otherPos, selfPos) > drawDistanceSq)
+                {
+                    continue;
+                }
             }
 
             Packet_PositionAndOrientation position =
@@ -135,7 +164,11 @@ public class ServerSystemNotifyEntities : ServerSystem
     {
         ClientOnServer client = server.Clients[clientId];
         client.NotifyEntitiesAccum += dt;
-        if (client.NotifyEntitiesAccum < (One / EntityPositionUpdatesPerSecond)) return;
+        if (client.NotifyEntitiesAccum < (One / EntityPositionUpdatesPerSecond))
+        {
+            return;
+        }
+
         client.NotifyEntitiesAccum = 0;
 
         // --- Collect nearest entities ---
@@ -145,17 +178,30 @@ public class ServerSystemNotifyEntities : ServerSystem
         // --- Run update handlers ---
         foreach (ServerEntityId e in nearestEntities)
         {
-            if (e == null) continue;
+            if (e == null)
+            {
+                continue;
+            }
+
             foreach (var handler in server.ModEventHandlers.onupdateentity)
+            {
                 handler(e.ChunkX, e.ChunkY, e.ChunkZ, e.Id);
+            }
         }
 
         // --- Despawn entities that left range ---
         for (int i = 0; i < client.SpawnedEntities.Length; i++)
         {
             ServerEntityId e = client.SpawnedEntities[i];
-            if (e == null) continue;
-            if (Contains(nearestEntities, SpawnMaxEntities, e)) continue;
+            if (e == null)
+            {
+                continue;
+            }
+
+            if (Contains(nearestEntities, SpawnMaxEntities, e))
+            {
+                continue;
+            }
 
             client.SpawnedEntities[i] = null;
             server.SendPacket(clientId, ServerPackets.EntityDespawn(64 + i));
@@ -165,8 +211,15 @@ public class ServerSystemNotifyEntities : ServerSystem
         for (int i = 0; i < SpawnMaxEntities; i++)
         {
             ServerEntityId e = nearestEntities[i];
-            if (e == null) continue;
-            if (Contains(client.SpawnedEntities, SpawnMaxEntities, e)) continue;
+            if (e == null)
+            {
+                continue;
+            }
+
+            if (Contains(client.SpawnedEntities, SpawnMaxEntities, e))
+            {
+                continue;
+            }
 
             int slotId = IndexOfNull(client.SpawnedEntities, client.SpawnedEntities.Length);
             client.SpawnedEntities[slotId] = e.Clone();
@@ -178,7 +231,11 @@ public class ServerSystemNotifyEntities : ServerSystem
         // --- Re-send dirty entity data ---
         for (int i = 0; i < SpawnMaxEntities; i++)
         {
-            if (!client.UpdateEntity[i]) continue;
+            if (!client.UpdateEntity[i])
+            {
+                continue;
+            }
+
             client.UpdateEntity[i] = false;
 
             ServerEntityId e = client.SpawnedEntities[i];
@@ -205,28 +262,42 @@ public class ServerSystemNotifyEntities : ServerSystem
         var candidates = new List<ServerEntityId>();
 
         for (int dx = -1; dx <= 1; dx++)
+        {
             for (int dy = -1; dy <= 1; dy++)
+            {
                 for (int dz = -1; dz <= 1; dz++)
                 {
                     int chunkX = playerX / Server.ChunkSize + dx;
                     int chunkY = playerY / Server.ChunkSize + dy;
                     int chunkZ = playerZ / Server.ChunkSize + dz;
 
-                    if (!VectorUtils.IsValidChunkPos(server.Map, chunkX, chunkY, chunkZ, Server.ChunkSize)) continue;
+                    if (!VectorUtils.IsValidChunkPos(server.Map, chunkX, chunkY, chunkZ, Server.ChunkSize))
+                    {
+                        continue;
+                    }
 
                     ServerChunk chunk = server.Map.GetChunk(
                         chunkX * Server.ChunkSize,
                         chunkY * Server.ChunkSize,
                         chunkZ * Server.ChunkSize);
 
-                    if (chunk?.Entities == null) continue;
+                    if (chunk?.Entities == null)
+                    {
+                        continue;
+                    }
 
                     foreach (var (id, entity) in chunk.Entities)
                     {
-                        if (entity?.Position == null) continue;
+                        if (entity?.Position == null)
+                        {
+                            continue;
+                        }
+
                         candidates.Add(new ServerEntityId { ChunkX = chunkX, ChunkY = chunkY, ChunkZ = chunkZ, Id = id });
                     }
                 }
+            }
+        }
 
         var playerPos = new Vector3i(
             client.PositionMul32GlX / 32,
@@ -243,7 +314,9 @@ public class ServerSystemNotifyEntities : ServerSystem
 
         int count = Math.Min(candidates.Count, maxCount);
         for (int i = 0; i < count; i++)
+        {
             result[i] = candidates[i];
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -257,7 +330,13 @@ public class ServerSystemNotifyEntities : ServerSystem
     private static int IndexOfNull(ServerEntityId[] list, int count)
     {
         for (int i = 0; i < count; i++)
-            if (list[i] == null) return i;
+        {
+            if (list[i] == null)
+            {
+                return i;
+            }
+        }
+
         return -1;
     }
 
@@ -276,7 +355,9 @@ public class ServerSystemNotifyEntities : ServerSystem
                 && s.ChunkY == value.ChunkY
                 && s.ChunkZ == value.ChunkZ
                 && s.Id == value.Id)
+            {
                 return true;
+            }
         }
         return false;
     }
@@ -326,9 +407,12 @@ public class ServerSystemNotifyEntities : ServerSystem
         var p = new Packet_ServerEntity();
 
         if (entity.Position != null)
+        {
             p.Position = ToNetworkEntityPosition(entity.Position);
+        }
 
         if (entity.DrawModel != null)
+        {
             p.DrawModel = new Packet_ServerEntityAnimatedModel
             {
                 EyeHeight = (int)(entity.DrawModel.EyeHeight * 32),
@@ -337,8 +421,10 @@ public class ServerSystemNotifyEntities : ServerSystem
                 Texture_ = entity.DrawModel.Texture,
                 DownloadSkin = entity.DrawModel.DownloadSkin ? 1 : 0
             };
+        }
 
         if (entity.DrawName != null)
+        {
             p.DrawName_ = new Packet_ServerEntityDrawName
             {
                 Name = entity.DrawName.Name,
@@ -346,8 +432,10 @@ public class ServerSystemNotifyEntities : ServerSystem
                 OnlyWhenSelected = entity.DrawName.OnlyWhenSelected,
                 ClientAutoComplete = entity.DrawName.ClientAutoComplete
             };
+        }
 
         if (entity.DrawText != null)
+        {
             p.DrawText = new Packet_ServerEntityDrawText
             {
                 Dx = (int)(entity.DrawText.Dx * 32),
@@ -358,14 +446,18 @@ public class ServerSystemNotifyEntities : ServerSystem
                 Rotz = (int)entity.DrawText.RotZ,
                 Text = entity.DrawText.Text
             };
+        }
 
         if (entity.Push != null)
+        {
             p.Push = new Packet_ServerEntityPush
             {
                 RangeFloat = (int)(entity.Push.Range * 32)
             };
+        }
 
         if (entity.DrawArea != null)
+        {
             p.DrawArea = new Packet_ServerEntityDrawArea
             {
                 X = entity.DrawArea.X,
@@ -376,6 +468,7 @@ public class ServerSystemNotifyEntities : ServerSystem
                 Sizez = entity.DrawArea.SizeZ,
                 VisibleToClientId = entity.DrawArea.VisibleToClientId
             };
+        }
 
         p.Usable = entity.Usable;
         return p;

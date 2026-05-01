@@ -21,7 +21,10 @@ public class ServerSystemNotifyPing : ServerSystem
     {
         pingTimer.Update(() =>
         {
-            if (gameExit.Exit) return;
+            if (gameExit.Exit)
+            {
+                return;
+            }
 
             var timedOut = new List<int>();
 
@@ -42,7 +45,9 @@ public class ServerSystemNotifyPing : ServerSystem
             }
 
             foreach (int clientId in timedOut)
+            {
                 server.KillPlayer(clientId);
+            }
         });
     }
 }

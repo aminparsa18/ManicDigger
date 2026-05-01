@@ -51,6 +51,7 @@ public static class KeyframeTypeExtensions
         {
             if (type.ToSerializedName() == name) { return type; }
         }
+
         throw new ArgumentException($"Unknown KeyframeType serialized name: '{name}'");
     }
 }

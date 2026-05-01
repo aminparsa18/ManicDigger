@@ -138,9 +138,21 @@ public class AreaConfig
 
     public bool CanUserBuild(ClientOnServer client)
     {
-        if (Level != null && client.ClientGroup.Level >= Level) return true;
-        if (PermittedGroups.Contains(client.ClientGroup.Name)) return true;
-        if (PermittedUsers.Any(u => u.Equals(client.PlayerName, StringComparison.InvariantCultureIgnoreCase))) return true;
+        if (Level != null && client.ClientGroup.Level >= Level)
+        {
+            return true;
+        }
+
+        if (PermittedGroups.Contains(client.ClientGroup.Name))
+        {
+            return true;
+        }
+
+        if (PermittedUsers.Any(u => u.Equals(client.PlayerName, StringComparison.InvariantCultureIgnoreCase)))
+        {
+            return true;
+        }
+
         return false;
     }
 

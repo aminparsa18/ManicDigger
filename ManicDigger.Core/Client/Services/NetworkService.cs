@@ -24,7 +24,9 @@ internal class NetworkService : INetworkService
     {
         // Client hosts always pass null address.
         if (address != null)
+        {
             throw new ArgumentException("Client ENet host must have a null address.");
+        }
 
         ((EnetHostWrapper)host).Host.Create(peerLimit, channelLimit,
             (uint)incomingBandwidth, (uint)outgoingBandwidth);

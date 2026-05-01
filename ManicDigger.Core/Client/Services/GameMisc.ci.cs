@@ -16,10 +16,7 @@ public class LoginClientCi
 {
     internal LoginResult loginResult;
 
-    public void Login(IGameService platform, string user, string password, string publicServerKey, string token, LoginResult result, LoginData resultLoginData_)
-    {
-        loginResult = result;
-    }
+    public void Login(IGameService platform, string user, string password, string publicServerKey, string token, LoginResult result, LoginData resultLoginData_) => loginResult = result;
 }
 
 public class GameExit : IGameExit
@@ -559,8 +556,5 @@ public class OnCrashHandlerLeave : OnCrashHandler
         return oncrash;
     }
     private Game g;
-    public override void OnCrash()
-    {
-        g.SendLeave(PacketLeaveReason.Crash);
-    }
+    public override void OnCrash() => g.SendLeave(PacketLeaveReason.Crash);
 }

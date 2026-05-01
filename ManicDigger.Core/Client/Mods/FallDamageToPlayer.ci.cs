@@ -20,16 +20,25 @@ public class ModFallDamageToPlayer : ModBase
 
     public override void OnNewFrameFixed(float args)
     {
-        if (Game.GuiState == GuiState.MapLoading) return;
+        if (Game.GuiState == GuiState.MapLoading)
+        {
+            return;
+        }
 
         if (Game.Controls.FreeMove)
         {
-            if (fallSoundPlaying) SetFallSoundActive(false);
+            if (fallSoundPlaying)
+            {
+                SetFallSoundActive(false);
+            }
+
             return;
         }
 
         if (Game.FollowId() == null)
+        {
             UpdateFallDamageToPlayer(args);
+        }
     }
 
     internal void UpdateFallDamageToPlayer(float dt)
@@ -48,11 +57,21 @@ public class ModFallDamageToPlayer : ModBase
 
     private void ApplyFallDamage(int posX, int posY, int posZ, float fallSpeed)
     {
-        if (fallSpeed < 4f) return;
-        if (!voxelMap.IsValidPos(posX, posY, posZ - 3)) return;
+        if (fallSpeed < 4f)
+        {
+            return;
+        }
+
+        if (!voxelMap.IsValidPos(posX, posY, posZ - 3))
+        {
+            return;
+        }
 
         int blockBelow = voxelMap.GetBlock(posX, posY, posZ - 3);
-        if (blockBelow == 0 || Game.IsWater(blockBelow)) return;
+        if (blockBelow == 0 || Game.IsWater(blockBelow))
+        {
+            return;
+        }
 
         // fallspeed 4 ≈ 10 blocks high, 5.5 ≈ 20 blocks high
         float severity = fallSpeed switch
@@ -65,7 +84,10 @@ public class ModFallDamageToPlayer : ModBase
         };
 
         int now = platform.TimeMillisecondsFromStart;
-        if ((now - lastFallDamageTimeMilliseconds) / 1000f < FallDamageCooldownSeconds) return;
+        if ((now - lastFallDamageTimeMilliseconds) / 1000f < FallDamageCooldownSeconds)
+        {
+            return;
+        }
 
         lastFallDamageTimeMilliseconds = now;
         Game.ApplyDamageToPlayer((int)(severity * Game.PlayerStats.MaxHealth), DeathReason.FallDamage, 0);

@@ -17,13 +17,21 @@ public class ModExpire : ModBase
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity entity = Game.Entities[i];
-            if (entity?.expires == null) continue;
+            if (entity?.expires == null)
+            {
+                continue;
+            }
 
             entity.expires.timeLeft -= dt;
-            if (entity.expires.timeLeft > 0) continue;
+            if (entity.expires.timeLeft > 0)
+            {
+                continue;
+            }
 
             if (entity.grenade != null)
+            {
                 GrenadeExplosion(i);
+            }
 
             Game.Entities[i] = null;
         }
@@ -79,6 +87,8 @@ public class ModExpire : ModBase
         float dist = Vector3.Distance(new Vector3(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z), new Vector3(posX, posY, posZ));
         float dmg = (1f - dist / explosionRange) * blockType.DamageBody;
         if (dmg > 0)
+        {
             Game.ApplyDamageToPlayer((int)dmg, DeathReason.Explosion, grenade.sourcePlayer);
+        }
     }
 }

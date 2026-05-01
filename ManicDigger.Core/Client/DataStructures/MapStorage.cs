@@ -7,16 +7,10 @@
     void SetBlock(int x, int y, int z, int tileType);
 }
 
-public class MapStorage : IMapStorage
+public class MapStorage(IVoxelMap voxelMap, Action<int, int, int, int> setBlock) : IMapStorage
 {
-    private readonly IVoxelMap _voxelMap;
-    private readonly Action<int, int, int, int> _setBlock;
-
-    public MapStorage(IVoxelMap voxelMap, Action<int, int, int, int> setBlock)
-    {
-        _voxelMap = voxelMap;
-        _setBlock = setBlock;
-    }
+    private readonly IVoxelMap _voxelMap = voxelMap;
+    private readonly Action<int, int, int, int> _setBlock = setBlock;
 
     public int MapSizeX => _voxelMap.MapSizeX;
     public int MapSizeY => _voxelMap.MapSizeY;

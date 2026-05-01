@@ -1129,12 +1129,18 @@ public class War : IMod
             if (toteam)
             {
                 if (players[player].team == Team.Blue)
+                {
                     Console.WriteLine($"[Blue] {sender}: {s}");
+                }
                 else
+                {
                     Console.WriteLine($"[Green] {sender}: {s}");
+                }
             }
             else
+            {
                 Console.WriteLine($"[Players] {sender}: {s}");
+            }
         }
         m.LogChat($"{senderColorString}{sender}&f: {s}");
         return null;

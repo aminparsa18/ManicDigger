@@ -72,7 +72,7 @@ public class ConnectionScreen : ScreenBase
             savedIp = textboxIp.text;
             savedPort = textboxPort.text;
 
-            var prefs = preferences;
+            IPreferences prefs = preferences;
             prefs.SetString("ConnectToIpIp", savedIp);
             prefs.SetString("ConnectToIpPort", savedPort);
             prefs.SetValues();

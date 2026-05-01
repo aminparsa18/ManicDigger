@@ -23,8 +23,15 @@ public class ModPush : ModBase
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity entity = Game.Entities[i];
-            if (entity?.push == null) continue;
-            if (entity.networkPosition != null && !entity.networkPosition.PositionLoaded) continue;
+            if (entity?.push == null)
+            {
+                continue;
+            }
+
+            if (entity.networkPosition != null && !entity.networkPosition.PositionLoaded)
+            {
+                continue;
+            }
 
             float kX = EncodingHelper.DecodeFixedPoint(entity.push.XFloat);
             float kY = EncodingHelper.DecodeFixedPoint(entity.push.ZFloat);

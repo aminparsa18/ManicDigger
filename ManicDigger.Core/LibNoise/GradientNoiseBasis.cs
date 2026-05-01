@@ -296,10 +296,10 @@ public sealed class GradientNoiseBasis
         int hx0, int hx1, int hy0, int hy1, int hz0, int hz1, int hs)
     {
         // ── Stage 1: 8 × int32 hashes ────────────────────────────────────────
-        var vhx = Vector256.Create(hx0, hx0, hx0, hx0, hx1, hx1, hx1, hx1);
-        var vhy = Vector256.Create(hy0, hy1, hy0, hy1, hy0, hy1, hy0, hy1);
-        var vhz = Vector256.Create(hz0, hz0, hz1, hz1, hz0, hz0, hz1, hz1);
-        var vhs = Vector256.Create(hs);
+        Vector256<int> vhx = Vector256.Create(hx0, hx0, hx0, hx0, hx1, hx1, hx1, hx1);
+        Vector256<int> vhy = Vector256.Create(hy0, hy1, hy0, hy1, hy0, hy1, hy0, hy1);
+        Vector256<int> vhz = Vector256.Create(hz0, hz0, hz1, hz1, hz0, hz0, hz1, hz1);
+        Vector256<int> vhs = Vector256.Create(hs);
 
         var combined = Avx2.Add(Avx2.Add(Avx2.Add(vhx, vhy), vhz), vhs);
         var hashed = Avx2.Xor(combined, Avx2.ShiftRightArithmetic(combined, 8));
@@ -314,9 +314,9 @@ public sealed class GradientNoiseBasis
 
             // ── Stage 3: fractional offsets + dot products ────────────────────
             float fx1 = fx - 1f, fy1 = fy - 1f, fz1 = fz - 1f;
-            var vdx = Vector256.Create(fx, fx, fx, fx, fx1, fx1, fx1, fx1);
-            var vdy = Vector256.Create(fy, fy1, fy, fy1, fy, fy1, fy, fy1);
-            var vdz = Vector256.Create(fz, fz, fz1, fz1, fz, fz, fz1, fz1);
+            Vector256<float> vdx = Vector256.Create(fx, fx, fx, fx, fx1, fx1, fx1, fx1);
+            Vector256<float> vdy = Vector256.Create(fy, fy1, fy, fy1, fy, fy1, fy, fy1);
+            Vector256<float> vdz = Vector256.Create(fz, fz, fz1, fz1, fz, fz, fz1, fz1);
 
             var dots = Fma.MultiplyAdd(gx, vdx,
                        Fma.MultiplyAdd(gy, vdy,

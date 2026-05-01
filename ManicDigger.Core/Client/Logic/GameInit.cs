@@ -337,7 +337,11 @@ public partial class Game : IGame
     {
         get
         {
-            if (!Controls.FreeMove) return FreemoveLevel.None;
+            if (!Controls.FreeMove)
+            {
+                return FreemoveLevel.None;
+            }
+
             return Controls.NoClip ? FreemoveLevel.Noclip : FreemoveLevel.Freemove;
         }
         set
@@ -473,7 +477,9 @@ public partial class Game : IGame
         Sunlight = 15;
         LightLevels = new float[16];
         for (int i = 0; i < 16; i++)
+        {
             LightLevels[i] = 0.15f;
+        }
     }
 
     private void InitInput()

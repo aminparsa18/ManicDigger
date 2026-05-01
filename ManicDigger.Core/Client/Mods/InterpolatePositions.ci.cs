@@ -21,9 +21,20 @@ public class ModInterpolatePositions : ModBase
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity e = Game.Entities[i];
-            if (e?.networkPosition == null) continue;
-            if (i == Game.LocalPlayerId) continue;
-            if (!e.networkPosition.PositionLoaded) continue;
+            if (e?.networkPosition == null)
+            {
+                continue;
+            }
+
+            if (i == Game.LocalPlayerId)
+            {
+                continue;
+            }
+
+            if (!e.networkPosition.PositionLoaded)
+            {
+                continue;
+            }
 
             e.playerDrawInfo ??= new PlayerDrawInfo();
             EnsureInterpolation(e);
@@ -40,7 +51,10 @@ public class ModInterpolatePositions : ModBase
     /// </summary>
     private static void EnsureInterpolation(Entity e)
     {
-        if (e.playerDrawInfo.interpolation != null) return;
+        if (e.playerDrawInfo.interpolation != null)
+        {
+            return;
+        }
 
         e.playerDrawInfo.interpolation = new NetworkInterpolation
         {

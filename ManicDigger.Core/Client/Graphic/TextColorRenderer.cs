@@ -41,7 +41,10 @@ public class TextColorRenderer
         {
             int sizeX = sizesX[i];
             int sizeY = sizesY[i];
-            if (sizeX == 0 || sizeY == 0) continue;
+            if (sizeX == 0 || sizeY == 0)
+            {
+                continue;
+            }
 
             TextStyle partText = new()
             {
@@ -58,11 +61,16 @@ public class TextColorRenderer
             {
                 for (int x = 0; x < part.Width; x++)
                 {
-                    if (x + currentWidth >= size2X || y >= size2Y) continue;
+                    if (x + currentWidth >= size2X || y >= size2Y)
+                    {
+                        continue;
+                    }
 
                     int c = part.GetPixel(x, y);
                     if (ColorUtils.ColorA(c) > 0)
+                    {
                         atlas.SetPixel((int)currentWidth + x, y, c);
+                    }
                 }
             }
 
@@ -151,7 +159,10 @@ public class TextColorRenderer
     private static int GetColor(int index)
     {
         if (index >= 0 && index < ColorPalette.Length)
+        {
             return ColorPalette[index];
+        }
+
         return ColorPalette[15]; // default white
     }
 
@@ -160,9 +171,21 @@ public class TextColorRenderer
     /// </summary>
     private static int HexToInt(char c)
     {
-        if (c >= '0' && c <= '9') return c - '0';
-        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+        if (c >= '0' && c <= '9')
+        {
+            return c - '0';
+        }
+
+        if (c >= 'a' && c <= 'f')
+        {
+            return c - 'a' + 10;
+        }
+
+        if (c >= 'A' && c <= 'F')
+        {
+            return c - 'A' + 10;
+        }
+
         return -1;
     }
 }

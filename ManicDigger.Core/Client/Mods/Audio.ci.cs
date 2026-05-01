@@ -19,7 +19,10 @@ public sealed class ModAudio : ModBase
     /// <inheritdoc/>
     public override void OnNewFrame(float dt)
     {
-        if (Game.AssetsLoadProgress < 1f) return;
+        if (Game.AssetsLoadProgress < 1f)
+        {
+            return;
+        }
 
         if (!_preloaded)
         {
@@ -33,7 +36,10 @@ public sealed class ModAudio : ModBase
     /// <inheritdoc/>
     public override void OnNewFrameFixed(float dt)
     {
-        if (Game.GuiState == GuiState.MapLoading) return;
+        if (Game.GuiState == GuiState.MapLoading)
+        {
+            return;
+        }
 
         float orientationX = MathF.Sin(Game.Player.position.roty);
         float orientationZ = -MathF.Cos(Game.Player.position.roty);
@@ -49,7 +55,10 @@ public sealed class ModAudio : ModBase
         for (int i = 0; i < _audioService.SoundsCount; i++)
         {
             Sound? sound = _audioService.Sounds[i];
-            if (sound is null) continue;
+            if (sound is null)
+            {
+                continue;
+            }
 
             TryLoad(sound);
             TryUpdatePosition(sound);
@@ -65,10 +74,16 @@ public sealed class ModAudio : ModBase
     /// </summary>
     private void TryLoad(Sound sound)
     {
-        if (sound.Task is not null) return;
+        if (sound.Task is not null)
+        {
+            return;
+        }
 
         AudioData data = GetOrLoadAudioData(sound.Name);
-        if (!_audioService.IsAudioDataLoaded(data)) return;
+        if (!_audioService.IsAudioDataLoaded(data))
+        {
+            return;
+        }
 
         AudioTask task = _audioService.CreateAudio(data);
         task.Loop = sound.Loop;
@@ -79,14 +94,22 @@ public sealed class ModAudio : ModBase
     /// <summary>Synchronises the OpenAL source position with the sound's world position.</summary>
     private void TryUpdatePosition(Sound sound)
     {
-        if (sound.Task is null) return;
+        if (sound.Task is null)
+        {
+            return;
+        }
+
         _audioService.SetPosition(sound.Task, sound.X, sound.Y, sound.Z);
     }
 
     /// <summary>Destroys and clears any sound flagged for stopping.</summary>
     private void TryStop(int i, Sound sound)
     {
-        if (sound.Task is null || !sound.Stop) return;
+        if (sound.Task is null || !sound.Stop)
+        {
+            return;
+        }
+
         _audioService.DestroyAudio(sound.Task);
         _audioService.Sounds[i] = null;
     }
@@ -97,8 +120,16 @@ public sealed class ModAudio : ModBase
     /// </summary>
     private void TryFinish(int i, Sound sound)
     {
-        if (sound.Task is null) return;
-        if (!_audioService.IsFinished(sound.Task)) return;
+        if (sound.Task is null)
+        {
+            return;
+        }
+
+        if (!_audioService.IsFinished(sound.Task))
+        {
+            return;
+        }
+
         _audioService.Sounds[i] = null;
     }
 
@@ -110,7 +141,9 @@ public sealed class ModAudio : ModBase
         foreach (Asset asset in Game.Assets)
         {
             if (asset.name.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
+            {
                 GetOrLoadAudioData(asset.name);
+            }
         }
     }
 

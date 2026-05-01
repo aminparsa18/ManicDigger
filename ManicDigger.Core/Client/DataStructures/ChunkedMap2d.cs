@@ -72,7 +72,7 @@ public class ChunkedMap2d<T>
     /// or <c>default(T)</c> if the containing chunk has never been written.</summary>
     public T GetBlock(int x, int y)
     {
-        var chunk = _chunks[ChunkIndex(x, y)];
+        T[] chunk = _chunks[ChunkIndex(x, y)];
         return chunk == null ? default : chunk[BlockIndex(x, y)];
     }
 

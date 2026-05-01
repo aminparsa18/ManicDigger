@@ -65,7 +65,7 @@ public class AnimatedModelRenderer
         keyframeCache.Clear();
         foreach (Keyframe k in m.Keyframes)
         {
-            var key = (k.AnimationName, k.NodeName, k.Type);
+            (string AnimationName, string NodeName, KeyframeType Type) key = (k.AnimationName, k.NodeName, k.Type);
             if (!keyframeCache.TryGetValue(key, out List<Keyframe> list))
             {
                 list = [];
@@ -266,7 +266,7 @@ public class AnimatedModelRenderer
     /// </returns>
     private List<Keyframe> GetFrames(string nodeName, KeyframeType type)
     {
-        var key = (m.Animations[anim].Name, nodeName, type);
+        (string Name, string nodeName, KeyframeType type) key = (m.Animations[anim].Name, nodeName, type);
         keyframeCache.TryGetValue(key, out List<Keyframe> frames);
         return frames;
     }

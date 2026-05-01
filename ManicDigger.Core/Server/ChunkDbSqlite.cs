@@ -45,9 +45,15 @@ public class ChunkDbSqlite : IChunkDb
         bool isNew = !File.Exists(filename);
         _conn = new SQLiteConnection(BuildConnectionString(filename));
         _conn.Open();
-        if (isNew) CreateTables(_conn);
+        if (isNew)
+        {
+            CreateTables(_conn);
+        }
+
         if (!IntegrityCheck(_conn))
+        {
             Console.WriteLine("Database is possibly corrupted.");
+        }
     }
 
     /// <summary>Closes and disposes the underlying SQLite connection.</summary>
@@ -78,7 +84,10 @@ public class ChunkDbSqlite : IChunkDb
         {
             string result = reader[0].ToString();
             Console.WriteLine(result);
-            if (result == "ok") return true;
+            if (result == "ok")
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -94,7 +103,9 @@ public class ChunkDbSqlite : IChunkDb
             return;
         }
         if (File.Exists(backupFilename))
+        {
             Console.WriteLine($"File {backupFilename} exists. Overwriting.");
+        }
 
         using SQLiteConnection backupConn = new(BuildConnectionString(backupFilename));
         backupConn.Open();
@@ -116,7 +127,10 @@ public class ChunkDbSqlite : IChunkDb
     {
         using SQLiteTransaction tx = _conn.BeginTransaction();
         foreach (Vector3i xyz in chunkpositions)
+        {
             yield return ReadChunk(ToMapPos(xyz.X, xyz.Y, xyz.Z), _conn);
+        }
+
         tx.Commit();
     }
 
@@ -126,7 +140,9 @@ public class ChunkDbSqlite : IChunkDb
     private byte[] ReadChunk(ulong position, SQLiteConnection conn)
     {
         if (ReadOnly && _temporaryChunks.TryGetValue(position, out byte[] cached))
+        {
             return cached;
+        }
 
         using SQLiteCommand cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT data FROM chunks WHERE position=?";
@@ -143,12 +159,18 @@ public class ChunkDbSqlite : IChunkDb
         if (ReadOnly)
         {
             foreach (DbChunk c in chunks)
+            {
                 _temporaryChunks[ToMapPos(c.Position.X, c.Position.Y, c.Position.Z)] = (byte[])c.Chunk.Clone();
+            }
+
             return;
         }
         using SQLiteTransaction tx = _conn.BeginTransaction();
         foreach (DbChunk c in chunks)
+        {
             WriteChunk(ToMapPos(c.Position.X, c.Position.Y, c.Position.Z), c.Chunk, _conn);
+        }
+
         tx.Commit();
     }
 
@@ -172,7 +194,10 @@ public class ChunkDbSqlite : IChunkDb
         if (ReadOnly)
         {
             foreach (Vector3i xyz in chunkpositions)
+            {
                 _temporaryChunks.Remove(ToMapPos(xyz.X, xyz.Y, xyz.Z));
+            }
+
             return;
         }
         using SQLiteTransaction tx = _conn.BeginTransaction();
@@ -204,7 +229,10 @@ public class ChunkDbSqlite : IChunkDb
         Dictionary<Vector3i, byte[]> result = [];
         using SQLiteTransaction tx = conn.BeginTransaction();
         foreach (Vector3i xyz in chunkpositions)
+        {
             result.Add(xyz, ReadChunk(ToMapPos(xyz.X, xyz.Y, xyz.Z), conn));
+        }
+
         tx.Commit();
         return result;
     }
@@ -218,16 +246,24 @@ public class ChunkDbSqlite : IChunkDb
             return;
         }
         if (File.Exists(filename))
+        {
             Console.WriteLine($"File {filename} exists. Overwriting.");
+        }
 
         bool isNew = !File.Exists(filename);
         using SQLiteConnection conn = new(BuildConnectionString(filename));
         conn.Open();
-        if (isNew) CreateTables(conn);
+        if (isNew)
+        {
+            CreateTables(conn);
+        }
 
         using SQLiteTransaction tx = conn.BeginTransaction();
         foreach (DbChunk c in chunks)
+        {
             WriteChunk(ToMapPos(c.Position.X, c.Position.Y, c.Position.Z), c.Chunk, conn);
+        }
+
         tx.Commit();
     }
 

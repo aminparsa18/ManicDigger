@@ -242,12 +242,16 @@ public class TextRenderer
         TextStyle key = new TextStyle() { Text = text, FontSize = fontsize };
 
         if (textsizes.TryGetValue(key, out SizeF size))
+        {
             return size;
+        }
 
         size = MeasureTextSize(text, fontsize);
 
         if (textsizes.Count >= TextSizeCacheMax)
+        {
             textsizes.Clear();
+        }
 
         textsizes[key] = size;
         return size;

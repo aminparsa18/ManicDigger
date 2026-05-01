@@ -9,7 +9,9 @@ public class ServerSystemHttpServer : ServerSystem
     protected override void Initialize(Server server)
     {
         if (!server.Config.EnableHTTPServer || server.IsSinglePlayer)
+        {
             return;
+        }
 
         int httpPort = server.Port + 1;
         try
@@ -55,9 +57,13 @@ public class ServerSystemHttpServer : ServerSystem
             var handler = allModules.FirstOrDefault(m => m.ResponsibleForRequest(context.Request));
 
             if (handler != null)
+            {
                 await handler.ProcessAsync(context);
+            }
             else
+            {
                 await WriteResponse(context, 404, "text/plain", "404 - Not Found");
+            }
         }
         catch (Exception ex)
         {
@@ -105,7 +111,9 @@ internal class MainHttpModule : IHttpModule
         var sb = new StringBuilder("<html><body>");
 
         foreach (var m in server.HttpModules.OrderBy(m => m.name))
+        {
             sb.Append($"<a href='/{m.name}'>{m.name}</a> - {m.description()}<br/>");
+        }
 
         sb.Append("</body></html>");
 

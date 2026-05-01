@@ -7,7 +7,9 @@
     public void PlayAudio(string file)
     {
         if (!AudioEnabled)
+        {
             return;
+        }
 
         PlayAudioAt(file, EyesPosX, EyesPosY, EyesPosZ);
     }
@@ -15,15 +17,21 @@
     public void PlayAudio(string name, float x, float y, float z)
     {
         if (x == 0 && y == 0 && z == 0)
+        {
             PlayAudio(name);
+        }
         else
+        {
             PlayAudioAt(name, x, z, y);
+        }
     }
 
     public void PlayAudioAt(string file, float x, float y, float z)
     {
         if (file == null || !AudioEnabled || AssetsLoadProgress != 1)
+        {
             return;
+        }
 
         string file_ = file.Replace(".wav", ".ogg");
         if (GetAssetFileLength(file_) == 0)
@@ -42,10 +50,14 @@
     public void AudioPlayLoop(string file, bool play, bool restart)
     {
         if (!AudioEnabled && play)
+        {
             return;
+        }
 
         if (AssetsLoadProgress != 1)
+        {
             return;
+        }
 
         string file_ = file.Replace(".wav", ".ogg");
         if (GetAssetFileLength(file_) == 0)
@@ -77,7 +89,9 @@
         for (int i = 0; i < audioService.SoundsCount; i++)
         {
             if (audioService.Sounds[i] != null && audioService.Sounds[i].Name == file_)
+            {
                 return audioService.Sounds[i];
+            }
         }
         return null;
     }
@@ -87,7 +101,9 @@
         for (int i = 0; i < audioService.SoundsCount; i++)
         {
             if (audioService.Sounds[i] != null && audioService.Sounds[i].Name == file_)
+            {
                 audioService.Sounds[i].Stop = true;
+            }
         }
     }
 }

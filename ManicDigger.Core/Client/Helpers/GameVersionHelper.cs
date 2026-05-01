@@ -28,7 +28,10 @@ public static class GameVersionHelper
     private static int VersionToInt(string version)
     {
         const int max = 1_000_000_000;
-        if (!IsVersionDate(version)) return max;
+        if (!IsVersionDate(version))
+        {
+            return max;
+        }
 
         return DateTime.TryParseExact(
             version[..10],

@@ -7,10 +7,7 @@ public class PermissionBlock : IMod
     public int PermissionLevelsCount = 4;
     public int AreaSize = 64;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {

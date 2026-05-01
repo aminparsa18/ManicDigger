@@ -81,8 +81,11 @@ public sealed class FastNoise : IModule
         {
             // Single unsigned comparison covers both < 1 and > MaxOctaves.
             if ((uint)(value - 1) >= MaxOctaves)
+            {
                 throw new ArgumentOutOfRangeException(nameof(value),
                     $"OctaveCount must be between 1 and {MaxOctaves}, got {value}.");
+            }
+
             _octaveCount = value;
         }
     }

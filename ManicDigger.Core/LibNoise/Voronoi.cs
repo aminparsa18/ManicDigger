@@ -76,7 +76,9 @@ public class Voronoi : ValueNoiseBasis, IModule
         float nearestZ = 0f;
 
         for (int iz = cellZ - 2; iz <= cellZ + 2; iz++)
+        {
             for (int iy = cellY - 2; iy <= cellY + 2; iy++)
+            {
                 for (int ix = cellX - 2; ix <= cellX + 2; ix++)
                 {
                     // Jitter each cell centre with three independent value-noise samples.
@@ -97,6 +99,8 @@ public class Voronoi : ValueNoiseBasis, IModule
                         nearestZ = fpZ;
                     }
                 }
+            }
+        }
 
         // Optionally add distance to the nearest feature point, normalised so
         // the maximum possible distance maps to approximately 1.

@@ -43,6 +43,7 @@ public class Ghost : IMod
             {
                 continue;
             }
+
             Pos pos = new()
             {
                 x = m.GetPlayerPositionX(p),
@@ -54,10 +55,12 @@ public class Ghost : IMod
             };
             history.Add(pos);
         }
+
         if (history.Count < 20)
         {
             return;
         }
+
         Pos p1 = history[0];
         history.RemoveAt(0);
         m.SetPlayerPosition(ghost, p1.x, p1.y, p1.z);

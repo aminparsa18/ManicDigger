@@ -57,11 +57,13 @@ public class VandalFinder : IMod
                 }
             }
         }
+
         messages.Reverse();
         for (int i = 0; i < messages.Count; i++)
         {
             m.SendMessage(player, messages[i]);
         }
+
         if (messages.Count == 0)
         {
             m.SendMessage(player, "Block was never changed.");

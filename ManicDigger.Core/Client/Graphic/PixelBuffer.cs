@@ -52,22 +52,38 @@ public class PixelBuffer
 
     private static void ReadFromBitmap(Bitmap bitmap, int[] pixels)
     {
-        if (IsMono) ReadSafe(bitmap, pixels);
-        else ReadFast(bitmap, pixels);
+        if (IsMono)
+        {
+            ReadSafe(bitmap, pixels);
+        }
+        else
+        {
+            ReadFast(bitmap, pixels);
+        }
     }
 
     private static void WriteToBitmap(Bitmap bmp, int[] pixels)
     {
-        if (IsMono) WriteSafe(bmp, pixels);
-        else WriteFast(bmp, pixels);
+        if (IsMono)
+        {
+            WriteSafe(bmp, pixels);
+        }
+        else
+        {
+            WriteFast(bmp, pixels);
+        }
     }
 
     /// <summary>Slow but portable pixel read via <see cref="Bitmap.GetPixel"/>.</summary>
     private static void ReadSafe(Bitmap bmp, int[] pixels)
     {
         for (int y = 0; y < bmp.Height; y++)
+        {
             for (int x = 0; x < bmp.Width; x++)
+            {
                 pixels[y * bmp.Width + x] = bmp.GetPixel(x, y).ToArgb();
+            }
+        }
     }
 
     /// <summary>
@@ -97,7 +113,10 @@ public class PixelBuffer
         finally
         {
             source.UnlockBits(bmd);
-            if (!ReferenceEquals(source, bmp)) source.Dispose();
+            if (!ReferenceEquals(source, bmp))
+            {
+                source.Dispose();
+            }
         }
     }
 
@@ -105,8 +124,12 @@ public class PixelBuffer
     private static void WriteSafe(Bitmap bmp, int[] pixels)
     {
         for (int y = 0; y < bmp.Height; y++)
+        {
             for (int x = 0; x < bmp.Width; x++)
+            {
                 bmp.SetPixel(x, y, Color.FromArgb(pixels[y * bmp.Width + x]));
+            }
+        }
     }
 
     /// <summary>Fast pixel write via <see cref="BitmapData"/> and <see cref="Marshal.Copy"/>.</summary>
@@ -180,7 +203,10 @@ public class PixelBuffer
             if (i % tilesPerAtlas == 0)
             {
                 if (atlas1d != null)
+                {
                     atlases[atlasIndex++] = atlas1d.ToBitmap();
+                }
+
                 atlas1d = Create(tilesize, atlasSizeLimit);
                 dst = atlas1d.Argb;
             }

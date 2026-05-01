@@ -60,6 +60,7 @@ public class Intersection
         // Find candidate planes; this loop can be avoided if
         // rays cast all from the eye(assume perpsective view)
         for (i = 0; i < 3; i++)
+        {
             if (origin[i] < minB[i])
             {
                 quadrant[i] = Left;
@@ -76,6 +77,7 @@ public class Intersection
             {
                 quadrant[i] = Middle;
             }
+        }
 
         // Ray origin inside bounding box
         if (inside)
@@ -86,31 +88,48 @@ public class Intersection
 
         // Calculate T distances to candidate planes
         for (i = 0; i < 3; i++)
+        {
             if (quadrant[i] != Middle && dir[i] != 0)
+            {
                 maxT[i] = (candidatePlane[i] - origin[i]) / dir[i];
+            }
             else
+            {
                 maxT[i] = -1;
+            }
+        }
 
         // Get largest of the maxT's for final choice of intersection
         whichPlane = 0;
         for (i = 1; i < 3; i++)
+        {
             if (maxT[whichPlane] < maxT[i])
+            {
                 whichPlane = i;
+            }
+        }
 
         // Check final candidate actually inside box
-        if (maxT[whichPlane] < 0) return false;
+        if (maxT[whichPlane] < 0)
+        {
+            return false;
+        }
 
         for (i = 0; i < 3; i++)
+        {
             if (whichPlane != i)
             {
                 coord[i] = origin[i] + maxT[whichPlane] * dir[i];
                 if (coord[i] < minB[i] || coord[i] > maxB[i])
+                {
                     return false;
+                }
             }
             else
             {
                 coord[i] = candidatePlane[i];
             }
+        }
 
         return true; // ray hits box
     }
@@ -124,8 +143,16 @@ public class Intersection
     private static bool GetIntersection(float fDst1, float fDst2, Vector3 p1, Vector3 p2, out Vector3 hit)
     {
         hit = Vector3.Zero;
-        if ((fDst1 * fDst2) >= 0) return false;
-        if (fDst1 == fDst2) return false;
+        if ((fDst1 * fDst2) >= 0)
+        {
+            return false;
+        }
+
+        if (fDst1 == fDst2)
+        {
+            return false;
+        }
+
         hit = p1 + (p2 - p1) * (-fDst1 / (fDst2 - fDst1));
         return true;
     }
@@ -140,9 +167,21 @@ public class Intersection
     /// <param name="axis">1 = X face, 2 = Y face, 3 = Z face.</param>
     private static bool InBox(Vector3 hit, Vector3 b1, Vector3 b2, int axis)
     {
-        if (axis == 1 && hit.Z > b1.Z && hit.Z < b2.Z && hit.Y > b1.Y && hit.Y < b2.Y) return true;
-        if (axis == 2 && hit.Z > b1.Z && hit.Z < b2.Z && hit.X > b1.X && hit.X < b2.X) return true;
-        if (axis == 3 && hit.X > b1.X && hit.X < b2.X && hit.Y > b1.Y && hit.Y < b2.Y) return true;
+        if (axis == 1 && hit.Z > b1.Z && hit.Z < b2.Z && hit.Y > b1.Y && hit.Y < b2.Y)
+        {
+            return true;
+        }
+
+        if (axis == 2 && hit.Z > b1.Z && hit.Z < b2.Z && hit.X > b1.X && hit.X < b2.X)
+        {
+            return true;
+        }
+
+        if (axis == 3 && hit.X > b1.X && hit.X < b2.X && hit.Y > b1.Y && hit.Y < b2.Y)
+        {
+            return true;
+        }
+
         return false;
     }
 

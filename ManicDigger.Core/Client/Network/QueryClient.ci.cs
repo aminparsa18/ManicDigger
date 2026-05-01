@@ -21,7 +21,9 @@ public sealed class QueryClient
         string ip, int port, TimeSpan timeout = default)
     {
         if (timeout == default)
+        {
             timeout = TimeSpan.FromSeconds(2);
+        }
 
         NetClient client = CreateClient();
         client.Start();
@@ -34,7 +36,9 @@ public sealed class QueryClient
     private NetClient CreateClient()
     {
         if (_platform.EnetAvailable())
+        {
             return new EnetNetClient(_platform);
+        }
 
         return new TcpNetClient();
     }

@@ -30,10 +30,13 @@ public class AssetLoader
     public AssetLoader(string[] datapaths)
     {
         string baseDir = AppContext.BaseDirectory;
-        this.datapaths = datapaths
+        this.datapaths = [.. datapaths
             .Select(p =>
             {
-                if (Path.IsPathRooted(p)) return p;
+                if (Path.IsPathRooted(p))
+                {
+                    return p;
+                }
 
                 // If path contains '..', resolve it relative to baseDir
                 // but then validate it stays within a sane boundary
@@ -43,8 +46,7 @@ public class AssetLoader
                 // traversal went somewhere wrong — return as-is and let
                 // the Directory.Exists check in LoadAssetsAsync skip it
                 return resolved;
-            })
-            .ToArray();
+            })];
     }
 
     public List<Asset> LoadAssetsAsync(out float progress)
@@ -55,13 +57,17 @@ public class AssetLoader
         {
             var ss = Path.GetFullPath(path);
             if (!Directory.Exists(path))
+            {
                 continue;
+            }
 
             foreach (string file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
             {
                 FileInfo f = new(file);
                 if (f.Name.Equals("thumbs.db", StringComparison.InvariantCultureIgnoreCase))
+                {
                     continue;
+                }
 
                 byte[] data = File.ReadAllBytes(file);
                 assets.Add(new Asset

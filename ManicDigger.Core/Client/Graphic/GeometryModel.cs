@@ -115,6 +115,7 @@ public partial class GeometryModel
             Array.Resize(ref indices, indices.Length * 2);
             model.Indices = indices;
         }
+
         model.Indices[model.IndicesCount++] = index;
     }
 }

@@ -6,10 +6,7 @@ public class Food : IMod
     private int Cake;
     private int Apples;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
     public void Start(IModManager manager)
     {
         m = manager;

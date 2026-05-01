@@ -29,7 +29,10 @@ public class ModDialog : ModBase
         for (int i = 0; i < game.Dialogs.Length; i++)
         {
             VisibleDialog d = game.Dialogs[i];
-            if (d == null) continue;
+            if (d == null)
+            {
+                continue;
+            }
 
             d.screen.screenx = platform.CanvasWidth / 2 - d.value.Width / 2;
             d.screen.screeny = platform.CanvasHeight / 2 - d.value.Height / 2;
@@ -39,20 +42,33 @@ public class ModDialog : ModBase
 
     public override void OnKeyPress(KeyPressEventArgs args)
     {
-        if (Game.GuiState != GuiState.ModalDialog && Game.GuiState != GuiState.Normal) return;
-        if (Game.IsTyping) return;
+        if (Game.GuiState != GuiState.ModalDialog && Game.GuiState != GuiState.Normal)
+        {
+            return;
+        }
+
+        if (Game.IsTyping)
+        {
+            return;
+        }
 
         ForEachDialog(d => d.screen.OnKeyPress(args));
 
         for (int k = 0; k < Game.Dialogs.Length; k++)
         {
             VisibleDialog d = Game.Dialogs[k];
-            if (d == null) continue;
+            if (d == null)
+            {
+                continue;
+            }
 
             for (int i = 0; i < d.value.Widgets.Length; i++)
             {
                 Widget w = d.value.Widgets[i];
-                if (w == null) continue;
+                if (w == null)
+                {
+                    continue;
+                }
 
                 // Only typeable characters are handled here; special characters use KeyDown
                 if (TypableChars.Contains((char)w.ClickKey) && args.KeyChar == w.ClickKey)
@@ -75,7 +91,11 @@ public class ModDialog : ModBase
             for (int i = 0; i < Game.Dialogs.Length; i++)
             {
                 VisibleDialog d = Game.Dialogs[i];
-                if (d == null) continue;
+                if (d == null)
+                {
+                    continue;
+                }
+
                 if (d.value.IsModal)
                 {
                     Game.Dialogs[i] = null;
@@ -95,7 +115,9 @@ public class ModDialog : ModBase
                 for (int i = 0; i < Game.Dialogs.Length; i++)
                 {
                     if (Game.Dialogs[i]?.value.IsModal == true)
+                    {
                         Game.Dialogs[i] = null;
+                    }
                 }
                 Game.SendPacketClient(ClientPackets.DialogClick("Esc", Empty, 0));
                 Game.GuiStateBackToGame();
@@ -123,7 +145,9 @@ public class ModDialog : ModBase
         for (int i = 0; i < Game.Dialogs.Length; i++)
         {
             if (Game.Dialogs[i] != null)
+            {
                 action(Game.Dialogs[i]);
+            }
         }
     }
 }

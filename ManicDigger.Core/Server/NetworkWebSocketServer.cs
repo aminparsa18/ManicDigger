@@ -24,7 +24,9 @@ public sealed class WebSocketNetServer : NetServer
         _server.Start();
 
         if (_server.IsListening)
+        {
             Log.Information("WebSocket server listening on port {Port}.", _port);
+        }
     }
 
     public override NetIncomingMessage? ReadMessage()
@@ -87,7 +89,9 @@ internal sealed class WebSocketSession : WebSocketBehavior
         SendAsync(payload.ToArray(), completed =>
         {
             if (!completed)
+            {
                 Log.Warn("WebSocket server send did not complete.");
+            }
         });
     }
 }

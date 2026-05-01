@@ -14,12 +14,19 @@ public sealed class Preferences : IPreferences
     public Preferences()
     {
         string path = PreferencesFilePath();
-        if (!File.Exists(path)) return;
+        if (!File.Exists(path))
+        {
+            return;
+        }
 
         foreach (string line in File.ReadAllLines(path))
         {
             int sep = line.IndexOf('=');
-            if (sep <= 0) continue; // skip blank keys and lines without '='
+            if (sep <= 0)
+            {
+                continue; // skip blank keys and lines without '='
+            }
+
             SetString(line[..sep], line[(sep + 1)..]);
         }
     }
@@ -82,7 +89,10 @@ public sealed class Preferences : IPreferences
     {
         string dir = GameStorePath.GetStorePath();
         if (!Directory.Exists(dir))
+        {
             Directory.CreateDirectory(dir);
+        }
+
         return Path.Combine(dir, "Preferences.txt");
     }
 }

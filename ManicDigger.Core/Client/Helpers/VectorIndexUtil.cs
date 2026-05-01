@@ -20,10 +20,7 @@ public class VectorIndexUtil
     /// <param name="sizex">Grid width (number of elements along X).</param>
     /// <param name="sizey">Grid depth (number of elements along Y).</param>
     /// <returns>The flat index corresponding to (<paramref name="x"/>, <paramref name="y"/>, <paramref name="h"/>).</returns>
-    public static int Index3d(int x, int y, int h, int sizex, int sizey)
-    {
-        return (h * sizey + y) * sizex + x;
-    }
+    public static int Index3d(int x, int y, int h, int sizex, int sizey) => (h * sizey + y) * sizex + x;
 
     /// <summary>
     /// Converts 2D grid coordinates to a flat array index.
@@ -33,10 +30,7 @@ public class VectorIndexUtil
     /// <param name="y">Y coordinate.</param>
     /// <param name="sizex">Grid width (number of elements along X).</param>
     /// <returns>The flat index corresponding to (<paramref name="x"/>, <paramref name="y"/>).</returns>
-    public static int Index2d(int x, int y, int sizex)
-    {
-        return x + y * sizex;
-    }
+    public static int Index2d(int x, int y, int sizex) => x + y * sizex;
 
     /// <summary>
     /// Decomposes a flat array index into 3D grid coordinates, writing them into
@@ -60,10 +54,7 @@ public class VectorIndexUtil
     /// <param name="index">The flat index.</param>
     /// <param name="sizex">Grid width (number of elements along X).</param>
     /// <param name="sizey">Grid depth (unused — present for call-site uniformity with <see cref="PosY"/> and <see cref="PosZ"/>).</param>
-    public static int PosX(int index, int sizex, int sizey)
-    {
-        return index % sizex;
-    }
+    public static int PosX(int index, int sizex, int sizey) => index % sizex;
 
     /// <summary>
     /// Returns the Y component of the 3D grid coordinate corresponding to <paramref name="index"/>.
@@ -71,10 +62,7 @@ public class VectorIndexUtil
     /// <param name="index">The flat index.</param>
     /// <param name="sizex">Grid width (number of elements along X).</param>
     /// <param name="sizey">Grid depth (number of elements along Y).</param>
-    public static int PosY(int index, int sizex, int sizey)
-    {
-        return index / sizex % sizey;
-    }
+    public static int PosY(int index, int sizex, int sizey) => index / sizex % sizey;
 
     /// <summary>
     /// Returns the Z (height) component of the 3D grid coordinate corresponding to <paramref name="index"/>.
@@ -82,8 +70,5 @@ public class VectorIndexUtil
     /// <param name="index">The flat index.</param>
     /// <param name="sizex">Grid width (number of elements along X).</param>
     /// <param name="sizey">Grid depth (number of elements along Y).</param>
-    public static int PosZ(int index, int sizex, int sizey)
-    {
-        return index / (sizex * sizey);
-    }
+    public static int PosZ(int index, int sizex, int sizey) => index / (sizex * sizey);
 }

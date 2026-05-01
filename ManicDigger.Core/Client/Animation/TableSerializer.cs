@@ -27,7 +27,9 @@ public class TableSerializer
             string line = lines[i].Trim();
 
             if (line == "") { continue; }
+
             if (line.StartsWith("//", StringComparison.InvariantCultureIgnoreCase)) { continue; }
+
             if (line.StartsWith("#", StringComparison.InvariantCultureIgnoreCase)) { continue; }
 
             if (line.StartsWith(SectionPrefix, StringComparison.InvariantCultureIgnoreCase))

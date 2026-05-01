@@ -29,7 +29,10 @@ public static class ChunkDbHelper
     {
         List<byte[]> chunks = [.. db.GetChunks([new Vector3i(x, y, z)])];
         if (chunks.Count > 1)
+        {
             throw new InvalidOperationException($"Expected at most 1 chunk at ({x},{y},{z}), got {chunks.Count}.");
+        }
+
         return chunks.Count == 0 ? null : chunks[0];
     }
 
@@ -74,7 +77,10 @@ public static class ChunkDbHelper
         var key = new Vector3i(x, y, z);
         Dictionary<Vector3i, byte[]> chunks = db.GetChunksFromFile([key], filename);
         if (chunks.Count > 1)
+        {
             throw new InvalidOperationException($"Expected at most 1 chunk at ({x},{y},{z}), got {chunks.Count}.");
+        }
+
         return chunks.TryGetValue(key, out byte[] data) ? data : null;
     }
 }

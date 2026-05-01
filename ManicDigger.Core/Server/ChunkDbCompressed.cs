@@ -29,7 +29,9 @@ public class ChunkDbCompressed : IChunkDb
     public IEnumerable<byte[]> GetChunks(IEnumerable<Vector3i> chunkpositions)
     {
         foreach (byte[] b in InnerChunkDb.GetChunks(chunkpositions))
+        {
             yield return Decompress(b);
+        }
     }
 
     /// <inheritdoc/>
@@ -37,7 +39,10 @@ public class ChunkDbCompressed : IChunkDb
     {
         Dictionary<Vector3i, byte[]> result = [];
         foreach (var (key, value) in InnerChunkDb.GetChunksFromFile(chunkpositions, filename))
+        {
             result.Add(key, Decompress(value));
+        }
+
         return result;
     }
 
@@ -74,6 +79,8 @@ public class ChunkDbCompressed : IChunkDb
     private IEnumerable<DbChunk> CompressChunks(IEnumerable<DbChunk> chunks)
     {
         foreach (DbChunk c in chunks)
+        {
             yield return new DbChunk { Position = c.Position, Chunk = Compress(c.Chunk) };
+        }
     }
 }

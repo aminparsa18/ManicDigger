@@ -2,12 +2,8 @@
 /// Handles <see cref="Packet_ServerIdEnum.EntityDespawn"/> packets,
 /// cleaning up downloaded player skin textures before removing the entity.
 /// </summary>
-public class ClientPacketHandlerEntityDespawn : ClientPacketHandler
+public class ClientPacketHandlerEntityDespawn(IGameService gameService, IGame game) : ClientPacketHandler(gameService, game)
 {
-    public ClientPacketHandlerEntityDespawn(IGameService gameService, IGame game) : base(gameService, game)
-    {
-    }
-
     public override void Handle(Packet_Server packet)
     {
         int id = packet.EntityDespawn.Id;

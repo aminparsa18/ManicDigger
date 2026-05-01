@@ -17,7 +17,10 @@ public class ModBullet : ModBase
         for (int i = 0; i < _game.Entities.Count; i++)
         {
             Entity entity = _game.Entities[i];
-            if (entity?.bullet == null) continue;
+            if (entity?.bullet == null)
+            {
+                continue;
+            }
 
             Bullet b = entity.bullet;
             b.progress = MathF.Max(b.progress, 1f);
@@ -38,7 +41,9 @@ public class ModBullet : ModBase
             entity.sprite.positionZ = b.fromZ + dirZ * b.progress;
 
             if (b.progress > length)
+            {
                 _game.Entities[i] = null;
+            }
         }
     }
 }

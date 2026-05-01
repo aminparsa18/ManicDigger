@@ -20,7 +20,10 @@ public class ModGuiPlayerStats : ModBase
 
     public override void OnNewFrameDraw2d(float deltaTime)
     {
-        if (Game.GuiState == GuiState.MapLoading || Game.PlayerStats == null) return;
+        if (Game.GuiState == GuiState.MapLoading || Game.PlayerStats == null)
+        {
+            return;
+        }
 
         int barY = platform.CanvasHeight - 122;
         int healthX = platform.CanvasWidth / 2 - BarWidth - CenterOffset;
@@ -29,7 +32,9 @@ public class ModGuiPlayerStats : ModBase
         DrawBar(healthX, barY, (float)Game.PlayerStats.CurrentHealth / Game.PlayerStats.MaxHealth, Red);
 
         if (Game.PlayerStats.CurrentOxygen < Game.PlayerStats.MaxOxygen)
+        {
             DrawBar(oxygenX, barY, (float)Game.PlayerStats.CurrentOxygen / Game.PlayerStats.MaxOxygen, Blue);
+        }
     }
 
     /// <summary>Draws a background + filled progress bar at the given position.</summary>

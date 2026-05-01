@@ -22,7 +22,9 @@ public class ModDraw2dMisc : ModBase
     public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (Game.GuiState == GuiState.Normal)
+        {
             DrawAim(Game);
+        }
 
         if (Game.GuiState != GuiState.MapLoading)
         {
@@ -40,16 +42,25 @@ public class ModDraw2dMisc : ModBase
 
     public void DrawBlockInfo(IGame game)
     {
-        if (!game.DrawBlockInfo) return;
+        if (!game.DrawBlockInfo)
+        {
+            return;
+        }
 
         int x = game.SelectedBlockPositionX;
         int y = game.SelectedBlockPositionZ;
         int z = game.SelectedBlockPositionY;
 
-        if (!voxelMap.IsValidPos(x, y, z)) return;
+        if (!voxelMap.IsValidPos(x, y, z))
+        {
+            return;
+        }
 
         int blocktype = voxelMap.GetBlock(x, y, z);
-        if (!game.IsValid(blocktype)) return;
+        if (!game.IsValid(blocktype))
+        {
+            return;
+        }
 
         game.CurrentAttackedBlock = new Vector3i(x, y, z);
         DrawEnemyHealthBlock(game);
@@ -70,7 +81,9 @@ public class ModDraw2dMisc : ModBase
             string name = game.Language.Get("Block_" + game.BlockTypes[blocktype].Name);
 
             if (Game.IsUsableBlock(blocktype))
+            {
                 DrawEnemyHealthUseInfo(name, progress, true);
+            }
 
             DrawEnemyHealthBackground(name);
         }
@@ -78,7 +91,10 @@ public class ModDraw2dMisc : ModBase
         if (Game.CurrentlyAttackedEntity != -1)
         {
             Entity e = Game.Entities[Game.CurrentlyAttackedEntity];
-            if (e == null) return;
+            if (e == null)
+            {
+                return;
+            }
 
             float health = e.playerStats != null
                 ? (float)e.playerStats.CurrentHealth / e.playerStats.MaxHealth
@@ -88,7 +104,9 @@ public class ModDraw2dMisc : ModBase
             string translatedName = game.Language.Get(name);
 
             if (e.usable)
+            {
                 DrawEnemyHealthUseInfo(translatedName, health, useInfo: true);
+            }
 
             DrawEnemyHealthBackground(translatedName);
         }
@@ -126,7 +144,10 @@ public class ModDraw2dMisc : ModBase
 
     internal void DrawAim(IGame game)
     {
-        if (game.CameraType == CameraType.Overhead) return;
+        if (game.CameraType == CameraType.Overhead)
+        {
+            return;
+        }
 
         const int AimSize = 32;
         platformOpenGl.BindTexture2d(0);
@@ -148,9 +169,15 @@ public class ModDraw2dMisc : ModBase
 
     internal void DrawMouseCursor(IGame game)
     {
-        if (!game.GetFreeMouse()) return;
+        if (!game.GetFreeMouse())
+        {
+            return;
+        }
+
         if (!platform.MouseCursorIsVisible())
+        {
             game.Draw2dBitmapFile("mousecursor.png", game.MouseCurrentX, game.MouseCurrentY, 32, 32);
+        }
     }
 
     // ── Ammo counter ──────────────────────────────────────────────────────────
@@ -158,8 +185,15 @@ public class ModDraw2dMisc : ModBase
     internal void DrawAmmo(IGame game)
     {
         InventoryItem item = game.Inventory.RightHand[game.ActiveMaterial];
-        if (item == null || item.InventoryItemType != InventoryItemType.Block) return;
-        if (!game.BlockTypes[item.BlockId].IsPistol) return;
+        if (item == null || item.InventoryItemType != InventoryItemType.Block)
+        {
+            return;
+        }
+
+        if (!game.BlockTypes[item.BlockId].IsPistol)
+        {
+            return;
+        }
 
         int loaded = game.LoadedAmmo[item.BlockId];
         int total = game.TotalAmmo[item.BlockId];
@@ -185,7 +219,10 @@ public class ModDraw2dMisc : ModBase
 
     private void DrawLocalPosition()
     {
-        if (!Game.EnableDrawPosition) return;
+        if (!Game.EnableDrawPosition)
+        {
+            return;
+        }
 
         float heading = EncodingHelper.HeadingByte(
             Game.Player.position.rotx, Game.Player.position.roty, Game.Player.position.rotz);
@@ -211,13 +248,24 @@ public class ModDraw2dMisc : ModBase
             (platform.TimeMillisecondsFromStart - Game.LastReceivedMilliseconds) / 1000f;
 
         if (lagSeconds < GameConstants.DISCONNECTED_ICON_AFTER_SECONDS)
+        {
             return;
+        }
+
         if (lagSeconds >= 60 * 60 * 24)
+        {
             return;
+        }
+
         if (Game.InvalidVersionDrawMessage != null)
+        {
             return;
+        }
+
         if (Game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
+        {
             return;
+        }
 
         Game.Draw2dBitmapFile("disconnected.png", platform.CanvasWidth - 100, 50, 50, 50);
 

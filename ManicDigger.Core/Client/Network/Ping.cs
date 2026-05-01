@@ -22,7 +22,11 @@ public class Ping
     /// <returns><see langword="true"/> if the ping was sent; <see langword="false"/> if one is already in-flight.</returns>
     public bool Send(int milliSeconds)
     {
-        if (!IsReady) return false;
+        if (!IsReady)
+        {
+            return false;
+        }
+
         IsReady = false;
         _sentAtMilliseconds = milliSeconds;
         return true;
@@ -34,7 +38,11 @@ public class Ping
     /// <returns><see langword="true"/> if the ping was received; <see langword="false"/> if no ping was in-flight.</returns>
     public bool Receive(IGameService platform)
     {
-        if (IsReady) return false;
+        if (IsReady)
+        {
+            return false;
+        }
+
         RoundtripMilliseconds = platform.TimeMillisecondsFromStart - _sentAtMilliseconds;
         IsReady = true;
         return true;

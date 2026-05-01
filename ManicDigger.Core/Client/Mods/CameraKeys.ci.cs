@@ -18,7 +18,10 @@ public class ModCameraKeys : ModBase
 
     public override void OnNewFrameFixed(float args)
     {
-        if (Game.GuiState == GuiState.MapLoading) return;
+        if (Game.GuiState == GuiState.MapLoading)
+        {
+            return;
+        }
 
         float dt = args;
         bool isNormal = Game.GuiState == GuiState.Normal;
@@ -37,9 +40,13 @@ public class ModCameraKeys : ModBase
                 UpdateAutoJump();
 
                 if (Game.OverheadCamera)
+                {
                     UpdateOverheadCamera(dt);
+                }
                 else if (Game.EnableMove)
+                {
                     UpdateMovementKeys();
+                }
             }
 
             UpdateVerticalFreemove(isTyping);
@@ -59,17 +66,28 @@ public class ModCameraKeys : ModBase
     private void UpdateAutoJump()
     {
         if (Game.ReachedWall1BlockHigh && (Game.AutoJumpEnabled || !platform.IsMousePointerLocked()))
+        {
             Game.Controls.WantsJump = true;
+        }
 
         if (Game.ReachedHalfBlock)
+        {
             Game.Controls.WantsJumpHalf = true;
+        }
     }
 
     /// <summary>Handles overhead (RTS-style) camera rotation, angle, and click-to-move.</summary>
     private void UpdateOverheadCamera(float dt)
     {
-        if (Game.KeyboardState[Game.GetKey(Keys.A)]) cameraService.TurnRight(dt * OverheadCameraSpeed);
-        if (Game.KeyboardState[Game.GetKey(Keys.D)]) cameraService.TurnLeft(dt * OverheadCameraSpeed);
+        if (Game.KeyboardState[Game.GetKey(Keys.A)])
+        {
+            cameraService.TurnRight(dt * OverheadCameraSpeed);
+        }
+
+        if (Game.KeyboardState[Game.GetKey(Keys.D)])
+        {
+            cameraService.TurnLeft(dt * OverheadCameraSpeed);
+        }
 
         cameraService.Center = new Vector3(Game.Player.position.x,
             Game.Player.position.y, Game.Player.position.z);
@@ -89,7 +107,10 @@ public class ModCameraKeys : ModBase
         if (toDest >= 1)
         {
             Game.Controls.MovedY += 1;
-            if (Game.ReachedWall) Game.Controls.WantsJump = true;
+            if (Game.ReachedWall)
+            {
+                Game.Controls.WantsJump = true;
+            }
 
             float qX = Game.PlayerDestination.X - Game.Player.position.x;
             float qZ = Game.PlayerDestination.Z - Game.Player.position.z;
@@ -101,14 +122,24 @@ public class ModCameraKeys : ModBase
     /// <summary>Handles WASD movement and leaning animation hints in first/third person.</summary>
     private void UpdateMovementKeys()
     {
-        if (Game.KeyboardState[Game.GetKey(Keys.W)]) Game.Controls.MovedY += 1;
-        if (Game.KeyboardState[Game.GetKey(Keys.S)]) Game.Controls.MovedY -= 1;
+        if (Game.KeyboardState[Game.GetKey(Keys.W)])
+        {
+            Game.Controls.MovedY += 1;
+        }
+
+        if (Game.KeyboardState[Game.GetKey(Keys.S)])
+        {
+            Game.Controls.MovedY -= 1;
+        }
 
         bool leanLeft = Game.KeyboardState[Game.GetKey(Keys.A)];
         bool leanRight = Game.KeyboardState[Game.GetKey(Keys.D)];
         if (leanLeft) { Game.Controls.MovedX -= 1; Game.LocalStance = 1; }
         if (leanRight) { Game.Controls.MovedX += 1; Game.LocalStance = 2; }
-        if (!leanLeft && !leanRight) Game.LocalStance = 0;
+        if (!leanLeft && !leanRight)
+        {
+            Game.LocalStance = 0;
+        }
 
         Game.LocalPlayerAnimationHint.LeanLeft = leanLeft;
         Game.LocalPlayerAnimationHint.LeanRight = leanRight;
@@ -120,10 +151,24 @@ public class ModCameraKeys : ModBase
     /// <summary>Handles vertical movement in freemove mode or while swimming.</summary>
     private void UpdateVerticalFreemove(bool isTyping)
     {
-        if (!Game.Controls.FreeMove && !Game.SwimmingEyes()) return;
-        if (isTyping) return;
+        if (!Game.Controls.FreeMove && !Game.SwimmingEyes())
+        {
+            return;
+        }
 
-        if (Game.KeyboardState[Game.GetKey(Keys.Space)]) Game.Controls.MoveUp = true;
-        if (Game.KeyboardState[Game.GetKey(Keys.LeftControl)]) Game.Controls.MoveDown = true;
+        if (isTyping)
+        {
+            return;
+        }
+
+        if (Game.KeyboardState[Game.GetKey(Keys.Space)])
+        {
+            Game.Controls.MoveUp = true;
+        }
+
+        if (Game.KeyboardState[Game.GetKey(Keys.LeftControl)])
+        {
+            Game.Controls.MoveDown = true;
+        }
     }
 }

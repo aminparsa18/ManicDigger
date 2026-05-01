@@ -29,16 +29,38 @@ public class ModDrawPlayers : ModBase
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity p = Game.Entities[i];
-            if (p?.drawModel == null) continue;
-            if (i == Game.LocalPlayerId && !Game.EnableTppView) continue;
-            if (p.networkPosition != null && !p.networkPosition.PositionLoaded) continue;
-            if (!frustumCulling.SphereInFrustum(p.position.x, p.position.y, p.position.z, 3)) continue;
-            if (p.drawModel.CurrentTexture == -1) continue;
+            if (p?.drawModel == null)
+            {
+                continue;
+            }
+
+            if (i == Game.LocalPlayerId && !Game.EnableTppView)
+            {
+                continue;
+            }
+
+            if (p.networkPosition != null && !p.networkPosition.PositionLoaded)
+            {
+                continue;
+            }
+
+            if (!frustumCulling.SphereInFrustum(p.position.x, p.position.y, p.position.z, 3))
+            {
+                continue;
+            }
+
+            if (p.drawModel.CurrentTexture == -1)
+            {
+                continue;
+            }
 
             int cx = (int)p.position.x / GameConstants.CHUNK_SIZE;
             int cy = (int)p.position.z / GameConstants.CHUNK_SIZE;
             int cz = (int)p.position.y / GameConstants.CHUNK_SIZE;
-            if (voxelMap.IsValidChunkPos(cx, cy, cz) && !voxelMap.IsChunkRendered(cx, cy, cz)) continue;
+            if (voxelMap.IsValidChunkPos(cx, cy, cz) && !voxelMap.IsChunkRendered(cx, cy, cz))
+            {
+                continue;
+            }
 
             p.playerDrawInfo ??= new PlayerDrawInfo();
 
@@ -73,12 +95,18 @@ public class ModDrawPlayers : ModBase
     /// <summary>Loads and initializes the animated model renderer for an entity if not already done.</summary>
     private void EnsureRenderer(Entity p)
     {
-        if (p.drawModel.renderer != null) return;
+        if (p.drawModel.renderer != null)
+        {
+            return;
+        }
 
         p.drawModel.renderer = new AnimatedModelRenderer(meshDrawer, openGlService);
         byte[] data = Game.GetAssetFile(p.drawModel.Model_);
         int dataLength = Game.GetAssetFileLength(p.drawModel.Model_);
-        if (data == null) return;
+        if (data == null)
+        {
+            return;
+        }
 
         string dataString = Encoding.UTF8.GetString(data, 0, dataLength);
         AnimatedModel model = AnimatedModelSerializer.Deserialize(dataString);

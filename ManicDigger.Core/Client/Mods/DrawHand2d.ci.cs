@@ -19,10 +19,16 @@ public class ModDrawHand2d : ModBase
 
     public override void OnNewFrameDraw3d(float deltaTime)
     {
-        if (!ShouldDrawHand()) return;
+        if (!ShouldDrawHand())
+        {
+            return;
+        }
 
         string img = HandImage2d();
-        if (img == null) return;
+        if (img == null)
+        {
+            return;
+        }
 
         meshDrawer.OrthoMode(platform.CanvasWidth, platform.CanvasHeight);
 
@@ -49,7 +55,10 @@ public class ModDrawHand2d : ModBase
     public string HandImage2d()
     {
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
-        if (item == null) return null;
+        if (item == null)
+        {
+            return null;
+        }
 
         return Game.IronSights
             ? Game.BlockTypes[item.BlockId].IronSightsImage

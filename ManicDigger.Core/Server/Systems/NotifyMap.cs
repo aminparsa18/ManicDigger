@@ -25,12 +25,18 @@ public class ServerSystemNotifyMap : ServerSystem
             sentAny = false;
             foreach (var (clientId, client) in server.Clients)
             {
-                if (client.State == ClientStateOnServer.Connecting) continue;
+                if (client.State == ClientStateOnServer.Connecting)
+                {
+                    continue;
+                }
 
                 Vector3i playerPos = Server.PlayerBlockPosition(client);
                 Vector3i? nearest = FindNearestDirtyChunk(server, clientId, playerPos);
 
-                if (nearest == null) continue;
+                if (nearest == null)
+                {
+                    continue;
+                }
 
                 LoadAndSendChunk(server, clientId, nearest.Value, stopwatch);
                 sentAny = true;
@@ -71,10 +77,15 @@ public class ServerSystemNotifyMap : ServerSystem
         Vector3i? nearest = null;
 
         for (int x = startX; x <= endX; x++)
+        {
             for (int y = startY; y <= endY; y++)
+            {
                 for (int z = startZ; z <= endZ; z++)
                 {
-                    if (server.ClientSeenChunk(clientId, x, y, z)) continue;
+                    if (server.ClientSeenChunk(clientId, x, y, z))
+                    {
+                        continue;
+                    }
 
                     int dx = px - x;
                     int dy = py - y;
@@ -87,6 +98,8 @@ public class ServerSystemNotifyMap : ServerSystem
                         nearest = new Vector3i(x, y, z);
                     }
                 }
+            }
+        }
 
         return nearest;
     }

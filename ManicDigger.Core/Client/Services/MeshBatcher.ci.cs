@@ -108,10 +108,15 @@ public class MeshBatcher : IMeshBatcher
         // Solid pass: fills the depth buffer before any transparency is drawn.
         for (int i = 0; i < _glTextures.Count; i++)
         {
-            if (_tocallSolid[i].Count == 0) continue;
+            if (_tocallSolid[i].Count == 0)
+            {
+                continue;
+            }
 
             if (BindTexture)
+            {
                 _platform.BindTexture2d(_glTextures[i]);
+            }
 
             meshDrawer.DrawModels(_tocallSolid[i], _tocallSolid[i].Count);
         }
@@ -120,10 +125,15 @@ public class MeshBatcher : IMeshBatcher
         _platform.GlDisableCullFace();
         for (int i = 0; i < _glTextures.Count; i++)
         {
-            if (_tocallTransparent[i].Count == 0) continue;
+            if (_tocallTransparent[i].Count == 0)
+            {
+                continue;
+            }
 
             if (BindTexture)
+            {
                 _platform.BindTexture2d(_glTextures[i]);
+            }
 
             meshDrawer.DrawModels(_tocallTransparent[i], _tocallTransparent[i].Count);
         }
@@ -142,11 +152,15 @@ public class MeshBatcher : IMeshBatcher
     private int GetTextureId(int glTexture)
     {
         if (_textureIndexMap.TryGetValue(glTexture, out int id))
+        {
             return id;
+        }
 
         if (_glTextures.Count >= MaxTextures)
+        {
             throw new InvalidOperationException(
                 $"MeshBatcher exceeded the maximum of {MaxTextures} distinct textures.");
+        }
 
         id = _glTextures.Count;
         _glTextures.Add(glTexture);
@@ -170,7 +184,10 @@ public class MeshBatcher : IMeshBatcher
         {
             ref readonly BatchEntry entry = ref _models[i];
 
-            if (entry.Empty) continue;
+            if (entry.Empty)
+            {
+                continue;
+            }
 
             List<GeometryModel> bucket = entry.Transparent
                 ? _tocallTransparent[entry.Texture]
@@ -188,7 +205,9 @@ public class MeshBatcher : IMeshBatcher
         {
             ref readonly BatchEntry entry = ref _models[i];
             if (!entry.Empty)
+            {
                 sum += entry.IndicesCount;
+            }
         }
         return sum / 3;
     }
@@ -199,7 +218,9 @@ public class MeshBatcher : IMeshBatcher
         for (int i = 0; i < _modelsCount; i++)
         {
             if (!_models[i].Empty)
+            {
                 Remove(i);
+            }
         }
         _glTextures.Clear();
         _textureIndexMap.Clear();

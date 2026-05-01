@@ -77,8 +77,10 @@ public class CrashReporter
         var cfg = new LoggerConfiguration().MinimumLevel.Fatal();
 
         if (isConsole)
+        {
             cfg = cfg.WriteTo.Console(outputTemplate:
                 "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}");
+        }
 
         s_globalLogger = cfg.CreateLogger();
 
@@ -113,7 +115,9 @@ public class CrashReporter
 
         // Walk inner exceptions so each gets its own structured entry
         for (Exception? inner = exCrash?.InnerException; inner != null; inner = inner.InnerException)
+        {
             m_logger.Fatal(inner, "Inner exception");
+        }
 
         // 2. Run caller-supplied cleanup (with timeout)
         RunOnCrashCallback();
@@ -138,15 +142,22 @@ public class CrashReporter
 
     private void RunOnCrashCallback()
     {
-        if (OnCrash == null) return;
+        if (OnCrash == null)
+        {
+            return;
+        }
 
         // Run on a separate thread so we can enforce a hard timeout
         var task = Task.Run(() => OnCrash());
         if (!task.Wait(OnCrashTimeoutMs))
+        {
             m_logger.Warning("OnCrash() did not complete within {Timeout} ms — skipped", OnCrashTimeoutMs);
+        }
 
         if (task.IsFaulted)
+        {
             m_logger.Error(task.Exception, "OnCrash() threw an exception");
+        }
     }
 
     private string BuildSummary(Exception? ex)
@@ -155,7 +166,9 @@ public class CrashReporter
         sb.AppendLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  Critical Error");
 
         if (ex != null)
+        {
             sb.AppendLine(ex.Message);
+        }
 
         sb.AppendLine();
         sb.AppendLine($"Crash report written to:\n  {m_crashFilePath}");

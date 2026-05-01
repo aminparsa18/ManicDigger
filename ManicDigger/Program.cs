@@ -1,7 +1,6 @@
 ﻿using ManicDigger;
 using ManicDigger.Mods;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
 using System.Diagnostics;
 
 public class Program

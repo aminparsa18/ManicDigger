@@ -26,7 +26,9 @@ public class ServerSystemLoadLast : ServerSystem
         server.ModData ??= [];
 
         foreach (var handler in server.OnLoad)
+        {
             handler();
+        }
 
         foreach (var handler in server.ModEventHandlers.onloadworld)
         {

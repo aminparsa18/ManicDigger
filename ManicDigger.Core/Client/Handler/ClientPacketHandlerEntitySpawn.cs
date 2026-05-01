@@ -92,7 +92,9 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
                 : entity.DrawName_.Name;
 
             if (!name.StartsWith("&", StringComparison.InvariantCultureIgnoreCase))
+            {
                 name = string.Format("&f{0}", name);
+            }
 
             old.drawName = new DrawName
             {

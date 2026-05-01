@@ -64,7 +64,11 @@ public class FrustumCulling : IFrustumCulling
     /// </remarks>
     public void CalcFrustumEquations()
     {
-        if (CameraMatrix == null) return;
+        if (CameraMatrix == null)
+        {
+            return;
+        }
+
         Matrix4 matModelView = CameraMatrix.GetModelViewMatrix();
         Matrix4 matProjection = CameraMatrix.GetProjectionMatrix();
         Matrix4.Mult(in matProjection, in matModelView, out Matrix4 m);

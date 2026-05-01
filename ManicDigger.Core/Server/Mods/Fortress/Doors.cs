@@ -2,10 +2,7 @@ namespace ManicDigger.Mods;
 
 public class Doors : IMod
 {
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {

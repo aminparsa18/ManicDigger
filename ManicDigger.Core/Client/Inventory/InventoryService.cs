@@ -107,7 +107,9 @@ public class InventoryService : IInventoryService
     public static bool CanWear(WearPlace wearPlace, InventoryItem? item)
     {
         if (item == null)
+        {
             return true;
+        }
 
         return wearPlace switch
         {

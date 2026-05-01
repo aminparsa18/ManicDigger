@@ -73,7 +73,9 @@ public sealed class TcpNetServer : NetServer
         TcpServerConnection conn = new(address);
 
         lock (_connectionsLock)
+        {
             _connections[address] = conn;
+        }
 
         await _inbox.Writer.WriteAsync(new NetIncomingMessage
         {
@@ -112,7 +114,9 @@ public sealed class TcpNetServer : NetServer
         {
             tcp.Close();
             lock (_connectionsLock)
+            {
                 _connections.Remove(address);
+            }
 
             // Always deliver disconnect even if ct is cancelled.
             await _inbox.Writer.WriteAsync(new NetIncomingMessage

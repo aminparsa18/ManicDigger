@@ -382,7 +382,10 @@ public partial class Server : ICurrentTime, IDropItem
 
     public void ReceiveServerConsole(string message)
     {
-        if (string.IsNullOrEmpty(message)) return;
+        if (string.IsNullOrEmpty(message))
+        {
+            return;
+        }
 
         if (message.StartsWith('/'))
         {
@@ -426,8 +429,15 @@ public partial class Server : ICurrentTime, IDropItem
         ManicDiggerSave save = MemoryPackSerializer.Deserialize<ManicDiggerSave>(globaldata);
         Seed = save.Seed;
         Map.Reset(Map.MapSizeX, Map.MapSizeY, Map.MapSizeZ);
-        if (Config.IsCreative) this.Inventory = Inventory = new Dictionary<string, Inventory>(StringComparer.InvariantCultureIgnoreCase);
-        else this.Inventory = save.Inventory;
+        if (Config.IsCreative)
+        {
+            this.Inventory = Inventory = new Dictionary<string, Inventory>(StringComparer.InvariantCultureIgnoreCase);
+        }
+        else
+        {
+            this.Inventory = save.Inventory;
+        }
+
         this.PlayerStats = save.PlayerStats;
         this.SimulationCurrentFrame = (int)save.SimulationCurrentFrame;
         this._gameTimer.Init(save.TimeOfDay);
@@ -460,7 +470,9 @@ public partial class Server : ICurrentTime, IDropItem
     private byte[] SaveGame()
     {
         for (int i = 0; i < OnSave.Count; i++)
+        {
             OnSave[i]();
+        }
 
         ManicDiggerSave save = new()
         {
@@ -475,7 +487,9 @@ public partial class Server : ICurrentTime, IDropItem
         SaveAllLoadedChunks();
 
         if (!Config.IsCreative)
+        {
             save.Inventory = Inventory;
+        }
 
         return MemoryPackSerializer.Serialize(save);
     }
@@ -894,7 +908,10 @@ public partial class Server : ICurrentTime, IDropItem
                 ? amount > 0 || blockType.IsBuildable
                 : amount > 0;
 
-            if (!shouldAdd) continue;
+            if (!shouldAdd)
+            {
+                continue;
+            }
 
             inv.Items.Add(new GridPoint(x, y), new InventoryItem
             {
@@ -1182,7 +1199,9 @@ public partial class Server : ICurrentTime, IDropItem
                         }
                         //Only log when building/destroying blocks. Prevents VandalFinder entries
                         if (packet.SetBlock.Mode != PacketBlockSetMode.UseWithTool)
+                        {
                             BuildLog(string.Format("{0} {1} {2} {3} {4} {5}", x, y, z, c.PlayerName, c.Socket.RemoteEndPoint().AddressToString(), Map.GetBlock(x, y, z)));
+                        }
                     }
                 }
                 break;
@@ -1905,7 +1924,10 @@ public partial class Server : ICurrentTime, IDropItem
     {
         Span<T> span = l.AsSpan(0, lCount);
         int index = span.IndexOf(from);
-        if (index >= 0) span[index] = to;
+        if (index >= 0)
+        {
+            span[index] = to;
+        }
     }
 
     private IGameDataItems _dataItems;
@@ -2299,7 +2321,10 @@ public partial class Server : ICurrentTime, IDropItem
     {
         int appendNumber = 1;
         while (Clients.Values.Any(c => c.PlayerName.Equals($"{name}{appendNumber}", StringComparison.OrdinalIgnoreCase)))
+        {
             appendNumber++;
+        }
+
         return $"{name}{appendNumber}";
     }
 
@@ -2466,7 +2491,9 @@ public partial class Server : ICurrentTime, IDropItem
     public static IEnumerable<byte[]> Parts(byte[] blob, int partsize)
     {
         for (int i = 0; i < blob.Length; i += partsize)
+        {
             yield return blob[i..Math.Min(i + partsize, blob.Length)];
+        }
     }
 
     private void SendBlobInitialize(int clientid, string hash, string name)

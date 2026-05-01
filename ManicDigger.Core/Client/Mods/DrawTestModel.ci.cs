@@ -29,6 +29,7 @@ public class ModDrawTestModel : ModBase
         {
             return;
         }
+
         if (testmodel == null)
         {
             testmodel = new AnimatedModelRenderer(meshDrawer, platformOpenGl);
@@ -38,6 +39,7 @@ public class ModDrawTestModel : ModBase
             AnimatedModel model = AnimatedModelSerializer.Deserialize(dataString);
             testmodel.Start(Game, model);
         }
+
         meshDrawer.GLPushMatrix();
         meshDrawer.GLTranslate(voxelMap.MapSizeX / 2, Game.Blockheight(voxelMap.MapSizeX / 2, voxelMap.MapSizeY / 2 - 2, 128), voxelMap.MapSizeY / 2 - 2);
         platformOpenGl.BindTexture2d(Game.GetTexture("mineplayer.png"));
@@ -53,6 +55,7 @@ public class ModDrawTestModel : ModBase
             Game.EnableDrawTestCharacter = Game.BoolCommandArgument(args.Arguments);
             return true;
         }
+
         return false;
     }
 }

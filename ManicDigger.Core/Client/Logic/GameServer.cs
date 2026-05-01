@@ -39,7 +39,9 @@ public partial class Game
                     if (requiredName != null)
                     {
                         if (!HasAsset(md5, requiredName[i]))
+                        {
                             getAsset[getCount++] = md5;
+                        }
                     }
                     else
                     {
@@ -90,7 +92,9 @@ public partial class Game
     public void ExitAndSwitchServer(Packet_ServerRedirect newServer)
     {
         if (IsSinglePlayer)
+        {
             singlePlayerService.SinglePlayerServerExit = true;
+        }
 
         redirectTo = newServer;
         IsExitingToMainMenu = true;
@@ -99,7 +103,9 @@ public partial class Game
     public void ExitToMainMenu()
     {
         if (IsSinglePlayer)
+        {
             singlePlayerService.SinglePlayerServerExit = true;
+        }
 
         redirectTo = null;
         IsExitingToMainMenu = true;
@@ -114,6 +120,8 @@ public partial class Game
     public void ChatLog(string p)
     {
         if (!gameService.ChatLog(ServerInfo.ServerName, p))
+        {
             Console.WriteLine(string.Format(Language.CannotWriteChatLog(), ServerInfo.ServerName));
+        }
     }
 }

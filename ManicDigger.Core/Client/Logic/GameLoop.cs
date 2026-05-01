@@ -60,14 +60,18 @@ public partial class Game
 
         // Fix #4: named constant instead of magic number.
         if (EnableLog == EnableLogSimulateLag)
+        {
             Thread.SpinWait(20_000_000);
+        }
 
         SetAmbientLight(Terraincolor());
         openGlService.GlClearColorBufferAndDepthBuffer();
         openGlService.BindTexture2d(TerrainTexture);
 
         for (int i = 0; i < ClientMods.Count; i++)
+        {
             ClientMods[i]?.OnBeforeNewFrameDraw3d(deltaTime);
+        }
 
         meshDrawer.GLMatrixModeModelView();
         meshDrawer.GLLoadMatrix(Camera);
@@ -76,7 +80,9 @@ public partial class Game
 
         openGlService.GlEnableDepthTest();
         for (int i = 0; i < ClientMods.Count; i++)
+        {
             ClientMods[i]?.OnNewFrameDraw3d(deltaTime);
+        }
 
         RunDraw2dAndEndFrame(deltaTime);
     }
@@ -91,19 +97,30 @@ public partial class Game
     internal void FrameTick(float dt)
     {
         for (int i = 0; i < ClientMods.Count; i++)
+        {
             ClientMods[i].OnNewFrameFixed(dt);
+        }
 
         for (int i = 0; i < Entities.Count; i++)
         {
             Entity e = Entities[i];
-            if (e == null) continue;
+            if (e == null)
+            {
+                continue;
+            }
+
             for (int k = 0; k < e.scriptsCount; k++)
+            {
                 e.scripts[k].OnNewFrameFixed(i, dt);
+            }
         }
 
         RevertSpeculative(dt);
 
-        if (GuiState == GuiState.MapLoading) return;
+        if (GuiState == GuiState.MapLoading)
+        {
+            return;
+        }
 
         Vector3 vel;
         vel.X = (Player.position.x - lastplayerpositionX) * FixedTickRate;
@@ -129,13 +146,17 @@ public partial class Game
         // Unprocessed actions stay in the queue and drain over subsequent frames.
         int maxCommitsPerFrame = 32;
         while (maxCommitsPerFrame-- > 0 && taskScheduler.Dequeue(out Action? action))
+        {
             action();
+        }
 
         SetAmbientLight(ColorUtils.ColorFromArgb(255, 255, 255, 255));
         Draw2d(dt);
 
         for (int i = 0; i < ClientMods.Count; i++)
+        {
             ClientMods[i]?.OnNewFrame(dt);
+        }
 
         MouseLeftClick = false;
         mouserightclick = false;
@@ -151,7 +172,10 @@ public partial class Game
     /// </summary>
     private void TryInitialiseConnection()
     {
-        if (StartedConnecting) return;
+        if (StartedConnecting)
+        {
+            return;
+        }
 
         if (!IsSinglePlayer
          || singlePlayerService.SinglePlayerServerLoaded
@@ -171,7 +195,10 @@ public partial class Game
     {
         int w = gameService.CanvasWidth;
         int h = gameService.CanvasHeight;
-        if (lastWidth == w && lastHeight == h) return;
+        if (lastWidth == w && lastHeight == h)
+        {
+            return;
+        }
 
         lastWidth = w;
         lastHeight = h;
@@ -184,7 +211,9 @@ public partial class Game
         openGlService.GlViewport(0, 0, gameService.CanvasWidth, gameService.CanvasHeight);
         Set3dProjection2();
         if (sendResize)
+        {
             SendGameResolution();
+        }
     }
 
     // ── Per-frame helpers ─────────────────────────────────────────────────────

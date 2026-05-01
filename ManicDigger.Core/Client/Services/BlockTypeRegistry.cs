@@ -142,7 +142,9 @@ public class BlockTypeRegistry : IBlockTypeRegistry
     public void UseBlockTypes(Dictionary<int, BlockType> blocktypes)
     {
         foreach (var (id, blockType) in blocktypes)
+        {
             RegisterBlockType(id, blockType);
+        }
     }
 
     /// <summary>
@@ -152,7 +154,10 @@ public class BlockTypeRegistry : IBlockTypeRegistry
     /// </summary>
     public void RegisterBlockType(int id, BlockType b)
     {
-        if (b.Name == null) return;
+        if (b.Name == null)
+        {
+            return;
+        }
 
         WhenPlayerPlacesGetsConvertedTo[id] = b.WhenPlayerPlacesGetsConvertedTo != 0
             ? b.WhenPlayerPlacesGetsConvertedTo
@@ -175,10 +180,25 @@ public class BlockTypeRegistry : IBlockTypeRegistry
 
         if (b.Sounds != null)
         {
-            for (int i = 0; i < b.Sounds.Walk.Length; i++) walk[i] = b.Sounds.Walk[i] + ".wav";
-            for (int i = 0; i < b.Sounds.Break.Length; i++) brk[i] = b.Sounds.Break[i] + ".wav";
-            for (int i = 0; i < b.Sounds.Build.Length; i++) build[i] = b.Sounds.Build[i] + ".wav";
-            for (int i = 0; i < b.Sounds.Clone.Length; i++) clone[i] = b.Sounds.Clone[i] + ".wav";
+            for (int i = 0; i < b.Sounds.Walk.Length; i++)
+            {
+                walk[i] = b.Sounds.Walk[i] + ".wav";
+            }
+
+            for (int i = 0; i < b.Sounds.Break.Length; i++)
+            {
+                brk[i] = b.Sounds.Break[i] + ".wav";
+            }
+
+            for (int i = 0; i < b.Sounds.Build.Length; i++)
+            {
+                build[i] = b.Sounds.Build[i] + ".wav";
+            }
+
+            for (int i = 0; i < b.Sounds.Clone.Length; i++)
+            {
+                clone[i] = b.Sounds.Clone[i] + ".wav";
+            }
         }
 
         WalkSound[id] = walk;

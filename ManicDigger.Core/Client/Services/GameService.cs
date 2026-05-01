@@ -158,7 +158,10 @@ public class GameService : IGameService
     public bool IsCached(string md5)
     {
         if (!Directory.Exists(Cachepath()))
+        {
             return false;
+        }
+
         return File.Exists(Path.Combine(Cachepath(), md5));
     }
 
@@ -198,7 +201,10 @@ public class GameService : IGameService
         GL.DebugMessageCallback((source, type, id, severity, length, message, param) =>
         {
             if (severity == DebugSeverity.DebugSeverityNotification)
+            {
                 return; // ignore info messages like this one
+            }
+
             string msg = Marshal.PtrToStringAnsi(message, length);
             Console.WriteLine($"[OpenGL] [{severity}] [{type}] {msg}");
 
@@ -270,7 +276,9 @@ public class GameService : IGameService
                 };
 
                 if (resolution.Width < 800 || resolution.Height < 600 || resolution.BitsPerPixel < 16)
+                {
                     continue;
+                }
 
                 resolutions.Add(resolution);
             }
@@ -479,14 +487,19 @@ public class GameService : IGameService
     {
         UpdateMousePosition();
         foreach (Action<float> h in newFrameHandlers)
+        {
             h((float)e.Time);
+        }
+
         Window.SwapBuffers();
     }
 
     private void UpdateMousePosition()
     {
         if (!Window.IsFocused)
+        {
             return;
+        }
 
         var mouse = Window.MouseState;
         float xdelta = mouse.Delta.X;
@@ -581,7 +594,10 @@ public class GameService : IGameService
         foreach (var h in KeyPressHandlers)
         {
             h(args);
-            if (args.Handled) break;
+            if (args.Handled)
+            {
+                break;
+            }
         }
     }
 
@@ -597,7 +613,10 @@ public class GameService : IGameService
         foreach (var h in KeyDownHandlers)
         {
             h(args);
-            if (args.Handled) break;
+            if (args.Handled)
+            {
+                break;
+            }
         }
     }
 
@@ -607,7 +626,10 @@ public class GameService : IGameService
         foreach (var h in KeyUpHandlers)
         {
             h(args);
-            if (args.Handled) break;
+            if (args.Handled)
+            {
+                break;
+            }
         }
     }
 

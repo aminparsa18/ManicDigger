@@ -19,10 +19,7 @@ public class Noise2DWorldGeneratorWar : IMod
     private readonly int waterlevel = 10;
     private int seed;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {

@@ -3,7 +3,6 @@ using OpenTK.Mathematics;
 
 namespace ManicDigger;
 
-
 /// <summary>
 /// Represents a single audio playback task running on a dedicated thread-pool thread.
 /// Supports play, pause, loop, spatial positioning, and clean shutdown.
@@ -13,10 +12,12 @@ namespace ManicDigger;
 /// a non-looping clip finishes, when <see cref="Stop"/> is called, or when the
 /// application signals <see cref="IGameExit.Exit"/>.
 /// </remarks>
-public sealed class AudioTask
+/// <param name="gameExit">Application-exit signal; terminates the audio thread when raised.</param>
+/// <param name="data">Decoded PCM data to play back.</param>
+public sealed class AudioTask(IGameExit gameExit, AudioData data)
 {
-    private readonly IGameExit _gameExit;
-    private readonly AudioData _data;
+    private readonly IGameExit _gameExit = gameExit;
+    private readonly AudioData _data = data;
 
     private volatile bool _started;
     private volatile bool _stopRequested;
@@ -33,8 +34,16 @@ public sealed class AudioTask
     /// </summary>
     public Vector3 Position
     {
-        get { lock (_positionLock) return _position; }
-        set { lock (_positionLock) _position = value; }
+        get { lock (_positionLock)
+            {
+                return _position;
+            }
+        }
+        set { lock (_positionLock)
+            {
+                _position = value;
+            }
+        }
     }
 
     /// <summary>
@@ -48,14 +57,6 @@ public sealed class AudioTask
     /// and all OpenAL resources have been released.
     /// </summary>
     public bool IsFinished => _isFinished;
-
-    /// <param name="gameExit">Application-exit signal; terminates the audio thread when raised.</param>
-    /// <param name="data">Decoded PCM data to play back.</param>
-    public AudioTask(IGameExit gameExit, AudioData data)
-    {
-        _gameExit = gameExit;
-        _data = data;
-    }
 
     // ── Playback control ──────────────────────────────────────────────────────
 
@@ -128,10 +129,12 @@ public sealed class AudioTask
             while (!_stopRequested && !_gameExit.Exit)
             {
                 AL.GetSource(source, ALGetSourcei.SourceState, out int rawState);
-                var state = (ALSourceState)rawState;
+                ALSourceState state = (ALSourceState)rawState;
 
                 if (!Loop && state != ALSourceState.Playing)
+                {
                     break;
+                }
 
                 if (Loop)
                 {
@@ -146,6 +149,7 @@ public sealed class AudioTask
                             AL.SourceRewind(source);
                             _restartRequested = false;
                         }
+
                         AL.SourcePlay(source);
                     }
                 }

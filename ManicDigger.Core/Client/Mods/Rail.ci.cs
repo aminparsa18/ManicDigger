@@ -554,7 +554,10 @@ public class RailMapUtil
             }
         }
 
-        if (y >= voxelMap.MapSizeY - 1) return RailSlope.Flat;
+        if (y >= voxelMap.MapSizeY - 1)
+        {
+            return RailSlope.Flat;
+        }
 
         blocknear = voxelMap.GetBlock(x, y + 1, z);
         if (railDirectionFlags == (int)RailDirectionFlags.Vertical &&

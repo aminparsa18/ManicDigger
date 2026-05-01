@@ -115,6 +115,7 @@ public class MainScreen : ScreenBase, IMainScreen
     private void UseQueryStringIpAndPort()
     {
         if (queryStringChecked) { return; }
+
         queryStringChecked = true;
 
         string ip = GameService.QueryStringValue("ip");
@@ -132,7 +133,9 @@ public class MainScreen : ScreenBase, IMainScreen
     public override void OnButton(MenuWidget w)
     {
         if (w == buttonSingleplayer) { Menu.StartSingleplayer(); return; }
+
         if (w == buttonMultiplayer) { Menu.StartMultiplayer(); return; }
+
         if (w == buttonExit) { Environment.Exit(0); return; }
     }
 

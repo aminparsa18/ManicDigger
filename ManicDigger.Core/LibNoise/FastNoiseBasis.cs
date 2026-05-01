@@ -93,13 +93,19 @@ public class FastNoiseBasis
             // Fill perm[0..255] from a seeded RNG and mirror to [256..511].
             var rng = new Random(_seed);
             for (int i = 0; i < 256; i++)
+            {
                 _permutations[i] = rng.Next(255);
+            }
+
             _permutations.AsSpan(0, 256).CopyTo(_permutations.AsSpan(256));
 
             // Map each perm entry to a gradient in [-1, 1] and mirror.
             const float inv255 = 1f / 255f;
             for (int i = 0; i < 256; i++)
+            {
                 _gradients[i] = -1f + 2f * (_permutations[i] * inv255);
+            }
+
             _gradients.AsSpan(0, 256).CopyTo(_gradients.AsSpan(256));
         }
     }
@@ -111,7 +117,10 @@ public class FastNoiseBasis
     public FastNoiseBasis(int seed)
     {
         if (seed < 0)
+        {
             throw new ArgumentException("Seed must be non-negative.", nameof(seed));
+        }
+
         Seed = seed;
     }
 

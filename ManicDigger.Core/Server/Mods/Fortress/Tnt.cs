@@ -11,10 +11,7 @@ public class Tnt : IMod
     public int tntRange = 10; // sphere diameter
     public int tntMax = 10;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
     public void Start(IModManager manager)
     {
         m = manager;
@@ -134,8 +131,5 @@ public class Tnt : IMod
         }
     }
 
-    private static int SphereEq(int x, int y, int z, int r)
-    {
-        return x * x + y * y + z * z - r * r;
-    }
+    private static int SphereEq(int x, int y, int z, int r) => x * x + y * y + z * z - r * r;
 }

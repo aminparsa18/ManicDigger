@@ -133,7 +133,9 @@ public sealed class DummyNetServer : NetServer
     public override NetIncomingMessage? ReadMessage()
     {
         if (_network.ServerInbox.IsEmpty)
+        {
             return null;
+        }
 
         if (!_connectionAnnounced)
         {

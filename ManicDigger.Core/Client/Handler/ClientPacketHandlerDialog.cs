@@ -21,13 +21,19 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         {
             // Server is closing this dialog.
             if (dialogIdx != -1 && game.Dialogs[dialogIdx].value.IsModal)
+            {
                 game.GuiStateBackToGame();
+            }
 
             if (dialogIdx != -1)
+            {
                 game.Dialogs[dialogIdx] = null;
+            }
 
             if (game.Dialogs.Length == 0)
+            {
                 game.SetFreeMouse(false);
+            }
         }
         else
         {

@@ -21,8 +21,15 @@ public class ModDrawText : ModBase
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity e = Game.Entities[i];
-            if (e?.drawText == null) continue;
-            if (e.networkPosition != null && !e.networkPosition.PositionLoaded) continue;
+            if (e?.drawText == null)
+            {
+                continue;
+            }
+
+            if (e.networkPosition != null && !e.networkPosition.PositionLoaded)
+            {
+                continue;
+            }
 
             EntityDrawText p = e.drawText;
             float posX = -MathF.Sin(e.position.roty) * p.dx + e.position.x;
@@ -31,7 +38,10 @@ public class ModDrawText : ModBase
 
             bool nearEnough = Vector3.Distance(new Vector3(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z), new Vector3(posX, posY, posZ)) < TextDrawDistance;
             bool altHeld = Game.KeyboardState[KeyConstants.KeyAltLeft] || Game.KeyboardState[KeyConstants.KeyAltRight];
-            if (!nearEnough && !altHeld) continue;
+            if (!nearEnough && !altHeld)
+            {
+                continue;
+            }
 
             DrawText(e, p, posX, posY, posZ);
         }

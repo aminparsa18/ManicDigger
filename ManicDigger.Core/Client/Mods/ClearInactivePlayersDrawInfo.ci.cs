@@ -21,7 +21,10 @@ public class ModClearInactivePlayersDrawInfo : ModBase
         for (int i = 0; i < _game.Entities.Count; i++)
         {
             Entity p = _game.Entities[i];
-            if (p?.playerDrawInfo == null || p.networkPosition == null) continue;
+            if (p?.playerDrawInfo == null || p.networkPosition == null)
+            {
+                continue;
+            }
 
             float secondsSinceUpdate = (now - p.networkPosition.LastUpdateMilliseconds) / 1000f;
             if (secondsSinceUpdate > InactiveThresholdSeconds)

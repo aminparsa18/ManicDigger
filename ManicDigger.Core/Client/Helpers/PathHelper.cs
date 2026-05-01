@@ -10,7 +10,10 @@
         {
             // First check: is 'data' right next to the exe? (MAUI, published builds)
             string next = Path.Combine(AppContext.BaseDirectory, "data");
-            if (Directory.Exists(next)) return next;
+            if (Directory.Exists(next))
+            {
+                return next;
+            }
 
             // Second check: walk up from exe looking for a 'data' sibling
             // (WinForms dev builds where exe is deep in bin\Debug\...)
@@ -18,7 +21,11 @@
             while (dir != null)
             {
                 string candidate = Path.Combine(dir.FullName, "data");
-                if (Directory.Exists(candidate)) return candidate;
+                if (Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
+
                 dir = dir.Parent;
             }
 

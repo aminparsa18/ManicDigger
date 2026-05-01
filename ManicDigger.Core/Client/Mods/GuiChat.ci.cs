@@ -28,6 +28,7 @@ public class ModGuiChat : ModBase
         {
             return;
         }
+
         DrawChatLines(Game.GuiTyping == TypingState.Typing);
         if (Game.GuiTyping == TypingState.Typing)
         {
@@ -44,6 +45,7 @@ public class ModGuiChat : ModBase
             {
                 dx += 100;
             }
+
             float chatlineStartX = dx * Game.Scale();
             float chatlineStartY = (90 + i * 25) * Game.Scale();
             float chatlineSizeX = 500 * Game.Scale();
@@ -77,16 +79,19 @@ public class ModGuiChat : ModBase
         {
             scroll = ChatPageScroll;
         }
+
         int first = Game.ChatLinesCount - ChatLinesMaxToDraw * (scroll + 1);
         if (first < 0)
         {
             first = 0;
         }
+
         int count = Game.ChatLinesCount;
         if (count > ChatLinesMaxToDraw)
         {
             count = ChatLinesMaxToDraw;
         }
+
         for (int i = first; i < first + count; i++)
         {
             Chatline c = Game.ChatLines[i];
@@ -95,6 +100,7 @@ public class ModGuiChat : ModBase
                 chatlines2[chatlines2Count++] = c;
             }
         }
+
         currentFontSize = ChatFontSize * Game.Scale();
         font = new Font("Arial", currentFontSize, currentFontStyle);
 
@@ -120,8 +126,10 @@ public class ModGuiChat : ModBase
                 currentFontStyle = FontStyle.Bold;
                 font = new Font("Arial", currentFontSize, currentFontStyle);
             }
+
             Game.Draw2dText(chatlines2[i].text, font, dx * Game.Scale(), (90 + i * 25) * Game.Scale(), null, false);
         }
+
         if (ChatPageScroll != 0)
         {
             Game.Draw2dText(string.Format("&7Page: {0}", ChatPageScroll.ToString()), font, dx * Game.Scale(), (90 + (-1) * 25) * Game.Scale(), null, false);
@@ -137,6 +145,7 @@ public class ModGuiChat : ModBase
         {
             s = string.Format("To team: {0}", s);
         }
+
         if (platform.IsSmallScreen())
         {
             game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (platform.CanvasHeight / 2) - 100 * game.Scale(), null, true);
@@ -154,6 +163,7 @@ public class ModGuiChat : ModBase
             //Don't open chat when not in normal game
             return;
         }
+
         int eKey = args.KeyChar;
         if (eKey == Game.GetKey(Keys.KeyPad7) && Game.IsShiftPressed && Game.GuiTyping == TypingState.None) // don't need to hit enter for typing commands starting with slash
         {
@@ -164,16 +174,19 @@ public class ModGuiChat : ModBase
             args.Handled = true;
             return;
         }
+
         if (eKey == Game.GetKey(Keys.PageUp) && Game.GuiTyping == TypingState.Typing)
         {
             ChatPageScroll++;
             args.Handled = true;
         }
+
         if (eKey == Game.GetKey(Keys.PageDown) && Game.GuiTyping == TypingState.Typing)
         {
             ChatPageScroll--;
             args.Handled = true;
         }
+
         ChatPageScroll = Math.Clamp(ChatPageScroll, 0, Game.ChatLinesCount / ChatLinesMaxToDraw);
         if (eKey == Game.GetKey(Keys.Enter) || eKey == Game.GetKey(Keys.KeyPadEnter))
         {
@@ -197,9 +210,11 @@ public class ModGuiChat : ModBase
             {
                 Console.WriteLine("Keyboard_KeyDown ready");
             }
+
             args.Handled = true;
             return;
         }
+
         if (Game.GuiTyping == TypingState.Typing)
         {
             int key = eKey;
@@ -209,9 +224,11 @@ public class ModGuiChat : ModBase
                 {
                     Game.GuiTypingBuffer = Game.GuiTypingBuffer[..^1];
                 }
+
                 args.Handled = true;
                 return;
             }
+
             if (Game.KeyboardStateRaw[Game.GetKey(Keys.LeftControl)] || Game.KeyboardStateRaw[Game.GetKey(Keys.RightControl)])
             {
                 if (key == Game.GetKey(Keys.V))
@@ -220,32 +237,40 @@ public class ModGuiChat : ModBase
                     {
                         Game.GuiTypingBuffer = string.Concat(Game.GuiTypingBuffer, Clipboard.GetText());
                     }
+
                     args.Handled = true;
                     return;
                 }
             }
+
             if (key == Game.GetKey(Keys.Up))
             {
                 Game.TypingLogPos--;
                 if (Game.TypingLogPos < 0) { Game.TypingLogPos = 0; }
+
                 if (Game.TypingLogPos >= 0 && Game.TypingLogPos < Game.TypingLog.Count)
                 {
                     Game.GuiTypingBuffer = Game.TypingLog[Game.TypingLogPos];
                 }
+
                 args.Handled = true;
             }
+
             if (key == Game.GetKey(Keys.Down))
             {
                 Game.TypingLogPos++;
                 if (Game.TypingLogPos > Game.TypingLog.Count) { Game.TypingLogPos = Game.TypingLog.Count; }
+
                 if (Game.TypingLogPos >= 0 && Game.TypingLogPos < Game.TypingLog.Count)
                 {
                     Game.GuiTypingBuffer = Game.TypingLog[Game.TypingLogPos];
                 }
+
                 if (Game.TypingLogPos == Game.TypingLog.Count)
                 {
                     Game.GuiTypingBuffer = "";
                 }
+
                 args.Handled = true;
             }
             //Handles player name autocomplete in chat
@@ -270,9 +295,11 @@ public class ModGuiChat : ModBase
                     parts[parts.Length - 1] = completed;
                     Game.GuiTypingBuffer = string.Concat(string.Join(" ", parts), " ");
                 }
+
                 args.Handled = true;
                 return;
             }
+
             args.Handled = true;
             return;
         }
@@ -285,6 +312,7 @@ public class ModGuiChat : ModBase
             //Don't open chat when not in normal game
             return;
         }
+
         int eKeyChar = args.KeyChar;
         int chart = 116;
         int charT = 84;
@@ -297,6 +325,7 @@ public class ModGuiChat : ModBase
             Game.IsTeamchat = false;
             return;
         }
+
         if ((eKeyChar == chary || eKeyChar == charY) && Game.GuiTyping == TypingState.None)
         {
             Game.GuiTyping = TypingState.Typing;
@@ -304,6 +333,7 @@ public class ModGuiChat : ModBase
             Game.IsTeamchat = true;
             return;
         }
+
         if (Game.GuiTyping == TypingState.Typing)
         {
             int c = eKeyChar;
@@ -322,8 +352,11 @@ public class ModGuiChat : ModBase
             {
                 Entity entity = Game.Entities[i];
                 if (entity == null) { continue; }
+
                 if (entity.drawName == null) { continue; }
+
                 if (!entity.drawName.ClientAutoComplete) { continue; }
+
                 DrawName p = entity.drawName;
                 //Use substring here because player names are internally in format &xNAME (so we need to cut first 2 characters)
                 if (p.Name[2..].StartsWith(text, StringComparison.InvariantCultureIgnoreCase))
@@ -332,6 +365,7 @@ public class ModGuiChat : ModBase
                 }
             }
         }
+
         return "";
     }
 }

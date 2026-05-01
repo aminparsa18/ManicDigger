@@ -89,6 +89,7 @@ public class ModGuiTouchButtons : GameScreen
                 game.Draw2dText1("Move", platform.CanvasWidth * 5 / 100, platform.CanvasHeight * 85 / 100, (int)(scale * 50), null, false);
                 game.Draw2dText1("Look", platform.CanvasWidth * 80 / 100, platform.CanvasHeight * 85 / 100, (int)(scale * 50), null, false);
             }
+
             DrawWidgets(game);
         }
     }
@@ -97,7 +98,9 @@ public class ModGuiTouchButtons : GameScreen
     public override void OnButton(MenuWidget w)
     {
         if (w == _buttonMenu) { game.ShowEscapeMenu(); }
+
         if (w == _buttonInventory) { game.ShowInventory(); }
+
         if (w == _buttonCamera) { game.CameraChange(); }
 
         if (w == _buttonTalk)

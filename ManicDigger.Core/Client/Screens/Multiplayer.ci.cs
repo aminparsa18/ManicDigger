@@ -387,10 +387,7 @@ public class MultiplayerScreen : ScreenBase
     private readonly MenuWidget[] serverButtons;
     private const int serverButtonsCount = 1024;
 
-    public override void OnBackPressed()
-    {
-        Menu.StartMainMenu();
-    }
+    public override void OnBackPressed() => Menu.StartMainMenu();
     public override void OnMouseWheel(MouseWheelEventArgs e)
     {
         //menu.p.MessageBoxShowError(menu.p.IntToString(e.GetDelta()), "Delta");

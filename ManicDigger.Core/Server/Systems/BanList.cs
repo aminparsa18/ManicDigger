@@ -14,10 +14,14 @@ public class ServerSystemBanList : ServerSystem
     protected override void OnUpdate(Server server, float dt)
     {
         if (server.BanList.ClearTimeBans() > 0)
+        {
             SaveBanlist(server);
+        }
 
         foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
+        {
             CheckAndKickBannedClient(server, k.Key, k.Value);
+        }
     }
 
     private static void CheckAndKickBannedClient(Server server, int clientId, ClientOnServer client)
@@ -139,7 +143,9 @@ public class ServerSystemBanList : ServerSystem
     {
         ClientOnServer targetClient = server.GetClient(target);
         if (targetClient != null)
+        {
             return Ban(server, sourceClientId, targetClient.Id, reason);
+        }
 
         server.SendMessage(sourceClientId, string.Format(
             server.Language.Get("Server_CommandPlayerNotFound"), server.colorError, target));
@@ -148,11 +154,21 @@ public class ServerSystemBanList : ServerSystem
 
     public static bool Ban(Server server, int sourceClientId, int targetClientId, string reason = "")
     {
-        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.ban)) return false;
+        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.ban))
+        {
+            return false;
+        }
 
         ClientOnServer target = server.GetClient(targetClientId);
-        if (target == null) return SendNonexistentId(server, sourceClientId, targetClientId);
-        if (!CheckTargetRank(server, sourceClientId, target)) return false;
+        if (target == null)
+        {
+            return SendNonexistentId(server, sourceClientId, targetClientId);
+        }
+
+        if (!CheckTargetRank(server, sourceClientId, target))
+        {
+            return false;
+        }
 
         reason = FormatReason(server, reason);
         string targetName = target.PlayerName;
@@ -171,7 +187,9 @@ public class ServerSystemBanList : ServerSystem
     {
         ClientOnServer targetClient = server.GetClient(target);
         if (targetClient != null)
+        {
             return BanIP(server, sourceClientId, targetClient.Id, reason);
+        }
 
         server.SendMessage(sourceClientId, string.Format(
             server.Language.Get("Server_CommandPlayerNotFound"), server.colorError, target));
@@ -180,11 +198,21 @@ public class ServerSystemBanList : ServerSystem
 
     public static bool BanIP(Server server, int sourceClientId, int targetClientId, string reason = "")
     {
-        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.banip)) return false;
+        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.banip))
+        {
+            return false;
+        }
 
         ClientOnServer target = server.GetClient(targetClientId);
-        if (target == null) return SendNonexistentId(server, sourceClientId, targetClientId);
-        if (!CheckTargetRank(server, sourceClientId, target)) return false;
+        if (target == null)
+        {
+            return SendNonexistentId(server, sourceClientId, targetClientId);
+        }
+
+        if (!CheckTargetRank(server, sourceClientId, target))
+        {
+            return false;
+        }
 
         reason = FormatReason(server, reason);
         string targetName = target.PlayerName;
@@ -203,7 +231,9 @@ public class ServerSystemBanList : ServerSystem
     {
         ClientOnServer targetClient = server.GetClient(target);
         if (targetClient != null)
+        {
             return TimeBan(server, sourceClientId, targetClient.Id, reason, duration);
+        }
 
         server.SendMessage(sourceClientId, string.Format(
             server.Language.Get("Server_CommandPlayerNotFound"), server.colorError, target));
@@ -212,11 +242,21 @@ public class ServerSystemBanList : ServerSystem
 
     public static bool TimeBan(Server server, int sourceClientId, int targetClientId, string reason, int duration)
     {
-        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.ban)) return false;
+        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.ban))
+        {
+            return false;
+        }
 
         ClientOnServer target = server.GetClient(targetClientId);
-        if (target == null) return SendNonexistentId(server, sourceClientId, targetClientId);
-        if (!CheckTargetRank(server, sourceClientId, target)) return false;
+        if (target == null)
+        {
+            return SendNonexistentId(server, sourceClientId, targetClientId);
+        }
+
+        if (!CheckTargetRank(server, sourceClientId, target))
+        {
+            return false;
+        }
 
         reason = FormatReason(server, reason);
         string targetName = target.PlayerName;
@@ -238,7 +278,9 @@ public class ServerSystemBanList : ServerSystem
     {
         ClientOnServer targetClient = server.GetClient(target);
         if (targetClient != null)
+        {
             return TimeBanIP(server, sourceClientId, targetClient.Id, reason, duration);
+        }
 
         server.SendMessage(sourceClientId, string.Format(
             server.Language.Get("Server_CommandPlayerNotFound"), server.colorError, target));
@@ -247,11 +289,21 @@ public class ServerSystemBanList : ServerSystem
 
     public static bool TimeBanIP(Server server, int sourceClientId, int targetClientId, string reason, int duration)
     {
-        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.banip)) return false;
+        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.banip))
+        {
+            return false;
+        }
 
         ClientOnServer target = server.GetClient(targetClientId);
-        if (target == null) return SendNonexistentId(server, sourceClientId, targetClientId);
-        if (!CheckTargetRank(server, sourceClientId, target)) return false;
+        if (target == null)
+        {
+            return SendNonexistentId(server, sourceClientId, targetClientId);
+        }
+
+        if (!CheckTargetRank(server, sourceClientId, target))
+        {
+            return false;
+        }
 
         reason = FormatReason(server, reason);
         string targetName = target.PlayerName;
@@ -271,7 +323,10 @@ public class ServerSystemBanList : ServerSystem
 
     public static bool BanOffline(Server server, int sourceClientId, string target, string reason = "")
     {
-        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.ban_offline)) return false;
+        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.ban_offline))
+        {
+            return false;
+        }
 
         if (server.GetClient(target) != null)
         {
@@ -317,14 +372,19 @@ public class ServerSystemBanList : ServerSystem
 
     public static bool Unban(Server server, int sourceClientId, string type, string target)
     {
-        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.unban)) return false;
+        if (!CheckPrivilege(server, sourceClientId, ServerClientMisc.Privilege.unban))
+        {
+            return false;
+        }
 
         if (type == "-p")
         {
             bool exists = server.BanList.UnbanPlayer(target);
             SaveBanlist(server);
             if (!exists)
+            {
                 server.SendMessage(sourceClientId, string.Format(server.Language.Get("Server_CommandPlayerNotFound"), server.colorError, target));
+            }
             else
             {
                 server.SendMessage(sourceClientId, string.Format(server.Language.Get("Server_CommandUnbanSuccess"), server.colorSuccess, target));
@@ -338,7 +398,9 @@ public class ServerSystemBanList : ServerSystem
             bool exists = server.BanList.UnbanIP(target);
             SaveBanlist(server);
             if (!exists)
+            {
                 server.SendMessage(sourceClientId, string.Format(server.Language.Get("Server_CommandUnbanIPNotFound"), server.colorError, target));
+            }
             else
             {
                 server.SendMessage(sourceClientId, string.Format(server.Language.Get("Server_CommandUnbanIPSuccess"), server.colorSuccess, target));
@@ -413,7 +475,11 @@ public class ServerSystemBanList : ServerSystem
 
     private static bool CheckPrivilege(Server server, int sourceClientId, string privilege)
     {
-        if (server.PlayerHasPrivilege(sourceClientId, privilege)) return true;
+        if (server.PlayerHasPrivilege(sourceClientId, privilege))
+        {
+            return true;
+        }
+
         server.SendMessage(sourceClientId, string.Format(
             server.Language.Get("Server_CommandInsufficientPrivileges"), server.colorError));
         return false;

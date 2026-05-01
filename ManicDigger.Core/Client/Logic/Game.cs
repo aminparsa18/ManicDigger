@@ -96,7 +96,10 @@ public partial class Game
     {
         InventoryItem item = Inventory.RightHand[i];
         if (item != null && item.InventoryItemType == InventoryItemType.Block)
+        {
             return item.BlockId;
+        }
+
         return BlockRegistry.BlockIdDirt;
     }
 
@@ -129,7 +132,9 @@ public partial class Game
         for (int i = 0; i < Dialogs.Length; i++)
         {
             if (Dialogs[i]?.key == name)
+            {
                 return i;
+            }
         }
         return -1;
     }
@@ -145,12 +150,17 @@ public partial class Game
     /// </summary>
     public int? FollowId()
     {
-        if (Follow == null) return null;
+        if (Follow == null)
+        {
+            return null;
+        }
 
         for (int i = 0; i < Entities.Count; i++)
         {
             if (Entities[i]?.drawName?.Name == Follow)
+            {
                 return i;
+            }
         }
         return null;
     }
@@ -165,8 +175,16 @@ public partial class Game
     /// </summary>
     internal int Terraincolor()
     {
-        if (WaterSwimmingCamera()) return ColorUtils.ColorFromArgb(255, 78, 95, 140);
-        if (LavaSwimmingCamera()) return ColorUtils.ColorFromArgb(255, 222, 101, 46);
+        if (WaterSwimmingCamera())
+        {
+            return ColorUtils.ColorFromArgb(255, 78, 95, 140);
+        }
+
+        if (LavaSwimmingCamera())
+        {
+            return ColorUtils.ColorFromArgb(255, 222, 101, 46);
+        }
+
         return ColorUtils.ColorFromArgb(255, 255, 255, 255);
     }
 
@@ -263,7 +281,9 @@ public partial class Game
     public void Update(float dt)
     {
         for (int i = 0; i < ClientMods.Count; i++)
+        {
             ClientMods[i]?.OnNewFrameReadOnlyMainThread(dt);
+        }
     }
 
     // ── Block picking ─────────────────────────────────────────────────────────
@@ -345,13 +365,19 @@ public partial class Game
     public void Dispose()
     {
         for (int i = 0; i < ClientMods.Count; i++)
+        {
             ClientMods[i]?.Dispose();
+        }
 
         foreach (int id in textures.Values)
+        {
             openGlService.GLDeleteTexture(id);
+        }
 
         foreach (CachedTexture ct in CachedTextTextures.Values)
+        {
             openGlService.GLDeleteTexture(ct.textureId);
+        }
     }
 
     // ── Stubs (candidates for removal) ───────────────────────────────────────

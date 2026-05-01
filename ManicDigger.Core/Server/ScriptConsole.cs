@@ -40,7 +40,10 @@ public class ScriptConsole
     public void Print(object obj)
     {
         if (obj == null)
+        {
             return;
+        }
+
         m_server.SendMessage(m_client, obj.ToString(), Server.MessageType.Normal);
     }
 
@@ -203,7 +206,10 @@ public class ScriptConsole
         get
         {
             if (m_turtle == null)
+            {
                 m_turtle = new Turtle { Console = this };
+            }
+
             return m_turtle;
         }
     }
@@ -293,7 +299,10 @@ public class Turtle
     {
         var array = m_stack.Pop();
         if (array == null)
+        {
             return;
+        }
+
         position = array[0];
         direction = array[1];
     }
@@ -314,24 +323,36 @@ public class Turtle
             if (dir.Y == 0)
             {
                 if (dir.Z == 1)
+                {
                     return "Up";
+                }
                 else if (dir.Z == -1)
+                {
                     return "Down";
+                }
             }
             if (dir.Z == 0)
             {
                 if (dir.Y == 1)
+                {
                     return "South";
+                }
                 else if (dir.Y == -1)
+                {
                     return "North";
+                }
             }
         }
         else if (dir.Y == 0 && dir.Z == 0)
         {
             if (dir.X == 1)
+            {
                 return "West";
+            }
             else if (dir.X == -1)
+            {
                 return "East";
+            }
         }
         return "Unknown direction";
     }

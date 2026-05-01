@@ -10,6 +10,7 @@ public abstract class ServerSystem
             _initialized = true;
             Initialize(server);
         }
+
         OnUpdate(server, dt);
     }
 

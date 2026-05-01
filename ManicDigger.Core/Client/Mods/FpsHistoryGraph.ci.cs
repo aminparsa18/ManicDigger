@@ -29,7 +29,9 @@ public class ModFpsHistoryGraph : ModBase
         this.meshDrawer = meshDrawer;
 
         for (int i = 0; i < MaxCount; i++)
+        {
             todraw[i] = new Draw2dData();
+        }
     }
 
     /// <inheritdoc/>
@@ -53,7 +55,10 @@ public class ModFpsHistoryGraph : ModBase
     /// <inheritdoc/>
     public override bool OnClientCommand(ClientCommandArgs args)
     {
-        if (args.Command != "fps") return false;
+        if (args.Command != "fps")
+        {
+            return false;
+        }
 
         (drawFpsText, drawFpsGraph) = args.Arguments.Trim() switch
         {
@@ -83,7 +88,10 @@ public class ModFpsHistoryGraph : ModBase
 
         int now = _platform.TimeMillisecondsFromStart;
         float elapsed = (now - lasttitleUpdateMilliseconds) / 1000f;
-        if (elapsed < 1f) return;
+        if (elapsed < 1f)
+        {
+            return;
+        }
 
         lasttitleUpdateMilliseconds = now;
 
@@ -101,9 +109,14 @@ public class ModFpsHistoryGraph : ModBase
         {
             sb.Append(value);
             if (idx % PerLine == 0 && idx != Game.PerformanceInfo.Count - 1)
+            {
                 sb.Append(", ");
+            }
             else if (idx % PerLine != 0)
+            {
                 sb.Append('\n');
+            }
+
             idx++;
         }
         fpsText = sb.ToString();
@@ -111,11 +124,22 @@ public class ModFpsHistoryGraph : ModBase
 
     private void Draw()
     {
-        if (!drawFpsGraph && !drawFpsText) return;
+        if (!drawFpsGraph && !drawFpsText)
+        {
+            return;
+        }
 
         meshDrawer.OrthoMode(_platform.CanvasWidth, _platform.CanvasHeight);
-        if (drawFpsGraph) DrawGraph();
-        if (drawFpsText) Game.Draw2dText(fpsText, new Font("Arial", ChatFontSize), 20, 20, null, false);
+        if (drawFpsGraph)
+        {
+            DrawGraph();
+        }
+
+        if (drawFpsText)
+        {
+            Game.Draw2dText(fpsText, new Font("Arial", ChatFontSize), 20, 20, null, false);
+        }
+
         meshDrawer.PerspectiveMode();
     }
 

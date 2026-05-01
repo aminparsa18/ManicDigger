@@ -51,7 +51,10 @@ public class ServerSystemHeartbeat : ServerSystem
     /// </summary>
     public async Task SendHeartbeat(Server server)
     {
-        if (server.Config?.Key == null) return;
+        if (server.Config?.Key == null)
+        {
+            return;
+        }
 
         heartbeat.Name = server.Config.Name;
         heartbeat.MaxClients = server.Config.MaxClients;
@@ -68,7 +71,9 @@ public class ServerSystemHeartbeat : ServerSystem
             foreach (var (_, client) in server.Clients)
             {
                 if (!client.IsBot)
+                {
                     playerNames.Add(client.PlayerName);
+                }
             }
         }
         heartbeat.Players = playerNames;

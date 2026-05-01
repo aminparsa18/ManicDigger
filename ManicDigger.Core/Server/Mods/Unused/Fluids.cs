@@ -54,7 +54,9 @@ public class Fluids : IMod
     {
         int b = m.GetBlock(x, y, z);
         if (m.IsBlockFluid(b))
+        {
             AddActiveFluid(x, y, z);
+        }
     }
 
     private void Delete(int player, int x, int y, int z, int blockid)
@@ -65,17 +67,24 @@ public class Fluids : IMod
     private void CheckNeighbors(int x, int y, int z)
     {
         for (int xx = x - 1; xx <= x + 1; xx++)
+        {
             for (int yy = y - 1; yy <= y + 1; yy++)
+            {
                 for (int zz = z - 1; zz <= z + 1; zz++)
                 {
                     Check(xx, yy, zz);
                 }
+            }
+        }
     }
 
     private void Check(int x, int y, int z)
     {
         if (!m.IsValidPos(x, y, z))
+        {
             return;
+        }
+
         int b = m.GetBlock(x, y, z);
 
         if (m.GetBlockNameAt(x, y, z) == "Cake")
@@ -86,7 +95,9 @@ public class Fluids : IMod
 
         //check if it is a fluid
         if (!m.IsBlockFluid(b))
+        {
             return;
+        }
 
         if (z > 0)
         {
@@ -103,7 +114,10 @@ public class Fluids : IMod
                 int xx = x + dx[dd];
                 int yy = y + dy[dd];
                 if (!m.IsValidPos(xx, yy, z))
+                {
                     continue;
+                }
+
                 if ((m.GetBlock(xx, yy, z) == 0) && (m.GetBlock(xx, yy, z - 1) == 0))
                 {
                     AddActiveFluid(x, y, z);
@@ -112,14 +126,21 @@ public class Fluids : IMod
             }
             //if it is not on top of a water block it will prefer to go to a water block (cohesion)
             if (m.GetBlock(x, y, z - 1) != b)
+            {
                 for (int dd = 1; dd < dx.Length; dd += 2) //check von Neumann neighbors
                 {
                     int xx = x + dx[dd];
                     int yy = y + dy[dd];
                     if (!m.IsValidPos(xx, yy, z - 1))
+                    {
                         continue;
+                    }
+
                     if (m.GetBlock(xx, yy, z) != 0)
+                    {
                         continue;
+                    }
+
                     int otherblock = m.GetBlock(xx, yy, z - 1);
                     if (otherblock == b)
                     {
@@ -127,15 +148,22 @@ public class Fluids : IMod
                         return;
                     }
                 }
+            }
             //is it a new hole near a fluid?
             for (int dd = 1; dd < dx.Length; dd += 2) //check von Neumann neighbors
             {
                 int xx = x + dx[dd];
                 int yy = y + dy[dd];
                 if (!m.IsValidPos(xx, yy, z - 1))
+                {
                     continue;
+                }
+
                 if (m.GetBlock(xx, yy, z) != 0)
+                {
                     continue;
+                }
+
                 AddActiveFluid(x, y, z);
                 return;
             }
@@ -148,7 +176,9 @@ public class Fluids : IMod
 
         //check if it is a fluid
         if ((b != Water) && (b != Lava))
+        {
             return false;
+        }
 
         if (z > 0)
         {
@@ -157,7 +187,10 @@ public class Fluids : IMod
                 //free fall
                 int targetz = z - 1;
                 if ((b == Water) && (m.GetBlock(x, y, z - 2) == 0))
+                {
                     targetz = z - 2;
+                }
+
                 m.SetBlock(x, y, targetz, b);
                 m.SetBlock(x, y, z, 0);
                 RemoveActiveFluid(x, y, z);
@@ -176,7 +209,10 @@ public class Fluids : IMod
                 int xx = x + dx[dd];
                 int yy = y + dy[dd];
                 if (!m.IsValidPos(xx, yy, z))
+                {
                     continue;
+                }
+
                 if ((m.GetBlock(xx, yy, z) == 0) && (m.GetBlock(xx, yy, z - 1) == 0))
                 {
                     //Water falling over edge
@@ -200,9 +236,15 @@ public class Fluids : IMod
                     int xx = x + dx[dd];
                     int yy = y + dy[dd];
                     if (!m.IsValidPos(xx, yy, z - 1))
+                    {
                         continue;
+                    }
+
                     if (m.GetBlock(xx, yy, z) != 0)
+                    {
                         continue;
+                    }
+
                     int otherblock = m.GetBlock(xx, yy, z - 1);
                     if (otherblock == b)
                     {
@@ -257,7 +299,10 @@ public class Fluids : IMod
     {
         int hash = PositionHash(x, y, z);
         if (activeFluids.ContainsKey(hash))
+        {
             return;
+        }
+
         activeFluids.Add(hash, new Vector3i(x, y, z));
     }
 
@@ -277,7 +322,10 @@ public class Fluids : IMod
     private bool LowestFreeSpace(int x, int y, int z, int zrequired)
     {
         if (!m.IsValidPos(x, y, z))
+        {
             return false;
+        }
+
         preferedSearchDirection = -1; //down
         int maxRecursionDepth = 10; //default
         searchZ = zrequired;
@@ -286,9 +334,15 @@ public class Fluids : IMod
         searchMedium = m.GetBlock(x, y, z);
         searchTarget = 0;
         if (!m.IsBlockFluid(searchMedium))
+        {
             return false;
+        }
+
         if (searchMedium == Water)
+        {
             maxRecursionDepth = 25;
+        }
+
         visitedBlocks = [];
         RecursiveSearch(maxRecursionDepth, x, y, z);
         return found;
@@ -297,7 +351,10 @@ public class Fluids : IMod
     private bool HighestFluidBlock(int x, int y, int z, int zrequired)
     {
         if (!m.IsValidPos(x, y, z))
+        {
             return false;
+        }
+
         preferedSearchDirection = 1; //up
         int maxRecursionDepth = 10; //default
         searchZ = zrequired;
@@ -306,9 +363,15 @@ public class Fluids : IMod
         searchMedium = m.GetBlock(x, y, z);
         searchTarget = searchMedium;
         if (!m.IsBlockFluid(searchMedium))
+        {
             return false;
+        }
+
         if (searchMedium == Water)
+        {
             maxRecursionDepth = 25;
+        }
+
         visitedBlocks = [];
         RecursiveSearch(maxRecursionDepth, x, y, z);
         return found;
@@ -317,9 +380,14 @@ public class Fluids : IMod
     private void RecursiveSearch(int depth, int x, int y, int z)
     {
         if ((depth == 0) || (found && endSearchonFound))
+        {
             return;
+        }
+
         if (!m.IsValidPos(x, y, z))
+        {
             return;
+        }
         //check if we found the target
         if (m.GetBlock(x, y, z) == searchTarget)
         {
@@ -330,7 +398,10 @@ public class Fluids : IMod
                 {
                     zz = z + preferedSearchDirection;
                     while ((zz >= 0) && (zz < m.GetMapSizeZ()) && (m.GetBlock(x, y, zz) == searchMedium))
+                    {
                         zz += preferedSearchDirection;
+                    }
+
                     zz -= preferedSearchDirection;
                 }
                 if ((!found) || (((zz - foundBlock.Z) * preferedSearchDirection) > 0))
@@ -338,17 +409,23 @@ public class Fluids : IMod
                     foundBlock = new Vector3i(x, y, zz);
                     found = true;
                     if (endSearchonFound)
+                    {
                         return;
+                    }
                 }
             }
         }
         //check if it is the search medium
         if (m.GetBlock(x, y, z) != searchMedium)
+        {
             return;
+        }
         //check if already visited
         int hash = PositionHash(x, y, z);
         if (visitedBlocks.ContainsKey(hash))
+        {
             return;
+        }
         //mark visited
         visitedBlocks.Add(hash, new Vector3i(x, y, z));
         //search recursive (preferred z,horizontal,less other z direction)

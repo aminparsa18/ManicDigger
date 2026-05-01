@@ -25,8 +25,11 @@ public sealed class Perlin : IModule
         set
         {
             if (value < 1 || value > MaxOctaves)
+            {
                 throw new ArgumentException(
                     $"OctaveCount must be between 1 and {MaxOctaves}, got {value}.");
+            }
+
             _octaveCount = value;
         }
     }

@@ -19,13 +19,20 @@ public class ModWalkSound : ModBase
 
     public override void OnNewFrameFixed(float args)
     {
-        if (Game.FollowId() != null) return;
+        if (Game.FollowId() != null)
+        {
+            return;
+        }
 
         if (Game.soundnow)
+        {
             UpdateWalkSound(StepSoundDuration / 2);
+        }
 
         if (Game.IsPlayerOnGround && (Game.Controls.MovedX != 0 || Game.Controls.MovedY != 0))
+        {
             UpdateWalkSound(args);
+        }
     }
 
     internal void UpdateWalkSound(float dt)
@@ -34,15 +41,23 @@ public class ModWalkSound : ModBase
 
         string[] sounds = CurrentWalkSounds();
         int soundCount = GetSoundCount(sounds);
-        if (soundCount == 0) return;
+        if (soundCount == 0)
+        {
+            return;
+        }
 
-        if (walkSoundTimer < StepSoundDuration) return;
+        if (walkSoundTimer < StepSoundDuration)
+        {
+            return;
+        }
 
         walkSoundTimer = 0;
         lastWalkSound = (lastWalkSound + 1) % soundCount;
 
         if (random.Next() % 100 < RandomSoundChance)
+        {
             lastWalkSound = random.Next() % soundCount;
+        }
 
         Game.PlayAudio(sounds[lastWalkSound]);
     }
@@ -57,7 +72,13 @@ public class ModWalkSound : ModBase
     {
         int count = 0;
         for (int i = 0; i < BlockTypeRegistry.SoundCount; i++)
-            if (sounds[i] != null) count++;
+        {
+            if (sounds[i] != null)
+            {
+                count++;
+            }
+        }
+
         return count;
     }
 }

@@ -44,7 +44,9 @@ public class LanguageService
         foreach (string file in fileList)
         {
             if (!file.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
                 continue;
+            }
 
             string language = Path.GetFileNameWithoutExtension(file);
             string json = File.ReadAllText(file, System.Text.Encoding.UTF8);
@@ -52,10 +54,15 @@ public class LanguageService
             Dictionary<string, string>? entries =
                 System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json);
 
-            if (entries == null) continue;
+            if (entries == null)
+            {
+                continue;
+            }
 
             foreach ((string id, string translated) in entries)
+            {
                 Add(language, id, translated);
+            }
         }
     }
 
@@ -74,11 +81,15 @@ public class LanguageService
         string language = ResolveLanguage();
 
         if (strings.TryGetValue((language, id), out string result))
+        {
             return result;
+        }
 
         // Fallback to English
         if (strings.TryGetValue(("en", id), out string english))
+        {
             return english;
+        }
 
         // Not found — return the key so missing strings are visible in-game
         return id;

@@ -7,10 +7,7 @@ public class Revert : IMod
 
     public int MaxRevert = 2000;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("BuildLog");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("BuildLog");
 
     public void Start(IModManager manager)
     {

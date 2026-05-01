@@ -63,8 +63,8 @@ public partial class Game
             Thread.SpinWait(20_000_000);
 
         SetAmbientLight(Terraincolor());
-        OpenGlService.GlClearColorBufferAndDepthBuffer();
-        OpenGlService.BindTexture2d(TerrainTexture);
+        openGlService.GlClearColorBufferAndDepthBuffer();
+        openGlService.BindTexture2d(TerrainTexture);
 
         for (int i = 0; i < ClientMods.Count; i++)
             ClientMods[i]?.OnBeforeNewFrameDraw3d(this, deltaTime);
@@ -74,7 +74,7 @@ public partial class Game
         CameraMatrix.LastModelViewMatrix = Camera;
         FrustumCulling.CalcFrustumEquations();
 
-        OpenGlService.GlEnableDepthTest();
+        openGlService.GlEnableDepthTest();
         for (int i = 0; i < ClientMods.Count; i++)
             ClientMods[i]?.OnNewFrameDraw3d(this, deltaTime);
 
@@ -181,7 +181,7 @@ public partial class Game
     /// <summary>Updates the OpenGL viewport and projection matrix after a resize.</summary>
     internal void OnResize()
     {
-        OpenGlService.GlViewport(0, 0, GameService.CanvasWidth, GameService.CanvasHeight);
+        openGlService.GlViewport(0, 0, GameService.CanvasWidth, GameService.CanvasHeight);
         Set3dProjection2();
         if (sendResize)
             SendGameResolution();
@@ -196,7 +196,7 @@ public partial class Game
     {
         if (GuiState == GuiState.MapLoading)
         {
-            OpenGlService.GlClearColorRgbaf(0f, 0f, 0f, 1f);
+            openGlService.GlClearColorRgbaf(0f, 0f, 0f, 1f);
             return;
         }
 
@@ -216,7 +216,7 @@ public partial class Game
             _lastClearColorA = clearcolorA;
         }
 
-        OpenGlService.GlClearColorRgbaf(_clearColorRf, _clearColorGf, _clearColorBf, _clearColorAf);
+        openGlService.GlClearColorRgbaf(_clearColorRf, _clearColorGf, _clearColorBf, _clearColorAf);
     }
 
     /// <summary>

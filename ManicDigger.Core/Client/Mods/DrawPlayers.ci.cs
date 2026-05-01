@@ -90,7 +90,7 @@ public class ModDrawPlayers : ModBase
         meshDrawer.GLPushMatrix();
         meshDrawer.GLTranslate(p.position.x, p.position.y, p.position.z);
         meshDrawer.GLRotate(float.RadiansToDegrees(-p.position.roty + MathF.PI), 0, 1, 0);
-        game.OpenGlService.BindTexture2d(p.drawModel.CurrentTexture);
+        openGlService.BindTexture2d(p.drawModel.CurrentTexture);
         p.drawModel.renderer.Render(dt, float.RadiansToDegrees(p.position.rotx + MathF.PI), true, p.playerDrawInfo.moves, shadow);
         meshDrawer.GLPopMatrix();
     }

@@ -374,10 +374,10 @@ public partial class Game
             fogA = clearcolorA;
         }
 
-        OpenGlService.GlEnableFog();
-        OpenGlService.GlFogFogColor(fogR, fogG, fogB, fogA);
+        openGlService.GlEnableFog();
+        openGlService.GlFogFogColor(fogR, fogG, fogB, fogA);
         // Fix #9: FogDensity = 25f / 10000f — self-documenting constant.
-        OpenGlService.GlFogFogDensity(FogDensity);
+        openGlService.GlFogFogDensity(FogDensity);
     }
 
     // ── Map events ────────────────────────────────────────────────────────────

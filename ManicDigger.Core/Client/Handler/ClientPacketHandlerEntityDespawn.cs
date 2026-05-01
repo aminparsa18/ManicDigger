@@ -4,6 +4,10 @@
 /// </summary>
 public class ClientPacketHandlerEntityDespawn : ClientPacketHandler
 {
+    public ClientPacketHandlerEntityDespawn(IGameService gameService) : base(gameService)
+    {
+    }
+
     public override void Handle(IGame game, Packet_Server packet)
     {
         int id = packet.EntityDespawn.Id;

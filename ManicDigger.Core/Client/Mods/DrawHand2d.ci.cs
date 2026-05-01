@@ -8,11 +8,13 @@ public class ModDrawHand2d : ModBase
     private string lastHandImage;
     private readonly IGameService platform;
     private readonly IMeshDrawer meshDrawer;
+    private readonly IOpenGlService openGlService;
 
-    public ModDrawHand2d(IGameService platform, IMeshDrawer meshDrawer)
+    public ModDrawHand2d(IGameService platform, IMeshDrawer meshDrawer, IOpenGlService openGlService)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
+        this.openGlService = openGlService;
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -31,7 +33,7 @@ public class ModDrawHand2d : ModBase
             Bitmap bmp = PixelBuffer.BitmapFromPng(file, file.Length);
             if (bmp != null)
             {
-                game.handTexture = game.OpenGlService.LoadTextureFromBitmap(bmp);
+                game.handTexture = openGlService.LoadTextureFromBitmap(bmp);
                 bmp.Dispose();
             }
         }

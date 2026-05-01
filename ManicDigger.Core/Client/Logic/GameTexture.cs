@@ -24,7 +24,7 @@ public partial class Game
             PixelBuffer buf = PixelBuffer.Create(1, 1);
             buf.SetPixel(0, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255));
             using Bitmap bmp = buf.ToBitmap();
-            whitetexture = OpenGlService.LoadTextureFromBitmap(bmp);
+            whitetexture = openGlService.LoadTextureFromBitmap(bmp);
         }
         return whitetexture;
     }
@@ -52,7 +52,7 @@ public partial class Game
 
         foreach (TextStyle key in _textStylesToRemove)
         {
-            OpenGlService.GLDeleteTexture(CachedTextTextures[key].textureId);
+            openGlService.GLDeleteTexture(CachedTextTextures[key].textureId);
             CachedTextTextures.Remove(key);
         }
     }
@@ -69,7 +69,7 @@ public partial class Game
         {
             sizeX = bmp.Width,
             sizeY = bmp.Height,
-            textureId = OpenGlService.LoadTextureFromBitmap(bmp),
+            textureId = openGlService.LoadTextureFromBitmap(bmp),
         };
     }
 
@@ -84,7 +84,7 @@ public partial class Game
         if (!textures.TryGetValue(p, out int id))
         {
             using Bitmap bmp = PixelBuffer.BitmapFromPng(GetAssetFile(p), GetAssetFileLength(p));
-            id = OpenGlService.LoadTextureFromBitmap(bmp);
+            id = openGlService.LoadTextureFromBitmap(bmp);
             textures[p] = id;
         }
         return id;
@@ -98,7 +98,7 @@ public partial class Game
     {
         if (!textures.TryGetValue(name, out int id))
         {
-            id = OpenGlService.LoadTextureFromBitmap(bmp);
+            id = openGlService.LoadTextureFromBitmap(bmp);
             textures[name] = id;
         }
         return id;
@@ -113,7 +113,7 @@ public partial class Game
         if (name != null && textures.TryGetValue(name, out int id))
         {
             textures.Remove(name);
-            OpenGlService.GLDeleteTexture(id);
+            openGlService.GLDeleteTexture(id);
             return true;
         }
         return false;
@@ -128,7 +128,7 @@ public partial class Game
     /// </summary>
     internal void UseTerrainTextureAtlas2d(Bitmap atlas2d, int atlas2dWidth)
     {
-        TerrainTexture = OpenGlService.LoadTextureFromBitmap(atlas2d);
+        TerrainTexture = openGlService.LoadTextureFromBitmap(atlas2d);
 
         // Fix #5: call Atlas1dheight() once and reuse the result.
         int atlas1dHeight = Atlas1dheight();
@@ -139,7 +139,7 @@ public partial class Game
         TerrainTextures1d = new int[atlases1d.Length];
         for (int i = 0; i < atlases1d.Length; i++)
         {
-            TerrainTextures1d[i] = OpenGlService.LoadTextureFromBitmap(atlases1d[i]);
+            TerrainTextures1d[i] = openGlService.LoadTextureFromBitmap(atlases1d[i]);
             atlases1d[i].Dispose();
         }
     }

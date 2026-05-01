@@ -15,11 +15,6 @@ public interface IGame : IDisposable
     // Platform & core
     // =========================================================================
 
-    /// <summary>The host platform abstraction (windowing, GL, input, file I/O).</summary>
-    IGameService GameService { get; set; }
-
-    IOpenGlService OpenGlService { get; set; }
-
     /// <summary>Active localisation data.</summary>
     LanguageService Language { get; set; }
 

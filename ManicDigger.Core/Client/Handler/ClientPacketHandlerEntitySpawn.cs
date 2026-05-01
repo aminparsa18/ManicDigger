@@ -6,7 +6,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
 {
     private readonly IVoxelMap voxelMap;
 
-    public ClientPacketHandlerEntitySpawn(IVoxelMap voxelMap)
+    public ClientPacketHandlerEntitySpawn(IGameService gameService, IVoxelMap voxelMap) : base(gameService)
     {
         this.voxelMap = voxelMap;
     }
@@ -61,13 +61,13 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
     /// <paramref name="old"/> entity object, allocating sub-objects only when
     /// the corresponding server field is present.
     /// </summary>
-    public static Entity ToClientEntity(IGame game, Packet_ServerEntity entity, Entity old, bool updatePosition)
+    public Entity ToClientEntity(IGame game, Packet_ServerEntity entity, Entity old, bool updatePosition)
     {
         if (entity.Position != null && (old.position == null || updatePosition))
         {
             old.networkPosition = ToClientEntityPosition(entity.Position);
             old.networkPosition.PositionLoaded = true;
-            old.networkPosition.LastUpdateMilliseconds = game.GameService.TimeMillisecondsFromStart;
+            old.networkPosition.LastUpdateMilliseconds = gameService.TimeMillisecondsFromStart;
             old.position = ToClientEntityPosition(entity.Position);
         }
 

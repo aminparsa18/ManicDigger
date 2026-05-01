@@ -5,15 +5,29 @@ using System.Numerics;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
 
-public class OpenGlService : IOpenGlService
+/// <inheritdoc/>
+public sealed class OpenGlService : IOpenGlService
 {
-    public bool ALLOW_NON_POWER_OF_TWO = false;
-    public bool ENABLE_MIPMAPS = true;
-    public bool ENABLE_TRANSPARENCY = true;
+    /// <summary>
+    /// When <see langword="false"/>, non-power-of-two bitmaps are resized to the
+    /// next power of two before upload. Set to <see langword="true"/> only if the
+    /// target GPU advertises <c>GL_ARB_texture_non_power_of_two</c>.
+    /// </summary>
+    public bool AllowNonPowerOfTwo { get; set; } = false;
+
+    /// <summary>When <see langword="true"/>, mipmaps are generated for every uploaded texture.</summary>
+    public bool EnableMipmaps { get; set; } = true;
+
+    /// <summary>When <see langword="true"/>, alpha blending is enabled after texture upload.</summary>
+    public bool EnableTransparency { get; set; } = true;
 
     private Matrix4 _projectionMatrix;
     private Matrix4 _modelViewMatrix;
-    private int _shaderProgram = -1; // will be set when we create shaders
+
+    /// <summary>OpenGL shader program handle; -1 until <see cref="InitShaders"/> is called.</summary>
+    private int _shaderProgram = -1;
+
+    // Cached uniform locations — populated by InitShaders.
     private int _uUseTexture;
     private int _uProjection;
     private int _uModelView;
@@ -26,6 +40,92 @@ public class OpenGlService : IOpenGlService
     private Vector4 _fogColor = Vector4.One;
     private float _fogDensity = 0.003f;
 
+    // ── Viewport and clear ────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public void GlViewport(int x, int y, int width, int height) =>
+        GL.Viewport(x, y, width, height);
+
+    /// <inheritdoc/>
+    public void GlClearColorBufferAndDepthBuffer() =>
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+    /// <inheritdoc/>
+    public void GlClearDepthBuffer() =>
+        GL.Clear(ClearBufferMask.DepthBufferBit);
+
+    /// <inheritdoc/>
+    public void GlClearColorRgbaf(float r, float g, float b, float a) =>
+        GL.ClearColor(r, g, b, a);
+
+    // ── Depth test ────────────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public void GlEnableDepthTest() => GL.Enable(EnableCap.DepthTest);
+
+    /// <inheritdoc/>
+    public void GlDisableDepthTest() => GL.Disable(EnableCap.DepthTest);
+
+    /// <inheritdoc/>
+    public void GlDepthMask(bool flag) => GL.DepthMask(flag);
+
+    // ── Face culling ──────────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public void GlEnableCullFace() => GL.Enable(EnableCap.CullFace);
+
+    /// <inheritdoc/>
+    public void GlDisableCullFace() => GL.Disable(EnableCap.CullFace);
+
+    /// <inheritdoc/>
+    public void GlCullFaceBack() => GL.CullFace(TriangleFace.Back);
+
+    // ── Rasterisation state ───────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public void GLLineWidth(int width) => GL.LineWidth(width);
+
+    // ── Ambient lighting ──────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public void GlLightModelAmbient(int r, int g, int b)
+    {
+        _ambientLight = new Vector3(r / 255f, g / 255f, b / 255f);
+        if (_shaderProgram != -1)
+            GL.Uniform3(_uAmbientLight, _ambientLight.X, _ambientLight.Y, _ambientLight.Z);
+    }
+
+    // ── Fog ───────────────────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public void GlEnableFog()
+    {
+        if (_shaderProgram != -1) GL.Uniform1(_uFogEnabled, 1);
+    }
+
+    /// <inheritdoc/>
+    public void GlDisableFog()
+    {
+        if (_shaderProgram != -1) GL.Uniform1(_uFogEnabled, 0);
+    }
+
+    /// <inheritdoc/>
+    public void GlFogFogColor(int r, int g, int b, int a)
+    {
+        _fogColor = new Vector4(r / 255f, g / 255f, b / 255f, a / 255f);
+        if (_shaderProgram != -1) GL.Uniform4(_uFogColor, _fogColor);
+    }
+
+    /// <inheritdoc/>
+    public void GlFogFogDensity(float density)
+    {
+        _fogDensity = density;
+        if (_shaderProgram != -1) GL.Uniform1(_uFogDensity, _fogDensity);
+    }
+
+    // ── Textures ──────────────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
     public void BindTexture2d(int texture)
     {
         GL.BindTexture(TextureTarget.Texture2D, texture);
@@ -33,33 +133,49 @@ public class OpenGlService : IOpenGlService
             GL.Uniform1(_uUseTexture, texture != 0 ? 1 : 0);
     }
 
+    /// <inheritdoc/>
+    public void GLDeleteTexture(int id) => GL.DeleteTexture(id);
+
+    /// <inheritdoc/>
+    public int GlGetMaxTextureSize()
+    {
+        GL.GetInteger(GetPName.MaxTextureSize, out int size);
+        return size;
+    }
+
+    /// <inheritdoc/>
+    public int LoadTextureFromBitmap(Bitmap bmp) => LoadTexture(bmp, linearMag: false);
+
+    // ── Model lifecycle ───────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
     public GeometryModel CreateModel(GeometryModel data)
     {
         int vao = GL.GenVertexArray();
         GL.BindVertexArray(vao);
 
-        // positions → attribute 0
+        // attribute 0 — positions (XYZ)
         int vertexVbo = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexVbo);
         GL.BufferData(BufferTarget.ArrayBuffer, data.Xyz.Length * sizeof(float), data.Xyz, BufferUsageHint.StaticDraw);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, 0);
         GL.EnableVertexAttribArray(0);
 
-        // colors → attribute 1
+        // attribute 1 — colours (RGBA, normalised byte)
         int colorVbo = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ArrayBuffer, colorVbo);
         GL.BufferData(BufferTarget.ArrayBuffer, data.Rgba.Length * sizeof(byte), data.Rgba, BufferUsageHint.StaticDraw);
         GL.VertexAttribPointer(1, 4, VertexAttribPointerType.UnsignedByte, true, 0, 0);
         GL.EnableVertexAttribArray(1);
 
-        // UVs → attribute 2
+        // attribute 2 — texture coordinates (UV)
         int uvVbo = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ArrayBuffer, uvVbo);
         GL.BufferData(BufferTarget.ArrayBuffer, data.Uv.Length * sizeof(float), data.Uv, BufferUsageHint.StaticDraw);
         GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, 0, 0);
         GL.EnableVertexAttribArray(2);
 
-        // indices
+        // element buffer — triangle indices
         int indexVbo = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexVbo);
         GL.BufferData(BufferTarget.ElementArrayBuffer, data.Indices.Length * sizeof(int), data.Indices, BufferUsageHint.StaticDraw);
@@ -74,280 +190,7 @@ public class OpenGlService : IOpenGlService
         return data;
     }
 
-    public void DeleteModel(GeometryModel model)
-    {
-        GeometryModel m = model;
-        GL.DeleteVertexArray(m.VaoId);
-        GL.DeleteBuffer(m.VertexVboId);
-        GL.DeleteBuffer(m.ColorVboId);
-        GL.DeleteBuffer(m.UvVboId);
-        GL.DeleteBuffer(m.IndexVboId);
-    }
-
-    public void DrawModel(GeometryModel model)
-    {
-        DrawModelData(model);
-    }
-
-    public void DrawModelData(GeometryModel data)
-    {
-        GL.UseProgram(_shaderProgram);
-        GL.UniformMatrix4(_uProjection, false, ref _projectionMatrix);
-        GL.UniformMatrix4(_uModelView, false, ref _modelViewMatrix);
-        GL.BindVertexArray(data.VaoId);
-        PrimitiveType primitiveType = data.Mode == (int)DrawMode.Triangles
-            ? PrimitiveType.Triangles
-            : PrimitiveType.Lines;
-        GL.DrawElements(primitiveType, data.IndicesCount, DrawElementsType.UnsignedInt, 0);
-        GL.BindVertexArray(0);
-    }
-
-    public void DrawModels(List<GeometryModel> models, int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            DrawModelData(models[i]);
-        }
-    }
-
-    public void GlClearColorBufferAndDepthBuffer()
-    {
-        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-    }
-
-    public void GlClearColorRgbaf(float r, float g, float b, float a)
-    {
-        GL.ClearColor(r, g, b, a);
-    }
-
-    public void GlClearDepthBuffer()
-    {
-        GL.Clear(ClearBufferMask.DepthBufferBit);
-    }
-
-    public void GlCullFaceBack()
-    {
-        GL.CullFace(TriangleFace.Back);
-    }
-
-    public void GLDeleteTexture(int id)
-    {
-        GL.DeleteTexture(id);
-    }
-
-    public void GlDepthMask(bool flag)
-    {
-        GL.DepthMask(flag);
-    }
-
-    public void GlDisableCullFace()
-    {
-        GL.Disable(EnableCap.CullFace);
-    }
-
-    public void GlDisableDepthTest()
-    {
-        GL.Disable(EnableCap.DepthTest);
-    }
-
-    public void GlDisableFog()
-    {
-        if (_shaderProgram != -1)
-            GL.Uniform1(_uFogEnabled, 0);
-    }
-
-    public void GlEnableCullFace()
-    {
-        GL.Enable(EnableCap.CullFace);
-    }
-
-    public void GlEnableDepthTest()
-    {
-        GL.Enable(EnableCap.DepthTest);
-    }
-
-    public void GlEnableFog()
-    {
-        if (_shaderProgram != -1)
-            GL.Uniform1(_uFogEnabled, 1);
-    }
-
-    public void GlFogFogColor(int r, int g, int b, int a)
-    {
-        _fogColor = new Vector4(r / 255f, g / 255f, b / 255f, a / 255f);
-        if (_shaderProgram != -1)
-            GL.Uniform4(_uFogColor, _fogColor);
-    }
-
-    public void GlFogFogDensity(float density)
-    {
-        _fogDensity = density;
-        if (_shaderProgram != -1)
-            GL.Uniform1(_uFogDensity, _fogDensity);
-    }
-
-    public int GlGetMaxTextureSize()
-    {
-        GL.GetInteger(GetPName.MaxTextureSize, out int size);
-        return size;
-    }
-
-    public void GlLightModelAmbient(int r, int g, int b)
-    {
-        _ambientLight = new Vector3(r / 255f, g / 255f, b / 255f);
-        if (_shaderProgram != -1)
-            GL.Uniform3(GL.GetUniformLocation(_shaderProgram, "uAmbientLight"),
-                _ambientLight.X, _ambientLight.Y, _ambientLight.Z);
-    }
-
-    public void GLLineWidth(int width)
-    {
-        GL.LineWidth(width);
-    }
-
-    public void GlViewport(int x, int y, int width, int height)
-    {
-        GL.Viewport(x, y, width, height);
-    }
-
-    public void InitShaders()
-    {
-        string vertexSource = @"
-        #version 330 core
-
-        layout(location = 0) in vec3 aPosition;
-        layout(location = 1) in vec4 aColor;
-        layout(location = 2) in vec2 aUv;
-
-        uniform mat4 uProjection;
-        uniform mat4 uModelView;
-
-        out vec4 vColor;
-        out vec2 vUv;
-        out float vFogDepth;
-
-        void main()
-        {
-            vec4 viewPos = uModelView * vec4(aPosition, 1.0);
-            gl_Position = uProjection * viewPos;
-            vColor = aColor;
-            vUv = aUv;
-            vFogDepth = abs(viewPos.z);
-        }
-    ";
-
-        string fragmentSource = @"
-        #version 330 core
-
-        in vec4 vColor;
-        in vec2 vUv;
-        in float vFogDepth;
-
-        uniform sampler2D uTexture;
-        uniform vec3 uAmbientLight;
-        uniform vec4 uFogColor;
-        uniform float uFogDensity;
-        uniform bool uFogEnabled;
-        uniform bool uUseTexture;
-        
-        out vec4 fragColor;
-
-        void main()
-        {
-            if (uUseTexture)
-                fragColor = texture(uTexture, vUv) * vColor;
-            else
-                fragColor = vColor; // sky sphere, hand tint, etc.
-            
-            // only discard when texturing — alpha test doesn't apply to vertex-colored geometry
-            if (uUseTexture && fragColor.a < 0.5)
-                discard;
-
-            fragColor.rgb *= uAmbientLight;
-
-            if (uFogEnabled)
-            {
-                float fogFactor = exp(-uFogDensity * uFogDensity * vFogDepth * vFogDepth);
-                fogFactor = clamp(fogFactor, 0.0, 1.0);
-                fragColor.rgb = mix(uFogColor.rgb, fragColor.rgb, fogFactor);
-            }
-        }
-    ";
-
-        // compile vertex shader
-        int vertexShader = GL.CreateShader(ShaderType.VertexShader);
-        GL.ShaderSource(vertexShader, vertexSource);
-        GL.CompileShader(vertexShader);
-        GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out int vertStatus);
-        if (vertStatus == 0)
-            throw new Exception($"Vertex shader error: {GL.GetShaderInfoLog(vertexShader)}");
-
-        // compile fragment shader
-        int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-        GL.ShaderSource(fragmentShader, fragmentSource);
-        GL.CompileShader(fragmentShader);
-        GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out int fragStatus);
-        if (fragStatus == 0)
-            throw new Exception($"Fragment shader error: {GL.GetShaderInfoLog(fragmentShader)}");
-
-        // link program
-        _shaderProgram = GL.CreateProgram();
-        GL.AttachShader(_shaderProgram, vertexShader);
-        GL.AttachShader(_shaderProgram, fragmentShader);
-        GL.LinkProgram(_shaderProgram);
-        GL.GetProgram(_shaderProgram, GetProgramParameterName.LinkStatus, out int linkStatus);
-        if (linkStatus == 0)
-            throw new Exception($"Shader link error: {GL.GetProgramInfoLog(_shaderProgram)}");
-
-        // cleanup - shaders are linked into program, no longer needed
-        GL.DetachShader(_shaderProgram, vertexShader);
-        GL.DetachShader(_shaderProgram, fragmentShader);
-        GL.DeleteShader(vertexShader);
-        GL.DeleteShader(fragmentShader);
-
-        // set initial uniform values
-        GL.UseProgram(_shaderProgram);
-        GL.Uniform1(GL.GetUniformLocation(_shaderProgram, "uTexture"), 0);
-        GL.Uniform3(GL.GetUniformLocation(_shaderProgram, "uAmbientLight"), 1f, 1f, 1f);
-        GL.Uniform1(GL.GetUniformLocation(_shaderProgram, "uFogEnabled"), 0);
-        GL.Uniform1(GL.GetUniformLocation(_shaderProgram, "uFogDensity"), _fogDensity);
-        GL.Uniform4(GL.GetUniformLocation(_shaderProgram, "uFogColor"), _fogColor);
-        _uUseTexture = GL.GetUniformLocation(_shaderProgram, "uUseTexture");
-        _uProjection = GL.GetUniformLocation(_shaderProgram, "uProjection");
-        _uModelView = GL.GetUniformLocation(_shaderProgram, "uModelView");
-        _uAmbientLight = GL.GetUniformLocation(_shaderProgram, "uAmbientLight");
-        _uFogEnabled = GL.GetUniformLocation(_shaderProgram, "uFogEnabled");
-        _uFogColor = GL.GetUniformLocation(_shaderProgram, "uFogColor");
-        _uFogDensity = GL.GetUniformLocation(_shaderProgram, "uFogDensity");
-
-        // set initial values using cached locations
-        GL.Uniform3(_uAmbientLight, 1f, 1f, 1f);
-        GL.Uniform1(_uFogEnabled, 0);
-        GL.Uniform1(_uFogDensity, _fogDensity);
-        GL.Uniform4(_uFogColor, _fogColor);
-
-        GL.UseProgram(_shaderProgram);
-    }
-
-    public int LoadTextureFromBitmap(Bitmap bmp)
-    {
-        return LoadTexture(bmp, false);
-    }
-
-    public void SetMatrixUniformModelView(ref Matrix4 mvMatrix)
-    {
-        _modelViewMatrix = mvMatrix;
-        if (_shaderProgram != -1)
-            GL.UniformMatrix4(_uModelView, false, ref _modelViewMatrix);
-    }
-
-    public void SetMatrixUniformProjection(ref Matrix4 pMatrix)
-    {
-        _projectionMatrix = pMatrix;
-        if (_shaderProgram != -1)
-            GL.UniformMatrix4(_uProjection, false, ref _projectionMatrix);
-    }
-
+    /// <inheritdoc/>
     public void UpdateModel(GeometryModel data)
     {
         if (data.VaoId == 0)
@@ -375,79 +218,240 @@ public class OpenGlService : IOpenGlService
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
     }
 
+    /// <inheritdoc/>
+    public void DrawModel(GeometryModel model) => DrawModelData(model);
+
+    /// <inheritdoc/>
+    public void DrawModelData(GeometryModel data)
+    {
+        GL.UseProgram(_shaderProgram);
+        GL.UniformMatrix4(_uProjection, false, ref _projectionMatrix);
+        GL.UniformMatrix4(_uModelView, false, ref _modelViewMatrix);
+        GL.BindVertexArray(data.VaoId);
+
+        PrimitiveType primitive = data.Mode == (int)DrawMode.Triangles
+            ? PrimitiveType.Triangles
+            : PrimitiveType.Lines;
+        GL.DrawElements(primitive, data.IndicesCount, DrawElementsType.UnsignedInt, 0);
+        GL.BindVertexArray(0);
+    }
+
+    /// <inheritdoc/>
+    public void DrawModels(List<GeometryModel> models, int count)
+    {
+        for (int i = 0; i < count; i++)
+            DrawModelData(models[i]);
+    }
+
+    /// <inheritdoc/>
+    public void DeleteModel(GeometryModel model)
+    {
+        GL.DeleteVertexArray(model.VaoId);
+        GL.DeleteBuffer(model.VertexVboId);
+        GL.DeleteBuffer(model.ColorVboId);
+        GL.DeleteBuffer(model.UvVboId);
+        GL.DeleteBuffer(model.IndexVboId);
+    }
+
+    // ── Shaders and uniforms ──────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public void InitShaders()
+    {
+        const string vertexSource = @"
+            #version 330 core
+
+            layout(location = 0) in vec3 aPosition;
+            layout(location = 1) in vec4 aColor;
+            layout(location = 2) in vec2 aUv;
+
+            uniform mat4 uProjection;
+            uniform mat4 uModelView;
+
+            out vec4 vColor;
+            out vec2 vUv;
+            out float vFogDepth;
+
+            void main()
+            {
+                vec4 viewPos = uModelView * vec4(aPosition, 1.0);
+                gl_Position  = uProjection * viewPos;
+                vColor    = aColor;
+                vUv       = aUv;
+                vFogDepth = abs(viewPos.z);
+            }
+        ";
+
+        const string fragmentSource = @"
+            #version 330 core
+
+            in vec4  vColor;
+            in vec2  vUv;
+            in float vFogDepth;
+
+            uniform sampler2D uTexture;
+            uniform vec3      uAmbientLight;
+            uniform vec4      uFogColor;
+            uniform float     uFogDensity;
+            uniform bool      uFogEnabled;
+            uniform bool      uUseTexture;
+
+            out vec4 fragColor;
+
+            void main()
+            {
+                fragColor = uUseTexture ? texture(uTexture, vUv) * vColor : vColor;
+
+                // Alpha test — only discard textured fragments; vertex-colored geometry is always opaque.
+                if (uUseTexture && fragColor.a < 0.5)
+                    discard;
+
+                fragColor.rgb *= uAmbientLight;
+
+                if (uFogEnabled)
+                {
+                    float fogFactor = clamp(
+                        exp(-uFogDensity * uFogDensity * vFogDepth * vFogDepth),
+                        0.0, 1.0);
+                    fragColor.rgb = mix(uFogColor.rgb, fragColor.rgb, fogFactor);
+                }
+            }
+        ";
+
+        int vert = CompileShader(ShaderType.VertexShader, vertexSource);
+        int frag = CompileShader(ShaderType.FragmentShader, fragmentSource);
+
+        _shaderProgram = GL.CreateProgram();
+        GL.AttachShader(_shaderProgram, vert);
+        GL.AttachShader(_shaderProgram, frag);
+        GL.LinkProgram(_shaderProgram);
+        GL.GetProgram(_shaderProgram, GetProgramParameterName.LinkStatus, out int linkStatus);
+        if (linkStatus == 0)
+            throw new Exception($"Shader link error: {GL.GetProgramInfoLog(_shaderProgram)}");
+
+        // Shaders are baked into the program — intermediate objects can be released.
+        GL.DetachShader(_shaderProgram, vert);
+        GL.DetachShader(_shaderProgram, frag);
+        GL.DeleteShader(vert);
+        GL.DeleteShader(frag);
+
+        // Cache uniform locations.
+        GL.UseProgram(_shaderProgram);
+        _uUseTexture = GL.GetUniformLocation(_shaderProgram, "uUseTexture");
+        _uProjection = GL.GetUniformLocation(_shaderProgram, "uProjection");
+        _uModelView = GL.GetUniformLocation(_shaderProgram, "uModelView");
+        _uAmbientLight = GL.GetUniformLocation(_shaderProgram, "uAmbientLight");
+        _uFogEnabled = GL.GetUniformLocation(_shaderProgram, "uFogEnabled");
+        _uFogColor = GL.GetUniformLocation(_shaderProgram, "uFogColor");
+        _uFogDensity = GL.GetUniformLocation(_shaderProgram, "uFogDensity");
+
+        // Push initial uniform values.
+        GL.Uniform1(GL.GetUniformLocation(_shaderProgram, "uTexture"), 0);
+        GL.Uniform3(_uAmbientLight, 1f, 1f, 1f);
+        GL.Uniform1(_uFogEnabled, 0);
+        GL.Uniform1(_uFogDensity, _fogDensity);
+        GL.Uniform4(_uFogColor, _fogColor);
+    }
+
+    /// <inheritdoc/>
+    public void SetMatrixUniformProjection(ref Matrix4 pMatrix)
+    {
+        _projectionMatrix = pMatrix;
+        if (_shaderProgram != -1)
+            GL.UniformMatrix4(_uProjection, false, ref _projectionMatrix);
+    }
+
+    /// <inheritdoc/>
+    public void SetMatrixUniformModelView(ref Matrix4 mvMatrix)
+    {
+        _modelViewMatrix = mvMatrix;
+        if (_shaderProgram != -1)
+            GL.UniformMatrix4(_uModelView, false, ref _modelViewMatrix);
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Compiles a single shader stage and returns its handle.
+    /// </summary>
+    /// <exception cref="Exception">Thrown when compilation fails, with the info log attached.</exception>
+    private static int CompileShader(ShaderType type, string source)
+    {
+        int shader = GL.CreateShader(type);
+        GL.ShaderSource(shader, source);
+        GL.CompileShader(shader);
+        GL.GetShader(shader, ShaderParameter.CompileStatus, out int status);
+        if (status == 0)
+            throw new Exception($"{type} compile error: {GL.GetShaderInfoLog(shader)}");
+        return shader;
+    }
+
+    /// <summary>
+    /// Uploads <paramref name="bmpArg"/> to the GPU and returns an OpenGL texture handle.
+    /// Non-power-of-two bitmaps are resized when <see cref="AllowNonPowerOfTwo"/> is false.
+    /// </summary>
     private int LoadTexture(Bitmap bmpArg, bool linearMag)
     {
         Bitmap bmp = bmpArg;
-        bool convertedbitmap = false;
-        if (!ALLOW_NON_POWER_OF_TWO &&
+        bool converted = false;
+
+        if (!AllowNonPowerOfTwo &&
             !(BitOperations.IsPow2((uint)bmp.Width) && BitOperations.IsPow2((uint)bmp.Height)))
         {
-            Bitmap bmp2 = new(
-                (int)BitOperations.RoundUpToPowerOf2((uint)bmp.Width),
-                (int)BitOperations.RoundUpToPowerOf2((uint)bmp.Height)
-            );
-            using (Graphics g = Graphics.FromImage(bmp2))
+            int w = (int)BitOperations.RoundUpToPowerOf2((uint)bmp.Width);
+            int h = (int)BitOperations.RoundUpToPowerOf2((uint)bmp.Height);
+            bmp = new Bitmap(w, h);
+            using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                g.DrawImage(bmp, 0, 0, bmp2.Width, bmp2.Height);
+                g.DrawImage(bmpArg, 0, 0, w, h);
             }
-            convertedbitmap = true;
-            bmp = bmp2;
+            converted = true;
         }
-        // GL.Enable(EnableCap.Texture2D);
+
         int id = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, id);
-        if (!ENABLE_MIPMAPS)
+
+        if (!EnableMipmaps)
         {
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
         }
         else
         {
-            //GL.GenerateMipmap(GenerateMipmapTarget.Texture2D); //DOES NOT WORK ON ATI GRAPHIC CARDS
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 1); //DOES NOT WORK ON ???
-            int[] MipMapCount = new int[1];
-            GL.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureMaxLevel, out MipMapCount[0]);
-            if (MipMapCount[0] == 0)
-            {
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            }
-            else
-            {
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.NearestMipmapLinear);
-            }
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, linearMag ? (int)TextureMagFilter.Linear : (int)TextureMagFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 1);
+            GL.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureMaxLevel, out int mipCount);
+            GL.TexParameter(TextureTarget.Texture2D,
+                TextureParameterName.TextureMinFilter,
+                mipCount == 0
+                    ? (int)TextureMinFilter.Nearest
+                    : (int)TextureMinFilter.NearestMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D,
+                TextureParameterName.TextureMagFilter,
+                linearMag ? (int)TextureMagFilter.Linear : (int)TextureMagFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 4);
         }
-        BitmapData bmp_data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bmp_data.Width, bmp_data.Height, 0,
-            OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, bmp_data.Scan0);
+        BitmapData bmpData = bmp.LockBits(
+            new Rectangle(0, 0, bmp.Width, bmp.Height),
+            ImageLockMode.ReadOnly,
+            System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-        bmp.UnlockBits(bmp_data);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+            bmpData.Width, bmpData.Height, 0,
+            OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, bmpData.Scan0);
+
+        bmp.UnlockBits(bmpData);
 
         GL.Enable(EnableCap.DepthTest);
 
-        if (ENABLE_TRANSPARENCY)
-        {
-            // TODO: alpha test moved to fragment shader
-            // GL.Enable(EnableCap.AlphaTest);
-            // GL.AlphaFunc(AlphaFunction.Greater, 0.5f);
-        }
-
-
-        if (ENABLE_TRANSPARENCY)
+        if (EnableTransparency)
         {
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-            //GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvMode, (int)TextureEnvMode.Blend);
-            //GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvColor, new Color4(0, 0, 0, byte.MaxValue));
         }
 
-        if (convertedbitmap)
-        {
-            bmp.Dispose();
-        }
+        if (converted) bmp.Dispose();
         return id;
     }
 }

@@ -68,7 +68,7 @@ public partial class Game
         LastReceivedMilliseconds = GameService.TimeMillisecondsFromStart;
         EnableDrawTestCharacter = GameService.IsDebuggerAttached();
 
-        int detectedSize = OpenGlService.GlGetMaxTextureSize();
+        int detectedSize = openGlService.GlGetMaxTextureSize();
         maxTextureSize = Math.Max(detectedSize, 1024);
 
         taskScheduler.Initialise();
@@ -88,14 +88,14 @@ public partial class Game
 
     private void InitRenderer()
     {
-        OpenGlService.GlClearColorRgbaf(0, 0, 0, 1);
+        openGlService.GlClearColorRgbaf(0, 0, 0, 1);
 
         if (Config3d.EnableBackfaceCulling)
         {
-            OpenGlService.GlDepthMask(true);
-            OpenGlService.GlEnableDepthTest();
-            OpenGlService.GlCullFaceBack();
-            OpenGlService.GlEnableCullFace();
+            openGlService.GlDepthMask(true);
+            openGlService.GlEnableDepthTest();
+            openGlService.GlCullFaceBack();
+            openGlService.GlEnableCullFace();
         }
     }
 

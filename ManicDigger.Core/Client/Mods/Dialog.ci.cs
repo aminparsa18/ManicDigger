@@ -9,12 +9,13 @@ public class ModDialog : ModBase
     private static readonly string[] Empty = [];
     private const string TypableChars = "abcdefghijklmnopqrstuvwxyz1234567890\t ";
 
-    private readonly ClientPacketHandler packetHandler = new ClientPacketHandlerDialog();
+    private readonly ClientPacketHandler packetHandler;
     private readonly IGameService platform;
 
     public ModDialog(IGameService platform)
     {
         this.platform = platform;
+        this.packetHandler = new ClientPacketHandlerDialog(platform);
     }
 
     public override void OnNewFrameDraw2d(IGame game, float deltaTime)

@@ -5,6 +5,10 @@
 /// </summary>
 public class ClientPacketHandlerEntityPosition : ClientPacketHandler
 {
+    public ClientPacketHandlerEntityPosition(IGameService gameService) : base(gameService)
+    {
+    }
+
     public override void Handle(IGame game, Packet_Server packet)
     {
         int id = packet.EntityPosition.Id;
@@ -44,7 +48,7 @@ public class ClientPacketHandlerEntityPosition : ClientPacketHandler
             entity.networkPosition.rotx = ClientPacketHandlerEntitySpawn.Angle256ToRad(raw.Pitch);
             entity.networkPosition.roty = ClientPacketHandlerEntitySpawn.Angle256ToRad(raw.Heading);
             entity.networkPosition.PositionLoaded = true;
-            entity.networkPosition.LastUpdateMilliseconds = game.GameService.TimeMillisecondsFromStart;
+            entity.networkPosition.LastUpdateMilliseconds = gameService.TimeMillisecondsFromStart;
         }
     }
 }

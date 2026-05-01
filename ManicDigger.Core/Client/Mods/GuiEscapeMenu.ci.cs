@@ -5,11 +5,13 @@ public class ModGuiEscapeMenu : ModBase
 {
     private readonly IGameService platform;
     private readonly IPreferences preferences;
+    private readonly IOpenGlService openGlService;
 
-    public ModGuiEscapeMenu(IGameService platform, IPreferences preferences)
+    public ModGuiEscapeMenu(IGameService platform, IPreferences preferences, IOpenGlService openGlService)
     {
         this.platform = platform;
         this.preferences = preferences;
+        this.openGlService = openGlService;
 
         fonts = new string[4];
         fonts[0] = "Nice";
@@ -552,7 +554,7 @@ public class ModGuiEscapeMenu : ModBase
         // and are now invalid. Previously set list entries to null (leaking GPU
         // handles). Now explicitly delete each texture before clearing the dictionary.
         foreach (CachedTexture ct in game.CachedTextTextures.Values)
-            game.OpenGlService.GLDeleteTexture(ct.textureId);
+            openGlService.GLDeleteTexture(ct.textureId);
         game.CachedTextTextures.Clear();
     }
 

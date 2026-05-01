@@ -127,7 +127,7 @@ public class TaskScheduler
             int captured = i;
             _actions[captured].Active = true;
             _actions[captured].Finished = false;
-            game.GameService.QueueUserWorkItem(
+            platform.QueueUserWorkItem(
                 CreateBackgroundAction(captured, dt, () => _actions[captured].Finished = true));
         }
     }

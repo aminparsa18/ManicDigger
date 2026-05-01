@@ -2,6 +2,10 @@
 {
     internal ModGuiCrafting mod;
 
+    public PacketHandlerCraftingRecipes(IGameService gameService) : base(gameService)
+    {
+    }
+
     public override void Handle(IGame game, Packet_Server packet)
     {
         mod.d_CraftingRecipes = packet.CraftingRecipes.CraftingRecipes;

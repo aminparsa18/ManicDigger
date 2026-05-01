@@ -218,7 +218,7 @@ public partial class Game
 
     /// <summary>Uploads <paramref name="color"/> as the OpenGL ambient light value.</summary>
     internal void SetAmbientLight(int color) =>
-        OpenGlService.GlLightModelAmbient(
+        openGlService.GlLightModelAmbient(
             ColorUtils.ColorR(color),
             ColorUtils.ColorG(color),
             ColorUtils.ColorB(color));
@@ -402,10 +402,10 @@ public partial class Game
             ClientMods[i]?.Dispose();
 
         foreach (int id in textures.Values)
-            OpenGlService.GLDeleteTexture(id);
+            openGlService.GLDeleteTexture(id);
 
         foreach (CachedTexture ct in CachedTextTextures.Values)
-            OpenGlService.GLDeleteTexture(ct.textureId);
+            openGlService.GLDeleteTexture(ct.textureId);
     }
 
     // ── Stubs (candidates for removal) ───────────────────────────────────────

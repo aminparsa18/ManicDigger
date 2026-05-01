@@ -59,10 +59,10 @@ public class ModGuiCrafting : ModBase
 
     private readonly IVoxelMap voxelMap;
 
-    public ModGuiCrafting(IVoxelMap voxelMap)
+    public ModGuiCrafting(IGameService gameService, IVoxelMap voxelMap)
     {
         this.voxelMap = voxelMap;
-        handler = new PacketHandlerCraftingRecipes { mod = this };
+        handler = new PacketHandlerCraftingRecipes(gameService) { mod = this };
     }
 
     // ── ModBase overrides ─────────────────────────────────────────────────────

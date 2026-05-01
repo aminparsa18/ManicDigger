@@ -36,7 +36,7 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
 
     public IGameService GameService { get; set; }
-    public IOpenGlService OpenGlService { get; set; }
+    private IOpenGlService openGlService;
 
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IPreferences preferences;
@@ -384,7 +384,7 @@ public partial class Game : IGame
         ICameraService cameraService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer)
     {
         GameService = platform;
-        OpenGlService = platformOpenGl;
+        openGlService = platformOpenGl;
         this.singlePlayerService = singlePlayerService;
         this.preferences = preferences;
         this.gameExit = gameExit;

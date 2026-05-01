@@ -118,11 +118,11 @@ public partial class Game
     private void Draw2dTextureSimple(int textureid, float x1, float y1,
         float width, float height, bool enabledepthtest)
     {
-        OpenGlService.GlDisableCullFace();
-        OpenGlService.BindTexture2d(textureid);
-        if (!enabledepthtest) OpenGlService.GlDisableDepthTest();
+        openGlService.GlDisableCullFace();
+        openGlService.BindTexture2d(textureid);
+        if (!enabledepthtest) openGlService.GlDisableDepthTest();
 
-        _quadModel ??= OpenGlService.CreateModel(Quad.Create());
+        _quadModel ??= openGlService.CreateModel(Quad.Create());
 
         // Collapsed: Translate(x1,y1) · Scale(w,h) · Scale(0.5,0.5) · Translate(1,1)
         // = Translate(x1 + w*0.5, y1 + h*0.5) · Scale(w*0.5, h*0.5)
@@ -132,8 +132,8 @@ public partial class Game
         meshDrawer.DrawModel(_quadModel);
         meshDrawer.GLPopMatrix();
 
-        if (!enabledepthtest) OpenGlService.GlEnableDepthTest();
-        OpenGlService.GlEnableCullFace();
+        if (!enabledepthtest) openGlService.GlEnableDepthTest();
+        openGlService.GlEnableCullFace();
     }
 
     /// <summary>
@@ -149,13 +149,13 @@ public partial class Game
         FillAtlasQuadModel(rect.X, rect.Y, rect.Width, rect.Height,
             x1, y1, width, height, color);
 
-        OpenGlService.GlDisableCullFace();
-        OpenGlService.BindTexture2d(textureid);
-        if (!enabledepthtest) OpenGlService.GlDisableDepthTest();
-        OpenGlService.UpdateModel(_atlasQuadModel);
+        openGlService.GlDisableCullFace();
+        openGlService.BindTexture2d(textureid);
+        if (!enabledepthtest) openGlService.GlDisableDepthTest();
+        openGlService.UpdateModel(_atlasQuadModel);
         meshDrawer.DrawModelData(_atlasQuadModel);
-        if (!enabledepthtest) OpenGlService.GlEnableDepthTest();
-        OpenGlService.GlEnableCullFace();
+        if (!enabledepthtest) openGlService.GlEnableDepthTest();
+        openGlService.GlEnableCullFace();
     }
 
     /// <summary>
@@ -168,13 +168,13 @@ public partial class Game
         FillAtlasQuadModel(0f, 0f, srcwidth, srcheight,
             dstx, dsty, dstwidth, dstheight, color);
 
-        OpenGlService.GlDisableCullFace();
-        OpenGlService.BindTexture2d(textureid);
-        if (!enabledepthtest) OpenGlService.GlDisableDepthTest();
-        OpenGlService.UpdateModel(_atlasQuadModel);
+        openGlService.GlDisableCullFace();
+        openGlService.BindTexture2d(textureid);
+        if (!enabledepthtest) openGlService.GlDisableDepthTest();
+        openGlService.UpdateModel(_atlasQuadModel);
         meshDrawer.DrawModelData(_atlasQuadModel);
-        if (!enabledepthtest) OpenGlService.GlEnableDepthTest();
-        OpenGlService.GlEnableCullFace();
+        if (!enabledepthtest) openGlService.GlEnableDepthTest();
+        openGlService.GlEnableCullFace();
     }
 
     /// <summary>
@@ -266,13 +266,13 @@ public partial class Game
         CombineModelDataInPlace(_batchModelScratch, count, ref _combinedModel);
         _combinedModel.Mode = (int)DrawMode.Triangles;
 
-        OpenGlService.GlDisableCullFace();
-        OpenGlService.BindTexture2d(textureid);
-        OpenGlService.GlDisableDepthTest();
-        OpenGlService.UpdateModel(_combinedModel);
+        openGlService.GlDisableCullFace();
+        openGlService.BindTexture2d(textureid);
+        openGlService.GlDisableDepthTest();
+        openGlService.UpdateModel(_combinedModel);
         meshDrawer.DrawModelData(_combinedModel);
-        OpenGlService.GlEnableDepthTest();
-        OpenGlService.GlEnableCullFace();
+        openGlService.GlEnableDepthTest();
+        openGlService.GlEnableCullFace();
     }
 
     /// <summary>
@@ -469,7 +469,7 @@ public partial class Game
             _circleModelData.Xyz[i * 3 + 2] = 0f;
         }
 
-        OpenGlService.UpdateModel(_circleModelData);
+        openGlService.UpdateModel(_circleModelData);
 
         meshDrawer.GLPushMatrix();
         meshDrawer.GLLoadIdentity();

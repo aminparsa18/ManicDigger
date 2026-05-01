@@ -225,7 +225,7 @@ public partial class Game : IGame
     public bool EnableTppView { get; set; }
     public float TppCameraDistance { get; set; }
     public float OverHeadCameraDistance { get; set; }
-    public CameraService OverheadCameraK { get; set; }
+    private readonly ICameraService OverheadCameraK;
     public bool OverheadCamera { get; set; }
     private bool enableCameraControl;
     private float znear;
@@ -335,7 +335,6 @@ public partial class Game : IGame
     public InventoryUtilClient InventoryUtil { get; set; }
     public BlockTypeRegistry BlockRegistry { get; set; }
     public Packet_Inventory Inventory { get; set; }
-    public BlockOctreeSearcher BlockOctreeSearcher { get; set; }
 
     // -------------------------------------------------------------------------
     // UI / menus
@@ -382,7 +381,8 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
-        IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService)
+        IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService,
+        ICameraService cameraService)
     {
         GameService = platform;
         OpenGlService = platformOpenGl;
@@ -391,6 +391,7 @@ public partial class Game : IGame
         this.gameExit = gameExit;
         this.mods = mods;
         this.voxelMap = voxelMap;
+        this.OverheadCameraK = cameraService;
         InitCore();
         InitMap();
         InitTextures();
@@ -492,7 +493,6 @@ public partial class Game : IGame
         znear = 1f / 10;
         ENABLE_ZFAR = true;
         OverHeadCameraDistance = 10;
-        OverheadCameraK = new CameraService();
         TppCameraDistance = 3;
         TPP_CAMERA_DISTANCE_MIN = 1;
         TPP_CAMERA_DISTANCE_MAX = 10;

@@ -7,9 +7,11 @@ public class ModCamera : ModBase
 {
     private static readonly Vector3 Up = Vector3.UnitY;
     private Vector3 overheadCameraEye;
+    private readonly ICameraService cameraService;
 
-    public ModCamera()
+    public ModCamera(ICameraService cameraService)
     {
+        this.cameraService = cameraService;
     }
 
     public override void OnBeforeNewFrameDraw3d(IGame game, float deltaTime)
@@ -19,14 +21,14 @@ public class ModCamera : ModBase
 
     private Matrix4 OverheadCamera(IGame game)
     {
-        game.OverheadCameraK.GetPosition(ref overheadCameraEye);
+        cameraService.GetPosition(ref overheadCameraEye);
         Vector3 eye = overheadCameraEye;
         Vector3 target = new(
-            game.OverheadCameraK.Center.X,
-            game.OverheadCameraK.Center.Y + game.GetCharacterEyesHeight(),
-            game.OverheadCameraK.Center.Z);
+            cameraService.Center.X,
+            cameraService.Center.Y + game.GetCharacterEyesHeight(),
+            cameraService.Center.Z);
 
-        game.OverHeadCameraDistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, game.OverHeadCameraDistance);
+        cameraService.OverHeadCameraDistance = LimitThirdPersonCameraToWalls(game, ref eye, ref target, cameraService.OverHeadCameraDistance);
         SetCameraEye(game, eye);
         return Matrix4.LookAt(eye, target, Up);
     }
@@ -79,7 +81,7 @@ public class ModCamera : ModBase
             End = rayEnd
         };
 
-        ArraySegment<BlockPosSide> hits = game.Pick(game.BlockOctreeSearcher, pick, out int hitCount);
+        ArraySegment<BlockPosSide> hits = game.Pick(cameraService.BlockOctreeSearcher, pick, out int hitCount);
         if (hitCount > 0)
         {
             BlockPosSide nearest = game.Nearest(hits, hitCount, target);
@@ -92,7 +94,7 @@ public class ModCamera : ModBase
     }
 
     /// <summary>Writes the eye position back to the game for other systems to use.</summary>
-    private void SetCameraEye(IGame game, Vector3 eye)
+    private static void SetCameraEye(IGame game, Vector3 eye)
     {
         game.CameraEye = eye;
     }

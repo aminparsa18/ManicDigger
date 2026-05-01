@@ -106,6 +106,7 @@ public class Program
 
         services.AddTransient<IGameExit, GameExit>();
         services.AddTransient<IGameService, GameService>();
+        services.AddTransient<ICameraService, CameraService>();
         services.AddSingleton<IAudioService, AudioService>();
         services.AddTransient<IPreferences, Preferences>();
         services.AddTransient<IOpenGlService, OpenGlService>();

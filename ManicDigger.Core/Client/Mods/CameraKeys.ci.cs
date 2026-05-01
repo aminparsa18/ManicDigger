@@ -8,10 +8,12 @@ public class ModCameraKeys : ModBase
 {
     private const float OverheadCameraSpeed = 3f;
     private readonly IGameService platform;
+    private readonly ICameraService cameraService;
 
-    public ModCameraKeys(IGameService platform)
+    public ModCameraKeys(IGameService platform, ICameraService cameraService)
     {
         this.platform = platform;
+        this.cameraService = cameraService;
     }
 
     public override void OnNewFrameFixed(IGame game, float args)
@@ -46,7 +48,7 @@ public class ModCameraKeys : ModBase
     }
 
     /// <summary>Updates jump and shift control flags based on keyboard state.</summary>
-    private void UpdateJumpAndShift(IGame game, bool isNormal, bool isTyping)
+    private static void UpdateJumpAndShift(IGame game, bool isNormal, bool isTyping)
     {
         bool canAct = isNormal && !isTyping;
         game.Controls.WantsJump = canAct && game.KeyboardState[game.GetKey(Keys.Space)];
@@ -67,19 +69,19 @@ public class ModCameraKeys : ModBase
     /// <summary>Handles overhead (RTS-style) camera rotation, angle, and click-to-move.</summary>
     private void UpdateOverheadCamera(IGame game, float dt)
     {
-        if (game.KeyboardState[game.GetKey(Keys.A)]) game.OverheadCameraK.TurnRight(dt * OverheadCameraSpeed);
-        if (game.KeyboardState[game.GetKey(Keys.D)]) game.OverheadCameraK.TurnLeft(dt * OverheadCameraSpeed);
+        if (game.KeyboardState[game.GetKey(Keys.A)]) cameraService.TurnRight(dt * OverheadCameraSpeed);
+        if (game.KeyboardState[game.GetKey(Keys.D)]) cameraService.TurnLeft(dt * OverheadCameraSpeed);
 
-        game.OverheadCameraK.Center = new Vector3(game.Player.position.x,
+        cameraService.Center = new Vector3(game.Player.position.x,
             game.Player.position.y, game.Player.position.z);
 
         CameraMoveArgs m = new()
         {
-            Distance = game.OverHeadCameraDistance,
+            Distance = cameraService.OverHeadCameraDistance,
             AngleUp = game.KeyboardState[game.GetKey(Keys.W)],
             AngleDown = game.KeyboardState[game.GetKey(Keys.S)],
         };
-        game.OverheadCameraK.Move(m, dt);
+        cameraService.Move(m, dt);
 
         // Click-to-move: steer player toward destination
         float toDest = Vector3.Distance(
@@ -99,7 +101,7 @@ public class ModCameraKeys : ModBase
     }
 
     /// <summary>Handles WASD movement and leaning animation hints in first/third person.</summary>
-    private void UpdateMovementKeys(IGame game)
+    private static void UpdateMovementKeys(IGame game)
     {
         if (game.KeyboardState[game.GetKey(Keys.W)]) game.Controls.MovedY += 1;
         if (game.KeyboardState[game.GetKey(Keys.S)]) game.Controls.MovedY -= 1;

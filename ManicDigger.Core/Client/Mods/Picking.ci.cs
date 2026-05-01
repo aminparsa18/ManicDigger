@@ -35,12 +35,14 @@ public class ModPicking : ModBase
 
     private readonly IGameService platform;
     private readonly IVoxelMap voxelMap;
+    private readonly ICameraService cameraService;
     private readonly Random random;
 
-    public ModPicking(IGameService platform, IVoxelMap voxelMap)
+    public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService)
     {
         this.platform = platform;
         this.voxelMap = voxelMap;
+        this.cameraService = cameraService;
         _tempViewport = new int[4];
         fillarea = new();
         random = new Random();
@@ -157,7 +159,7 @@ public class ModPicking : ModBase
 
         Line3D pick = new();
         GetPickingLine(game, pick, isPistolShoot);
-        ArraySegment<BlockPosSide> pick2 = game.Pick(game.BlockOctreeSearcher, pick, out int pick2count);
+        ArraySegment<BlockPosSide> pick2 = game.Pick(cameraService.BlockOctreeSearcher, pick, out int pick2count);
 
         if (left) { game.handSetAttackDestroy = true; }
         else if (right) { game.handSetAttackBuild = true; }
@@ -933,7 +935,7 @@ public class ModPicking : ModBase
         }
         if (game.CameraType == CameraType.Overhead)
         {
-            distance = platform.IsFastSystem() ? 100 : game.OverHeadCameraDistance * 2;
+            distance = platform.IsFastSystem() ? 100 : cameraService.OverHeadCameraDistance * 2;
         }
 
         return distance;

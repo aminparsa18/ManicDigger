@@ -68,6 +68,7 @@ public class MainMenu : IMenu
     private readonly ISinglePlayerService _singlePlayerService;
     private readonly IPreferences _preferences;
     private readonly IDummyNetwork dummyNetwork;
+    private readonly ICameraService cameraService;
     private readonly IAudioService _audioService;
     private readonly IEnumerable<IModBase> mods;
 
@@ -603,7 +604,8 @@ public class MainMenu : IMenu
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork, mods, voxelMap, _audioService);
+        ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences,
+            _gameExit, dummyNetwork, mods, voxelMap, _audioService, cameraService);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }

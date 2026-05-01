@@ -67,8 +67,6 @@ public partial class Game
         // ── Mods ──────────────────────────────────────────────────────────────
         InitMods();
 
-        BlockOctreeSearcher = new();
-
         // Prevent the loading screen from immediately showing the lag symbol.
         LastReceivedMilliseconds = GameService.TimeMillisecondsFromStart;
         EnableDrawTestCharacter = GameService.IsDebuggerAttached();

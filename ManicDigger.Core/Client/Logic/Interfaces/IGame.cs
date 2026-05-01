@@ -251,12 +251,6 @@ public interface IGame
     /// <summary>Distance from the player in third-person mode.</summary>
     float TppCameraDistance { get; set; }
 
-    /// <summary>Distance from the player in overhead mode.</summary>
-    float OverHeadCameraDistance { get; set; }
-
-    /// <summary>Overhead camera state object.</summary>
-    CameraService OverheadCameraK { get; set; }
-
     /// <summary>Whether the overhead camera mode is active.</summary>
     bool OverheadCamera { get; set; }
 
@@ -667,8 +661,7 @@ public interface IGame
     // Block picking / raycasting
     // =========================================================================
 
-    /// <summary>Octree searcher used for block pick rays.</summary>
-    BlockOctreeSearcher BlockOctreeSearcher { get; set; }
+    
 
     /// <summary>Casts <paramref name="line"/> through the octree and returns all hit block faces.</summary>
     ArraySegment<BlockPosSide> Pick(BlockOctreeSearcher s_, Line3D line, out int retCount);

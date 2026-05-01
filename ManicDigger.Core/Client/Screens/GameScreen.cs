@@ -8,11 +8,11 @@ using Serilog;
 /// </summary>
 public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService platformOpenGl,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, 
-    IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService) 
+    IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService) 
     : ScreenBase(navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
-    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences, gameExit, mods, voxelMap, audioService);
+    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences, gameExit, mods, voxelMap, audioService, cameraService);
     private ConnectionData connectData;
     private bool singleplayer;
     private string singleplayerSavePath;

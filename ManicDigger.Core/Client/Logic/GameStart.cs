@@ -38,14 +38,14 @@ public partial class Game
 
         Config3d config3d = new()
         {
-            ViewDistance = GameService.IsFastSystem() ? ViewDistanceFast : ViewDistanceSlow
+            ViewDistance = gameService.IsFastSystem() ? ViewDistanceFast : ViewDistanceSlow
         };
         Config3d = config3d;
 
         // ── Rendering subsystems ──────────────────────────────────────────────
 
 
-        TerrainChunkTesselator = new TerrainChunkTesselator(this, GameService);
+        TerrainChunkTesselator = new TerrainChunkTesselator(this, gameService);
 
         // ── World / map ───────────────────────────────────────────────────────
         voxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);
@@ -59,14 +59,14 @@ public partial class Game
 
         // ── Misc ──────────────────────────────────────────────────────────────
         rnd = new Random();
-        GameService.AddOnCrash(OnCrashHandlerLeave.Create(this));
+        gameService.AddOnCrash(OnCrashHandlerLeave.Create(this));
 
         // ── Mods ──────────────────────────────────────────────────────────────
         InitMods();
 
         // Prevent the loading screen from immediately showing the lag symbol.
-        LastReceivedMilliseconds = GameService.TimeMillisecondsFromStart;
-        EnableDrawTestCharacter = GameService.IsDebuggerAttached();
+        LastReceivedMilliseconds = gameService.TimeMillisecondsFromStart;
+        EnableDrawTestCharacter = gameService.IsDebuggerAttached();
 
         int detectedSize = openGlService.GlGetMaxTextureSize();
         maxTextureSize = Math.Max(detectedSize, 1024);

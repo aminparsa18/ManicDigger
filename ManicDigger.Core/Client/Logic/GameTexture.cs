@@ -41,7 +41,7 @@ public partial class Game
     /// </summary>
     public void DeleteUnusedCachedTextTextures()
     {
-        int now = GameService.TimeMillisecondsFromStart;
+        int now = gameService.TimeMillisecondsFromStart;
 
         _textStylesToRemove.Clear();
         foreach (var (style, tex) in CachedTextTextures)

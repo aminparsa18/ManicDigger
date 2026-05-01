@@ -308,7 +308,7 @@ public partial class Game
     {
         if (!ENABLE_DRAW2D) return;
 
-        meshDrawer.OrthoMode(GameService.CanvasWidth, GameService.CanvasHeight);
+        meshDrawer.OrthoMode(gameService.CanvasWidth, gameService.CanvasHeight);
 
         for (int i = 0; i < ClientMods.Count; i++)
             ClientMods[i]?.OnNewFrameDraw2d(this, dt);
@@ -426,7 +426,7 @@ public partial class Game
             CachedTextTextures[t] = cached;
         }
 
-        cached.lastuseMilliseconds = GameService.TimeMillisecondsFromStart;
+        cached.lastuseMilliseconds = gameService.TimeMillisecondsFromStart;
         Draw2dTexture(cached.textureId, x, y, cached.sizeX, cached.sizeY,
             null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), enabledepthtest);
     }

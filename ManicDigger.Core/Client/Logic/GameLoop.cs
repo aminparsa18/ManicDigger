@@ -39,7 +39,7 @@ public partial class Game
         UpdateMouseSmoothing(deltaTime);
 
         // Required in Mono for running the terrain background thread.
-        GameService.ApplicationDoEvents();
+        gameService.ApplicationDoEvents();
 
         // Fixed-timestep accumulator — capped at 1 s to prevent spiral-of-death
         // when the renderer stalls (e.g. window resize, focus loss).
@@ -169,8 +169,8 @@ public partial class Game
     /// </summary>
     private void UpdateResize()
     {
-        int w = GameService.CanvasWidth;
-        int h = GameService.CanvasHeight;
+        int w = gameService.CanvasWidth;
+        int h = gameService.CanvasHeight;
         if (lastWidth == w && lastHeight == h) return;
 
         lastWidth = w;
@@ -181,7 +181,7 @@ public partial class Game
     /// <summary>Updates the OpenGL viewport and projection matrix after a resize.</summary>
     internal void OnResize()
     {
-        openGlService.GlViewport(0, 0, GameService.CanvasWidth, GameService.CanvasHeight);
+        openGlService.GlViewport(0, 0, gameService.CanvasWidth, gameService.CanvasHeight);
         Set3dProjection2();
         if (sendResize)
             SendGameResolution();

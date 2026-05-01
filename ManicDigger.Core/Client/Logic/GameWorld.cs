@@ -275,7 +275,7 @@ public partial class Game
             y = y,
             z = z,
             blocktype = voxelMap.GetBlock(x, y, z),
-            timeMilliseconds = GameService.TimeMillisecondsFromStart,
+            timeMilliseconds = gameService.TimeMillisecondsFromStart,
         });
         SetBlock(x, y, z, blockid);
         RedrawBlock(x, y, z);
@@ -306,7 +306,7 @@ public partial class Game
     /// </summary>
     private void RevertSpeculative(float dt)
     {
-        int now = GameService.TimeMillisecondsFromStart;
+        int now = gameService.TimeMillisecondsFromStart;
         for (int i = 0; i < speculativeCount; i++)
         {
             Speculative? s = speculative[i];

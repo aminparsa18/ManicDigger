@@ -28,9 +28,9 @@ public partial class Game
             for (int i = 0; i < requiredMd5.Length; i++)
             {
                 string md5 = requiredMd5[i];
-                if (GameService.IsCached(md5))
+                if (gameService.IsCached(md5))
                 {
-                    Asset cachedAsset = GameService.LoadAssetFromCache(md5);
+                    Asset cachedAsset = gameService.LoadAssetFromCache(md5);
                     string name = requiredName != null ? requiredName[i] : cachedAsset.name;
                     SetFile(name, cachedAsset.md5, cachedAsset.data, cachedAsset.dataLength);
                 }
@@ -113,7 +113,7 @@ public partial class Game
 
     public void ChatLog(string p)
     {
-        if (!GameService.ChatLog(ServerInfo.ServerName, p))
+        if (!gameService.ChatLog(ServerInfo.ServerName, p))
             Console.WriteLine(string.Format(Language.CannotWriteChatLog(), ServerInfo.ServerName));
     }
 }

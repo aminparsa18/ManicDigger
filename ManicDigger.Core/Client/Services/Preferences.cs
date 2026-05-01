@@ -1,91 +1,88 @@
-﻿
-/// <summary>
-/// A simple string-keyed settings store. All values are persisted as strings
-/// and converted on read. Backed by a <see cref="Dictionary{TKey,TValue}"/>.
+﻿/// <summary>
+/// File-backed implementation of <see cref="IPreferences"/>.
+/// Values are persisted as <c>key=value</c> lines in <c>Preferences.txt</c>
+/// inside the game's store path. All types are stored as strings and converted on read.
 /// </summary>
-public class Preferences : IPreferences
+public sealed class Preferences : IPreferences
 {
-    private Dictionary<string, string> items = [];
+    private readonly Dictionary<string, string> _items = [];
 
+    /// <summary>
+    /// Initialises the store and loads any previously saved preferences from disk.
+    /// Missing or malformed lines are silently skipped.
+    /// </summary>
     public Preferences()
     {
-        items = [];
-        if (File.Exists(GetPreferencesFilePath()))
+        string path = PreferencesFilePath();
+        if (!File.Exists(path)) return;
+
+        foreach (string line in File.ReadAllLines(path))
         {
-            string[] lines = File.ReadAllLines(GetPreferencesFilePath());
-            foreach (string l in lines)
-            {
-                int a = l.IndexOf("=", StringComparison.InvariantCultureIgnoreCase);
-                string name = l[..a];
-                string value = l[(a + 1)..];
-                SetString(name, value);
-            }
+            int sep = line.IndexOf('=');
+            if (sep <= 0) continue; // skip blank keys and lines without '='
+            SetString(line[..sep], line[(sep + 1)..]);
         }
     }
 
-    // -------------------------------------------------------------------------
-    // String
-    // -------------------------------------------------------------------------
+    // ── Read ──────────────────────────────────────────────────────────────────
 
+    /// <inheritdoc/>
     public string GetString(string key, string default_) =>
-        items.TryGetValue(key, out string value) ? value : default_;
+        _items.TryGetValue(key, out string? value) ? value : default_;
 
-    public void SetString(string key, string value) =>
-        items[key] = value;
-
-    // -------------------------------------------------------------------------
-    // Bool (stored as "0" / "1")
-    // -------------------------------------------------------------------------
-
-    public bool GetBool(string key, bool default_)
-    {
-        string value = GetString(key, null);
-        return value switch
+    /// <inheritdoc/>
+    public bool GetBool(string key, bool default_) =>
+        GetString(key, null) switch
         {
             "0" => false,
             "1" => true,
-            _ => default_
+            _ => default_,
         };
-    }
 
-    public void SetBool(string key, bool value) =>
-        SetString(key, value ? "1" : "0");
-
-    // -------------------------------------------------------------------------
-    // Int (stored as string, parsed via float to handle decimals gracefully)
-    // -------------------------------------------------------------------------
-
+    /// <inheritdoc/>
     public int GetInt(string key, int default_)
     {
-        string raw = GetString(key, null);
-        if (raw == null) return default_;
-        return float.TryParse(raw, out float result) ? (int)result : default_;
+        string? raw = GetString(key, null);
+        // Parsed via float to handle values stored with a decimal point gracefully.
+        return raw is not null && float.TryParse(raw, out float result)
+            ? (int)result
+            : default_;
     }
 
-    public void SetInt(string key, int value) =>
-        SetString(key, value.ToString());
+    // ── Write ─────────────────────────────────────────────────────────────────
 
+    /// <inheritdoc/>
+    public void SetString(string key, string value) => _items[key] = value;
+
+    /// <inheritdoc/>
+    public void SetBool(string key, bool value) => SetString(key, value ? "1" : "0");
+
+    /// <inheritdoc/>
+    public void SetInt(string key, int value) => SetString(key, value.ToString());
+
+    /// <inheritdoc/>
+    public void Remove(string key) => _items.Remove(key);
+
+    // ── Persistence ───────────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public void SetValues() => File.WriteAllLines(PreferencesFilePath(), ToLines());
+
+    /// <inheritdoc/>
     public IEnumerable<string> ToLines() =>
-        items.Select(kvp => $"{kvp.Key}={kvp.Value}");
+        _items.Select(kvp => $"{kvp.Key}={kvp.Value}");
 
-    public void SetValues()
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the absolute path to <c>Preferences.txt</c>, creating the
+    /// store directory if it does not yet exist.
+    /// </summary>
+    private static string PreferencesFilePath()
     {
-        File.WriteAllLines(GetPreferencesFilePath(), ToLines());
-    }
-
-    // -------------------------------------------------------------------------
-    // Collection
-    // -------------------------------------------------------------------------
-
-    public void Remove(string key) => items.Remove(key);
-
-    private static string GetPreferencesFilePath()
-    {
-        string path = GameStorePath.GetStorePath();
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-        }
-        return Path.Combine(path, "Preferences.txt");
+        string dir = GameStorePath.GetStorePath();
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+        return Path.Combine(dir, "Preferences.txt");
     }
 }

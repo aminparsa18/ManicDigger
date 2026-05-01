@@ -35,9 +35,8 @@ public partial class Game : IGame
     // Platform & core subsystems
     // -------------------------------------------------------------------------
 
-    public IGameService GameService { get; set; }
-    private IOpenGlService openGlService;
-
+    private readonly IGameService gameService;
+    private readonly IOpenGlService openGlService;
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IPreferences preferences;
     private readonly IGameExit gameExit;
@@ -383,7 +382,7 @@ public partial class Game : IGame
         IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService,
         ICameraService cameraService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer)
     {
-        GameService = platform;
+        gameService = platform;
         openGlService = platformOpenGl;
         this.singlePlayerService = singlePlayerService;
         this.preferences = preferences;
@@ -419,7 +418,7 @@ public partial class Game : IGame
         options = new GameOption();
         getAsset = new string[1024 * 2];
         PlayerStats = new Packet_ServerPlayerStats();
-        taskScheduler = new TaskScheduler(this, GameService);
+        taskScheduler = new TaskScheduler(this, gameService);
         CommitActions = new();
         Entities = [];
     }

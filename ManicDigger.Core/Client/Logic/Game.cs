@@ -30,17 +30,17 @@ public partial class Game
     // ── Screen / layout helpers ───────────────────────────────────────────────
 
     /// <summary>Returns the X coordinate that centres a region of <paramref name="width"/> pixels.</summary>
-    public int Xcenter(float width) => GameService.CanvasWidth / 2 - (int)width / 2;
+    public int Xcenter(float width) => gameService.CanvasWidth / 2 - (int)width / 2;
 
     /// <summary>Returns the Y coordinate that centres a region of <paramref name="height"/> pixels.</summary>
-    public int Ycenter(float height) => GameService.CanvasHeight / 2 - (int)height / 2;
+    public int Ycenter(float height) => gameService.CanvasHeight / 2 - (int)height / 2;
 
     /// <summary>
     /// UI scale factor. Returns a width-relative scale on small screens
     /// (mobile) and 1 on desktop.
     /// </summary>
     public float Scale() =>
-        GameService.IsSmallScreen() ? GameService.CanvasWidth / 1280f : 1f;
+        gameService.IsSmallScreen() ? gameService.CanvasWidth / 1280f : 1f;
 
     // ── Projection ────────────────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ public partial class Game
     /// </summary>
     public void Set3dProjection(float zfar, float fov)
     {
-        float aspect = GameService.CanvasWidth / (float)GameService.CanvasHeight;
+        float aspect = gameService.CanvasWidth / (float)gameService.CanvasHeight;
         Matrix4.CreatePerspectiveFieldOfView(fov, aspect, znear, zfar, out Matrix4 projection);
         CameraMatrix.LastProjectionMatrix = projection;
         meshDrawer.GLMatrixModeProjection();
@@ -236,7 +236,7 @@ public partial class Game
     // ── VSync / lag simulation ────────────────────────────────────────────────
 
     /// <summary>Applies the current VSync setting (disabled only when lag simulation is active).</summary>
-    public void UseVsync() => GameService.SetVSync(EnableLog != 1);
+    public void UseVsync() => gameService.SetVSync(EnableLog != 1);
 
     /// <summary>Cycles through lag-simulation modes (0 = off, 1 = no vsync, 2 = spin-wait).</summary>
     public void ToggleVsync()
@@ -268,7 +268,7 @@ public partial class Game
         GuiState = GuiState.EscapeMenu;
         MenuState = new MenuState();
         EscapeMenuRestart = true;
-        GameService.ExitMousePointerLock();
+        gameService.ExitMousePointerLock();
     }
 
     /// <summary>Shows the escape menu in free-mouse mode.</summary>

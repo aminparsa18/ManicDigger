@@ -146,8 +146,8 @@ public partial class Game
         if (item == null || item.InventoryItemType != InventoryItemType.Block) return 0;
 
         float radius = IronSights
-            ? BlockTypes[item.BlockId].IronSightsAimRadius / 800 * GameService.CanvasWidth
-            : BlockTypes[item.BlockId].AimRadius / 800 * GameService.CanvasWidth;
+            ? BlockTypes[item.BlockId].IronSightsAimRadius / 800 * gameService.CanvasWidth
+            : BlockTypes[item.BlockId].AimRadius / 800 * gameService.CanvasWidth;
 
         return radius + RadiusWhenMoving * radius * Math.Min(playervelocity.Length / MoveSpeed, 1);
     }

@@ -1,13 +1,11 @@
 ﻿using LibNoise;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using static ManicDigger.Mods.ModNetworkProcess;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 using Math = System.Math;
 
 namespace ManicDigger.Mods;
 
-public class DefaultWorldGenerator : IMod
+public class AdvanceWorldGenerator : IMod
 {
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 

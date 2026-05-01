@@ -5,62 +5,51 @@ using System.Runtime.Intrinsics.X86;
 namespace LibNoise;
 
 /// <summary>
-/// Gradient noise basis — optimised for throughput on modern x86-64 hardware.
-/// </summary>
+/// Optimised gradient noise basis.
 ///
-/// <remarks>
-/// <b>Changes vs. the previous scalar version</b>
-/// <list type="bullet">
-///   <item>
-///     <b>32-bit hash arithmetic.</b>  The six hash constants (1619, 31337, 6971,
-///     1013) all fit in an <c>int</c>.  The original <c>long</c> path computed
-///     64-bit multiplications and additions only to discard the upper 32 bits
-///     before masking to 8 bits.  The <c>unchecked int</c> path produces the
-///     same low-8-bit output with half the register width and no implicit
-///     widening conversions.
-///   </item>
-///   <item>
-///     <b>Structure-of-arrays gradient table.</b>  The interleaved XYZW source
-///     array is decomposed at static-init time into three flat arrays
-///     (<see cref="s_gradX"/>, <see cref="s_gradY"/>, <see cref="s_gradZ"/>).
-///     SoA layout is a prerequisite for AVX2 <c>GatherVector256</c>, which
-///     loads the same component for all eight corners in one instruction.
-///   </item>
-///   <item>
-///     <b>AVX2 + FMA: all eight corners in one pass.</b>
-///     The eight corners of the unit cube are fully independent until the lerp
-///     reduction.  <see cref="EvaluateAvx2"/> hashes all eight corners with
-///     256-bit integer SIMD, gathers the gradient X/Y/Z components with three
-///     <c>GatherVector256</c> calls, and computes all eight dot products with
-///     two <c>Fma.MultiplyAdd</c> instructions.  On hardware with 256-bit
-///     execution units this replaces eight sequential scalar calls.
-///   </item>
-///   <item>
-///     <b>Vectorised lerp reduction.</b>  The 8→4→2→1 lerp tree stays in
-///     128-bit SSE registers, using <c>Sse.Shuffle</c> to deinterleave
-///     near/far corners and <c>Sse.Multiply</c> to lerp the pairs.  Only the
-///     final <c>sz</c> lerp drops to scalar, keeping register pressure low.
-///   </item>
-///   <item>
-///     <b>Scalar fallback.</b>  Paths that reach <see cref="EvaluateScalar"/>
-///     use the same SoA arrays and 32-bit hash, so the fallback is also faster
-///     than the original even without SIMD.
-///   </item>
-/// </list>
-/// </remarks>
+/// Changes vs. previous version
+/// ─────────────────────────────
+/// 1. HASH — 64-bit long arithmetic replaced with 32-bit unchecked int.
+///    The six constants (1619, 31337, 6971, 1013) fit in 32 bits; only the
+///    low 8 bits of the final result are ever consumed, so wrapping is harmless.
+///    Eliminates 64-bit multiplies and halves the hash register footprint.
+///
+/// 2. GRADIENT TABLE — original XYZW-interleaved layout decomposed into three
+///    flat SoA arrays (s_gx / s_gy / s_gz), pre-scaled by 2.12f.
+///    Flat layout removes the stride-4 multiply on every lookup and enables
+///    AVX2 GatherVector256 to load all 8 X-, Y-, and Z-components in parallel.
+///    Pre-scaling removes the final vmulps from the dot-product chain.
+///
+/// 3. AVX2 + FMA HOT PATH — all 8 unit-cube corners evaluated simultaneously:
+///      Stage 1  8 × int32 hashes via SIMD integer add + shift + xor
+///      Stage 2  3 × GatherVector256 loads gradient X, Y, Z components
+///      Stage 3  FMA chain  gz·dz → FMA(gy,dy,·) → FMA(gx,dx,·)
+///               = 8 scaled dot products in one 256-bit register, 3 instructions
+///      Stage 4  Trilinear lerp reduction:
+///               level 1  GetLower / GetUpper  (zero cost — register alias)
+///                        + 128-bit FMA across the x boundary
+///               level 2  Sse.Shuffle + 128-bit FMA across y
+///               level 3  two GetElement + scalar lerp across z
+///
+/// 4. SCALAR FALLBACK — identical 32-bit hash and SoA lookup, retained for
+///    non-AVX2 hardware.
+///
+/// Corner layout used by the AVX2 path
+/// ─────────────────────────────────────
+///   Lower 128 bits  x = x0 group:
+///     [0] (x0,y0,z0)  [1] (x0,y1,z0)  [2] (x0,y0,z1)  [3] (x0,y1,z1)
+///   Upper 128 bits  x = x1 group:
+///     [4] (x1,y0,z0)  [5] (x1,y1,z0)  [6] (x1,y0,z1)  [7] (x1,y1,z1)
+///
+/// GetLower / GetUpper map directly onto this split, so the first lerp level
+/// (across x) costs no instructions — the JIT models both as aliases of the
+/// same ymm register.
+/// </summary>
 public sealed class GradientNoiseBasis
 {
-    // =========================================================================
-    // Gradient data
-    // =========================================================================
+    // ── Gradient source table (XYZW interleaved, used only during static init) ──
 
-    /// <summary>
-    /// 256 pre-computed unit gradient vectors stored in interleaved XYZW order
-    /// (W = 0, present for 16-byte alignment in the source table only).
-    /// This array is only read during static initialisation; the hot paths use
-    /// the SoA arrays below.
-    /// </summary>
-    private static readonly float[] s_randomVectors =
+    private static ReadOnlySpan<float> RvData =>
     [
         -0.763874f, -0.596439f, -0.246489f, 0f,  0.396055f,  0.904518f, -0.158073f, 0f,
         -0.499004f, -0.866500f, -0.013163f, 0f,  0.468724f, -0.824756f,  0.316346f, 0f,
@@ -192,79 +181,77 @@ public sealed class GradientNoiseBasis
          0.991353f,  0.112814f,  0.067027f, 0f,  0.033788f, -0.979891f, -0.196654f, 0f,
     ];
 
-    // ── Structure-of-arrays gradient components ───────────────────────────────
+    // ── SoA gradient arrays (pre-scaled by 2.12f, built once at class load) ──
     //
-    // Populated once at class load.  Laid out as flat arrays so that a single
-    // GatherVector256 instruction can load the same component (X, Y, or Z) for
-    // all eight cube corners in parallel.
+    // Pre-scaling absorbs the constant factor from the dot product, so the
+    // return value of Contrib and the dots register in EvaluateAvx2 require
+    // no final multiply.
+    //
+    // Flat index (no stride) matches GatherVector256 with scale=4 directly:
+    //   result[i] = *(base + indices[i] * sizeof(float))
 
-    /// <summary>X components of the 256 gradient vectors.</summary>
-    private static readonly float[] s_gradX = new float[256];
+    private static readonly float[] s_gx = new float[256];
+    private static readonly float[] s_gy = new float[256];
+    private static readonly float[] s_gz = new float[256];
 
-    /// <summary>Y components of the 256 gradient vectors.</summary>
-    private static readonly float[] s_gradY = new float[256];
-
-    /// <summary>Z components of the 256 gradient vectors.</summary>
-    private static readonly float[] s_gradZ = new float[256];
-
-    // ── Hardware capability ───────────────────────────────────────────────────
-
-    /// <summary>
-    /// <c>true</c> when both AVX2 (256-bit integer + gather) and FMA (fused
-    /// multiply-add) are available.  Checked once at class load to avoid
-    /// per-call overhead.
-    /// </summary>
-    private static readonly bool s_avx2 = Avx2.IsSupported && Fma.IsSupported;
-
-    // ── Static initialiser ────────────────────────────────────────────────────
+    // Checked once at class load; never tested again in the hot path.
+    private static readonly bool s_useAvx2 = Avx2.IsSupported && Fma.IsSupported;
 
     static GradientNoiseBasis()
     {
-        // Decompose the AoS source table into three flat SoA arrays.
-        // This is the only place s_randomVectors is read at runtime.
+        const float Scale = 2.12f;
+        ReadOnlySpan<float> src = RvData;
         for (int i = 0; i < 256; i++)
         {
-            s_gradX[i] = s_randomVectors[i * 4];
-            s_gradY[i] = s_randomVectors[i * 4 + 1];
-            s_gradZ[i] = s_randomVectors[i * 4 + 2];
+            int b = i << 2;             // stride-4 source index
+            s_gx[i] = src[b] * Scale;
+            s_gy[i] = src[b + 1] * Scale;
+            s_gz[i] = src[b + 2] * Scale;
         }
     }
 
-    // =========================================================================
-    // Public API
-    // =========================================================================
+    // ── Public API ────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Returns a coherent gradient noise value in approximately [−1, 1] at the
-    /// given world position.
+    /// Returns a coherent gradient noise value in approximately [-1, 1] at the
+    /// given world position. Dispatches to the AVX2 path when available.
     /// </summary>
-    public float GradientCoherentNoise(
-        float x, float y, float z,
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public float GradientCoherentNoise(float x, float y, float z,
         int seed, NoiseQuality noiseQuality)
     {
-        // ── Grid cell ──────────────────────────────────────────────────────────
+        // Integer unit-cube corners.
         int x0 = x > 0f ? (int)x : (int)x - 1;
         int y0 = y > 0f ? (int)y : (int)y - 1;
         int z0 = z > 0f ? (int)z : (int)z - 1;
         int x1 = x0 + 1, y1 = y0 + 1, z1 = z0 + 1;
 
-        // ── Fractional offsets from the near corner ────────────────────────────
-        float fx = x - x0;
-        float fy = y - y0;
-        float fz = z - z0;
+        // Fractional position inside the unit cube.
+        float fx = x - x0, fy = y - y0, fz = z - z0;
 
-        // ── Smoothed interpolation weights ────────────────────────────────────
-        float sx = Smooth(fx, noiseQuality);
-        float sy = Smooth(fy, noiseQuality);
-        float sz = Smooth(fz, noiseQuality);
+        // Smoothing weights.
+        float sx, sy, sz;
+        switch (noiseQuality)
+        {
+            case NoiseQuality.Low:
+                sx = fx; sy = fy; sz = fz;
+                break;
+            case NoiseQuality.Standard:
+                sx = fx * fx * (3f - 2f * fx);
+                sy = fy * fy * (3f - 2f * fy);
+                sz = fz * fz * (3f - 2f * fz);
+                break;
+            default: // High — quintic, C2-continuous
+                sx = fx * fx * fx * (fx * (6f * fx - 15f) + 10f);
+                sy = fy * fy * fy * (fy * (6f * fy - 15f) + 10f);
+                sz = fz * fz * fz * (fz * (6f * fz - 15f) + 10f);
+                break;
+        }
 
-        // ── 32-bit per-axis hash factors ──────────────────────────────────────
-        //
-        // Using unchecked int instead of long:
-        //   • Same constants, same modular arithmetic, same 8-bit output.
-        //   • Halves register width; avoids implicit widening on every op.
-        //   • Each factor is computed once and combined per-corner below.
-        //
+        // 32-bit hash contributions per axis.
+        // Unchecked wrapping preserves the low 8 bits identically to the
+        // previous 64-bit version — only those 8 bits are ever consumed.
         unchecked
         {
             int hx0 = 1619 * x0, hx1 = 1619 * x1;
@@ -272,241 +259,163 @@ public sealed class GradientNoiseBasis
             int hz0 = 6971 * z0, hz1 = 6971 * z1;
             int hs = 1013 * seed;
 
-            return s_avx2
+            return s_useAvx2
                 ? EvaluateAvx2(fx, fy, fz, sx, sy, sz, hx0, hx1, hy0, hy1, hz0, hz1, hs)
                 : EvaluateScalar(fx, fy, fz, sx, sy, sz, hx0, hx1, hy0, hy1, hz0, hz1, hs);
         }
     }
 
-    // =========================================================================
-    // Smoothstep helpers
-    // =========================================================================
+    // ── AVX2 + FMA path ───────────────────────────────────────────────────────
+    //
+    // Stage 1 — 8 × int32 hashes
+    //   combined[i] = hx[xi] + hy[yi] + hz[zi] + hs
+    //   h[i]        = combined[i] ^ (combined[i] >> 8)  (arithmetic shift)
+    //   index[i]    = h[i] & 0xFF
+    //
+    //   Column vectors reproduce the corner layout (x varies slowest):
+    //     hx: [hx0 hx0 hx0 hx0 | hx1 hx1 hx1 hx1]
+    //     hy: [hy0 hy1 hy0 hy1 | hy0 hy1 hy0 hy1]
+    //     hz: [hz0 hz0 hz1 hz1 | hz0 hz0 hz1 hz1]
+    //
+    // Stage 2 — 3 × GatherVector256
+    //   Loads s_gx[index[i]], s_gy[index[i]], s_gz[index[i]] for all 8 corners.
+    //   scale=4 matches sizeof(float) so indices are used directly as subscripts.
+    //
+    // Stage 3 — dot products (3 instructions per 8 corners)
+    //   t0   = gz  * dz                 (vmulps)
+    //   t1   = gy  * dy + t0            (vfmadd213ps)
+    //   dots = gx  * dx + t1            (vfmadd213ps)
+    //   No final scale multiply — 2.12f is already baked into s_gx/s_gy/s_gz.
+    //
+    // Stage 4 — trilinear lerp (see LerpTree)
 
-    /// <summary>
-    /// Applies the quality-selected smoothstep curve to the raw fractional
-    /// offset <paramref name="t"/> ∈ [0, 1].
-    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float Smooth(float t, NoiseQuality q) => q switch
-    {
-        NoiseQuality.Low => t,
-        NoiseQuality.Standard => t * t * (3f - 2f * t),
-        _ => t * t * t * (t * (6f * t - 15f) + 10f),  // C²-smooth quintic
-    };
-
-    // =========================================================================
-    // AVX2 + FMA path
-    // =========================================================================
-
-    /// <summary>
-    /// Evaluates all eight corners of the unit cube simultaneously using AVX2
-    /// integer SIMD for hashing, <c>GatherVector256</c> for gradient loads, and
-    /// FMA for the dot products; then reduces through a vectorised lerp tree.
-    /// </summary>
-    ///
-    /// <remarks>
-    /// Corner layout — vector lane i corresponds to corner (xi, yi, zi):
-    /// <code>
-    ///   Lane  0 : (x0, y0, z0)    Lane  4 : (x0, y0, z1)
-    ///   Lane  1 : (x1, y0, z0)    Lane  5 : (x1, y0, z1)
-    ///   Lane  2 : (x0, y1, z0)    Lane  6 : (x0, y1, z1)
-    ///   Lane  3 : (x1, y1, z0)    Lane  7 : (x1, y1, z1)
-    /// </code>
-    ///
-    /// The fractional offsets mirror the layout:
-    /// <code>
-    ///   dx  alternates  fx, fx-1  every lane
-    ///   dy  alternates  fy, fy-1  every pair
-    ///   dz  alternates  fz, fz-1  every quad
-    /// </code>
-    ///
-    /// Lerp reduction (all in float registers):
-    /// <list type="number">
-    ///   <item>Level 1 — across sx: 8 lanes → 4 values using <see cref="LerpAdjacentPairs"/>.</item>
-    ///   <item>Level 2 — across sy: 4 values → 2 values, same helper.</item>
-    ///   <item>Level 3 — across sz: 2 scalar extracts + one FMA.</item>
-    /// </list>
-    /// </remarks>
     private static unsafe float EvaluateAvx2(
         float fx, float fy, float fz,
         float sx, float sy, float sz,
         int hx0, int hx1, int hy0, int hy1, int hz0, int hz1, int hs)
     {
-        // ── Step 1: hash all eight corners with 256-bit integer SIMD ──────────
-        //
-        // combined[i] = hx[i%2==0?0:1] + hy[(i>>1)%2==0?0:1] + hz[i>=4?1:0] + hs
-        //
-        // After XOR-fold the low 8 bits become the gradient table index.
-        // The fold (h ^ (h >> 8)) replicates the original's masking logic;
-        // because we only use bits [7:0], arithmetic vs. logical shift on the
-        // upper bits is irrelevant.
+        // ── Stage 1: 8 × int32 hashes ────────────────────────────────────────
+        var vhx = Vector256.Create(hx0, hx0, hx0, hx0, hx1, hx1, hx1, hx1);
+        var vhy = Vector256.Create(hy0, hy1, hy0, hy1, hy0, hy1, hy0, hy1);
+        var vhz = Vector256.Create(hz0, hz0, hz1, hz1, hz0, hz0, hz1, hz1);
+        var vhs = Vector256.Create(hs);
 
-        var xH = Vector256.Create(hx0, hx1, hx0, hx1, hx0, hx1, hx0, hx1);
-        var yH = Vector256.Create(hy0, hy0, hy1, hy1, hy0, hy0, hy1, hy1);
-        var zH = Vector256.Create(hz0, hz0, hz0, hz0, hz1, hz1, hz1, hz1);
-        var sV = Vector256.Create(hs);
+        var combined = Avx2.Add(Avx2.Add(Avx2.Add(vhx, vhy), vhz), vhs);
+        var hashed = Avx2.Xor(combined, Avx2.ShiftRightArithmetic(combined, 8));
+        var indices = Avx2.And(hashed, Vector256.Create(0xFF));
 
-        var combined = Avx2.Add(Avx2.Add(Avx2.Add(xH, yH), zH), sV);
-        var folded = Avx2.Xor(combined, Avx2.ShiftRightArithmetic(combined, 8));
-        var indices = Avx2.And(folded, Vector256.Create(0xFF));  // [0, 255]
-
-        // ── Step 2: gather gradient components for all eight corners ──────────
-        //
-        // GatherVector256(base*, indices, scale=4):
-        //   loads base[indices[i]] using a byte offset of indices[i] * 4.
-        // Because s_gradX/Y/Z are float[] (4 bytes per element), scale=4
-        // maps the integer index directly to the correct array slot.
-
-        fixed (float* pgx = s_gradX, pgy = s_gradY, pgz = s_gradZ)
+        // ── Stage 2: gather gradient components ───────────────────────────────
+        fixed (float* pgx = s_gx, pgy = s_gy, pgz = s_gz)
         {
             var gx = Avx2.GatherVector256(pgx, indices, 4);
             var gy = Avx2.GatherVector256(pgy, indices, 4);
             var gz = Avx2.GatherVector256(pgz, indices, 4);
 
-            // ── Step 3: build per-corner fractional offset vectors ─────────────
-            //
-            // dx alternates fx / (fx-1) every lane  (x0 corners use fx, x1 use fx-1)
-            // dy alternates fy / (fy-1) every pair
-            // dz alternates fz / (fz-1) every quad
-
+            // ── Stage 3: fractional offsets + dot products ────────────────────
             float fx1 = fx - 1f, fy1 = fy - 1f, fz1 = fz - 1f;
-            var dx = Vector256.Create(fx, fx1, fx, fx1, fx, fx1, fx, fx1);
-            var dy = Vector256.Create(fy, fy, fy1, fy1, fy, fy, fy1, fy1);
-            var dz = Vector256.Create(fz, fz, fz, fz, fz1, fz1, fz1, fz1);
+            var vdx = Vector256.Create(fx, fx, fx, fx, fx1, fx1, fx1, fx1);
+            var vdy = Vector256.Create(fy, fy1, fy, fy1, fy, fy1, fy, fy1);
+            var vdz = Vector256.Create(fz, fz, fz1, fz1, fz, fz, fz1, fz1);
 
-            // ── Step 4: eight dot products via FMA, scaled by 2.12f ───────────
-            //
-            // dots[i] = (gx[i]*dx[i] + gy[i]*dy[i] + gz[i]*dz[i]) * 2.12
-            //
-            // FMA chain: gz*dz  →  fma(gy, dy, gz*dz)  →  fma(gx, dx, …)
-            // All intermediate values stay in YMM registers.
+            var dots = Fma.MultiplyAdd(gx, vdx,
+                       Fma.MultiplyAdd(gy, vdy,
+                       Avx.Multiply(gz, vdz)));
 
-            var scale = Vector256.Create(2.12f);
-            var dots = Avx.Multiply(
-                Fma.MultiplyAdd(gx, dx,
-                    Fma.MultiplyAdd(gy, dy,
-                        Avx.Multiply(gz, dz))),
-                scale);
-
-            // ── Step 5: vectorised lerp reduction ─────────────────────────────
-            //
-            // dots = [b00, b10, b01, b11 | t00, t10, t01, t11]
-            //         └── lower 128 ──┘   └── upper 128 ──┘
-            //
-            // Level 1 (sx): lerp each adjacent pair inside each 128-bit lane.
-            //   LerpAdjacentPairs shuffles to separate "near" (even) and "far"
-            //   (odd) lanes, then lerps.  Each call halves the active lane count.
-            //
-            //   lo in : [b00, b10, b01, b11]
-            //   lo out: [lerp(b00,b10), lerp(b01,b11), dup0, dup1]  ← dups unused
-            //   hi in : [t00, t10, t01, t11]
-            //   hi out: [lerp(t00,t10), lerp(t01,t11), dup0, dup1]
-
-            var sxV = Vector128.Create(sx);
-            var lxLo = LerpAdjacentPairs(dots.GetLower(), sxV);   // [lbx0, lbx1, …]
-            var lxHi = LerpAdjacentPairs(dots.GetUpper(), sxV);   // [ltx0, ltx1, …]
-
-            // Level 2 (sy): pack surviving values, then lerp again.
-            //   MoveLowToHigh(a, b) = [a[0], a[1], b[0], b[1]]
-            //   packed = [lbx0, lbx1, ltx0, ltx1]
-            //   out    = [lerp(lbx0,lbx1,sy), lerp(ltx0,ltx1,sy), dup0, dup1]
-            //           = [bottom, top, …]
-
-            var syV = Vector128.Create(sy);
-            var packed = Sse.MoveLowToHigh(lxLo, lxHi);
-            var lxy = LerpAdjacentPairs(packed, syV);
-
-            // Level 3 (sz): scalar — only two values remain.
-            float bottom = lxy.GetElement(0);
-            float top = lxy.GetElement(1);
-            return bottom + sz * (top - bottom);
+            // ── Stage 4: trilinear lerp ───────────────────────────────────────
+            return LerpTree(dots, sx, sy, sz);
         }
     }
 
     /// <summary>
-    /// For each adjacent pair within <paramref name="v"/>, computes
-    /// <c>lerp(v[2i], v[2i+1], t)</c> and writes the result to lane <c>2i</c>.
-    /// Lane <c>2i+1</c> is a duplicate of <c>2i</c> and should be ignored by
-    /// the caller.
-    /// </summary>
+    /// Reduces 8 corner dot-products to a scalar via trilinear lerp.
     ///
-    /// <remarks>
-    /// Shuffle control bytes:
-    /// <code>
-    ///   0x88 = 0b_10_00_10_00 → dst = [v[0], v[2], v[0], v[2]]  (near / even)
-    ///   0xDD = 0b_11_01_11_01 → dst = [v[1], v[3], v[1], v[3]]  (far  / odd)
-    /// </code>
-    /// The lerp is <c>near + t*(far-near)</c>, computed with two SSE multiply-adds.
-    /// </remarks>
+    /// Input layout  [d0..d7]:
+    ///   lower 128:  [d0=(x0,y0,z0)  d1=(x0,y1,z0)  d2=(x0,y0,z1)  d3=(x0,y1,z1)]
+    ///   upper 128:  [d4=(x1,y0,z0)  d5=(x1,y1,z0)  d6=(x1,y0,z1)  d7=(x1,y1,z1)]
+    ///
+    /// Level 1 — lerp across X
+    ///   GetLower() / GetUpper() split at the 128-bit boundary (zero instructions).
+    ///   FMA:  nearX + sx * (farX - nearX)
+    ///   lx = [lx(y0,z0)  lx(y1,z0)  lx(y0,z1)  lx(y1,z1)]
+    ///
+    /// Level 2 — lerp across Y
+    ///   Sse.Shuffle 0x88 duplicates elements 0 and 2: [lx[0], lx[0], lx[2], lx[2]]
+    ///   Sse.Shuffle 0xDD duplicates elements 1 and 3: [lx[1], lx[1], lx[3], lx[3]]
+    ///   FMA:  nearY + sy * (farY - nearY)
+    ///   ly = [bottom, bottom, top, top]
+    ///
+    /// Level 3 — lerp across Z (scalar)
+    ///   Extract ly[0] = bottom and ly[2] = top; one scalar Lerp.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Vector128<float> LerpAdjacentPairs(
-        Vector128<float> v, Vector128<float> t)
+    private static float LerpTree(Vector256<float> dots, float sx, float sy, float sz)
     {
-        var near = Sse.Shuffle(v, v, 0x88);   // [v[0], v[2], v[0], v[2]]
-        var far = Sse.Shuffle(v, v, 0xDD);   // [v[1], v[3], v[1], v[3]]
-        return Sse.Add(near, Sse.Multiply(t, Sse.Subtract(far, near)));
+        // Level 1 — lerp across X
+        Vector128<float> nearX = dots.GetLower();
+        Vector128<float> farX = dots.GetUpper();
+        Vector128<float> lx = Fma.MultiplyAdd(
+            Vector128.Create(sx), Sse.Subtract(farX, nearX), nearX);
+
+        // Level 2 — lerp across Y
+        // Sse.Shuffle control bytes (within each 128-bit lane, same vector for both args):
+        //   0x88 = 0b10_00_10_00 → output = [src[0], src[0], src[2], src[2]]
+        //   0xDD = 0b11_01_11_01 → output = [src[1], src[1], src[3], src[3]]
+        Vector128<float> nearY = Sse.Shuffle(lx, lx, 0x88);
+        Vector128<float> farY = Sse.Shuffle(lx, lx, 0xDD);
+        Vector128<float> ly = Fma.MultiplyAdd(
+            Vector128.Create(sy), Sse.Subtract(farY, nearY), nearY);
+
+        // Level 3 — lerp across Z (scalar)
+        return Lerp(ly.GetElement(0), ly.GetElement(2), sz);
     }
 
-    // =========================================================================
-    // Scalar fallback path
-    // =========================================================================
+    // ── Scalar fallback path ──────────────────────────────────────────────────
+    //
+    // Shares the 32-bit hash and SoA gradient lookup with the AVX2 path.
+    // Inlined so the JIT can eliminate this entirely when it can prove
+    // s_useAvx2 is true at the call site.
 
-    /// <summary>
-    /// Evaluates all eight corners sequentially.  Called on hardware without
-    /// AVX2 or FMA.  Uses the same 32-bit hash and SoA arrays as the AVX2 path.
-    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float EvaluateScalar(
         float fx, float fy, float fz,
         float sx, float sy, float sz,
         int hx0, int hx1, int hy0, int hy1, int hz0, int hz1, int hs)
     {
         float fx1 = fx - 1f, fy1 = fy - 1f, fz1 = fz - 1f;
+        int bz0 = hz0 + hs, bz1 = hz1 + hs;
 
-        // Hoist the z+seed addition — shared across all four corners per face.
-        int bz = hz0 + hs;
-        int tz = hz1 + hs;
+        ReadOnlySpan<float> gx = s_gx, gy = s_gy, gz = s_gz;
 
-        // Bottom face (z0)
-        float b00 = ScalarContrib(fx, fy, fz, hx0 + hy0 + bz);
-        float b10 = ScalarContrib(fx1, fy, fz, hx1 + hy0 + bz);
-        float b01 = ScalarContrib(fx, fy1, fz, hx0 + hy1 + bz);
-        float b11 = ScalarContrib(fx1, fy1, fz, hx1 + hy1 + bz);
-        float bot = Lerp(Lerp(b00, b10, sx), Lerp(b01, b11, sx), sy);
+        float b00 = Contrib(gx, gy, gz, fx, fy, fz, hx0 + hy0 + bz0);
+        float b10 = Contrib(gx, gy, gz, fx1, fy, fz, hx1 + hy0 + bz0);
+        float b01 = Contrib(gx, gy, gz, fx, fy1, fz, hx0 + hy1 + bz0);
+        float b11 = Contrib(gx, gy, gz, fx1, fy1, fz, hx1 + hy1 + bz0);
+        float bottom = Lerp(Lerp(b00, b10, sx), Lerp(b01, b11, sx), sy);
 
-        // Top face (z1)
-        float t00 = ScalarContrib(fx, fy, fz1, hx0 + hy0 + tz);
-        float t10 = ScalarContrib(fx1, fy, fz1, hx1 + hy0 + tz);
-        float t01 = ScalarContrib(fx, fy1, fz1, hx0 + hy1 + tz);
-        float t11 = ScalarContrib(fx1, fy1, fz1, hx1 + hy1 + tz);
+        float t00 = Contrib(gx, gy, gz, fx, fy, fz1, hx0 + hy0 + bz1);
+        float t10 = Contrib(gx, gy, gz, fx1, fy, fz1, hx1 + hy0 + bz1);
+        float t01 = Contrib(gx, gy, gz, fx, fy1, fz1, hx0 + hy1 + bz1);
+        float t11 = Contrib(gx, gy, gz, fx1, fy1, fz1, hx1 + hy1 + bz1);
         float top = Lerp(Lerp(t00, t10, sx), Lerp(t01, t11, sx), sy);
 
-        return Lerp(bot, top, sz);
+        return Lerp(bottom, top, sz);
     }
 
     /// <summary>
-    /// Selects a gradient from the SoA tables using a 32-bit hash and returns
-    /// its dot product with <c>(dx, dy, dz)</c> scaled by 2.12.
+    /// Hash one corner and return its gradient dot product.
+    /// No final multiply needed — 2.12f is pre-baked into the SoA arrays.
     /// </summary>
-    ///
-    /// <remarks>
-    /// Hash fold: <c>h ^ (h &gt;&gt; 8)</c> produces the same low-8-bit output as
-    /// the original <c>long</c>-based fold because the XOR of bits [7:0] equals
-    /// <c>hashBase[7:0] ^ hashBase[15:8]</c> regardless of whether the shift is
-    /// arithmetic or logical — the sign-extended upper bits never alias into the
-    /// low byte after <c>&amp; 0xFF</c>.
-    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float ScalarContrib(float dx, float dy, float dz, int hashBase)
+    private static float Contrib(
+        ReadOnlySpan<float> gx, ReadOnlySpan<float> gy, ReadOnlySpan<float> gz,
+        float dx, float dy, float dz, int hashBase)
     {
         int h = hashBase ^ (hashBase >> 8);
-        int vi = h & 0xFF;                   // direct index; no stride needed with SoA
-        return (s_gradX[vi] * dx + s_gradY[vi] * dy + s_gradZ[vi] * dz) * 2.12f;
+        int i = h & 0xFF;
+        return gx[i] * dx + gy[i] * dy + gz[i] * dz;
     }
-
-    // =========================================================================
-    // Shared utility
-    // =========================================================================
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float Lerp(float a, float b, float t) => a + t * (b - a);
-}
+} 

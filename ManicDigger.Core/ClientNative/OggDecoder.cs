@@ -1,57 +1,57 @@
 ﻿using NVorbis;
+using System.Buffers.Binary;
 
-public class AudioData 
-{
-    public byte[] Pcm { get; set; }
-    public int Channels { get; set; }
-    public int Rate { get; set; }
-    public int BitsPerSample { get; set; } = 16;
-}
-
-public class OggDecoder
+/// <summary>
+/// Decodes Ogg Vorbis audio streams into raw 16-bit signed PCM <see cref="AudioData"/>.
+/// </summary>
+public static class OggDecoder
 {
     private const int ReadBufferSamples = 4096; // samples per channel per read
 
+    /// <summary>
+    /// Decodes an Ogg Vorbis <paramref name="ogg"/> stream into interleaved
+    /// 16-bit signed little-endian PCM stored in <see cref="AudioData.Pcm"/>.
+    /// </summary>
+    /// <param name="ogg">A readable stream positioned at the start of an Ogg Vorbis file.</param>
+    /// <returns>
+    /// An <see cref="AudioData"/> instance with <see cref="AudioData.Channels"/>,
+    /// <see cref="AudioData.Rate"/>, <see cref="AudioData.BitsPerSample"/> (always 16),
+    /// and <see cref="AudioData.Pcm"/> populated.
+    /// </returns>
     public static AudioData OggToWav(Stream ogg)
     {
-        AudioData sample = new();
-
         using var reader = new VorbisReader(ogg, closeOnDispose: false);
 
-        sample.Channels = reader.Channels;
-        sample.Rate = reader.SampleRate;
+        int channels = reader.Channels;
+        int frameSize = ReadBufferSamples * channels;
 
-        // NVorbis gives interleaved floats: [L0, R0, L1, R1, ...]
-        // We read chunks and convert each float to 16-bit signed PCM.
-        int frameSize = ReadBufferSamples * reader.Channels;
         float[] floatBuf = new float[frameSize];
+        byte[] pcmChunk = new byte[frameSize * 2];   // reused each iteration
 
         using var output = new MemoryStream();
 
         int samplesRead;
         while ((samplesRead = reader.ReadSamples(floatBuf, 0, frameSize)) > 0)
         {
-            // Each float sample → 2 bytes (little-endian signed 16-bit)
-            byte[] pcmChunk = new byte[samplesRead * 2];
+            int byteCount = samplesRead * 2;
+            var pcmSpan = pcmChunk.AsSpan(0, byteCount);
+
             for (int i = 0; i < samplesRead; i++)
             {
-                // Clamp to [-1, 1] then scale to int16 range
-                float f = floatBuf[i];
-                if (f > 1f) f = 1f;
-                if (f < -1f) f = -1f;
-
-                int val = (int)(f * 32767f);
-                // Guard against edge-case overflow at exactly -1.0
-                if (val < -32768) val = -32768;
-
-                // Little-endian
-                pcmChunk[i * 2] = (byte)(val & 0xFF);
-                pcmChunk[i * 2 + 1] = (byte)((val >> 8) & 0xFF);
+                // Clamp to [-1, 1], scale to int16, guard exact -1.0 overflow.
+                short s = (short)Math.Clamp((int)(floatBuf[i] * 32767f), -32768, 32767);
+                BinaryPrimitives.WriteInt16LittleEndian(pcmSpan.Slice(i * 2), s);
             }
-            output.Write(pcmChunk, 0, pcmChunk.Length);
+
+            output.Write(pcmChunk, 0, byteCount);
         }
 
-        sample.Pcm = output.ToArray();
-        return sample;
+        return new AudioData
+        {
+            Pcm = output.ToArray(),
+            Channels = channels,
+            Rate = reader.SampleRate,
+            BitsPerSample = 16,
+        };
     }
 }

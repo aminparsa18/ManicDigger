@@ -38,7 +38,6 @@ public partial class Game : IGame
     public IGameService GameService { get; set; }
     public IOpenGlService OpenGlService { get; set; }
 
-    private IAudioService audioService;
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IPreferences preferences;
     private readonly IGameExit gameExit;
@@ -290,7 +289,7 @@ public partial class Game : IGame
     // Audio
     // -------------------------------------------------------------------------
 
-    public AudioControl Audio { get; set; }
+    private readonly IAudioService audioService;
     public bool soundnow { get; set; }
 
     // -------------------------------------------------------------------------
@@ -383,7 +382,7 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
-        IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods, IVoxelMap voxelMap)
+        IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService)
     {
         GameService = platform;
         OpenGlService = platformOpenGl;
@@ -402,7 +401,7 @@ public partial class Game : IGame
         InitOptions();
         InitNetworking();
         InitChat();
-        InitAudio();
+        this.audioService = audioService;
     }
 
     // -------------------------------------------------------------------------
@@ -542,11 +541,5 @@ public partial class Game : IGame
     {
         ChatLinesMax = 1;
         ChatLines = [];
-    }
-
-    private void InitAudio()
-    {
-        audioService = new AudioService(gameExit);
-        Audio = new AudioControl();
     }
 }

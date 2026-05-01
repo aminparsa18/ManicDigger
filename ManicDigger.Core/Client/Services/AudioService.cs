@@ -1,67 +1,213 @@
-﻿using ManicDigger;
+﻿using OpenTK.Audio.OpenAL;
 using OpenTK.Mathematics;
-using static ManicDigger.AudioOpenAl;
+using System.Diagnostics;
 
-public class AudioService : IAudioService
+namespace ManicDigger;
+
+/// <summary>
+/// OpenAL-backed audio service. Owns the device and context for the application
+/// lifetime. Lazily initialised — the device is created on the first operation.
+/// </summary>
+public sealed class AudioService : IAudioService, IDisposable
 {
-    private AudioOpenAl audio;
-    public IGameExit gameexit;
+    private readonly IGameExit _gameExit;
+    private readonly object _initLock = new();
+    private ALDevice _device;
+    private ALContext _context;
+    private bool _initialised;
+    private bool _disposed;
 
+    /// <param name="gameExit">
+    /// Application-exit signal forwarded to every <see cref="AudioTask"/> so their
+    /// threads terminate cleanly on shutdown.
+    /// </param>
     public AudioService(IGameExit gameExit)
     {
-        this.gameexit = gameExit;
+        _gameExit = gameExit;
     }
 
-    private void StartAudio()
+    // ── IAudioService ─────────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public AudioData CreateAudioData(byte[] data, int dataLength)
     {
-        audio ??= new AudioOpenAl(gameexit);
+        EnsureInitialised();
+        using var stream = new MemoryStream(data, 0, dataLength, writable: false);
+        return IsRiffWave(stream) ? DecodeWave(stream) : OggDecoder.OggToWav(stream);
     }
 
-    public AudioData AudioDataCreate(byte[] data, int dataLength)
+    /// <inheritdoc/>
+    public bool IsAudioDataLoaded(AudioData data) => data?.Pcm is { Length: > 0 };
+
+    /// <inheritdoc/>
+    public AudioTask CreateAudio(AudioData data)
     {
-        StartAudio();
-        return GetSampleFromArray(data);
+        EnsureInitialised();
+        return new AudioTask(_gameExit, data);
     }
 
-    public bool AudioDataLoaded(AudioData data)
+    /// <inheritdoc/>
+    public void Play(AudioTask audio) => audio.Play();
+
+    /// <inheritdoc/>
+    public void Pause(AudioTask audio) => audio.Pause();
+
+    /// <inheritdoc/>
+    public void DestroyAudio(AudioTask audio) => audio.Stop();
+
+    /// <inheritdoc/>
+    public bool IsFinished(AudioTask audio) => audio.IsFinished;
+
+    /// <inheritdoc/>
+    public void SetPosition(AudioTask audio, float x, float y, float z) =>
+        audio.Position = new Vector3(x, y, z);
+
+    /// <inheritdoc/>
+    public void UpdateListener(
+        float posX, float posY, float posZ,
+        float orientX, float orientY, float orientZ)
     {
-        return true;
+        EnsureInitialised();
+        AL.Listener(ALListener3f.Position, posX, posY, posZ);
+        var orientation = new Vector3(orientX, orientY, orientZ);
+        var up = Vector3.UnitY;
+        AL.Listener(ALListenerfv.Orientation, ref orientation, ref up);
     }
 
-    public AudioTask AudioCreate(AudioData data)
+    // ── IDisposable ───────────────────────────────────────────────────────────
+
+    /// <summary>Destroys the OpenAL context and closes the audio device.</summary>
+    public void Dispose()
     {
-        return audio.CreateAudio(data);
+        if (_disposed) return;
+        _disposed = true;
+        ALC.MakeContextCurrent(ALContext.Null);
+        if (_context != ALContext.Null) ALC.DestroyContext(_context);
+        if (_device != ALDevice.Null) ALC.CloseDevice(_device);
     }
 
-    public void AudioPlay(AudioTask audio_)
+    // ── Internal (used by AudioTask) ──────────────────────────────────────────
+
+    internal static ALFormat GetSoundFormat(int channels, int bits) => (channels, bits) switch
     {
-        StartAudio();
-        audio_.Play();
+        (1, 8) => ALFormat.Mono8,
+        (1, 16) => ALFormat.Mono16,
+        (2, 8) => ALFormat.Stereo8,
+        (2, 16) => ALFormat.Stereo16,
+        _ => throw new NotSupportedException(
+                       $"Unsupported audio format: {channels} ch / {bits} bit."),
+    };
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private void EnsureInitialised()
+    {
+        if (_initialised) return;
+        lock (_initLock)
+        {
+            if (_initialised) return;
+            try
+            {
+                _device = ALC.OpenDevice(null);
+                if (_device == ALDevice.Null)
+                    throw new InvalidOperationException("No audio device found.");
+                _context = ALC.CreateContext(_device, (int[])null);
+                ALC.MakeContextCurrent(_context);
+                _initialised = true;
+            }
+            catch (Exception ex)
+            {
+                TryLaunchOpenAlInstaller();
+                Console.WriteLine(ex);
+            }
+        }
     }
 
-    public void AudioPause(AudioTask audio_)
+    private static bool IsRiffWave(Stream stream)
     {
-        audio_.Pause();
+        bool riff = stream.ReadByte() == 'R'
+                 && stream.ReadByte() == 'I'
+                 && stream.ReadByte() == 'F'
+                 && stream.ReadByte() == 'F';
+        stream.Position = 0;
+        return riff;
     }
 
-    public void AudioDelete(AudioTask audio_)
+    private static AudioData DecodeWave(Stream stream)
     {
-        audio_.Stop();
+        using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        Expect(new string(reader.ReadChars(4)), "RIFF", "Not a RIFF container.");
+        reader.ReadInt32();
+        Expect(new string(reader.ReadChars(4)), "WAVE", "Not a WAVE file.");
+        Expect(new string(reader.ReadChars(4)), "fmt ", "Missing fmt chunk.");
+
+        int fmtSize = reader.ReadInt32();
+        reader.ReadInt16();
+        int channels = reader.ReadInt16();
+        int sampleRate = reader.ReadInt32();
+        reader.ReadInt32();
+        reader.ReadInt16();
+        int bitsPerSample = reader.ReadInt16();
+
+        if (fmtSize > 16) reader.ReadBytes(fmtSize - 16);
+
+        Expect(new string(reader.ReadChars(4)), "data", "Missing data chunk.");
+        byte[] pcm = reader.ReadBytes(reader.ReadInt32());
+
+        return new AudioData { Pcm = pcm, Channels = channels, Rate = sampleRate, BitsPerSample = bitsPerSample };
     }
 
-    public bool AudioFinished(AudioTask audio_)
+    private static void Expect(string actual, string expected, string message)
     {
-        return audio_.Finished;
+        if (actual != expected) throw new NotSupportedException(message);
     }
 
-    public void AudioSetPosition(AudioTask audio_, float x, float y, float z)
+    private static void TryLaunchOpenAlInstaller()
     {
-        audio_.position = new Vector3(x, y, z);
+        const string installer = "oalinst.exe";
+        if (!File.Exists(installer)) return;
+        try { Process.Start(installer, "/s"); } catch { }
     }
 
-    public void AudioUpdateListener(float posX, float posY, float posZ, float orientX, float orientY, float orientZ)
+    private const int SoundsMax = 64;
+
+    /// <inheritdoc/>
+    public Sound?[] Sounds { get; } = new Sound[SoundsMax];
+
+    /// <inheritdoc/>
+    public int SoundsCount { get; private set; }
+
+    /// <inheritdoc/>
+    public void Clear()
     {
-        StartAudio();
-        UpdateListener(new Vector3(posX, posY, posZ), new Vector3(orientX, orientY, orientZ));
+        Array.Clear(Sounds, 0, SoundsCount);
+        SoundsCount = 0;
+    }
+
+    /// <inheritdoc/>
+    public void Add(Sound sound)
+    {
+        for (int i = 0; i < SoundsCount; i++)
+        {
+            if (Sounds[i] is null)
+            {
+                Sounds[i] = sound;
+                return;
+            }
+        }
+
+        if (SoundsCount < SoundsMax)
+            Sounds[SoundsCount++] = sound;
+    }
+
+    /// <inheritdoc/>
+    public void StopAll()
+    {
+        for (int i = 0; i < SoundsCount; i++)
+        {
+            if (Sounds[i] is not null)
+                Sounds[i]!.Stop = true;
+        }
     }
 }

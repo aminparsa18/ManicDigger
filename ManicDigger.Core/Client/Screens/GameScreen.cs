@@ -7,12 +7,12 @@ using Serilog;
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
 public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService platformOpenGl,
-    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods, IVoxelMap voxelMap) 
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, 
+    IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService) 
     : ScreenBase(navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
-    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences, gameExit, mods, voxelMap);
-
+    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences, gameExit, mods, voxelMap, audioService);
     private ConnectionData connectData;
     private bool singleplayer;
     private string singleplayerSavePath;

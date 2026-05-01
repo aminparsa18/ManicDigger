@@ -4,234 +4,160 @@ using System.Diagnostics;
 
 namespace ManicDigger;
 
-public class AudioOpenAl
+
+/// <summary>
+/// Represents a single audio playback task running on a dedicated thread-pool thread.
+/// Supports play, pause, loop, spatial positioning, and clean shutdown.
+/// </summary>
+/// <remarks>
+/// Call <see cref="Play"/> to start the thread. The thread exits naturally when
+/// a non-looping clip finishes, when <see cref="Stop"/> is called, or when the
+/// application signals <see cref="IGameExit.Exit"/>.
+/// </remarks>
+public sealed class AudioTask
 {
-    public IGameExit d_GameExit;
-    public AudioOpenAl(IGameExit exit)
+    private readonly IGameExit _gameExit;
+    private readonly AudioData _data;
+
+    private volatile bool _started;
+    private volatile bool _stopRequested;
+    private volatile bool _shouldPlay;
+    private volatile bool _restartRequested;
+    private volatile bool _isFinished;
+
+    private Vector3 _position;
+    private readonly object _positionLock = new();
+
+    /// <summary>
+    /// World-space position used for OpenAL distance attenuation.
+    /// Thread-safe; safe to update from the main thread during playback.
+    /// </summary>
+    public Vector3 Position
+    {
+        get { lock (_positionLock) return _position; }
+        set { lock (_positionLock) _position = value; }
+    }
+
+    /// <summary>
+    /// When <see langword="true"/>, the clip loops until <see cref="Stop"/> is called.
+    /// Set this before the first <see cref="Play"/> call.
+    /// </summary>
+    public bool Loop { get; set; }
+
+    /// <summary>
+    /// Returns <see langword="true"/> once the audio thread has fully exited
+    /// and all OpenAL resources have been released.
+    /// </summary>
+    public bool IsFinished => _isFinished;
+
+    /// <param name="gameExit">Application-exit signal; terminates the audio thread when raised.</param>
+    /// <param name="data">Decoded PCM data to play back.</param>
+    public AudioTask(IGameExit gameExit, AudioData data)
+    {
+        _gameExit = gameExit;
+        _data = data;
+    }
+
+    // ── Playback control ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Starts playback on a thread-pool thread. If the task is already running,
+    /// resumes from pause instead of spawning a second thread.
+    /// </summary>
+    public void Play()
+    {
+        _shouldPlay = true;
+        if (_started) return;
+        _started = true;
+        ThreadPool.QueueUserWorkItem(_ => RunAudio());
+    }
+
+    /// <summary>Pauses playback without releasing resources. Call <see cref="Play"/> to resume.</summary>
+    public void Pause() => _shouldPlay = false;
+
+    /// <summary>
+    /// Signals the audio thread to stop and release all OpenAL resources.
+    /// Returns immediately; the thread exits asynchronously.
+    /// </summary>
+    public void Stop() => _stopRequested = true;
+
+    /// <summary>
+    /// Rewinds to the beginning of the clip on the next loop iteration.
+    /// Has no effect on non-looping clips.
+    /// </summary>
+    public void Restart() => _restartRequested = true;
+
+    // ── Audio thread ──────────────────────────────────────────────────────────
+
+    private void RunAudio()
     {
         try
         {
-            d_GameExit = exit;
-            var device = ALC.OpenDevice(null); // null = default device
-            if (device == ALDevice.Null)
-                throw new Exception("No audio device found.");
-
-            var context = ALC.CreateContext(device, (int[])null);
-            ALC.MakeContextCurrent(context);
+            PlayInternal();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            string oalinst = "oalinst.exe";
-            if (File.Exists(oalinst))
-            {
-                try
-                {
-                    Process.Start(oalinst, "/s");
-                }
-                catch
-                {
-                }
-            }
-            Console.WriteLine(e);
+            Console.WriteLine($"[AudioTask] Playback error: {ex}");
+        }
+        finally
+        {
+            _isFinished = true;
         }
     }
 
-    // Loads a wave/riff audio file.
-    public static byte[] LoadWave(Stream stream, out int channels, out int bits, out int rate)
+    private void PlayInternal()
     {
-        ArgumentNullException.ThrowIfNull(stream);
+        int source = AL.GenSource();
+        int buffer = AL.GenBuffer();
 
-        using BinaryReader reader = new(stream);
-        // RIFF header
-        string signature = new(reader.ReadChars(4));
-        if (signature != "RIFF")
-            throw new NotSupportedException("Specified stream is not a wave file.");
-
-        int riff_chunck_size = reader.ReadInt32();
-
-        string format = new(reader.ReadChars(4));
-        if (format != "WAVE")
-            throw new NotSupportedException("Specified stream is not a wave file.");
-
-        // WAVE header
-        string format_signature = new(reader.ReadChars(4));
-        if (format_signature != "fmt ")
-            throw new NotSupportedException("Specified wave file is not supported.");
-
-        int format_chunk_size = reader.ReadInt32();
-        int audio_format = reader.ReadInt16();
-        int num_channels = reader.ReadInt16();
-        int sample_rate = reader.ReadInt32();
-        int byte_rate = reader.ReadInt32();
-        int block_align = reader.ReadInt16();
-        int bits_per_sample = reader.ReadInt16();
-
-        string data_signature = new(reader.ReadChars(4));
-        if (data_signature != "data")
-            throw new NotSupportedException("Specified wave file is not supported.");
-
-        int data_chunk_size = reader.ReadInt32();
-
-        channels = num_channels;
-        bits = bits_per_sample;
-        rate = sample_rate;
-
-        return reader.ReadBytes((int)reader.BaseStream.Length);
-    }
-
-    public static ALFormat GetSoundFormat(int channels, int bits)
-    {
-        return channels switch
+        try
         {
-            1 => bits == 8 ? ALFormat.Mono8 : ALFormat.Mono16,
-            2 => bits == 8 ? ALFormat.Stereo8 : ALFormat.Stereo16,
-            _ => throw new NotSupportedException("The specified sound format is not supported."),
-        };
-    }
-
-    public class AudioTask(IGameExit gameexit, AudioData sample, AudioOpenAl audio)
-    {
-        private readonly IGameExit gameexit = gameexit;
-        private readonly AudioData sample = sample;
-        public Vector3 position;
-
-        public void Play()
-        {
-            if (started)
-            {
-                shouldplay = true;
-                return;
-            }
-            started = true;
-            ThreadPool.QueueUserWorkItem(delegate { play(); });
-        }
-
-        private bool started = false;
-        private void play()
-        {
-            try
-            {
-                DoPlay();
-            }
-            catch (Exception e) { 
-                Console.WriteLine(e.ToString()); 
-            }
-        }
-
-        private void DoPlay()
-        {
-            int source = AL.GenSource();
-
-            int buffer = AL.GenBuffer();
-            AL.BufferData(buffer, GetSoundFormat(sample.Channels, sample.BitsPerSample), sample.Pcm, sample.Rate);
-            //audiofiles[filename]=buffer;
+            AL.BufferData(buffer,AudioService.GetSoundFormat(_data.Channels, _data.BitsPerSample),
+                _data.Pcm,_data.Rate);
 
             AL.DistanceModel(ALDistanceModel.InverseDistance);
             AL.Source(source, ALSourcef.RolloffFactor, 0.3f);
-            AL.Source(source, ALSourcef.ReferenceDistance, 1);
-            AL.Source(source, ALSourcef.MaxDistance, 64 * 1);
+            AL.Source(source, ALSourcef.ReferenceDistance, 1f);
+            AL.Source(source, ALSourcef.MaxDistance, 64f);
             AL.Source(source, ALSourcei.Buffer, buffer);
             AL.SourcePlay(source);
 
-            // Query the source to find out when it stops playing.
-            for (; ; )
+            while (!_stopRequested && !_gameExit.Exit)
             {
-                AL.GetSource(source, ALGetSourcei.SourceState, out int state);
-                if ((!loop) && (ALSourceState)state != ALSourceState.Playing)
-                {
+                AL.GetSource(source, ALGetSourcei.SourceState, out int rawState);
+                var state = (ALSourceState)rawState;
+
+                if (!Loop && state != ALSourceState.Playing)
                     break;
-                }
-                if (stop)
+
+                if (Loop)
                 {
-                    break;
-                }
-                if (gameexit.Exit)
-                {
-                    break;
-                }
-                if (loop)
-                {
-                    if (state == (int)ALSourceState.Playing && (!shouldplay))
+                    if (state == ALSourceState.Playing && !_shouldPlay)
                     {
                         AL.SourcePause(source);
                     }
-                    if (state != (int)ALSourceState.Playing && shouldplay)
+                    else if (state != ALSourceState.Playing && _shouldPlay)
                     {
-                        if (restart)
+                        if (_restartRequested)
                         {
                             AL.SourceRewind(source);
-                            restart = false;
+                            _restartRequested = false;
                         }
                         AL.SourcePlay(source);
                     }
                 }
 
-                AL.Source(source, ALSource3f.Position, position.X, position.Y, position.Z);
+                Vector3 pos = Position;
+                AL.Source(source, ALSource3f.Position, pos.X, pos.Y, pos.Z);
+
                 Thread.Sleep(1);
             }
-            Finished = true;
+        }
+        finally
+        {
             AL.SourceStop(source);
             AL.DeleteSource(source);
             AL.DeleteBuffer(buffer);
         }
-
-        public bool loop = false;
-        private bool stop;
-        public void Stop()
-        {
-            stop = true;
-        }
-        public bool shouldplay;
-        public bool restart;
-        public void Restart()
-        {
-            restart = true;
-        }
-
-        internal void Pause()
-        {
-            shouldplay = false;
-        }
-
-        internal bool Finished;
-    }
-
-    public static AudioData GetSampleFromArray(byte[] data)
-    {
-        Stream stream = new MemoryStream(data);
-        if (stream.ReadByte() == 'R'
-            && stream.ReadByte() == 'I'
-            && stream.ReadByte() == 'F'
-            && stream.ReadByte() == 'F')
-        {
-            stream.Position = 0;
-            byte[] sound_data = LoadWave(stream, out int channels, out int bits_per_sample, out int sample_rate);
-            AudioData sample = new()
-            {
-                Pcm = sound_data,
-                BitsPerSample = bits_per_sample,
-                Channels = channels,
-                Rate = sample_rate,
-            };
-            return sample;
-        }
-        else
-        {
-            stream.Position = 0;
-            AudioData sample = OggDecoder.OggToWav(stream);
-            return sample;
-        }
-    }
-
-    public AudioTask CreateAudio(AudioData sample)
-    {
-        return new AudioTask(d_GameExit, sample, this);
-    }
-
-    public static void UpdateListener(Vector3 position, Vector3 orientation)
-    {
-        AL.Listener(ALListener3f.Position, position.X, position.Y, position.Z);
-        Vector3 up = Vector3.UnitY;
-        AL.Listener(ALListenerfv.Orientation, ref orientation, ref up);
     }
 }

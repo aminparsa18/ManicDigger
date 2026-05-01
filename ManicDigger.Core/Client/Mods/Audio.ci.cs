@@ -1,178 +1,162 @@
-﻿//This manages all in-game audio. On each frame it checks if assets are fully loaded,
-//then walks a pool of up to 64 active sounds and handles each one through four stages:
-//load & play(if the audio data is ready), update its 3D world position, stop it if flagged, 
-//and either restart it (looping sounds) or clear it (one-shot sounds) when it finishes.
-
-using static ManicDigger.AudioOpenAl;
+﻿using ManicDigger;
 
 /// <summary>
-/// Mod that manages audio loading, playback, positional updates, looping, and cleanup.
+/// Mod that manages audio loading, playback, positional updates, looping, and cleanup
+/// for all in-game sounds. Runs once per frame after assets are fully loaded.
 /// </summary>
-public class ModAudio : ModBase
+public sealed class ModAudio : ModBase
 {
-    private readonly Dictionary<string, AudioData> audioData = new();
-    private readonly IAudioService platform;
+    private readonly Dictionary<string, AudioData> _audioCache = new();
+    private readonly IAudioService _audioService;
+    private bool _preloaded;
 
-    private bool wasLoaded;
-
-    public ModAudio(IAudioService gamePlatform)
+    /// <param name="audioService">Audio backend used for all playback operations.</param>
+    public ModAudio(IAudioService audioService)
     {
-        this.platform = gamePlatform;
+        _audioService = audioService;
     }
 
-    public override void OnNewFrame(IGame game, float args)
+    /// <inheritdoc/>
+    public override void OnNewFrame(IGame game, float dt)
     {
-        if (game.AssetsLoadProgress != 1)
-            return;
+        if (game.AssetsLoadProgress < 1f) return;
 
-        if (!wasLoaded)
+        if (!_preloaded)
         {
-            wasLoaded = true;
+            _preloaded = true;
             Preload(game);
         }
 
         ProcessSounds(game);
     }
 
+    /// <inheritdoc/>
+    public override void OnNewFrameFixed(IGame game, float dt)
+    {
+        if (game.GuiState == GuiState.MapLoading) return;
+
+        float orientationX = MathF.Sin(game.Player.position.roty);
+        float orientationZ = -MathF.Cos(game.Player.position.roty);
+        _audioService.UpdateListener(
+            game.Player.position.x, game.Player.position.y, game.Player.position.z,
+            orientationX, 0f, orientationZ);
+    }
+
+    // ── Per-frame sound processing ────────────────────────────────────────────
+
     private void ProcessSounds(IGame game)
     {
-        for (int i = 0; i < game.Audio.soundsCount; i++)
+        for (int i = 0; i < _audioService.SoundsCount; i++)
         {
-            Sound sound = game.Audio.sounds[i];
-            if (sound == null) continue;
+            Sound? sound = _audioService.Sounds[i];
+            if (sound is null) continue;
 
             TryLoad(game, i, sound);
             TryUpdatePosition(sound);
-            TryStop(game, i, sound);
-            TryLoopOrFinish(game, i, sound);
+            TryStop(i, sound);
+            TryFinish(i, sound);
         }
     }
 
-    /// <summary>Attempts to create and play audio for a sound that hasn't been loaded yet.</summary>
+    /// <summary>
+    /// Creates and starts playback for a sound whose <see cref="AudioTask"/> has not
+    /// yet been allocated. Sets <see cref="AudioTask.Loop"/> before playing so the
+    /// backend handles looping internally without requiring task recreation.
+    /// </summary>
     private void TryLoad(IGame game, int i, Sound sound)
     {
-        if (sound.audio != null) return;
+        if (sound.Task is not null) return;
 
-        AudioData data = GetAudioData(game, sound.name);
-        if (platform.AudioDataLoaded(data))
-        {
-            sound.audio = platform.AudioCreate(data);
-            platform.AudioPlay(sound.audio);
-        }
+        AudioData data = GetOrLoadAudioData(game, sound.Name);
+        if (!_audioService.IsAudioDataLoaded(data)) return;
+
+        AudioTask task = _audioService.CreateAudio(data);
+        task.Loop = sound.Loop;
+        sound.Task = task;
+        _audioService.Play(task);
     }
 
-    /// <summary>Updates the 3D position of an active sound source.</summary>
+    /// <summary>Synchronises the OpenAL source position with the sound's world position.</summary>
     private void TryUpdatePosition(Sound sound)
     {
-        if (sound.audio == null) return;
-        platform.AudioSetPosition(sound.audio, sound.x, sound.y, sound.z);
+        if (sound.Task is null) return;
+        _audioService.SetPosition(sound.Task, sound.X, sound.Y, sound.Z);
     }
 
-    /// <summary>Deletes and nulls out any sound marked for stopping.</summary>
-    private void TryStop(IGame game, int i, Sound sound)
+    /// <summary>Destroys and clears any sound flagged for stopping.</summary>
+    private void TryStop(int i, Sound sound)
     {
-        if (sound.audio == null || !sound.stop) return;
-        platform.AudioDelete(sound.audio);
-        game.Audio.sounds[i] = null;
+        if (sound.Task is null || !sound.Stop) return;
+        _audioService.DestroyAudio(sound.Task);
+        _audioService.Sounds[i] = null;
     }
 
-    /// <summary>Loops finished looping sounds or clears finished one-shot sounds.</summary>
-    private void TryLoopOrFinish(IGame game, int i, Sound sound)
+    /// <summary>
+    /// Clears finished one-shot sounds. Looping sounds are handled internally
+    /// by <see cref="AudioTask.Loop"/> and do not need recreation here.
+    /// </summary>
+    private void TryFinish(int i, Sound sound)
     {
-        if (sound.audio == null) return;
-        if (!platform.AudioFinished(sound.audio)) return;
-
-        if (sound.loop)
-        {
-            AudioData data = GetAudioData(game, sound.name);
-            if (platform.AudioDataLoaded(data))
-            {
-                sound.audio = platform.AudioCreate(data);
-                platform.AudioPlay(sound.audio);
-            }
-        }
-        else
-        {
-            game.Audio.sounds[i] = null;
-        }
+        if (sound.Task is null) return;
+        if (!_audioService.IsFinished(sound.Task)) return;
+        _audioService.Sounds[i] = null;
     }
 
-    /// <summary>Preloads all .ogg assets found in the asset list.</summary>
+    // ── Asset helpers ─────────────────────────────────────────────────────────
+
+    /// <summary>Preloads all <c>.ogg</c> assets so the first playback request is instant.</summary>
     private void Preload(IGame game)
     {
-        for (int k = 0; k < game.Assets.Count; k++)
+        foreach (Asset asset in game.Assets)
         {
-            string name = game.Assets[k].name;
-            if (!name.EndsWith(".ogg")) 
-                continue;
-            GetAudioData(game, name);
+            if (asset.name.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
+                GetOrLoadAudioData(game, asset.name);
         }
     }
 
-    /// <summary>Returns cached audio data for the given sound name, loading it if necessary.</summary>
-    private AudioData GetAudioData(IGame game, string sound)
+    /// <summary>
+    /// Returns cached <see cref="AudioData"/> for <paramref name="name"/>,
+    /// decoding the asset on first access.
+    /// </summary>
+    private AudioData GetOrLoadAudioData(IGame game, string name)
     {
-        if (!audioData.TryGetValue(sound, out AudioData data))
+        if (!_audioCache.TryGetValue(name, out AudioData? data))
         {
-            data = platform.AudioDataCreate(game.GetAssetFile(sound), game.GetAssetFileLength(sound));
-            audioData[sound] = data;
+            data = _audioService.CreateAudioData(
+                game.GetAssetFile(name),
+                game.GetAssetFileLength(name));
+            _audioCache[name] = data;
         }
         return data;
     }
 }
 
-/// <summary>
-/// Manages a fixed-size pool of active sounds.
-/// </summary>
-public class AudioControl
-{
-    private const int SoundsMax = 64;
 
-    internal readonly Sound[] sounds = new Sound[SoundsMax];
-    internal int soundsCount;
-
-    /// <summary>Removes all active sounds from the pool.</summary>
-    public void Clear()
-    {
-        Array.Clear(sounds, 0, soundsCount);
-        soundsCount = 0;
-    }
-
-    /// <summary>Adds a sound to the pool, reusing a null slot if available.</summary>
-    public void Add(Sound s)
-    {
-        for (int i = 0; i < soundsCount; i++)
-        {
-            if (sounds[i] == null)
-            {
-                sounds[i] = s;
-                return;
-            }
-        }
-        if (soundsCount < SoundsMax)
-            sounds[soundsCount++] = s;
-    }
-
-    /// <summary>Marks all active sounds for stopping on the next frame.</summary>
-    public void StopAll()
-    {
-        for (int i = 0; i < soundsCount; i++)
-        {
-            sounds[i]?.stop = true;
-        }
-    }
-}
+// ─────────────────────────────────────────────────────────────────────────────
 
 /// <summary>
 /// Represents an active or pending sound instance in the world.
 /// </summary>
-public class Sound
+public sealed class Sound
 {
-    internal string name;
-    internal float x;
-    internal float y;
-    internal float z;
-    internal bool loop;
-    internal bool stop;
-    internal AudioTask audio;
+    /// <summary>Asset name of the audio file to play (e.g. <c>"hit.ogg"</c>).</summary>
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>World-space X coordinate of the sound source.</summary>
+    public float X { get; set; }
+
+    /// <summary>World-space Y coordinate of the sound source.</summary>
+    public float Y { get; set; }
+
+    /// <summary>World-space Z coordinate of the sound source.</summary>
+    public float Z { get; set; }
+
+    /// <summary>When <see langword="true"/>, the sound plays continuously until stopped.</summary>
+    public bool Loop { get; init; }
+
+    /// <summary>When <see langword="true"/>, the sound will be destroyed on the next frame.</summary>
+    public bool Stop { get; set; }
+
+    /// <summary>The active playback task; <see langword="null"/> until the asset is loaded.</summary>
+    internal AudioTask? Task { get; set; }
 }

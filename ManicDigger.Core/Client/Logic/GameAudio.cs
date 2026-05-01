@@ -32,7 +32,7 @@
             return;
         }
 
-        Audio.Add(new Sound { name = file_, x = x, y = y, z = z });
+        audioService.Add(new Sound { Name = file_, X = x, Y = y, Z = z });
     }
 
     // -------------------------------------------------------------------------
@@ -59,12 +59,12 @@
             Sound s = FindLoopingSound(file_);
             if (s == null)
             {
-                s = new Sound { name = file_, loop = true };
-                Audio.Add(s);
+                s = new Sound { Name = file_, Loop = true };
+                audioService.Add(s);
             }
-            s.x = EyesPosX;
-            s.y = EyesPosY;
-            s.z = EyesPosZ;
+            s.X = EyesPosX;
+            s.Y = EyesPosY;
+            s.Z = EyesPosZ;
         }
         else
         {
@@ -74,20 +74,20 @@
 
     private Sound FindLoopingSound(string file_)
     {
-        for (int i = 0; i < Audio.soundsCount; i++)
+        for (int i = 0; i < audioService.SoundsCount; i++)
         {
-            if (Audio.sounds[i] != null && Audio.sounds[i].name == file_)
-                return Audio.sounds[i];
+            if (audioService.Sounds[i] != null && audioService.Sounds[i].Name == file_)
+                return audioService.Sounds[i];
         }
         return null;
     }
 
     private void StopLoopingSound(string file_)
     {
-        for (int i = 0; i < Audio.soundsCount; i++)
+        for (int i = 0; i < audioService.SoundsCount; i++)
         {
-            if (Audio.sounds[i] != null && Audio.sounds[i].name == file_)
-                Audio.sounds[i].stop = true;
+            if (audioService.Sounds[i] != null && audioService.Sounds[i].Name == file_)
+                audioService.Sounds[i].Stop = true;
         }
     }
 }

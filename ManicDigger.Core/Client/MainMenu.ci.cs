@@ -68,6 +68,7 @@ public class MainMenu : IMenu
     private readonly ISinglePlayerService _singlePlayerService;
     private readonly IPreferences _preferences;
     private readonly IDummyNetwork dummyNetwork;
+    private readonly IAudioService _audioService;
     private readonly IEnumerable<IModBase> mods;
 
     /// <summary>Loaded localisation/translation data.</summary>
@@ -122,12 +123,13 @@ public class MainMenu : IMenu
     // -------------------------------------------------------------------------
 
     public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
-        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods, IVoxelMap voxelMap)
+        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService)
     {
         this.mods = mods;
         this.voxelMap = voxelMap;
         GameService = platform;
         _platformOpenGl = platformOpenGl;
+        _audioService = audioService;
         _singlePlayerService = singlePlayerService;
         _preferences = preferences;
         _gameExit = gameExit;
@@ -601,7 +603,7 @@ public class MainMenu : IMenu
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork, mods, voxelMap);
+        ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences, _gameExit, dummyNetwork, mods, voxelMap, _audioService);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }

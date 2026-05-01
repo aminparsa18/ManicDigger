@@ -1,4 +1,5 @@
-﻿using ManicDigger.Mods;
+﻿using ManicDigger;
+using ManicDigger.Mods;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System.Diagnostics;
@@ -105,7 +106,7 @@ public class Program
 
         services.AddTransient<IGameExit, GameExit>();
         services.AddTransient<IGameService, GameService>();
-        services.AddTransient<IAudioService, AudioService>();
+        services.AddSingleton<IAudioService, AudioService>();
         services.AddTransient<IPreferences, Preferences>();
         services.AddTransient<IOpenGlService, OpenGlService>();
         services.AddTransient<ISinglePlayerService, SinglePlayerService>();

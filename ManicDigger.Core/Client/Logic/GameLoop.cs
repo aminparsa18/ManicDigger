@@ -105,12 +105,6 @@ public partial class Game
 
         if (GuiState == GuiState.MapLoading) return;
 
-        float orientationX = MathF.Sin(Player.position.roty);
-        float orientationZ = -MathF.Cos(Player.position.roty);
-        audioService.AudioUpdateListener(
-            EyesPosX, EyesPosY, EyesPosZ,
-            orientationX, 0, orientationZ);
-
         Vector3 vel;
         vel.X = (Player.position.x - lastplayerpositionX) * FixedTickRate;
         vel.Y = (Player.position.y - lastplayerpositionY) * FixedTickRate;

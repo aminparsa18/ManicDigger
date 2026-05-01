@@ -12,9 +12,10 @@ public class ModFallDamageToPlayer : ModBase
     private readonly IGameService platform;
     private readonly IVoxelMap voxelMap;
 
-    public ModFallDamageToPlayer(IGameService platform)
+    public ModFallDamageToPlayer(IGameService platform, IVoxelMap voxelMap)
     {
         this.platform = platform;
+        this.voxelMap = voxelMap;
     }
 
     public override void OnNewFrameFixed(IGame game, float args)

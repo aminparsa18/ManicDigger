@@ -742,7 +742,7 @@ public interface IGame
     // =========================================================================
 
     /// <summary>Audio control subsystem.</summary>
-    AudioControl Audio { get; set; }
+    //AudioControl Audio { get; set; }
 
     /// <summary>Whether audio is enabled.</summary>
     bool AudioEnabled { get; set; }

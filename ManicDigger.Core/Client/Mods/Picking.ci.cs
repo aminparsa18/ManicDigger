@@ -37,14 +37,17 @@ public class ModPicking : ModBase
     private readonly IVoxelMap voxelMap;
     private readonly ICameraService cameraService;
     private readonly IMeshDrawer meshDrawer;
+    private readonly IModRegistry modRegistry;
     private readonly Random random;
 
-    public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService, IMeshDrawer meshDrawer)
+    public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService, 
+        IMeshDrawer meshDrawer, IModRegistry modRegistry)
     {
         this.platform = platform;
         this.voxelMap = voxelMap;
         this.cameraService = cameraService;
         this.meshDrawer = meshDrawer;
+        this.modRegistry = modRegistry;
         _tempViewport = new int[4];
         fillarea = new();
         random = new Random();
@@ -821,10 +824,10 @@ public class ModPicking : ModBase
     {
         if (game.CurrentlyAttackedEntity == -1 || !game.mouseLeft) { return; }
 
-        for (int i = 0; i < game.ClientMods.Count; i++)
+        for (int i = 0; i < modRegistry.Mods.Count; i++)
         {
-            if (game.ClientMods[i] == null) { continue; }
-            game.ClientMods[i].OnHitEntity(game, new OnUseEntityArgs { Id = game.CurrentlyAttackedEntity });
+            if (modRegistry.Mods[i] == null) { continue; }
+            modRegistry.Mods[i].OnHitEntity(game, new OnUseEntityArgs { Id = game.CurrentlyAttackedEntity });
         }
         game.SendPacketClient(ClientPackets.HitEntity(game.CurrentlyAttackedEntity));
     }

@@ -616,9 +616,6 @@ public interface IGame : IDisposable
     /// <summary>Adds a locally simulated entity to the scene.</summary>
     void EntityAddLocal(Entity entity);
 
-    /// <summary>All registered client-side mods.</summary>
-    List<IModBase> ClientMods { get; set; }
-
     /// <summary>
     /// Returns the entity ID being followed in spectator mode,
     /// or <c>null</c> if not spectating.

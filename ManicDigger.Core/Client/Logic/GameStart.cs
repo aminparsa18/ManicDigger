@@ -1,5 +1,4 @@
 ﻿using ManicDigger;
-using ManicDigger.Mods;
 
 public partial class Game
 {
@@ -61,9 +60,6 @@ public partial class Game
         rnd = new Random();
         gameService.AddOnCrash(OnCrashHandlerLeave.Create(this));
 
-        // ── Mods ──────────────────────────────────────────────────────────────
-        InitMods();
-
         // Prevent the loading screen from immediately showing the lag symbol.
         LastReceivedMilliseconds = gameService.TimeMillisecondsFromStart;
         EnableDrawTestCharacter = gameService.IsDebuggerAttached();
@@ -73,17 +69,6 @@ public partial class Game
 
         taskScheduler.Initialise();
         MapLoadingStart();
-    }
-
-    private void InitMods()
-    {
-        ClientMods = [];
-        ClientMods.AddRange(mods);
-        // ── Core loop ─────────────────────────────────────────────────────────
-        //AddMod(new ModUnloadRendererChunks(this, GameService));
-        //AddMod(new ModDiagLog(this));
-
-
     }
 
     private void InitRenderer()
@@ -97,10 +82,5 @@ public partial class Game
             openGlService.GlCullFaceBack();
             openGlService.GlEnableCullFace();
         }
-    }
-
-    private void AddMod(ModBase mod)
-    {
-        ClientMods.Add(mod);
     }
 }

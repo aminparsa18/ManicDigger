@@ -310,8 +310,8 @@ public partial class Game
 
         meshDrawer.OrthoMode(gameService.CanvasWidth, gameService.CanvasHeight);
 
-        for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnNewFrameDraw2d(this, dt);
+        for (int i = 0; i < clientMods.Count; i++)
+            clientMods[i]?.OnNewFrameDraw2d(this, dt);
 
         // Fix #3: evict stale text textures once per frame here, not inside Draw2dText.
         DeleteUnusedCachedTextTextures();

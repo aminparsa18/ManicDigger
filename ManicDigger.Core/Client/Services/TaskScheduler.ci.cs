@@ -25,13 +25,15 @@ public class TaskScheduler
     /// Per-mod background task state. Initialised once via <see cref="Initialise"/>.
     /// </summary>
     private BackgroundAction[] _actions;
+    private readonly IModRegistry modRegistry;
     private readonly IGame game;
     private readonly IGameService platform;
 
-    public TaskScheduler(IGame game, IGameService platform)
+    public TaskScheduler(IGame game, IGameService platform, IModRegistry modRegistry)
     {
         this.game = game;
         this.platform = platform;
+        this.modRegistry = modRegistry;
     }
 
     // -------------------------------------------------------------------------
@@ -45,8 +47,8 @@ public class TaskScheduler
     /// <param name="game">The active game instance.</param>
     public void Initialise()
     {
-        _actions = new BackgroundAction[game.ClientMods.Count];
-        for (int i = 0; i < game.ClientMods.Count; i++)
+        _actions = new BackgroundAction[modRegistry.Mods.Count];
+        for (int i = 0; i < modRegistry.Mods.Count; i++)
             _actions[i] = new BackgroundAction();
     }
 
@@ -96,8 +98,8 @@ public class TaskScheduler
     {
         RunReadOnlyMainThread(dt);
 
-        for (int i = 0; i < game.ClientMods.Count; i++)
-            game.ClientMods[i].OnReadOnlyBackgroundThread(game, dt);
+        for (int i = 0; i < modRegistry.Mods.Count; i++)
+            modRegistry.Mods[i].OnReadOnlyBackgroundThread(game, dt);
 
         RunReadWriteMainThread(dt);
         FlushCommitActions();
@@ -108,7 +110,7 @@ public class TaskScheduler
     /// </summary>
     private bool AllBackgroundTasksFinished()
     {
-        for (int i = 0; i < game.ClientMods.Count; i++)
+        for (int i = 0; i < modRegistry.Mods.Count; i++)
         {
             BackgroundAction action = _actions[i];
             if (action.Active && !action.Finished)
@@ -122,7 +124,7 @@ public class TaskScheduler
     /// </summary>
     private void DispatchBackgroundTasks(float dt)
     {
-        for (int i = 0; i < game.ClientMods.Count; i++)
+        for (int i = 0; i < modRegistry.Mods.Count; i++)
         {
             int captured = i;
             _actions[captured].Active = true;
@@ -135,15 +137,15 @@ public class TaskScheduler
     /// <summary>Calls <c>OnReadOnlyMainThread</c> on every registered client mod.</summary>
     private void RunReadOnlyMainThread(float dt)
     {
-        for (int i = 0; i < game.ClientMods.Count; i++)
-            game.ClientMods[i].OnReadOnlyMainThread(game, dt);
+        for (int i = 0; i < modRegistry.Mods.Count; i++)
+            modRegistry.Mods[i].OnReadOnlyMainThread(game, dt);
     }
 
     /// <summary>Calls <c>OnReadWriteMainThread</c> on every registered client mod.</summary>
     private void RunReadWriteMainThread(float dt)
     {
-        for (int i = 0; i < game.ClientMods.Count; i++)
-            game.ClientMods[i].OnReadWriteMainThread(dt);
+        for (int i = 0; i < modRegistry.Mods.Count; i++)
+            modRegistry.Mods[i].OnReadWriteMainThread(dt);
     }
 
     /// <summary>Executes all pending commit actions then clears the queue.</summary>
@@ -167,7 +169,7 @@ public class TaskScheduler
     {
         return () =>
         {
-            game.ClientMods[modIndex].OnReadOnlyBackgroundThread(game, dt);
+            modRegistry.Mods[modIndex].OnReadOnlyBackgroundThread(game, dt);
             onFinished();
         };
     }

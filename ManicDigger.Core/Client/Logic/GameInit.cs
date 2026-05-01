@@ -39,8 +39,8 @@ public partial class Game : IGame
     private readonly IOpenGlService openGlService;
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IPreferences preferences;
+    private readonly IModRegistry modRegistry;
     private readonly IGameExit gameExit;
-    private readonly IEnumerable<IModBase> mods;
 
     public LanguageService Language { get; set; }
     public Config3d Config3d { get; set; }
@@ -326,7 +326,7 @@ public partial class Game : IGame
     private readonly IFrustumCulling FrustumCulling;
 
     public List<Entity> Entities { get; set; }
-    public List<IModBase> ClientMods { get; set; }
+    private IReadOnlyList<IModBase> clientMods => modRegistry.Mods;
     public TerrainChunkTesselator TerrainChunkTesselator { get; set; }
     private readonly IMeshBatcher Batcher;
     private readonly IMeshDrawer meshDrawer;
@@ -379,7 +379,7 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
-        IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService,
+        IPreferences preferences, IGameExit gameExit, IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService,
         ICameraService cameraService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer)
     {
         gameService = platform;
@@ -387,13 +387,13 @@ public partial class Game : IGame
         this.singlePlayerService = singlePlayerService;
         this.preferences = preferences;
         this.gameExit = gameExit;
-        this.mods = mods;
+        this.modRegistry = modRegistry;
         this.voxelMap = voxelMap;
         this.OverheadCameraK = cameraService;
         this.FrustumCulling = frustumCulling;
         this.Batcher = meshBatcher;
         this.meshDrawer = meshDrawer;
-        InitCore();
+        InitCore(modRegistry);
         InitMap();
         InitTextures();
         InitPlayer();
@@ -410,7 +410,7 @@ public partial class Game : IGame
     // Initialisation helpers
     // -------------------------------------------------------------------------
 
-    private void InitCore()
+    private void InitCore(IModRegistry modRegistry)
     {
         performanceinfo = [];
         Language = new LanguageService();
@@ -418,7 +418,7 @@ public partial class Game : IGame
         options = new GameOption();
         getAsset = new string[1024 * 2];
         PlayerStats = new Packet_ServerPlayerStats();
-        taskScheduler = new TaskScheduler(this, gameService);
+        taskScheduler = new TaskScheduler(this, gameService, modRegistry);
         CommitActions = new();
         Entities = [];
     }

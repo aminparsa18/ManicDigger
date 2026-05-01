@@ -316,8 +316,8 @@ public partial class Game
     /// <summary>Calls the read-only main-thread hook on all registered mods.</summary>
     public void Update(float dt)
     {
-        for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnNewFrameReadOnlyMainThread(this, dt);
+        for (int i = 0; i < clientMods.Count; i++)
+            clientMods[i]?.OnNewFrameReadOnlyMainThread(this, dt);
     }
 
     // ── Block picking ─────────────────────────────────────────────────────────
@@ -398,8 +398,8 @@ public partial class Game
     /// </summary>
     public void Dispose()
     {
-        for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.Dispose();
+        for (int i = 0; i < clientMods.Count; i++)
+            clientMods[i]?.Dispose();
 
         foreach (int id in textures.Values)
             openGlService.GLDeleteTexture(id);

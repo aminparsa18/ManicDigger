@@ -6,6 +6,7 @@ using System.Diagnostics;
 
 public class Program
 {
+    /// <summary>The application-wide DI container, available after <see cref="Main"/> returns.</summary>
     public static IServiceProvider ServiceProvider { get; private set; }
 
     [STAThread]
@@ -18,26 +19,39 @@ public class Program
 
     public Program(string[] args)
     {
-        var serviceCollection = new ServiceCollection();
-        ConfigureServices(serviceCollection);
-
-        ServiceProvider = serviceCollection.BuildServiceProvider();
-
+        var services = new ServiceCollection();
+        ConfigureServices(services);
+        ServiceProvider = services.BuildServiceProvider();
         Start(args);
     }
 
+    // ── Service registration ──────────────────────────────────────────────────
+
     private static void ConfigureServices(ServiceCollection services)
     {
-        // Register your services here
+        // ── Infrastructure ────────────────────────────────────────────────────
         services.AddSingleton<GameWindowNative>();
         services.AddSingleton<IVoxelMap, VoxelMap>();
+        services.AddSingleton<IGameExit, GameExit>();
+        services.AddSingleton<IGameService, GameService>();
+        services.AddSingleton<ICameraService, CameraService>();
+        services.AddSingleton<IAudioService, AudioService>();
+        services.AddSingleton<IPreferences, Preferences>();
+        services.AddSingleton<IOpenGlService, OpenGlService>();
+        services.AddSingleton<IFrustumCulling, FrustumCulling>();
+        services.AddSingleton<IMeshBatcher, MeshBatcher>();
+        services.AddSingleton<IMeshDrawer, MeshDrawer>();
+        services.AddSingleton<ISinglePlayerService, SinglePlayerService>();
+        services.AddSingleton<IDummyNetwork, DummyNetwork>();
+        services.AddSingleton<IMenu, MainMenu>();
+        services.AddSingleton<IModRegistry, ModRegistry>();
+        services.AddSingleton<IGame, Game>();
 
         // ── Player logic ──────────────────────────────────────────────────────
         services.AddScoped<IModBase, ModDrawMain>();
         services.AddScoped<IModBase, ModUpdateMain>();
         services.AddScoped<IModBase, ModNetworkProcess>();
         services.AddScoped<IModBase, ModNetworkEntity>();
-        services.AddScoped<IModBase, ModAutoCamera>();
         services.AddScoped<IModBase, ModFallDamageToPlayer>();
         services.AddScoped<IModBase, ModBlockDamageToPlayer>();
         services.AddScoped<IModBase, ModLoadPlayerTextures>();
@@ -101,40 +115,27 @@ public class Program
         services.AddScoped<IModBase, ModGuiPlayerStats>();
         services.AddScoped<IModBase, ModGuiChat>();
         services.AddScoped<IModBase, ModScreenshot>();
-
-        services.AddSingleton<IMenu, MainMenu>();
-
-        services.AddSingleton<IGameExit, GameExit>();
-        services.AddSingleton<IGameService, GameService>();
-        services.AddSingleton<ICameraService, CameraService>();
-        services.AddSingleton<IAudioService, AudioService>();
-        services.AddSingleton<IPreferences, Preferences>();
-        services.AddSingleton<IOpenGlService, OpenGlService>();
-        services.AddSingleton<IFrustumCulling, FrustumCulling>();
-        services.AddSingleton<IMeshBatcher, MeshBatcher>();
-        services.AddSingleton<IMeshDrawer, MeshDrawer>();
-        services.AddSingleton<ISinglePlayerService, SinglePlayerService>();
-
-        services.AddSingleton<IDummyNetwork, DummyNetwork>();
-
-        services.AddSingleton<IGame, Game>();
     }
 
-    // -------------------------------------------------------------------------
-    // Startup
-    // -------------------------------------------------------------------------
+    // ── Startup ───────────────────────────────────────────────────────────────
 
     private static void Start(string[] args)
     {
         if (!Debugger.IsAttached)
             Environment.CurrentDirectory = Path.GetDirectoryName(Application.ExecutablePath)!;
 
-        Log.Debug("Initialising GamePlatformNative");
+        // 1. Game constructed — reads _modRegistry.Mods (empty list, safe)
+        var game = ServiceProvider.GetRequiredService<IGame>();
 
-        var mainmenu = ServiceProvider.GetRequiredService<IMenu>();
+        // 2. Mods constructed — each gets IGame injected (Game already exists)
+        var mods = ServiceProvider.GetServices<IModBase>();
 
-        Log.Debug("Creating GameWindowNative");
+        // 3. Registry populated — Game.ClientMods and any other IModRegistry 
+        //    consumer now see the full list
+        var registry = ServiceProvider.GetRequiredService<IModRegistry>();
+        registry.Initialise(mods);
 
-        mainmenu.Start(args);
+        // 4. Loop starts — ClientMods is fully populated
+        ServiceProvider.GetRequiredService<IMenu>().Start(args);
     }
 }

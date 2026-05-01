@@ -5,6 +5,13 @@
 /// </summary>
 public abstract class ModBase : IModBase
 {
+    //protected IGame Game;
+
+    //public ModBase(IGame game)
+    //{
+    //    Game = game;
+    //}
+
     /// <summary>Called each tick on the main thread; game state is read-only.</summary>
     public virtual void OnReadOnlyMainThread(IGame game, float dt) { }
 

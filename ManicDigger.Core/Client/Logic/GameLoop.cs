@@ -66,8 +66,8 @@ public partial class Game
         openGlService.GlClearColorBufferAndDepthBuffer();
         openGlService.BindTexture2d(TerrainTexture);
 
-        for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnBeforeNewFrameDraw3d(this, deltaTime);
+        for (int i = 0; i < clientMods.Count; i++)
+            clientMods[i]?.OnBeforeNewFrameDraw3d(this, deltaTime);
 
         meshDrawer.GLMatrixModeModelView();
         meshDrawer.GLLoadMatrix(Camera);
@@ -75,8 +75,8 @@ public partial class Game
         FrustumCulling.CalcFrustumEquations();
 
         openGlService.GlEnableDepthTest();
-        for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnNewFrameDraw3d(this, deltaTime);
+        for (int i = 0; i < clientMods.Count; i++)
+            clientMods[i]?.OnNewFrameDraw3d(this, deltaTime);
 
         RunDraw2dAndEndFrame(deltaTime);
     }
@@ -90,8 +90,8 @@ public partial class Game
     /// </summary>
     internal void FrameTick(float dt)
     {
-        for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i].OnNewFrameFixed(this, dt);
+        for (int i = 0; i < clientMods.Count; i++)
+            clientMods[i].OnNewFrameFixed(this, dt);
 
         for (int i = 0; i < Entities.Count; i++)
         {
@@ -134,8 +134,8 @@ public partial class Game
         SetAmbientLight(ColorUtils.ColorFromArgb(255, 255, 255, 255));
         Draw2d(dt);
 
-        for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnNewFrame(this, dt);
+        for (int i = 0; i < clientMods.Count; i++)
+            clientMods[i]?.OnNewFrame(this, dt);
 
         MouseLeftClick = false;
         mouserightclick = false;

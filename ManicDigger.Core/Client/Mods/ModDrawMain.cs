@@ -11,9 +11,10 @@
 /// </remarks>
 public class ModDrawMain : ModBase
 {
-
-    public ModDrawMain()
+    private readonly IGame game;
+    public ModDrawMain(IGame game)
     {
+        this.game = game;
     }
 
     /// <inheritdoc/>

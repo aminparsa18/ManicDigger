@@ -218,7 +218,7 @@ public sealed class GradientNoiseBasis
     /// </summary>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public float GradientCoherentNoise(float x, float y, float z,
+    public static float GradientCoherentNoise(float x, float y, float z,
         int seed, NoiseQuality noiseQuality)
     {
         // Integer unit-cube corners.

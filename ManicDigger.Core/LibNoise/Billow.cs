@@ -111,7 +111,7 @@ public sealed class Billow : IModule
         {
             int octaveSeed = (seed + i) & 0x7FFFFFFF;
 
-            float signal = _basis.GradientCoherentNoise(x, y, z, octaveSeed, quality);
+            float signal = GradientNoiseBasis.GradientCoherentNoise(x, y, z, octaveSeed, quality);
 
             // Strip the IEEE 754 sign bit — equivalent to MathF.Abs but branchless
             // and avoids a library call. Reinterpret float bits as int, clear bit 31,

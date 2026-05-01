@@ -59,7 +59,7 @@ public sealed class Perlin : IModule
         for (int i = 0; i < octaveCount; i++)
         {
             int octaveSeed = (seed + i) & 0x7FFFFFFF;
-            sum += _basis.GradientCoherentNoise(x, y, z, octaveSeed, quality) * amplitude;
+            sum += GradientNoiseBasis.GradientCoherentNoise(x, y, z, octaveSeed, quality) * amplitude;
             x *= lacunarity;
             y *= lacunarity;
             z *= lacunarity;

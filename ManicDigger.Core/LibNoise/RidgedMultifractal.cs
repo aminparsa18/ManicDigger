@@ -96,7 +96,7 @@ public sealed class RidgedMultifractal : IModule
         {
             int octaveSeed = (seed + i) & 0x7FFFFFFF;
 
-            float signal = _basis.GradientCoherentNoise(x, y, z, octaveSeed, quality);
+            float signal = GradientNoiseBasis.GradientCoherentNoise(x, y, z, octaveSeed, quality);
 
             // Bitwise abs: clear the IEEE 754 sign bit — branchless, no library call.
             signal = Unsafe.BitCast<int, float>(Unsafe.BitCast<float, int>(signal) & 0x7FFF_FFFF);

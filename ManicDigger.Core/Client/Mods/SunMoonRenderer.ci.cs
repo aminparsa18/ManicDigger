@@ -15,8 +15,11 @@ public class SunMoonRenderer : ModBase
     private int sunTexture = -1;
     private int moonTexture = -1;
 
-    public SunMoonRenderer()
+    private readonly IMeshDrawer meshDrawer;
+
+    public SunMoonRenderer(IMeshDrawer meshDrawer)
     {
+        this.meshDrawer = meshDrawer;
     }
 
     public int GetHour() => hour;
@@ -41,13 +44,13 @@ public class SunMoonRenderer : ModBase
         float bodyY = (game.isNight ? game.moonPosition.Y : game.sunPosition.Y) + game.Player.position.y;
         float bodyZ = (game.isNight ? game.moonPosition.Z : game.sunPosition.Z) + game.Player.position.z;
 
-        game.GLMatrixModeModelView();
-        game.GLPushMatrix();
-        game.GLTranslate(bodyX, bodyY, bodyZ);
-        VectorUtils.Billboard(game);
-        game.GLScale(SpriteScale, SpriteScale, SpriteScale);
+        meshDrawer.GLMatrixModeModelView();
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLTranslate(bodyX, bodyY, bodyZ);
+        VectorUtils.Billboard(meshDrawer);
+        meshDrawer.GLScale(SpriteScale, SpriteScale, SpriteScale);
         game.Draw2dTexture(game.isNight ? moonTexture : sunTexture, 0, 0, ImageSize, ImageSize, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
-        game.GLPopMatrix();
+        meshDrawer.GLPopMatrix();
     }
 
     private void UpdateSunMoonPosition(IGame game, float dt)

@@ -7,10 +7,12 @@ public class ModDrawHand2d : ModBase
 {
     private string lastHandImage;
     private readonly IGameService platform;
+    private readonly IMeshDrawer meshDrawer;
 
-    public ModDrawHand2d(IGameService platform)
+    public ModDrawHand2d(IGameService platform, IMeshDrawer meshDrawer)
     {
         this.platform = platform;
+        this.meshDrawer = meshDrawer;
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -20,7 +22,7 @@ public class ModDrawHand2d : ModBase
         string img = HandImage2d(game);
         if (img == null) return;
 
-        game.OrthoMode(platform.CanvasWidth, platform.CanvasHeight);
+        meshDrawer.OrthoMode(platform.CanvasWidth, platform.CanvasHeight);
 
         if (lastHandImage != img)
         {
@@ -35,7 +37,7 @@ public class ModDrawHand2d : ModBase
         }
 
         game.Draw2dTexture(game.handTexture, platform.CanvasWidth / 2, platform.CanvasHeight - 512, 512, 512, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
-        game.PerspectiveMode();
+        meshDrawer.PerspectiveMode();
     }
 
     /// <summary>Returns true if the hand should be drawn (first-person view with 2D enabled).</summary>

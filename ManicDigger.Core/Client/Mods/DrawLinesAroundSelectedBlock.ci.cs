@@ -7,9 +7,9 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
 
     private readonly DrawWireframeCube lines;
 
-    public ModDrawLinesAroundSelectedBlock(IOpenGlService platform)
+    public ModDrawLinesAroundSelectedBlock(IOpenGlService platform, IMeshDrawer meshDrawer)
     {
-        lines = new DrawWireframeCube(platform);
+        lines = new DrawWireframeCube(platform, meshDrawer);
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -28,8 +28,7 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
         if (e == null) return;
 
         float height = e.drawModel.ModelHeight;
-        lines.DrawWireframeCube_(game,
-            e.position.x, e.position.y + height / 2, e.position.z,
+        lines.DrawWireframeCube_(e.position.x, e.position.y + height / 2, e.position.z,
             SelectionScale, SelectionScale * height, SelectionScale);
     }
 
@@ -40,8 +39,7 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
         int z = game.SelectedBlockPositionZ;
         float blockHeight = game.Getblockheight(x, z, y);
 
-        lines.DrawWireframeCube_(game,
-            x + 0.5f, y + blockHeight * 0.5f, z + 0.5f,
+        lines.DrawWireframeCube_(x + 0.5f, y + blockHeight * 0.5f, z + 0.5f,
             SelectionScale, SelectionScale * blockHeight, SelectionScale);
     }
 }
@@ -52,24 +50,26 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
 public class DrawWireframeCube
 {
     private GeometryModel wireframeCube;
+    private readonly IMeshDrawer meshDrawer;
     private readonly IOpenGlService platform;
 
-    public DrawWireframeCube(IOpenGlService game)
+    public DrawWireframeCube(IOpenGlService game, IMeshDrawer meshDrawer)
     {
         this.platform = game;
+        this.meshDrawer = meshDrawer;
     }
 
-    public void DrawWireframeCube_(IGame game, float posX, float posY, float posZ, float scaleX, float scaleY, float scaleZ)
+    public void DrawWireframeCube_(float posX, float posY, float posZ, float scaleX, float scaleY, float scaleZ)
     {
         platform.GLLineWidth(2);
         platform.BindTexture2d(0);
 
         wireframeCube ??= platform.CreateModel(WireframeCube.Create());
 
-        game.GLPushMatrix();
-        game.GLTranslate(posX, posY, posZ);
-        game.GLScale(scaleX * 0.5f, scaleY * 0.5f, scaleZ * 0.5f);
-        game.DrawModel(wireframeCube);
-        game.GLPopMatrix();
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLTranslate(posX, posY, posZ);
+        meshDrawer.GLScale(scaleX * 0.5f, scaleY * 0.5f, scaleZ * 0.5f);
+        meshDrawer.DrawModel(wireframeCube);
+        meshDrawer.GLPopMatrix();
     }
 }

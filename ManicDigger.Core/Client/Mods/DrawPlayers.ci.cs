@@ -8,11 +8,17 @@ public class ModDrawPlayers : ModBase
 {
     private readonly IGameService platform;
     private readonly IVoxelMap voxelMap;
+    private readonly IFrustumCulling frustumCulling;
+    private readonly IMeshDrawer meshDrawer;
+    private readonly IOpenGlService openGlService;
 
-    public ModDrawPlayers(IGameService platform, IVoxelMap voxelMap)
+    public ModDrawPlayers(IGameService platform, IVoxelMap voxelMap, IFrustumCulling frustumCulling, IMeshDrawer meshDrawer, IOpenGlService openGlService)
     {
         this.platform = platform;
         this.voxelMap = voxelMap;
+        this.frustumCulling = frustumCulling;
+        this.meshDrawer = meshDrawer;
+        this.openGlService = openGlService;
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -25,7 +31,7 @@ public class ModDrawPlayers : ModBase
             if (p?.drawModel == null) continue;
             if (i == game.LocalPlayerId && !game.EnableTppView) continue;
             if (p.networkPosition != null && !p.networkPosition.PositionLoaded) continue;
-            if (!game.FrustumCulling.SphereInFrustum(p.position.x, p.position.y, p.position.z, 3)) continue;
+            if (!frustumCulling.SphereInFrustum(p.position.x, p.position.y, p.position.z, 3)) continue;
             if (p.drawModel.CurrentTexture == -1) continue;
 
             int cx = (int)p.position.x / Game.chunksize;
@@ -68,7 +74,7 @@ public class ModDrawPlayers : ModBase
     {
         if (p.drawModel.renderer != null) return;
 
-        p.drawModel.renderer = new AnimatedModelRenderer();
+        p.drawModel.renderer = new AnimatedModelRenderer(meshDrawer, openGlService);
         byte[] data = game.GetAssetFile(p.drawModel.Model_);
         int dataLength = game.GetAssetFileLength(p.drawModel.Model_);
         if (data == null) return;
@@ -81,11 +87,11 @@ public class ModDrawPlayers : ModBase
     /// <summary>Renders the entity's animated model at its current world position and orientation.</summary>
     private void DrawEntity(IGame game, Entity p, float dt, float shadow, float speed)
     {
-        game.GLPushMatrix();
-        game.GLTranslate(p.position.x, p.position.y, p.position.z);
-        game.GLRotate(float.RadiansToDegrees(-p.position.roty + MathF.PI), 0, 1, 0);
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLTranslate(p.position.x, p.position.y, p.position.z);
+        meshDrawer.GLRotate(float.RadiansToDegrees(-p.position.roty + MathF.PI), 0, 1, 0);
         game.OpenGlService.BindTexture2d(p.drawModel.CurrentTexture);
         p.drawModel.renderer.Render(dt, float.RadiansToDegrees(p.position.rotx + MathF.PI), true, p.playerDrawInfo.moves, shadow);
-        game.GLPopMatrix();
+        meshDrawer.GLPopMatrix();
     }
 }

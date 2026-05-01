@@ -109,32 +109,11 @@ public interface IGame
     // Rendering — 3-D / GL matrix stack
     // =========================================================================
 
-    /// <summary>Model-view matrix stack.</summary>
-    Stack<Matrix4> mvMatrix { get; set; }
-
-    /// <summary>Projection matrix stack.</summary>
-    Stack<Matrix4> pMatrix { get; set; }
-
     /// <summary>The resolved camera matrix for the current frame.</summary>
     Matrix4 Camera { get; set; }
 
     /// <summary>World-space position of the camera eye point.</summary>
     Vector3 CameraEye { get; set; }
-
-    void GLPushMatrix();
-    void GLPopMatrix();
-    void GLRotate(float angle, float x, float y, float z);
-    void GLTranslate(float x, float y, float z);
-    void GLScale(float x, float y, float z);
-    void GLLoadMatrix(Matrix4 m);
-    void GLLoadIdentity();
-    void GLMatrixModeModelView();
-
-    /// <summary>Switches GL to orthographic projection for 2-D rendering.</summary>
-    void OrthoMode(int width, int height);
-
-    /// <summary>Restores GL to perspective projection for 3-D rendering.</summary>
-    void PerspectiveMode();
 
     /// <summary>Sets the perspective projection with the given far-clip and field-of-view.</summary>
     void Set3dProjection(float zfar, float fov);
@@ -151,9 +130,6 @@ public interface IGame
     void ToggleFog();
     void ToggleVsync();
     void UseVsync();
-
-    void DrawModel(GeometryModel model);
-    void DrawModelData(GeometryModel data);
 
     /// <summary>Returns a UI scale factor appropriate for the current canvas size.</summary>
     float Scale();
@@ -222,12 +198,6 @@ public interface IGame
 
     /// <summary>Terrain chunk tesselator used to build chunk geometry.</summary>
     TerrainChunkTesselator TerrainChunkTesselator { get; }
-
-    /// <summary>The scene mesh batcher for registered 3-D models.</summary>
-    MeshBatcher Batcher { get; }
-
-    /// <summary>Frustum culling helper.</summary>
-    FrustumCulling FrustumCulling { get; set; }
 
     /// <summary>When <c>true</c>, all chunk meshes are rebuilt next frame.</summary>
     bool ShouldRedrawAllBlocks { get; set; }

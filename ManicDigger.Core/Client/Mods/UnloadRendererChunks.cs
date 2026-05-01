@@ -10,6 +10,7 @@ public class ModUnloadRendererChunks : ModBase
     /// <summary>Reference to the current game instance, refreshed every background tick.</summary>
     private readonly IGame _game;
     private readonly IVoxelMap _voxelMap;
+    private readonly IMeshBatcher meshBatcher;
 
     private int _pendingUnloadIndex = -1;
     private readonly Action<IGame> _unloadAction;
@@ -38,10 +39,11 @@ public class ModUnloadRendererChunks : ModBase
     /// <summary>Reusable output for <see cref="VectorIndexUtil.PosInt"/> to avoid per-frame allocation.</summary>
     private Vector3i _unloadXyzTemp;
 
-    public ModUnloadRendererChunks(IGame game, IVoxelMap voxelMap)
+    public ModUnloadRendererChunks(IGame game, IVoxelMap voxelMap, IMeshBatcher meshBatcher)
     {
         _game = game;
         _voxelMap = voxelMap;
+        this.meshBatcher = meshBatcher;
         _unloadXyzTemp = new Vector3i();
         _unloadXyzTemp = new Vector3i();
         _unloadAction = ExecuteUnload; // allocated once, reused forever
@@ -76,7 +78,7 @@ public class ModUnloadRendererChunks : ModBase
         if (rendered != null)
         {
             for (int k = 0; k < rendered.IdsCount; k++)
-                _game.Batcher.Remove(rendered.Ids[k]);
+                meshBatcher.Remove(rendered.Ids[k]);
             rendered.Ids = null;
             rendered.Dirty = true;
             if (rendered.LightRented && rendered.Light != null)

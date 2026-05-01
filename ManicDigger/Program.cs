@@ -102,15 +102,18 @@ public class Program
         services.AddScoped<IModBase, ModGuiChat>();
         services.AddScoped<IModBase, ModScreenshot>();
 
-        services.AddTransient<IMenu, MainMenu>();
+        services.AddSingleton<IMenu, MainMenu>();
 
-        services.AddTransient<IGameExit, GameExit>();
-        services.AddTransient<IGameService, GameService>();
-        services.AddTransient<ICameraService, CameraService>();
+        services.AddSingleton<IGameExit, GameExit>();
+        services.AddSingleton<IGameService, GameService>();
+        services.AddSingleton<ICameraService, CameraService>();
         services.AddSingleton<IAudioService, AudioService>();
-        services.AddTransient<IPreferences, Preferences>();
-        services.AddTransient<IOpenGlService, OpenGlService>();
-        services.AddTransient<ISinglePlayerService, SinglePlayerService>();
+        services.AddSingleton<IPreferences, Preferences>();
+        services.AddSingleton<IOpenGlService, OpenGlService>();
+        services.AddSingleton<IFrustumCulling, FrustumCulling>();
+        services.AddSingleton<IMeshBatcher, MeshBatcher>();
+        services.AddSingleton<IMeshDrawer, MeshDrawer>();
+        services.AddSingleton<ISinglePlayerService, SinglePlayerService>();
 
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
     }

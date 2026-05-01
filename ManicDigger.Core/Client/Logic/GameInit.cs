@@ -216,8 +216,6 @@ public partial class Game : IGame
 
     public Matrix4 Camera { get; set; }
     public Vector3 CameraEye { get; set; }
-    public Stack<Matrix4> mvMatrix { get; set; }
-    public Stack<Matrix4> pMatrix { get; set; }
 
     private CameraMatrixProvider CameraMatrix;
     private float fov;
@@ -232,8 +230,6 @@ public partial class Game : IGame
     private bool ENABLE_ZFAR;
     private float TPP_CAMERA_DISTANCE_MIN;
     private float TPP_CAMERA_DISTANCE_MAX;
-    private bool currentMatrixModeProjection;
-    private Matrix4 identityMatrix;
     private int maxdrawdistance;
 
     // -------------------------------------------------------------------------
@@ -327,11 +323,13 @@ public partial class Game : IGame
     // Subsystems
     // -------------------------------------------------------------------------
 
+    private readonly IFrustumCulling FrustumCulling;
+
     public List<Entity> Entities { get; set; }
     public List<IModBase> ClientMods { get; set; }
-    public FrustumCulling FrustumCulling { get; set; }
     public TerrainChunkTesselator TerrainChunkTesselator { get; set; }
-    public MeshBatcher Batcher { get; set; }
+    private readonly IMeshBatcher Batcher;
+    private readonly IMeshDrawer meshDrawer;
     public InventoryUtilClient InventoryUtil { get; set; }
     public BlockTypeRegistry BlockRegistry { get; set; }
     public Packet_Inventory Inventory { get; set; }
@@ -382,7 +380,7 @@ public partial class Game : IGame
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
         IPreferences preferences, IGameExit gameExit, IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService,
-        ICameraService cameraService)
+        ICameraService cameraService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer)
     {
         GameService = platform;
         OpenGlService = platformOpenGl;
@@ -392,6 +390,9 @@ public partial class Game : IGame
         this.mods = mods;
         this.voxelMap = voxelMap;
         this.OverheadCameraK = cameraService;
+        this.FrustumCulling = frustumCulling;
+        this.Batcher = meshBatcher;
+        this.meshDrawer = meshDrawer;
         InitCore();
         InitMap();
         InitTextures();
@@ -416,7 +417,6 @@ public partial class Game : IGame
         ServerInfo = new ServerInformation();
         options = new GameOption();
         getAsset = new string[1024 * 2];
-        identityMatrix = Matrix4.Identity;
         PlayerStats = new Packet_ServerPlayerStats();
         taskScheduler = new TaskScheduler(this, GameService);
         CommitActions = new();
@@ -480,10 +480,6 @@ public partial class Game : IGame
     private void InitCamera()
     {
         Camera = Matrix4.Identity;
-        mvMatrix = new();
-        pMatrix = new();
-        mvMatrix.Push(Matrix4.Identity);
-        pMatrix.Push(Matrix4.Identity);
 
         CameraEye = Vector3.Zero;
         CameraMatrix = new CameraMatrixProvider();

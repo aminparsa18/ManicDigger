@@ -19,7 +19,7 @@ public class AnimatedModelRenderer
     private const float ModelUnitScale = 16f;
 
     /// <summary>The game instance used for GL draw calls.</summary>
-    internal IGame game;
+    private readonly IOpenGlService openGlService;
 
     /// <summary>The model currently being rendered.</summary>
     private AnimatedModel m;
@@ -36,18 +36,21 @@ public class AnimatedModelRenderer
     /// </summary>
     private readonly Dictionary<(string anim, string node, KeyframeType type), List<Keyframe>> keyframeCache;
 
+    private readonly IMeshDrawer meshDrawer;
+
     /// <summary>
     /// Initializes a new <see cref="AnimatedModelRenderer"/> for the given
     /// <paramref name="game"/> and <paramref name="model"/>.
     /// </summary>
-    public AnimatedModelRenderer()
+    public AnimatedModelRenderer(IMeshDrawer meshDrawer, IOpenGlService openGlService)
     {
         keyframeCache = [];
+        this.meshDrawer = meshDrawer;
+        this.openGlService = openGlService;
     }
 
     public void Start(IGame game_, AnimatedModel model_)
     {
-        game = game_;
         m = model_;
         BuildKeyframeCache();
     }
@@ -128,7 +131,7 @@ public class AnimatedModelRenderer
                 continue;
             }
 
-            game.GLPushMatrix();
+            meshDrawer.GLPushMatrix();
 
             RectangleF[] r = CuboidRenderer.CuboidNet(n.SizeX, n.SizeY, n.SizeZ, n.U, n.V);
             CuboidRenderer.CuboidNetNormalize(r, m.Global.TexW, m.Global.TexH);
@@ -137,35 +140,35 @@ public class AnimatedModelRenderer
             Vector3 scale = GetAnimation(n, KeyframeType.Scale);
             if (scale != Vector3.Zero)
             {
-                game.GLScale(scale.X, scale.Y, scale.Z);
+                meshDrawer.GLScale(scale.X, scale.Y, scale.Z);
             }
 
             // Position — convert from model units to world units
             Vector3 position = GetAnimation(n, KeyframeType.Position) / ModelUnitScale;
             if (position != Vector3.Zero)
             {
-                game.GLTranslate(position[0], position[1], position[2]);
+                meshDrawer.GLTranslate(position[0], position[1], position[2]);
             }
 
             // Rotation — applied per axis to match GL convention
             Vector3 rotation = GetAnimation(n, KeyframeType.Rotation);
-            if (rotation.X != 0) { game.GLRotate(rotation.X, 1, 0, 0); }
-            if (rotation.Y != 0) { game.GLRotate(rotation.Y, 0, 1, 0); }
-            if (rotation.Z != 0) { game.GLRotate(rotation.Z, 0, 0, 1); }
+            if (rotation.X != 0) { meshDrawer.GLRotate(rotation.X, 1, 0, 0); }
+            if (rotation.Y != 0) { meshDrawer.GLRotate(rotation.Y, 0, 1, 0); }
+            if (rotation.Z != 0) { meshDrawer.GLRotate(rotation.Z, 0, 0, 1); }
 
             // Head pitch — applied after rotation so it compounds correctly
             if (n.Head == 1)
             {
-                game.GLRotate(headDeg, 1, 0, 0);
+                meshDrawer.GLRotate(headDeg, 1, 0, 0);
             }
 
             // Pivot — shifts the center of rotation, convert from model units
             Vector3 pivot = GetAnimation(n, KeyframeType.Pivot) / ModelUnitScale;
-            game.GLTranslate(pivot.X, pivot.Y, pivot.Z);
+            meshDrawer.GLTranslate(pivot.X, pivot.Y, pivot.Z);
 
             // Size — the actual cuboid dimensions, convert from model units
             Vector3 size = GetAnimation(n, KeyframeType.Size) / ModelUnitScale;
-            CuboidRenderer.DrawCuboidModel(game,
+            CuboidRenderer.DrawCuboidModel(openGlService, meshDrawer,
                 -size.X / 2, -size.Y / 2, -size.Z / 2,
                 size.X, size.Y, size.Z,
                 r, light);
@@ -173,7 +176,7 @@ public class AnimatedModelRenderer
             // Recurse into children
             DrawNode(n.Name, headDeg, light);
 
-            game.GLPopMatrix();
+            meshDrawer.GLPopMatrix();
         }
     }
 

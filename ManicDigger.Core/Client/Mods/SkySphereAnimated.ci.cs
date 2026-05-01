@@ -9,15 +9,17 @@ public class ModSkySphereAnimated : ModBase
 
     private readonly ModBase stars;
     private readonly IOpenGlService platform;
+    private readonly IMeshDrawer meshDrawer;
     private GeometryModel skyModel;
     private int[] skyPixels;
     private int[] glowPixels;
     private bool started;
 
-    public ModSkySphereAnimated(IOpenGlService platform)
+    public ModSkySphereAnimated(IOpenGlService platform, IMeshDrawer meshDrawer)
     {
         this.platform = platform;
-        stars = new ModSkySphereStatic(platform);
+        this.meshDrawer = meshDrawer;
+        stars = new ModSkySphereStatic(platform, meshDrawer);
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -67,12 +69,12 @@ public class ModSkySphereAnimated : ModBase
         
         platform.UpdateModel(skyModel);
         game.Set3dProjection(size * 2, fov);
-        game.GLMatrixModeModelView();
-        game.GLPushMatrix();
-        game.GLTranslate(game.Player.position.x, game.Player.position.y, game.Player.position.z);
+        meshDrawer.GLMatrixModeModelView();
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLTranslate(game.Player.position.x, game.Player.position.y, game.Player.position.z);
         platform.BindTexture2d(0);
-        game.DrawModelData(skyModel);
-        game.GLPopMatrix();
+        meshDrawer.DrawModelData(skyModel);
+        meshDrawer.GLPopMatrix();
         game.Set3dProjection(game.Zfar(), fov);
     }
 

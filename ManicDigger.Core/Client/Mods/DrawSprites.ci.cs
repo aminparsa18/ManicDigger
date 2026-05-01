@@ -4,9 +4,11 @@
 public class ModDrawSprites : ModBase
 {
     private const float SpriteScale = 0.02f;
+    private readonly IMeshDrawer meshDrawer;
 
-    public ModDrawSprites()
+    public ModDrawSprites(IMeshDrawer meshDrawer)
     {
+        this.meshDrawer = meshDrawer;
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -24,16 +26,14 @@ public class ModDrawSprites : ModBase
                 frame = (int)(progress * (b.animationcount * b.animationcount - 1));
             }
 
-            game.GLMatrixModeModelView();
-            game.GLPushMatrix();
-            game.GLTranslate(b.positionX, b.positionY, b.positionZ);
-            VectorUtils.Billboard(game);
-            game.GLScale(SpriteScale, SpriteScale, SpriteScale);
-            game.GLTranslate(-b.size / 2, -b.size / 2, 0);
+            meshDrawer.GLMatrixModeModelView();
+            meshDrawer.GLPushMatrix();
+            meshDrawer.GLTranslate(b.positionX, b.positionY, b.positionZ);
+            VectorUtils.Billboard(meshDrawer);
+            meshDrawer.GLScale(SpriteScale, SpriteScale, SpriteScale);
+            meshDrawer.GLTranslate(-b.size / 2, -b.size / 2, 0);
             game.Draw2dTexture(game.GetTexture(b.image), 0, 0, b.size, b.size, frame, b.animationcount, ColorUtils.ColorFromArgb(255, 255, 255, 255), true);
-            game.GLPopMatrix();
+            meshDrawer.GLPopMatrix();
         }
     }
-
-
 }

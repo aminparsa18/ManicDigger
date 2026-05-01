@@ -9,9 +9,10 @@ public class ModDrawPlayerNames : ModBase
     private const float NameTagScale = 0.02f;
     private const float NameTagDrawDistance = 20f;
 
-
-    public ModDrawPlayerNames()
+    private readonly IMeshDrawer meshDrawer;
+    public ModDrawPlayerNames(IMeshDrawer meshDrawer)
     {
+        this.meshDrawer = meshDrawer;
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -39,10 +40,10 @@ public class ModDrawPlayerNames : ModBase
 
     private void DrawNameTag(IGame game, DrawName p, float posX, float posY, float posZ)
     {
-        game.GLPushMatrix();
-        game.GLTranslate(posX, posY, posZ);
-        VectorUtils.Billboard(game);
-        game.GLScale(NameTagScale, NameTagScale, NameTagScale);
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLTranslate(posX, posY, posZ);
+        VectorUtils.Billboard(meshDrawer);
+        meshDrawer.GLScale(NameTagScale, NameTagScale, NameTagScale);
 
         if (p.DrawHealth)
         {
@@ -53,6 +54,6 @@ public class ModDrawPlayerNames : ModBase
         Font font = new("Arial", 14);
         game.Draw2dText(p.Name, font, -game.TextSizeWidth(p.Name, 14) / 2, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), true);
 
-        game.GLPopMatrix();
+        meshDrawer.GLPopMatrix();
     }
 }

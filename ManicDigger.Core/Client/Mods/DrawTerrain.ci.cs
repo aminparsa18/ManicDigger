@@ -31,6 +31,7 @@ public class ModDrawTerrain : ModBase
 
     private readonly IGameService _platform;
     private readonly IVoxelMap _voxelMap;
+    private readonly IMeshBatcher meshBatcher;
 
     private readonly LightBase _lightBase;
     private readonly LightBetweenChunks _lightBetweenChunks;
@@ -59,10 +60,11 @@ public class ModDrawTerrain : ModBase
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
 
-    public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap)
+    public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap, IMeshBatcher meshBatcher)
     {
         _platform = platform;
         _voxelMap = voxelMap;
+        this.meshBatcher = meshBatcher;
         _currentChunk = new int[BufferedChunkVolume];
         _currentChunkShadows = new byte[BufferedChunkVolume];
         _batcherIds = new int[1024];
@@ -75,7 +77,8 @@ public class ModDrawTerrain : ModBase
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    public int TrianglesCount(IGame _game) => _game.Batcher.TotalTriangleCount();
+    public int TrianglesCount() => meshBatcher.TotalTriangleCount();
+
     internal int InvertChunk(int num) => (int)(num * invertedChunkSize);
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
@@ -261,7 +264,7 @@ public class ModDrawTerrain : ModBase
 
         if (rendered?.Ids != null)
             for (int i = 0; i < rendered.IdsCount; i++)
-                _game.Batcher.Remove(rendered.Ids[i]);
+                meshBatcher.Remove(rendered.Ids[i]);
 
         for (int i = 0; i < r.DataCount; i++)
         {
@@ -277,7 +280,7 @@ public class ModDrawTerrain : ModBase
             float cz = submesh.PositionY + chunksize * 0.5f;
             float radius = _sqrt3Half * chunksize;
 
-            _batcherIds[_batcherIdsCount++] = _game.Batcher.Add(
+            _batcherIds[_batcherIdsCount++] = meshBatcher.Add(
                 submesh.ModelData, submesh.Transparent, submesh.Texture,
                 cx, cy, cz, radius);
 
@@ -420,13 +423,13 @@ public class ModDrawTerrain : ModBase
 
     private void DrawTerrain(IGame _game)
     {
-        _game.Batcher.Draw(
+        meshBatcher.Draw(
             _game.LocalPositionX,
             _game.LocalPositionY,
             _game.LocalPositionZ);
     }
 
-    internal void Clear(IGame _game) => _game.Batcher.Clear();
+    internal void Clear(IGame _game) => meshBatcher.Clear();
 
     // ── Performance info ──────────────────────────────────────────────────────
 
@@ -444,7 +447,7 @@ public class ModDrawTerrain : ModBase
         _game.PerformanceInfo["chunk updates"] = string.Format(
             _game.Language.ChunkUpdates(), updatesThisPeriod.ToString());
         _game.PerformanceInfo["triangles"] = string.Format(
-            _game.Language.Triangles(), TrianglesCount(_game).ToString());
+            _game.Language.Triangles(), TrianglesCount().ToString());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

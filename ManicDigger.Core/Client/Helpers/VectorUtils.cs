@@ -159,9 +159,9 @@ public class VectorUtils
     /// making the object always face the camera (cylindrical billboard).
     /// See: http://stackoverflow.com/a/5487981
     /// </summary>
-    public static void Billboard(IGame game)
+    public static void Billboard(IMeshDrawer meshDrawer)
     {
-        Matrix4 m = game.mvMatrix.Peek();
+        Matrix4 m = meshDrawer.mvMatrix.Peek();
 
         float d = MathF.Sqrt(m.Row0.X * m.Row0.X + m.Row0.Y * m.Row0.Y + m.Row0.Z * m.Row0.Z);
 
@@ -173,8 +173,8 @@ public class VectorUtils
         Matrix4.CreateRotationX(MathF.PI, out Matrix4 rotX);
         m = rotX * m;
 
-        game.mvMatrix.Pop();
-        game.mvMatrix.Push(m);
-        game.GLLoadMatrix(m);
+        meshDrawer.mvMatrix.Pop();
+        meshDrawer.mvMatrix.Push(m);
+        meshDrawer.GLLoadMatrix(m);
     }
 }

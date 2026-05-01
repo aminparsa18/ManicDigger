@@ -28,6 +28,7 @@ public class ModDrawHand3d : ModBase
 
     /// <summary>Reference to the current game instance, set each frame in <see cref="OnNewFrameDraw3d"/>.</summary>
     private readonly IOpenGlService platform;
+    private readonly IMeshDrawer meshDrawer;
 
     /// <summary>Torch block renderer used to draw held torches and the empty-hand model.</summary>
     internal BlockRendererTorch d_BlockRendererTorch;
@@ -120,9 +121,10 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Initialises all animation parameters and creates the torch renderer dependency.
     /// </summary>
-    public ModDrawHand3d(IOpenGlService platform)
+    public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer)
     {
         this.platform = platform;
+        this.meshDrawer = meshDrawer;
         _attack = -1;
         _attackOffset = 0;
         _buildOffset = 0;
@@ -323,27 +325,27 @@ public class ModDrawHand3d : ModBase
         // Push an isolated model-view matrix for the hand so it always renders in
         // front of the world geometry regardless of camera distance.
         platform.GlClearDepthBuffer();
-        game.GLMatrixModeModelView();
-        game.GLPushMatrix();
-        game.GLLoadIdentity();
+        meshDrawer.GLMatrixModeModelView();
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLLoadIdentity();
 
         // Position and orient the hand in view space.
-        game.GLTranslate(
+        meshDrawer.GLTranslate(
             (0.3f) + _bobOffsetZ - _attackOffset * 5,
             -(1f * 15 / 10) + _bobOffsetX - _buildOffset * 10,
             -(1f * 15 / 10) + _restOffsetY);
 
-        game.GLRotate(30 + _restRotateX - _attackOffset * 300, 1, 0, 0);
-        game.GLRotate(60 + _restRotateY, 0, 1, 0);
-        game.GLScale(1f * 8 / 10, 1f * 8 / 10, 1f * 8 / 10);
+        meshDrawer.GLRotate(30 + _restRotateX - _attackOffset * 300, 1, 0, 0);
+        meshDrawer.GLRotate(60 + _restRotateY, 0, 1, 0);
+        meshDrawer.GLScale(1f * 8 / 10, 1f * 8 / 10, 1f * 8 / 10);
 
         AdvanceBobAnimation(game, dt);
         AdvanceSwingAnimation(dt);
 
         platform.BindTexture2d(GetTerrainTexture(game));
-        game.DrawModelData(_modelData);
+        meshDrawer.DrawModelData(_modelData);
 
-        game.GLPopMatrix();
+        meshDrawer.GLPopMatrix();
     }
 
     /// <summary>

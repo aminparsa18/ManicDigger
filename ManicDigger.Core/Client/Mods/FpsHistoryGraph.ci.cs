@@ -11,6 +11,7 @@ public class ModFpsHistoryGraph : ModBase
     private const int PerLine = 2;
 
     private readonly IGameService _platform;
+    private readonly IMeshDrawer meshDrawer;
 
     private readonly float[] dtHistory = new float[MaxCount];
     private readonly Draw2dData[] todraw = new Draw2dData[MaxCount];
@@ -22,10 +23,11 @@ public class ModFpsHistoryGraph : ModBase
     private bool drawFpsText;
     private bool drawFpsGraph;
 
-    public ModFpsHistoryGraph(IGameService platform)
+    public ModFpsHistoryGraph(IGameService platform, IMeshDrawer meshDrawer)
     {
         _platform = platform;
-
+        this.meshDrawer = meshDrawer;
+            
         for (int i = 0; i < MaxCount; i++)
             todraw[i] = new Draw2dData();
     }
@@ -111,10 +113,10 @@ public class ModFpsHistoryGraph : ModBase
     {
         if (!drawFpsGraph && !drawFpsText) return;
 
-        _game.OrthoMode(_platform.CanvasWidth, _platform.CanvasHeight);
+        meshDrawer.OrthoMode(_platform.CanvasWidth, _platform.CanvasHeight);
         if (drawFpsGraph) DrawGraph(_game);
         if (drawFpsText) _game.Draw2dText(fpsText, new Font("Arial", ChatFontSize), 20, 20, null, false);
-        _game.PerspectiveMode();
+        meshDrawer.PerspectiveMode();
     }
 
     private void DrawGraph(IGame _game)

@@ -126,11 +126,11 @@ public partial class Game
 
         // Collapsed: Translate(x1,y1) · Scale(w,h) · Scale(0.5,0.5) · Translate(1,1)
         // = Translate(x1 + w*0.5, y1 + h*0.5) · Scale(w*0.5, h*0.5)
-        GLPushMatrix();
-        GLTranslate(x1 + width * 0.5f, y1 + height * 0.5f, 0f);
-        GLScale(width * 0.5f, height * 0.5f, 0f);
-        DrawModel(_quadModel);
-        GLPopMatrix();
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLTranslate(x1 + width * 0.5f, y1 + height * 0.5f, 0f);
+        meshDrawer.GLScale(width * 0.5f, height * 0.5f, 0f);
+        meshDrawer.DrawModel(_quadModel);
+        meshDrawer.GLPopMatrix();
 
         if (!enabledepthtest) OpenGlService.GlEnableDepthTest();
         OpenGlService.GlEnableCullFace();
@@ -153,7 +153,7 @@ public partial class Game
         OpenGlService.BindTexture2d(textureid);
         if (!enabledepthtest) OpenGlService.GlDisableDepthTest();
         OpenGlService.UpdateModel(_atlasQuadModel);
-        DrawModelData(_atlasQuadModel);
+        meshDrawer.DrawModelData(_atlasQuadModel);
         if (!enabledepthtest) OpenGlService.GlEnableDepthTest();
         OpenGlService.GlEnableCullFace();
     }
@@ -172,7 +172,7 @@ public partial class Game
         OpenGlService.BindTexture2d(textureid);
         if (!enabledepthtest) OpenGlService.GlDisableDepthTest();
         OpenGlService.UpdateModel(_atlasQuadModel);
-        DrawModelData(_atlasQuadModel);
+        meshDrawer.DrawModelData(_atlasQuadModel);
         if (!enabledepthtest) OpenGlService.GlEnableDepthTest();
         OpenGlService.GlEnableCullFace();
     }
@@ -270,7 +270,7 @@ public partial class Game
         OpenGlService.BindTexture2d(textureid);
         OpenGlService.GlDisableDepthTest();
         OpenGlService.UpdateModel(_combinedModel);
-        DrawModelData(_combinedModel);
+        meshDrawer.DrawModelData(_combinedModel);
         OpenGlService.GlEnableDepthTest();
         OpenGlService.GlEnableCullFace();
     }
@@ -308,7 +308,7 @@ public partial class Game
     {
         if (!ENABLE_DRAW2D) return;
 
-        OrthoMode(GameService.CanvasWidth, GameService.CanvasHeight);
+        meshDrawer.OrthoMode(GameService.CanvasWidth, GameService.CanvasHeight);
 
         for (int i = 0; i < ClientMods.Count; i++)
             ClientMods[i]?.OnNewFrameDraw2d(this, dt);
@@ -316,7 +316,7 @@ public partial class Game
         // Fix #3: evict stale text textures once per frame here, not inside Draw2dText.
         DeleteUnusedCachedTextTextures();
 
-        PerspectiveMode();
+        meshDrawer.PerspectiveMode();
     }
 
     /// <summary>
@@ -471,10 +471,10 @@ public partial class Game
 
         OpenGlService.UpdateModel(_circleModelData);
 
-        GLPushMatrix();
-        GLLoadIdentity();
-        DrawModelData(_circleModelData);
-        GLPopMatrix();
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLLoadIdentity();
+        meshDrawer.DrawModelData(_circleModelData);
+        meshDrawer.GLPopMatrix();
     }
 }
 

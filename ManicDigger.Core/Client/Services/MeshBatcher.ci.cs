@@ -22,7 +22,7 @@ public class MeshBatcher : IMeshBatcher
     private const int MaxTextures = 10;
 
     private readonly IOpenGlService _platform;
-    private readonly IMeshDrawer _drawer;
+    private readonly IMeshDrawer meshDrawer;
 
     /// <summary>
     /// When <c>true</c>, <see cref="Draw"/> will bind each texture before issuing
@@ -55,10 +55,10 @@ public class MeshBatcher : IMeshBatcher
     /// <summary>
     /// Initialises a new <see cref="MeshBatcher"/> with pre-allocated model slots.
     /// </summary>
-    public MeshBatcher(IOpenGlService platform, IMeshDrawer drawer)
+    public MeshBatcher(IOpenGlService platform, IMeshDrawer meshDrawer)
     {
         _platform = platform;
-        _drawer = drawer;
+        this.meshDrawer = meshDrawer;
         _models = new BatchEntry[ModelsMax];
 
         _modelsCount = 0;
@@ -150,7 +150,7 @@ public class MeshBatcher : IMeshBatcher
             if (BindTexture)
                 _platform.BindTexture2d(_glTextures[i]);
 
-            _drawer.DrawModels(_tocallSolid[i], _tocallSolid[i].Count);
+            meshDrawer.DrawModels(_tocallSolid[i], _tocallSolid[i].Count);
         }
 
         // Transparent pass: back-face culling disabled so water surfaces etc. render correctly.
@@ -162,7 +162,7 @@ public class MeshBatcher : IMeshBatcher
             if (BindTexture)
                 _platform.BindTexture2d(_glTextures[i]);
 
-            _drawer.DrawModels(_tocallTransparent[i], _tocallTransparent[i].Count);
+            meshDrawer.DrawModels(_tocallTransparent[i], _tocallTransparent[i].Count);
         }
         _platform.GlEnableCullFace();
     }

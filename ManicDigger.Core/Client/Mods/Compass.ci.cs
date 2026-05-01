@@ -14,10 +14,12 @@ public class ModCompass : ModBase
     private float compassAngle;
     private float compassVelocity;
     private readonly IGameService platform;
+    private readonly IMeshDrawer meshDrawer;
 
-    public ModCompass(IGameService platform)
+    public ModCompass(IGameService platform, IMeshDrawer meshDrawer)
     {
         this.platform = platform;
+        this.meshDrawer = meshDrawer;
     }
 
     public override void OnNewFrameDraw2d(IGame game, float dt)
@@ -61,11 +63,11 @@ public class ModCompass : ModBase
         game.Draw2dTexture(compassId, posX - CompassSize / 2, posY - CompassSize / 2, CompassSize, CompassSize, null, 0, white, false);
 
         // Compass needle (rotated to match orientation)
-        game.GLPushMatrix();
-        game.GLTranslate(posX, posY, 0);
-        game.GLRotate(compassAngle, 0, 0, 90);
-        game.GLTranslate(-CompassSize / 2, -CompassSize / 2, 0);
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLTranslate(posX, posY, 0);
+        meshDrawer.GLRotate(compassAngle, 0, 0, 90);
+        meshDrawer.GLTranslate(-CompassSize / 2, -CompassSize / 2, 0);
         game.Draw2dTexture(needleId, 0, 0, CompassSize, CompassSize, null, 0, white, false);
-        game.GLPopMatrix();
+        meshDrawer.GLPopMatrix();
     }
 }

@@ -4,11 +4,13 @@ public class ModDrawTestModel : ModBase
 {
     private readonly IOpenGlService platformOpenGl;
     private readonly IVoxelMap voxelMap;
+    private readonly IMeshDrawer meshDrawer;
 
-    public ModDrawTestModel(IOpenGlService platformOpenGl, IVoxelMap voxelMap)
+    public ModDrawTestModel(IOpenGlService platformOpenGl, IVoxelMap voxelMap, IMeshDrawer meshDrawer)
     {
         this.platformOpenGl = platformOpenGl;
         this.voxelMap = voxelMap;
+        this.meshDrawer = meshDrawer;
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -29,18 +31,18 @@ public class ModDrawTestModel : ModBase
         }
         if (testmodel == null)
         {
-            testmodel = new AnimatedModelRenderer();
+            testmodel = new AnimatedModelRenderer(meshDrawer, platformOpenGl);
             byte[] data = game.GetAssetFile("player.txt");
             int dataLength = game.GetAssetFileLength("player.txt");
             string dataString = Encoding.UTF8.GetString(data, 0, dataLength);
             AnimatedModel model = AnimatedModelSerializer.Deserialize(dataString);
             testmodel.Start(game, model);
         }
-        game.GLPushMatrix();
-        game.GLTranslate(voxelMap.MapSizeX / 2, game.Blockheight(voxelMap.MapSizeX / 2, voxelMap.MapSizeY / 2 - 2, 128), voxelMap.MapSizeY / 2 - 2);
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLTranslate(voxelMap.MapSizeX / 2, game.Blockheight(voxelMap.MapSizeX / 2, voxelMap.MapSizeY / 2 - 2, 128), voxelMap.MapSizeY / 2 - 2);
         platformOpenGl.BindTexture2d(game.GetTexture("mineplayer.png"));
         testmodel.Render(deltaTime, 0, true, true, 1);
-        game.GLPopMatrix();
+        meshDrawer.GLPopMatrix();
     }
     private AnimatedModelRenderer testmodel;
 

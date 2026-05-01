@@ -83,8 +83,9 @@ public static class CuboidRenderer
     /// is used to sync the CPU buffers to the GPU before drawing.
     /// </summary>
     /// <param name="game">The game instance used for GL draw calls.</param>
+    /// <param name="meshDrawer">The mesh drawer used to draw the model.</param>
     /// <param name="data">The model data with all vertices already written.</param>
-    private static void SubmitCuboid(IGame game, GeometryModel data)
+    private static void SubmitCuboid(IOpenGlService openGlService, IMeshDrawer meshDrawer, GeometryModel data)
     {
         data.Indices = new int[FaceCount * IndicesPerFace];
         for (int i = 0; i < FaceCount; i++)
@@ -101,11 +102,11 @@ public static class CuboidRenderer
 
         // Sync all CPU buffers (xyz, rgba, uv, indices) to GPU.
         // CreateModel is called on first use; BufferSubData on subsequent frames.
-        game.OpenGlService.UpdateModel(data);
+        openGlService.UpdateModel(data);
 
-        game.OpenGlService.GlDisableCullFace();
-        game.DrawModelData(data);
-        game.OpenGlService.GlEnableCullFace();
+        openGlService.GlDisableCullFace();
+        meshDrawer.DrawModelData(data);
+        openGlService.GlEnableCullFace();
     }
 
     /// <summary>
@@ -129,7 +130,7 @@ public static class CuboidRenderer
     /// Draws a cuboid using world-space winding order, where the front face
     /// is at minimum X. Used for static world geometry.
     /// </summary>
-    public static void DrawCuboidWorld(IGame game, float posX, float posY, float posZ,
+    public static void DrawCuboidWorld(IOpenGlService openGlService, IMeshDrawer meshDrawer, float posX, float posY, float posZ,
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {
@@ -178,7 +179,7 @@ public static class CuboidRenderer
         GeometryModel.AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Y, color);
         GeometryModel.AddVertex(data, posX + sizeX, posY, posZ, rect.X, rect.Y, color);
 
-        SubmitCuboid(game, data);
+        SubmitCuboid(openGlService, meshDrawer, data);
     }
 
     /// <summary>
@@ -186,7 +187,7 @@ public static class CuboidRenderer
     /// is at maximum Z. Used for animated model nodes rendered by
     /// <see cref="AnimatedModelRenderer"/>.
     /// </summary>
-    public static void DrawCuboidModel(IGame game, float posX, float posY, float posZ,
+    public static void DrawCuboidModel(IOpenGlService openGlService, IMeshDrawer meshDrawer, float posX, float posY, float posZ,
         float sizeX, float sizeY, float sizeZ,
         RectangleF[] textureCoords, float light)
     {
@@ -235,6 +236,6 @@ public static class CuboidRenderer
         GeometryModel.AddVertex(data, posX + sizeX, posY, posZ + sizeZ, rect.X + rect.Width, rect.Bottom, color);
         GeometryModel.AddVertex(data, posX + sizeX, posY, posZ, rect.X + rect.Width, rect.Y, color);
 
-        SubmitCuboid(game, data);
+        SubmitCuboid(openGlService, meshDrawer, data);
     }
 }

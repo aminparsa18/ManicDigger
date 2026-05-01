@@ -8,9 +8,13 @@ public class ModDrawMinecarts : ModBase
     private const float HeightOffset = -0.3f;
 
     private int minecartTexture = -1;
+    private readonly IMeshDrawer meshDrawer;
+    private readonly IOpenGlService openGlService;
 
-    public ModDrawMinecarts()
+    public ModDrawMinecarts(IMeshDrawer meshDrawer, IOpenGlService openGlService)
     {
+        this.meshDrawer = meshDrawer;
+        this.openGlService = openGlService;
     }
 
     public override void OnNewFrameDraw3d(IGame game, float deltaTime)
@@ -35,12 +39,12 @@ public class ModDrawMinecarts : ModBase
         RectangleF[] cc = CuboidRenderer.CuboidNet(8, 8, 8, 0, 0);
         CuboidRenderer.CuboidNetNormalize(cc, 32, 16);
 
-        game.GLPushMatrix();
-        game.GLTranslate(m.PositionX, m.PositionY + VerticalOffset, m.PositionZ);
-        game.GLRotate(-rot - 90, 0, 1, 0);
-        game.OpenGlService.BindTexture2d(minecartTexture);
-        CuboidRenderer.DrawCuboidWorld(game, HalfSize, HeightOffset, HalfSize, 1, 1, 1, cc, 1);
-        game.GLPopMatrix();
+        meshDrawer.GLPushMatrix();
+        meshDrawer.GLTranslate(m.PositionX, m.PositionY + VerticalOffset, m.PositionZ);
+        meshDrawer.GLRotate(-rot - 90, 0, 1, 0);
+        openGlService.BindTexture2d(minecartTexture);
+        CuboidRenderer.DrawCuboidWorld(openGlService, meshDrawer, HalfSize, HeightOffset, HalfSize, 1, 1, 1, cc, 1);
+        meshDrawer.GLPopMatrix();
     }
 
     private static float VehicleRotation(VehicleDirection12 dir) => dir switch

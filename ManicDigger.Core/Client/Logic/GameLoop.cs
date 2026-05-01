@@ -60,7 +60,7 @@ public partial class Game
 
         // Fix #4: named constant instead of magic number.
         if (EnableLog == EnableLogSimulateLag)
-           Thread.SpinWait(20_000_000);
+            Thread.SpinWait(20_000_000);
 
         SetAmbientLight(Terraincolor());
         OpenGlService.GlClearColorBufferAndDepthBuffer();
@@ -69,8 +69,8 @@ public partial class Game
         for (int i = 0; i < ClientMods.Count; i++)
             ClientMods[i]?.OnBeforeNewFrameDraw3d(this, deltaTime);
 
-        GLMatrixModeModelView();
-        GLLoadMatrix(Camera);
+        meshDrawer.GLMatrixModeModelView();
+        meshDrawer.GLLoadMatrix(Camera);
         CameraMatrix.LastModelViewMatrix = Camera;
         FrustumCulling.CalcFrustumEquations();
 

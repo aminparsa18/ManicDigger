@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 using System.Numerics;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
-public partial class Game : IMeshDrawer
+public partial class Game 
 {
     // ── Map loading ───────────────────────────────────────────────────────────
 
@@ -54,9 +54,9 @@ public partial class Game : IMeshDrawer
         float aspect = GameService.CanvasWidth / (float)GameService.CanvasHeight;
         Matrix4.CreatePerspectiveFieldOfView(fov, aspect, znear, zfar, out Matrix4 projection);
         CameraMatrix.LastProjectionMatrix = projection;
-        GLMatrixModeProjection();
-        GLLoadMatrix(projection);
-        SetMatrixUniformProjection();
+        meshDrawer.GLMatrixModeProjection();
+        meshDrawer.GLLoadMatrix(projection);
+        meshDrawer.SetMatrixUniformProjection();
     }
 
     /// <summary>Returns the far-clip distance for the current view distance setting.</summary>
@@ -310,29 +310,6 @@ public partial class Game : IMeshDrawer
     /// the end of the next frame. Thread-safe — see <see cref="ConcurrentQueue{T}"/>.
     /// </summary>
     public void QueueActionCommit(Action<IGame> action) => CommitActions.Enqueue(action);
-
-    // ── Draw dispatch ─────────────────────────────────────────────────────────
-
-    /// <summary>Sets the model-view matrix uniform and draws <paramref name="model"/>.</summary>
-    public void DrawModel(GeometryModel model)
-    {
-        SetMatrixUniformModelView();
-        OpenGlService.DrawModel(model);
-    }
-
-    /// <summary>Sets the model-view matrix uniform and draws a list of models.</summary>
-    public void DrawModels(List<GeometryModel> model, int count)
-    {
-        SetMatrixUniformModelView();
-        OpenGlService.DrawModels(model, count);
-    }
-
-    /// <summary>Sets the model-view matrix uniform and draws raw geometry data.</summary>
-    public void DrawModelData(GeometryModel data)
-    {
-        SetMatrixUniformModelView();
-        OpenGlService.DrawModelData(data);
-    }
 
     // ── Per-frame update ──────────────────────────────────────────────────────
 

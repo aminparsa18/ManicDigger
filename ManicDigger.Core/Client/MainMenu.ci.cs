@@ -71,6 +71,9 @@ public class MainMenu : IMenu
     private readonly ICameraService cameraService;
     private readonly IAudioService _audioService;
     private readonly IEnumerable<IModBase> mods;
+    private readonly IFrustumCulling frustumCulling;
+    private readonly IMeshBatcher meshBatcher;
+    private readonly IMeshDrawer meshDrawer;
 
     /// <summary>Loaded localisation/translation data.</summary>
     private LanguageService _lang;
@@ -124,10 +127,15 @@ public class MainMenu : IMenu
     // -------------------------------------------------------------------------
 
     public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
-        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService)
+        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods, 
+        IVoxelMap voxelMap, IAudioService audioService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher,
+        IMeshDrawer meshDrawer)
     {
         this.mods = mods;
         this.voxelMap = voxelMap;
+        this.frustumCulling = frustumCulling;
+        this.meshBatcher = meshBatcher;
+        this.meshDrawer = meshDrawer;
         GameService = platform;
         _platformOpenGl = platformOpenGl;
         _audioService = audioService;
@@ -605,7 +613,8 @@ public class MainMenu : IMenu
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
         ScreenGame screenGame = new(this, GameService, _platformOpenGl, _singlePlayerService, _preferences,
-            _gameExit, dummyNetwork, mods, voxelMap, _audioService, cameraService);
+            _gameExit, dummyNetwork, mods, voxelMap, _audioService, cameraService, frustumCulling, meshBatcher,
+            meshDrawer);
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }

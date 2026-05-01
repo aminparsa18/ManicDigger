@@ -36,13 +36,15 @@ public class ModPicking : ModBase
     private readonly IGameService platform;
     private readonly IVoxelMap voxelMap;
     private readonly ICameraService cameraService;
+    private readonly IMeshDrawer meshDrawer;
     private readonly Random random;
 
-    public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService)
+    public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService, IMeshDrawer meshDrawer)
     {
         this.platform = platform;
         this.voxelMap = voxelMap;
         this.cameraService = cameraService;
+        this.meshDrawer = meshDrawer;
         _tempViewport = new int[4];
         fillarea = new();
         random = new Random();
@@ -877,8 +879,8 @@ public class ModPicking : ModBase
         _tempViewport[3] = platform.CanvasHeight;
 
         int flippedY = platform.CanvasHeight - mouseY;
-        VectorUtils.UnProject(mouseX, flippedY, 1, game.mvMatrix.Peek(), game.pMatrix.Peek(), _tempViewport, out Vector3 rayEnd);
-        VectorUtils.UnProject(mouseX, flippedY, 0, game.mvMatrix.Peek(), game.pMatrix.Peek(), _tempViewport, out Vector3 rayStart);
+        VectorUtils.UnProject(mouseX, flippedY, 1, meshDrawer.mvMatrix.Peek(), meshDrawer.pMatrix.Peek(), _tempViewport, out Vector3 rayEnd);
+        VectorUtils.UnProject(mouseX, flippedY, 0, meshDrawer.mvMatrix.Peek(), meshDrawer.pMatrix.Peek(), _tempViewport, out Vector3 rayStart);
 
         float rdX = rayEnd.X - rayStart.X;
         float rdY = rayEnd.Y - rayStart.Y;

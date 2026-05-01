@@ -7,9 +7,9 @@ public class ModDebugChunk : ModBase
     private bool draw;
     private readonly DrawWireframeCube lines;
 
-    public ModDebugChunk(IOpenGlService platform)
+    public ModDebugChunk(IOpenGlService platform, IMeshDrawer meshDrawer)
     {
-        lines = new DrawWireframeCube(platform);
+        lines = new DrawWireframeCube(platform, meshDrawer);
     }
 
     public override bool OnClientCommand(IGame game, ClientCommandArgs args)
@@ -28,7 +28,7 @@ public class ModDebugChunk : ModBase
         int cy = (int)(game.Player.position.y / cs) * cs;
         int cz = (int)(game.Player.position.z / cs) * cs;
 
-        lines.DrawWireframeCube_(game,
+        lines.DrawWireframeCube_(
             cx + cs / 2,
             cy + cs / 2,
             cz + cs / 2,

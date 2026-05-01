@@ -44,11 +44,8 @@ public partial class Game
 
         // ── Rendering subsystems ──────────────────────────────────────────────
 
-        FrustumCulling = new() { CameraMatrix = CameraMatrix };
 
         TerrainChunkTesselator = new TerrainChunkTesselator(this, GameService);
-
-        Batcher = new MeshBatcher(OpenGlService, this);
 
         // ── World / map ───────────────────────────────────────────────────────
         voxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);

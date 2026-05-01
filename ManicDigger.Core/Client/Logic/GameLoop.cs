@@ -151,13 +151,13 @@ public partial class Game
     /// </summary>
     private void TryInitialiseConnection()
     {
-        if (startedconnecting) return;
+        if (StartedConnecting) return;
 
         if (!IsSinglePlayer
          || singlePlayerService.SinglePlayerServerLoaded
          || !singlePlayerService.SinglePlayerServerAvailable)
         {
-            startedconnecting = true;
+            StartedConnecting = true;
             Connect();
         }
     }

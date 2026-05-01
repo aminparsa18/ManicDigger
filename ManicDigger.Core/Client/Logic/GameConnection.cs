@@ -93,10 +93,10 @@ public partial class Game
 
     private void Connect()
     {
-        if (string.IsNullOrEmpty(connectdata.ServerPassword))
-            Connect(connectdata.Ip, connectdata.Port, connectdata.Username, connectdata.Auth);
+        if (string.IsNullOrEmpty(ConnectData.ServerPassword))
+            Connect(ConnectData.Ip, ConnectData.Port, ConnectData.Username, ConnectData.Auth);
         else
-            Connect(connectdata.Ip, connectdata.Port, connectdata.Username, connectdata.Auth, connectdata.ServerPassword);
+            Connect(ConnectData.Ip, ConnectData.Port, ConnectData.Username, ConnectData.Auth, ConnectData.ServerPassword);
 
         MapLoadingStart();
     }
@@ -117,6 +117,6 @@ public partial class Game
 
     private void Reconnect()
     {
-        reconnect = true;
+        IsReconnecting = true;
     }
 }

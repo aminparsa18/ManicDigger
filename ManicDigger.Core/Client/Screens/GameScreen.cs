@@ -9,12 +9,11 @@ using Serilog;
 public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService platformOpenGl,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, 
     IEnumerable<IModBase> mods, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService,
-    IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer) 
+    IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer, IGame game) 
     : ScreenBase(navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
-    private readonly Game game = new(platform, platformOpenGl, singlePlayerService, preferences, gameExit,
-        mods, voxelMap, audioService, cameraService, frustumCulling, meshBatcher, meshDrawer);
+    private readonly IGame game = game;
     private ConnectionData connectData;
     private bool singleplayer;
     private string singleplayerSavePath;
@@ -63,11 +62,11 @@ public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService p
             // Prime the server inbox so the handshake starts immediately.
             network.ServerInbox.Enqueue([]);
             game.NetClient = new DummyNetClient(network);
-            game.connectdata = connectData = new ConnectionData { Username = "Local" };
+            game.ConnectData = connectData = new ConnectionData { Username = "Local" };
         }
         else
         {
-            game.connectdata = connectData;
+            game.ConnectData = connectData;
             game.NetClient = CreateNetClient()
                 ?? throw new InvalidOperationException("No network transport available.");
         }
@@ -130,14 +129,14 @@ public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService p
     /// </remarks>
     public override void Render(float dt)
     {
-        if (game.reconnect)
+        if (game.IsReconnecting)
         {
             game.Dispose();
             Menu.StartGame(singleplayer, singleplayerSavePath, connectData);
             return;
         }
 
-        if (game.exitToMainMenu)
+        if (game.IsExitingToMainMenu)
         {
             game.Dispose();
             HandleExit();
@@ -154,7 +153,7 @@ public class ScreenGame(IMenu navigator, IGameService platform, IOpenGlService p
     /// </summary>
     private void HandleExit()
     {
-        var redirect = game.GetRedirect();
+        var redirect = game.Redirect;
 
         if (redirect == null)
         {

@@ -11,7 +11,7 @@ public partial class Game
     public void ProcessServerIdentification(Packet_Server packet)
     {
         LocalPlayerId = packet.Identification.AssignedClientId;
-        ServerInfo.ConnectData = connectdata;
+        ServerInfo.ConnectData = ConnectData;
         ServerInfo.ServerName = packet.Identification.ServerName;
         ServerInfo.ServerMotd = packet.Identification.ServerMotd;
         TerrainChunkTesselator.ENABLE_TEXTURE_TILING = packet.Identification.RenderHint_ == (int)RenderHint.Fast;
@@ -93,7 +93,7 @@ public partial class Game
             singlePlayerService.SinglePlayerServerExit = true;
 
         redirectTo = newServer;
-        exitToMainMenu = true;
+        IsExitingToMainMenu = true;
     }
 
     public void ExitToMainMenu()
@@ -102,10 +102,10 @@ public partial class Game
             singlePlayerService.SinglePlayerServerExit = true;
 
         redirectTo = null;
-        exitToMainMenu = true;
+        IsExitingToMainMenu = true;
     }
 
-    internal Packet_ServerRedirect GetRedirect() => redirectTo;
+    public Packet_ServerRedirect Redirect => redirectTo;
 
     // -------------------------------------------------------------------------
     // Chat log

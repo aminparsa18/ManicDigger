@@ -297,10 +297,11 @@ public partial class Game : IGame
     public string ServerGameVersion { get; set; }
     public bool IsSinglePlayer { get; set; }
     public string Follow { get; set; }
-    internal ConnectionData connectdata;
-    internal bool reconnect;
-    internal bool exitToMainMenu;
-    private bool startedconnecting;
+
+    public ConnectionData ConnectData { get; set; }
+    public bool IsReconnecting { get; set; }
+    public bool IsExitingToMainMenu { get; set; }
+    public bool StartedConnecting {  get; set; }
 
     public Dictionary<int, BlockType> BlockTypes { get; set; }
     public Dictionary<int, BlockType> NewBlockTypes { get; set; }

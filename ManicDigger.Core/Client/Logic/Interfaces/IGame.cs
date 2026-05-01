@@ -1,5 +1,6 @@
 ﻿using ManicDigger;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
 using System.Collections.Concurrent;
 
 /// <summary>
@@ -8,7 +9,7 @@ using System.Collections.Concurrent;
 /// state, world access, networking, audio, UI, and platform services.
 /// Implemented by <see cref="Game"/>.
 /// </summary>
-public interface IGame
+public interface IGame : IDisposable
 {
     // =========================================================================
     // Platform & core
@@ -43,6 +44,8 @@ public interface IGame
 
     /// <summary>Called by the platform once per rendered frame.</summary>
     void MainThreadOnRenderFrame(float deltaTime);
+
+    void OnRenderFrame(float deltaTime);
 
     /// <summary>Advances all fixed-timestep game logic by <paramref name="dt"/> seconds.</summary>
     void Update(float dt);
@@ -655,6 +658,18 @@ public interface IGame
     /// <summary>Returns the integer key code for <paramref name="key"/>.</summary>
     int GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys key);
 
+    void KeyDown(KeyEventArgs eKey);
+
+    void KeyUp(IGame game, KeyEventArgs eKey);
+    void KeyPress(IGame game, KeyPressEventArgs eKeyChar);
+    void OnTouchStart(TouchEventArgs e);
+    void OnTouchMove(TouchEventArgs e);
+    void OnTouchEnd(IGame game, TouchEventArgs e);
+    void MouseWheelChanged(IGame game, MouseWheelEventArgs e);
+    void MouseDown(MouseEventArgs args);
+    void MouseMove(MouseEventArgs e);
+    void MouseUp(MouseEventArgs e);
+
     /// <summary>Left mouse button held this frame.</summary>
     bool mouseLeft { get; set; }
 
@@ -821,6 +836,11 @@ public interface IGame
     /// <summary>Spectator follow target username, or <c>null</c>.</summary>
     string Follow { get; set; }
 
+    ConnectionData ConnectData { get; set; }
+    bool IsReconnecting { get; set; }
+    bool IsExitingToMainMenu { get; set; }
+    bool StartedConnecting { get; set; }
+
     /// <summary>Information about the connected server.</summary>
     ServerInformation ServerInfo { get; set; }
 
@@ -895,9 +915,13 @@ public interface IGame
     /// <summary>Disconnects and reconnects to a different server.</summary>
     void ExitAndSwitchServer(Packet_ServerRedirect newServer);
 
+    Packet_ServerRedirect Redirect { get; }
+
     /// <summary>Sets the player character's eye height.</summary>
     void SetCharacterEyesHeight(float value);
 
     /// <summary>Returns the player character's current eye height.</summary>
     float GetCharacterEyesHeight();
+
+    void Start();
 }

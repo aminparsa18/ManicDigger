@@ -116,6 +116,8 @@ public class Program
         services.AddSingleton<ISinglePlayerService, SinglePlayerService>();
 
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
+
+        services.AddSingleton<IGame, Game>();
     }
 
     // -------------------------------------------------------------------------

@@ -69,8 +69,8 @@ public class ModFly : ModBase
     {
         if (!flyActive) return;
 
-       // game.Controls.FreeMove = false;
-       // game.Controls.MoveUp = false;
-       // game.Controls.MoveDown = false;
+        Game.Controls.FreeMove = false;
+        Game.Controls.MoveUp = false;
+        Game.Controls.MoveDown = false;
     }
 }

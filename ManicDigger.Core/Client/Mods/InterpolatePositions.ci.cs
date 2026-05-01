@@ -31,14 +31,14 @@ public class ModInterpolatePositions : ModBase
             e.playerDrawInfo.interpolation.DelayMilliseconds =
                 Math.Max(MinDelayMs, Game.ServerInfo.ServerPing.RoundtripMilliseconds);
 
-            UpdateInterpolation(i, e);
+            UpdateInterpolation(e);
         }
     }
 
     /// <summary>
     /// Initialises the network interpolation state for an entity if not already set up.
     /// </summary>
-    private void EnsureInterpolation(Entity e)
+    private static void EnsureInterpolation(Entity e)
     {
         if (e.playerDrawInfo.interpolation != null) return;
 
@@ -51,7 +51,7 @@ public class ModInterpolatePositions : ModBase
         };
     }
 
-    private void UpdateInterpolation( int entityId, Entity e)
+    private void UpdateInterpolation(Entity e)
     {
         PlayerDrawInfo info = e.playerDrawInfo;
         EntityPosition_ net = e.networkPosition;

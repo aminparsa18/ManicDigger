@@ -77,7 +77,7 @@ public class ServerSystemHeartbeat : ServerSystem
         try
         {
             //TODO: its not hosted yet
-           // await heartbeat.SendHeartbeatAsync();
+            // await heartbeat.SendHeartbeatAsync();
             server.ReceivedKey = heartbeat.ReceivedKey;
 
             if (!hashPrinted)

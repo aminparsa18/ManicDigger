@@ -36,20 +36,20 @@ public class GameScreen : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnKeyPress( KeyPressEventArgs args) => KeyPress(args);
+    public override void OnKeyPress(KeyPressEventArgs args) => KeyPress(args);
 
     /// <inheritdoc/>
-    public override void OnTouchStart( TouchEventArgs e)
+    public override void OnTouchStart(TouchEventArgs e)
         => e.SetHandled(MouseDown(e.GetX(), e.GetY()));
 
     /// <inheritdoc/>
-    public override void OnTouchEnd( TouchEventArgs e) => MouseUp(e.GetX(), e.GetY());
+    public override void OnTouchEnd(TouchEventArgs e) => MouseUp(e.GetX(), e.GetY());
 
     /// <inheritdoc/>
-    public override void OnMouseDown( MouseEventArgs args) => MouseDown(args.GetX(), args.GetY());
+    public override void OnMouseDown(MouseEventArgs args) => MouseDown(args.GetX(), args.GetY());
 
     /// <inheritdoc/>
-    public override void OnMouseUp( MouseEventArgs args) => MouseUp(args.GetX(), args.GetY());
+    public override void OnMouseUp(MouseEventArgs args) => MouseUp(args.GetX(), args.GetY());
 
     /// <inheritdoc/>
     public override void OnMouseMove(MouseEventArgs args) => MouseMove(args);
@@ -65,7 +65,7 @@ public class GameScreen : ModBase
     /// Override to respond to button presses.
     /// </summary>
     /// <param name="w">The widget that was clicked.</param>
-    public virtual void OnButton( MenuWidget w) { }
+    public virtual void OnButton(MenuWidget w) { }
 
     /// <summary>
     /// Handles keyboard character input, routing it to whichever text-box widget
@@ -156,7 +156,7 @@ public class GameScreen : ModBase
     /// Clears all pressed states and fires <see cref="OnButton"/> for any button
     /// whose bounds contain the release point.
     /// </summary>
-    private void MouseUp( int x, int y)
+    private void MouseUp(int x, int y)
     {
         for (int i = 0; i < WidgetCount; i++)
         {

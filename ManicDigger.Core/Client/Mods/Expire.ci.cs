@@ -11,7 +11,7 @@ public class ModExpire : ModBase
     {
     }
 
-    public override void OnNewFrameFixed( float args)
+    public override void OnNewFrameFixed(float args)
     {
         float dt = args;
         for (int i = 0; i < Game.Entities.Count; i++)
@@ -29,7 +29,7 @@ public class ModExpire : ModBase
         }
     }
 
-    private void GrenadeExplosion( int grenadeEntityId)
+    private void GrenadeExplosion(int grenadeEntityId)
     {
         Entity grenadeEntity = Game.Entities[grenadeEntityId];
         Sprite sprite = grenadeEntity.sprite;

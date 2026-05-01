@@ -29,7 +29,7 @@ public class ModBlockDamageToPlayer : ModBase
         this.blockTypeRegistry = blockTypeRegistry;
     }
 
-    public override void OnNewFrameFixed( float args)
+    public override void OnNewFrameFixed(float args)
     {
         if (Game.GuiState == GuiState.MapLoading || Game.FollowId() != null)
             return;
@@ -37,14 +37,14 @@ public class ModBlockDamageToPlayer : ModBase
         UpdateBlockDamageToPlayer(args);
     }
 
-    private void UpdateBlockDamageToPlayer( float dt)
+    private void UpdateBlockDamageToPlayer(float dt)
     {
         UpdateBlockDamage(dt);
         UpdateDrowning();
     }
 
     /// <summary>Applies damage from damaging blocks (e.g. lava) the player is standing in or near.</summary>
-    private void UpdateBlockDamage( float dt)
+    private void UpdateBlockDamage(float dt)
     {
         float pX = Game.LocalPositionX;
         float pY = Game.LocalPositionY + Game.LocalEyeHeight;
@@ -104,7 +104,7 @@ public class DialogScreen : GameScreen
     {
     }
 
-    public override void OnButton( MenuWidget w)
+    public override void OnButton(MenuWidget w)
     {
         if (w.isbutton)
         {

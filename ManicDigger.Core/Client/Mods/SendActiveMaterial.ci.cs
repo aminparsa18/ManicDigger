@@ -9,7 +9,7 @@ public class ModSendActiveMaterial : ModBase
     {
     }
 
-    public override void OnNewFrameFixed( float args)
+    public override void OnNewFrameFixed(float args)
     {
         int activeBlock = Game.Inventory.RightHand[Game.ActiveMaterial]?.BlockId ?? 0;
 

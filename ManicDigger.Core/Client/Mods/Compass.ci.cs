@@ -24,7 +24,7 @@ public class ModCompass : ModBase
         this.blockTypeRegistry = blockTypeRegistry;
     }
 
-    public override void OnNewFrameDraw2d( float dt)
+    public override void OnNewFrameDraw2d(float dt)
     {
         if (Game.GuiState == GuiState.MapLoading) return;
         DrawCompass(Game);

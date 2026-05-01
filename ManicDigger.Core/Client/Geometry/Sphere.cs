@@ -80,9 +80,9 @@ public class Sphere
         {
             for (int x = 0; x < segments - 1; x++)
             {
-                int bottomLeft  = (y + 0) * segments + x;
-                int topLeft     = (y + 1) * segments + x;
-                int topRight    = (y + 1) * segments + x + 1;
+                int bottomLeft = (y + 0) * segments + x;
+                int topLeft = (y + 1) * segments + x;
+                int topRight = (y + 1) * segments + x + 1;
                 int bottomRight = (y + 0) * segments + x + 1;
 
                 indices[i++] = bottomLeft;

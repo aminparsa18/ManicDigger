@@ -6,9 +6,9 @@ using OpenTK.Windowing.Desktop;
 // GamePlatformNative implements this; everything else depends on it.
 // ─────────────────────────────────────────────────────────────────────────────
 
-public interface IGameService 
+public interface IGameService
 {
-    INetworkService NetworkService{ get; set; }
+    INetworkService NetworkService { get; set; }
     void AddOnNewFrame(Action<float> handler);
     void AddOnKeyEvent(Action<KeyEventArgs> onKeyDown,
         Action<KeyEventArgs> onKeyUp,
@@ -43,7 +43,7 @@ public interface IGameService
     void SetWindowState(WindowState value);
     void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate);
     DisplayResolutionCi GetDisplayResolutionDefault();
-   
+
     void MouseCursorSetVisible(bool value);
     bool MouseCursorIsVisible();
     void ApplicationDoEvents();

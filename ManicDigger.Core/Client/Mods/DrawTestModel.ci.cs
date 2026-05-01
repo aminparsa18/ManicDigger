@@ -13,7 +13,7 @@ public class ModDrawTestModel : ModBase
         this.meshDrawer = meshDrawer;
     }
 
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         if (Game.GuiState == GuiState.MapLoading)
         {
@@ -23,7 +23,7 @@ public class ModDrawTestModel : ModBase
         DrawTestModel(deltaTime);
     }
 
-    private void DrawTestModel( float deltaTime)
+    private void DrawTestModel(float deltaTime)
     {
         if (!Game.EnableDrawTestCharacter)
         {
@@ -46,7 +46,7 @@ public class ModDrawTestModel : ModBase
     }
     private AnimatedModelRenderer testmodel;
 
-    public override bool OnClientCommand( ClientCommandArgs args)
+    public override bool OnClientCommand(ClientCommandArgs args)
     {
         if (args.Command == "testmodel")
         {

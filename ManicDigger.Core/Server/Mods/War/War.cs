@@ -7,7 +7,7 @@ public class War : IMod
     private readonly string BlueColor = "&1";
     private readonly string GreenColor = "&2";
     private readonly string SpectatorColor = "&7";
-    
+
     private bool spawnedBot = false;
     private DateTime CurrentRespawnTime;
 

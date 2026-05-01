@@ -11,7 +11,7 @@ public class ModSendPosition : ModBase
         this.platform = platform;
     }
 
-    public override void OnNewFrame( float args)
+    public override void OnNewFrame(float args)
     {
         if (!Game.Spawned) return;
         if (platform.TimeMillisecondsFromStart - Game.LastPositionSentMilliseconds <= SendIntervalMs) return;

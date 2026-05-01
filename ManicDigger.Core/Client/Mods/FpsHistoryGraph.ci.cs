@@ -27,13 +27,13 @@ public class ModFpsHistoryGraph : ModBase
     {
         _platform = platform;
         this.meshDrawer = meshDrawer;
-            
+
         for (int i = 0; i < MaxCount; i++)
             todraw[i] = new Draw2dData();
     }
-    
+
     /// <inheritdoc/>
-    public override void OnNewFrame( float dt)
+    public override void OnNewFrame(float dt)
     {
         UpdateGraph(dt);
         UpdateTitleFps(dt);
@@ -41,7 +41,7 @@ public class ModFpsHistoryGraph : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnKeyDown( KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         if (args.KeyChar == (int)Keys.F7)
         {
@@ -51,7 +51,7 @@ public class ModFpsHistoryGraph : ModBase
     }
 
     /// <inheritdoc/>
-    public override bool OnClientCommand( ClientCommandArgs args)
+    public override bool OnClientCommand(ClientCommandArgs args)
     {
         if (args.Command != "fps") return false;
 

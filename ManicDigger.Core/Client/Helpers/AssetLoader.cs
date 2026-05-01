@@ -1,5 +1,4 @@
-﻿using Serilog;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 /// <summary>
 /// Represents a named game asset (texture, sound, etc.) loaded from disk or received from a server.

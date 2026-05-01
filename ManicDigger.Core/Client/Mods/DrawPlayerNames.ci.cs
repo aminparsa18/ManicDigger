@@ -15,7 +15,7 @@ public class ModDrawPlayerNames : ModBase
         this.meshDrawer = meshDrawer;
     }
 
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         for (int i = 0; i < Game.Entities.Count; i++)
         {
@@ -38,7 +38,7 @@ public class ModDrawPlayerNames : ModBase
         }
     }
 
-    private void DrawNameTag( DrawName p, float posX, float posY, float posZ)
+    private void DrawNameTag(DrawName p, float posX, float posY, float posZ)
     {
         meshDrawer.GLPushMatrix();
         meshDrawer.GLTranslate(posX, posY, posZ);

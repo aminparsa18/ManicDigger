@@ -4,7 +4,7 @@
     {
     }
 
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
     }
     public static void StartParticleEffect(float x, float y, float z)

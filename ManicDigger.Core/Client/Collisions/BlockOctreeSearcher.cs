@@ -3,7 +3,7 @@
 /// Performs octree-based spatial searches over a 3D block world,
 /// supporting line intersection tests against non-empty blocks.
 /// </summary>
-public class BlockOctreeSearcher 
+public class BlockOctreeSearcher
 {
 
     /// <summary>

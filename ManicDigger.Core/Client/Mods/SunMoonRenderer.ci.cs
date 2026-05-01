@@ -17,7 +17,7 @@ public class SunMoonRenderer : ModBase
 
     private readonly IMeshDrawer meshDrawer;
 
-    public SunMoonRenderer(IMeshDrawer meshDrawer, IGame game): base(game)
+    public SunMoonRenderer(IMeshDrawer meshDrawer, IGame game) : base(game)
     {
         this.meshDrawer = meshDrawer;
     }
@@ -30,7 +30,7 @@ public class SunMoonRenderer : ModBase
         t = (hour - 6) / 24f * TwoPi;
     }
 
-    public override void OnNewFrameDraw3d( float dt)
+    public override void OnNewFrameDraw3d(float dt)
     {
         if (sunTexture == -1)
         {
@@ -53,7 +53,7 @@ public class SunMoonRenderer : ModBase
         meshDrawer.GLPopMatrix();
     }
 
-    private void UpdateSunMoonPosition( float dt)
+    private void UpdateSunMoonPosition(float dt)
     {
         t += dt * TwoPi / day_length_in_seconds;
 

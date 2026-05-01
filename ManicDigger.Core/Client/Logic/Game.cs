@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 using System.Numerics;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
-public partial class Game 
+public partial class Game
 {
     // ── Map loading ───────────────────────────────────────────────────────────
 
@@ -155,7 +155,7 @@ public partial class Game
         return null;
     }
 
-    
+
 
     // ── Lighting / colour ─────────────────────────────────────────────────────
 

@@ -18,7 +18,7 @@ public class ModDrawMain : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnReadOnlyMainThread( float dt)
+    public override void OnReadOnlyMainThread(float dt)
     {
         game.MainThreadOnRenderFrame(dt);
     }

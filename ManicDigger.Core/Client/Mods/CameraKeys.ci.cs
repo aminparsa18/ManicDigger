@@ -9,7 +9,7 @@ public class ModCameraKeys : ModBase
     private const float OverheadCameraSpeed = 3f;
     private readonly IGameService platform;
     private readonly ICameraService cameraService;
-    
+
     public ModCameraKeys(IGameService platform, ICameraService cameraService, IGame game) : base(game)
     {
         this.platform = platform;

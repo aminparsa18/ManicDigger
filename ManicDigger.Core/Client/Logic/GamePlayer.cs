@@ -96,7 +96,7 @@ public partial class Game
         }
         else if (KeyboardState[GetKey(Keys.LeftShift)])
         {
-            
+
             speed *= FreemoveLevel == FreemoveLevel.Freemove ? 4f : 2f; // Shift = sprint
         }
 

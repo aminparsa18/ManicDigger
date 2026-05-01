@@ -418,4 +418,4 @@ public sealed class GradientNoiseBasis
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float Lerp(float a, float b, float t) => a + t * (b - a);
-} 
+}

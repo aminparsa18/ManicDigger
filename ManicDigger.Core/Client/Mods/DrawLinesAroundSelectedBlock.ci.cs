@@ -12,7 +12,7 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
         lines = new DrawWireframeCube(platform, meshDrawer);
     }
 
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         if (!Game.ENABLE_DRAW2D) return;
 

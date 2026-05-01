@@ -19,7 +19,7 @@ public class ModDraw2dMisc : ModBase
         this.blockTypeRegistry = blockTypeRegistry;
     }
 
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (Game.GuiState == GuiState.Normal)
             DrawAim(Game);
@@ -99,10 +99,10 @@ public class ModDraw2dMisc : ModBase
     /// Replaces the old <c>DrawEnemyHealthCommon</c> which accepted a <c>progress</c>
     /// parameter it silently ignored.
     /// </summary>
-    internal void DrawEnemyHealthBackground( string name)
+    internal void DrawEnemyHealthBackground(string name)
         => DrawEnemyHealthUseInfo(name, progress: 1f, useInfo: false);
 
-    internal void DrawEnemyHealthUseInfo( string name, float progress, bool useInfo)
+    internal void DrawEnemyHealthUseInfo(string name, float progress, bool useInfo)
     {
         int barHeight = useInfo ? 55 : 35;
         int whiteTexId = Game.GetOrCreateWhiteTexture(); // cache — was called twice
@@ -139,8 +139,8 @@ public class ModDraw2dMisc : ModBase
         }
 
         game.Draw2dBitmapFile("target.png",
-            platform.            CanvasWidth / 2 - AimSize / 2,
-            platform.            CanvasHeight / 2 - AimSize / 2,
+            platform.CanvasWidth / 2 - AimSize / 2,
+            platform.CanvasHeight / 2 - AimSize / 2,
             AimSize, AimSize);
     }
 
@@ -169,14 +169,14 @@ public class ModDraw2dMisc : ModBase
             : ColorUtils.ColorFromArgb(255, 255, 255, 255);
 
         game.Draw2dText1(s, platform.CanvasWidth - game.TextSizeWidth(s, 18) - 50,
-            platform.            CanvasWidth - game.TextSizeHeight(s, 18) - 50, 18, color, false);
+            platform.CanvasWidth - game.TextSizeHeight(s, 18) - 50, 18, color, false);
 
         if (loaded == 0)
         {
             const string PressR = "Press R to reload"; // TODO: move to game.language
             game.Draw2dText1(PressR,
-                platform.                CanvasWidth - game.TextSizeWidth(PressR, 14) - 50,
-                platform.                CanvasHeight - game.TextSizeHeight(s, 14) - 80,
+                platform.CanvasWidth - game.TextSizeWidth(PressR, 14) - 50,
+                platform.CanvasHeight - game.TextSizeHeight(s, 14) - 80,
                 14, ColorUtils.ColorFromArgb(255, 255, 0, 0), false);
         }
     }
@@ -210,11 +210,11 @@ public class ModDraw2dMisc : ModBase
         float lagSeconds =
             (platform.TimeMillisecondsFromStart - Game.LastReceivedMilliseconds) / 1000f;
 
-        if (lagSeconds < GameConstants.DISCONNECTED_ICON_AFTER_SECONDS) 
+        if (lagSeconds < GameConstants.DISCONNECTED_ICON_AFTER_SECONDS)
             return;
-        if (lagSeconds >= 60 * 60 * 24) 
+        if (lagSeconds >= 60 * 60 * 24)
             return;
-        if (Game.InvalidVersionDrawMessage != null) 
+        if (Game.InvalidVersionDrawMessage != null)
             return;
         if (Game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
             return;
@@ -222,10 +222,10 @@ public class ModDraw2dMisc : ModBase
         Game.Draw2dBitmapFile("disconnected.png", platform.CanvasWidth - 100, 50, 50, 50);
 
         Game.Draw2dText1(((int)lagSeconds).ToString(),
-            platform.            CanvasWidth - 100, 50 + 50 + 10, 12, null, false);
+            platform.CanvasWidth - 100, 50 + 50 + 10, 12, null, false);
 
         const string Reconnect = "Press F6 to reconnect";
         Game.Draw2dText1(Reconnect,
-            platform.            CanvasWidth / 2 - 200 / 2, 50, 12, null, false);
+            platform.CanvasWidth / 2 - 200 / 2, 50, 12, null, false);
     }
 }

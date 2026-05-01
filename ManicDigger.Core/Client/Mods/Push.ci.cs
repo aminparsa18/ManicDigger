@@ -11,7 +11,7 @@ public class ModPush : ModBase
     {
     }
 
-    public override void OnNewFrameFixed( float args)
+    public override void OnNewFrameFixed(float args)
     {
         Game.PushX = 0;
         Game.PushY = 0;

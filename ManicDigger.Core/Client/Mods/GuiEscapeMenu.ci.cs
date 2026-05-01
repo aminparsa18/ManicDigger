@@ -55,7 +55,7 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(buttonMainExit);
     }
 
-    private void MainHandleClick( Button b)
+    private void MainHandleClick(Button b)
     {
         if (b == buttonMainReturnToGame)
         {
@@ -103,7 +103,7 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(optionsReturnToMainMenu);
     }
 
-    private void OptionsHandleClick( Button b)
+    private void OptionsHandleClick(Button b)
     {
         if (b == optionsGraphics)
         {
@@ -184,7 +184,7 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(graphicsFontOption);
         AddWidget(graphicsReturnToOptionsMenu);
     }
-    private void GraphicsHandleClick( Button b)
+    private void GraphicsHandleClick(Button b)
     {
         GameOption options = Game.options;
         if (b == graphicsOptionSmoothShadows)
@@ -235,8 +235,8 @@ public class ModGuiEscapeMenu : ModBase
         }
         if (b == graphicsReturnToOptionsMenu)
         {
-            UseFullscreen(); 
-            UseResolution(); 
+            UseFullscreen();
+            UseResolution();
             SetEscapeMenuState(EscapeMenuState.Options);
         }
     }
@@ -273,7 +273,7 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(otherReturnToOptionsMenu);
     }
 
-    private void OtherHandleClick( Button b)
+    private void OtherHandleClick(Button b)
     {
         if (b == otherSoundOption)
         {
@@ -342,7 +342,7 @@ public class ModGuiEscapeMenu : ModBase
         AddWidget(keysReturnToOptionsMenu);
     }
 
-    private void KeysHandleClick( Button b)
+    private void KeysHandleClick(Button b)
     {
         if (keyButtons != null)
         {
@@ -364,13 +364,13 @@ public class ModGuiEscapeMenu : ModBase
         }
     }
 
-    private void HandleButtonClick( Button w)
+    private void HandleButtonClick(Button w)
     {
-        MainHandleClick( w);
-        OptionsHandleClick( w);
-        GraphicsHandleClick( w);
-        OtherHandleClick( w);
-        KeysHandleClick( w);
+        MainHandleClick(w);
+        OptionsHandleClick(w);
+        GraphicsHandleClick(w);
+        OtherHandleClick(w);
+        KeysHandleClick(w);
     }
 
     private void AddWidget(Button b)
@@ -392,7 +392,7 @@ public class ModGuiEscapeMenu : ModBase
             w.selected = RectContains(w.x, w.y, w.width, w.height, Game.MouseCurrentX, Game.MouseCurrentY);
             if (w.selected && Game.MouseLeftClick)
             {
-                HandleButtonClick( w);
+                HandleButtonClick(w);
                 break;
             }
         }
@@ -406,7 +406,7 @@ public class ModGuiEscapeMenu : ModBase
             && py < y + h;
     }
 
-    private void SetEscapeMenuState( EscapeMenuState state)
+    private void SetEscapeMenuState(EscapeMenuState state)
     {
         LanguageService language = Game.Language;
         escapemenustate = state;
@@ -563,7 +563,7 @@ public class ModGuiEscapeMenu : ModBase
         return platform.KeyName(key);
     }
 
-    private void MakeSimpleOptions( int fontsize, int textheight)
+    private void MakeSimpleOptions(int fontsize, int textheight)
     {
         int starty = Game.Ycenter(widgetsCount * textheight);
         for (int i = 0; i < widgetsCount; i++)
@@ -588,7 +588,7 @@ public class ModGuiEscapeMenu : ModBase
         }
     }
     private bool loaded;
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (!loaded)
         {
@@ -604,7 +604,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             return;
         }
-        SetEscapeMenuState( escapemenustate);
+        SetEscapeMenuState(escapemenustate);
         EscapeMenuMouse1();
         for (int i = 0; i < widgetsCount; i++)
         {
@@ -662,7 +662,7 @@ public class ModGuiEscapeMenu : ModBase
 
 
     private int keyselectid;
-    public override void OnKeyDown( KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         int eKey = args.KeyChar;
         if (eKey == Game.GetKey(Keys.Escape))
@@ -683,7 +683,7 @@ public class ModGuiEscapeMenu : ModBase
                 SetEscapeMenuState(EscapeMenuState.Main);
                 Game.GuiStateBackToGame();
             }
-            args.Handled=true;
+            args.Handled = true;
         }
         if (escapemenustate == EscapeMenuState.Keys)
         {
@@ -691,7 +691,7 @@ public class ModGuiEscapeMenu : ModBase
             {
                 Game.options.Keys[keyhelps()[keyselectid].DefaultKey] = eKey;
                 keyselectid = -1;
-                args.Handled=true;
+                args.Handled = true;
             }
         }
         if (eKey == Game.GetKey(Keys.F11))
@@ -708,7 +708,7 @@ public class ModGuiEscapeMenu : ModBase
                 UseResolution();
                 SaveOptions();
             }
-            args.Handled=true;
+            args.Handled = true;
         }
     }
     public void LoadOptions()
@@ -814,7 +814,7 @@ public class ModGuiEscapeMenu : ModBase
 
         for (int i = 0; i < 256; i++)
         {
-            int value = options.Keys[i];string preferencesKey = string.Concat(platform, "Key", i.ToString());
+            int value = options.Keys[i]; string preferencesKey = string.Concat(platform, "Key", i.ToString());
             if (value != 0)
             {
                 preferences.SetInt(preferencesKey, value);
@@ -860,10 +860,14 @@ public class DisplayResolutionCi
     internal int Height;
     internal int BitsPerPixel;
     internal float RefreshRate;
-    public int GetWidth() { return Width; } public void SetWidth(int value) { Width = value; }
-    public int GetHeight() { return Height; } public void SetHeight(int value) { Height = value; }
-    public int GetBitsPerPixel() { return BitsPerPixel; } public void SetBitsPerPixel(int value) { BitsPerPixel = value; }
-    public float GetRefreshRate() { return RefreshRate; } public void SetRefreshRate(float value) { RefreshRate = value; }
+    public int GetWidth() { return Width; }
+    public void SetWidth(int value) { Width = value; }
+    public int GetHeight() { return Height; }
+    public void SetHeight(int value) { Height = value; }
+    public int GetBitsPerPixel() { return BitsPerPixel; }
+    public void SetBitsPerPixel(int value) { BitsPerPixel = value; }
+    public float GetRefreshRate() { return RefreshRate; }
+    public void SetRefreshRate(float value) { RefreshRate = value; }
 }
 
 public enum EscapeMenuState

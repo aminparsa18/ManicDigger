@@ -18,7 +18,7 @@ public class ModFallDamageToPlayer : ModBase
         this.voxelMap = voxelMap;
     }
 
-    public override void OnNewFrameFixed( float args)
+    public override void OnNewFrameFixed(float args)
     {
         if (Game.GuiState == GuiState.MapLoading) return;
 
@@ -32,7 +32,7 @@ public class ModFallDamageToPlayer : ModBase
             UpdateFallDamageToPlayer(args);
     }
 
-    internal void UpdateFallDamageToPlayer( float dt)
+    internal void UpdateFallDamageToPlayer(float dt)
     {
         float fallSpeed = Game.MovedZ / -Game.Basemovespeed;
 
@@ -71,7 +71,7 @@ public class ModFallDamageToPlayer : ModBase
         Game.ApplyDamageToPlayer((int)(severity * Game.PlayerStats.MaxHealth), DeathReason.FallDamage, 0);
     }
 
-    internal void SetFallSoundActive( bool active)
+    internal void SetFallSoundActive(bool active)
     {
         Game.AudioPlayLoop("fallloop.wav", active, true);
         fallSoundPlaying = active;

@@ -8,7 +8,7 @@ public class ClientPacketHandlerEntityDespawn : ClientPacketHandler
     {
     }
 
-    public override void Handle( Packet_Server packet)
+    public override void Handle(Packet_Server packet)
     {
         int id = packet.EntityDespawn.Id;
         Entity entity = game.Entities[id];

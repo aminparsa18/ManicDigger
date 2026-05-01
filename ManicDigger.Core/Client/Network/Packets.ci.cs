@@ -1,5 +1,4 @@
 ﻿using ManicDigger;
-using MemoryPack;
 
 public class ClientPackets
 {

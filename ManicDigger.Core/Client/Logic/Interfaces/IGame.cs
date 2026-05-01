@@ -617,7 +617,7 @@ public interface IGame : IDisposable
     // Block picking / raycasting
     // =========================================================================
 
-    
+
 
     /// <summary>Casts <paramref name="line"/> through the octree and returns all hit block faces.</summary>
     ArraySegment<BlockPosSide> Pick(BlockOctreeSearcher s_, Line3D line, out int retCount);
@@ -643,12 +643,12 @@ public interface IGame : IDisposable
 
     void KeyDown(KeyEventArgs eKey);
 
-    void KeyUp( KeyEventArgs eKey);
-    void KeyPress( KeyPressEventArgs eKeyChar);
+    void KeyUp(KeyEventArgs eKey);
+    void KeyPress(KeyPressEventArgs eKeyChar);
     void OnTouchStart(TouchEventArgs e);
     void OnTouchMove(TouchEventArgs e);
-    void OnTouchEnd( TouchEventArgs e);
-    void MouseWheelChanged( MouseWheelEventArgs e);
+    void OnTouchEnd(TouchEventArgs e);
+    void MouseWheelChanged(MouseWheelEventArgs e);
     void MouseDown(MouseEventArgs args);
     void MouseMove(MouseEventArgs e);
     void MouseUp(MouseEventArgs e);

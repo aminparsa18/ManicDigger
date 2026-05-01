@@ -11,7 +11,7 @@ public class ModDrawSprites : ModBase
         this.meshDrawer = meshDrawer;
     }
 
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         for (int i = 0; i < Game.Entities.Count; i++)
         {

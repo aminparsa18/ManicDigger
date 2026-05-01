@@ -18,7 +18,7 @@ public class ModDialog : ModBase
         this.packetHandler = new ClientPacketHandlerDialog(platform, game);
     }
 
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         Game.PacketHandlers[(int)Packet_ServerIdEnum.Dialog] = packetHandler;
         DrawDialogs(Game);
@@ -37,7 +37,7 @@ public class ModDialog : ModBase
         }
     }
 
-    public override void OnKeyPress( KeyPressEventArgs args)
+    public override void OnKeyPress(KeyPressEventArgs args)
     {
         if (Game.GuiState != GuiState.ModalDialog && Game.GuiState != GuiState.Normal) return;
         if (Game.IsTyping) return;
@@ -64,7 +64,7 @@ public class ModDialog : ModBase
         }
     }
 
-    public override void OnKeyDown( KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         ForEachDialog(d => d.screen.OnKeyDown(args));
 
@@ -83,7 +83,7 @@ public class ModDialog : ModBase
                 }
             }
             Game.ShowEscapeMenu();
-            args.Handled=true;
+            args.Handled = true;
             return;
         }
 
@@ -99,26 +99,26 @@ public class ModDialog : ModBase
                 }
                 Game.SendPacketClient(ClientPackets.DialogClick("Esc", Empty, 0));
                 Game.GuiStateBackToGame();
-                args.Handled=true;
+                args.Handled = true;
             }
             else if (args.KeyChar == Game.GetKey(Keys.Tab))
             {
                 Game.SendPacketClient(ClientPackets.DialogClick("Tab", Empty, 0));
-                args.Handled=true;
+                args.Handled = true;
             }
         }
     }
 
-    public override void OnKeyUp( KeyEventArgs args) =>
+    public override void OnKeyUp(KeyEventArgs args) =>
         ForEachDialog(d => d.screen.OnKeyUp(args));
 
-    public override void OnMouseDown( MouseEventArgs args) =>
+    public override void OnMouseDown(MouseEventArgs args) =>
         ForEachDialog(d => d.screen.OnMouseDown(args));
-    public override void OnMouseUp( MouseEventArgs args) =>
+    public override void OnMouseUp(MouseEventArgs args) =>
         ForEachDialog(d => d.screen.OnMouseUp(args));
 
     /// <summary>Iterates all non-null dialogs and applies an action to each.</summary>
-    private void ForEachDialog( Action<VisibleDialog> action)
+    private void ForEachDialog(Action<VisibleDialog> action)
     {
         for (int i = 0; i < Game.Dialogs.Length; i++)
         {

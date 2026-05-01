@@ -549,10 +549,10 @@ public struct Acceleration
 public class Controls
 {
     /// <summary>Lateral strafe input in [-1, 1] (negative = left, positive = right).</summary>
-    public float MovedX {  get; set; }
+    public float MovedX { get; set; }
 
     /// <summary>Forward/backward input in [-1, 1] (negative = back, positive = forward).</summary>
-    public float MovedY {  get; set; }
+    public float MovedY { get; set; }
 
     /// <summary>True when the player pressed the jump key this tick.</summary>
     public bool WantsJump { get; set; }
@@ -570,7 +570,7 @@ public class Controls
     public bool ShiftKeyDown { get; set; }
 
     /// <summary>When true, gravity is disabled and the player moves freely in all three axes.</summary>
-    public bool FreeMove { get; set; }  
+    public bool FreeMove { get; set; }
 
     /// <summary>When true, collision detection is disabled (no-clip / ghost mode).</summary>
     public bool NoClip { get; set; }

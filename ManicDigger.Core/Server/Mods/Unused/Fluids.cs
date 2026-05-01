@@ -24,8 +24,8 @@ public class Fluids : IMod
     //private bool warning_issued=false;
     //int[] dx = {-1,1,0,0};
     //int[] dy = {0,0,-1,1};
-    private readonly int[] dx = {-1,0,1,1, 1, 0,-1,-1};
-    private readonly int[] dy = { 1,1,1,0,-1,-1,-1, 0};
+    private readonly int[] dx = { -1, 0, 1, 1, 1, 0, -1, -1 };
+    private readonly int[] dy = { 1, 1, 1, 0, -1, -1, -1, 0 };
 
     public void PreStart(IModManager m)
     {
@@ -64,9 +64,9 @@ public class Fluids : IMod
 
     private void CheckNeighbors(int x, int y, int z)
     {
-        for (int xx=x-1; xx<=x+1; xx++)
-            for (int yy=y-1; yy<=y+1; yy++)
-                for (int zz=z-1; zz<=z+1; zz++)
+        for (int xx = x - 1; xx <= x + 1; xx++)
+            for (int yy = y - 1; yy <= y + 1; yy++)
+                for (int zz = z - 1; zz <= z + 1; zz++)
                 {
                     Check(xx, yy, zz);
                 }
@@ -98,10 +98,10 @@ public class Fluids : IMod
             }
             //check neighbor cells for a place to drop down
 
-            for (int dd=0; dd< dx.Length; dd++)
+            for (int dd = 0; dd < dx.Length; dd++)
             {
-                int xx = x + dx [dd];
-                int yy = y + dy [dd];
+                int xx = x + dx[dd];
+                int yy = y + dy[dd];
                 if (!m.IsValidPos(xx, yy, z))
                     continue;
                 if ((m.GetBlock(xx, yy, z) == 0) && (m.GetBlock(xx, yy, z - 1) == 0))
@@ -112,10 +112,10 @@ public class Fluids : IMod
             }
             //if it is not on top of a water block it will prefer to go to a water block (cohesion)
             if (m.GetBlock(x, y, z - 1) != b)
-                for (int dd=1; dd< dx.Length; dd+=2) //check von Neumann neighbors
+                for (int dd = 1; dd < dx.Length; dd += 2) //check von Neumann neighbors
                 {
-                    int xx = x + dx [dd];
-                    int yy = y + dy [dd];
+                    int xx = x + dx[dd];
+                    int yy = y + dy[dd];
                     if (!m.IsValidPos(xx, yy, z - 1))
                         continue;
                     if (m.GetBlock(xx, yy, z) != 0)
@@ -128,10 +128,10 @@ public class Fluids : IMod
                     }
                 }
             //is it a new hole near a fluid?
-            for (int dd=1; dd< dx.Length; dd+=2) //check von Neumann neighbors
+            for (int dd = 1; dd < dx.Length; dd += 2) //check von Neumann neighbors
             {
-                int xx = x + dx [dd];
-                int yy = y + dy [dd];
+                int xx = x + dx[dd];
+                int yy = y + dy[dd];
                 if (!m.IsValidPos(xx, yy, z - 1))
                     continue;
                 if (m.GetBlock(xx, yy, z) != 0)
@@ -170,11 +170,11 @@ public class Fluids : IMod
 
             int r = random.Next(8);
 
-            for (int d=r; d < r+dx.Length; d++)
+            for (int d = r; d < r + dx.Length; d++)
             {
                 int dd = d % dx.Length;
-                int xx = x + dx [dd];
-                int yy = y + dy [dd];
+                int xx = x + dx[dd];
+                int yy = y + dy[dd];
                 if (!m.IsValidPos(xx, yy, z))
                     continue;
                 if ((m.GetBlock(xx, yy, z) == 0) && (m.GetBlock(xx, yy, z - 1) == 0))
@@ -194,11 +194,11 @@ public class Fluids : IMod
             if (m.GetBlock(x, y, z - 1) != b)
             {
                 r = random.Next(4);
-                for (int d=r; d<r+4; d+=1)
+                for (int d = r; d < r + 4; d += 1)
                 {
                     int dd = (1 + 2 * d) % dx.Length;  //check only von Neumann neighbors
-                    int xx = x + dx [dd];
-                    int yy = y + dy [dd];
+                    int xx = x + dx[dd];
+                    int yy = y + dy[dd];
                     if (!m.IsValidPos(xx, yy, z - 1))
                         continue;
                     if (m.GetBlock(xx, yy, z) != 0)
@@ -224,7 +224,7 @@ public class Fluids : IMod
         var keys = new List<int>(activeFluids.Keys);
         foreach (int key in keys)
         {
-            Vector3i p = activeFluids [key];
+            Vector3i p = activeFluids[key];
             if (Update(p.X, p.Y, p.Z) == false)
             {
                 Vector3i b1, b2;
@@ -329,7 +329,7 @@ public class Fluids : IMod
                 if (searchMedium == searchTarget)
                 {
                     zz = z + preferedSearchDirection;
-                    while ((zz>=0) && (zz<m.GetMapSizeZ()) && (m.GetBlock(x,y,zz)==searchMedium))
+                    while ((zz >= 0) && (zz < m.GetMapSizeZ()) && (m.GetBlock(x, y, zz) == searchMedium))
                         zz += preferedSearchDirection;
                     zz -= preferedSearchDirection;
                 }
@@ -355,11 +355,11 @@ public class Fluids : IMod
         depth--;
         RecursiveSearch(depth, x, y, z + preferedSearchDirection);
         int r = random.Next(4);
-        for (int d=r; d<r+4; d+=1)
+        for (int d = r; d < r + 4; d += 1)
         {
             int dd = (1 + 2 * d) % dx.Length;  //check only von Neumann neighbors
-            int xx = x + dx [dd];
-            int yy = y + dy [dd];
+            int xx = x + dx[dd];
+            int yy = y + dy[dd];
             RecursiveSearch(depth, xx, yy, z);
         }
         RecursiveSearch(depth, x, y, z - preferedSearchDirection);

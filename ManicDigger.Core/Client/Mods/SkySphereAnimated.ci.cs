@@ -22,10 +22,10 @@ public class ModSkySphereAnimated : ModBase
         stars = new ModSkySphereStatic(platform, meshDrawer, game);
     }
 
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         Game.SkySphereNight = false;
-        stars.OnNewFrameDraw3d( deltaTime);
+        stars.OnNewFrameDraw3d(deltaTime);
         platform.GlDisableFog();
         DrawSkySphere();
         Game.SetFog();
@@ -51,7 +51,7 @@ public class ModSkySphereAnimated : ModBase
     /// <param name="game">Used to access the platform and asset file system.</param>
     /// <param name="filename">Asset filename including extension (e.g. <c>"terrain.png"</c>).</param>
     /// <param name="pixels">Receives the loaded ARGB pixel data.</param>
-    private void LoadPixels( string filename, ref int[] pixels)
+    private void LoadPixels(string filename, ref int[] pixels)
     {
         Bitmap bmp = PixelBuffer.BitmapFromPng(Game.GetAssetFile(filename), Game.GetAssetFileLength(filename));
         PixelBuffer buffer = PixelBuffer.FromBitmap(bmp);
@@ -59,14 +59,14 @@ public class ModSkySphereAnimated : ModBase
         pixels = buffer.Argb;
     }
 
-    public void Draw( float fov)
+    public void Draw(float fov)
     {
         int size = 1000;
         int segments = Game.fancySkysphere ? FancySegments : NormalSegments;
 
         skyModel = GetSphereModelData2(skyModel, size, size, segments, segments,
             skyPixels, glowPixels, Game.sunPosition.X, Game.sunPosition.Y, Game.sunPosition.Z);
-        
+
         platform.UpdateModel(skyModel);
         Game.Set3dProjection(size * 2, fov);
         meshDrawer.GLMatrixModeModelView();

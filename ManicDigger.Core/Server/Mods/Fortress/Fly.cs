@@ -23,7 +23,7 @@ public class ModFly : ModBase
     }
 
     // ── Toggle on F ───────────────────────────────────────────────────────────
-    public override void OnKeyDown( KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         if (Game.GuiState != GuiState.Normal || Game.GuiTyping != TypingState.None)
             return;
@@ -50,7 +50,7 @@ public class ModFly : ModBase
     }
 
     // ── Feed freemove + vertical intent into Controls every physics tick ──────
-    public override void OnNewFrameFixed( float dt)
+    public override void OnNewFrameFixed(float dt)
     {
         if (!flyActive) return;
 

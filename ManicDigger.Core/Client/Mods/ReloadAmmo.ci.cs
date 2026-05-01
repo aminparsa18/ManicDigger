@@ -14,7 +14,7 @@ public class ModReloadAmmo : ModBase
         random = new Random();
     }
 
-    public override void OnNewFrameFixed( float args)
+    public override void OnNewFrameFixed(float args)
     {
         if (Game.ReloadStartMilliseconds == 0) return;
 
@@ -28,7 +28,7 @@ public class ModReloadAmmo : ModBase
         Game.ReloadBlock = -1;
     }
 
-    public override void OnKeyDown( KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         if (Game.GuiState != GuiState.Normal || Game.GuiTyping != TypingState.None) return;
         if (args.KeyChar != Game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.R)) return;

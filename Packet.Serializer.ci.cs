@@ -1,11 +1,9 @@
 using ManicDigger;
-using MemoryPack;
 
 // All packets use public auto-properties so MemoryPack can serialize them.
 // Count/Length fields and Set* methods removed — MemoryPack handles arrays natively.
 // Shared structures used by both client and server are defined once.
 
-using MemoryPack;
 
 // ---------------------------------------------------------------------------
 // Shared structures (used by both client and server)
@@ -791,7 +789,7 @@ public enum Packet_ServerIdEnum
     Explosion = 58,
     Projectile = 59,
     Translation = 60,
-    QueryAnswer = 64,   
+    QueryAnswer = 64,
     ServerRedirect = 65,
     EntitySpawn = 66,
     EntityPosition = 67,

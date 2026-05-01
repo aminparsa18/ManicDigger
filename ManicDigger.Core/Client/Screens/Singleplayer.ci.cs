@@ -20,7 +20,7 @@ public class SingleplayerScreen : ScreenBase
     /// <summary>Dynamically populated buttons, one per discovered save file (up to <see cref="MaxWorldButtons"/>).</summary>
     private readonly MenuWidget[] worldButtons;
 
-    private readonly ISinglePlayerService singlePlayerService; 
+    private readonly ISinglePlayerService singlePlayerService;
 
     /// <summary>
     /// Save files discovered on first render. <c>null</c> until the first call to

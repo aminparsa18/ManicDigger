@@ -20,7 +20,7 @@ using System.Collections.Concurrent;
 public class TaskScheduler : ITaskScheduler
 {
     /// <summary>Thread-safe queue of actions to run on the main/commit thread.</summary>
-    public ConcurrentQueue<Action> CommitActions { get; set; } 
+    public ConcurrentQueue<Action> CommitActions { get; set; }
 
     // -------------------------------------------------------------------------
     // Fields

@@ -12,7 +12,7 @@ public class ModDrawPlayers : ModBase
     private readonly IMeshDrawer meshDrawer;
     private readonly IOpenGlService openGlService;
 
-    public ModDrawPlayers(IGameService platform, IVoxelMap voxelMap, IFrustumCulling frustumCulling, 
+    public ModDrawPlayers(IGameService platform, IVoxelMap voxelMap, IFrustumCulling frustumCulling,
         IMeshDrawer meshDrawer, IOpenGlService openGlService, IGame game) : base(game)
     {
         this.platform = platform;
@@ -22,7 +22,7 @@ public class ModDrawPlayers : ModBase
         this.openGlService = openGlService;
     }
 
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         Game.TotalTimeMilliseconds = platform.TimeMillisecondsFromStart;
 
@@ -71,7 +71,7 @@ public class ModDrawPlayers : ModBase
     }
 
     /// <summary>Loads and initializes the animated model renderer for an entity if not already done.</summary>
-    private void EnsureRenderer( Entity p)
+    private void EnsureRenderer(Entity p)
     {
         if (p.drawModel.renderer != null) return;
 
@@ -86,7 +86,7 @@ public class ModDrawPlayers : ModBase
     }
 
     /// <summary>Renders the entity's animated model at its current world position and orientation.</summary>
-    private void DrawEntity( Entity p, float dt, float shadow, float speed)
+    private void DrawEntity(Entity p, float dt, float shadow, float speed)
     {
         meshDrawer.GLPushMatrix();
         meshDrawer.GLTranslate(p.position.x, p.position.y, p.position.z);

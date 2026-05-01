@@ -2,7 +2,7 @@
 
 public class ServerSystemChunksSimulation : ServerSystem
 {
-    private Random _rnd; 
+    private Random _rnd;
 
     public int[] MonsterTypesUnderground = [1, 2];
     public int[] MonsterTypesOnGround = [0, 3, 4];

@@ -1,5 +1,4 @@
 using ManicDigger;
-using OpenTK.Core;
 
 public partial class Server
 {
@@ -770,7 +769,7 @@ public partial class Server
 
         // Get related group from config file.
         Group? newGroup = ServerClient.Groups.Find(
-            delegate(Group grp)
+            delegate (Group grp)
             {
                 return grp.Name.Equals(newGroupName, StringComparison.InvariantCultureIgnoreCase);
             }
@@ -790,7 +789,7 @@ public partial class Server
 
         // Get related client from config file
         Client? clientConfig = ServerClient.Clients.Find(
-            delegate(Client client)
+            delegate (Client client)
             {
                 return client.Name.Equals(target, StringComparison.InvariantCultureIgnoreCase);
             }
@@ -846,7 +845,7 @@ public partial class Server
 
         // Get related group from config file.
         Group? newGroup = ServerClient.Groups.Find(
-            delegate(Group grp)
+            delegate (Group grp)
             {
                 return grp.Name.Equals(newGroupName, StringComparison.InvariantCultureIgnoreCase);
             }
@@ -866,7 +865,7 @@ public partial class Server
 
         // Get related client from config file.
         Client? clientConfig = ServerClient.Clients.Find(
-            delegate(Client client)
+            delegate (Client client)
             {
                 return client.Name.Equals(target, StringComparison.InvariantCultureIgnoreCase);
             }
@@ -895,7 +894,7 @@ public partial class Server
         {
             // Check if target's current group is superior.
             Group? oldGroup = ServerClient.Groups.Find(
-                delegate(Group grp)
+                delegate (Group grp)
                 {
                     return grp.Name.Equals(clientConfig.Group);
                 }
@@ -929,7 +928,7 @@ public partial class Server
 
         // Get related client from config file
         Client? targetClient = ServerClient.Clients.Find(
-            delegate(Client client)
+            delegate (Client client)
             {
                 return client.Name.Equals(target, StringComparison.InvariantCultureIgnoreCase);
             }
@@ -939,7 +938,7 @@ public partial class Server
         {
             // Get target's group.
             Group? targetGroup = ServerClient.Groups.Find(
-                delegate(Group grp)
+                delegate (Group grp)
                 {
                     return grp.Name.Equals(targetClient.Group);
                 }
@@ -980,7 +979,7 @@ public partial class Server
             return false;
         }
         Group? targetGroup = ServerClient.Groups.Find(
-            delegate(Group grp)
+            delegate (Group grp)
             {
                 return grp.Name.Equals(targetGroupString, StringComparison.InvariantCultureIgnoreCase);
             }
@@ -1453,9 +1452,9 @@ public partial class Server
             foreach (var k in Clients)
             {
                 SendPacket(k.Key, Serialize(new Packet_Server()
-                    {
-                        Id = Packet_ServerIdEnum.RemoveMonsters
-                    }));
+                {
+                    Id = Packet_ServerIdEnum.RemoveMonsters
+                }));
             }
         }
         SendMessageToAll(string.Format(Language.Get("Server_CommandMonstersToggle"), GetClient(sourceClientId).ColoredPlayername(colorSuccess), option));
@@ -1618,7 +1617,7 @@ public partial class Server
             case "-g":
                 // Check if group even exists.
                 Group? targetGroup = ServerClient.Groups.Find(
-                    delegate(Group grp)
+                    delegate (Group grp)
                     {
                         return grp.Name.Equals(target, StringComparison.InvariantCultureIgnoreCase);
                     }
@@ -1674,7 +1673,7 @@ public partial class Server
                 string targetClientPlayername = targetClient == null ? target : targetClient.PlayerName;
 
                 Client? clientEntry = ServerClient.Clients.Find(
-                    delegate(Client client)
+                    delegate (Client client)
                     {
                         return client.Name.Equals(targetClientPlayername, StringComparison.InvariantCultureIgnoreCase);
                     }
@@ -1738,7 +1737,7 @@ public partial class Server
 
         // Get related client entry.
         Client? clientEntry = ServerClient.Clients.Find(
-            delegate(Client client)
+            delegate (Client client)
             {
                 return client.Name.Equals(GetClient(sourceClientId).PlayerName, StringComparison.InvariantCultureIgnoreCase);
             }
@@ -1995,7 +1994,7 @@ public partial class Server
             case "-g":
                 // Check if group even exists.
                 Group? targetGroup = ServerClient.Groups.Find(
-                    delegate(Group grp)
+                    delegate (Group grp)
                     {
                         return grp.Name.Equals(target, StringComparison.InvariantCultureIgnoreCase);
                     }
@@ -2046,7 +2045,7 @@ public partial class Server
                 string targetClientPlayername = targetClient == null ? target : targetClient.PlayerName;
 
                 Client? clientEntry = ServerClient.Clients.Find(
-                    delegate(Client client)
+                    delegate (Client client)
                     {
                         return client.Name.Equals(targetClientPlayername, StringComparison.InvariantCultureIgnoreCase);
                     }

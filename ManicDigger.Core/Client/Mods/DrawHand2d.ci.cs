@@ -17,7 +17,7 @@ public class ModDrawHand2d : ModBase
         this.openGlService = openGlService;
     }
 
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         if (!ShouldDrawHand()) return;
 

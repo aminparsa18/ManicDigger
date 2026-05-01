@@ -1,6 +1,4 @@
-﻿using MemoryPack;
-
-public partial class Game
+﻿public partial class Game
 {
     public bool IsTeamchat { get; set; }
 

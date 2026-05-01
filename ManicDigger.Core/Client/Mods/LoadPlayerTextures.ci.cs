@@ -25,7 +25,7 @@ public class ModLoadPlayerTextures : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame( float args)
+    public override void OnNewFrame(float args)
     {
         if (Game.GuiState == GuiState.MapLoading) { return; }
 
@@ -89,7 +89,7 @@ public class ModLoadPlayerTextures : ModBase
     /// <see langword="false"/> when this path is not applicable and the caller
     /// should try the file-skin fallback.
     /// </returns>
-    private bool TryLoadDownloadedSkin( Entity e)
+    private bool TryLoadDownloadedSkin(Entity e)
     {
         if (Game.IsSinglePlayer
          || !e.drawModel.DownloadSkin
@@ -129,7 +129,7 @@ public class ModLoadPlayerTextures : ModBase
     /// falls back to <c>mineplayer.png</c> when no path is set.
     /// Always sets <c>CurrentTexture</c> and returns <see langword="true"/>.
     /// </summary>
-    private bool TryLoadFileSkin( Entity e)
+    private bool TryLoadFileSkin(Entity e)
     {
         if (e.drawModel.Texture_ == null)
         {

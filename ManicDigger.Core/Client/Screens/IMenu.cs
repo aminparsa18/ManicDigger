@@ -1,5 +1,5 @@
 ﻿public interface IMenu
-{ 
+{
     // Render
     string Translate(string key);
     float AssetsLoadProgress { get; }

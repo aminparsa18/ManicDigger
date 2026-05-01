@@ -18,7 +18,7 @@ public class ModNetworkEntity : ModBase
         _despawn = new ClientPacketHandlerEntityDespawn(gameService, game);
     }
 
-    public override void OnNewFrame( float args)
+    public override void OnNewFrame(float args)
     {
         // Register once — previously wrote to the handler dictionary every frame.
         if (!_handlersRegistered)

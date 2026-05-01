@@ -15,5 +15,5 @@ public abstract class ClientPacketHandler
     }
 
     /// <summary>Applies the effect of <paramref name="packet"/> to <paramref name="game"/>.</summary>
-    public abstract void Handle( Packet_Server packet);
+    public abstract void Handle(Packet_Server packet);
 }

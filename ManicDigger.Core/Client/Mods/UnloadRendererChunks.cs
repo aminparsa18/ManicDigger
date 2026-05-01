@@ -93,7 +93,7 @@ public class ModUnloadRendererChunks : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnReadOnlyBackgroundThread( float dt)
+    public override void OnReadOnlyBackgroundThread(float dt)
     {
         RefreshChunkGridDimensions();
 

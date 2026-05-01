@@ -13,7 +13,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
         this.blockTypeRegistry = blockTypeRegistry;
     }
 
-    public override void Handle( Packet_Server packet)
+    public override void Handle(Packet_Server packet)
     {
         int id = packet.EntitySpawn.Id;
         Entity entity = game.Entities[id] ?? new Entity();
@@ -63,7 +63,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
     /// <paramref name="old"/> entity object, allocating sub-objects only when
     /// the corresponding server field is present.
     /// </summary>
-    public Entity ToClientEntity( Packet_ServerEntity entity, Entity old, bool updatePosition)
+    public Entity ToClientEntity(Packet_ServerEntity entity, Entity old, bool updatePosition)
     {
         if (entity.Position != null && (old.position == null || updatePosition))
         {

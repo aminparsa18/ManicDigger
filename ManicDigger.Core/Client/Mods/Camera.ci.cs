@@ -65,7 +65,7 @@ public class ModCamera : ModBase
     /// Casts a ray from the camera target toward the eye and pulls the camera
     /// in if terrain blocks the view, with a minimum distance of 0.3 units.
     /// </summary>
-    private float LimitThirdPersonCameraToWalls( ref Vector3 eye, ref Vector3 target, float distance)
+    private float LimitThirdPersonCameraToWalls(ref Vector3 eye, ref Vector3 target, float distance)
     {
         const float MinDistance = 0.3f;
 
@@ -93,7 +93,7 @@ public class ModCamera : ModBase
     }
 
     /// <summary>Writes the eye position back to the game for other systems to use.</summary>
-    private void SetCameraEye( Vector3 eye)
+    private void SetCameraEye(Vector3 eye)
     {
         Game.CameraEye = eye;
     }

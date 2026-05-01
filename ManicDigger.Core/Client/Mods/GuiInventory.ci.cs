@@ -112,7 +112,7 @@ public class ModGuiInventory : ModBase
     private int ScrollDownButtonY() => CellsStartY() + (_cellCountInPageY - 1) * CellDrawSize;
 
     /// <inheritdoc/>
-    public override void OnKeyPress( KeyPressEventArgs args)
+    public override void OnKeyPress(KeyPressEventArgs args)
     {
         if (Game.GuiState != GuiState.Inventory) { return; }
 
@@ -123,7 +123,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnMouseDown( MouseEventArgs args)
+    public override void OnMouseDown(MouseEventArgs args)
     {
         if (Game.GuiState != GuiState.Inventory) { return; }
 
@@ -214,7 +214,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnTouchStart( TouchEventArgs e)
+    public override void OnTouchStart(TouchEventArgs e)
     {
         MouseEventArgs args = new();
         args.SetX(e.GetX());
@@ -224,7 +224,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnMouseUp( MouseEventArgs args)
+    public override void OnMouseUp(MouseEventArgs args)
     {
         if (Game != null && Game.GuiState != GuiState.Inventory) { return; }
         _scrollingUpTimeMs = 0;
@@ -232,7 +232,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnMouseWheelChanged( MouseWheelEventArgs args)
+    public override void OnMouseWheelChanged(MouseWheelEventArgs args)
     {
         float delta = args.OffsetY;
         bool shiftHeld = Game.KeyboardState[Game.GetKey(Keys.LeftShift)];
@@ -253,7 +253,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (inventoryService == null)
         {
@@ -345,7 +345,7 @@ public class ModGuiInventory : ModBase
     /// <param name="item">Item to draw. No-op when <see langword="null"/>.</param>
     /// <param name="drawsizeX">Override draw width in pixels, or 0 to use cell-sized default.</param>
     /// <param name="drawsizeY">Override draw height in pixels, or 0 to use cell-sized default.</param>
-    private void DrawItem( int screenposX, int screenposY, InventoryItem item, int drawsizeX, int drawsizeY)
+    private void DrawItem(int screenposX, int screenposY, InventoryItem item, int drawsizeX, int drawsizeY)
     {
         if (item == null) { return; }
 
@@ -384,7 +384,7 @@ public class ModGuiInventory : ModBase
     /// Draws a tooltip popup for <paramref name="item"/> near the given screen position,
     /// repositioning it if it would overflow the screen edges.
     /// </summary>
-    public void DrawItemInfo( int screenposX, int screenposY, InventoryItem item)
+    public void DrawItemInfo(int screenposX, int screenposY, InventoryItem item)
     {
         int sizex = InventoryService.ItemSizeX(item);
         int sizey = InventoryService.ItemSizeY(item);
@@ -435,7 +435,7 @@ public class ModGuiInventory : ModBase
     /// while an item is being dragged, indicating whether the drop is valid
     /// (green) or blocked (red).
     /// </summary>
-    private void DrawDragDropFeedback( Point mouse)
+    private void DrawDragDropFeedback(Point mouse)
     {
         if (Game.Inventory.DragDropItem == null) { return; }
 
@@ -492,7 +492,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <summary>Draws a single wear-place item at its configured slot origin.</summary>
-    private void DrawWearItem( WearPlace place, InventoryItem item)
+    private void DrawWearItem(WearPlace place, InventoryItem item)
     {
         int idx = (int)place;
         DrawItem(_wearPlaceStart[idx].X + InventoryStartX(),
@@ -504,7 +504,7 @@ public class ModGuiInventory : ModBase
     /// Draws item tooltips for whichever cell, wear-place slot, or material-selector
     /// slot is currently under the mouse cursor.
     /// </summary>
-    private void DrawTooltips( Point mouse)
+    private void DrawTooltips(Point mouse)
     {
         Point? cell = SelectedCell(mouse);
         if (cell != null)
@@ -522,7 +522,7 @@ public class ModGuiInventory : ModBase
         if (wearSlot != null)
         {
             InventoryItem item = inventoryUtil.ItemAtWearPlace((WearPlace)wearSlot.Value, Game.ActiveMaterial);
-            if (item != null) { DrawItemInfo( mouse.X, mouse.Y, item); }
+            if (item != null) { DrawItemInfo(mouse.X, mouse.Y, item); }
         }
 
         int? matSlot = SelectedMaterialSelectorSlot(mouse);
@@ -601,7 +601,7 @@ public class ModGuiInventory : ModBase
     /// Returns the material-selector slot index under <paramref name="mouse"/>,
     /// or <see langword="null"/> when the cursor is outside the bar.
     /// </summary>
-    private int? SelectedMaterialSelectorSlot( Point mouse)
+    private int? SelectedMaterialSelectorSlot(Point mouse)
     {
         int cellSize = ActiveMaterialCellSize();
         int startX = MaterialSelectorStartX();

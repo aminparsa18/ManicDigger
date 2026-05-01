@@ -20,7 +20,7 @@ public class ModScreenshot : ModBase
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (takeScreenshot)
         {
@@ -36,7 +36,7 @@ public class ModScreenshot : ModBase
         }
     }
 
-    public override void OnKeyDown( KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         if (args.KeyChar != Game.GetKey(OpenTK.Windowing.GraphicsLibraryFramework.Keys.F12)) return;
         takeScreenshot = true;

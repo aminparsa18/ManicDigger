@@ -10,7 +10,7 @@ public class ModDrawArea : ModBase
         lines = new DrawWireframeCube(platform, meshDrawer);
     }
 
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
         if (!Game.ENABLE_DRAW2D) return;
 
@@ -27,7 +27,7 @@ public class ModDrawArea : ModBase
         }
     }
 
-    public override void OnHitEntity( OnUseEntityArgs e)
+    public override void OnHitEntity(OnUseEntityArgs e)
     {
         var area = Game.Entities[e.Id]?.drawArea;
         if (area == null) return;

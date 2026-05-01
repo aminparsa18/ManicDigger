@@ -105,7 +105,7 @@ public class LightBetweenChunks
     /// <param name="cx">Target chunk X coordinate.</param>
     /// <param name="cy">Target chunk Y coordinate.</param>
     /// <param name="cz">Target chunk Z coordinate.</param>
-    private void Input( int cx, int cy, int cz)
+    private void Input(int cx, int cy, int cz)
     {
         for (int x = 0; x < NeighbourhoodSize; x++)
         {
@@ -275,7 +275,7 @@ public class LightBetweenChunks
     /// <param name="cx">Target chunk X coordinate.</param>
     /// <param name="cy">Target chunk Y coordinate.</param>
     /// <param name="cz">Target chunk Z coordinate.</param>
-    private void Output( int cx, int cy, int cz)
+    private void Output(int cx, int cy, int cz)
     {
         Chunk chunk = _voxelMap.GetChunkAt(cx, cy, cz);
 

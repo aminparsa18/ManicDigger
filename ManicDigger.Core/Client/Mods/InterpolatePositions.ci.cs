@@ -11,7 +11,7 @@ public class ModInterpolatePositions : ModBase
     {
     }
 
-    public override void OnNewFrame( float dt)
+    public override void OnNewFrame(float dt)
     {
         InterpolatePositions();
     }

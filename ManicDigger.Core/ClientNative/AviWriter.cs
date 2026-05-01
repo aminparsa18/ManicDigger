@@ -236,7 +236,7 @@ public class AviWriter
     private static extern void AVIFileInit();
 
     [DllImport("avifil32.dll")]
-    private static extern int AVIFileOpenW(ref int ptr_pfile, [MarshalAs(UnmanagedType.LPWStr)]string fileName, int flags, int dummy);
+    private static extern int AVIFileOpenW(ref int ptr_pfile, [MarshalAs(UnmanagedType.LPWStr)] string fileName, int flags, int dummy);
 
     [DllImport("avifil32.dll")]
     private static extern int AVIFileCreateStream(

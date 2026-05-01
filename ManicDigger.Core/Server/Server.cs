@@ -2389,7 +2389,7 @@ public partial class Server : ICurrentTime, IDropItem
     }
 
     public int DrawDistance { get; set; } = 512;
-    public static int ChunkSize { get; set;} = 32;
+    public static int ChunkSize { get; set; } = 32;
 
     public static double InvertedChunkSize { get; set; } = 1.0 / 32;
 

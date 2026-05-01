@@ -48,7 +48,7 @@ public class ModNetworkProcess : ModBase
     private static int Index3d(int x, int y, int h, int sizex, int sizey)
         => (h * sizey + y) * sizex + x;
 
-    public override void OnReadOnlyBackgroundThread( float dt)
+    public override void OnReadOnlyBackgroundThread(float dt)
         => NetworkProcess();
 
     public void NetworkProcess()

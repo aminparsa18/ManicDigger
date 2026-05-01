@@ -69,7 +69,7 @@ public class ModGuiCrafting : ModBase
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         // Lazy-initialise the tool once.
         d_CraftingTableTool ??= new CraftingTableTool
@@ -89,13 +89,13 @@ public class ModGuiCrafting : ModBase
             DrawCraftingRecipes();
     }
 
-    public override void OnNewFrameFixed( float args)
+    public override void OnNewFrameFixed(float args)
     {
         if (Game.GuiState == GuiState.CraftingRecipes)
             CraftingMouse();
     }
 
-    public override void OnKeyDown( KeyEventArgs args)
+    public override void OnKeyDown(KeyEventArgs args)
     {
         if (args.KeyChar != Game.GetKey(Keys.E) || Game.GuiTyping != TypingState.None) return;
         if (Game.SelectedBlockPositionX == -1
@@ -216,7 +216,7 @@ public class ModGuiCrafting : ModBase
 
     // ── Session management ────────────────────────────────────────────────────
 
-    internal void CraftingRecipesStart( CraftingRecipe[] recipes, int recipesCount,
+    internal void CraftingRecipesStart(CraftingRecipe[] recipes, int recipesCount,
         int[] blocks, int blocksCount,
         int posX, int posY, int posZ)
     {

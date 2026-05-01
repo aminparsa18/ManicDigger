@@ -18,7 +18,7 @@ public class ModGuiPlayerStats : ModBase
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (Game.GuiState == GuiState.MapLoading || Game.PlayerStats == null) return;
 
@@ -33,7 +33,7 @@ public class ModGuiPlayerStats : ModBase
     }
 
     /// <summary>Draws a background + filled progress bar at the given position.</summary>
-    private void DrawBar( int x, int y, float progress, int color)
+    private void DrawBar(int x, int y, float progress, int color)
     {
         int bgTex = Game.GetTexture("ui_bar_background.png");
         int barTex = Game.GetTexture("ui_bar_inner.png");

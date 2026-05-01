@@ -22,7 +22,7 @@ public class TableSerializer
         string section = "";
         int rowIndex = 0;
 
-        for (int i = 0; i < lines.Length ; i++)
+        for (int i = 0; i < lines.Length; i++)
         {
             string line = lines[i].Trim();
 

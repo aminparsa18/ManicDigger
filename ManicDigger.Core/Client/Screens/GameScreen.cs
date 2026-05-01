@@ -8,7 +8,7 @@ using Serilog;
 /// </summary>
 public class ScreenGame(IMenu navigator, IGameService platform,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit,
-    IDummyNetwork dummyNetwork,  IGame game) : ScreenBase(navigator, platform)
+    IDummyNetwork dummyNetwork, IGame game) : ScreenBase(navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;
@@ -54,7 +54,7 @@ public class ScreenGame(IMenu navigator, IGameService platform,
             // Platform provides its own singleplayer server (e.g. mobile).
             Task.Run(() =>
             {
-                    ServerThreadStart(singleplayerSavePath);
+                ServerThreadStart(singleplayerSavePath);
             });
 
             // Prime the server inbox so the handshake starts immediately.

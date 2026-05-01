@@ -130,10 +130,10 @@ public class AreaConfig
         }
     }
 
-    public bool IsInCoords(int x, int y, int z) 
+    public bool IsInCoords(int x, int y, int z)
         => x >= x1 && x <= x2 && y >= y1 && y <= y2 && z >= z1 && z <= z2;
 
-    public bool ContainsBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) 
+    public bool ContainsBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
         => minX >= x1 && maxX <= x2 && minY >= y1 && maxY <= y2 && minZ >= z1 && maxZ <= z2;
 
     public bool CanUserBuild(ClientOnServer client)

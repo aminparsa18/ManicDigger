@@ -12,7 +12,7 @@ public class VoxelMap : IVoxelMap
 
     public int MapSizeX { get; set; }
     public int MapSizeY { get; set; }
-    public int MapSizeZ {  get; set; }
+    public int MapSizeZ { get; set; }
 
     /// <summary>
     /// Converts 3D coordinates into a flat array index using the layout: <c>(h * sizeY + y) * sizeX + x</c>.

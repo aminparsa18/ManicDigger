@@ -24,7 +24,7 @@ public class ModGuiMapLoading : ModBase
         this.singlePlayerService = singlePlayerService;
     }
 
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (Game.GuiState != GuiState.MapLoading) return;
 
@@ -63,7 +63,7 @@ public class ModGuiMapLoading : ModBase
         return Game.Language.Connecting();
     }
 
-    private void DrawProgress( int centerY)
+    private void DrawProgress(int centerY)
     {
         string progress = string.Format(Game.Language.ConnectingProgressPercent(), Game.maploadingprogress.ProgressPercent.ToString());
         string progress1 = string.Format(Game.Language.ConnectingProgressKilobytes(), (Game.maploadingprogress.ProgressBytes / 1024).ToString());
@@ -79,13 +79,13 @@ public class ModGuiMapLoading : ModBase
         Game.Draw2dTexture(Game.GetOrCreateWhiteTexture(), barX, barY, ratio * ProgressBarWidth, ProgressBarHeight, null, 0, color, false);
     }
 
-    private void DrawCentered( string text, int y)
+    private void DrawCentered(string text, int y)
     {
         TextRenderer.TextSize(text, FontSize, out int textWidth, out _);
         Game.Draw2dText(text, Game.FontMapLoading, Game.Xcenter(textWidth), y, null, false);
     }
 
-    private void DrawBackground( int width, int height)
+    private void DrawBackground(int width, int height)
     {
         int countX = width / BackgroundTileSize + 1;
         int countY = height / BackgroundTileSize + 1;

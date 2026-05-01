@@ -128,7 +128,7 @@ public class MainMenu : IMenu
     // -------------------------------------------------------------------------
 
     public MainMenu(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
-        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods, 
+        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IEnumerable<IModBase> mods,
         IVoxelMap voxelMap, IAudioService audioService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher,
         IMeshDrawer meshDrawer, IGame game)
     {
@@ -249,7 +249,7 @@ public class MainMenu : IMenu
 
         Matrix4.CreateOrthographicOffCenter(
             0, GameService.CanvasWidth,
-            GameService.            CanvasHeight, 0,
+            GameService.CanvasHeight, 0,
             0, 10,
             out pMatrix);
 

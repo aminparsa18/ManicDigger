@@ -13,7 +13,7 @@ public class ModGrenade : ModBase
     {
     }
 
-    public override void OnNewFrameFixed( float args)
+    public override void OnNewFrameFixed(float args)
     {
         float dt = args;
         for (int i = 0; i < Game.Entities.Count; i++)
@@ -24,7 +24,7 @@ public class ModGrenade : ModBase
         }
     }
 
-    internal void UpdateGrenade( int grenadeEntityId, float dt)
+    internal void UpdateGrenade(int grenadeEntityId, float dt)
     {
         Entity grenadeEntity = Game.Entities[grenadeEntityId];
         Sprite grenadeSprite = grenadeEntity.sprite;
@@ -45,7 +45,7 @@ public class ModGrenade : ModBase
         grenadeSprite.positionZ = finalPos.Z;
     }
 
-    internal Vector3 GrenadeBounce( Vector3 oldPos, Vector3 newPos, ref Vector3 velocity, float dt)
+    internal Vector3 GrenadeBounce(Vector3 oldPos, Vector3 newPos, ref Vector3 velocity, float dt)
     {
         bool isMoving = velocity.Length > 100 * dt;
 
@@ -80,7 +80,7 @@ public class ModGrenade : ModBase
     }
 
     /// <summary>Checks and applies a bounce for X or Z axis wall collisions.</summary>
-    private void TryBounceAxis( Vector3 newPos, Vector3 offset, ref Vector3 velocity, ref Vector3 pos, bool isMoving, int axis)
+    private void TryBounceAxis(Vector3 newPos, Vector3 offset, ref Vector3 velocity, ref Vector3 pos, bool isMoving, int axis)
     {
         Vector3 probe = newPos + offset;
         int px = (int)MathF.Floor(probe.X);
@@ -96,7 +96,7 @@ public class ModGrenade : ModBase
     }
 
     /// <summary>Checks and applies a bounce when the grenade hits a floor (moving down).</summary>
-    private void TryBounceFloor( Vector3 newPos, Vector3 oldPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
+    private void TryBounceFloor(Vector3 newPos, Vector3 oldPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
     {
         float a = WallDistance;
         Vector3 probe = new(newPos.X, newPos.Y - WallDistance, newPos.Z);
@@ -119,7 +119,7 @@ public class ModGrenade : ModBase
     }
 
     /// <summary>Checks and applies a bounce when the grenade hits a ceiling (moving up).</summary>
-    private void TryBounceCeiling( Vector3 newPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
+    private void TryBounceCeiling(Vector3 newPos, ref Vector3 velocity, ref Vector3 pos, bool isMoving)
     {
         Vector3 probe = new(newPos.X, newPos.Y + WallDistance, newPos.Z);
         bool empty = Game.IsTileEmptyForPhysics(
@@ -133,7 +133,7 @@ public class ModGrenade : ModBase
     }
 
     /// <summary>Applies bounce speed damping and plays bounce sound if the grenade is moving.</summary>
-    private void ApplyBounce( ref Vector3 velocity, Vector3 pos, bool isMoving)
+    private void ApplyBounce(ref Vector3 velocity, Vector3 pos, bool isMoving)
     {
         velocity *= BounceSpeedMultiply;
         if (isMoving)

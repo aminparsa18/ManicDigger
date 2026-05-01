@@ -12,15 +12,15 @@ public partial class Game
     {
         int btn = args.GetButton();
 
-        if (btn == (int)MouseButton.Left) 
-        { 
+        if (btn == (int)MouseButton.Left)
+        {
             mouseLeft = true; MouseLeftClick = true;
         }
-        if (btn == (int)MouseButton.Middle) 
+        if (btn == (int)MouseButton.Middle)
             mouseMiddle = true;
-        if (btn == (int)MouseButton.Right) 
-        { 
-            mouseRight = true; mouserightclick = true; 
+        if (btn == (int)MouseButton.Right)
+        {
+            mouseRight = true; mouserightclick = true;
         }
 
         for (int i = 0; i < ClientMods.Count; i++)
@@ -80,7 +80,7 @@ public partial class Game
         }
     }
 
-    public void MouseWheelChanged( MouseWheelEventArgs e)
+    public void MouseWheelChanged(MouseWheelEventArgs e)
     {
         float delta = e.OffsetY;
 
@@ -192,7 +192,7 @@ public partial class Game
         }
     }
 
-    public void OnTouchEnd( TouchEventArgs e)
+    public void OnTouchEnd(TouchEventArgs e)
     {
         MouseCurrentX = 0;
         MouseCurrentY = 0;
@@ -211,7 +211,7 @@ public partial class Game
     // Keyboard events
     // -------------------------------------------------------------------------
 
-    public void KeyUp( KeyEventArgs eKey)
+    public void KeyUp(KeyEventArgs eKey)
     {
         KeyboardStateRaw[eKey.KeyChar] = false;
 
@@ -227,7 +227,7 @@ public partial class Game
             IsShiftPressed = false;
     }
 
-    public void KeyPress( KeyPressEventArgs eKeyChar)
+    public void KeyPress(KeyPressEventArgs eKeyChar)
     {
         for (int i = 0; i < ClientMods.Count; i++)
         {

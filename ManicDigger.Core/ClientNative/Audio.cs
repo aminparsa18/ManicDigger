@@ -1,6 +1,5 @@
 ﻿using OpenTK.Audio.OpenAL;
 using OpenTK.Mathematics;
-using System.Diagnostics;
 
 namespace ManicDigger;
 
@@ -26,7 +25,7 @@ public sealed class AudioTask
     private volatile bool _isFinished;
 
     private Vector3 _position;
-    private readonly object _positionLock = new();
+    private readonly Lock _positionLock = new();
 
     /// <summary>
     /// World-space position used for OpenAL distance attenuation.
@@ -67,7 +66,11 @@ public sealed class AudioTask
     public void Play()
     {
         _shouldPlay = true;
-        if (_started) return;
+        if (_started)
+        {
+            return;
+        }
+
         _started = true;
         ThreadPool.QueueUserWorkItem(_ => RunAudio());
     }
@@ -112,8 +115,8 @@ public sealed class AudioTask
 
         try
         {
-            AL.BufferData(buffer,AudioService.GetSoundFormat(_data.Channels, _data.BitsPerSample),
-                _data.Pcm,_data.Rate);
+            AL.BufferData(buffer, AudioService.GetSoundFormat(_data.Channels, _data.BitsPerSample),
+                _data.Pcm, _data.Rate);
 
             AL.DistanceModel(ALDistanceModel.InverseDistance);
             AL.Source(source, ALSourcef.RolloffFactor, 0.3f);

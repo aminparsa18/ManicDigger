@@ -67,7 +67,7 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (!_touchButtonsEnabled) { return; }
 
@@ -94,7 +94,7 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnButton( MenuWidget w)
+    public override void OnButton(MenuWidget w)
     {
         if (w == _buttonMenu) { game.ShowEscapeMenu(); }
         if (w == _buttonInventory) { game.ShowInventory(); }
@@ -116,7 +116,7 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnTouchStart( TouchEventArgs e)
+    public override void OnTouchStart(TouchEventArgs e)
     {
         // First touch activates the button overlay.
         _touchButtonsEnabled = true;
@@ -181,7 +181,7 @@ public class ModGuiTouchButtons : GameScreen
     }
 
     /// <inheritdoc/>
-    public override void OnTouchEnd( TouchEventArgs e)
+    public override void OnTouchEnd(TouchEventArgs e)
     {
         base.OnTouchEnd(e);
         if (e.GetHandled()) { return; }

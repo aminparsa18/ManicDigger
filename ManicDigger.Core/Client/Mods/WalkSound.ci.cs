@@ -17,7 +17,7 @@ public class ModWalkSound : ModBase
         random = new Random();
     }
 
-    public override void OnNewFrameFixed( float args)
+    public override void OnNewFrameFixed(float args)
     {
         if (Game.FollowId() != null) return;
 
@@ -28,7 +28,7 @@ public class ModWalkSound : ModBase
             UpdateWalkSound(args);
     }
 
-    internal void UpdateWalkSound( float dt)
+    internal void UpdateWalkSound(float dt)
     {
         walkSoundTimer += dt;
 

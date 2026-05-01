@@ -110,7 +110,7 @@ public class ModAutoCamera : ModBase
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ModAutoCamera(IGameService platform, IGame game): base(game)
+    public ModAutoCamera(IGameService platform, IGame game) : base(game)
     {
         _platform = platform;
     }
@@ -268,8 +268,8 @@ public class ModAutoCamera : ModBase
             _avi.Open(
                 $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.avi",
                 Framerate,
-                _platform.                CanvasWidth,
-                _platform.                CanvasHeight);
+                _platform.CanvasWidth,
+                _platform.CanvasHeight);
         }
 
         if (arguments.Length >= 2)

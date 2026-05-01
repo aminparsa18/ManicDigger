@@ -27,7 +27,7 @@ public class ModGuiTextEditor : GameScreen
             buffer[i] = new int[MaxColumns];
     }
 
-    public override void OnNewFrameDraw2d( float deltaTime)
+    public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (!visible) return;
 
@@ -44,7 +44,7 @@ public class ModGuiTextEditor : GameScreen
         Game.Draw2dText(cursorRow, Font, StartX, StartY + cursorLine * CharSize, null, false);
     }
 
-    public override void OnKeyDown( KeyEventArgs e)
+    public override void OnKeyDown(KeyEventArgs e)
     {
         int key = e.KeyChar;
 
@@ -63,7 +63,7 @@ public class ModGuiTextEditor : GameScreen
             case (int)Keys.Right: cursorColumn++; break;
             case (int)Keys.Up: cursorLine--; break;
             case (int)Keys.Down: cursorLine++; break;
-            case (int)Keys.Backspace:cursorColumn--;break;
+            case (int)Keys.Backspace: cursorColumn--; break;
         }
 
         cursorColumn = Math.Clamp(cursorColumn, 0, Math.Min(MaxColumns - 1, LineLength(buffer[cursorLine])));
@@ -80,7 +80,7 @@ public class ModGuiTextEditor : GameScreen
         e.Handled = true;
     }
 
-    public override void OnKeyPress( KeyPressEventArgs e)
+    public override void OnKeyPress(KeyPressEventArgs e)
     {
         if (!visible) return;
         if (e.KeyChar == 8) return; // backspace handled in OnKeyDown

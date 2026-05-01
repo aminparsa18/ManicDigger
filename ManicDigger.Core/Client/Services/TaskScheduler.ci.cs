@@ -10,13 +10,18 @@
 //it flushes any queued state changes and dispatches the next batch of background tasks.
 //In single-threaded mode it just runs everything sequentially in order.
 
+using System.Collections.Concurrent;
+
 /// <summary>
 /// Schedules and coordinates per-frame execution of client mod lifecycle hooks,
 /// dispatching background work to worker threads when multithreading is available
 /// and falling back to sequential execution otherwise.
 /// </summary>
-public class TaskScheduler
+public class TaskScheduler : ITaskScheduler
 {
+    /// <summary>Thread-safe queue of actions to run on the main/commit thread.</summary>
+    public ConcurrentQueue<Action> CommitActions { get; set; } 
+
     // -------------------------------------------------------------------------
     // Fields
     // -------------------------------------------------------------------------
@@ -26,14 +31,13 @@ public class TaskScheduler
     /// </summary>
     private BackgroundAction[] _actions;
     private readonly IModRegistry modRegistry;
-    private readonly IGame game;
     private readonly IGameService platform;
 
-    public TaskScheduler(IGame game, IGameService platform, IModRegistry modRegistry)
+    public TaskScheduler(IGameService platform, IModRegistry modRegistry)
     {
-        this.game = game;
         this.platform = platform;
         this.modRegistry = modRegistry;
+        CommitActions = [];
     }
 
     // -------------------------------------------------------------------------
@@ -44,7 +48,6 @@ public class TaskScheduler
     /// Initialises the background action slots for all currently registered client mods.
     /// Must be called once before the first <see cref="Update"/> call.
     /// </summary>
-    /// <param name="game">The active game instance.</param>
     public void Initialise()
     {
         _actions = new BackgroundAction[modRegistry.Mods.Count];
@@ -59,7 +62,6 @@ public class TaskScheduler
     /// all background tasks from the previous frame have completed.
     /// When multithreading is unavailable, all hooks run sequentially.
     /// </summary>
-    /// <param name="game">The active game instance.</param>
     /// <param name="dt">Delta time in seconds since the last frame.</param>
     public void Update(float dt)
     {
@@ -151,16 +153,15 @@ public class TaskScheduler
     /// <summary>Executes all pending commit actions then clears the queue.</summary>
     private void FlushCommitActions()
     {
-        foreach (var action in game.CommitActions)
+        foreach (var action in CommitActions)
             action();
-        game.CommitActions.Clear();
+        CommitActions.Clear();
     }
 
     /// <summary>
     /// Builds an <see cref="Action"/> that invokes a mod's background hook
     /// then calls <paramref name="onFinished"/> when complete.
     /// </summary>
-    /// <param name="game">The active game instance.</param>
     /// <param name="modIndex">Index of the mod in <c>game.clientmods</c>.</param>
     /// <param name="dt">Delta time passed through to the background hook.</param>
     /// <param name="onFinished">Callback invoked on the worker thread when the hook returns.</param>
@@ -172,6 +173,20 @@ public class TaskScheduler
             modRegistry.Mods[modIndex].OnReadOnlyBackgroundThread(dt);
             onFinished();
         };
+    }
+
+    /// <summary>
+    /// Enqueues <paramref name="action"/> for execution on the main thread at
+    /// the end of the next frame. Thread-safe — see <see cref="ConcurrentQueue{T}"/>.
+    /// </summary>
+    public void Enqueue(Action action)
+    {
+        CommitActions.Enqueue(action);
+    }
+
+    public bool Dequeue(out Action? action)
+    {
+        return CommitActions.TryDequeue(out action);
     }
 }
 

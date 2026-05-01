@@ -45,6 +45,7 @@ public class Program
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
         services.AddSingleton<IMenu, MainMenu>();
         services.AddSingleton<IModRegistry, ModRegistry>();
+        services.AddSingleton<ITaskScheduler, TaskScheduler>();
         services.AddSingleton<IGame, Game>();
 
         // ── Player logic ──────────────────────────────────────────────────────

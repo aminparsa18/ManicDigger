@@ -32,6 +32,7 @@ public class ModDrawTerrain : ModBase
     private readonly IGameService _platform;
     private readonly IVoxelMap _voxelMap;
     private readonly IMeshBatcher meshBatcher;
+    private readonly ITaskScheduler taskScheduler;
 
     private readonly LightBase _lightBase;
     private readonly LightBetweenChunks _lightBetweenChunks;
@@ -60,11 +61,13 @@ public class ModDrawTerrain : ModBase
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
 
-    public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap, IMeshBatcher meshBatcher, IGame game) : base(game)
+    public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap, IMeshBatcher meshBatcher,
+        ITaskScheduler taskScheduler, IGame game) : base(game)
     {
         _platform = platform;
         _voxelMap = voxelMap;
         this.meshBatcher = meshBatcher;
+        this.taskScheduler = taskScheduler;
         _currentChunk = new int[BufferedChunkVolume];
         _currentChunkShadows = new byte[BufferedChunkVolume];
         _batcherIds = new int[1024];
@@ -97,7 +100,7 @@ public class ModDrawTerrain : ModBase
     public override void OnReadOnlyBackgroundThread(float dt)
     {
         UpdateTerrain(Game);
-        Game.QueueActionCommit(MainThreadCommit);
+        taskScheduler.Enqueue(MainThreadCommit);
     }
 
     //public override void Dispose() => Clear();

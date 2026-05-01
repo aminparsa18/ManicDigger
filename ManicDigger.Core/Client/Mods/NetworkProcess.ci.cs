@@ -20,11 +20,13 @@ public class ModNetworkProcess : ModBase
 {
     private readonly IGameService _platform;
     private readonly IVoxelMap voxelMap;
+    private readonly ITaskScheduler taskScheduler;
 
-    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, IGame game) : base(game)
+    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, ITaskScheduler taskScheduler, IGame game) : base(game)
     {
         _platform = gamePlatform;
         this.voxelMap = voxelMap;
+        this.taskScheduler = taskScheduler;
         CurrentChunk = new byte[1024 * 64];
         CurrentChunkCount = 0;
         receivedchunk = new int[32 * 32 * 32];
@@ -77,7 +79,7 @@ public class ModNetworkProcess : ModBase
         packet = MemoryPackSerializer.Deserialize<Packet_Server>(
             data.AsSpan(0, dataLength));
         ProcessInBackground(packet);
-        Game.QueueActionCommit(() => ProcessPacket(packet));
+        taskScheduler.Enqueue(() => ProcessPacket(packet));
         Game.LastReceivedMilliseconds = Game.CurrentTimeMilliseconds;
     }
 

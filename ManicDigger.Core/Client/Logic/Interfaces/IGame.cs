@@ -1,7 +1,6 @@
 ﻿using ManicDigger;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
-using System.Collections.Concurrent;
 
 /// <summary>
 /// The primary contract between <see cref="Game"/> and every mod, screen, and
@@ -27,11 +26,7 @@ public interface IGame : IDisposable
     /// <summary>Live performance counters (FPS, chunk updates, triangles, etc.).</summary>
     Dictionary<string, string> PerformanceInfo { get; }
 
-    /// <summary>Thread-safe queue of actions to run on the main/commit thread.</summary>
-    ConcurrentQueue<Action> CommitActions { get; set; }
 
-    /// <summary>Enqueues an action to be executed on the main commit thread.</summary>
-    void QueueActionCommit(Action action);
 
     // =========================================================================
     // Frame / update loop

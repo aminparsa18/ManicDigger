@@ -10,6 +10,7 @@ public class ModUnloadRendererChunks : ModBase
     /// <summary>Reference to the current game instance, refreshed every background tick.</summary>
     private readonly IVoxelMap _voxelMap;
     private readonly IMeshBatcher meshBatcher;
+    private readonly ITaskScheduler taskScheduler;
 
     private int _pendingUnloadIndex = -1;
     private readonly Action _unloadAction;
@@ -96,22 +97,6 @@ public class ModUnloadRendererChunks : ModBase
     {
         RefreshChunkGridDimensions();
 
-        // ── Drain phantom chunks first — these have no rendered geometry
-        // and were created only for lighting neighbour reads.
-        // They must be freed as soon as the lighting pass that created them
-        // is done, which is always before this background tick runs.
-        int phantomDrainLimit = 64;
-        while (phantomDrainLimit-- > 0)
-            //&& game.PhantomChunkIndices.TryDequeue(out int phantomIndex))
-        {
-            //Chunk phantom = _voxelMap.Chunks[phantomIndex];
-            //if (phantom == null) continue;
-            //// Only free if it hasn't been promoted to a real chunk
-            //// (real chunks have rendered != null or were sent by the server)
-            //if (phantom.rendered != null) continue;
-            //_game.QueueActionCommit(CreatePhantomUnloadCommit(phantomIndex));
-        }
-
         // Compute the view-distance box in chunk coordinates.
         int px = (int)(Game.LocalPositionX * _invertedChunk);
         int py = (int)(Game.LocalPositionZ * _invertedChunk);
@@ -167,7 +152,7 @@ public class ModUnloadRendererChunks : ModBase
              || x > endX || y > endY || z > endZ)
             {
                 _pendingUnloadIndex = flatIndex;
-                Game.QueueActionCommit(_unloadAction);
+                taskScheduler.Enqueue(_unloadAction);
                 // Rate-limit only for rendered chunks (GPU removal needed).
                 // Data-only chunks are CPU-only and cheap — continue scanning
                 // so we can drain multiple per tick and keep pace with the
@@ -175,17 +160,6 @@ public class ModUnloadRendererChunks : ModBase
                 if (hasRenderedGeometry) { break; }
             }
         }
-    }
-
-    private Action<IGame> CreatePhantomUnloadCommit(int flatIndex)
-    {
-        return (game) =>
-        {
-            Chunk chunk = _voxelMap.Chunks[flatIndex];
-            if (chunk == null || chunk.rendered != null) return;
-            chunk.Release();
-            _voxelMap.Chunks[flatIndex] = null;
-        };
     }
 
     /// <summary>

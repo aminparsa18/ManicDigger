@@ -257,14 +257,6 @@ public partial class Game
         return height;
     }
 
-    // ── Action queue ──────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Enqueues <paramref name="action"/> for execution on the main thread at
-    /// the end of the next frame. Thread-safe — see <see cref="ConcurrentQueue{T}"/>.
-    /// </summary>
-    public void QueueActionCommit(Action action) => CommitActions.Enqueue(action);
-
     // ── Per-frame update ──────────────────────────────────────────────────────
 
     /// <summary>Calls the read-only main-thread hook on all registered mods.</summary>

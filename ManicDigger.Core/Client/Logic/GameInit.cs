@@ -1,6 +1,5 @@
 ﻿using ManicDigger;
 using OpenTK.Mathematics;
-using System.Collections.Concurrent;
 
 /// <summary>
 /// Partial class containing field declarations and constructor initialization
@@ -17,6 +16,7 @@ public partial class Game : IGame
     private readonly IOpenGlService openGlService;
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IPreferences preferences;
+    private readonly ITaskScheduler taskScheduler;
     private readonly IModRegistry modRegistry;
     private readonly IGameExit gameExit;
 
@@ -25,8 +25,6 @@ public partial class Game : IGame
     public GameOption options { get; set; }
     public ServerInformation ServerInfo { get; set; }
     private Dictionary<string, string> performanceinfo;
-    private TaskScheduler taskScheduler;
-    public ConcurrentQueue<Action> CommitActions { get; set; }
 
     // -------------------------------------------------------------------------
     // Rendering / textures
@@ -356,7 +354,7 @@ public partial class Game : IGame
     // Constructor
     // -------------------------------------------------------------------------
 
-    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
+    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITaskScheduler taskScheduler,
         IPreferences preferences, IGameExit gameExit, IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService,
         ICameraService cameraService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer)
     {
@@ -364,6 +362,7 @@ public partial class Game : IGame
         openGlService = platformOpenGl;
         this.singlePlayerService = singlePlayerService;
         this.preferences = preferences;
+        this.taskScheduler = taskScheduler;
         this.gameExit = gameExit;
         this.modRegistry = modRegistry;
         this.voxelMap = voxelMap;
@@ -396,8 +395,6 @@ public partial class Game : IGame
         options = new GameOption();
         getAsset = new string[1024 * 2];
         PlayerStats = new Packet_ServerPlayerStats();
-        taskScheduler = new TaskScheduler(this, gameService, modRegistry);
-        CommitActions = new();
         Entities = [];
     }
 

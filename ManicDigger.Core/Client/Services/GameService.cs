@@ -86,7 +86,7 @@ public class GameService : IGameService
 
     public bool IsFastSystem()
     {
-        return false;
+        return true;
     }
 
     public bool IsMac = Environment.OSVersion.Platform == PlatformID.MacOSX;

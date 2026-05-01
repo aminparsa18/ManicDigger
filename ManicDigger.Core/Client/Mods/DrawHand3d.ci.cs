@@ -29,6 +29,7 @@ public class ModDrawHand3d : ModBase
     /// <summary>Reference to the current game instance, set each frame in <see cref="OnNewFrameDraw3d"/>.</summary>
     private readonly IOpenGlService platform;
     private readonly IMeshDrawer meshDrawer;
+    private readonly IBlockTypeRegistry blockTypeRegistry;
 
     /// <summary>Torch block renderer used to draw held torches and the empty-hand model.</summary>
     internal BlockRendererTorch d_BlockRendererTorch;
@@ -121,10 +122,11 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Initialises all animation parameters and creates the torch renderer dependency.
     /// </summary>
-    public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
+    public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
+        this.blockTypeRegistry = blockTypeRegistry;
         _attack = -1;
         _attackOffset = 0;
         _buildOffset = 0;
@@ -143,7 +145,7 @@ public class ModDrawHand3d : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw3d( float deltaTime)
+    public override void OnNewFrameDraw3d(float deltaTime)
     {
 
         if (!Game.EnableTppView && Game.ENABLE_DRAW2D)
@@ -195,7 +197,7 @@ public class ModDrawHand3d : ModBase
     /// </summary>
     /// <param name="side">The block face whose texture ID is requested.</param>
     /// <returns>Texture atlas index for that face.</returns>
-    public int GetWeaponTextureId( TileSide side)
+    public int GetWeaponTextureId(TileSide side)
     {
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
 
@@ -204,9 +206,9 @@ public class ModDrawHand3d : ModBase
             // Empty hand — use the designated empty-hand block texture.
             if (side == TileSide.Top)
             {
-                return Game.TextureId[Game.BlockRegistry.BlockIdEmptyHand][(int)TileSide.Top];
+                return Game.TextureId[blockTypeRegistry.BlockIdEmptyHand][(int)TileSide.Top];
             }
-            return Game.TextureId[Game.BlockRegistry.BlockIdEmptyHand][(int)TileSide.Front];
+            return Game.TextureId[blockTypeRegistry.BlockIdEmptyHand][(int)TileSide.Front];
         }
 
         if (item.InventoryItemType == InventoryItemType.Block)
@@ -250,7 +252,7 @@ public class ModDrawHand3d : ModBase
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
         return item != null
             && item.InventoryItemType == InventoryItemType.Block
-            && item.BlockId == Game.BlockRegistry.BlockIdCompass;
+            && item.BlockId == blockTypeRegistry.BlockIdCompass;
     }
 
     /// <summary>
@@ -294,7 +296,7 @@ public class ModDrawHand3d : ModBase
     /// level changes, advances all animations, then submits the model to the GPU.
     /// </summary>
     /// <param name="dt">Real-time delta for the current frame in seconds.</param>
-    public void DrawWeapon( float dt)
+    public void DrawWeapon(float dt)
     {
         int lightByte = IsTorch() ? 255 : Math.Clamp((int)(Light() * 256), 0, 255);
 
@@ -353,7 +355,7 @@ public class ModDrawHand3d : ModBase
     /// <param name="lightByte">
     /// Light intensity in [0, 255] baked into the vertex colours.
     /// </param>
-    private void RebuildHandModel( int lightByte)
+    private void RebuildHandModel(int lightByte)
     {
         _modelData = new GeometryModel
         {
@@ -371,7 +373,7 @@ public class ModDrawHand3d : ModBase
             // a normal torch shape, and a real torch uses its own texture on the same shape.
             d_BlockRendererTorch.TopTexture = GetWeaponTextureId(TileSide.Top);
             d_BlockRendererTorch.SideTexture = GetWeaponTextureId(TileSide.Front);
-            d_BlockRendererTorch.AddTorch(Game.BlockRegistry, _modelData, x, y, z, TorchType.Normal);
+            d_BlockRendererTorch.AddTorch(blockTypeRegistry, _modelData, x, y, z, TorchType.Normal);
         }
         else
         {
@@ -385,7 +387,7 @@ public class ModDrawHand3d : ModBase
     /// Updates <see cref="_bobOffsetX"/> and <see cref="_bobOffsetZ"/>.
     /// </summary>
     /// <param name="dt">Frame delta time in seconds.</param>
-    private void AdvanceBobAnimation( float dt)
+    private void AdvanceBobAnimation(float dt)
     {
         bool moved = _prevPlayerX != Game.Player.position.x
                   || _prevPlayerY != Game.Player.position.y
@@ -484,7 +486,7 @@ public class ModDrawHand3d : ModBase
     /// <param name="y">Cube origin Y in local model space.</param>
     /// <param name="z">Cube origin Z in local model space.</param>
     /// <param name="c">Packed ARGB vertex colour applied to every vertex.</param>
-    private void DrawCube( GeometryModel m, int x, int y, int z, int c)
+    private void DrawCube(GeometryModel m, int x, int y, int z, int c)
     {
         AddFace(m, x, y, z, c, TileSide.Top, windingCw: false);
         AddFace(m, x, y, z, c, TileSide.Bottom, windingCw: true);
@@ -507,7 +509,7 @@ public class ModDrawHand3d : ModBase
     /// <see langword="true"/> to emit indices in clockwise winding (back-facing normals);
     /// <see langword="false"/> for counter-clockwise (front-facing normals).
     /// </param>
-    private void AddFace( GeometryModel m, int x, int y, int z, int c, TileSide side, bool windingCw)
+    private void AddFace(GeometryModel m, int x, int y, int z, int c, TileSide side, bool windingCw)
     {
         int tex = GetWeaponTextureId(side);
         RectangleF r = VectorUtils.GetAtlasRect(tex, GameConstants.MAX_BLOCKTYPES_SQRT);
@@ -640,7 +642,7 @@ public class ModDrawHand3d : ModBase
         /// <param name="y">Block-grid Y origin of the torch.</param>
         /// <param name="z">Block-grid Z (vertical) origin of the torch.</param>
         /// <param name="type">Mount type that determines the tilt direction.</param>
-        public void AddTorch(BlockTypeRegistry d_Data, GeometryModel m,
+        public void AddTorch(IBlockTypeRegistry d_Data, GeometryModel m,
                              int x, int y, int z, TorchType type)
         {
             // --- Compute top-cap corners ---

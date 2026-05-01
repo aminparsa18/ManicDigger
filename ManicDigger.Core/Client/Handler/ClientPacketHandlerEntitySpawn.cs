@@ -5,10 +5,12 @@
 public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
 {
     private readonly IVoxelMap voxelMap;
+    private readonly IBlockTypeRegistry blockTypeRegistry;
 
-    public ClientPacketHandlerEntitySpawn(IGameService gameService, IVoxelMap voxelMap, IGame game) : base(gameService, game)
+    public ClientPacketHandlerEntitySpawn(IGameService gameService, IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(gameService, game)
     {
         this.voxelMap = voxelMap;
+        this.blockTypeRegistry = blockTypeRegistry;
     }
 
     public override void Handle( Packet_Server packet)
@@ -27,7 +29,7 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
             game.Player = entity;
             if (!game.Spawned)
             {
-                entity.scripts[entity.scriptsCount++] = new ScriptCharacterPhysics(voxelMap, game);
+                entity.scripts[entity.scriptsCount++] = new ScriptCharacterPhysics(voxelMap, blockTypeRegistry, game);
                 game.MapLoaded();
                 game.Spawned = true;
             }

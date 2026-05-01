@@ -415,6 +415,8 @@ public class ModGuiInventory : ModBase
     /// <summary>Draws all items currently visible in the scrolled inventory grid.</summary>
     private void DrawInventoryItems()
     {
+        var ss = string.Join(" - ", Game.Inventory.Items.Select(x => x.Value_.BlockId));
+
         for (int i = 0; i < Game.Inventory.Items.Length; i++)
         {
             Packet_PositionItem k = Game.Inventory.Items[i];

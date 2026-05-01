@@ -5,15 +5,12 @@
 /// gradient noise at progressively higher frequency and lower amplitude,
 /// producing smooth, natural-looking noise suitable for terrain heightmaps,
 /// cloud layers, and general-purpose procedural content.
-/// <para>
-/// Identical in structure to <see cref="FastNoise"/> but operates on
-/// <see cref="GradientNoiseBasis"/> rather than <see cref="FastNoiseBasis"/>,
-/// giving a different visual character from the same parameters.
-/// </para>
 /// </summary>
-public class Perlin : GradientNoiseBasis, IModule
+public sealed class Perlin : IModule
 {
     private const int MaxOctaves = 30;
+
+    private readonly GradientNoiseBasis _basis = new();
     private int _octaveCount;
 
     public float Frequency { get; set; }
@@ -49,8 +46,6 @@ public class Perlin : GradientNoiseBasis, IModule
         float sum = 0f;
         float amplitude = 1f;
 
-        // Cache fields in locals — prevents repeated this-pointer dereferences
-        // and keeps values in registers across all octave iterations.
         int octaveCount = _octaveCount;
         int seed = Seed;
         float lacunarity = Lacunarity;
@@ -64,7 +59,7 @@ public class Perlin : GradientNoiseBasis, IModule
         for (int i = 0; i < octaveCount; i++)
         {
             int octaveSeed = (seed + i) & 0x7FFFFFFF;
-            sum += GradientCoherentNoise(x, y, z, octaveSeed, quality) * amplitude;
+            sum += _basis.GradientCoherentNoise(x, y, z, octaveSeed, quality) * amplitude;
             x *= lacunarity;
             y *= lacunarity;
             z *= lacunarity;

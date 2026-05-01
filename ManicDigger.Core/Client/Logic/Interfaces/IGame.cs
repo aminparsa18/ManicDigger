@@ -27,7 +27,6 @@ public interface IGame : IDisposable
     Dictionary<string, string> PerformanceInfo { get; }
 
 
-
     // =========================================================================
     // Frame / update loop
     // =========================================================================
@@ -308,9 +307,6 @@ public interface IGame : IDisposable
 
     /// <summary>Pending block type definitions received from the server before map load.</summary>
     Dictionary<int, BlockType> NewBlockTypes { get; set; }
-
-    /// <summary>Provides per-block-type gameplay data (damage, rail flags, draw type, etc.).</summary>
-    BlockTypeRegistry BlockRegistry { get; }
 
     /// <summary>Returns the block type ID currently held in hand, or <c>null</c> if empty.</summary>
     int? BlockInHand();

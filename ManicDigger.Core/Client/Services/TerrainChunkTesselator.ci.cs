@@ -32,6 +32,7 @@ public class TerrainChunkTesselator
 
     private readonly IGame _terrain;
     private readonly IGameService _platform;
+    private readonly IBlockTypeRegistry _blockTypeRegistry;
 
     private const int chunksize = 16;
 
@@ -90,10 +91,11 @@ public class TerrainChunkTesselator
 
     private readonly int[] tmpnPos;
 
-    public TerrainChunkTesselator(IGame terrain, IGameService platform)
+    public TerrainChunkTesselator(IGame terrain, IGameService platform, IBlockTypeRegistry blockTypeRegistry)
     {
         _terrain = terrain;
         _platform = platform;
+        _blockTypeRegistry = blockTypeRegistry;
         EnableSmoothLight = true;
         ENABLE_TEXTURE_TILING = true;
         _colorWhite = ColorUtils.ColorFromArgb(255, 255, 255, 255);
@@ -769,7 +771,7 @@ public class TerrainChunkTesselator
         else
         {
             // ── Fix #2: was `else if (tiletype == 8)` ────────────────────────
-            int fluidId = _terrain.BlockRegistry.BlockIdLava;
+            int fluidId = _blockTypeRegistry.BlockIdLava;
             if (fluidId >= 0 && tiletype == fluidId)
             {
                 if (currentChunk[Index3d(xx, yy, zz - 1, chunksize + 2, chunksize + 2)] == fluidId)

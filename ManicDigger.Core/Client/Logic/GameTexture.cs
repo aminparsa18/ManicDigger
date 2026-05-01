@@ -132,9 +132,9 @@ public partial class Game
 
         // Fix #5: call Atlas1dheight() once and reuse the result.
         int atlas1dHeight = Atlas1dheight();
-        TerrainTexturesPerAtlas = atlas1dHeight / (atlas2dWidth / Atlas2DTiles);
+        TerrainTexturesPerAtlas = atlas1dHeight / (atlas2dWidth / GameConstants.MAX_BLOCKTYPES_SQRT);
 
-        Bitmap[] atlases1d = PixelBuffer.Atlas2dInto1d(atlas2d, Atlas2DTiles, atlas1dHeight);
+        Bitmap[] atlases1d = PixelBuffer.Atlas2dInto1d(atlas2d, GameConstants.MAX_BLOCKTYPES_SQRT, atlas1dHeight);
 
         TerrainTextures1d = new int[atlases1d.Length];
         for (int i = 0; i < atlases1d.Length; i++)
@@ -156,7 +156,7 @@ public partial class Game
     {
         const int tilesize = 32; // TODO: support tile sizes other than 32×32.
 
-        PixelBuffer atlas2d = PixelBuffer.Create(tilesize * Atlas2DTiles, tilesize * Atlas2DTiles);
+        PixelBuffer atlas2d = PixelBuffer.Create(tilesize * GameConstants.MAX_BLOCKTYPES_SQRT, tilesize * GameConstants.MAX_BLOCKTYPES_SQRT);
 
         byte[] unknownPng = GetAssetFile("Unknown.png");
 
@@ -178,8 +178,8 @@ public partial class Game
 
             PixelBuffer tile = PixelBuffer.FromBitmap(bmp);
 
-            int destX = i % TexturesPacked * tilesize;
-            int destY = i / TexturesPacked * tilesize;
+            int destX = i % GameConstants.MAX_BLOCKTYPES_SQRT * tilesize;
+            int destY = i / GameConstants.MAX_BLOCKTYPES_SQRT * tilesize;
 
             for (int row = 0; row < tilesize; row++)
             {

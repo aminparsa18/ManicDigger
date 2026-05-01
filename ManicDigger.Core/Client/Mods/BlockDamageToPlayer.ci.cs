@@ -19,12 +19,14 @@ public class ModBlockDamageToPlayer : ModBase
 
     private readonly IGameService _platform;
     private readonly IVoxelMap voxelMap;
+    private readonly IBlockTypeRegistry blockTypeRegistry;
 
-    public ModBlockDamageToPlayer(IGameService platform, IGame game, IVoxelMap voxelMap) : base(game)
+    public ModBlockDamageToPlayer(IGameService platform, IGame game, IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry) : base(game)
     {
         _platform = platform;
         blockDamageTimer = new DamageTimer(BlockDamageToPlayerEvery, BlockDamageToPlayerEvery * 2);
         this.voxelMap = voxelMap;
+        this.blockTypeRegistry = blockTypeRegistry;
     }
 
     public override void OnNewFrameFixed( float args)
@@ -51,11 +53,11 @@ public class ModBlockDamageToPlayer : ModBase
         int block1 = GetBlockAt(pX, pY, pZ);
         int block2 = GetBlockAt(pX, pY - 1, pZ);
 
-        int damage = Game.BlockRegistry.DamageToPlayer[block1] + Game.BlockRegistry.DamageToPlayer[block2];
+        int damage = blockTypeRegistry.DamageToPlayer[block1] + blockTypeRegistry.DamageToPlayer[block2];
         if (damage <= 0) return;
 
         // Prefer eye-level block as damage source; fall back to feet block
-        int hurtingBlock = (block1 != 0 && Game.BlockRegistry.DamageToPlayer[block1] > 0) ? block1 : block2;
+        int hurtingBlock = (block1 != 0 && blockTypeRegistry.DamageToPlayer[block1] > 0) ? block1 : block2;
         int times = blockDamageTimer.Update(dt);
         for (int i = 0; i < times; i++)
             Game.ApplyDamageToPlayer(damage, DeathReason.BlockDamage, hurtingBlock);

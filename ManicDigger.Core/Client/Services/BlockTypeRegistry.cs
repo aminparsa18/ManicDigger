@@ -41,7 +41,7 @@
 /// block-type metadata (physics, sounds, special IDs) sent by the server.
 /// </para>
 /// </remarks>
-public class BlockTypeRegistry
+public class BlockTypeRegistry : IBlockTypeRegistry
 {
     // ── Block-type property dictionaries (keyed by block ID) ──────────────────
 

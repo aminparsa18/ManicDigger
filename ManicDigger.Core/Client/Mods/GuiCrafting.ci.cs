@@ -58,10 +58,12 @@ public class ModGuiCrafting : ModBase
     private bool _handlerRegistered;
 
     private readonly IVoxelMap voxelMap;
+    private readonly IBlockTypeRegistry blockTypeRegistry;
 
-    public ModGuiCrafting(IGameService gameService, IVoxelMap voxelMap, IGame game) : base(game)
+    public ModGuiCrafting(IGameService gameService, IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.voxelMap = voxelMap;
+        this.blockTypeRegistry = blockTypeRegistry;
         handler = new PacketHandlerCraftingRecipes(gameService, game) { mod = this };
     }
 
@@ -73,7 +75,7 @@ public class ModGuiCrafting : ModBase
         d_CraftingTableTool ??= new CraftingTableTool
         {
             d_Map = new MapStorage(voxelMap, Game.SetBlock),
-            d_Data = Game.BlockRegistry
+            d_Data = blockTypeRegistry
         };
 
         // Register the packet handler once, not every frame.
@@ -104,7 +106,7 @@ public class ModGuiCrafting : ModBase
         int posY = Game.SelectedBlockPositionZ;
         int posZ = Game.SelectedBlockPositionY;
 
-        if (voxelMap.GetBlock(posX, posY, posZ) != Game.BlockRegistry.BlockIdCraftingTable) return;
+        if (voxelMap.GetBlock(posX, posY, posZ) != blockTypeRegistry.BlockIdCraftingTable) return;
 
         // GetTable / GetOnTable return references to CraftingTableTool's internal
         // reusable buffers. CraftingRecipesStart copies the on-table data into
@@ -255,7 +257,7 @@ public class ModGuiCrafting : ModBase
 public class CraftingTableTool
 {
     internal IMapStorage d_Map;
-    internal BlockTypeRegistry d_Data;
+    internal IBlockTypeRegistry d_Data;
 
     // ── Pre-allocated buffers ─────────────────────────────────────────────────
     // GetTable and GetOnTable are called together once per player interaction,

@@ -236,7 +236,7 @@ public partial class Game
         for (int i = 0; i < todrawLength; i++)
         {
             Draw2dData d = todraw[i];
-            RectangleF rect = TextureAtlas.TextureCoords2d(d.inAtlasId, TexturesPacked);
+            RectangleF rect = TextureAtlas.TextureCoords2d(d.inAtlasId, GameConstants.MAX_BLOCKTYPES_SQRT);
 
             // Fix #1: lazily allocate each scratch slot once, then overwrite in-place.
             GeometryModel m = _batchModelScratch[count];

@@ -7,14 +7,16 @@ public class ModDraw2dMisc : ModBase
     private readonly IGameService platform;
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IVoxelMap voxelMap;
+    private readonly IBlockTypeRegistry blockTypeRegistry;
 
     public ModDraw2dMisc(IOpenGlService platformOpenGl, IGameService platform, ISinglePlayerService singlePlayerService,
-        IVoxelMap voxelMap, IGame game) : base(game)
+        IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platformOpenGl = platformOpenGl;
         this.platform = platform;
         this.singlePlayerService = singlePlayerService;
         this.voxelMap = voxelMap;
+        this.blockTypeRegistry = blockTypeRegistry;
     }
 
     public override void OnNewFrameDraw2d( float deltaTime)
@@ -62,7 +64,7 @@ public class ModDraw2dMisc : ModBase
             int z = game.CurrentAttackedBlock.Value.Z;
             int blocktype = voxelMap.GetBlock(x, y, z);
             float health = game.GetCurrentBlockHealth(x, y, z);
-            float progress = health / game.BlockRegistry.Strength[blocktype];
+            float progress = health / blockTypeRegistry.Strength[blocktype];
 
             // Cache the translated name — used in up to two calls below.
             string name = game.Language.Get("Block_" + game.BlockTypes[blocktype].Name);

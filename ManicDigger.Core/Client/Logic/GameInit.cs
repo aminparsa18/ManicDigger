@@ -45,9 +45,6 @@ public partial class Game : IGame
     internal int maxTextureSize;
     internal int Atlas1dheight() => maxTextureSize;
 
-    internal static int TexturesPacked => GameConstants.MAX_BLOCKTYPES_SQRT;
-    internal static int Atlas2DTiles => GameConstants.MAX_BLOCKTYPES_SQRT;
-
     public int handTexture { get; set; }
     public bool HandRedraw { get; set; }
 
@@ -307,7 +304,7 @@ public partial class Game : IGame
     private readonly IMeshBatcher Batcher;
     private readonly IMeshDrawer meshDrawer;
     public InventoryUtilClient InventoryUtil { get; set; }
-    public BlockTypeRegistry BlockRegistry { get; set; }
+    private readonly IBlockTypeRegistry BlockRegistry;
     public Packet_Inventory Inventory { get; set; }
 
     // -------------------------------------------------------------------------
@@ -356,13 +353,14 @@ public partial class Game : IGame
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITaskScheduler taskScheduler,
         IPreferences preferences, IGameExit gameExit, IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService,
-        ICameraService cameraService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer)
+        ICameraService cameraService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer, IBlockTypeRegistry blockTypeRegistry)
     {
         gameService = platform;
         openGlService = platformOpenGl;
         this.singlePlayerService = singlePlayerService;
         this.preferences = preferences;
         this.taskScheduler = taskScheduler;
+        this.BlockRegistry = blockTypeRegistry;
         this.gameExit = gameExit;
         this.modRegistry = modRegistry;
         this.voxelMap = voxelMap;

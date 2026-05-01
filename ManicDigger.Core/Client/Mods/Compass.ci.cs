@@ -15,11 +15,13 @@ public class ModCompass : ModBase
     private float compassVelocity;
     private readonly IGameService platform;
     private readonly IMeshDrawer meshDrawer;
+    private readonly IBlockTypeRegistry blockTypeRegistry;
 
-    public ModCompass(IGameService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
+    public ModCompass(IGameService platform, IMeshDrawer meshDrawer, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
+        this.blockTypeRegistry = blockTypeRegistry;
     }
 
     public override void OnNewFrameDraw2d( float dt)
@@ -32,7 +34,7 @@ public class ModCompass : ModBase
     {
         for (int i = 0; i < 10; i++)
         {
-            if (game.MaterialSlots(i) == game.BlockRegistry.BlockIdCompass)
+            if (game.MaterialSlots(i) == blockTypeRegistry.BlockIdCompass)
                 return true;
         }
         return false;

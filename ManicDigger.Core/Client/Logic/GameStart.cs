@@ -5,7 +5,7 @@ public partial class Game
     // ── Startup constants ─────────────────────────────────────────────────────
 
     /// <summary>Default view distance in blocks on fast (desktop) hardware.</summary>
-    private const int ViewDistanceFast = 128;
+    private const int ViewDistanceFast = 512;
 
     /// <summary>Default view distance in blocks on slow (mobile/web) hardware.</summary>
     private const int ViewDistanceSlow = 32;
@@ -31,10 +31,6 @@ public partial class Game
         Language.LoadTranslations();
 
         // ── Core data / config ────────────────────────────────────────────────
-        BlockTypeRegistry gamedata = new();
-        gamedata.Start();
-        BlockRegistry = gamedata;
-
         Config3d config3d = new()
         {
             ViewDistance = gameService.IsFastSystem() ? ViewDistanceFast : ViewDistanceSlow
@@ -44,7 +40,7 @@ public partial class Game
         // ── Rendering subsystems ──────────────────────────────────────────────
 
 
-        TerrainChunkTesselator = new TerrainChunkTesselator(this, gameService);
+        TerrainChunkTesselator = new TerrainChunkTesselator(this, gameService, BlockRegistry);
 
         // ── World / map ───────────────────────────────────────────────────────
         voxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);

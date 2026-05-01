@@ -46,6 +46,7 @@ public class Program
         services.AddSingleton<IMenu, MainMenu>();
         services.AddSingleton<IModRegistry, ModRegistry>();
         services.AddSingleton<ITaskScheduler, TaskScheduler>();
+        services.AddSingleton<IBlockTypeRegistry, BlockTypeRegistry>();
         services.AddSingleton<IGame, Game>();
 
         // ── Player logic ──────────────────────────────────────────────────────

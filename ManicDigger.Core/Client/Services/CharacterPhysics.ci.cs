@@ -26,10 +26,11 @@ public class ScriptCharacterPhysics : IEntityScript
 {
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ScriptCharacterPhysics(IVoxelMap voxelMap, IGame game)
+    public ScriptCharacterPhysics(IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry, IGame game)
     {
         this.game = game;
         this.voxelMap = voxelMap;
+        this.blockTypeRegistry = blockTypeRegistry;
         // Only non-default values need explicit initialisation.
         // (movedz, curspeed, jumpacceleration, isplayeronground, etc. are
         //  already zero/false by C# default for their types.)
@@ -45,6 +46,7 @@ public class ScriptCharacterPhysics : IEntityScript
     /// <summary>Reference to the active game instance, assigned at the start of each tick.</summary>
     private readonly IGame game;
     private readonly IVoxelMap voxelMap;
+    private readonly IBlockTypeRegistry blockTypeRegistry;
 
     // ── Per-frame physics state ───────────────────────────────────────────────
 
@@ -161,7 +163,7 @@ public class ScriptCharacterPhysics : IEntityScript
 
         // ── Trampoline: force a super-jump on landing ─────────────────────────
         if (blockUnder != -1
-            && blockUnder == game.BlockRegistry.BlockIdTrampoline
+            && blockUnder == blockTypeRegistry.BlockIdTrampoline
             && !isplayeronground
             && !game.Controls.ShiftKeyDown)
         {
@@ -170,7 +172,7 @@ public class ScriptCharacterPhysics : IEntityScript
         }
 
         // ── Ice / water: slippery acceleration profile ────────────────────────
-        if ((blockUnder != -1 && game.BlockRegistry.IsSlipperyWalk[blockUnder]) || swimmingBody)
+        if ((blockUnder != -1 && blockTypeRegistry.IsSlipperyWalk[blockUnder]) || swimmingBody)
         {
             acceleration.acceleration1 = 0.99f;
             acceleration.acceleration2 = 0.2f;
@@ -358,7 +360,7 @@ public class ScriptCharacterPhysics : IEntityScript
     /// Returns true when the block at the given block-space coordinates does not
     /// impede player movement (air, fluid, rail, or out-of-bounds above the map).
     /// </summary>
-    public bool IsTileEmptyForPhysics(int x, int y, int z)
+    private bool IsTileEmptyForPhysics(int x, int y, int z)
     {
         if (z >= voxelMap.MapSizeZ) return true;
         if (x < 0 || y < 0 || z < 0) return false;

@@ -11,9 +11,9 @@ public class ModNetworkEntity : ModBase
     /// <summary>True once the three packet handlers have been registered.</summary>
     private bool _handlersRegistered;
 
-    public ModNetworkEntity(IGameService gameService, IVoxelMap voxelMap, IGame game) : base(game)
+    public ModNetworkEntity(IGameService gameService, IVoxelMap voxelMap, IGame game, IBlockTypeRegistry blockTypeRegistry) : base(game)
     {
-        _spawn = new ClientPacketHandlerEntitySpawn(gameService, voxelMap, game);
+        _spawn = new ClientPacketHandlerEntitySpawn(gameService, voxelMap, blockTypeRegistry, game);
         _position = new ClientPacketHandlerEntityPosition(gameService, game);
         _despawn = new ClientPacketHandlerEntityDespawn(gameService, game);
     }

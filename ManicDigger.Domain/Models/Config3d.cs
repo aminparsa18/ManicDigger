@@ -18,5 +18,5 @@ public class Config3d
     public bool EnableVisibilityCulling { get; set; } = false;
 
     /// <summary>Maximum view distance in world units. Default: <c>128</c>.</summary>
-    public float ViewDistance { get; set; } = 128;
+    public float ViewDistance { get; set; } = 256;
 }

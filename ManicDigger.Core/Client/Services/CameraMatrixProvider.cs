@@ -7,10 +7,10 @@
 public class CameraMatrixProvider : ICameraMatrixProvider
 {
     /// <summary>The most recently set modelview matrix.</summary>
-    internal Matrix4 LastModelViewMatrix;
+    public Matrix4 LastModelViewMatrix { get; set; }
 
     /// <summary>The most recently set projection matrix.</summary>
-    internal Matrix4 LastProjectionMatrix;
+    public Matrix4 LastProjectionMatrix { get; set; }
 
     /// <inheritdoc/>
     public Matrix4 GetModelViewMatrix() => LastModelViewMatrix;

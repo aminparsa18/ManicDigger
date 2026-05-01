@@ -96,7 +96,8 @@ public partial class Game
         }
         else if (KeyboardState[GetKey(Keys.LeftShift)])
         {
-            speed *= 2f;         // Shift = sprint
+            
+            speed *= FreemoveLevel == FreemoveLevel.Freemove ? 4f : 2f; // Shift = sprint
         }
 
         InventoryItem item = Inventory.RightHand[ActiveMaterial];

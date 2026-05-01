@@ -68,6 +68,7 @@ public class ModRail : ModBase
     internal float MinecartHeight() => 1f / 2;
 
     private readonly IVoxelMap _voxelMap;
+    private readonly IBlockTypeRegistry _blockTypeRegistry;
 
     public ModRail(IGameService platform, IVoxelMap voxelMap, IGame game) : base(game)
     {
@@ -263,7 +264,7 @@ public class ModRail : ModBase
             return;
         }
 
-        int railUnder = Game.BlockRegistry.Rail[_voxelMap.GetBlock(currentrailblockX, currentrailblockY, currentrailblockZ)];
+        int railUnder = _blockTypeRegistry.Rail[_voxelMap.GetBlock(currentrailblockX, currentrailblockY, currentrailblockZ)];
         railriding = true;
         originalmodelheight = Game.GetCharacterEyesHeight();
         Game.SetCharacterEyesHeight(MinecartHeight());
@@ -433,7 +434,7 @@ public class ModRail : ModBase
             return 0;
         }
 
-        int railFlags = Game.BlockRegistry.Rail[
+        int railFlags = _blockTypeRegistry.Rail[
             _voxelMap.GetBlock(enter.BlockPositionX, enter.BlockPositionY, enter.BlockPositionZ)];
 
         VehicleDirection12[] candidates = new VehicleDirection12[3];

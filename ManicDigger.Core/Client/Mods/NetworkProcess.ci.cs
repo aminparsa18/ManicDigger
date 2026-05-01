@@ -21,12 +21,14 @@ public class ModNetworkProcess : ModBase
     private readonly IGameService _platform;
     private readonly IVoxelMap voxelMap;
     private readonly ITaskScheduler taskScheduler;
+    private readonly IBlockTypeRegistry blockTypeRegistry;
 
-    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, ITaskScheduler taskScheduler, IGame game) : base(game)
+    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, ITaskScheduler taskScheduler, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
     {
         _platform = gamePlatform;
         this.voxelMap = voxelMap;
         this.taskScheduler = taskScheduler;
+        this.blockTypeRegistry = blockTypeRegistry;
         CurrentChunk = new byte[1024 * 64];
         CurrentChunkCount = 0;
         receivedchunk = new int[32 * 32 * 32];
@@ -488,7 +490,7 @@ public class ModNetworkProcess : ModBase
                     string[] textureInAtlasIds = textureList.ToArray();
                     int textureInAtlasIdsCount = textureInAtlasIds.Length;
 
-                    Game.BlockRegistry.UseBlockTypes(Game.BlockTypes);
+                    blockTypeRegistry.UseBlockTypes(Game.BlockTypes);
 
                     foreach (var (id, b) in Game.BlockTypes)
                     {

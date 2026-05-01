@@ -14,7 +14,7 @@ public class Core : IMod
         //Different serverside view distance if singleplayer
         if (m.IsSinglePlayer())
         {
-            m.SetPlayerAreaSize(512);
+            m.SetPlayerAreaSize(1024);
         }
         else
         {

@@ -138,12 +138,6 @@ public interface IGame : IDisposable
     // Rendering — textures
     // =========================================================================
 
-    /// <summary>All loaded assets (textures, sounds, etc.).</summary>
-    List<Asset> Assets { get; set; }
-
-    /// <summary>Fraction [0, 1] of asset loading completed.</summary>
-    float AssetsLoadProgress { get; set; }
-
     /// <summary>Texture IDs indexed by <c>[blockTypeId][TileSide]</c>.</summary>
     Dictionary<int, int[]> TextureId { get; }
 

@@ -8,14 +8,17 @@
 /// </remarks>
 public class MainScreen : ScreenBase, IMainScreen
 {
-    public MainScreen(IMenu navigator, IGameService platform, ISinglePlayerService singlePlayerService)
-        : base(navigator, platform)
+    public MainScreen(IGameService platform, ISinglePlayerService singlePlayerService, IOpenGlService openGlService,
+        ILanguageService languageService, IAssetManager assetManager, IScreenManager menu)
+        : base(platform, openGlService, assetManager)
     {
         buttonSingleplayer = new MenuWidget { text = "Singleplayer" };
         buttonMultiplayer = new MenuWidget { text = "Multiplayer" };
         buttonExit = new MenuWidget { text = "Quit" };
 
         this.singlePlayerService = singlePlayerService;
+        this._languageService = languageService;
+        this._menu = menu;
 
         Widgets.Add(buttonSingleplayer);
         Widgets.Add(buttonMultiplayer);
@@ -23,6 +26,8 @@ public class MainScreen : ScreenBase, IMainScreen
     }
 
     private readonly ISinglePlayerService singlePlayerService;
+    private readonly ILanguageService _languageService;
+    private readonly IScreenManager _menu;
 
     private readonly MenuWidget buttonSingleplayer;
     private readonly MenuWidget buttonMultiplayer;
@@ -45,9 +50,9 @@ public class MainScreen : ScreenBase, IMainScreen
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonSingleplayer.text = Menu.Translate("MainMenu_Singleplayer");
-        buttonMultiplayer.text = Menu.Translate("MainMenu_Multiplayer");
-        buttonExit.text = Menu.Translate("MainMenu_Quit");
+        buttonSingleplayer.text = _languageService.Get("MainMenu_Singleplayer");
+        buttonMultiplayer.text = _languageService.Get("MainMenu_Multiplayer");
+        buttonExit.text = _languageService.Get("MainMenu_Quit");
     }
 
     /// <inheritdoc/>
@@ -56,28 +61,28 @@ public class MainScreen : ScreenBase, IMainScreen
         windowX = GameService.CanvasWidth;
         windowY = GameService.CanvasHeight;
 
-        float scale = Menu.GetScale();
+        float scale = GetScale();
 
-        if (Menu.AssetsLoadProgress != 1)
+        if (AssetManager.AssetsLoadProgress != 1)
         {
-            string s = string.Format(Menu.Translate("MainMenu_AssetsLoadProgress"),
-                ((int)(Menu.AssetsLoadProgress * 100)).ToString());
-            Menu.DrawText(s, 20 * scale, windowX / 2, windowY / 2, TextAlign.Center, TextBaseline.Middle);
+            string s = string.Format(_languageService.Get("MainMenu_AssetsLoadProgress"),
+                ((int)(AssetManager.AssetsLoadProgress * 100)).ToString());
+            DrawText(s, 20 * scale, windowX / 2, windowY / 2, TextAlign.Center, TextBaseline.Middle);
             return;
         }
 
         if (!cursorLoaded)
         {
             GameService.SetWindowCursor(0, 0, 32, 32,
-                Menu.GetFile("mousecursor.png"),
-                Menu.GetFileLength("mousecursor.png"));
+                GetFile("mousecursor.png"),
+                GetFileLength("mousecursor.png"));
             cursorLoaded = true;
         }
 
         UseQueryStringIpAndPort();
 
-        Menu.DrawBackground();
-        Menu.Draw2dQuad(Menu.GetTexture("logo.png"),
+        DrawBackground();
+        Draw2dQuad(GetTexture("logo.png"),
             (windowX / 2) - (1024 * scale / 2), 0, 1024 * scale, 512 * scale);
 
         float centerX = (windowX / 2) - (ButtonWidth / 2 * scale);
@@ -128,7 +133,7 @@ public class MainScreen : ScreenBase, IMainScreen
 
         if (ip != null)
         {
-            Menu.StartLogin(null, ip, portInt);
+            _menu.StartLogin(null, ip, portInt);
         }
     }
 
@@ -137,13 +142,13 @@ public class MainScreen : ScreenBase, IMainScreen
     {
         if (w == buttonSingleplayer)
         {
-            Menu.StartSingleplayer();
+            _menu.StartSingleplayer();
             return;
         }
 
         if (w == buttonMultiplayer)
         {
-            Menu.StartMultiplayer();
+            _menu.StartMultiplayer();
             return;
         }
 
@@ -165,12 +170,12 @@ public class MainScreen : ScreenBase, IMainScreen
         if (e.KeyChar == (int)Keys.F5)
         {
             singlePlayerService.SinglePlayerServerAvailable = false;
-            Menu.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mdss"), null);
+            _menu.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mdss"), null);
         }
         // F6 — launch default singleplayer save (database .mddbs format).
         if (e.KeyChar == (int)Keys.F6)
         {
-            Menu.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mddbs"), null);
+            _menu.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mddbs"), null);
         }
 #endif
     }

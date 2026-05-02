@@ -6,9 +6,9 @@
 
     private bool HasAsset(string md5, string name)
     {
-        for (int i = 0; i < Assets.Count; i++)
+        for (int i = 0; i < _assetManager.Assets.Count; i++)
         {
-            Asset a = Assets[i];
+            Asset a = _assetManager.Assets[i];
             // Check both MD5 and name as there might be files with same content.
             if (a.md5 == md5 && a.name == name)
             {
@@ -21,11 +21,11 @@
     public byte[] GetAssetFile(string p)
     {
         string pLower = p.ToLowerInvariant();
-        for (int i = 0; i < Assets.Count; i++)
+        for (int i = 0; i < _assetManager.Assets.Count; i++)
         {
-            if (Assets[i].name == pLower)
+            if (_assetManager.Assets[i].name == pLower)
             {
-                return Assets[i].data;
+                return _assetManager.Assets[i].data;
             }
         }
         return null;
@@ -34,11 +34,11 @@
     public int GetAssetFileLength(string p)
     {
         string pLower = p.ToLowerInvariant();
-        for (int i = 0; i < Assets.Count; i++)
+        for (int i = 0; i < _assetManager.Assets.Count; i++)
         {
-            if (Assets[i].name == pLower)
+            if (_assetManager.Assets[i].name == pLower)
             {
-                return Assets[i].dataLength;
+                return _assetManager.Assets[i].dataLength;
             }
         }
         return 0;
@@ -85,25 +85,25 @@
             md5 = md5
         };
 
-        for (int i = 0; i < Assets.Count; i++)
+        for (int i = 0; i < _assetManager.Assets.Count; i++)
         {
-            if (Assets[i] == null)
+            if (_assetManager.Assets[i] == null)
             {
                 continue;
             }
 
-            if (Assets[i].name == nameLower)
+            if (_assetManager.Assets[i].name == nameLower)
             {
                 if (options.UseServerTextures)
                 {
-                    Assets[i] = newAsset;
+                    _assetManager.Assets[i] = newAsset;
                 }
 
                 CacheAsset(newAsset);
                 return;
             }
         }
-        Assets.Add(newAsset);
+        _assetManager.Assets.Add(newAsset);
         CacheAsset(newAsset);
     }
 }

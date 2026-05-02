@@ -1,6 +1,5 @@
 ﻿using OpenTK.Windowing.Common;
 using Serilog;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 /// <summary>
 /// Extends the base screen contract with the game-session initialisation
@@ -9,7 +8,6 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 public interface IScreenGame : IScreenBase
 {
     void Start(bool singleplayer, string singleplayerSavePath, ConnectionData connectData);
-    void SetMenu(IMenu menu);
 }
 
 /// <summary>
@@ -17,9 +15,9 @@ public interface IScreenGame : IScreenBase
 /// Bridges platform input events to the game, manages the singleplayer
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
-public class ScreenGame(IMenu navigator, IGameService platform,
-    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit,
-    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry) : ScreenBase(navigator, platform)
+public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager,
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu,
+    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;
@@ -27,6 +25,7 @@ public class ScreenGame(IMenu navigator, IGameService platform,
     private bool singleplayer;
     private string singleplayerSavePath;
     private readonly IGameExit gameExit = gameExit;
+    private readonly IScreenManager _menu = menu;
     private readonly IDummyNetwork _dummyNetwork = dummyNetwork;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
 
@@ -47,8 +46,6 @@ public class ScreenGame(IMenu navigator, IGameService platform,
         connectData = connectData_;
 
         game.IsSinglePlayer = singleplayer;
-        game.Assets = Menu.Assets;
-        game.AssetsLoadProgress = Menu.AssetsLoadProgress;
 
         game.Start();
         Connect();
@@ -87,7 +84,7 @@ public class ScreenGame(IMenu navigator, IGameService platform,
         Log.Debug("Single-player server thread started");
         DummyNetServer netServer = new(_dummyNetwork);
 
-        Server server = new(gameExit, GameService, _blockRegistry)
+        Server server = new(gameExit, GameService, _blockRegistry, AssetManager)
         {
             SaveFilenameOverride = singleplayerSavePath,
             MainSockets = new NetServer[3]
@@ -154,7 +151,7 @@ public class ScreenGame(IMenu navigator, IGameService platform,
         if (game.IsReconnecting)
         {
             game.Dispose();
-            Menu.StartGame(singleplayer, singleplayerSavePath, connectData);
+            _menu.StartGame(singleplayer, singleplayerSavePath, connectData);
             return;
         }
 
@@ -179,7 +176,7 @@ public class ScreenGame(IMenu navigator, IGameService platform,
 
         if (redirect == null)
         {
-            Menu.StartMainMenu();
+            _menu.StartMainMenu();
             return;
         }
 
@@ -193,7 +190,7 @@ public class ScreenGame(IMenu navigator, IGameService platform,
         if (qresult == null)
         {
             platform.MessageBoxShowError(message, "Redirection error");
-            Menu.StartMainMenu();
+            _menu.StartMainMenu();
             return;
         }
 
@@ -208,15 +205,15 @@ public class ScreenGame(IMenu navigator, IGameService platform,
         if (!lidata.ServerCorrect)
         {
             platform.MessageBoxShowError("Invalid server address!", "Redirection error!");
-            Menu.StartMainMenu();
+            _menu.StartMainMenu();
         }
         else if (!lidata.PasswordCorrect)
         {
-            Menu.StartLogin(token, null, 0);
+            _menu.StartLogin(token, null, 0);
         }
         else if (!string.IsNullOrEmpty(lidata.ServerAddress))
         {
-            Menu.ConnectToGame(lidata, connectData.Username);
+            _menu.ConnectToGame(lidata, connectData.Username);
         }
     }
 

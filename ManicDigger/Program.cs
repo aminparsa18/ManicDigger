@@ -42,9 +42,11 @@ public class Program
         services.AddSingleton<IMeshDrawer, MeshDrawer>();
         services.AddSingleton<ISinglePlayerService, SinglePlayerService>();
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
-        services.AddSingleton<IMenu, MainMenu>();
+        services.AddSingleton<IScreenManager, ScreenManager>();
         services.AddSingleton<IModRegistry, ModRegistry>();
         services.AddSingleton<ITaskScheduler, TaskScheduler>();
+        services.AddSingleton<IAssetManager, AssetManager>();
+        services.AddSingleton<ILanguageService, LanguageService>();
         services.AddSingleton<IBlockRegistry, BlockRegistry>();
         services.AddSingleton<IGame, Game>();
 
@@ -137,6 +139,6 @@ public class Program
         registry.Initialise(mods);
 
         // 3. Loop starts — ClientMods is fully populated
-        ServiceProvider.GetRequiredService<IMenu>().Start(args);
+        ServiceProvider.GetRequiredService<IScreenManager>().Start(args);
     }
 }

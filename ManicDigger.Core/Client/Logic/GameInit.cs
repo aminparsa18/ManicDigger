@@ -28,8 +28,6 @@ public partial class Game : IGame
     // Rendering / textures
     // -------------------------------------------------------------------------
 
-    public List<Asset> Assets { get; set; }
-    public float AssetsLoadProgress { get; set; }
     internal TextRenderer textRenderer;
 
     /// <summary>Texture IDs indexed by [blockId][TileSide].</summary>
@@ -298,6 +296,7 @@ public partial class Game : IGame
     private readonly IMeshDrawer meshDrawer;
     public InventoryUtilClient InventoryUtil { get; set; }
     private readonly IBlockRegistry _blockRegistry;
+    private readonly IAssetManager _assetManager;
     public Packet_Inventory Inventory { get; set; }
 
     // -------------------------------------------------------------------------
@@ -350,7 +349,7 @@ public partial class Game : IGame
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITaskScheduler taskScheduler,
         IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService, IFrustumCulling frustumCulling,
-        IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry)
+        IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager)
     {
         gameService = platform;
         openGlService = platformOpenGl;
@@ -361,6 +360,7 @@ public partial class Game : IGame
         this.voxelMap = voxelMap;
         this.OverheadCameraK = cameraService;
         this.FrustumCulling = frustumCulling;
+        _assetManager = assetManager;
         this.meshDrawer = meshDrawer;
         InitCore();
         InitMap();

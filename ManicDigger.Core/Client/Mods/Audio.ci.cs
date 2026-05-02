@@ -8,18 +8,21 @@ public sealed class ModAudio : ModBase
 {
     private readonly Dictionary<string, AudioData> _audioCache = new();
     private readonly IAudioService _audioService;
+    private readonly IAssetManager _assetManager;
+
     private bool _preloaded;
 
     /// <param name="audioService">Audio backend used for all playback operations.</param>
-    public ModAudio(IAudioService audioService, IGame game) : base(game)
+    public ModAudio(IAudioService audioService, IAssetManager assetManager, IGame game) : base(game)
     {
         _audioService = audioService;
+        _assetManager = assetManager;
     }
 
     /// <inheritdoc/>
     public override void OnNewFrame(float dt)
     {
-        if (Game.AssetsLoadProgress < 1f)
+        if (_assetManager.AssetsLoadProgress < 1f)
         {
             return;
         }
@@ -138,7 +141,7 @@ public sealed class ModAudio : ModBase
     /// <summary>Preloads all <c>.ogg</c> assets so the first playback request is instant.</summary>
     private void Preload()
     {
-        foreach (Asset asset in Game.Assets)
+        foreach (Asset asset in _assetManager.Assets)
         {
             if (asset.name.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
             {

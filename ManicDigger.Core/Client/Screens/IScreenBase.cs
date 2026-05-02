@@ -2,6 +2,7 @@
 
 public interface IScreenBase
 {
+    void DrawScene(float dt);
     void DrawWidgets();
     void LoadTranslations();
     void OnBackPressed();

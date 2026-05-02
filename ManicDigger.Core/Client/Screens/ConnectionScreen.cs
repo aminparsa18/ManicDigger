@@ -13,6 +13,7 @@ public class ConnectionScreen : ScreenBase
     private readonly MenuWidget textboxIp;
     private readonly MenuWidget textboxPort;
     private readonly IPreferences preferences;
+    private readonly ILanguageService languageService;
 
     /// <summary>
     /// Error text displayed above the form. Currently unused — set this field
@@ -25,8 +26,8 @@ public class ConnectionScreen : ScreenBase
     private string title;
     private bool loaded;
 
-    public ConnectionScreen(IMenu navigator, IGameService platform, IPreferences preferences)
-        : base(navigator, platform)
+    public ConnectionScreen(ILanguageService languageService, IGameService platform, IPreferences preferences, IOpenGlService openGlService, IAssetManager assetManager)
+        : base(platform, openGlService, assetManager)
     {
         buttonConnect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
         textboxIp = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "IP", nextWidget = 2 };
@@ -34,6 +35,7 @@ public class ConnectionScreen : ScreenBase
         buttonBack = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
 
         this.preferences = preferences;
+        this.languageService = languageService;
 
         title = "Connect to IP";
 
@@ -48,10 +50,10 @@ public class ConnectionScreen : ScreenBase
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonConnect.text = Menu.Translate("MainMenu_ConnectToIpConnect");
-        textboxIp.description = Menu.Translate("MainMenu_ConnectToIpIp");
-        textboxPort.description = Menu.Translate("MainMenu_ConnectToIpPort");
-        title = Menu.Translate("MainMenu_MultiplayerConnectIP");
+        buttonConnect.text = languageService.Get("MainMenu_ConnectToIpConnect");
+        textboxIp.description = languageService.Get("MainMenu_ConnectToIpIp");
+        textboxPort.description = languageService.Get("MainMenu_ConnectToIpPort");
+        title = languageService.Get("MainMenu_MultiplayerConnectIP");
     }
 
     /// <inheritdoc/>
@@ -78,19 +80,19 @@ public class ConnectionScreen : ScreenBase
             prefs.SetValues();
         }
 
-        float scale = Menu.GetScale();
+        float scale = GetScale();
 
-        Menu.DrawBackground();
+        DrawBackground();
 
         float leftx = (GameService.CanvasWidth / 2) - (400 * scale);
         float y = (GameService.CanvasHeight / 2) - (250 * scale);
 
         if (errorText != null)
         {
-            Menu.DrawText(errorText, 14 * scale, leftx, y - (50 * scale), TextAlign.Left, TextBaseline.Top);
+            DrawText(errorText, 14 * scale, leftx, y - (50 * scale), TextAlign.Left, TextBaseline.Top);
         }
 
-        Menu.DrawText(title, 14 * scale, leftx, y + (50 * scale), TextAlign.Left, TextBaseline.Top);
+        DrawText(title, 14 * scale, leftx, y + (50 * scale), TextAlign.Left, TextBaseline.Top);
 
         LayoutWidget(textboxIp, leftx, y + (100 * scale), 256, 64, scale);
         LayoutWidget(textboxPort, leftx, y + (200 * scale), 256, 64, scale);
@@ -117,25 +119,26 @@ public class ConnectionScreen : ScreenBase
         w.fontSize = 14 * scale;
     }
 
+    //TODO commented for now until decoupling menu and screens is done
     /// <inheritdoc/>
-    public override void OnBackPressed() => Menu.StartMultiplayer();
+    //public override void OnBackPressed() => Menu.StartMultiplayer();
 
-    /// <inheritdoc/>
-    public override void OnButton(MenuWidget w)
-    {
-        if (w == buttonBack)
-        {
-            OnBackPressed();
-            return;
-        }
+    ///// <inheritdoc/>
+    //public override void OnButton(MenuWidget w)
+    //{
+    //    if (w == buttonBack)
+    //    {
+    //        OnBackPressed();
+    //        return;
+    //    }
 
-        if (w == buttonConnect)
-        {
-            if (!string.IsNullOrEmpty(textboxIp.text)
-                && int.TryParse(textboxPort.text, out int port))
-            {
-                Menu.StartLogin(null, textboxIp.text, port);
-            }
-        }
-    }
+    //    if (w == buttonConnect)
+    //    {
+    //        if (!string.IsNullOrEmpty(textboxIp.text)
+    //            && int.TryParse(textboxPort.text, out int port))
+    //        {
+    //            Menu.StartLogin(null, textboxIp.text, port);
+    //        }
+    //    }
+    //}
 }

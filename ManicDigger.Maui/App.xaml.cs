@@ -62,7 +62,7 @@ public class GameRunner
         services.AddSingleton<IMeshDrawer, MeshDrawer>();
         services.AddSingleton<ISinglePlayerService, SinglePlayerService>();
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
-        services.AddSingleton<IMenu, MainMenu>();
+        services.AddSingleton<IScreenManager, ScreenManager>();
         services.AddSingleton<IModRegistry, ModRegistry>();
         services.AddSingleton<ITaskScheduler, TaskScheduler>();
         services.AddSingleton<IBlockRegistry, BlockRegistry>();
@@ -160,6 +160,6 @@ public class GameRunner
         registry.Initialise(mods);
 
         // 3. Loop starts — ClientMods is fully populated
-        ServiceProvider.GetRequiredService<IMenu>().Start(args);
+        ServiceProvider.GetRequiredService<IScreenManager>().Start(args);
     }
 }

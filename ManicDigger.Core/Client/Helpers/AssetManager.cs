@@ -22,15 +22,23 @@ public class Asset
 /// Scans one or more directories and loads all files as <see cref="Asset"/> instances.
 /// Each asset is fingerprinted with an MD5 hash for server-side deduplication and caching.
 /// </summary>
-public class AssetLoader
+public class AssetManager : IAssetManager
 {
-    private readonly string[] datapaths;
-    private readonly MD5 md5 = MD5.Create();
+    private readonly string[] _datapaths;
+    private readonly MD5 _md5 = MD5.Create();
 
-    public AssetLoader(string[] datapaths)
+    /// <summary>Raw asset list populated asynchronously during <see cref="Start"/>.</summary>
+    public List<Asset> Assets { get; set; } = [];
+
+    /// <summary>Fraction [0, 1] indicating how far async asset loading has progressed.</summary>
+    public float AssetsLoadProgress { get; set; }
+
+    public AssetManager()
     {
         string baseDir = AppContext.BaseDirectory;
-        this.datapaths = [.. datapaths
+       // _datapaths = [Path.Combine(PathHelper.DataRoot, "public"), Path.Combine("data", "public")];
+        _datapaths = [PathHelper.DataRoot, "data"];
+        _datapaths = [.. _datapaths
             .Select(p =>
             {
                 if (Path.IsPathRooted(p))
@@ -49,13 +57,16 @@ public class AssetLoader
             })];
     }
 
-    public List<Asset> LoadAssetsAsync(out float progress)
+    public void LoadAssets()
     {
-        List<Asset> assets = [];
-
-        foreach (string path in datapaths)
+        if (Assets.Count > 0)
         {
-            var ss = Path.GetFullPath(path);
+            return;
+        }
+
+        foreach (string path in _datapaths)
+        {
+            string ss = Path.GetFullPath(path);
             if (!Directory.Exists(path))
             {
                 continue;
@@ -70,7 +81,7 @@ public class AssetLoader
                 }
 
                 byte[] data = File.ReadAllBytes(file);
-                assets.Add(new Asset
+                Assets.Add(new Asset
                 {
                     data = data,
                     dataLength = data.Length,
@@ -80,10 +91,9 @@ public class AssetLoader
             }
         }
 
-        progress = 1;
-        return assets;
+        AssetsLoadProgress = 1;
     }
 
     private string ComputeMd5(byte[] data)
-        => Convert.ToHexString(md5.ComputeHash(data)).ToLowerInvariant();
+        => Convert.ToHexString(_md5.ComputeHash(data)).ToLowerInvariant();
 }

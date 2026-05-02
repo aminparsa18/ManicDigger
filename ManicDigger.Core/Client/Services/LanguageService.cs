@@ -6,7 +6,7 @@
 /// or an explicit <see cref="OverrideLanguage"/>. Falls back to English when a
 /// string is missing in the active language.
 /// </summary>
-public class LanguageService
+public class LanguageService : ILanguageService
 {
     // -------------------------------------------------------------------------
     // State

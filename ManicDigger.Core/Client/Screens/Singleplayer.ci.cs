@@ -20,7 +20,9 @@ public class SingleplayerScreen : ScreenBase
     /// <summary>Dynamically populated buttons, one per discovered save file (up to <see cref="MaxWorldButtons"/>).</summary>
     private readonly MenuWidget[] worldButtons;
 
+    private readonly IScreenManager _menu;
     private readonly ISinglePlayerService singlePlayerService;
+    private readonly ILanguageService _languageService;
 
     /// <summary>
     /// Save files discovered on first render. <c>null</c> until the first call to
@@ -30,8 +32,8 @@ public class SingleplayerScreen : ScreenBase
 
     private string title;
 
-    public SingleplayerScreen(IMenu navigator, IGameService platform, ISinglePlayerService singlePlayerService)
-        : base(navigator, platform)
+    public SingleplayerScreen(IGameService platform, IOpenGlService platformOpenGl, IAssetManager assetManager, 
+        ISinglePlayerService singlePlayerService, ILanguageService languageService, IScreenManager menu) : base(platform, platformOpenGl, assetManager)
     {
         play = new MenuWidget
         {
@@ -71,24 +73,26 @@ public class SingleplayerScreen : ScreenBase
             Widgets.Add(worldButtons[i]);
         }
 
+        this._menu = menu;
+        this._languageService = languageService;
         this.singlePlayerService = singlePlayerService;
     }
 
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        back.text = Menu.Translate("MainMenu_ButtonBack");
-        open.text = Menu.Translate("MainMenu_SingleplayerButtonCreate");
-        title = Menu.Translate("MainMenu_Singleplayer");
+        back.text = _languageService.Get("MainMenu_ButtonBack");
+        open.text = _languageService.Get("MainMenu_SingleplayerButtonCreate");
+        title = _languageService.Get("MainMenu_Singleplayer");
     }
 
     /// <inheritdoc/>
     public override void Render(float dt)
     {
-        float scale = Menu.GetScale();
+        float scale = GetScale();
 
-        Menu.DrawBackground();
-        Menu.DrawText(title, 20 * scale, GameService.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
+        DrawBackground();
+        DrawText(title, 20 * scale, GameService.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
 
         float leftx = (GameService.CanvasWidth / 2) - (128 * scale);
         float y = (GameService.CanvasHeight / 2) + (0 * scale);
@@ -158,7 +162,7 @@ public class SingleplayerScreen : ScreenBase
 
         if (!singlePlayerService.SinglePlayerServerAvailable)
         {
-            Menu.DrawText(
+            DrawText(
                 "Singleplayer is only available on desktop (Windows, Linux, Mac) version of game.",
                 16 * scale, GameService.CanvasWidth / 2, GameService.CanvasHeight / 2,
                 TextAlign.Center, TextBaseline.Middle);
@@ -203,15 +207,11 @@ public class SingleplayerScreen : ScreenBase
         string dir = Environment.CurrentDirectory;
         DialogResult result = d.ShowDialog();
         Environment.CurrentDirectory = dir;
-        if (result == DialogResult.OK)
-        {
-            return d.FileName;
-        }
-        return null;
+        return result == DialogResult.OK ? d.FileName : null;
     }
 
     /// <inheritdoc/>
-    public override void OnBackPressed() => Menu.StartMainMenu();
+    public override void OnBackPressed() => _menu.StartMainMenu();
 
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
@@ -220,27 +220,13 @@ public class SingleplayerScreen : ScreenBase
         {
             worldButtons[i].selected = false;
         }
+
         for (int i = 0; i < MaxWorldButtons; i++)
         {
             if (worldButtons[i] == w)
             {
                 worldButtons[i].selected = true;
             }
-        }
-
-        if (w == newWorld)
-        {
-            MainMenu.StartNewWorld();
-        }
-
-        if (w == play)
-        {
-            // Reserved — will launch the selected world once the save-file browser is implemented.
-        }
-
-        if (w == modify)
-        {
-            MainMenu.StartModifyWorld();
         }
 
         if (w == back)
@@ -254,7 +240,7 @@ public class SingleplayerScreen : ScreenBase
             string result = FileOpenDialog(extension, "Manic Digger Savegame", GameService.GameSavePath);
             if (result != null)
             {
-                Menu.ConnectToSingleplayer(result);
+                _menu.ConnectToSingleplayer(result);
             }
         }
     }

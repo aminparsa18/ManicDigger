@@ -269,7 +269,7 @@ public class ModGuiCrafting : ModBase
         for (int i = 0; i < blocksCount; i++)
         {
             int blockId = _craftingBlocksCopy[i];
-            if ((uint)blockId < (uint)GameConstants.MAX_BLOCKTYPES)
+            if ((uint)blockId < GameConstants.MAX_BLOCKTYPES)
             {
                 _blockTypeCounts[blockId]++;
             }

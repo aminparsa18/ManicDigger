@@ -1,14 +1,20 @@
 ﻿using OpenTK.Windowing.Common;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 public class MultiplayerScreen : ScreenBase
 {
     private readonly IOpenGlService openGlService;
+    private readonly ILanguageService _languageService;
+    private readonly IScreenManager _menu;
 
-    public MultiplayerScreen(IMenu navigator, IGameService platform, IOpenGlService openGlService, IPreferences preferences)
-        : base(navigator, platform)
+    public MultiplayerScreen(IGameService platform, IOpenGlService openGlService, IPreferences preferences,
+        ILanguageService languageService, IAssetManager assetManager, IScreenManager menu)
+        : base(platform, openGlService, assetManager)
     {
         this.preferences = preferences;
         this.openGlService = openGlService;
+        _languageService = languageService;
+        _menu = menu;
 
         // Tab chain (by list index): [0] Back → [1] Connect → [3] ConnectToIp → [2] Refresh → [0] Back
         back = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
@@ -89,11 +95,11 @@ public class MultiplayerScreen : ScreenBase
 
     public override void LoadTranslations()
     {
-        back.text = Menu.Translate("MainMenu_ButtonBack");
-        connect.text = Menu.Translate("MainMenu_MultiplayerConnect");
-        connectToIp.text = Menu.Translate("MainMenu_MultiplayerConnectIP");
-        refresh.text = Menu.Translate("MainMenu_MultiplayerRefresh");
-        title = Menu.Translate("MainMenu_Multiplayer");
+        back.text = _languageService.Get("MainMenu_ButtonBack");
+        connect.text = _languageService.Get("MainMenu_MultiplayerConnect");
+        connectToIp.text = _languageService.Get("MainMenu_MultiplayerConnectIP");
+        refresh.text = _languageService.Get("MainMenu_MultiplayerRefresh");
+        title = _languageService.Get("MainMenu_Multiplayer");
     }
 
     public override void Render(float dt)
@@ -141,7 +147,7 @@ public class MultiplayerScreen : ScreenBase
         }
 
 
-        float scale = Menu.GetScale();
+        float scale = GetScale();
 
         back.x = 40 * scale;
         back.y = GameService.CanvasHeight - (104 * scale);
@@ -200,13 +206,13 @@ public class MultiplayerScreen : ScreenBase
         logout.fontSize = 12 * scale;
         logout.text = "Logout";
 
-        Menu.DrawBackground();
-        Menu.DrawText(title, 20 * scale, GameService.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
-        Menu.DrawText((page + 1).ToString(), 14 * scale, GameService.CanvasWidth - (68 * scale), GameService.CanvasHeight / 2, TextAlign.Center, TextBaseline.Middle);
+        DrawBackground();
+        DrawText(title, 20 * scale, GameService.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
+        DrawText((page + 1).ToString(), 14 * scale, GameService.CanvasWidth - (68 * scale), GameService.CanvasHeight / 2, TextAlign.Center, TextBaseline.Middle);
 
         if (loading)
         {
-            Menu.DrawText(Menu.Translate("MainMenu_MultiplayerLoading"), 14 * scale, 100 * scale, 50 * scale, TextAlign.Left, TextBaseline.Top);
+            DrawText(_languageService.Get("MainMenu_MultiplayerLoading"), 14 * scale, 100 * scale, 50 * scale, TextAlign.Left, TextBaseline.Top);
         }
 
         UpdateThumbnails();
@@ -304,7 +310,7 @@ public class MultiplayerScreen : ScreenBase
                         if (bmp != null)
                         {
                             int texture = openGlService.LoadTextureFromBitmap(bmp);
-                            Menu.RegisterTexture(string.Format("serverlist_entry_{0}.png", server.Hash), texture);
+                            RegisterTexture(string.Format("serverlist_entry_{0}.png", server.Hash), texture);
                             bmp.Dispose();
                         }
                         server.ThumbnailDownloading = false;
@@ -387,7 +393,7 @@ public class MultiplayerScreen : ScreenBase
     private readonly MenuWidget[] serverButtons;
     private const int serverButtonsCount = 1024;
 
-    public override void OnBackPressed() => Menu.StartMainMenu();
+    public override void OnBackPressed() => _menu.StartMainMenu();
     public override void OnMouseWheel(MouseWheelEventArgs e)
     {
         //menu.p.MessageBoxShowError(menu.p.IntToString(e.GetDelta()), "Delta");
@@ -433,12 +439,12 @@ public class MultiplayerScreen : ScreenBase
         {
             if (selectedServerHash != null)
             {
-                Menu.StartLogin(selectedServerHash, null, 0);
+                _menu.StartLogin(selectedServerHash, null, 0);
             }
         }
         if (w == connectToIp)
         {
-            Menu.StartConnectToIp();
+            _menu.StartConnectToIp();
         }
         if (w == refresh)
         {

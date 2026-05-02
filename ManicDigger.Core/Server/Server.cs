@@ -12,14 +12,16 @@ public partial class Server : ICurrentTime, IDropItem
     private readonly IGameService gameplatform;
     private readonly IGameExit _gameExit;
     private IBlockRegistry _blockRegistry;
+    private readonly IAssetManager _assetManager;
 
     public List<ServerSystem> Systems { get; set; }
 
-    public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry)
+    public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry, IAssetManager assetManager)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
         _blockRegistry = blockRegistry;
+        _assetManager = assetManager;
 
         Systems =
         [
@@ -242,8 +244,8 @@ public partial class Server : ICurrentTime, IDropItem
 
         //Load assets (textures, sounds, etc.)
         string[] datapathspublic = [Path.Combine(PathHelper.DataRoot, "public"), Path.Combine("data", "public")];
-        assetLoader = new AssetLoader(datapathspublic);
-        LoadAssets();
+
+        _assetManager.LoadAssets();
 
         //Initialize game components
         BlockRegistry data = new();
@@ -1393,7 +1395,7 @@ public partial class Server : ICurrentTime, IDropItem
                     {
                         try
                         {
-                            ModEventHandlers.onplayerdeath[i](clientid, (DeathReason)packet.Death.Reason, packet.Death.SourcePlayer);
+                            ModEventHandlers.onplayerdeath[i](clientid, packet.Death.Reason, packet.Death.SourcePlayer);
                         }
                         catch (Exception ex)
                         {
@@ -1527,7 +1529,7 @@ public partial class Server : ICurrentTime, IDropItem
             case PacketType.SpecialKey:
                 for (int i = 0; i < ModEventHandlers.onspecialkey.Count; i++)
                 {
-                    ModEventHandlers.onspecialkey[i](clientid, (SpecialKey)packet.SpecialKey_.Key_);
+                    ModEventHandlers.onspecialkey[i](clientid, packet.SpecialKey_.Key_);
                 }
 
                 break;
@@ -2535,25 +2537,22 @@ public partial class Server : ICurrentTime, IDropItem
     public byte[] CompressChunkNetwork(ushort[] chunk) => NetworkCompression.Compress(MemoryMarshal.AsBytes(chunk.AsSpan()));
 
     private string[] GetRequiredBlobMd5()
-        => [.. assets.Select(a => a.md5)];
+        => [.. _assetManager.Assets.Select(a => a.md5)];
 
     private string[] GetRequiredBlobName()
-        => [.. assets.Select(a => a.name)];
-
-    private AssetLoader assetLoader;
-    private List<Asset> assets = [];
+        => [.. _assetManager.Assets.Select(a => a.name)];
 
     private readonly int blobPartLength = 1024;
 
     private void SendBlobs(int clientid, string[] requestedMd5)
     {
         SendPacket(clientid, ServerPackets.LevelInitialize());
-        LoadAssets();
+        _assetManager.LoadAssets();
 
         List<Asset> tosend = [];
-        for (int i = 0; i < assets.Count; i++)
+        for (int i = 0; i < _assetManager.Assets.Count; i++)
         {
-            Asset f = assets[i];
+            Asset f = _assetManager.Assets[i];
             for (int k = 0; k < requestedMd5.Length; k++)
             {
                 if (f.md5 == requestedMd5[k])
@@ -2585,14 +2584,6 @@ public partial class Server : ICurrentTime, IDropItem
         SendLevelProgress(clientid, 0, Language.ServerProgressGenerating());
     }
 
-    private void LoadAssets()
-    {
-        assets = assetLoader.LoadAssetsAsync(out float progress);
-        while (progress < 1)
-        {
-            Thread.Sleep(1);
-        }
-    }
 
     public static IEnumerable<byte[]> Parts(byte[] blob, int partsize)
     {

@@ -71,7 +71,7 @@ public class ModDialog : ModBase
                 }
 
                 // Only typeable characters are handled here; special characters use KeyDown
-                if (TypableChars.Contains((char)w.ClickKey) && args.KeyChar == w.ClickKey)
+                if (TypableChars.Contains(w.ClickKey) && args.KeyChar == w.ClickKey)
                 {
                     Game.SendPacketClient(ClientPackets.DialogClick(w.Id, Empty, 0));
                     return;

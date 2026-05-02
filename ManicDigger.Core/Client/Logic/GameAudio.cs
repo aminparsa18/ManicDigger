@@ -28,7 +28,7 @@
 
     public void PlayAudioAt(string file, float x, float y, float z)
     {
-        if (file == null || !AudioEnabled || AssetsLoadProgress != 1)
+        if (file == null || !AudioEnabled || _assetManager.AssetsLoadProgress != 1)
         {
             return;
         }
@@ -54,7 +54,7 @@
             return;
         }
 
-        if (AssetsLoadProgress != 1)
+        if (_assetManager.AssetsLoadProgress != 1)
         {
             return;
         }

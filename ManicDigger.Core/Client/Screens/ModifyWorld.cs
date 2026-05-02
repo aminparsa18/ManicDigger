@@ -8,9 +8,14 @@ public class ModifyWorldScreen : ScreenBase
 
     private string title = "Modify World";
 
-    public ModifyWorldScreen(IMenu navigator, IGameService platform)
-        : base(navigator, platform)
+    private readonly ILanguageService _languageService;
+    private readonly IScreenManager _menu;
+
+    public ModifyWorldScreen(IGameService platform, IOpenGlService openGlService, ILanguageService languageService, IAssetManager assetManager, IScreenManager menu)
+        : base(platform, openGlService, assetManager)
     {
+        _languageService = languageService;
+        _menu = menu;
         buttonBack = new MenuWidget
         {
             text = "Back",
@@ -23,17 +28,17 @@ public class ModifyWorldScreen : ScreenBase
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonBack.text = Menu.Translate("MainMenu_ButtonBack");
-        title = Menu.Translate("MainMenu_ModifyWorld");
+        buttonBack.text = _languageService.Get("MainMenu_ButtonBack");
+        title = _languageService.Get("MainMenu_ModifyWorld");
     }
 
     /// <inheritdoc/>
     public override void Render(float dt)
     {
-        float scale = Menu.GetScale();
+        float scale = GetScale();
 
-        Menu.DrawBackground();
-        Menu.DrawText(title, 14 * scale, GameService.CanvasWidth / 2, 0, TextAlign.Center, TextBaseline.Top);
+        DrawBackground();
+        DrawText(title, 14 * scale, GameService.CanvasWidth / 2, 0, TextAlign.Center, TextBaseline.Top);
 
         buttonBack.x = 40 * scale;
         buttonBack.y = GameService.CanvasHeight - (104 * scale);
@@ -45,7 +50,7 @@ public class ModifyWorldScreen : ScreenBase
     }
 
     /// <inheritdoc/>
-    public override void OnBackPressed() => Menu.StartSingleplayer();
+    public override void OnBackPressed() => _menu.StartSingleplayer();
 
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)

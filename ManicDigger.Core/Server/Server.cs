@@ -42,7 +42,6 @@ public partial class Server : ICurrentTime, IDropItem
             new ServerSystemModLoader(gameExit, blockRegistry, _modEvents),
             new ServerSystemLoadServerClient(_modEvents),
             new ServerSystemNotifyEntities(_modEvents),
-            new ServerSystemMonsterWalk(_modEvents),
             // This ServerSystem should always be loaded last
             new ServerSystemLoadLast(_modEvents),
         ];
@@ -237,7 +236,7 @@ public partial class Server : ICurrentTime, IDropItem
         //Initialize server map
         ServerMapStorage map = new(_blockRegistry, _modEvents); ;
         // _blockRegistry.Start();
-        map.Heightmap = new InfiniteMapChunked2dServer() { d_Map = map };
+        map.Heightmap = new ChunkedMap2d<ushort>(map.MapSizeX, map.MapSizeY);
         map.Reset(Config.MapSizeX, Config.MapSizeY, Config.MapSizeZ);
         Map = map;
 
@@ -250,7 +249,7 @@ public partial class Server : ICurrentTime, IDropItem
         
         CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = _blockRegistry };
         _localConnectionsOnly = true;
-        ChunkDbCompressed chunkdb = new() { InnerChunkDb = new ChunkDbSqlite(), Compression = new CompressionGzip() };
+        ChunkDbCompressed chunkdb = new() { InnerChunkDb = new ChunkDbRegion(), Compression = new CompressionGzip() };
         ChunkDb = chunkdb;
         map.d_ChunkDb = chunkdb;
         NetworkCompression = new CompressionGzip();
@@ -531,7 +530,7 @@ public partial class Server : ICurrentTime, IDropItem
         }
 
         ChunkDbCompressed dbcompressed = (ChunkDbCompressed)Map.d_ChunkDb;
-        ChunkDbSqlite db = (ChunkDbSqlite)dbcompressed.InnerChunkDb;
+        ChunkDbRegion db = (ChunkDbRegion)dbcompressed.InnerChunkDb;
         db.ClearTemporaryChunks();
         Map.Clear();
         LoadGame(filename);

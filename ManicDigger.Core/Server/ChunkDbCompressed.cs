@@ -3,6 +3,14 @@
 /// <summary>
 /// Decorator over <see cref="IChunkDb"/> that transparently compresses data
 /// before writing and decompresses after reading.
+///
+/// Changes vs. previous version
+/// ─────────────────────────────
+/// 1. SETGLOBALDATA NULL HANDLING — the previous implementation had its own
+///    null guard and called <c>Compression.Compress</c> directly, bypassing
+///    the private <see cref="Compress"/> helper that already handles null.
+///    Collapsed to a single <c>InnerChunkDb.SetGlobalData(Compress(data))</c>
+///    call, removing the duplicate branch and the inconsistency.
 /// </summary>
 public class ChunkDbCompressed : IChunkDb
 {
@@ -58,20 +66,15 @@ public class ChunkDbCompressed : IChunkDb
     public byte[] GetGlobalData() => Decompress(InnerChunkDb.GetGlobalData());
 
     /// <inheritdoc/>
-    public void DeleteChunks(IEnumerable<Vector3i> chunkpositions) => InnerChunkDb.DeleteChunks(chunkpositions);
+    public void DeleteChunks(IEnumerable<Vector3i> chunkpositions)
+        => InnerChunkDb.DeleteChunks(chunkpositions);
 
     /// <inheritdoc/>
     public void SetGlobalData(byte[] data)
-    {
-        if (data == null)
-        {
-            InnerChunkDb.SetGlobalData(null);
-        }
-        else
-        {
-            InnerChunkDb.SetGlobalData(Compression.Compress(data));
-        }
-    }
+        // Compress() already returns null when data is null — no extra branch needed.
+        => InnerChunkDb.SetGlobalData(Compress(data));
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private byte[] Compress(byte[] data) => data == null ? null : Compression.Compress(data);
     private byte[] Decompress(byte[] data) => data == null ? null : Compression.Decompress(data);

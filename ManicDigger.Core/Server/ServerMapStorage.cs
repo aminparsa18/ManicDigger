@@ -78,7 +78,7 @@ public class ServerMapStorage : IMapStorage
 
             if (!Game.IsTransparentForLight(_blockRegistry.BlockTypes[chunk.Data[VectorIndexUtil.Index3d(bx, by, bz, _chunksize, _chunksize)]]))
             {
-                Heightmap.SetBlock(x, y, i);
+                Heightmap.SetBlock(x, y, (ushort)i);
                 return;
             }
         }
@@ -171,7 +171,7 @@ public class ServerMapStorage : IMapStorage
                     int worldX = baseWorldX + xx;
                     int worldY = baseWorldY + yy;
                     int oldHeight = Heightmap.GetBlock(worldX, worldY);
-                    Heightmap.SetBlock(worldX, worldY, Math.Max(oldHeight, inChunkHeight + baseWorldZ));
+                    Heightmap.SetBlock(worldX, worldY, (ushort)Math.Max(oldHeight, inChunkHeight + baseWorldZ));
                 }
             }
         }
@@ -231,10 +231,10 @@ public class ServerMapStorage : IMapStorage
         mapSizeZ = sizez;
         _chunksX = BlockToChunk(sizex);
         chunks = new ServerChunk[_chunksX * BlockToChunk(sizey)][];
-        Heightmap.Restart();
+        Heightmap.Restart(MapSizeX, MapSizeY);
     }
 
-    public InfiniteMapChunked2dServer Heightmap { get; set; }
+    public ChunkedMap2d<ushort> Heightmap { get; set; }
 
     // ── Chunk slot access ─────────────────────────────────────────────────────
 

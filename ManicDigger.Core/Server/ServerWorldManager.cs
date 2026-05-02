@@ -367,7 +367,7 @@ public partial class Server
 
         if (dbchunks.Count != 0)
         {
-            IChunkDb d_ChunkDb = new ChunkDbCompressed() { InnerChunkDb = new ChunkDbSqlite(), Compression = new CompressionGzip() };
+            IChunkDb d_ChunkDb = new ChunkDbCompressed() { InnerChunkDb = new ChunkDbRegion(), Compression = new CompressionGzip() };
             d_ChunkDb.SetChunksToFile(dbchunks, finalFilename);
         }
         else

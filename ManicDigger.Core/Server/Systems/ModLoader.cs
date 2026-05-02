@@ -35,8 +35,6 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// <summary>Tracks which mods have been started to prevent double-starting during dependency resolution.</summary>
     private readonly Dictionary<string, bool> loadedMods = [];
 
-    private static readonly string[] ExtraAssemblyReferences = ["ManicDigger.Domain.dll"];
-
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
     private readonly IModEvents _modEvents = modEvents;
@@ -286,34 +284,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
         {
             references.Add(MetadataReference.CreateFromFile(parallelAsm.Location));
         }
-
-        string assemblyDir = Path.GetDirectoryName(GetType().Assembly.Location)!;
-
-        foreach (string asmName in ExtraAssemblyReferences)
-        {
-            string localPath = Path.Combine(assemblyDir, asmName);
-            if (File.Exists(localPath))
-            {
-                references.Add(MetadataReference.CreateFromFile(localPath));
-                Console.WriteLine($"[ModLoader] Added reference: {localPath}");
-                continue;
-            }
-
-            // Fall back to an already-loaded assembly in the AppDomain
-            string nameWithoutExt = Path.GetFileNameWithoutExtension(asmName);
-            Assembly? existing = AppDomain.CurrentDomain.GetAssemblies()
-                .FirstOrDefault(a => a.GetName().Name == nameWithoutExt);
-
-            if (existing != null && !string.IsNullOrEmpty(existing.Location))
-            {
-                references.Add(MetadataReference.CreateFromFile(existing.Location));
-                Console.WriteLine($"[ModLoader] Added reference from AppDomain: {existing.Location}");
-                continue;
-            }
-
-            Console.WriteLine($"[ModLoader] WARNING: Could not find reference: {asmName}");
-        }
-
+     
         return references;
     }
 

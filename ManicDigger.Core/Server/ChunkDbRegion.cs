@@ -73,7 +73,8 @@ public sealed class ChunkDbRegion : IChunkDb, IDisposable
 
     // ── State ─────────────────────────────────────────────────────────────────
 
-    private string _directory = "";
+    private string _directory = "";  // sibling directory holding region files
+    private string _sentinelPath = "";  // the .mddbs file picked by FileOpenDialog
     private readonly int _chunksPerAxis;
 
     // Open region files keyed by packed region coordinate.
@@ -104,26 +105,44 @@ public sealed class ChunkDbRegion : IChunkDb, IDisposable
     // ── IChunkDb — lifecycle ──────────────────────────────────────────────────
 
     /// <summary>
-    /// Opens or creates the region store at the given directory path.
-    /// The directory is created if it does not already exist.
+    /// Opens or creates the region store identified by the
+    /// <paramref name="sentinelPath"/> file (e.g. <c>MySave.mddbs</c>).
+    /// <para>
+    /// The actual region data lives in a sibling directory with the same name
+    /// minus the extension (<c>MySave/</c>).  The sentinel file is what the
+    /// existing <c>FileOpenDialog("mddbs", …)</c> call presents to the player —
+    /// preserving the original single-file UX without packing data into one file.
+    /// </para>
     /// </summary>
-    public void Open(string path)
+    public void Open(string sentinelPath)
     {
-        _directory = path;
-        Directory.CreateDirectory(path);
+        _sentinelPath = sentinelPath;
+        // "saves/MySave.mddbs" → "saves/MySave/"
+        _directory = Path.ChangeExtension(sentinelPath, null);
+        Directory.CreateDirectory(_directory);
+
+        // Create the sentinel if this is a brand-new save.
+        if (!File.Exists(_sentinelPath))
+            File.WriteAllBytes(_sentinelPath, []);
     }
 
     /// <summary>
-    /// Copies all region files and the global-data file to
-    /// <paramref name="backupPath"/>, creating the directory if needed.
+    /// Copies the sentinel file and all region files to
+    /// <paramref name="backupSentinelPath"/> and its sibling directory.
     /// </summary>
-    public void Backup(string backupPath)
+    public void Backup(string backupSentinelPath)
     {
-        Directory.CreateDirectory(backupPath);
+        string backupDir = Path.ChangeExtension(backupSentinelPath, null);
+        Directory.CreateDirectory(backupDir);
+
+        // Copy the sentinel file.
+        File.Copy(_sentinelPath, backupSentinelPath, overwrite: true);
+
+        // Copy all region and global-data files.
         foreach (string file in Directory.EnumerateFiles(_directory))
         {
             File.Copy(file,
-                      Path.Combine(backupPath, Path.GetFileName(file)),
+                      Path.Combine(backupDir, Path.GetFileName(file)),
                       overwrite: true);
         }
     }
@@ -158,8 +177,10 @@ public sealed class ChunkDbRegion : IChunkDb, IDisposable
 
     /// <inheritdoc/>
     public Dictionary<Vector3i, byte[]> GetChunksFromFile(
-        IEnumerable<Vector3i> positions, string sourceDirectory)
+        IEnumerable<Vector3i> positions, string sourceSentinelPath)
     {
+        // Derive the data directory from the sentinel path, same as Open().
+        string sourceDirectory = Path.ChangeExtension(sourceSentinelPath, null);
         if (!Directory.Exists(sourceDirectory))
         {
             Console.WriteLine($"[ChunkDbRegion] Source directory '{sourceDirectory}' does not exist.");
@@ -235,15 +256,19 @@ public sealed class ChunkDbRegion : IChunkDb, IDisposable
     }
 
     /// <inheritdoc/>
-    public void SetChunksToFile(IEnumerable<DbChunk> chunks, string destDirectory)
+    public void SetChunksToFile(IEnumerable<DbChunk> chunks, string destSentinelPath)
     {
-        if (Path.GetFullPath(_directory) == Path.GetFullPath(destDirectory))
+        if (Path.GetFullPath(_sentinelPath) == Path.GetFullPath(destSentinelPath))
         {
-            Console.WriteLine("[ChunkDbRegion] Cannot write to the currently open store directory.");
+            Console.WriteLine("[ChunkDbRegion] Cannot write to the currently open store.");
             return;
         }
 
+        // Mirror Open(): create the sentinel file and its sibling data directory.
+        string destDirectory = Path.ChangeExtension(destSentinelPath, null);
         Directory.CreateDirectory(destDirectory);
+        if (!File.Exists(destSentinelPath))
+            File.WriteAllBytes(destSentinelPath, []);
 
         Dictionary<ulong, RegionFile> localRegions = new();
         try

@@ -76,9 +76,6 @@ public partial class BlockType
 
     // ── Inventory / interaction ───────────────────────────────────────────────
 
-    /// <summary>Default amount placed in the player's starting inventory.</summary>
-    public int StartInventoryAmount { get; set; }
-
     /// <summary>Mining strength (time-to-break) for this block.</summary>
     public int Strength { get; set; }
 
@@ -184,26 +181,23 @@ public partial class BlockType
     [MemoryPackIgnore]
     public string AllTextures
     {
-        set
-        {
-            TextureIdTop = TextureIdBottom = TextureIdFront =
-            TextureIdBack = TextureIdLeft = TextureIdRight =
-            TextureIdForInventory = value;
-        }
+        set => TextureIdTop = TextureIdBottom = TextureIdFront =
+          TextureIdBack = TextureIdLeft = TextureIdRight =
+          TextureIdForInventory = value;
     }
 
     /// <summary>Sets the same texture asset on all four side faces (front, back, left, right).</summary>
     [MemoryPackIgnore]
     public string SideTextures
-    {
-        set { TextureIdFront = TextureIdBack = TextureIdLeft = TextureIdRight = value; }
+    { 
+        set => TextureIdFront = TextureIdBack = TextureIdLeft = TextureIdRight = value;
     }
 
     /// <summary>Sets the same texture asset on the top and bottom faces.</summary>
     [MemoryPackIgnore]
     public string TopBottomTextures
-    {
-        set { TextureIdTop = TextureIdBottom = value; }
+    { 
+        set => TextureIdTop = TextureIdBottom = value;
     }
 
     // ── Queries ───────────────────────────────────────────────────────────────
@@ -212,12 +206,4 @@ public partial class BlockType
     /// Returns <see langword="true"/> when this block's draw type is <see cref="DrawType.Fluid"/>.
     /// </summary>
     public bool IsFluid() => DrawType == DrawType.Fluid;
-
-    /// <summary>
-    /// Returns <see langword="true"/> when this block does not obstruct player movement
-    /// (ladders and non-solid, non-fluid draw types).
-    /// </summary>
-    public bool IsEmptyForPhysics() =>
-        DrawType == DrawType.Ladder
-        || (WalkableType != WalkableType.Solid && WalkableType != WalkableType.Fluid);
 }

@@ -6,7 +6,7 @@
 /// Also manages two virtual joystick touch tracks: one for movement and one for
 /// camera rotation.
 /// </summary>
-public class ModGuiTouchButtons : GameScreen
+public class ModGuiTouchButtons : ModScreen
 {
     /// <summary>
     /// <see langword="true"/> after the first touch event is received.

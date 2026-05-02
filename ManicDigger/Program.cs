@@ -116,6 +116,7 @@ public class Program
         services.AddScoped<IModBase, ModGuiPlayerStats>();
         services.AddScoped<IModBase, ModGuiChat>();
         services.AddScoped<IModBase, ModScreenshot>();
+
     }
 
     // ── Startup ───────────────────────────────────────────────────────────────

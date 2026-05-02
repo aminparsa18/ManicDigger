@@ -3,9 +3,10 @@ using System.Runtime.InteropServices;
 
 namespace ManicDigger;
 
-public class ModManager(IGameExit gameExit) : IModManager
+public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IModManager
 {
     private readonly IGameExit gameExit = gameExit;
+    private readonly IBlockRegistry _blockRegistry = blockRegistry;
 
     public int GetMaxBlockTypes() => GameConstants.MAX_BLOCKTYPES;
 
@@ -43,7 +44,7 @@ public class ModManager(IGameExit gameExit) : IModManager
         }
 
         server.BlockTypes[id].IsBuildable = true;
-        server.BlockTypeRegistry.RegisterBlockType(id, server.BlockTypes[id]);
+        _blockRegistry.RegisterBlockType(id, server.BlockTypes[id]);
     }
 
     public void RegisterOnBlockBuild(ModDelegates.BlockBuild f) => server.ModEventHandlers.onbuild.Add(f);
@@ -212,7 +213,7 @@ public class ModManager(IGameExit gameExit) : IModManager
         {
             InventoryItemType = InventoryItemType.Block,
             BlockCount = amount,
-            BlockId = server.BlockTypeRegistry.WhenPlayerPlacesGetsConvertedTo[block]
+            BlockId = _blockRegistry.WhenPlayerPlacesGetsConvertedTo[block]
         };
         server.GetInventoryUtil(inventory).GrabItem(item, 0);
     }
@@ -313,7 +314,7 @@ public class ModManager(IGameExit gameExit) : IModManager
 
     public void RegisterCommandHelp(string command, string help) => server.commandhelps[command] = help;
 
-    public void AddToStartInventory(string blocktype, int amount) => server.BlockTypeRegistry.StartInventoryAmount[GetBlockId(blocktype)] = amount;
+    public void AddToStartInventory(string blocktype, int amount) => _blockRegistry.StartInventoryAmount[GetBlockId(blocktype)] = amount;
 
     public long GetCurrentTick() => server.GetSimulationCurrentFrame();
 

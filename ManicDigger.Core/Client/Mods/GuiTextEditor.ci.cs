@@ -3,7 +3,7 @@
 /// <summary>
 /// A simple in-game text editor overlay. Toggle visibility with F9, close with Escape.
 /// </summary>
-public class ModGuiTextEditor : GameScreen
+public class ModGuiTextEditor : ModScreen
 {
     private const int MaxLines = 128;
     private const int MaxColumns = 80;

@@ -111,7 +111,7 @@ public class ModBlockDamageToPlayer : ModBase
     }
 }
 
-public class DialogScreen : GameScreen
+public class DialogScreen : ModScreen
 {
     public DialogScreen(IGameService gameService, IGame game) : base(gameService, game)
     {

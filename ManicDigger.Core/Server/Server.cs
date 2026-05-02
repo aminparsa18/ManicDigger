@@ -11,13 +11,15 @@ public partial class Server : ICurrentTime, IDropItem
 {
     private readonly IGameService gameplatform;
     private readonly IGameExit _gameExit;
+    private IBlockRegistry _blockRegistry;
 
     public List<ServerSystem> Systems { get; set; }
 
-    public Server(IGameExit gameExit, IGameService gameService)
+    public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
+        _blockRegistry = blockRegistry;
 
         Systems =
         [
@@ -32,14 +34,13 @@ public partial class Server : ICurrentTime, IDropItem
             new ServerSystemNotifyPing(gameplatform, gameExit),
             new ServerSystemChunksSimulation(),
             new ServerSystemBanList(),
-            new ServerSystemModLoader(gameExit),
+            new ServerSystemModLoader(gameExit, blockRegistry),
             new ServerSystemLoadServerClient(),
             new ServerSystemNotifyEntities(),
             new ServerSystemMonsterWalk(),
             // This ServerSystem should always be loaded last
             new ServerSystemLoadLast(),
         ];
-
 
         //Load translations
         Language.LoadTranslations();
@@ -48,7 +49,6 @@ public partial class Server : ICurrentTime, IDropItem
     }
 
     public ServerMapStorage Map { get; set; }
-    public BlockRegistry BlockTypeRegistry { get; set; }
     public CraftingTableTool CraftingTableTool { get; set; }
     public IChunkDb ChunkDb { get; set; }
     public ICompression NetworkCompression { get; set; }
@@ -248,7 +248,7 @@ public partial class Server : ICurrentTime, IDropItem
         //Initialize game components
         BlockRegistry data = new();
         data.Start();
-        BlockTypeRegistry = data;
+        _blockRegistry = data;
         CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = data };
         _localConnectionsOnly = true;
         ChunkDbCompressed chunkdb = new() { InnerChunkDb = new ChunkDbSqlite(), Compression = new CompressionGzip() };
@@ -922,7 +922,7 @@ public partial class Server : ICurrentTime, IDropItem
 
         foreach ((int id, BlockType? blockType) in BlockTypes)
         {
-            BlockTypeRegistry.StartInventoryAmount.TryGetValue(id, out int amount);
+            _blockRegistry.StartInventoryAmount.TryGetValue(id, out int amount);
 
             bool shouldAdd = Config.IsCreative
                 ? amount > 0 || blockType.IsBuildable
@@ -1952,7 +1952,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     private bool DoCommandCraft(bool execute, Packet_ClientCraft cmd)
     {
-        if (Map.GetBlock(cmd.X, cmd.Y, cmd.Z) != BlockTypeRegistry.BlockIdCraftingTable)
+        if (Map.GetBlock(cmd.X, cmd.Y, cmd.Z) != _blockRegistry.BlockIdCraftingTable)
         {
             return false;
         }
@@ -1984,7 +1984,7 @@ public partial class Server : ICurrentTime, IDropItem
                     for (int ii = 0; ii < ingredient.Amount; ii++)
                     {
                         //replace on table
-                        ReplaceOne(ontable, ontableCount, ingredient.Type, BlockTypeRegistry.BlockIdEmpty);
+                        ReplaceOne(ontable, ontableCount, ingredient.Type, _blockRegistry.BlockIdEmpty);
                     }
                 }
                 //add output
@@ -2000,7 +2000,7 @@ public partial class Server : ICurrentTime, IDropItem
 
         foreach (var v in outputtoadd)
         {
-            ReplaceOne(ontable, ontableCount, BlockTypeRegistry.BlockIdEmpty, v);
+            ReplaceOne(ontable, ontableCount, _blockRegistry.BlockIdEmpty, v);
         }
 
         int zz = 0;
@@ -2096,7 +2096,7 @@ public partial class Server : ICurrentTime, IDropItem
         int endz = Math.Max(a.Z, b.Z);
 
         int blockType = fill.BlockType;
-        blockType = BlockTypeRegistry.WhenPlayerPlacesGetsConvertedTo[blockType];
+        blockType = _blockRegistry.WhenPlayerPlacesGetsConvertedTo[blockType];
 
         Inventory inventory = GetPlayerInventory(Clients[player_id].PlayerName);
         InventoryItem? item = inventory.RightHand[fill.MaterialSlot];
@@ -2125,7 +2125,7 @@ public partial class Server : ICurrentTime, IDropItem
                         DoCommandBuild(player_id, true, cmd);
                     }
 
-                    if (blockType != BlockTypeRegistry.BlockIdFillArea)
+                    if (blockType != _blockRegistry.BlockIdFillArea)
                     {
                         cmd.Mode = PacketBlockSetMode.Create;
                         DoCommandBuild(player_id, true, cmd);
@@ -2261,13 +2261,13 @@ public partial class Server : ICurrentTime, IDropItem
         }
 
         if (cmd.Mode == PacketBlockSetMode.Create
-            && BlockTypeRegistry.Rail[cmd.BlockType] != 0)
+            && _blockRegistry.Rail[cmd.BlockType] != 0)
         {
             return DoCommandBuildRail(player_id, cmd);
         }
 
         if (cmd.Mode == PacketBlockSetMode.Destroy
-            && BlockTypeRegistry.Rail[Map.GetBlock(cmd.X, cmd.Y, cmd.Z)] != 0)
+            && _blockRegistry.Rail[Map.GetBlock(cmd.X, cmd.Y, cmd.Z)] != 0)
         {
             return DoCommandRemoveRail(player_id, execute, cmd);
         }
@@ -2295,7 +2295,7 @@ public partial class Server : ICurrentTime, IDropItem
                         inventory.RightHand[cmd.MaterialSlot] = null;
                     }
 
-                    if (BlockTypeRegistry.Rail[item.BlockId] != 0)
+                    if (_blockRegistry.Rail[item.BlockId] != 0)
                     {
                     }
 
@@ -2318,7 +2318,7 @@ public partial class Server : ICurrentTime, IDropItem
                 InventoryItemType = InventoryItemType.Block
             };
             int blockid = Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
-            item.BlockId = BlockTypeRegistry.WhenPlayerPlacesGetsConvertedTo[blockid];
+            item.BlockId = _blockRegistry.WhenPlayerPlacesGetsConvertedTo[blockid];
             if (!Config.IsCreative)
             {
                 GetInventoryUtil(inventory).GrabItem(item, cmd.MaterialSlot);
@@ -2340,25 +2340,25 @@ public partial class Server : ICurrentTime, IDropItem
     {
         Inventory inventory = GetPlayerInventory(Clients[player_id].PlayerName);
         int oldblock = Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
-        if (!(oldblock == SpecialBlockId.Empty || BlockTypeRegistry.IsRailTile(oldblock)))
+        if (!(oldblock == SpecialBlockId.Empty || _blockRegistry.IsRailTile(oldblock)))
         {
             return false;
         }
 
         //count how many rails will be created
         int oldrailcount = 0;
-        if (BlockTypeRegistry.IsRailTile(oldblock))
+        if (_blockRegistry.IsRailTile(oldblock))
         {
             oldrailcount = DirectionUtils.RailDirectionFlagsCount(
-                oldblock - BlockTypeRegistry.BlockIdRailStart);
+                oldblock - _blockRegistry.BlockIdRailStart);
         }
 
         int newrailcount = DirectionUtils.RailDirectionFlagsCount(
-            cmd.BlockType - BlockTypeRegistry.BlockIdRailStart);
+            cmd.BlockType - _blockRegistry.BlockIdRailStart);
         int blockstoput = newrailcount - oldrailcount;
 
         InventoryItem item = inventory.RightHand[cmd.MaterialSlot];
-        if (!(item.InventoryItemType == InventoryItemType.Block && BlockTypeRegistry.Rail[item.BlockId] != 0))
+        if (!(item.InventoryItemType == InventoryItemType.Block && _blockRegistry.Rail[item.BlockId] != 0))
         {
             return false;
         }
@@ -2385,7 +2385,7 @@ public partial class Server : ICurrentTime, IDropItem
         Inventory inventory = GetPlayerInventory(Clients[player_id].PlayerName);
         //add to inventory
         int blockid = Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
-        int blocktype = BlockTypeRegistry.WhenPlayerPlacesGetsConvertedTo[blockid];
+        int blocktype = _blockRegistry.WhenPlayerPlacesGetsConvertedTo[blockid];
         if ((!IsValid(blocktype))
             || blocktype == SpecialBlockId.Empty)
         {
@@ -2393,16 +2393,16 @@ public partial class Server : ICurrentTime, IDropItem
         }
 
         int blockstopick = 1;
-        if (BlockTypeRegistry.IsRailTile(blocktype))
+        if (_blockRegistry.IsRailTile(blocktype))
         {
             blockstopick = DirectionUtils.RailDirectionFlagsCount(
-                blocktype - BlockTypeRegistry.BlockIdRailStart);
+                blocktype - _blockRegistry.BlockIdRailStart);
         }
 
         InventoryItem item = new()
         {
             InventoryItemType = InventoryItemType.Block,
-            BlockId = BlockTypeRegistry.WhenPlayerPlacesGetsConvertedTo[blocktype],
+            BlockId = _blockRegistry.WhenPlayerPlacesGetsConvertedTo[blocktype],
             BlockCount = blockstopick
         };
         if (!Config.IsCreative)
@@ -2874,7 +2874,7 @@ public partial class Server : ICurrentTime, IDropItem
     {
         BlockTypes[id] = block;
         block.Name = name;
-        BlockTypeRegistry.RegisterBlockType(id, block);
+        _blockRegistry.RegisterBlockType(id, block);
     }
 
     public void SetBlockType(string name, BlockType block)

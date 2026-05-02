@@ -71,7 +71,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         }
     }
 
-    private GameScreen ConvertDialog(Dialog p)
+    private ModScreen ConvertDialog(Dialog p)
     {
         DialogScreen s = new(gameService, game)
         {

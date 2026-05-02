@@ -223,7 +223,7 @@ public class VisibleDialog
 {
     internal string key;
     internal Dialog value;
-    internal GameScreen screen;
+    internal ModScreen screen;
 }
 
 public enum RailDirection

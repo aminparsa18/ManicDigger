@@ -6,7 +6,7 @@
 /// touch) to them. Derive from this class and override <see cref="OnButton"/>
 /// to respond to widget interactions.
 /// </summary>
-public class GameScreen : ModBase
+public class ModScreen : ModBase
 {
     /// <summary>Reference to the current game instance.</summary>
     private readonly IGameService platform;
@@ -24,7 +24,7 @@ public class GameScreen : ModBase
     internal int screeny;
 
     /// <summary>Initialises the widget pool with a capacity of 64.</summary>
-    public GameScreen(IGameService platform, IGame game) : base(game)
+    public ModScreen(IGameService platform, IGame game) : base(game)
     {
         this.platform = platform;
         WidgetCount = 64;

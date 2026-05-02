@@ -21,7 +21,7 @@ namespace ManicDigger;
 /// mods in topological order.
 /// </para>
 /// </summary>
-public class ServerSystemModLoader(IGameExit gameExit) : ServerSystem
+public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegistry) : ServerSystem
 {
     /// <summary>All successfully compiled and instantiated mods, keyed by type name.</summary>
     private readonly Dictionary<string, IMod> mods = [];
@@ -38,6 +38,7 @@ public class ServerSystemModLoader(IGameExit gameExit) : ServerSystem
     private static readonly string[] ExtraAssemblyReferences = ["ScriptingApi.dll"];
 
     private readonly IGameExit gameExit = gameExit;
+    private readonly IBlockRegistry _blockRegistry = blockRegistry;
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -108,7 +109,7 @@ public class ServerSystemModLoader(IGameExit gameExit) : ServerSystem
     /// </param>
     private void LoadMods(Server server, bool restart)
     {
-        server.ModManager = new ModManager(gameExit);
+        server.ModManager = new ModManager(gameExit, _blockRegistry );
         ModManager manager = server.ModManager;
         manager.Start(server);
 

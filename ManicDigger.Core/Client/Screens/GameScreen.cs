@@ -1,5 +1,16 @@
 ﻿using OpenTK.Windowing.Common;
 using Serilog;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
+/// <summary>
+/// Extends the base screen contract with the game-session initialisation
+/// method that must be called before the screen becomes active.
+/// </summary>
+public interface IScreenGame : IScreenBase
+{
+    void Start(bool singleplayer, string singleplayerSavePath, ConnectionData connectData);
+    void SetMenu(IMenu menu);
+}
 
 /// <summary>
 /// Menu screen that owns and drives the active <see cref="Game"/> session.
@@ -8,7 +19,7 @@ using Serilog;
 /// </summary>
 public class ScreenGame(IMenu navigator, IGameService platform,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit,
-    IDummyNetwork dummyNetwork, IGame game) : ScreenBase(navigator, platform)
+    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry) : ScreenBase(navigator, platform)
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;
@@ -16,7 +27,8 @@ public class ScreenGame(IMenu navigator, IGameService platform,
     private bool singleplayer;
     private string singleplayerSavePath;
     private readonly IGameExit gameExit = gameExit;
-    private readonly IDummyNetwork dummyNetwork = dummyNetwork;
+    private readonly IDummyNetwork _dummyNetwork = dummyNetwork;
+    private readonly IBlockRegistry _blockRegistry = blockRegistry;
 
     /// <summary>
     /// Initialises the game with the given connection parameters and starts the
@@ -73,9 +85,9 @@ public class ScreenGame(IMenu navigator, IGameService platform,
     private void ServerThreadStart(string singleplayerSavePath)
     {
         Log.Debug("Single-player server thread started");
-        DummyNetServer netServer = new(dummyNetwork);
+        DummyNetServer netServer = new(_dummyNetwork);
 
-        Server server = new(gameExit, GameService)
+        Server server = new(gameExit, GameService, _blockRegistry)
         {
             SaveFilenameOverride = singleplayerSavePath,
             MainSockets = new NetServer[3]

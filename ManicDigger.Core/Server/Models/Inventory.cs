@@ -500,7 +500,7 @@ public class InventoryServer : IInventoryController
 }
 public class GameDataItemsBlocks : IGameDataItems
 {
-    public BlockRegistry? d_Data;
+    public IBlockRegistry? d_Data;
 
     public int ItemSizeX(InventoryItem item)
     {

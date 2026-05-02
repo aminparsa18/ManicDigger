@@ -24,7 +24,7 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public int GetBlockId(string name)
     {
-        foreach ((int id, BlockType? blockType) in server.BlockTypes)
+        foreach ((int id, BlockType? blockType) in _blockRegistry.BlockTypes)
         {
             if (blockType.Name == name)
             {
@@ -43,17 +43,17 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
             throw new Exception(blockType);
         }
 
-        server.BlockTypes[id].IsBuildable = true;
-        _blockRegistry.RegisterBlockType(id, server.BlockTypes[id]);
+        _blockRegistry.BlockTypes[id].IsBuildable = true;
+        _blockRegistry.RegisterBlockType(id, _blockRegistry.BlockTypes[id]);
     }
 
-    public void RegisterOnBlockBuild(ModDelegates.BlockBuild f) => server.ModEventHandlers.onbuild.Add(f);
+    public void RegisterOnBlockBuild(ModDelegates.BlockBuild f) => server.ModEventHandlers.OnBuild.Add(f);
 
-    public void RegisterOnBlockDelete(ModDelegates.BlockDelete f) => server.ModEventHandlers.ondelete.Add(f);
+    public void RegisterOnBlockDelete(ModDelegates.BlockDelete f) => server.ModEventHandlers.OnDelete.Add(f);
 
-    public void RegisterOnBlockUse(ModDelegates.BlockUse f) => server.ModEventHandlers.onuse.Add(f);
+    public void RegisterOnBlockUse(ModDelegates.BlockUse f) => server.ModEventHandlers.OnUse.Add(f);
 
-    public void RegisterOnBlockUseWithTool(ModDelegates.BlockUseWithTool f) => server.ModEventHandlers.onusewithtool.Add(f);
+    public void RegisterOnBlockUseWithTool(ModDelegates.BlockUseWithTool f) => server.ModEventHandlers.OnUseWithTool.Add(f);
 
     public int GetMapSizeX() => server.Map.MapSizeX;
     public int GetMapSizeY() => server.Map.MapSizeY;
@@ -61,7 +61,7 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public int GetBlock(int x, int y, int z) => server.Map.GetBlock(x, y, z);
 
-    public string GetBlockName(int blockType) => server.BlockTypes[blockType].Name;
+    public string GetBlockName(int blockType) => _blockRegistry.BlockTypes[blockType].Name;
 
     public string GetBlockNameAt(int x, int y, int z) => GetBlockName(GetBlock(x, y, z));
 
@@ -222,7 +222,7 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public bool IsCreative => server.Config.IsCreative;
 
-    public bool IsBlockFluid(int block) => server.BlockTypes[block].IsFluid();
+    public bool IsBlockFluid(int block) => _blockRegistry.BlockTypes[block].IsFluid();
 
     public void NotifyInventory(int player)
     {
@@ -248,11 +248,11 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
         }
     }
 
-    public void RegisterOnBlockUpdate(ModDelegates.BlockUpdate f) => server.ModEventHandlers.blockticks.Add(f);
+    public void RegisterOnBlockUpdate(ModDelegates.BlockUpdate f) => server.ModEventHandlers.BlockTicks.Add(f);
 
-    public bool IsTransparentForLight(int p) => Game.IsTransparentForLight(server.BlockTypes[p]);
+    public bool IsTransparentForLight(int p) => Game.IsTransparentForLight(_blockRegistry.BlockTypes[p]);
 
-    public void RegisterWorldGenerator(ModDelegates.WorldGenerator f) => server.ModEventHandlers.getchunk.Add(f);
+    public void RegisterWorldGenerator(ModDelegates.WorldGenerator f) => server.ModEventHandlers.Getchunk.Add(f);
 
     public void RegisterOptionBool(string optionname, bool default_) => modoptions[optionname] = default_;
 
@@ -266,7 +266,7 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public int Index3d(int x, int y, int h, int sizex, int sizey) => (((h * sizey) + y) * sizex) + x;
 
-    public void RegisterPopulateChunk(ModDelegates.PopulateChunk f) => server.ModEventHandlers.populatechunk.Add(f);
+    public void RegisterPopulateChunk(ModDelegates.PopulateChunk f) => server.ModEventHandlers.PopulateChunk.Add(f);
 
     public void SetDefaultSounds(SoundSet defaultSounds) => this.defaultSounds = defaultSounds;
     private SoundSet defaultSounds;
@@ -287,7 +287,7 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public void RegisterOnSave(Action f) => server.OnSave.Add(f);
 
-    public void RegisterOnCommand(ModDelegates.Command f) => server.ModEventHandlers.oncommand.Add(f);
+    public void RegisterOnCommand(ModDelegates.Command f) => server.ModEventHandlers.OnCommand.Add(f);
 
     public string GetPlayerIp(int player) => server.GetClient(player).Socket.RemoteEndPoint().AddressToString();
 
@@ -477,21 +477,21 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public void SetWorldSize(int x, int y, int z) => server.Map.Reset(x, y, z);
 
-    public void RegisterOnPlayerJoin(ModDelegates.PlayerJoin a) => server.ModEventHandlers.onplayerjoin.Add(a);
+    public void RegisterOnPlayerJoin(ModDelegates.PlayerJoin a) => server.ModEventHandlers.OnPlayerJoin.Add(a);
 
-    public void RegisterOnPlayerLeave(ModDelegates.PlayerLeave a) => server.ModEventHandlers.onplayerleave.Add(a);
+    public void RegisterOnPlayerLeave(ModDelegates.PlayerLeave a) => server.ModEventHandlers.OnPlayerLeave.Add(a);
 
-    public void RegisterOnPlayerDisconnect(ModDelegates.PlayerDisconnect a) => server.ModEventHandlers.onplayerdisconnect.Add(a);
+    public void RegisterOnPlayerDisconnect(ModDelegates.PlayerDisconnect a) => server.ModEventHandlers.OnPlayerDisconnect.Add(a);
 
-    public void RegisterOnPlayerChat(ModDelegates.PlayerChat a) => server.ModEventHandlers.onplayerchat.Add(a);
+    public void RegisterOnPlayerChat(ModDelegates.PlayerChat a) => server.ModEventHandlers.OnPlayerChat.Add(a);
 
-    public void RegisterOnPlayerDeath(ModDelegates.PlayerDeath a) => server.ModEventHandlers.onplayerdeath.Add(a);
+    public void RegisterOnPlayerDeath(ModDelegates.PlayerDeath a) => server.ModEventHandlers.OnPlayerDeath.Add(a);
 
     public int[] GetScreenResolution(int player) => server.Clients[player].WindowSize;
 
     public void SendDialog(int player, string id, Dialog dialog) => server.SendDialog(player, id, dialog);
 
-    public void RegisterOnDialogClick(ModDelegates.DialogClick a) => server.ModEventHandlers.ondialogclick.Add(a);
+    public void RegisterOnDialogClick(ModDelegates.DialogClick a) => server.ModEventHandlers.OnDialogClick.Add(a);
 
     public void SetPlayerModel(int player, string model, string texture)
     {
@@ -544,9 +544,9 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
         server.NotifyPlayerStats(player);
     }
 
-    public void RegisterOnWeaponHit(ModDelegates.WeaponHit a) => server.ModEventHandlers.onweaponhit.Add(a);
+    public void RegisterOnWeaponHit(ModDelegates.WeaponHit a) => server.ModEventHandlers.OnWeaponHit.Add(a);
 
-    public void RegisterOnSpecialKey(ModDelegates.SpecialKey1 a) => server.ModEventHandlers.onspecialkey.Add(a);
+    public void RegisterOnSpecialKey(ModDelegates.SpecialKey1 a) => server.ModEventHandlers.OnspecialKey.Add(a);
 
     public float[] GetDefaultSpawnPosition(int player)
     {
@@ -674,7 +674,7 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public void DisablePrivilege(string privilege) => server.Disabledprivileges[privilege] = true;
 
-    public void RegisterChangedActiveMaterialSlot(ModDelegates.ChangedActiveMaterialSlot a) => server.ModEventHandlers.changedactivematerialslot.Add(a);
+    public void RegisterChangedActiveMaterialSlot(ModDelegates.ChangedActiveMaterialSlot a) => server.ModEventHandlers.ChangedActiveMaterialSlot.Add(a);
 
     public Inventory GetInventory(int player) => server.GetPlayerInventory(server.Clients[player].PlayerName);
 
@@ -686,11 +686,11 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public bool IsPlayerSpectator(int player) => server.Clients[player].IsSpectator;
 
-    public BlockType GetBlockType(int block) => server.BlockTypes[block];
+    public BlockType GetBlockType(int block) => _blockRegistry.BlockTypes[block];
 
     public void NotifyAmmo(int player, Dictionary<int, int> totalAmmo) => server.SendAmmo(player, totalAmmo);
 
-    public void RegisterOnWeaponShot(ModDelegates.WeaponShot a) => server.ModEventHandlers.onweaponshot.Add(a);
+    public void RegisterOnWeaponShot(ModDelegates.WeaponShot a) => server.ModEventHandlers.OnWeaponShot.Add(a);
 
     public void LogChat(string s) => server.ChatLog(s);
 
@@ -708,7 +708,7 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public void LogServerEvent(string serverEvent) => server.ServerEventLog(serverEvent);
 
-    public void RegisterOnLoadWorld(ModDelegates.LoadWorld a) => server.ModEventHandlers.onloadworld.Add(a);
+    public void RegisterOnLoadWorld(ModDelegates.LoadWorld a) => server.ModEventHandlers.OnLoadWorld.Add(a);
 
     public void SetWorldDatabaseReadOnly(bool readOnly) => server.ChunkDb.ReadOnly = readOnly;
 
@@ -762,11 +762,11 @@ public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IMod
 
     public bool IsShuttingDown => gameExit.Exit;
 
-    public void RegisterCheckOnBlockBuild(ModDelegates.CheckBlockBuild f) => server.ModEventHandlers.checkonbuild.Add(f);
+    public void RegisterCheckOnBlockBuild(ModDelegates.CheckBlockBuild f) => server.ModEventHandlers.CheckOnBuild.Add(f);
 
-    public void RegisterCheckOnBlockDelete(ModDelegates.CheckBlockDelete f) => server.ModEventHandlers.checkondelete.Add(f);
+    public void RegisterCheckOnBlockDelete(ModDelegates.CheckBlockDelete f) => server.ModEventHandlers.CheckOnDelete.Add(f);
 
-    public void RegisterCheckOnBlockUse(ModDelegates.CheckBlockUse f) => server.ModEventHandlers.checkonuse.Add(f);
+    public void RegisterCheckOnBlockUse(ModDelegates.CheckBlockUse f) => server.ModEventHandlers.CheckOnUse.Add(f);
 
     #region Deprecated methods
     public double GetCurrentYearTotal() => server.GetTimer().Year;

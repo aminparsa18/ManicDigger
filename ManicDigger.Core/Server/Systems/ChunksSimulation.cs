@@ -3,6 +3,12 @@
 public class ServerSystemChunksSimulation : ServerSystem
 {
     private Random _rnd;
+    private IBlockRegistry _blockRegistry;
+
+    public ServerSystemChunksSimulation(IBlockRegistry blockRegistry)
+    {
+        _blockRegistry = blockRegistry;
+    }
 
     public int[] MonsterTypesUnderground = [1, 2];
     public int[] MonsterTypesOnGround = [0, 3, 4];
@@ -110,7 +116,7 @@ public class ServerSystemChunksSimulation : ServerSystem
     {
         unchecked
         {
-            var handlers = server.ModEventHandlers.populatechunk;
+            var handlers = server.ModEventHandlers.PopulateChunk;
             int x = (int)(chunkPos.X * Server.InvertedChunkSize);
             int y = (int)(chunkPos.Y * Server.InvertedChunkSize);
             int z = (int)(chunkPos.Z * Server.InvertedChunkSize);
@@ -134,7 +140,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                 AddMonsters(server, chunkPos);
             }
 
-            var blockTicks = server.ModEventHandlers.blockticks;
+            var blockTicks = server.ModEventHandlers.BlockTicks;
             int tickCount = blockTicks.Count;
 
             for (int xx = 0; xx < Server.ChunkSize; xx++)
@@ -238,9 +244,9 @@ public class ServerSystemChunksSimulation : ServerSystem
             : MonsterTypesUnderground[_rnd.Next(MonsterTypesUnderground.Length)];
     }
 
-    private static bool IsOpenGround(Server server, int px, int py, int pz)
+    private bool IsOpenGround(Server server, int px, int py, int pz)
         => server.Map.GetBlock(px, py, pz) == 0 &&
         server.Map.GetBlock(px, py, pz + 1) == 0 &&
         server.Map.GetBlock(px, py, pz - 1) != 0 &&
-        !server.BlockTypes[server.Map.GetBlock(px, py, pz - 1)].IsFluid();
+        !_blockRegistry.BlockTypes[server.Map.GetBlock(px, py, pz - 1)].IsFluid();
 }

@@ -183,7 +183,7 @@ public class ServerSystemNotifyEntities : ServerSystem
                 continue;
             }
 
-            foreach (var handler in server.ModEventHandlers.onupdateentity)
+            foreach (var handler in server.ModEventHandlers.OnUpdateEntity)
             {
                 handler(e.ChunkX, e.ChunkY, e.ChunkZ, e.Id);
             }

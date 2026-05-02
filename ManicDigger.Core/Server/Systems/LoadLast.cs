@@ -27,7 +27,7 @@ public class ServerSystemLoadLast : ServerSystem
             handler();
         }
 
-        foreach (var handler in server.ModEventHandlers.onloadworld)
+        foreach (var handler in server.ModEventHandlers.OnLoadWorld)
         {
             try
             {

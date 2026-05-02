@@ -8,9 +8,9 @@ public class ServerSystemSign : ServerSystem
     {
         this.server = server;
         server.ModManager.RegisterOnBlockUseWithTool(OnUseWithTool);
-        server.ModEventHandlers.onupdateentity.Add(UpdateEntity);
-        server.ModEventHandlers.onuseentity.Add(OnUseEntity);
-        server.ModEventHandlers.ondialogclick2.Add(OnDialogClick);
+        server.ModEventHandlers.OnUpdateEntity.Add(UpdateEntity);
+        server.ModEventHandlers.OnUseEntity.Add(OnUseEntity);
+        server.ModEventHandlers.OnDialogClick2.Add(OnDialogClick);
     }
 
     private void OnUseWithTool(int player, int x, int y, int z, int tool)

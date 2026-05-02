@@ -27,10 +27,10 @@ public class ServerSystemPermissionSign : ServerSystem
     {
         this.server = server;
         server.ModManager.RegisterOnBlockUseWithTool(OnUseWithTool);
-        server.ModEventHandlers.onupdateentity.Add(UpdateEntity);
-        server.ModEventHandlers.onuseentity.Add(OnUseEntity);
-        server.ModEventHandlers.ondialogclick2.Add(OnDialogClick);
-        server.ModEventHandlers.onpermission.Add(OnPermission);
+        server.ModEventHandlers.OnUpdateEntity.Add(UpdateEntity);
+        server.ModEventHandlers.OnUseEntity.Add(OnUseEntity);
+        server.ModEventHandlers.OnDialogClick2.Add(OnDialogClick);
+        server.ModEventHandlers.OnPermission.Add(OnPermission);
     }
 
     // -------------------------------------------------------------------------

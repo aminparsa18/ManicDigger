@@ -1,4 +1,3 @@
-using ENet;
 using ManicDigger;
 using OpenTK.Mathematics;
 using System.Diagnostics;
@@ -237,7 +236,7 @@ public partial class Server : ICurrentTime, IDropItem
     {
         //Initialize server map
         ServerMapStorage map = new(_blockRegistry, _modEvents); ;
-       // _blockRegistry.Start();
+        // _blockRegistry.Start();
         map.Heightmap = new InfiniteMapChunked2dServer() { d_Map = map };
         map.Reset(Config.MapSizeX, Config.MapSizeY, Config.MapSizeZ);
         Map = map;

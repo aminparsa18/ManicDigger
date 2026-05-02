@@ -2,15 +2,15 @@
 
 public class Revert : IMod
 {
-    private IModManager m;
+    private IServerModManager m;
     private List<object[]> lines = [];
 
     public int MaxRevert = 2000;
 
 
-    public void PreStart(IModManager m) => m.RequireMod("BuildLog");
+    public void PreStart(IServerModManager m) => m.RequireMod("BuildLog");
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
         m.RegisterPrivilege("revert");

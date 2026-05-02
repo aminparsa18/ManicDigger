@@ -2,9 +2,9 @@ namespace ManicDigger.Mods;
 
 public class Doors : IMod
 {
-    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
+    public void PreStart(IServerModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
 
@@ -72,7 +72,7 @@ public class Doors : IMod
         DoorTopOpen = m.GetBlockId("DoorTopOpen");
     }
 
-    private IModManager m;
+    private IServerModManager m;
     private int DoorBottomClosed;
     private int DoorTopClosed;
     private int DoorBottomOpen;

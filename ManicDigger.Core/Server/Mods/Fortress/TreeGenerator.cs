@@ -9,7 +9,7 @@ public class TreeGenerator : IMod
 
     private readonly Random _rnd = new();
     private readonly Billow _treeNoise = new();
-    private IModManager _m;
+    private IServerModManager _m;
 
     private int BLOCK_GRASS;
     private int BLOCK_OAKTRUNK, BLOCK_OAKLEAVES, BLOCK_APPLES;
@@ -27,9 +27,9 @@ public class TreeGenerator : IMod
 
     // ── IMod ─────────────────────────────────────────────────────────────────
 
-    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
+    public void PreStart(IServerModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         _m = manager;
 

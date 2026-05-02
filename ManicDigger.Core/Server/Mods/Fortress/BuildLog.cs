@@ -2,15 +2,15 @@
 
 public class BuildLog : IMod
 {
-    private IModManager? m;
+    private IServerModManager? m;
     //can't pass LogLine object between mods. Store object as an array of fields instead.
     private readonly List<object[]> lines = [];
 
     public int MaxEntries = 50 * 1000;
 
-    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
+    public void PreStart(IServerModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
         modEvents.BlockBuild += OnBuild;

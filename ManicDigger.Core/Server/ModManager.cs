@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace ManicDigger;
 
-public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IModManager
+public class ModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IServerModManager
 {
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;

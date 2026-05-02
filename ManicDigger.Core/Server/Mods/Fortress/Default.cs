@@ -6,11 +6,11 @@
 /// </summary>
 public class Default : IMod
 {
-    public void PreStart(IModManager m)
+    public void PreStart(IServerModManager m)
     {
         m.RequireMod("Core");
         m.RequireMod("CoreBlocks");
         m.RequireMod("CoreCrafting");
     }
-    public void Start(IModManager manager, IModEvents modEvents) { }
+    public void Start(IServerModManager manager, IModEvents modEvents) { }
 }

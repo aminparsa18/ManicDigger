@@ -32,9 +32,9 @@ public class ServerSystemSign : ServerSystem
         {
             Position = new ServerEntityPositionAndOrientation
             {
-                X = args.X + (One / 2),
+                X = args.X + (1f / 2),
                 Y = args.Z,
-                Z = args.Y + (One / 2)
+                Z = args.Y + (1f / 2)
             },
             Sign = new ServerEntitySign { Text = "Hello world!" }
         };
@@ -58,13 +58,13 @@ public class ServerSystemSign : ServerSystem
         e.DrawModel ??= new ServerEntityAnimatedModel();
         e.DrawModel.Model = "signmodel.txt";
         e.DrawModel.Texture = "signmodel.png";
-        e.DrawModel.ModelHeight = One * 13 / 10;
+        e.DrawModel.ModelHeight = 1f * 13 / 10;
 
         e.DrawText ??= new ServerEntityDrawText();
         e.DrawText.Text = e.Sign.Text;
-        e.DrawText.Dx = One * 3 / 32;
-        e.DrawText.Dy = One * 36 / 32;
-        e.DrawText.Dz = One * 3 / 32;
+        e.DrawText.Dx = 1f * 3 / 32;
+        e.DrawText.Dy = 1f * 36 / 32;
+        e.DrawText.Dz = 1f * 3 / 32;
 
         e.Usable = true;
         e.DrawName ??= new ServerEntityDrawName

@@ -26,9 +26,9 @@ namespace ManicDigger.Mods;
 /// </summary>
 public class AdvanceWorldGenerator : IMod
 {
-    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
+    public void PreStart(IServerModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
         chunksize = m.GetChunkSize();
@@ -63,7 +63,7 @@ public class AdvanceWorldGenerator : IMod
     //  State
     // =========================================================================
 
-    private IModManager m;
+    private IServerModManager m;
 
     private int chunksize, mapSizeX, mapSizeY;
 

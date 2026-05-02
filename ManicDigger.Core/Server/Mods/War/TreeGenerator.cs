@@ -4,7 +4,7 @@ namespace ManicDigger.Mods.War;
 
 public class TreeGenerator : IMod
 {
-    private IModManager? m;
+    private IServerModManager? m;
     private readonly int treeCount = 20;
     private readonly Billow treenoise = new();
     private readonly Random _rnd = new();
@@ -18,9 +18,9 @@ public class TreeGenerator : IMod
     private int BLOCK_BIRCHTRUNK;
     private int BLOCK_BIRCHLEAVES;
 
-    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
+    public void PreStart(IServerModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
         int Seed = m.Seed;

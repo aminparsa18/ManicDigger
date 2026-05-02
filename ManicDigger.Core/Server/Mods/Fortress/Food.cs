@@ -2,13 +2,13 @@
 
 public class Food : IMod
 {
-    private IModManager m;
+    private IServerModManager m;
     private int Cake;
     private int Apples;
 
-    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
+    public void PreStart(IServerModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
 

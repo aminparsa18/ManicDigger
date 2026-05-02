@@ -13,8 +13,8 @@ public class War : IMod
 
     public bool EnableTeamkill = true;
 
-    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void PreStart(IServerModManager m) => m.RequireMod("CoreBlocks");
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
         CurrentRespawnTime = DateTime.UtcNow;
@@ -80,7 +80,7 @@ public class War : IMod
         public Dictionary<int, int> totalAmmo = [];
     }
 
-    private IModManager m;
+    private IServerModManager m;
 
     private void PlayerJoin(PlayerJoinArgs args)
     {

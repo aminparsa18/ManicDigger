@@ -143,10 +143,7 @@ public class ServerSystemLoadConfig : ServerSystem
     {
         Directory.CreateDirectory(GameStorePath.gamepathconfig);
 
-        if (server.Config == null)
-        {
-            server.Config = CreateConfigInteractively(server);
-        }
+        server.Config ??= CreateConfigInteractively(server);
 
         if (server.Config.Areas.Count == 0)
         {

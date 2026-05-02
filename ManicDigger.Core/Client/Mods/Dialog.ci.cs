@@ -131,13 +131,13 @@ public class ModDialog : ModBase
         }
     }
 
-    public override void OnKeyUp(KeyEventArgs args) =>
-        ForEachDialog(d => d.screen.OnKeyUp(args));
+    public override void OnKeyUp(KeyEventArgs args)
+        => ForEachDialog(d => d.screen.OnKeyUp(args));
 
-    public override void OnMouseDown(MouseEventArgs args) =>
-        ForEachDialog(d => d.screen.OnMouseDown(args));
-    public override void OnMouseUp(MouseEventArgs args) =>
-        ForEachDialog(d => d.screen.OnMouseUp(args));
+    public override void OnMouseDown(MouseEventArgs args)
+        => ForEachDialog(d => d.screen.OnMouseDown(args));
+    public override void OnMouseUp(MouseEventArgs args)
+        => ForEachDialog(d => d.screen.OnMouseUp(args));
 
     /// <summary>Iterates all non-null dialogs and applies an action to each.</summary>
     private void ForEachDialog(Action<VisibleDialog> action)

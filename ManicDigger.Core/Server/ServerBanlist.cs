@@ -70,10 +70,7 @@
         return counter;
     }
 
-    public bool BanPlayer(string username, string bannedby, string reason)
-    {
-        return TimeBanPlayer(username, bannedby, reason, 0);
-    }
+    public bool BanPlayer(string username, string bannedby, string reason) => TimeBanPlayer(username, bannedby, reason, 0);
 
     public bool TimeBanPlayer(string username, string bannedby, string reason, int intervalMinutes)
     {
@@ -98,10 +95,7 @@
         return true;
     }
 
-    public bool BanIP(string ipadress, string bannedby, string reason)
-    {
-        return TimeBanIP(ipadress, bannedby, reason, 0);
-    }
+    public bool BanIP(string ipadress, string bannedby, string reason) => TimeBanIP(ipadress, bannedby, reason, 0);
 
     public bool TimeBanIP(string ipadress, string bannedby, string reason, int intervalMinutes)
     {

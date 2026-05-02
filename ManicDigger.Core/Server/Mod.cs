@@ -137,9 +137,9 @@ public class ModManager(IGameExit gameExit) : IModManager
 
     public void SetString(string language, string id, string translation) => server.Language.Override(language, id, translation);
 
-    public string GetString(string id) =>
+    public string GetString(string id)
         //Returns string depending on server language
-        server.Language.Get(id);
+        => server.Language.Get(id);
 
     public bool IsValidPos(int x, int y, int z) => VectorUtils.IsValidPos(server.Map, x, y, z);
 

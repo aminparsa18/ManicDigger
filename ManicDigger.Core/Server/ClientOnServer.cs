@@ -168,8 +168,8 @@ public class ClientOnServer
     }
 
     /// <summary>Returns the player's name wrapped in their group color, followed by a reset color.</summary>
-    public string ColoredPlayername(string subsequentColor) =>
-        $"{color}{PlayerName}{subsequentColor}";
+    public string ColoredPlayername(string subsequentColor)
+        => $"{color}{PlayerName}{subsequentColor}";
 
     /// <summary>Timer controlling monster notification intervals.</summary>
     public Timer NotifyMonstersTimer { get; set; }

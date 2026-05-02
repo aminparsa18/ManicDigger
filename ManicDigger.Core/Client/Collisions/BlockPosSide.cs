@@ -13,7 +13,7 @@ public class BlockPosSide
     /// <param name="y">Block grid Y coordinate.</param>
     /// <param name="z">Block grid Z coordinate.</param>
     /// <returns>A new <see cref="BlockPosSide"/> with <see cref="blockPos"/> set.</returns>
-    public static BlockPosSide Create(int x, int y, int z) => new BlockPosSide { blockPos = new Vector3(x, y, z) };
+    public static BlockPosSide Create(int x, int y, int z) => new() { blockPos = new Vector3(x, y, z) };
 
     /// <summary>The integer grid position of the hit block in world space.</summary>
     internal Vector3 blockPos;

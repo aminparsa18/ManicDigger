@@ -166,7 +166,7 @@ public class ServerSystemLoadConfig : ServerSystem
     {
         LanguageService lang = server.Language;
 
-        var config = new ServerConfig
+        ServerConfig config = new()
         {
             // Default to the host machine's locale
             ServerLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName
@@ -247,6 +247,7 @@ public class ServerSystemLoadConfig : ServerSystem
         {
             Console.WriteLine(lang.ServerSetupPortInvalidInput());
         }
+
         return new ServerConfig().Port;
     }
 
@@ -277,6 +278,7 @@ public class ServerSystemLoadConfig : ServerSystem
         {
             Console.WriteLine(lang.ServerSetupMaxClientsInvalidInput());
         }
+
         return new ServerConfig().MaxClients;
     }
 }

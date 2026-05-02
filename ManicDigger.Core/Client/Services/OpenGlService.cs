@@ -43,20 +43,20 @@ public sealed class OpenGlService : IOpenGlService
     // ── Viewport and clear ────────────────────────────────────────────────────
 
     /// <inheritdoc/>
-    public void GlViewport(int x, int y, int width, int height) =>
-        GL.Viewport(x, y, width, height);
+    public void GlViewport(int x, int y, int width, int height)
+        => GL.Viewport(x, y, width, height);
 
     /// <inheritdoc/>
-    public void GlClearColorBufferAndDepthBuffer() =>
-        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+    public void GlClearColorBufferAndDepthBuffer()
+        => GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
     /// <inheritdoc/>
-    public void GlClearDepthBuffer() =>
-        GL.Clear(ClearBufferMask.DepthBufferBit);
+    public void GlClearDepthBuffer()
+        => GL.Clear(ClearBufferMask.DepthBufferBit);
 
     /// <inheritdoc/>
-    public void GlClearColorRgbaf(float r, float g, float b, float a) =>
-        GL.ClearColor(r, g, b, a);
+    public void GlClearColorRgbaf(float r, float g, float b, float a)
+        => GL.ClearColor(r, g, b, a);
 
     // ── Depth test ────────────────────────────────────────────────────────────
 

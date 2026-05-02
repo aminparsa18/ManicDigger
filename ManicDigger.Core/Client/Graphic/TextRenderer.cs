@@ -4,10 +4,7 @@ public class TextRenderer
 {
     public static FontType Font = FontType.Nice;
 
-    public static void SetFont(int fontID)
-    {
-        Font = (FontType)fontID;
-    }
+    public static void SetFont(int fontID) => Font = (FontType)fontID;
 
     private static Bitmap DefaultFont(TextStyle t)
     {
@@ -239,7 +236,7 @@ public class TextRenderer
     private const int TextSizeCacheMax = 512;
     private static SizeF TextSize(string text, float fontsize)
     {
-        TextStyle key = new TextStyle() { Text = text, FontSize = fontsize };
+        TextStyle key = new() { Text = text, FontSize = fontsize };
 
         if (textsizes.TryGetValue(key, out SizeF size))
         {

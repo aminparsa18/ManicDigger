@@ -170,7 +170,7 @@ public class MainMenu : IMenu
         GameService.SetTitle(_lang.GameName());
 
         TextColorRenderer = new TextColorRenderer();
-        var assetLoader = new AssetLoader([PathHelper.DataRoot, "data"]);
+        AssetLoader assetLoader = new([PathHelper.DataRoot, "data"]);
         Assets = assetLoader.LoadAssetsAsync(out float progress);
         AssetsLoadProgress = progress;
 
@@ -559,8 +559,8 @@ public class MainMenu : IMenu
     /// Returns a UI scale factor. On small/mobile screens this scales proportionally
     /// to a 1280-pixel reference width; on desktop it returns exactly 1.
     /// </summary>
-    public float GetScale() =>
-        GameService.IsSmallScreen()
+    public float GetScale()
+        => GameService.IsSmallScreen()
             ? GameService.CanvasWidth / 1280f
             : 1f;
 
@@ -646,8 +646,8 @@ public class MainMenu : IMenu
 
     /// <summary>Starts a single-player session using an existing save file.</summary>
     /// <param name="filename">Absolute path to the <c>.mddbs</c> save file.</param>
-    public void ConnectToSingleplayer(string filename) =>
-        StartGame(true, filename, null);
+    public void ConnectToSingleplayer(string filename)
+        => StartGame(true, filename, null);
 
     // -------------------------------------------------------------------------
     // Login / account helpers
@@ -681,15 +681,8 @@ public class MainMenu : IMenu
     /// actual account creation is not yet implemented.
     /// </summary>
     /// <returns><see cref="LoginResult.Failed"/> on invalid input; <see cref="LoginResult.Ok"/> otherwise.</returns>
-    public static LoginResult CreateAccount(string user, string password)
-    {
-        if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(password))
-        {
-            return LoginResult.Failed;
-        }
-
-        return LoginResult.Ok;
-    }
+    public static LoginResult CreateAccount(string user, string password) 
+        => string.IsNullOrEmpty(user) || string.IsNullOrEmpty(password) ? LoginResult.Failed : LoginResult.Ok;
 
     /// <summary>Placeholder for new-world creation workflow. Not yet implemented.</summary>
     public static void StartNewWorld() { }
@@ -735,28 +728,19 @@ public class MainMenu : IMenu
     }
 
     /// <summary>Records a mouse-button press, caches the initial position, and forwards to the active screen.</summary>
-    public void HandleMouseDown(MouseEventArgs e)
-    {
-        screen.OnMouseDown(e);
-    }
+    public void HandleMouseDown(MouseEventArgs e) => screen.OnMouseDown(e);
 
     /// <summary>Records a mouse-button release and forwards to the active screen.</summary>
-    public void HandleMouseUp(MouseEventArgs e)
-    {
-        screen.OnMouseUp(e);
-    }
+    public void HandleMouseUp(MouseEventArgs e) => screen.OnMouseUp(e);
 
     /// <summary>
     /// Tracks the cursor position and forwards to the active screen.
     /// </summary>
-    public void HandleMouseMove(MouseEventArgs e)
-    {
-        screen.OnMouseMove(e);
-    }
+    public void HandleMouseMove(MouseEventArgs e) => screen.OnMouseMove(e);
 
     /// <summary>Forwards mouse-wheel events to the active screen.</summary>
-    public void HandleMouseWheel(MouseWheelEventArgs e) =>
-        screen.OnMouseWheel(e);
+    public void HandleMouseWheel(MouseWheelEventArgs e)
+        => screen.OnMouseWheel(e);
 
     /// <summary>Records the initiating touch contact and forwards to the active screen.</summary>
     public void HandleTouchStart(TouchEventArgs e)
@@ -791,8 +775,8 @@ public class MainMenu : IMenu
     }
 
     /// <summary>Forwards touch-end events to the active screen.</summary>
-    public void HandleTouchEnd(TouchEventArgs e) =>
-        screen.OnTouchEnd(e);
+    public void HandleTouchEnd(TouchEventArgs e)
+        => screen.OnTouchEnd(e);
 }
 
 // =============================================================================

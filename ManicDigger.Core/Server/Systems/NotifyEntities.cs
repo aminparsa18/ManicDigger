@@ -172,7 +172,7 @@ public class ServerSystemNotifyEntities : ServerSystem
         client.NotifyEntitiesAccum = 0;
 
         // --- Collect nearest entities ---
-        var nearestEntities = new ServerEntityId[SpawnMaxEntities];
+        ServerEntityId[] nearestEntities = new ServerEntityId[SpawnMaxEntities];
         FindNearEntities(server, client, SpawnMaxEntities, nearestEntities);
 
         // --- Run update handlers ---
@@ -259,7 +259,7 @@ public class ServerSystemNotifyEntities : ServerSystem
         int playerY = client.PositionMul32GlZ / 32;
         int playerZ = client.PositionMul32GlY / 32;
 
-        var candidates = new List<ServerEntityId>();
+        List<ServerEntityId> candidates = new();
 
         for (int dx = -1; dx <= 1; dx++)
         {
@@ -299,7 +299,7 @@ public class ServerSystemNotifyEntities : ServerSystem
             }
         }
 
-        var playerPos = new Vector3i(
+        Vector3i playerPos = new(
             client.PositionMul32GlX / 32,
             client.PositionMul32GlY / 32,
             client.PositionMul32GlZ / 32);
@@ -363,8 +363,8 @@ public class ServerSystemNotifyEntities : ServerSystem
     }
 
     /// <summary>Retrieves the <see cref="ServerEntity"/> for a given <see cref="ServerEntityId"/>.</summary>
-    private static ServerEntity GetEntity(Server server, ServerEntityId id) =>
-        server.Map.GetChunk(
+    private static ServerEntity GetEntity(Server server, ServerEntityId id)
+        => server.Map.GetChunk(
             id.ChunkX * Server.ChunkSize,
             id.ChunkY * Server.ChunkSize,
             id.ChunkZ * Server.ChunkSize)
@@ -387,8 +387,8 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// Converts a server-side position/orientation to the fixed-point network
     /// representation (coordinates multiplied by 32).
     /// </summary>
-    private static Packet_PositionAndOrientation ToNetworkEntityPosition(ServerEntityPositionAndOrientation position) =>
-        new()
+    private static Packet_PositionAndOrientation ToNetworkEntityPosition(ServerEntityPositionAndOrientation position)
+        => new()
         {
             X = (int)(position.X * 32),
             Y = (int)(position.Y * 32),
@@ -404,7 +404,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private static Packet_ServerEntity ToNetworkEntity(ServerEntity entity)
     {
-        var p = new Packet_ServerEntity();
+        Packet_ServerEntity p = new();
 
         if (entity.Position != null)
         {

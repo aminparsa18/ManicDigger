@@ -337,7 +337,7 @@ public class ModAutoCamera : ModBase
     private void SavePointsToClipboard()
     {
         // ── Fix #1: StringBuilder instead of repeated string.Format ───────────
-        var sb = new StringBuilder("1,");
+        StringBuilder sb = new("1,");
         for (int i = 0; i < _cameraPointsCount; i++)
         {
             CameraPoint p = _cameraPoints[i];

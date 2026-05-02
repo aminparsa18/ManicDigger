@@ -33,10 +33,7 @@
     public int PlayerDrawDistance { get; set; }
     public bool EnablePlayerPushing { get; set; }
 
-    public bool IsPasswordProtected()
-    {
-        return !string.IsNullOrEmpty(this.Password);
-    }
+    public bool IsPasswordProtected() => !string.IsNullOrEmpty(this.Password);
 
     public bool CanUserBuild(ClientOnServer client, int x, int y, int z)
     {

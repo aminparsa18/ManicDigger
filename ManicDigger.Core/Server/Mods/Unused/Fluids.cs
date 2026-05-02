@@ -27,10 +27,7 @@ public class Fluids : IMod
     private readonly int[] dx = { -1, 0, 1, 1, 1, 0, -1, -1 };
     private readonly int[] dy = { 1, 1, 1, 0, -1, -1, -1, 0 };
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("Default");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("Default");
 
     public void Start(IModManager m)
     {
@@ -45,10 +42,7 @@ public class Fluids : IMod
 
     private IModManager m;
 
-    private static int PositionHash(int x, int y, int z)
-    {
-        return (x * 9973 + y) * 127 + z; //this hash value may overflow, but we don't care
-    }
+    private static int PositionHash(int x, int y, int z) => (x * 9973 + y) * 127 + z; //this hash value may overflow, but we don't care
 
     private void Build(int player, int x, int y, int z)
     {
@@ -59,10 +53,7 @@ public class Fluids : IMod
         }
     }
 
-    private void Delete(int player, int x, int y, int z, int blockid)
-    {
-        CheckNeighbors(x, y, z);
-    }
+    private void Delete(int player, int x, int y, int z, int blockid) => CheckNeighbors(x, y, z);
 
     private void CheckNeighbors(int x, int y, int z)
     {
@@ -263,7 +254,7 @@ public class Fluids : IMod
 
     private void UpdateFluids()
     {
-        var keys = new List<int>(activeFluids.Keys);
+        List<int> keys = new(activeFluids.Keys);
         foreach (int key in keys)
         {
             Vector3i p = activeFluids[key];

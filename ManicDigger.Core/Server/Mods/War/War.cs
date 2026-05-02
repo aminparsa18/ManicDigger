@@ -13,10 +13,7 @@ public class War : IMod
 
     public bool EnableTeamkill = true;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
     public void Start(IModManager manager)
     {
         m = manager;
@@ -838,11 +835,11 @@ public class War : IMod
         }
 
 
-        var wtab = Widget.MakeSolid(0, 0, 0, 0, 0);
+        Widget wtab = Widget.MakeSolid(0, 0, 0, 0, 0);
         wtab.ClickKey = '\t';
         wtab.Id = "Tab";
         widgets.Add(wtab);
-        var wesc = Widget.MakeSolid(0, 0, 0, 0, 0);
+        Widget wesc = Widget.MakeSolid(0, 0, 0, 0, 0);
         wesc.ClickKey = (char)27;
         wesc.Id = "Esc";
         widgets.Add(wesc);
@@ -896,25 +893,13 @@ public class War : IMod
         return false;
     }
 
-    private static float XCenter(float outerWidth, float innerWidth)
-    {
-        return outerWidth / 2 - innerWidth / 2;
-    }
+    private static float XCenter(float outerWidth, float innerWidth) => outerWidth / 2 - innerWidth / 2;
 
-    private static float YCenter(float outerHeight, float innerHeight)
-    {
-        return outerHeight / 2 - innerHeight / 2;
-    }
+    private static float YCenter(float outerHeight, float innerHeight) => outerHeight / 2 - innerHeight / 2;
 
-    private float TextWidth(string text, DialogFont font)
-    {
-        return m.MeasureTextSize(text, font)[0];
-    }
+    private float TextWidth(string text, DialogFont font) => m.MeasureTextSize(text, font)[0];
 
-    private float TextHeight(string text, DialogFont font)
-    {
-        return m.MeasureTextSize(text, font)[1];
-    }
+    private float TextHeight(string text, DialogFont font) => m.MeasureTextSize(text, font)[1];
 
     private string CutText(string text, DialogFont font, float maxWidth)
     {

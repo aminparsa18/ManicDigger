@@ -51,16 +51,11 @@ public sealed class TcpNetClient : NetClient
     }
 
     public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method)
-    {
         // Always enqueue — RunAsync flushes _pendingSend once connected,
         // so pre-connection messages are delivered in order after the handshake.
-        _pendingSend.Writer.TryWrite(payload);
-    }
+        => _pendingSend.Writer.TryWrite(payload);
 
-    public void Disconnect()
-    {
-        _cts?.Cancel();
-    }
+    public void Disconnect() => _cts?.Cancel();
 }
 
 // ---------------------------------------------------------------------------
@@ -91,13 +86,13 @@ public sealed class TcpNetConnection : NetConnection
         _ct = ct;
     }
 
-    public override IpEndpoint RemoteEndPoint() =>
-        IpEndpointDefault.Create($"{_ip}:{_port}");
+    public override IpEndpoint RemoteEndPoint()
+        => IpEndpointDefault.Create($"{_ip}:{_port}");
 
     public override void Update() { }
 
-    public override bool EqualsConnection(NetConnection other) =>
-        other is TcpNetConnection t && t._ip == _ip && t._port == _port;
+    public override bool EqualsConnection(NetConnection other)
+        => other is TcpNetConnection t && t._ip == _ip && t._port == _port;
 
     /// <summary>
     /// Connects, flushes any queued pre-connection sends, then runs the

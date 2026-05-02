@@ -7,10 +7,7 @@
 public class ServerSystemLoadLast : ServerSystem
 {
     /// <inheritdoc/>
-    protected override void Initialize(Server server)
-    {
-        CallModOnLoad(server);
-    }
+    protected override void Initialize(Server server) => CallModOnLoad(server);
 
     /// <summary>
     /// Fires all mod load callbacks in registration order.

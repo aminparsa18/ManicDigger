@@ -30,7 +30,7 @@ public class ServerSystemSign : ServerSystem
             return;
         }
 
-        var e = new ServerEntity
+        ServerEntity e = new()
         {
             Position = new ServerEntityPositionAndOrientation
             {
@@ -91,13 +91,13 @@ public class ServerSystemSign : ServerSystem
             return;
         }
 
-        var font = new DialogFont("Verdana", 11f, DialogFontStyle.Bold);
+        DialogFont font = new("Verdana", 11f, DialogFontStyle.Bold);
 
         Widget okButton = Widget.MakeSolid(100, 100, 100, 50, ColorUtils.ColorFromArgb(255, 100, 100, 100));
         okButton.ClickKey = (char)13;
         okButton.Id = "UseSign_OK";
 
-        var d = new Dialog
+        Dialog d = new()
         {
             Width = 400,
             Height = 200,

@@ -6,10 +6,7 @@ public class ServerSystemBanList : ServerSystem
 {
     private const string BanlistFilename = "ServerBanlist.json";
 
-    protected override void Initialize(Server server)
-    {
-        LoadBanlist(server);
-    }
+    protected override void Initialize(Server server) => LoadBanlist(server);
 
     protected override void OnUpdate(Server server, float dt)
     {
@@ -64,14 +61,14 @@ public class ServerSystemBanList : ServerSystem
         LanguageService lang = server.Language;
         string colorError = server.colorError;
 
-        void SendInvalidArgs() =>
-            server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandInvalidArgs"));
+        void SendInvalidArgs()
+            => server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandInvalidArgs"));
 
         bool TryParseId(out int id) => int.TryParse(args[0], out id);
         bool TryParseDuration(int index, out int duration) => int.TryParse(args[index], out duration);
 
-        string TrailingReason(int fromIndex) =>
-            args.Length > fromIndex ? string.Join(" ", args, fromIndex, args.Length - fromIndex) : "";
+        string TrailingReason(int fromIndex)
+            => args.Length > fromIndex ? string.Join(" ", args, fromIndex, args.Length - fromIndex) : "";
 
         switch (command)
         {
@@ -504,8 +501,8 @@ public class ServerSystemBanList : ServerSystem
         return false;
     }
 
-    private static string FormatReason(Server server, string reason) =>
-        string.IsNullOrEmpty(reason) ? "" : server.Language.Get("Server_CommandKickBanReason") + reason + ".";
+    private static string FormatReason(Server server, string reason)
+        => string.IsNullOrEmpty(reason) ? "" : server.Language.Get("Server_CommandKickBanReason") + reason + ".";
 
     private static void BroadcastAndKick(Server server, int sourceClientId, int targetClientId,
         string broadcastKey, string notificationKey,

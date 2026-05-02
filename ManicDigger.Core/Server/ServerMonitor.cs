@@ -18,10 +18,7 @@ public class ServerMonitor
         this.monitorClients = [];
     }
 
-    public bool RemoveMonitorClient(int clientid)
-    {
-        return this.monitorClients.Remove(clientid);
-    }
+    public bool RemoveMonitorClient(int clientid) => this.monitorClients.Remove(clientid);
 
     public void Start()
     {

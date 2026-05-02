@@ -45,9 +45,9 @@ public class CoreEvents : IMod
         m.SendMessage(player, "&7Respawn");
     }
 
-    private string ColoredPlayername(int player) =>
+    private string ColoredPlayername(int player)
         //Returns the player name in group color
-        string.Format("{0}{1}", m.GetGroupColor(player), m.GetPlayerName(player));
+        => string.Format("{0}{1}", m.GetGroupColor(player), m.GetPlayerName(player));
 
     private void OnPlayerDeath(int player, DeathReason reason, int sourceID)
     {

@@ -1100,10 +1100,7 @@ public partial class Server
         }
     }
 
-    public bool Kick(int sourceClientId, string target)
-    {
-        return Kick(sourceClientId, target, "");
-    }
+    public bool Kick(int sourceClientId, string target) => Kick(sourceClientId, target, "");
 
     public bool Kick(int sourceClientId, string target, string reason)
     {
@@ -1116,10 +1113,7 @@ public partial class Server
         return false;
     }
 
-    public bool Kick(int sourceClientId, int targetClientId)
-    {
-        return this.Kick(sourceClientId, targetClientId, "");
-    }
+    public bool Kick(int sourceClientId, int targetClientId) => this.Kick(sourceClientId, targetClientId, "");
 
     public bool Kick(int sourceClientId, int targetClientId, string reason)
     {
@@ -1301,7 +1295,7 @@ public partial class Server
                 {
                     for (int xx = 0; xx < util.CellCountX && !found; xx++)
                     {
-                        var key = new GridPoint(xx, yy);
+                        GridPoint key = new(xx, yy);
                         if (!inventory.Items.TryGetValue(key, out InventoryItem currentItem))
                         {
                             continue;
@@ -1322,7 +1316,7 @@ public partial class Server
                     {
                         for (int xx = 0; xx < util.CellCountX && !found; xx++)
                         {
-                            var cell = new Point(xx, yy);
+                            Point cell = new(xx, yy);
                             if (util.ItemAtCell(cell) == null)
                             {
                                 inventory.Items[new GridPoint(xx, yy)] = new InventoryItem
@@ -1389,7 +1383,7 @@ public partial class Server
                 {
                     for (int yy = 0; yy < util.CellCountY && !found; yy++)
                     {
-                        var key = new GridPoint(xx, yy);
+                        GridPoint key = new(xx, yy);
                         if (!inventory.Items.TryGetValue(key, out InventoryItem currentItem))
                         {
                             continue;

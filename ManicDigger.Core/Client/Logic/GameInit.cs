@@ -330,8 +330,8 @@ public partial class Game : IGame
     public bool EnableCameraControl { set => enableCameraControl = value; }
     public Dictionary<string, string> PerformanceInfo => performanceinfo;
 
-    public float LocalEyeHeight =>
-        Entities[LocalPlayerId].drawModel.eyeHeight;
+    public float LocalEyeHeight
+        => Entities[LocalPlayerId].drawModel.eyeHeight;
 
     public FreemoveLevel FreemoveLevel
     {

@@ -91,7 +91,7 @@ public class FastNoiseBasis
             _seed = value;
 
             // Fill perm[0..255] from a seeded RNG and mirror to [256..511].
-            var rng = new Random(_seed);
+            Random rng = new(_seed);
             for (int i = 0; i < 256; i++)
             {
                 _permutations[i] = rng.Next(255);
@@ -219,7 +219,7 @@ public class FastNoiseBasis
         int b = perm[cx + 1] + cy;
 
         // ── Level 2: 4-wide gather → corners = [aa, ab, ba, bb] ──────────────
-        var idx2 = Vector128.Create(a, a + 1, b, b + 1);
+        Vector128<int> idx2 = Vector128.Create(a, a + 1, b, b + 1);
 
         fixed (int* pperm = _permutations)
         fixed (float* pgrad = _gradients)
@@ -240,10 +240,10 @@ public class FastNoiseBasis
             //   0x44 = 0b01_00_01_00 → [c[0], c[1], c[0], c[1]] = [aa, ab, aa, ab]
             //   0xEE = 0b11_10_11_10 → [c[2], c[3], c[2], c[3]] = [ba, bb, ba, bb]
 
-            var adv = Vector128.Create(0, 0, 1, 1);
+            Vector128<int> adv = Vector128.Create(0, 0, 1, 1);
             var lo128 = Sse2.Add(Sse2.Shuffle(corners, 0x44), adv); // [aa, ab, aa+1, ab+1]
             var hi128 = Sse2.Add(Sse2.Shuffle(corners, 0xEE), adv); // [ba, bb, ba+1, bb+1]
-            var gradIdx = Vector256.Create(lo128, hi128);
+            Vector256<int> gradIdx = Vector256.Create(lo128, hi128);
 
             var grads = Avx2.GatherVector256(pgrad, gradIdx, 4);
             // grads = [grad[aa], grad[ab], grad[aa+1], grad[ab+1],

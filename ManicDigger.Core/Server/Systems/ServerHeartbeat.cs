@@ -65,7 +65,7 @@ public class ServerSystemHeartbeat : ServerSystem
         heartbeat.Key = server.Config.Key;
         heartbeat.Motd = server.Config.Motd;
 
-        var playerNames = new List<string>();
+        List<string> playerNames = new();
         lock (server.Clients)
         {
             foreach (var (_, client) in server.Clients)
@@ -167,7 +167,7 @@ public class ServerHeartbeat
     {
         listUrl ??= await HttpClient.GetStringAsync("http://manicdigger.sourceforge.net/heartbeat.txt");
 
-        var formData = new Dictionary<string, string>
+        Dictionary<string, string> formData = new()
         {
             ["name"] = Name,
             ["max"] = MaxClients.ToString(),
@@ -183,7 +183,7 @@ public class ServerHeartbeat
             ["players"] = string.Join(",", Players),
         };
 
-        using var content = new FormUrlEncodedContent(formData);
+        using FormUrlEncodedContent content = new(formData);
         using var response = await HttpClient.PostAsync(listUrl, content);
         response.EnsureSuccessStatusCode();
         ReceivedKey = await response.Content.ReadAsStringAsync();

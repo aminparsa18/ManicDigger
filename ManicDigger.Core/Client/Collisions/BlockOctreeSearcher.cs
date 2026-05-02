@@ -53,7 +53,7 @@ public class BlockOctreeSearcher
             return [box];
         }
 
-        var result = new List<Box3>();
+        List<Box3> result = new();
         foreach (Box3 child in GetChildren(box))
         {
             if (query.Hit(child))

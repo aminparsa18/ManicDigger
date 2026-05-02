@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using System.Text;
+
+/// <summary>
 /// Displays an FPS counter and frame-time history graph.
 /// Toggle with F7 or the "fps" command.
 /// </summary>
@@ -103,7 +105,7 @@ public class ModFpsHistoryGraph : ModBase
 
         Game.PerformanceInfo["fps"] = $"FPS: {fps} (min: {minFps})";
 
-        var sb = new System.Text.StringBuilder();
+        StringBuilder sb = new();
         int idx = 0;
         foreach (string value in Game.PerformanceInfo.Values)
         {

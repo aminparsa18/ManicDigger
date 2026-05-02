@@ -88,24 +88,18 @@ public sealed class CameraService : ICameraService
     public void TurnRight(float delta) => _azimuth -= delta;
 
     /// <inheritdoc/>
-    public void TurnUp(float delta)
-    {
-        _angle = Math.Clamp(_angle + delta, _minimumAngle, _maximumAngle);
-    }
+    public void TurnUp(float delta) => _angle = Math.Clamp(_angle + delta, _minimumAngle, _maximumAngle);
 
     /// <inheritdoc/>
-    public void TurnDown(float delta)
-    {
-        _angle = Math.Clamp(_angle - delta, _minimumAngle, _maximumAngle);
-    }
+    public void TurnDown(float delta) => _angle = Math.Clamp(_angle - delta, _minimumAngle, _maximumAngle);
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
     /// <summary>Vertical offset of the camera above <see cref="Center"/>.</summary>
-    private float HeightFromCenter() =>
-        MathF.Sin(_angle * MathF.PI / 180f) * _distance;
+    private float HeightFromCenter()
+        => MathF.Sin(_angle * MathF.PI / 180f) * _distance;
 
     /// <summary>Horizontal (XZ-plane) distance from <see cref="Center"/> to the camera eye.</summary>
-    private float FlatDistance() =>
-        MathF.Cos(_angle * MathF.PI / 180f) * _distance;
+    private float FlatDistance()
+        => MathF.Cos(_angle * MathF.PI / 180f) * _distance;
 }

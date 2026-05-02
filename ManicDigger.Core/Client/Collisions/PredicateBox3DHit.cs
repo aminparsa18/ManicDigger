@@ -14,7 +14,7 @@ public class PredicateBox3DHit : PredicateBox3D
     /// Creates a new <see cref="PredicateBox3DHit"/> bound to the given <paramref name="searcher"/>.
     /// </summary>
     /// <param name="searcher">The octree searcher providing the line to test against.</param>
-    public static PredicateBox3DHit Create(BlockOctreeSearcher searcher) => new PredicateBox3DHit { s = searcher };
+    public static PredicateBox3DHit Create(BlockOctreeSearcher searcher) => new() { s = searcher };
 
     /// <inheritdoc/>
     public override bool Hit(Box3 box) => s.BoxHit(box);

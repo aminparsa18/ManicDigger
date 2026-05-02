@@ -171,8 +171,8 @@ public class ModNetworkProcess : ModBase
         // MemoryStream(byte[], int, int) wraps the existing array without copying.
         // GZipStream reads from it and writes the decompressed bytes directly into
         // ret via the Read loop — no intermediate byte[] allocation at any point.
-        using var source = new MemoryStream(compressed, 0, compressedLength, writable: false);
-        using var gz = new GZipStream(source, CompressionMode.Decompress);
+        using MemoryStream source = new(compressed, 0, compressedLength, writable: false);
+        using GZipStream gz = new(source, CompressionMode.Decompress);
 
         int totalRead = 0;
         int bytesRead;
@@ -522,8 +522,8 @@ public class ModNetworkProcess : ModBase
                     // only lastTextureId entries were populated — scanning nulls.
                     // HashSet gives O(1) membership checks; a parallel List
                     // preserves insertion order for IndexOf lookups.
-                    var textureSet = new HashSet<string>(StringComparer.Ordinal);
-                    var textureList = new List<string>();
+                    HashSet<string> textureSet = new(StringComparer.Ordinal);
+                    List<string> textureList = new();
 
                     string[] scratch = _textureIdScratch;
 

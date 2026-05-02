@@ -74,8 +74,8 @@ public sealed class EnetNetConnection : NetConnection
         Peer = peer;
     }
 
-    public override IpEndpoint RemoteEndPoint() =>
-        IpEndpointDefault.Create(Peer.GetRemoteAddress().AddressToString());
+    public override IpEndpoint RemoteEndPoint()
+        => IpEndpointDefault.Create(Peer.GetRemoteAddress().AddressToString());
 
     public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
     {
@@ -85,8 +85,8 @@ public sealed class EnetNetConnection : NetConnection
 
     public override void Update() { }
 
-    public override bool EqualsConnection(NetConnection other) =>
-        other is EnetNetConnection e && e.Peer.UserData() == Peer.UserData();
+    public override bool EqualsConnection(NetConnection other)
+        => other is EnetNetConnection e && e.Peer.UserData() == Peer.UserData();
 
     // CastToEnetNetConnection on IGamePlatform is no longer needed —
     // callers can just cast directly or use pattern matching as above.

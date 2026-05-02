@@ -27,10 +27,7 @@ public class ServerSystemLoadServerClient : ServerSystem
     // -------------------------------------------------------------------------
 
     /// <inheritdoc/>
-    protected override void Initialize(Server server)
-    {
-        LoadServerClient(server);
-    }
+    protected override void Initialize(Server server) => LoadServerClient(server);
 
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)

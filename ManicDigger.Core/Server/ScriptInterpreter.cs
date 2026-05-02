@@ -23,10 +23,8 @@ public class JavaScriptInterpreter : IScriptInterpreter
     public TimeSpan ExecutionTimeout { get; set; }
 
     public bool Execute(string script)
-    {
         // <-- discard
-        return Execute(script, out object result);
-    }
+        => Execute(script, out object result);
 
     public bool Execute(string script, out object result)
     {
@@ -42,14 +40,8 @@ public class JavaScriptInterpreter : IScriptInterpreter
         }
     }
 
-    public void SetVariable(string name, object value)
-    {
-        m_engine.SetValue(name, value);
-    }
+    public void SetVariable(string name, object value) => m_engine.SetValue(name, value);
 
-    public void SetFunction(string name, Delegate function)
-    {
-        m_engine.SetValue(name, function);
-    }
+    public void SetFunction(string name, Delegate function) => m_engine.SetValue(name, function);
 }
 

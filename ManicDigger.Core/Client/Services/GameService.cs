@@ -41,10 +41,7 @@ public class GameService : IGameService
 
     public string StoragePath { get; } = GameStorePath.GetStorePath();
 
-    public string GetGameVersion()
-    {
-        return GameVersion.Version;
-    }
+    public string GetGameVersion() => GameVersion.Version;
 
     public string GameLogsPath => Path.Combine(StoragePath, "Logs");
 
@@ -66,10 +63,7 @@ public class GameService : IGameService
         return true;
     }
 
-    public void MessageBoxShowError(string text, string caption)
-    {
-        MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-    }
+    public void MessageBoxShowError(string text, string caption) => MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
     public void ApplicationDoEvents()
     {
@@ -84,27 +78,15 @@ public class GameService : IGameService
     {
     }
 
-    public bool IsFastSystem()
-    {
-        return true;
-    }
+    public bool IsFastSystem() => true;
 
     public bool IsMac = Environment.OSVersion.Platform == PlatformID.MacOSX;
 
-    public bool MultithreadingAvailable()
-    {
-        return true;
-    }
+    public bool MultithreadingAvailable() => true;
 
-    public void QueueUserWorkItem(Action action)
-    {
-        ThreadPool.QueueUserWorkItem((a) => { action(); });
-    }
+    public void QueueUserWorkItem(Action action) => ThreadPool.QueueUserWorkItem((a) => { action(); });
 
-    public bool IsSmallScreen()
-    {
-        return TouchTest;
-    }
+    public bool IsSmallScreen() => TouchTest;
 
     public void OpenLinkInBrowser(string url)
     {
@@ -116,7 +98,7 @@ public class GameService : IGameService
         Process.Start(url);
     }
 
-    public string Cachepath() { return Path.Combine(StoragePath, "Cache"); }
+    public string Cachepath() => Path.Combine(StoragePath, "Cache");
     public void Checkcachedir()
     {
         if (!Directory.Exists(Cachepath()))
@@ -165,15 +147,9 @@ public class GameService : IGameService
         return File.Exists(Path.Combine(Cachepath(), md5));
     }
 
-    public bool IsDebuggerAttached()
-    {
-        return Debugger.IsAttached;
-    }
+    public bool IsDebuggerAttached() => Debugger.IsAttached;
 
-    public string QueryStringValue(string key)
-    {
-        return null;
-    }
+    public string QueryStringValue(string key) => null;
 
     #endregion
 
@@ -213,15 +189,9 @@ public class GameService : IGameService
         Window.Run();
     }
 
-    private void WindowClosed(CancelEventArgs e)
-    {
-        _gameExit.Exit = e.Cancel;
-    }
+    private void WindowClosed(CancelEventArgs e) => _gameExit.Exit = e.Cancel;
 
-    public void SetVSync(bool enabled)
-    {
-        Window.VSync = enabled ? VSyncMode.On : VSyncMode.Off;
-    }
+    public void SetVSync(bool enabled) => Window.VSync = enabled ? VSyncMode.On : VSyncMode.Off;
 
     private readonly Screenshot screenshot = new();
 
@@ -244,10 +214,7 @@ public class GameService : IGameService
         Window.Close();
     }
 
-    public void SetTitle(string applicationname)
-    {
-        Window.Title = applicationname;
-    }
+    public void SetTitle(string applicationname) => Window.Title = applicationname;
 
     public string KeyName(int key)
     {
@@ -267,7 +234,7 @@ public class GameService : IGameService
             resolutions = [];
             foreach (var screen in Screen.AllScreens)
             {
-                var resolution = new DisplayResolutionCi
+                DisplayResolutionCi resolution = new()
                 {
                     Width = screen.Bounds.Width,
                     Height = screen.Bounds.Height,
@@ -286,25 +253,16 @@ public class GameService : IGameService
         return resolutions;
     }
 
-    public WindowState GetWindowState()
-    {
-        return Window.WindowState;
-    }
+    public WindowState GetWindowState() => Window.WindowState;
 
-    public void SetWindowState(WindowState value)
-    {
-        Window.WindowState = value;
-    }
+    public void SetWindowState(WindowState value) => Window.WindowState = value;
 
-    public void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate)
-    {
-        Window.Size = new Vector2i(width, height);
-    }
+    public void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate) => Window.Size = new Vector2i(width, height);
 
     public DisplayResolutionCi GetDisplayResolutionDefault()
     {
         var screen = Screen.PrimaryScreen!;
-        var r = new DisplayResolutionCi
+        DisplayResolutionCi r = new()
         {
             Width = screen.Bounds.Width,
             Height = screen.Bounds.Height,
@@ -319,10 +277,7 @@ public class GameService : IGameService
     #region Event handlers
 
     public List<Action<float>> newFrameHandlers = new();
-    public void AddOnNewFrame(Action<float> handler)
-    {
-        newFrameHandlers.Add(handler);
-    }
+    public void AddOnNewFrame(Action<float> handler) => newFrameHandlers.Add(handler);
 
     public List<Action<KeyEventArgs>> KeyDownHandlers { get; set; } = [];
 
@@ -350,10 +305,7 @@ public class GameService : IGameService
     }
 
     public List<KeyEventHandler> keyEventHandlers = new();
-    public void AddOnKeyEvent(KeyEventHandler handler)
-    {
-        keyEventHandlers.Add(handler);
-    }
+    public void AddOnKeyEvent(KeyEventHandler handler) => keyEventHandlers.Add(handler);
 
     public void AddOnMouseEvent(
         Action<MouseEventArgs> onMouseDown,
@@ -377,10 +329,7 @@ public class GameService : IGameService
     }
 
     public CrashReporter crashreporter;
-    public void AddOnCrash(OnCrashHandler handler)
-    {
-        crashreporter.OnCrash += handler.OnCrash;
-    }
+    public void AddOnCrash(OnCrashHandler handler) => crashreporter.OnCrash += handler.OnCrash;
 
     #endregion
 
@@ -389,15 +338,9 @@ public class GameService : IGameService
     private bool mousePointerLocked;
     private bool mouseCursorVisible = true;
 
-    public bool IsMousePointerLocked()
-    {
-        return mousePointerLocked;
-    }
+    public bool IsMousePointerLocked() => mousePointerLocked;
 
-    public bool MouseCursorIsVisible()
-    {
-        return mouseCursorVisible;
-    }
+    public bool MouseCursorIsVisible() => mouseCursorVisible;
 
     public void SetWindowCursor(int hotx, int hoty, int sizex, int sizey, byte[] imgdata, int imgdataLength)
     {
@@ -433,10 +376,7 @@ public class GameService : IGameService
         }
     }
 
-    public void RestoreWindowCursor()
-    {
-        Window.Cursor = MouseCursor.Default;
-    }
+    public void RestoreWindowCursor() => Window.Cursor = MouseCursor.Default;
 
     public void MouseCursorSetVisible(bool value)
     {
@@ -478,10 +418,7 @@ public class GameService : IGameService
         mousePointerLocked = false;
     }
 
-    public bool Focused()
-    {
-        return Window.IsFocused;
-    }
+    public bool Focused() => Window.IsFocused;
 
     private void WindowRenderFrame(FrameEventArgs e)
     {
@@ -517,10 +454,7 @@ public class GameService : IGameService
         }
     }
 
-    private void Mouse_WheelChanged(MouseWheelEventArgs e)
-    {
-        OnMouseWheel?.Invoke(e);
-    }
+    private void Mouse_WheelChanged(MouseWheelEventArgs e) => OnMouseWheel?.Invoke(e);
 
     private void Mouse_ButtonDown(MouseButtonEventArgs e)
     {
@@ -590,7 +524,7 @@ public class GameService : IGameService
 
     private void GameTextInput(TextInputEventArgs e)
     {
-        var args = new KeyPressEventArgs { KeyChar = (char)e.Unicode };
+        KeyPressEventArgs args = new() { KeyChar = (char)e.Unicode };
         foreach (var h in KeyPressHandlers)
         {
             h(args);

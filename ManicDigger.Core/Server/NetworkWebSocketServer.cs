@@ -78,10 +78,7 @@ internal sealed class WebSocketSession : WebSocketBehavior
         });
     }
 
-    protected override void OnError(ErrorEventArgs e)
-    {
-        Log.Warn($"WebSocket session error: {e.Message}");
-    }
+    protected override void OnError(ErrorEventArgs e) => Log.Warn($"WebSocket session error: {e.Message}");
 
     internal void Send(ReadOnlyMemory<byte> payload)
     {
@@ -122,13 +119,10 @@ public sealed class WebSocketConnection : NetConnection
         }
     }
 
-    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
-    {
-        _session.Send(payload);
-    }
+    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0) => _session.Send(payload);
 
     public override void Update() { }
 
-    public override bool EqualsConnection(NetConnection other) =>
-        other is WebSocketConnection w && w._session == _session;
+    public override bool EqualsConnection(NetConnection other)
+        => other is WebSocketConnection w && w._session == _session;
 }

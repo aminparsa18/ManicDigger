@@ -63,7 +63,7 @@ public class MultiplayerScreen : ScreenBase
         serverButtons = new MenuWidget[serverButtonsCount];
         for (int i = 0; i < serverButtonsCount; i++)
         {
-            MenuWidget b = new MenuWidget
+            MenuWidget b = new()
             {
                 text = "Invalid",
                 type = UIWidgetType.Button,

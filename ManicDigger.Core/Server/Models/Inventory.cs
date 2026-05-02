@@ -24,7 +24,7 @@ public class InventoryUtil
         {
             for (int yy = 0; yy < sizeY; yy++)
             {
-                Point cell = new Point(pX + xx, pY + yy);
+                Point cell = new(pX + xx, pY + yy);
                 if (!IsValidCell(cell))
                 {
                     retCount = 0;
@@ -56,10 +56,7 @@ public class InventoryUtil
         return itemsAtArea;
     }
 
-    public bool IsValidCell(Point p)
-    {
-        return !(p.X < 0 || p.Y < 0 || p.X >= CellCountX || p.Y >= CellCountY);
-    }
+    public bool IsValidCell(Point p) => !(p.X < 0 || p.Y < 0 || p.X >= CellCountX || p.Y >= CellCountY);
 
     public IEnumerable<Point> ItemCells(Point p)
     {
@@ -543,8 +540,5 @@ public class GameDataItemsBlocks : IGameDataItems
         };
     }
 
-    public string ItemGraphics(InventoryItem item)
-    {
-        throw new NotImplementedException();
-    }
+    public string ItemGraphics(InventoryItem item) => throw new NotImplementedException();
 }

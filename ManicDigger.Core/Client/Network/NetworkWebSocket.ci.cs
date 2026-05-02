@@ -63,10 +63,7 @@ public sealed class WebSocketNetClient : NetClient
         return msg;
     }
 
-    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method)
-    {
-        _connection?.SendMessage(payload, method);
-    }
+    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method) => _connection?.SendMessage(payload, method);
 }
 
 public sealed class WebSocketClientConnection : NetConnection
@@ -80,8 +77,8 @@ public sealed class WebSocketClientConnection : NetConnection
         _address = address;
     }
 
-    public override IpEndpoint RemoteEndPoint() =>
-        IpEndpointDefault.Create(_address);
+    public override IpEndpoint RemoteEndPoint()
+        => IpEndpointDefault.Create(_address);
 
     public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
     {
@@ -97,8 +94,8 @@ public sealed class WebSocketClientConnection : NetConnection
 
     public override void Update() { }
 
-    public override bool EqualsConnection(NetConnection other) =>
-        other is WebSocketClientConnection w && w._address == _address;
+    public override bool EqualsConnection(NetConnection other)
+        => other is WebSocketClientConnection w && w._address == _address;
 }
 
 // ---------------------------------------------------------------------------

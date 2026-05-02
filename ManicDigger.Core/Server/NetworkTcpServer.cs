@@ -143,18 +143,15 @@ public sealed class TcpServerConnection : NetConnection
         _address = address;
     }
 
-    public override IpEndpoint RemoteEndPoint() =>
-        IpEndpointDefault.Create(_address);
+    public override IpEndpoint RemoteEndPoint()
+        => IpEndpointDefault.Create(_address);
 
     public override void Update() { }
 
-    public override bool EqualsConnection(NetConnection other) =>
-        other is TcpServerConnection t && t._address == _address;
+    public override bool EqualsConnection(NetConnection other)
+        => other is TcpServerConnection t && t._address == _address;
 
-    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
-    {
-        _sendQueue.Writer.TryWrite(payload);
-    }
+    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0) => _sendQueue.Writer.TryWrite(payload);
 
     internal async Task SendLoopAsync(NetworkStream stream, CancellationToken ct)
     {

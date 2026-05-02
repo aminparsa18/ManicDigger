@@ -1,15 +1,9 @@
 # MD specific #
 ###############
 output
-CitoOutput
 bin
 obj
-/Packet.Serializer.cs
 /ManicDiggerLib/Server/Mods/current.txt
-/Packet.cs
-/Assets.ci.cs
-/Html/Assets.js
-/Html/ManicDigger.js
 .vs/
 
 # General #

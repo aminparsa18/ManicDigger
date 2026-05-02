@@ -47,8 +47,8 @@
     public static string DecodeHTMLEntities(string htmlEncodedString) => System.Web.HttpUtility.HtmlDecode(htmlEncodedString);
 
     /// <summary>Encodes a yaw angle (radians) as a 0–255 byte.</summary>
-    public static byte HeadingByte(float orientationX, float orientationY, float orientationZ) =>
-        (byte)(int)(orientationY % (2 * MathF.PI) / (2 * MathF.PI) * 256);
+    public static byte HeadingByte(float orientationX, float orientationY, float orientationZ)
+        => (byte)(int)(orientationY % (2 * MathF.PI) / (2 * MathF.PI) * 256);
 
     /// <summary>Encodes a pitch angle (radians) as a 0–255 byte.</summary>
     public static byte PitchByte(float orientationX, float orientationY, float orientationZ)

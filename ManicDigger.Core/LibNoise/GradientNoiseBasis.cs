@@ -49,8 +49,8 @@ public sealed class GradientNoiseBasis
 {
     // ── Gradient source table (XYZW interleaved, used only during static init) ──
 
-    private static ReadOnlySpan<float> RvData =>
-    [
+    private static ReadOnlySpan<float> RvData
+    => [
         -0.763874f, -0.596439f, -0.246489f, 0f,  0.396055f,  0.904518f, -0.158073f, 0f,
         -0.499004f, -0.866500f, -0.013163f, 0f,  0.468724f, -0.824756f,  0.316346f, 0f,
          0.829598f,  0.431950f,  0.353816f, 0f, -0.454473f,  0.629497f, -0.630228f, 0f,

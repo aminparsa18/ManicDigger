@@ -13,7 +13,7 @@ public class ModGuiTextEditor : GameScreen
     private const int CharCursor = 95; // '_'
     private const int CharSpace = 32;
 
-    private static readonly Font Font = new Font("Courier New", 12);
+    private static readonly Font Font = new("Courier New", 12);
     private static readonly int BackgroundColor = ColorUtils.ColorFromArgb(255, 100, 100, 100);
 
     private readonly int[][] buffer = new int[MaxLines][];
@@ -116,8 +116,8 @@ public class ModGuiTextEditor : GameScreen
         e.Handled = true;
     }
 
-    private static string LineToString(int[] line) =>
-        line == null ? "" : EncodingHelper.CharArrayToString(line, LineLength(line));
+    private static string LineToString(int[] line)
+        => line == null ? "" : EncodingHelper.CharArrayToString(line, LineLength(line));
 
     private static int LineLength(int[] line)
     {

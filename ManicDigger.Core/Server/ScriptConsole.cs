@@ -47,10 +47,7 @@ public class ScriptConsole
         m_server.SendMessage(m_client, obj.ToString(), Server.MessageType.Normal);
     }
 
-    public void PrintMaterials()
-    {
-        PrintMaterials(0, GameConstants.MAX_BLOCKTYPES);
-    }
+    public void PrintMaterials() => PrintMaterials(0, GameConstants.MAX_BLOCKTYPES);
 
     public void PrintMaterials(double start, double end)
     {
@@ -85,25 +82,14 @@ public class ScriptConsole
     }
 
     public void SetBlock(double x, double y, double z, double material)
-    {
         //m_server.CreateBlock((int)x, (int)y, (int)z, m_client, new Item() { BlockId = (int)material, ItemClass = ItemClass.Block, BlockCount = 1 });
-        m_server.SetBlock((int)x, (int)y, (int)z, (int)material);
-    }
+        => m_server.SetBlock((int)x, (int)y, (int)z, (int)material);
 
-    public int GetBlock(double x, double y, double z)
-    {
-        return m_server.GetBlock((int)x, (int)y, (int)z);
-    }
+    public int GetBlock(double x, double y, double z) => m_server.GetBlock((int)x, (int)y, (int)z);
 
-    public double GetHeight(double x, double y)
-    {
-        return m_server.GetHeight((int)x, (int)y);
-    }
+    public double GetHeight(double x, double y) => m_server.GetHeight((int)x, (int)y);
 
-    public void DeleteChunk(double x, double y, double z)
-    {
-        m_server.DeleteChunk((int)x, (int)y, (int)z);
-    }
+    public void DeleteChunk(double x, double y, double z) => m_server.DeleteChunk((int)x, (int)y, (int)z);
 
     public void DeleteChunkRange(double x1, double y1, double z1, double x2, double y2, double z2)
     {
@@ -122,30 +108,15 @@ public class ScriptConsole
         m_server.DeleteChunks(chunkPositions);
     }
 
-    public void SetChunk(double x, double y, double z, ushort[] data)
-    {
-        m_server.SetChunk((int)x, (int)y, (int)z, data);
-    }
+    public void SetChunk(double x, double y, double z, ushort[] data) => m_server.SetChunk((int)x, (int)y, (int)z, data);
 
-    public void SetChunks(Dictionary<Vector3i, ushort[]> chunks)
-    {
-        m_server.SetChunks(chunks);
-    }
+    public void SetChunks(Dictionary<Vector3i, ushort[]> chunks) => m_server.SetChunks(chunks);
 
-    public void SetChunks(double offsetX, double offsetY, double offsetZ, Dictionary<Vector3i, ushort[]> chunks)
-    {
-        m_server.SetChunks((int)offsetX, (int)offsetY, (int)offsetZ, chunks);
-    }
+    public void SetChunks(double offsetX, double offsetY, double offsetZ, Dictionary<Vector3i, ushort[]> chunks) => m_server.SetChunks((int)offsetX, (int)offsetY, (int)offsetZ, chunks);
 
-    public ushort[] GetChunk(double x, double y, double z)
-    {
-        return m_server.GetChunk((int)x, (int)y, (int)z);
-    }
+    public ushort[] GetChunk(double x, double y, double z) => m_server.GetChunk((int)x, (int)y, (int)z);
 
-    public ushort[] GetChunkFromDatabase(double x, double y, double z, string file)
-    {
-        return m_server.GetChunkFromDatabase((int)x, (int)y, (int)z, file);
-    }
+    public ushort[] GetChunkFromDatabase(double x, double y, double z, string file) => m_server.GetChunkFromDatabase((int)x, (int)y, (int)z, file);
 
     public Dictionary<Vector3i, ushort[]> GetChunksFromDatabase(double x1, double y1, double z1, double x2, double y2, double z2, string file)
     {
@@ -184,20 +155,11 @@ public class ScriptConsole
         m_server.SaveChunksToDatabase(chunkPositions, file);
     }
 
-    public void BackupDatabase(string backupFilename)
-    {
-        m_server.BackupDatabase(backupFilename);
-    }
+    public void BackupDatabase(string backupFilename) => m_server.BackupDatabase(backupFilename);
 
-    public int[] GetMapSize()
-    {
-        return m_server.GetMapSize();
-    }
+    public int[] GetMapSize() => m_server.GetMapSize();
 
-    public void Clear()
-    {
-        m_server.ClearInterpreter(m_client);
-    }
+    public void Clear() => m_server.ClearInterpreter(m_client);
 
     private Turtle m_turtle;
 
@@ -236,64 +198,31 @@ public class Turtle
 
     //public Orientation orientation;
 
-    public void set_player_position()
-    {
-        position = Console.GetPosition();
-    }
+    public void set_player_position() => position = Console.GetPosition();
 
     public double material = 0;
 
-    public void Put()
-    {
-        Console.SetBlock(x, y, z, material);
-    }
+    public void Put() => Console.SetBlock(x, y, z, material);
 
     public Vector3i direction = new(0, -1, 0); // turtle looks north by default
 
-    public void Look_north()
-    {
-        direction = new Vector3i(0, -1, 0);
-    }
+    public void Look_north() => direction = new Vector3i(0, -1, 0);
 
-    public void look_east()
-    {
-        direction = new Vector3i(-1, 0, 0);
-    }
+    public void look_east() => direction = new Vector3i(-1, 0, 0);
 
-    public void look_south()
-    {
-        direction = new Vector3i(0, 1, 0);
-    }
+    public void look_south() => direction = new Vector3i(0, 1, 0);
 
-    public void look_west()
-    {
-        direction = new Vector3i(1, 0, 0);
-    }
+    public void look_west() => direction = new Vector3i(1, 0, 0);
 
-    public void look_up()
-    {
-        direction = new Vector3i(0, 0, 1);
-    }
+    public void look_up() => direction = new Vector3i(0, 0, 1);
 
-    public void look_down()
-    {
-        direction = new Vector3i(0, 0, -1);
-    }
+    public void look_down() => direction = new Vector3i(0, 0, -1);
 
-    public void forward()
-    {
-        position = new Vector3i(position.X + direction.X, position.Y + direction.Y, position.Z + direction.Z);
-    }
+    public void forward() => position = new Vector3i(position.X + direction.X, position.Y + direction.Y, position.Z + direction.Z);
 
-    public void back()
-    {
-        position = new Vector3i(position.X - direction.X, position.Y - direction.Y, position.Z - direction.Z);
-    }
+    public void back() => position = new Vector3i(position.X - direction.X, position.Y - direction.Y, position.Z - direction.Z);
 
-    public void save() // push the current turtle position and direction to the stack
-    {
-        m_stack.Push([position, direction]);
-    }
+    public void save() => m_stack.Push([position, direction]); // push the current turtle position and direction to the stack
 
     public void load() // pop position and direction from the stack and set them
     {

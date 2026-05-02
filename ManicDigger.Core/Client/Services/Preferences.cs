@@ -34,12 +34,12 @@ public sealed class Preferences : IPreferences
     // ── Read ──────────────────────────────────────────────────────────────────
 
     /// <inheritdoc/>
-    public string GetString(string key, string default_) =>
-        _items.TryGetValue(key, out string? value) ? value : default_;
+    public string GetString(string key, string default_)
+        => _items.TryGetValue(key, out string? value) ? value : default_;
 
     /// <inheritdoc/>
-    public bool GetBool(string key, bool default_) =>
-        GetString(key, null) switch
+    public bool GetBool(string key, bool default_)
+        => GetString(key, null) switch
         {
             "0" => false,
             "1" => true,
@@ -76,8 +76,8 @@ public sealed class Preferences : IPreferences
     public void SetValues() => File.WriteAllLines(PreferencesFilePath(), ToLines());
 
     /// <inheritdoc/>
-    public IEnumerable<string> ToLines() =>
-        _items.Select(kvp => $"{kvp.Key}={kvp.Value}");
+    public IEnumerable<string> ToLines()
+        => _items.Select(kvp => $"{kvp.Key}={kvp.Value}");
 
     // ── Private helpers ───────────────────────────────────────────────────────
 

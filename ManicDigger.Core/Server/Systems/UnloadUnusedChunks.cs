@@ -35,7 +35,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
         for (int i = 0; i < InspectionsPerTick; i++)
         {
-            var chunkPos = new Vector3i();
+            Vector3i chunkPos = new();
             VectorIndexUtil.PosInt(iterationIndex, chunksX, chunksY, ref chunkPos);
 
             ServerChunk chunk = server.Map.GetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z);
@@ -109,8 +109,8 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     // -------------------------------------------------------------------------
 
     /// <summary>Converts chunk-space coordinates to block-space (global) coordinates.</summary>
-    private static Vector3i ChunkToGlobalPos(Vector3i chunkPos) =>
-        new(chunkPos.X * Server.ChunkSize,
+    private static Vector3i ChunkToGlobalPos(Vector3i chunkPos)
+        => new(chunkPos.X * Server.ChunkSize,
             chunkPos.Y * Server.ChunkSize,
             chunkPos.Z * Server.ChunkSize);
 }

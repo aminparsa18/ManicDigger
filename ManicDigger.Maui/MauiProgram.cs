@@ -1,5 +1,4 @@
-﻿using ManicDigger.Maui.Platforms.Windows;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace ManicDigger.Maui
@@ -24,12 +23,6 @@ namespace ManicDigger.Maui
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                }).ConfigureMauiHandlers(handlers =>
-                {
-#if WINDOWS
-                    // Register our custom handler for the game surface view
-                    handlers.AddHandler<GameSurfaceView, GameSurfaceViewHandler>();
-#endif
                 });
 
 #if DEBUG

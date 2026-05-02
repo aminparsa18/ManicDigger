@@ -93,13 +93,13 @@ public class InventoryUtilClient
     /// </returns>
     public HashSet<Point>? ItemsAtArea(int pX, int pY, int sizeX, int sizeY)
     {
-        var found = new HashSet<Point>();
+        HashSet<Point> found = new();
 
         for (int dx = 0; dx < sizeX; dx++)
         {
             for (int dy = 0; dy < sizeY; dy++)
             {
-                var cell = new Point(pX + dx, pY + dy);
+                Point cell = new(pX + dx, pY + dy);
 
                 if (!IsValidCell(cell))
                 {
@@ -220,7 +220,7 @@ public class InventoryUtilClient
         {
             Packet_PositionItem posItem = _inventory.Items[i];
             InventoryItem item = posItem.Value_;
-            var origin = new Point(posItem.X, posItem.Y);
+            Point origin = new(posItem.X, posItem.Y);
 
             int w = InventoryService.ItemSizeX(item);
             int h = InventoryService.ItemSizeY(item);
@@ -229,7 +229,7 @@ public class InventoryUtilClient
             {
                 for (int y = 0; y < h; y++)
                 {
-                    var cell = new Point(posItem.X + x, posItem.Y + y);
+                    Point cell = new(posItem.X + x, posItem.Y + y);
                     // Last write wins — handles overlapping data gracefully.
                     _cellToItemOrigin[cell] = origin;
                 }

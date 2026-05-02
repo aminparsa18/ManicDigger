@@ -76,10 +76,7 @@ public sealed class DummyNetClient : NetClient
         return null;
     }
 
-    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method)
-    {
-        _network.ServerInbox.Enqueue(payload.ToArray());
-    }
+    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method) => _network.ServerInbox.Enqueue(payload.ToArray());
 }
 
 // ---------------------------------------------------------------------------

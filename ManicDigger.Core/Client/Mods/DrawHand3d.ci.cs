@@ -188,10 +188,7 @@ public class ModDrawHand3d : ModBase
     }
 
     /// <summary>Returns the OpenGL texture ID of the terrain texture atlas.</summary>
-    public int GetTerrainTexture()
-    {
-        return Game.TerrainTexture;
-    }
+    public int GetTerrainTexture() => Game.TerrainTexture;
 
     /// <summary>
     /// Returns the atlas texture ID for the given face of the currently held item.

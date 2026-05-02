@@ -39,8 +39,8 @@ public partial class Game
     /// UI scale factor. Returns a width-relative scale on small screens
     /// (mobile) and 1 on desktop.
     /// </summary>
-    public float Scale() =>
-        gameService.IsSmallScreen() ? gameService.CanvasWidth / 1280f : 1f;
+    public float Scale()
+        => gameService.IsSmallScreen() ? gameService.CanvasWidth / 1280f : 1f;
 
     // ── Projection ────────────────────────────────────────────────────────────
 
@@ -60,8 +60,8 @@ public partial class Game
     }
 
     /// <summary>Returns the far-clip distance for the current view distance setting.</summary>
-    public float Zfar() =>
-        Config3d.ViewDistance >= 256
+    public float Zfar()
+        => Config3d.ViewDistance >= 256
             ? Config3d.ViewDistance * 2
             : ENABLE_ZFAR ? Config3d.ViewDistance : 99999;
 
@@ -74,8 +74,8 @@ public partial class Game
     // ── Texture helpers ───────────────────────────────────────────────────────
 
     /// <summary>Draws a full-size 2D quad using a named PNG asset.</summary>
-    public void Draw2dBitmapFile(string filename, float x, float y, float w, float h) =>
-        Draw2dTexture(GetTexture(filename), x, y, w, h, null, 0,
+    public void Draw2dBitmapFile(string filename, float x, float y, float w, float h)
+        => Draw2dTexture(GetTexture(filename), x, y, w, h, null, 0,
             ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
 
     /// <summary>
@@ -83,8 +83,8 @@ public partial class Game
     /// otherwise falls back to the first allowed font.
     /// Uses index access instead of <c>First()</c> to avoid allocating an enumerator.
     /// </summary>
-    public string ValidFont(string family) =>
-        AllowedFonts.Contains(family) ? family : AllowedFonts[0];
+    public string ValidFont(string family)
+        => AllowedFonts.Contains(family) ? family : AllowedFonts[0];
 
     // ── Inventory ─────────────────────────────────────────────────────────────
 
@@ -189,8 +189,8 @@ public partial class Game
     }
 
     /// <summary>Uploads <paramref name="color"/> as the OpenGL ambient light value.</summary>
-    internal void SetAmbientLight(int color) =>
-        openGlService.GlLightModelAmbient(
+    internal void SetAmbientLight(int color)
+        => openGlService.GlLightModelAmbient(
             ColorUtils.ColorR(color),
             ColorUtils.ColorG(color),
             ColorUtils.ColorB(color));
@@ -389,8 +389,5 @@ public partial class Game
     internal static bool EnablePlayerUpdatePosition(int kKey) => true;
 
 
-    void IGame.SendChat(string message)
-    {
-        SendChat(message);
-    }
+    void IGame.SendChat(string message) => SendChat(message);
 }

@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using System.IO.Compression;
+using System.Text;
 
 /// <summary>
 /// Crash reporter backed by Serilog.
@@ -96,7 +97,7 @@ public class CrashReporter
             Console.ResetColor();
         }
 
-        var ex = e.ExceptionObject as Exception;
+        Exception? ex = e.ExceptionObject as Exception;
         s_globalLogger.Fatal(ex, "Unhandled exception");
 
         // Create a full crash report using a default instance
@@ -148,7 +149,7 @@ public class CrashReporter
         }
 
         // Run on a separate thread so we can enforce a hard timeout
-        var task = Task.Run(() => OnCrash());
+        Task task = Task.Run(() => OnCrash());
         if (!task.Wait(OnCrashTimeoutMs))
         {
             m_logger.Warning("OnCrash() did not complete within {Timeout} ms — skipped", OnCrashTimeoutMs);
@@ -162,7 +163,7 @@ public class CrashReporter
 
     private string BuildSummary(Exception? ex)
     {
-        var sb = new System.Text.StringBuilder();
+        StringBuilder sb = new();
         sb.AppendLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  Critical Error");
 
         if (ex != null)
@@ -198,7 +199,7 @@ public static class GameStorePath
     public static string GetStorePath()
     {
         string apppath = Path.GetDirectoryName(Application.ExecutablePath);
-        var di = new DirectoryInfo(apppath);
+        DirectoryInfo di = new(apppath);
         if (di.Name.Equals("AutoUpdaterTemp", StringComparison.InvariantCultureIgnoreCase))
         {
             apppath = di.Parent.FullName;

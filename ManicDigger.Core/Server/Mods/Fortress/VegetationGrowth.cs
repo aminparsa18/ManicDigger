@@ -27,10 +27,7 @@ public class VegetationGrowth : IMod
     private int BirchTreeTrunk;
     private int SpruceTreeTrunk;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {

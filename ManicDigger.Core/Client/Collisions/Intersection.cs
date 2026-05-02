@@ -238,10 +238,7 @@ public class Intersection
     /// <param name="line">The line segment to test.</param>
     /// <param name="hit">The intersection point if hit; otherwise <see cref="Vector3.Zero"/>.</param>
     /// <returns><c>true</c> if the line intersects the box.</returns>
-    public static bool CheckLineBox(Box3 box, Line3D line, out Vector3 hit)
-    {
-        return CheckLineBox(box.Min, box.Max, line.Start, line.End, out hit);
-    }
+    public static bool CheckLineBox(Box3 box, Line3D line, out Vector3 hit) => CheckLineBox(box.Min, box.Max, line.Start, line.End, out hit);
 
     /// <summary>
     /// Tests whether <paramref name="line"/> intersects <paramref name="box"/>

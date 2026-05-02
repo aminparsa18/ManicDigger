@@ -373,15 +373,9 @@ public class ModGuiEscapeMenu : ModBase
         KeysHandleClick(w);
     }
 
-    private void AddWidget(Button b)
-    {
-        widgets[widgetsCount++] = b;
-    }
+    private void AddWidget(Button b) => widgets[widgetsCount++] = b;
 
-    private void WidgetsClear()
-    {
-        widgetsCount = 0;
-    }
+    private void WidgetsClear() => widgetsCount = 0;
 
     private EscapeMenuState escapemenustate;
     private void EscapeMenuMouse1()
@@ -537,10 +531,7 @@ public class ModGuiEscapeMenu : ModBase
     private readonly int fontsLength;
     private readonly int[] fontValues;
 
-    private string FontString(IGame game)
-    {
-        return fonts[game.options.Font];
-    }
+    private string FontString(IGame game) => fonts[game.options.Font];
 
     private void ToggleFont()
     {
@@ -564,10 +555,7 @@ public class ModGuiEscapeMenu : ModBase
         Game.CachedTextTextures.Clear();
     }
 
-    private string KeyName(int key)
-    {
-        return platform.KeyName(key);
-    }
+    private string KeyName(int key) => platform.KeyName(key);
 
     private void MakeSimpleOptions(int fontsize, int textheight)
     {
@@ -866,14 +854,14 @@ public class DisplayResolutionCi
     internal int Height;
     internal int BitsPerPixel;
     internal float RefreshRate;
-    public int GetWidth() { return Width; }
-    public void SetWidth(int value) { Width = value; }
-    public int GetHeight() { return Height; }
-    public void SetHeight(int value) { Height = value; }
-    public int GetBitsPerPixel() { return BitsPerPixel; }
-    public void SetBitsPerPixel(int value) { BitsPerPixel = value; }
-    public float GetRefreshRate() { return RefreshRate; }
-    public void SetRefreshRate(float value) { RefreshRate = value; }
+    public int GetWidth() => Width;
+    public void SetWidth(int value) => Width = value;
+    public int GetHeight() => Height;
+    public void SetHeight(int value) => Height = value;
+    public int GetBitsPerPixel() => BitsPerPixel;
+    public void SetBitsPerPixel(int value) => BitsPerPixel = value;
+    public float GetRefreshRate() => RefreshRate;
+    public void SetRefreshRate(float value) => RefreshRate = value;
 }
 
 public enum EscapeMenuState

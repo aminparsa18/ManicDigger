@@ -143,7 +143,7 @@ public class ServerSystemModLoader(IGameExit gameExit) : ServerSystem
 
         string[] modPaths =
         [
-            Path.Combine(assemblyDir, "..", "..", "..", "..", "ManicDigger.Core", "Server", "Mods"),
+            PathHelper.ModsRoot,
             Path.Combine(assemblyDir, "Mods")
         ];
 

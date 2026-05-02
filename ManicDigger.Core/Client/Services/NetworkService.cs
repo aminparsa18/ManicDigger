@@ -32,10 +32,7 @@ internal class NetworkService : INetworkService
             (uint)incomingBandwidth, (uint)outgoingBandwidth);
     }
 
-    public void EnetHostInitializeServer(EnetHost host, int port, int peerLimit)
-    {
-        ((EnetHostWrapper)host).Host.Create(port, peerLimit);
-    }
+    public void EnetHostInitializeServer(EnetHost host, int port, int peerLimit) => ((EnetHostWrapper)host).Host.Create(port, peerLimit);
 
     public EnetEvent? EnetHostService(EnetHost host, int timeout)
     {
@@ -58,10 +55,7 @@ internal class NetworkService : INetworkService
     {
     }
 
-    public int WebSocketReceive(byte[] data, int dataLength)
-    {
-        return -1;
-    }
+    public int WebSocketReceive(byte[] data, int dataLength) => -1;
 
     public void WebSocketSend(byte[] data, int dataLength)
     {
@@ -90,8 +84,8 @@ internal sealed class EnetPeerWrapper : EnetPeer
 
     public override int UserData() => (int)Peer.Data;
     public override void SetUserData(int value) => Peer.Data = value;
-    public override IpEndpoint GetRemoteAddress() =>
-        IpEndpointDefault.Create(Peer.IP);
+    public override IpEndpoint GetRemoteAddress()
+        => IpEndpointDefault.Create(Peer.IP);
 }
 
 /// <summary>

@@ -4,9 +4,9 @@
 /// </summary>
 public class ModNetworkEntity(IGameService gameService, IVoxelMap voxelMap, IGame game, IBlockTypeRegistry blockTypeRegistry) : ModBase(game)
 {
-    private readonly ClientPacketHandlerEntitySpawn _spawn = new ClientPacketHandlerEntitySpawn(gameService, voxelMap, blockTypeRegistry, game);
-    private readonly ClientPacketHandlerEntityPosition _position = new ClientPacketHandlerEntityPosition(gameService, game);
-    private readonly ClientPacketHandlerEntityDespawn _despawn = new ClientPacketHandlerEntityDespawn(gameService, game);
+    private readonly ClientPacketHandlerEntitySpawn _spawn = new(gameService, voxelMap, blockTypeRegistry, game);
+    private readonly ClientPacketHandlerEntityPosition _position = new(gameService, game);
+    private readonly ClientPacketHandlerEntityDespawn _despawn = new(gameService, game);
 
     /// <summary>True once the three packet handlers have been registered.</summary>
     private bool _handlersRegistered;

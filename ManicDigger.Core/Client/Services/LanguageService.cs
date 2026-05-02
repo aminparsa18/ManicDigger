@@ -103,8 +103,8 @@ public class LanguageService
     public string GetUsedLanguage() => ResolveLanguage();
 
     /// <summary>Resolves the active language code.</summary>
-    private string ResolveLanguage() =>
-        OverrideLanguage ?? CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+    private string ResolveLanguage()
+        => OverrideLanguage ?? CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
 
     // -------------------------------------------------------------------------
     // Language cycling

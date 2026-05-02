@@ -84,10 +84,7 @@
         IsTeamchat = false;
     }
 
-    public void StopTyping()
-    {
-        GuiTyping = TypingState.None;
-    }
+    public void StopTyping() => GuiTyping = TypingState.None;
 
     // -------------------------------------------------------------------------
     // Chat / command execution

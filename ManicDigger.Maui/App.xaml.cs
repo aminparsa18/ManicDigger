@@ -1,5 +1,4 @@
 ﻿using ManicDigger.Mods;
-using Serilog;
 using System.Diagnostics;
 using System.Text;
 
@@ -42,8 +41,8 @@ public partial class App : Application
             catch (Exception ex)
             {
                 File.WriteAllText(
-               Path.Combine(AppContext.BaseDirectory, "crash.txt"),
-               FlattenException(ex));
+                Path.Combine(AppContext.BaseDirectory, "crash.txt"),
+                FlattenException(ex));
             }
         });
     }
@@ -57,8 +56,9 @@ public partial class App : Application
             sb.AppendLine(ex.Message);
             sb.AppendLine(ex.StackTrace);
             sb.AppendLine("--- Inner Exception ---");
-            ex = ex.InnerException;
+            ex = ex.InnerException!;
         }
+
         return sb.ToString();
     }
 }
@@ -171,22 +171,19 @@ public class GameRunner
             Environment.CurrentDirectory = Path.GetDirectoryName(AppContext.BaseDirectory)!;
         }
 
-        ServiceCollection services = new ServiceCollection();
+        ServiceCollection services = new();
         ConfigureServices(services);
         ServiceProvider = services.BuildServiceProvider();
 
-        // 1. Game constructed — reads _modRegistry.Mods (empty list, safe)
-        IGame game = ServiceProvider.GetRequiredService<IGame>();
-
-        // 2. Mods constructed — each gets IGame injected (Game already exists)
+        // 1. Mods constructed — each gets IGame injected (Game already exists)
         IEnumerable<IModBase> mods = ServiceProvider.GetServices<IModBase>();
 
-        // 3. Registry populated — Game.ClientMods and any other IModRegistry 
+        // 2. Registry populated — Game.ClientMods and any other IModRegistry 
         //    consumer now see the full list
         IModRegistry registry = ServiceProvider.GetRequiredService<IModRegistry>();
         registry.Initialise(mods);
 
-        // 4. Loop starts — ClientMods is fully populated
+        // 3. Loop starts — ClientMods is fully populated
         ServiceProvider.GetRequiredService<IMenu>().Start(args);
     }
 }

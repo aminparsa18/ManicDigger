@@ -37,10 +37,7 @@ public class LightFlood
     /// <param name="sizeX">Number of columns per row.</param>
     /// <param name="sizeY">Number of rows per layer.</param>
     /// <returns>The corresponding flat array index.</returns>
-    private static int Index3d(int x, int y, int z, int sizeX, int sizeY)
-    {
-        return (z * sizeY + y) * sizeX + x;
-    }
+    private static int Index3d(int x, int y, int z, int sizeX, int sizeY) => (z * sizeY + y) * sizeX + x;
 
     /// <summary>
     /// Floods light outward from the given seed position within the chunk.

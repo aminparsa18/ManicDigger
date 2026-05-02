@@ -33,7 +33,7 @@ public class WaterSimple : IMod
         if ((DateTime.UtcNow - lastflood).TotalSeconds > 1)
         {
             lastflood = DateTime.UtcNow;
-            var curtoflood = new List<Vector3i>(toflood.Keys);
+            List<Vector3i> curtoflood = new(toflood.Keys);
             foreach (var v in curtoflood)
             {
                 Flood(v);

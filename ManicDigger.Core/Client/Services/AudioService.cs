@@ -32,7 +32,7 @@ public sealed class AudioService : IAudioService, IDisposable
     public AudioData CreateAudioData(byte[] data, int dataLength)
     {
         EnsureInitialised();
-        using var stream = new MemoryStream(data, 0, dataLength, writable: false);
+        using MemoryStream stream = new(data, 0, dataLength, writable: false);
         return IsRiffWave(stream) ? DecodeWave(stream) : OggDecoder.OggToWav(stream);
     }
 
@@ -59,8 +59,8 @@ public sealed class AudioService : IAudioService, IDisposable
     public bool IsFinished(AudioTask audio) => audio.IsFinished;
 
     /// <inheritdoc/>
-    public void SetPosition(AudioTask audio, float x, float y, float z) =>
-        audio.Position = new Vector3(x, y, z);
+    public void SetPosition(AudioTask audio, float x, float y, float z)
+        => audio.Position = new Vector3(x, y, z);
 
     /// <inheritdoc/>
     public void UpdateListener(
@@ -69,7 +69,7 @@ public sealed class AudioService : IAudioService, IDisposable
     {
         EnsureInitialised();
         AL.Listener(ALListener3f.Position, posX, posY, posZ);
-        var orientation = new Vector3(orientX, orientY, orientZ);
+        Vector3 orientation = new(orientX, orientY, orientZ);
         var up = Vector3.UnitY;
         AL.Listener(ALListenerfv.Orientation, ref orientation, ref up);
     }
@@ -157,7 +157,7 @@ public sealed class AudioService : IAudioService, IDisposable
 
     private static AudioData DecodeWave(Stream stream)
     {
-        using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+        using BinaryReader reader = new(stream, System.Text.Encoding.UTF8, leaveOpen: true);
 
         Expect(new string(reader.ReadChars(4)), "RIFF", "Not a RIFF container.");
         reader.ReadInt32();

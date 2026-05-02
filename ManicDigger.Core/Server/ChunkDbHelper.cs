@@ -74,7 +74,7 @@ public static class ChunkDbHelper
     /// </exception>
     public static byte[] GetChunkFromFile(IChunkDb db, int x, int y, int z, string filename)
     {
-        var key = new Vector3i(x, y, z);
+        Vector3i key = new(x, y, z);
         Dictionary<Vector3i, byte[]> chunks = db.GetChunksFromFile([key], filename);
         if (chunks.Count > 1)
         {

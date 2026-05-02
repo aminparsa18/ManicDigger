@@ -7,7 +7,7 @@ public class ModScreenshot : ModBase
     private const int FlashFontSize = 50;
     private const string ScreenshotText = "&0Screenshot";
 
-    private static readonly Font FlashFont = new Font("Arial", FlashFontSize);
+    private static readonly Font FlashFont = new("Arial", FlashFontSize);
     private static readonly int White = ColorUtils.ColorFromArgb(255, 255, 255, 255);
 
     private bool takeScreenshot;

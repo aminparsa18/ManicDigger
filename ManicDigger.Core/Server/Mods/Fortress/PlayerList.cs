@@ -152,11 +152,11 @@ public class PlayerList : IMod
             widgets.Add(Widget.MakeText(pingString, NormalFont, tableX + tableIdColumnWidth + tablePlayerColumnWidth + tablePingColumnWidth - TextWidth(pingString, NormalFont) - tablePadding, tableY + heightOffset + listEntryPaddingTopBottom, TEXT_COLOR.ToArgb()));
             heightOffset += listEntryHeight;
         }
-        var wtab = Widget.MakeSolid(0, 0, 0, 0, 0);
+        Widget wtab = Widget.MakeSolid(0, 0, 0, 0, 0);
         wtab.ClickKey = '\t';
         wtab.Id = "Tab";
         widgets.Add(wtab);
-        var wesc = Widget.MakeSolid(0, 0, 0, 0, 0);
+        Widget wesc = Widget.MakeSolid(0, 0, 0, 0, 0);
         wesc.ClickKey = (char)27;
         wesc.Id = "Esc";
         widgets.Add(wesc);

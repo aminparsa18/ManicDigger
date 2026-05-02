@@ -84,6 +84,6 @@ public class AssetLoader
         return assets;
     }
 
-    private string ComputeMd5(byte[] data) =>
-        Convert.ToHexString(md5.ComputeHash(data)).ToLowerInvariant();
+    private string ComputeMd5(byte[] data)
+        => Convert.ToHexString(md5.ComputeHash(data)).ToLowerInvariant();
 }

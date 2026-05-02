@@ -71,7 +71,7 @@ public partial class Server
             {
                 for (int z = 0; z < Map.MapSizeZ / ChunkSize; z++)
                 {
-                    var v = new Vector3i(p.X + x * ChunkSize, p.Y + y * ChunkSize, z * ChunkSize);
+                    Vector3i v = new(p.X + x * ChunkSize, p.Y + y * ChunkSize, z * ChunkSize);
                     if (VectorUtils.IsValidPos(Map, v.X, v.Y, v.Z))
                     {
                         yield return v;

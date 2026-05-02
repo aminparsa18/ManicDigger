@@ -4,10 +4,7 @@ public class SandPhysics : IMod
 {
     private IModManager m;
 
-    public void PreStart(IModManager m)
-    {
-        m.RequireMod("CoreBlocks");
-    }
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {
@@ -16,15 +13,9 @@ public class SandPhysics : IMod
         m.RegisterOnBlockDelete(Delete);
     }
 
-    private void Build(int player, int x, int y, int z)
-    {
-        Update(x, y, z);
-    }
+    private void Build(int player, int x, int y, int z) => Update(x, y, z);
 
-    private void Delete(int player, int x, int y, int z, int blockid)
-    {
-        Update(x, y, z);
-    }
+    private void Delete(int player, int x, int y, int z, int blockid) => Update(x, y, z);
 
     private void Update(int x, int y, int z)
     {
@@ -67,10 +58,7 @@ public class SandPhysics : IMod
         }
     }
 
-    private bool IsSlideDown(int x, int y, int z, int blockType)
-    {
-        return IsSoftBlock(m.GetBlock(x, y, z - 1)) && (m.GetBlock(x, y, z) == blockType);
-    }
+    private bool IsSlideDown(int x, int y, int z, int blockType) => IsSoftBlock(m.GetBlock(x, y, z - 1)) && (m.GetBlock(x, y, z) == blockType);
 
     private void BlockMoveDown(int x, int y, int z, int depth)
     {
@@ -78,13 +66,7 @@ public class SandPhysics : IMod
         m.SetBlock(x, y, z + 1, 0);
     }
 
-    private bool IsDestroyOfBase(int x, int y, int z, int blockType)
-    {
-        return IsSoftBlock(m.GetBlock(x, y, z)) && (m.GetBlock(x, y, z + 1) == blockType);
-    }
+    private bool IsDestroyOfBase(int x, int y, int z, int blockType) => IsSoftBlock(m.GetBlock(x, y, z)) && (m.GetBlock(x, y, z + 1) == blockType);
 
-    private bool IsValidDualPos(int x, int y, int z)
-    {
-        return m.IsValidPos(x, y, z) && m.IsValidPos(x, y, z + 1);
-    }
+    private bool IsValidDualPos(int x, int y, int z) => m.IsValidPos(x, y, z) && m.IsValidPos(x, y, z + 1);
 }

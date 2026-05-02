@@ -938,7 +938,7 @@ public class TerrainChunkTesselator
 
         for (int i = 0; i < TileSideExt.Count; i++)
         {
-            var side = (TileSide)i;
+            TileSide side = (TileSide)i;
             if ((nToDraw & side.ToFlags()) != TileSideFlags.None)
             {
                 BuildBlockFace(x, y, z, tiletype, vOffsetX, vOffsetY, vOffsetZ,

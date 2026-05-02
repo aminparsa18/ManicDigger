@@ -62,7 +62,6 @@ public class VectorUtils
     public static bool PointInRect(float x, float y, float rx, float ry, float rw, float rh)
        => new Box2(rx, ry, rx + rw, ry + rh).ContainsExclusive(new Vector2(x, y));
 
-
     /// <summary>
     /// Returns the UV rectangle for a texture within a packed atlas grid.
     /// </summary>

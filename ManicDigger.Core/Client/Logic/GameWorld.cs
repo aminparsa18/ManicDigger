@@ -37,8 +37,8 @@ public partial class Game
     /// Returns <see langword="true"/> when <paramref name="block"/> does not
     /// obstruct player movement (ladders and non-solid, non-fluid draw types).
     /// </summary>
-    public static bool IsEmptyForPhysics(BlockType block) =>
-        block.DrawType == DrawType.Ladder
+    public static bool IsEmptyForPhysics(BlockType block)
+        => block.DrawType == DrawType.Ladder
         || (block.WalkableType != WalkableType.Solid
             && block.WalkableType != WalkableType.Fluid);
 
@@ -46,8 +46,8 @@ public partial class Game
     /// Returns <see langword="true"/> when <paramref name="b"/> allows light
     /// to pass through it (everything except solid blocks and closed doors).
     /// </summary>
-    public static bool IsTransparentForLight(BlockType b) =>
-        b.DrawType != DrawType.Solid
+    public static bool IsTransparentForLight(BlockType b)
+        => b.DrawType != DrawType.Solid
         && b.DrawType != DrawType.ClosedDoor;
 
     /// <summary>
@@ -69,15 +69,15 @@ public partial class Game
     /// Fix #1: use registry ID instead of name-based string check.
     /// Returns <see langword="true"/> when the block is the registered lava block.
     /// </summary>
-    internal bool IsLava(int blockType) =>
-        BlockRegistry.BlockIdLava >= 0 && blockType == BlockRegistry.BlockIdLava;
+    internal bool IsLava(int blockType)
+        => BlockRegistry.BlockIdLava >= 0 && blockType == BlockRegistry.BlockIdLava;
 
     /// <summary>
     /// Returns <see langword="true"/> when <paramref name="blocktype"/> is one of
     /// the fill/cuboid tool blocks that should not be treated as real terrain.
     /// </summary>
-    public bool IsFillBlock(int blocktype) =>
-        blocktype == BlockRegistry.BlockIdFillArea
+    public bool IsFillBlock(int blocktype)
+        => blocktype == BlockRegistry.BlockIdFillArea
         || blocktype == BlockRegistry.BlockIdFillStart
         || blocktype == BlockRegistry.BlockIdCuboid;
 
@@ -85,8 +85,8 @@ public partial class Game
     /// Returns <see langword="true"/> when the block can be interacted with
     /// (rail tiles or blocks with the <c>IsUsable</c> flag).
     /// </summary>
-    public bool IsUsableBlock(int blocktype) =>
-        BlockRegistry.IsRailTile(blocktype) || BlockTypes[blocktype].IsUsable;
+    public bool IsUsableBlock(int blocktype)
+        => BlockRegistry.IsRailTile(blocktype) || BlockTypes[blocktype].IsUsable;
 
     /// <summary>
     /// Returns <see langword="true"/> when the tile at the given position does
@@ -278,8 +278,8 @@ public partial class Game
     /// Returns the remaining health of the block at the given position,
     /// falling back to the block type's base strength when not yet damaged.
     /// </summary>
-    public float GetCurrentBlockHealth(int x, int y, int z) =>
-        blockHealth.TryGetValue((x, y, z), out float health)
+    public float GetCurrentBlockHealth(int x, int y, int z)
+        => blockHealth.TryGetValue((x, y, z), out float health)
             ? health
             : BlockRegistry.Strength[voxelMap.GetBlock(x, y, z)];
 

@@ -64,7 +64,7 @@ public class ServerSystemPermissionSign : ServerSystem
             return;
         }
 
-        var e = new ServerEntity
+        ServerEntity e = new()
         {
             Position = new ServerEntityPositionAndOrientation
             {
@@ -180,11 +180,11 @@ public class ServerSystemPermissionSign : ServerSystem
             return;
         }
 
-        var font = new DialogFont("Verdana", 11f, DialogFontStyle.Bold);
+        DialogFont font = new("Verdana", 11f, DialogFontStyle.Bold);
         var groups = server.ServerClient.Groups;
         int widgetCount = 0;
 
-        var d = new Dialog
+        Dialog d = new()
         {
             Width = 400,
             Height = 400,
@@ -398,8 +398,8 @@ public class ServerSystemPermissionSign : ServerSystem
     /// </summary>
     private static bool InArea(int x, int y, int z,
         int areaX, int areaY, int areaZ,
-        int areaSizeX, int areaSizeY, int areaSizeZ) =>
-        x >= areaX && x < areaX + areaSizeX &&
+        int areaSizeX, int areaSizeY, int areaSizeZ)
+        => x >= areaX && x < areaX + areaSizeX &&
         y >= areaY && y < areaY + areaSizeY &&
         z >= areaZ && z < areaZ + areaSizeZ;
 }

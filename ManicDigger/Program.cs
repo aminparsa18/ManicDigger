@@ -123,20 +123,19 @@ public class Program
     private static void Start(string[] args)
     {
         if (!Debugger.IsAttached)
+        {
             Environment.CurrentDirectory = Path.GetDirectoryName(Application.ExecutablePath)!;
+        }
 
-        // 1. Game constructed — reads _modRegistry.Mods (empty list, safe)
-        var game = ServiceProvider.GetRequiredService<IGame>();
+        // 1. Mods constructed — each gets IGame injected (Game already exists)
+        IEnumerable<IModBase> mods = ServiceProvider.GetServices<IModBase>();
 
-        // 2. Mods constructed — each gets IGame injected (Game already exists)
-        var mods = ServiceProvider.GetServices<IModBase>();
-
-        // 3. Registry populated — Game.ClientMods and any other IModRegistry 
+        // 2. Registry populated — Game.ClientMods and any other IModRegistry 
         //    consumer now see the full list
-        var registry = ServiceProvider.GetRequiredService<IModRegistry>();
+        IModRegistry registry = ServiceProvider.GetRequiredService<IModRegistry>();
         registry.Initialise(mods);
 
-        // 4. Loop starts — ClientMods is fully populated
+        // 3. Loop starts — ClientMods is fully populated
         ServiceProvider.GetRequiredService<IMenu>().Start(args);
     }
 }

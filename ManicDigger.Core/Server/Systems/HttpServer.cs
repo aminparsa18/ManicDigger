@@ -103,12 +103,12 @@ internal class MainHttpModule : IHttpModule
 {
     public Server server;
 
-    public bool ResponsibleForRequest(HttpListenerRequest request) =>
-        request.Url.AbsolutePath.Equals("/", StringComparison.OrdinalIgnoreCase);
+    public bool ResponsibleForRequest(HttpListenerRequest request)
+        => request.Url.AbsolutePath.Equals("/", StringComparison.OrdinalIgnoreCase);
 
     public async Task ProcessAsync(HttpListenerContext context)
     {
-        var sb = new StringBuilder("<html><body>");
+        StringBuilder sb = new("<html><body>");
 
         foreach (var m in server.HttpModules.OrderBy(m => m.name))
         {

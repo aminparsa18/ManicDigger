@@ -17,7 +17,7 @@ public class ServerSystemNotifyMap : ServerSystem
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
     {
-        var stopwatch = Stopwatch.StartNew();
+        Stopwatch stopwatch = Stopwatch.StartNew();
         bool sentAny = true;
 
         while (sentAny && stopwatch.ElapsedMilliseconds < 10)
@@ -118,7 +118,7 @@ public class ServerSystemNotifyMap : ServerSystem
 
         if (!server.ClientSeenChunk(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z))
         {
-            var globalPos = new Vector3i(
+            Vector3i globalPos = new(
                 chunkPos.X * Server.ChunkSize,
                 chunkPos.Y * Server.ChunkSize,
                 chunkPos.Z * Server.ChunkSize);
@@ -160,7 +160,7 @@ public class ServerSystemNotifyMap : ServerSystem
             ReadOnlySpan<byte> heightmapBytes = MemoryMarshal.AsBytes(
                 server.Map.Heightmap.GetChunk(globalPos.X, globalPos.Y).AsSpan());
 
-            var heightmapPacket = new Packet_ServerHeightmapChunk
+            Packet_ServerHeightmapChunk heightmapPacket = new()
             {
                 X = globalPos.X,
                 Y = globalPos.Y,

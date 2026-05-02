@@ -167,10 +167,7 @@ public class PositionStorage
         return null;
     }
 
-    public static string PosToString(int x, int y, int z)
-    {
-        return string.Format("{0},{1},{2}", x, y, z);
-    }
+    public static string PosToString(int x, int y, int z) => string.Format("{0},{1},{2}", x, y, z);
 
     public static int[] StringToPos(string position)
     {

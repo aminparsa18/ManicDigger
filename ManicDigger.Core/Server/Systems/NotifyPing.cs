@@ -26,7 +26,7 @@ public class ServerSystemNotifyPing : ServerSystem
                 return;
             }
 
-            var timedOut = new List<int>();
+            List<int> timedOut = new();
 
             foreach (var (clientId, client) in server.Clients)
             {

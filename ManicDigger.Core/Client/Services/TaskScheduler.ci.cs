@@ -198,15 +198,9 @@ public class TaskScheduler : ITaskScheduler
     /// Enqueues <paramref name="action"/> for execution on the main thread at
     /// the end of the next frame. Thread-safe — see <see cref="ConcurrentQueue{T}"/>.
     /// </summary>
-    public void Enqueue(Action action)
-    {
-        CommitActions.Enqueue(action);
-    }
+    public void Enqueue(Action action) => CommitActions.Enqueue(action);
 
-    public bool Dequeue(out Action? action)
-    {
-        return CommitActions.TryDequeue(out action);
-    }
+    public bool Dequeue(out Action? action) => CommitActions.TryDequeue(out action);
 }
 
 /// <summary>

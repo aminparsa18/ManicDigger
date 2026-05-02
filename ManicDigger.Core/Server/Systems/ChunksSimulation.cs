@@ -171,7 +171,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                 {
                     for (int z = 0; z < zDrawDistance; z++)
                     {
-                        var p = new Vector3i(
+                        Vector3i p = new(
                             playerPos.X + x * Server.ChunkSize,
                             playerPos.Y + y * Server.ChunkSize,
                             z * Server.ChunkSize);
@@ -225,8 +225,8 @@ public class ServerSystemChunksSimulation : ServerSystem
         }
     }
 
-    private static bool IsValidSpawnPosition(Server server, int px, int py, int pz) =>
-        VectorUtils.IsValidPos(server.Map, px, py, pz) &&
+    private static bool IsValidSpawnPosition(Server server, int px, int py, int pz)
+        => VectorUtils.IsValidPos(server.Map, px, py, pz) &&
         VectorUtils.IsValidPos(server.Map, px, py, pz + 1) &&
         VectorUtils.IsValidPos(server.Map, px, py, pz - 1);
 
@@ -238,8 +238,8 @@ public class ServerSystemChunksSimulation : ServerSystem
             : MonsterTypesUnderground[_rnd.Next(MonsterTypesUnderground.Length)];
     }
 
-    private static bool IsOpenGround(Server server, int px, int py, int pz) =>
-        server.Map.GetBlock(px, py, pz) == 0 &&
+    private static bool IsOpenGround(Server server, int px, int py, int pz)
+        => server.Map.GetBlock(px, py, pz) == 0 &&
         server.Map.GetBlock(px, py, pz + 1) == 0 &&
         server.Map.GetBlock(px, py, pz - 1) != 0 &&
         !server.BlockTypes[server.Map.GetBlock(px, py, pz - 1)].IsFluid();

@@ -87,10 +87,7 @@ public class ModDrawPlayers : ModBase
     }
 
     /// <summary>Calculates movement speed for a network entity based on interpolated velocity.</summary>
-    private static float GetNetworkPlayerSpeed(Entity p, float dt)
-    {
-        return p.playerDrawInfo.Velocity.Length / dt * 0.04f;
-    }
+    private static float GetNetworkPlayerSpeed(Entity p, float dt) => p.playerDrawInfo.Velocity.Length / dt * 0.04f;
 
     /// <summary>Loads and initializes the animated model renderer for an entity if not already done.</summary>
     private void EnsureRenderer(Entity p)

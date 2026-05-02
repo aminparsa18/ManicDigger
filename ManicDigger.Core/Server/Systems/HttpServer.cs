@@ -1,10 +1,15 @@
-﻿using System.Net;
+﻿using ManicDigger;
+using System.Net;
 using System.Text;
 
 public class ServerSystemHttpServer : ServerSystem
 {
     private HttpListener _listener;
     private CancellationTokenSource _cts;
+
+    public ServerSystemHttpServer(IModEvents modEvents) : base(modEvents)
+    {
+    }
 
     protected override void Initialize(Server server)
     {

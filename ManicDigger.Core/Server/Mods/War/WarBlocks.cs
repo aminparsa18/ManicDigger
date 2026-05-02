@@ -6,7 +6,7 @@
 public class WarBlocks : IMod
 {
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
-    public void Start(IModManager m)
+    public void Start(IModManager m, IModEvents modEvents)
     {
         SoundSet solidSounds = new()
         {

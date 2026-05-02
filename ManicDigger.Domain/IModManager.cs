@@ -37,28 +37,10 @@ public interface IModManager
     void AddToCreativeInventory(string blockType);
 
     /// <summary>
-    /// Registers a method to be called every time a player places a block
+    /// Subscribe to and unsubscribe from game events.
+    /// Use += to register and -= to unregister in OnStop.
     /// </summary>
-    /// <param name="f">Function to register. Required parameters: (int player, int x, int y, int z)</param>
-    void RegisterOnBlockBuild(ModDelegates.BlockBuild f);
-
-    /// <summary>
-    /// Registers a method to be called every time a player deletes a block
-    /// </summary>
-    /// <param name="f">Function to register. Required parameters: (int player, int x, int y, int z, int oldblock)</param>
-    void RegisterOnBlockDelete(ModDelegates.BlockDelete f);
-
-    /// <summary>
-    /// Registers a method to be called every time a player uses a block
-    /// </summary>
-    /// <param name="f">Function to register. Required parameters: (int player, int x, int y, int z)</param>
-    void RegisterOnBlockUse(ModDelegates.BlockUse f);
-
-    /// <summary>
-    /// Registers a method to be called every time a player uses a block while holding a tool in their hands
-    /// </summary>
-    /// <param name="f">Function to register. Required parameters: (int player, int x, int y, int z, int tool)</param>
-    void RegisterOnBlockUseWithTool(ModDelegates.BlockUseWithTool f);
+   // IModEvents Events { get; }
 
     int GetMapSizeX();
     int GetMapSizeY();
@@ -210,9 +192,7 @@ public interface IModManager
     /// <param name="p">Privilege to register</param>
     void RegisterPrivilege(string p);
 
-    void RegisterOnBlockUpdate(ModDelegates.BlockUpdate f);
     bool IsTransparentForLight(int p);
-    void RegisterWorldGenerator(ModDelegates.WorldGenerator f);
     void RegisterOptionBool(string optionname, bool default_);
     int GetChunkSize();
     object GetOption(string optionname);
@@ -224,7 +204,6 @@ public interface IModManager
     int Seed { get; }
 
     int Index3d(int x, int y, int h, int sizex, int sizey);
-    void RegisterPopulateChunk(ModDelegates.PopulateChunk f);
 
     /// <summary>
     /// Sets the given SoundSet as default SoundSet for all blocks
@@ -248,7 +227,6 @@ public interface IModManager
 
     void RegisterOnLoad(Action f);
     void RegisterOnSave(Action f);
-    void RegisterOnCommand(ModDelegates.Command f);
 
     /// <summary>
     /// Get the IP for the given player ID
@@ -373,11 +351,6 @@ public interface IModManager
     int GetPlayerPermissionLevel(int player);
     void SetCreative(bool creative);
     void SetWorldSize(int x, int y, int z);
-    void RegisterOnPlayerJoin(ModDelegates.PlayerJoin a);
-    void RegisterOnPlayerLeave(ModDelegates.PlayerLeave a);
-    void RegisterOnPlayerDisconnect(ModDelegates.PlayerDisconnect a);
-    void RegisterOnPlayerChat(ModDelegates.PlayerChat a);
-    void RegisterOnPlayerDeath(ModDelegates.PlayerDeath a);
 
     /// <summary>
     /// Returns the dimensions of the game window.
@@ -387,7 +360,6 @@ public interface IModManager
     int[] GetScreenResolution(int player);
 
     void SendDialog(int player, string id, Dialog dialog);
-    void RegisterOnDialogClick(ModDelegates.DialogClick a);
 
     /// <summary>
     /// Changes the model and/or skin of the given player
@@ -412,18 +384,6 @@ public interface IModManager
     int GetPlayerOxygen(int player);
     int GetPlayerMaxOxygen(int player);
     void SetPlayerOxygen(int player, int oxygen, int maxoxygen);
-
-    /// <summary>
-    /// Registers the given method to be called each time a player is hit using a weapon
-    /// </summary>
-    /// <param name="a">Method to execute. Must have certain format: void Name(int sourcePlayer, int targetPlayer, int block, bool headshot);</param>
-    void RegisterOnWeaponHit(ModDelegates.WeaponHit a);
-
-    /// <summary>
-    /// Registers the given method to be called every time a player presses a "SpecialKey"
-    /// </summary>
-    /// <param name="a">Method to execute. Must have certain format: void Name(int player, SpecialKey key);</param>
-    void RegisterOnSpecialKey(ModDelegates.SpecialKey1 a);
 
     /// <summary>
     /// Returns the default spawn position of a certain player.
@@ -475,12 +435,6 @@ public interface IModManager
     void DisablePrivilege(string privilege); //todo privileges
 
     /// <summary>
-    /// Registers the given method to be called each time the player changes their selected material
-    /// </summary>
-    /// <param name="a">Method to execute. Must have certain format: void Name(int player)</param>
-    void RegisterChangedActiveMaterialSlot(ModDelegates.ChangedActiveMaterialSlot a);
-
-    /// <summary>
     /// Get the inventory data of the player
     /// </summary>
     /// <param name="player"></param>
@@ -519,12 +473,6 @@ public interface IModManager
     void NotifyAmmo(int player, Dictionary<int, int> dictionary);
 
     /// <summary>
-    /// Registers the given method to be called everytime a shot is fired from a weapon
-    /// </summary>
-    /// <param name="a">Method to execute. Must have certain format: void Name(int sourceplayer, int block);</param>
-    void RegisterOnWeaponShot(ModDelegates.WeaponShot a);
-
-    /// <summary>
     /// Writes the given string into server chat log
     /// </summary>
     /// <param name="s">log message</param>
@@ -542,8 +490,6 @@ public interface IModManager
     /// </summary>
     /// <param name="serverEvent">log message</param>
     void LogServerEvent(string serverEvent);
-
-    void RegisterOnLoadWorld(ModDelegates.LoadWorld a);
     void SetWorldDatabaseReadOnly(bool readOnly);
     string CurrentWorld { get; }
 
@@ -637,35 +583,6 @@ public interface IModManager
     /// </summary>
     /// <returns><i>true</i> if server is about to shutdown</returns>
     bool IsShuttingDown { get; }
-
-    /// <summary>
-    /// Registers a method to be called every time a player places a block
-    /// </summary>
-    /// <param name="f">Function to register. Required parameters: (int player, int x, int y, int z)</param>
-    void RegisterCheckOnBlockBuild(ModDelegates.CheckBlockBuild f);
-
-    /// <summary>
-    /// Registers a method to be called every time a player deletes a block
-    /// </summary>
-    /// <param name="f">Function to register. Required parameters: (int player, int x, int y, int z)</param>
-    void RegisterCheckOnBlockDelete(ModDelegates.CheckBlockDelete f);
-
-    /// <summary>
-    /// Registers a method to be called every time a player uses a block
-    /// </summary>
-    /// <param name="f">Function to register. Required parameters: (int player, int x, int y, int z)</param>
-    void RegisterCheckOnBlockUse(ModDelegates.CheckBlockUse f);
-
-    #region Deprecated functions
-    [Obsolete("GetCurrentYearTotal is deprecated, please use GetYear instead.", false)]
-    double GetCurrentYearTotal();
-    [Obsolete("GetCurrentHourTotal is deprecated, please use GetTotalHours instead.", false)]
-    double GetCurrentHourTotal();
-    [Obsolete("GetGameYearRealHours is deprecated.", false)]
-    double GetGameYearRealHours();
-    [Obsolete("SetGameYearRealHours is deprecated.", true)]
-    void SetGameYearRealHours(double hours);
-    #endregion
 }
 
 public class ModInfo
@@ -684,6 +601,6 @@ public interface IMod
     /// Called once when the Mod is started. Use this if you need to initialize fields, etc...
     /// </summary>
     /// <param name="m">ModManager object</param>
-    void Start(IModManager m);
+    void Start(IModManager m, IModEvents modEvents);
 }
 

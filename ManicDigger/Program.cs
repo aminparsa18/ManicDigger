@@ -44,6 +44,7 @@ public class Program
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
         services.AddSingleton<IScreenFactory, ScreenFactory>();
         services.AddSingleton<IModRegistry, ModRegistry>();
+        services.AddSingleton<IModEvents, ModEvents>();
         services.AddSingleton<ITaskScheduler, TaskScheduler>();
         services.AddSingleton<IAssetManager, AssetManager>();
         services.AddSingleton<ILanguageService, LanguageService>();

@@ -29,7 +29,7 @@ public class VegetationGrowth : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         DirtForFarming = m.GetBlockId("DirtForFarming");
@@ -54,76 +54,62 @@ public class VegetationGrowth : IMod
         BirchTreeTrunk = m.GetBlockId("BirchTreeTrunk");
         SpruceTreeTrunk = m.GetBlockId("SpruceTreeTrunk");
 
-        m.RegisterOnBlockUpdate(BlockTickGrowCropsCycle);
-        m.RegisterOnBlockUpdate(BlockTickGrowSapling);
-        m.RegisterOnBlockUpdate(BlockTickMushroomDeath);
-        m.RegisterOnBlockUpdate(BlockTickFlowerDeath);
-        m.RegisterOnBlockUpdate(BlockTickGrowGrassOrMushroomsOnDirt);
-        m.RegisterOnBlockUpdate(BlockTickGrassDeathInDarkness);
+        modEvents.BlockUpdate += BlockTickGrowCropsCycle;
+        modEvents.BlockUpdate += BlockTickGrowSapling;
+        modEvents.BlockUpdate += BlockTickMushroomDeath;
+        modEvents.BlockUpdate += BlockTickFlowerDeath;
+        modEvents.BlockUpdate += BlockTickGrowGrassOrMushroomsOnDirt;
+        modEvents.BlockUpdate += BlockTickGrassDeathInDarkness;
     }
 
-    private void BlockTickGrowCropsCycle(int x, int y, int z)
+    private void BlockTickGrowCropsCycle(BlockUpdateArgs args)
     {
-        if (m.GetBlock(x, y, z) == DirtForFarming)
+        if (m.GetBlock(args.X, args.Y, args.Z) == DirtForFarming)
         {
-            if (m.IsValidPos(x, y, z + 1))
+            if (m.IsValidPos(args.X, args.Y, args.Z + 1))
             {
-                int blockabove = m.GetBlock(x, y, z + 1);
+                int blockabove = m.GetBlock(args.X, args.Y, args.Z + 1);
                 if (blockabove == Crops1)
-                {
                     blockabove = Crops2;
-                }
                 else if (blockabove == Crops2)
-                {
                     blockabove = Crops3;
-                }
                 else if (blockabove == Crops3)
-                {
                     blockabove = Crops4;
-                }
                 else
-                {
                     return;
-                }
 
-                m.SetBlock(x, y, z + 1, blockabove);
+                m.SetBlock(args.X, args.Y, args.Z + 1, blockabove);
             }
         }
     }
 
-    private void BlockTickGrowSapling(int x, int y, int z)
+    private void BlockTickGrowSapling(BlockUpdateArgs args)
     {
-        switch (GetTreeType(m.GetBlock(x, y, z)))
+        switch (GetTreeType(m.GetBlock(args.X, args.Y, args.Z)))
         {
             case TreeType.Oak:
-                if (IsShadow(x, y, z) || !BlockSupportsSapling(x, y, z - 1))
-                {
+                if (IsShadow(args.X, args.Y, args.Z) || !BlockSupportsSapling(args.X, args.Y, args.Z - 1))
                     return;
-                }
 
-                MakeTree(x, y, z, OakTreeTrunk, OakLeaves, true);
+                MakeTree(args.X, args.Y, args.Z, OakTreeTrunk, OakLeaves, true);
                 break;
 
             case TreeType.Birch:
-                if (IsShadow(x, y, z) || !BlockSupportsSapling(x, y, z - 1))
-                {
+                if (IsShadow(args.X, args.Y, args.Z) || !BlockSupportsSapling(args.X, args.Y, args.Z - 1))
                     return;
-                }
 
-                MakeTree(x, y, z, BirchTreeTrunk, BirchLeaves, false);
+                MakeTree(args.X, args.Y, args.Z, BirchTreeTrunk, BirchLeaves, false);
                 break;
 
             case TreeType.Spruce:
-                if (IsShadow(x, y, z) || !BlockSupportsSapling(x, y, z - 1))
-                {
+                if (IsShadow(args.X, args.Y, args.Z) || !BlockSupportsSapling(args.X, args.Y, args.Z - 1))
                     return;
-                }
 
-                MakeTree(x, y, z, SpruceTreeTrunk, SpruceLeaves, false);
+                MakeTree(args.X, args.Y, args.Z, SpruceTreeTrunk, SpruceLeaves, false);
                 break;
         }
     }
-
+    
     /// <summary>
     /// Determines the tree type from given block ID.
     /// </summary>
@@ -220,40 +206,40 @@ public class VegetationGrowth : IMod
         }
     }
 
-    private void BlockTickGrowGrassOrMushroomsOnDirt(int x, int y, int z)
+    private void BlockTickGrowGrassOrMushroomsOnDirt(BlockUpdateArgs args)
     {
-        if (m.GetBlock(x, y, z) == Dirt)
+        if (m.GetBlock(args.X, args.Y, args.Z) == Dirt)
         {
-            if (m.IsValidPos(x, y, z + 1))
+            if (m.IsValidPos(args.X, args.Y, args.Z + 1))
             {
-                int roofBlock = m.GetBlock(x, y, z + 1);
+                int roofBlock = m.GetBlock(args.X, args.Y, args.Z + 1);
                 if (m.IsTransparentForLight(roofBlock))
                 {
-                    if (IsShadow(x, y, z) && !ReflectedSunnyLight(x, y, z))
+                    if (IsShadow(args.X, args.Y, args.Z) && !ReflectedSunnyLight(args.X, args.Y, args.Z))
                     {
                         // if 1% chance happens then 1 mushroom will grow up
                         if (rnd.NextDouble() < 0.01)
                         {
                             int tile = rnd.NextDouble() < 0.6 ? RedMushroom : BrownMushroom;
-                            PlaceIfEmpty(x, y, z + 1, tile);
+                            PlaceIfEmpty(args.X, args.Y, args.Z + 1, tile);
                         }
                     }
                     else
                     {
-                        m.SetBlock(x, y, z, Grass);
+                        m.SetBlock(args.X, args.Y, args.Z, Grass);
                     }
                 }
             }
         }
     }
 
-    private void BlockTickGrassDeathInDarkness(int x, int y, int z)
+    private void BlockTickGrassDeathInDarkness(BlockUpdateArgs args)
     {
-        if (m.GetBlock(x, y, z) == Grass)
+        if (m.GetBlock(args.X, args.Y, args.Z) == Grass)
         {
-            if (IsShadow(x, y, z) && !(ReflectedSunnyLight(x, y, z) && m.IsTransparentForLight(m.GetBlock(x, y, z + 1))))
+            if (IsShadow(args.X, args.Y, args.Z) && !(ReflectedSunnyLight(args.X, args.Y, args.Z) && m.IsTransparentForLight(m.GetBlock(args.X, args.Y, args.Z + 1))))
             {
-                m.SetBlock(x, y, z, Dirt);
+                m.SetBlock(args.X, args.Y, args.Z, Dirt);
             }
         }
     }
@@ -305,59 +291,54 @@ public class VegetationGrowth : IMod
     }
 
     // mushrooms will die when they have not shadow or dirt, or 20% chance happens
-    private void BlockTickMushroomDeath(int x, int y, int z)
+    private void BlockTickMushroomDeath(BlockUpdateArgs args)
     {
-        int block = m.GetBlock(x, y, z);
+        int block = m.GetBlock(args.X, args.Y, args.Z);
         if (block == BrownMushroom || block == RedMushroom)
         {
             if (rnd.NextDouble() < 0.2)
             {
-                m.SetBlock(x, y, z, 0);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
                 return;
             }
 
-            if (!IsShadow(x, y, z - 1))
+            if (!IsShadow(args.X, args.Y, args.Z - 1))
             {
-                m.SetBlock(x, y, z, 0);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
             }
             else
             {
-                if (m.GetBlock(x, y, z - 1) == Dirt)
-                {
+                if (m.GetBlock(args.X, args.Y, args.Z - 1) == Dirt)
                     return;
-                }
 
-                m.SetBlock(x, y, z, 0);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
             }
         }
     }
 
     // floowers will die when they have no light, dirt or grass or 2% chance happens
-    private void BlockTickFlowerDeath(int x, int y, int z)
+    private void BlockTickFlowerDeath(BlockUpdateArgs args)
     {
-        int block = m.GetBlock(x, y, z);
+        int block = m.GetBlock(args.X, args.Y, args.Z);
         if (block == YellowFlowerDecorations || block == RedRoseDecorations)
         {
             if (rnd.NextDouble() < 0.02)
             {
-                m.SetBlock(x, y, z, 0);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
                 return;
             }
 
-            if (IsShadow(x, y, z - 1))
+            if (IsShadow(args.X, args.Y, args.Z - 1))
             {
-                m.SetBlock(x, y, z, 0);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
             }
             else
             {
-                int under = m.GetBlock(x, y, z - 1);
-                if (under == Dirt
-                     || under == Grass)
-                {
+                int under = m.GetBlock(args.X, args.Y, args.Z - 1);
+                if (under == Dirt || under == Grass)
                     return;
-                }
 
-                m.SetBlock(x, y, z, 0);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
             }
         }
     }

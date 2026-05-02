@@ -1,4 +1,5 @@
-﻿namespace ManicDigger;
+﻿
+namespace ManicDigger;
 
 /// <summary>
 /// The last <see cref="ServerSystem"/> to run on startup. Use <see cref="Initialize"/>
@@ -6,6 +7,10 @@
 /// </summary>
 public class ServerSystemLoadLast : ServerSystem
 {
+    public ServerSystemLoadLast(IModEvents modEvents) : base(modEvents)
+    {
+    }
+
     /// <inheritdoc/>
     protected override void Initialize(Server server) => CallModOnLoad(server);
 
@@ -17,7 +22,7 @@ public class ServerSystemLoadLast : ServerSystem
     /// single bad mod cannot abort the rest of the load sequence.
     /// </para>
     /// </summary>
-    private static void CallModOnLoad(Server server)
+    private void CallModOnLoad(Server server)
     {
         // Ensure mod data storage exists even if nothing was loaded from a savegame
         server.ModData ??= [];
@@ -27,18 +32,6 @@ public class ServerSystemLoadLast : ServerSystem
             handler();
         }
 
-        foreach (var handler in server.ModEventHandlers.onloadworld)
-        {
-            try
-            {
-                handler();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Mod exception: OnLoadWorld");
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
-            }
-        }
+        ModEvents.RaiseLoadWorld();
     }
 }

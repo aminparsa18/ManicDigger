@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using ManicDigger;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -17,6 +18,11 @@ public class ServerSystemLoadConfig : ServerSystem
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
+
+    public ServerSystemLoadConfig(IModEvents modEvents) : base(modEvents)
+    {
+    }
+
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------

@@ -10,11 +10,11 @@ public class BuildLog : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
-        m.RegisterOnBlockBuild(OnBuild);
-        m.RegisterOnBlockDelete(OnDelete);
+        modEvents.BlockBuild += OnBuild;
+        modEvents.BlockDelete += OnDelete;
         m.RegisterOnLoad(OnLoad);
         m.RegisterOnSave(OnSave);
         m.SetGlobalDataNotSaved("LogLines", lines);
@@ -65,41 +65,37 @@ public class BuildLog : IMod
         m.SetGlobalData("BuildLog", ms.ToArray());
     }
 
-    private void OnBuild(int player, int x, int y, int z)
+    private void OnBuild(BlockBuildArgs args)
     {
         lines.Add(
-                  [
-                         DateTime.UtcNow,//timestamp
-			          	(short)x, //x
-			          	(short)y, //y
-			          	(short)z, //z
-			          	(short)m.GetBlock(x, y, z), //blocktype
-			          	true, //build
-			          	m.GetPlayerName(player),
-                          m.GetPlayerIp(player), //ip
-                  ]);
+        [
+            DateTime.UtcNow,                        //timestamp
+        (short)args.X,                          //x
+        (short)args.Y,                          //y
+        (short)args.Z,                          //z
+        (short)m.GetBlock(args.X, args.Y, args.Z), //blocktype
+        true,                                   //build
+        m.GetPlayerName(args.Player),
+        m.GetPlayerIp(args.Player),             //ip
+    ]);
         if (lines.Count > MaxEntries)
-        {
             lines.RemoveRange(0, 1000);
-        }
     }
 
-    private void OnDelete(int player, int x, int y, int z, int oldblock)
+    private void OnDelete(BlockDeleteArgs args)
     {
         lines.Add(
-                  [
-                         DateTime.UtcNow, //timestamp
-			          	(short)x, //x
-			          	(short)y, //y
-			          	(short)z, //z
-			          	(short)oldblock, //blocktype
-			          	false, //build
-			          	m.GetPlayerName(player), //playername
-			          	m.GetPlayerIp(player), //ip
-                  ]);
+        [
+            DateTime.UtcNow,                //timestamp
+        (short)args.X,                  //x
+        (short)args.Y,                  //y
+        (short)args.Z,                  //z
+        (short)args.OldBlock,           //blocktype
+        false,                          //build
+        m.GetPlayerName(args.Player),   //playername
+        m.GetPlayerIp(args.Player),     //ip
+    ]);
         if (lines.Count > MaxEntries)
-        {
             lines.RemoveRange(0, 1000);
-        }
     }
 }

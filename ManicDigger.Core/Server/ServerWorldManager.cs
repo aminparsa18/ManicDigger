@@ -51,7 +51,7 @@ public partial class Server
             if (VectorUtils.IsValidPos(Map, x, y, z - i))
             {
                 int blockUnderPlayer = Map.GetBlock(x, y, z - i);
-                if (BlockTypes[blockUnderPlayer].IsFluid())
+                if (_blockRegistry.BlockTypes[blockUnderPlayer].IsFluid())
                 {
                     return false;
                 }

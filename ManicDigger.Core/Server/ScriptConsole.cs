@@ -3,9 +3,10 @@ using OpenTK.Mathematics;
 
 public class ScriptConsole
 {
-    public ScriptConsole(Server s, int client_id)
+    public ScriptConsole(Server s, IBlockRegistry blockRegistry, int client_id)
     {
         m_server = s;
+        _blockRegistry = blockRegistry;
         m_client = client_id;
     }
 
@@ -34,6 +35,7 @@ public class ScriptConsole
         interpreter.SetFunction("clear", new Action(Clear));
     }
 
+    private readonly IBlockRegistry _blockRegistry;
     private readonly Server m_server;
     private readonly int m_client;
 
@@ -53,7 +55,7 @@ public class ScriptConsole
     {
         for (int i = (int)start; i < end; i++)
         {
-            Print(string.Format("{0}: {1}", i, m_server.BlockTypes[i].Name));
+            Print(string.Format("{0}: {1}", i, _blockRegistry.BlockTypes[i].Name));
         }
     }
 
@@ -61,9 +63,9 @@ public class ScriptConsole
     {
         for (int i = 0; i < GameConstants.MAX_BLOCKTYPES; i++)
         {
-            if (m_server.BlockTypes[i].Name.Contains(search_string))
+            if (_blockRegistry.BlockTypes[i].Name.Contains(search_string))
             {
-                Print(string.Format("{0}: {1}", i, m_server.BlockTypes[i].Name));
+                Print(string.Format("{0}: {1}", i, _blockRegistry.BlockTypes[i].Name));
             }
         }
     }

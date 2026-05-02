@@ -6,16 +6,15 @@ public class SandPhysics : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
-        m.RegisterOnBlockBuild(Build);
-        m.RegisterOnBlockDelete(Delete);
+        modEvents.BlockBuild += Build;
+        modEvents.BlockDelete += Delete;
     }
 
-    private void Build(int player, int x, int y, int z) => Update(x, y, z);
-
-    private void Delete(int player, int x, int y, int z, int blockid) => Update(x, y, z);
+    private void Build(BlockBuildArgs args) => Update(args.X, args.Y, args.Z);
+    private void Delete(BlockDeleteArgs args) => Update(args.X, args.Y, args.Z);
 
     private void Update(int x, int y, int z)
     {

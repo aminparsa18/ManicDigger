@@ -7,7 +7,7 @@ public class CoreWar : IMod
 {
     public void PreStart(IModManager m) { }
 
-    public void Start(IModManager m)
+    public void Start(IModManager m, IModEvents modEvents)
     {
         //Render hint to send to clients
         m.RenderHint(RenderHint.Nice);

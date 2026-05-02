@@ -1,8 +1,15 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 
 public class ServerSystemChunksSimulation : ServerSystem
 {
     private Random _rnd;
+    private IBlockRegistry _blockRegistry;
+
+    public ServerSystemChunksSimulation(IBlockRegistry blockRegistry, IModEvents modEvents) : base(modEvents)
+    {
+        _blockRegistry = blockRegistry;
+    }
 
     public int[] MonsterTypesUnderground = [1, 2];
     public int[] MonsterTypesOnGround = [0, 3, 4];
@@ -82,7 +89,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                     if (!chunk.IsPopulated)
                     {
                         chunk.IsPopulated = true;
-                        PopulateChunk(server, chunkPos);
+                        PopulateChunk(chunkPos);
                     }
                 }
 
@@ -106,18 +113,14 @@ public class ServerSystemChunksSimulation : ServerSystem
     // Chunk population
     // -------------------------------------------------------------------------
 
-    private static void PopulateChunk(Server server, Vector3i chunkPos)
+    private void PopulateChunk(Vector3i chunkPos)
     {
         unchecked
         {
-            var handlers = server.ModEventHandlers.populatechunk;
             int x = (int)(chunkPos.X * Server.InvertedChunkSize);
             int y = (int)(chunkPos.Y * Server.InvertedChunkSize);
             int z = (int)(chunkPos.Z * Server.InvertedChunkSize);
-            for (int i = 0; i < handlers.Count; i++)
-            {
-                handlers[i](x, y, z);
-            }
+            ModEvents.RaisePopulateChunk(x, y, z);
         }
     }
 
@@ -134,9 +137,6 @@ public class ServerSystemChunksSimulation : ServerSystem
                 AddMonsters(server, chunkPos);
             }
 
-            var blockTicks = server.ModEventHandlers.blockticks;
-            int tickCount = blockTicks.Count;
-
             for (int xx = 0; xx < Server.ChunkSize; xx++)
             {
                 int px = xx + chunkPos.X;
@@ -145,11 +145,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                     int py = yy + chunkPos.Y;
                     for (int zz = 0; zz < Server.ChunkSize; zz++)
                     {
-                        int pz = zz + chunkPos.Z;
-                        for (int i = 0; i < tickCount; i++)
-                        {
-                            blockTicks[i](px, py, pz);
-                        }
+                        ModEvents.RaiseBlockUpdate(px, py, zz + chunkPos.Z);
                     }
                 }
             }
@@ -238,9 +234,9 @@ public class ServerSystemChunksSimulation : ServerSystem
             : MonsterTypesUnderground[_rnd.Next(MonsterTypesUnderground.Length)];
     }
 
-    private static bool IsOpenGround(Server server, int px, int py, int pz)
+    private bool IsOpenGround(Server server, int px, int py, int pz)
         => server.Map.GetBlock(px, py, pz) == 0 &&
         server.Map.GetBlock(px, py, pz + 1) == 0 &&
         server.Map.GetBlock(px, py, pz - 1) != 0 &&
-        !server.BlockTypes[server.Map.GetBlock(px, py, pz - 1)].IsFluid();
+        !_blockRegistry.BlockTypes[server.Map.GetBlock(px, py, pz - 1)].IsFluid();
 }

@@ -12,7 +12,7 @@ public class CoreBlocks : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("Core");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
 

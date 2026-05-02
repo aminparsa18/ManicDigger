@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -10,6 +11,10 @@ using System.Runtime.InteropServices;
 /// </summary>
 public class ServerSystemNotifyMap : ServerSystem
 {
+    public ServerSystemNotifyMap(IModEvents modEvents) : base(modEvents)
+    {
+    }
+
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------

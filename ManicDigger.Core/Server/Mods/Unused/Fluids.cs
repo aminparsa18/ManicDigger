@@ -29,13 +29,13 @@ public class Fluids : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("Default");
 
-    public void Start(IModManager m)
+    public void Start(IModManager m, IModEvents modEvents)
     {
         this.m = m;
-        m.RegisterOnBlockUpdate(CheckNeighbors);
-        m.RegisterOnBlockBuild(Build);
+        modEvents.BlockUpdate += CheckNeighbors;
+        modEvents.BlockBuild += Build;
         m.RegisterTimer(UpdateFluids, 1);
-        m.RegisterOnBlockDelete(Delete);
+        modEvents.BlockDelete += Delete;
         Water = m.GetBlockId("Water");
         Lava = m.GetBlockId("Lava");
     }
@@ -44,24 +44,22 @@ public class Fluids : IMod
 
     private static int PositionHash(int x, int y, int z) => (((x * 9973) + y) * 127) + z; //this hash value may overflow, but we don't care
 
-    private void Build(int player, int x, int y, int z)
+    private void Build(BlockBuildArgs args)
     {
-        int b = m.GetBlock(x, y, z);
+        int b = m.GetBlock(args.X, args.Y, args.Z);
         if (m.IsBlockFluid(b))
-        {
-            AddActiveFluid(x, y, z);
-        }
+            AddActiveFluid(args.X, args.Y, args.Z);
     }
 
-    private void Delete(int player, int x, int y, int z, int blockid) => CheckNeighbors(x, y, z);
+    private void Delete(BlockDeleteArgs args) => CheckNeighbors(new BlockUpdateArgs { X = args.X, Y = args.Y, Z = args.Z });
 
-    private void CheckNeighbors(int x, int y, int z)
+    private void CheckNeighbors(BlockUpdateArgs args)
     {
-        for (int xx = x - 1; xx <= x + 1; xx++)
+        for (int xx = args.X - 1; xx <= args.X + 1; xx++)
         {
-            for (int yy = y - 1; yy <= y + 1; yy++)
+            for (int yy = args.Y - 1; yy <= args.Y + 1; yy++)
             {
-                for (int zz = z - 1; zz <= z + 1; zz++)
+                for (int zz = args.Z - 1; zz <= args.Z + 1; zz++)
                 {
                     Check(xx, yy, zz);
                 }
@@ -187,7 +185,7 @@ public class Fluids : IMod
                 RemoveActiveFluid(x, y, z);
                 AddActiveFluid(x, y, targetz);
                 //check environment
-                CheckNeighbors(x, y, z);
+                CheckNeighbors(new BlockUpdateArgs { X = x, Y = y, Z = z });
                 return true;
             }
             //check neighbor cells for a place to drop down
@@ -212,7 +210,7 @@ public class Fluids : IMod
                     RemoveActiveFluid(x, y, z);
                     AddActiveFluid(xx, yy, z - 1);
                     //check environment
-                    CheckNeighbors(x, y, z);
+                    CheckNeighbors(new BlockUpdateArgs { X = x, Y = y, Z = z });
                     return true;
                 }
             }
@@ -243,7 +241,7 @@ public class Fluids : IMod
                         m.SetBlock(x, y, z, 0);
                         RemoveActiveFluid(x, y, z);
                         AddActiveFluid(xx, yy, z - 1);
-                        CheckNeighbors(x, y, z);
+                        CheckNeighbors(new BlockUpdateArgs { X = x, Y = y, Z = z });
                         return true;
                     }
                 }
@@ -283,7 +281,7 @@ public class Fluids : IMod
 
                 m.SetBlock(b1.X, b1.Y, b1.Z, searchMedium);
                 m.SetBlock(b2.X, b2.Y, b2.Z, 0);
-                CheckNeighbors(b2.X, b2.Y, b2.Z);
+                CheckNeighbors(new BlockUpdateArgs { X = b2.X, Y = b2.Y, Z = b2.Z });
                 AddActiveFluid(b1.X, b1.Y, b1.Z);
             }
         }

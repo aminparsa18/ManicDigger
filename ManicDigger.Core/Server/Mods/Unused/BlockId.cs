@@ -15,7 +15,7 @@ public class BlockId : IMod
         m.RequireMod("VandalFinder");
     }
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         m.RegisterOnLoad(OnLoad);

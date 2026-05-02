@@ -610,20 +610,8 @@ public partial class Server
                     }
                 }
 
-                for (int i = 0; i < ModEventHandlers.oncommand.Count; i++)
-                {
-                    try
-                    {
-                        if (ModEventHandlers.oncommand[i](sourceClientId, command, argument))
-                        {
-                            return;
-                        }
-                    }
-                    catch
-                    {
-                        SendMessage(sourceClientId, Language.Get("Server_CommandException"));
-                    }
-                }
+                if (_modEvents.RaiseCommand(sourceClientId, command, argument))
+                    return;
 
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandUnknown") + command);
                 return;
@@ -1358,7 +1346,7 @@ public partial class Server
             string targetName = targetClient.PlayerName;
             string sourcename = GetClient(sourceClientId).PlayerName;
             int maxStack = 9999; //TODO: Fetch this dynamically for each item - stacking
-            foreach (var (id, blockType) in BlockTypes)
+            foreach (var (id, blockType) in _blockRegistry.BlockTypes)
             {
                 if (!blockType.IsBuildable)
                 {
@@ -1448,7 +1436,7 @@ public partial class Server
 
             Inventory inventory = GetPlayerInventory(targetName);
             InventoryUtil util = GetInventoryUtil(inventory);
-            foreach (var (id, blockType) in BlockTypes)
+            foreach (var (id, blockType) in _blockRegistry.BlockTypes)
             {
                 if (!blockType.IsBuildable)
                 {

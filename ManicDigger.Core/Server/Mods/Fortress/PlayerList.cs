@@ -4,26 +4,26 @@ public class PlayerList : IMod
 {
     public void PreStart(IModManager m) { }
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
-        m.RegisterOnSpecialKey(OnTabKey);
-        m.RegisterOnDialogClick(OnTabResponse);
+        modEvents.SpecialKey += OnTabKey;
+        modEvents.DialogClick += OnTabResponse;
         m.RegisterTimer(UpdateTab, 1);
     }
 
     private IModManager m;
-
+    
     public string GetPrefix(int playerID) => $"[{m.GetGroupColor(playerID)}{m.GetGroupName(playerID)}&0] ";
 
-    private void OnTabKey(int player, SpecialKey key)
+    private void OnTabKey(SpecialKeyArgs args)
     {
-        if (key != SpecialKey.TabPlayerList)
+        if (args.Key != SpecialKey.TabPlayerList)
         {
             return;
         }
 
-        tabOpen[m.GetPlayerName(player)] = true;
+        tabOpen[m.GetPlayerName(args.Player)] = true;
         Dialog d = new()
         {
             IsModal = true
@@ -31,7 +31,7 @@ public class PlayerList : IMod
         List<Widget> widgets = [];
 
         // table alignment
-        float tableX = Xcenter(m.GetScreenResolution(player)[0], tableWidth);
+        float tableX = Xcenter(m.GetScreenResolution(args.Player)[0], tableWidth);
         float tableY = tableMarginTop;
 
         // text to draw
@@ -43,7 +43,7 @@ public class PlayerList : IMod
 
 
         string row3_1 = $"IP: {m.ServerIp}:{m.ServerPort}";
-        string row3_2 = (int)(m.GetPlayerPing(player) * 1000) + "ms";
+        string row3_2 = (int)(m.GetPlayerPing(args.Player) * 1000) + "ms";
 
         string row4_1 = $"Players: {m.AllPlayers().Length}";
         string row4_2 = $"Page: {page + 1}/{pageCount + 1}";
@@ -63,7 +63,7 @@ public class PlayerList : IMod
         float heightOffset = 0;
 
         // determine how many entries can be displayed
-        tableHeight = m.GetScreenResolution(player)[1] - tableMarginTop - tableMarginBottom;
+        tableHeight = m.GetScreenResolution(args.Player)[1] - tableMarginTop - tableMarginBottom;
         float availableEntrySpace = tableHeight - row1Height - row2Height - row3Height - row4Height - (row5Height + tableLineWidth);
 
         int entriesPerPage = (int)(availableEntrySpace / listEntryHeight);
@@ -165,10 +165,10 @@ public class PlayerList : IMod
         wesc.Id = "Esc";
         widgets.Add(wesc);
 
-        d.Width = m.GetScreenResolution(player)[0];
-        d.Height = m.GetScreenResolution(player)[1];
+        d.Width = m.GetScreenResolution(args.Player)[0];
+        d.Height = m.GetScreenResolution(args.Player)[1];
         d.Widgets = widgets.ToArray();
-        m.SendDialog(player, "PlayerList", d);
+        m.SendDialog(args.Player, "PlayerList", d);
     }
 
     private int pageCount = 0; //number of pages for player table entries
@@ -233,12 +233,12 @@ public class PlayerList : IMod
         return text;
     }
 
-    private void OnTabResponse(int player, string widgetid)
+    private void OnTabResponse(DialogClickArgs clickArgs)
     {
-        if (widgetid is "Tab" or "Esc")
+        if (clickArgs.WidgetId is "Tab" or "Esc")
         {
-            m.SendDialog(player, "PlayerList", null);
-            tabOpen.Remove(m.GetPlayerName(player));
+            m.SendDialog(clickArgs.Player, "PlayerList", null);
+            tabOpen.Remove(m.GetPlayerName(clickArgs.Player));
         }
     }
 
@@ -252,7 +252,7 @@ public class PlayerList : IMod
             {
                 if (k.Key == m.GetPlayerName(p))
                 {
-                    OnTabKey(p, SpecialKey.TabPlayerList);
+                    OnTabKey(new SpecialKeyArgs { Player = p, Key = SpecialKey.TabPlayerList });
                     goto nexttab;
                 }
             }

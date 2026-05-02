@@ -10,16 +10,16 @@ public class Ghost : IMod
 
     public void PreStart(IModManager m) { }
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         if (enabled)
         {
-            m.RegisterOnLoadWorld(OnLoad);
+            modEvents.LoadWorld += OnLoad;
         }
     }
 
-    private void OnLoad()
+    private void OnLoad(LoadWorldArgs args)
     {
         m.RegisterTimer(F, 0.1);
         ghost = m.AddBot("Ghost");

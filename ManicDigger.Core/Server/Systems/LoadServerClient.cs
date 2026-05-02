@@ -22,6 +22,10 @@ public class ServerSystemLoadServerClient : ServerSystem
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
+    public ServerSystemLoadServerClient(IModEvents modEvents) : base(modEvents)
+    {
+    }
+
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------

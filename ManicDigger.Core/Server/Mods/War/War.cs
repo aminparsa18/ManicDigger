@@ -14,7 +14,7 @@ public class War : IMod
     public bool EnableTeamkill = true;
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         CurrentRespawnTime = DateTime.UtcNow;
@@ -25,22 +25,21 @@ public class War : IMod
         m.DisablePrivilege("tp");
 
         //Register specific functions
-        m.RegisterOnPlayerJoin(PlayerJoin);
-        m.RegisterOnDialogClick(DialogClickSelectTeam);
-        m.RegisterOnDialogClick(DialogClickSelectClass);
-        m.RegisterOnDialogClick(DialogClickSelectSubclass);
-        m.RegisterOnWeaponHit(Hit);
-        m.RegisterOnSpecialKey(RespawnKey);
-        m.RegisterOnSpecialKey(OnTabKey);
-        m.RegisterOnDialogClick(OnTabResponse);
-        m.RegisterOnSpecialKey(OnSelectTeamKey);
-        m.RegisterChangedActiveMaterialSlot(UpdatePlayerModel);
-        m.RegisterOnWeaponShot(Shot);
-        m.RegisterOnPlayerChat(OnChat);
-        m.RegisterOnCommand(OnCommand);
-        m.RegisterOnBlockBuild(OnBuild);
-        m.RegisterOnPlayerDeath(OnPlayerDeath);
-
+        modEvents.PlayerJoin += PlayerJoin;
+        modEvents.DialogClick += DialogClickSelectTeam;
+        modEvents.DialogClick += DialogClickSelectClass;
+        modEvents.DialogClick += DialogClickSelectSubclass;
+        modEvents.WeaponHit += Hit;
+        modEvents.SpecialKey += RespawnKey;
+        modEvents.SpecialKey += OnTabKey;
+        modEvents.DialogClick += OnTabResponse;
+        modEvents.SpecialKey += OnSelectTeamKey;
+        modEvents.ChangedActiveMaterialSlot += UpdatePlayerModel;
+        modEvents.WeaponShot += Shot;
+        modEvents.PlayerChat += OnChat;
+        modEvents.Command += OnCommand;
+        modEvents.BlockBuild += OnBuild;
+        modEvents.PlayerDeath += OnPlayerDeath;
         //Register timers
         m.RegisterTimer(UpdateMedicalKitAmmoPack, 0.1);
         m.RegisterTimer(UpdateRespawnTimer, 1);
@@ -83,28 +82,28 @@ public class War : IMod
 
     private IModManager m;
 
-    private void PlayerJoin(int playerid)
+    private void PlayerJoin(PlayerJoinArgs args)
     {
-        m.SetPlayerHealth(playerid, 100, 100);
-        players[playerid] = new Player();
+        m.SetPlayerHealth(args.Player, 100, 100);
+        players[args.Player] = new Player();
         switch (warmode)
         {
             case WarMode.Edit:
                 m.EnableExtraPrivilegeToAll("build", false);
-                m.EnableFreemove(playerid, true);
+                m.EnableFreemove(args.Player, true);
                 int posx = m.GetMapSizeX() / 2;
                 int posy = m.GetMapSizeY() / 2;
                 int posz = BlockHeight(posx, posy);
-                m.SetPlayerPosition(playerid, posx, posy, posz);
-                ClearInventory(playerid);
-                GiveAllBlocks(playerid);
+                m.SetPlayerPosition(args.Player, posx, posy, posz);
+                ClearInventory(args.Player);
+                GiveAllBlocks(args.Player);
                 m.SetGlobalDataNotSaved("enablewater", false);
                 break;
             case WarMode.TeamDeathmatch:
                 m.SetCreative(false);
                 m.EnableExtraPrivilegeToAll("build", true);
-                m.EnableFreemove(playerid, false);
-                ShowTeamSelectionDialog(playerid);
+                m.EnableFreemove(args.Player, false);
+                ShowTeamSelectionDialog(args.Player);
                 m.SetGlobalDataNotSaved("enablewater", true);
                 break;
         }
@@ -282,8 +281,11 @@ public class War : IMod
         };
     }
 
-    private void DialogClickSelectTeam(int playerid, string widget)
+    private void DialogClickSelectTeam(DialogClickArgs args)
     {
+        int playerid = args.Player;
+        string widget = args.WidgetId;
+
         if (widget == "Team1")
         {
             m.SendDialog(playerid, "SelectTeam" + playerid, null);
@@ -301,7 +303,7 @@ public class War : IMod
             }
 
             m.SetPlayerSpectator(playerid, false);
-            UpdatePlayerModel(playerid);
+            UpdatePlayerModel(new ChangedActiveMaterialSlotArgs { Player = playerid });
             m.EnableFreemove(playerid, false);
             ShowClassSelectionDialog(playerid);
         }
@@ -323,7 +325,7 @@ public class War : IMod
             }
 
             m.SetPlayerSpectator(playerid, false);
-            UpdatePlayerModel(playerid);
+            UpdatePlayerModel(new ChangedActiveMaterialSlotArgs { Player = playerid });
             m.EnableFreemove(playerid, false);
             ShowClassSelectionDialog(playerid);
         }
@@ -339,7 +341,7 @@ public class War : IMod
             players[playerid].team = Team.Spectator;
             players[playerid].kills = 0;
             m.SetPlayerSpectator(playerid, true);
-            UpdatePlayerModel(playerid);
+            UpdatePlayerModel(new ChangedActiveMaterialSlotArgs { Player = playerid });
             m.EnableFreemove(playerid, true);
             m.SendMessageToAll(string.Format("{0} becomes a &7 spectator&f.", m.GetPlayerName(playerid)));
             ClearInventory(playerid);
@@ -361,74 +363,62 @@ public class War : IMod
         }
     }
 
-    private void DialogClickSelectClass(int playerid, string widget)
+    private void DialogClickSelectClass(DialogClickArgs args)
     {
-        if (widget == "Class1")
+        if (args.WidgetId == "Class1")
         {
-            players[playerid].playerclass = PlayerClass.Soldier;
-            ShowSubclassSelectionDialog(playerid);
+            players[args.Player].playerclass = PlayerClass.Soldier;
+            ShowSubclassSelectionDialog(args.Player);
         }
 
-        if (widget == "Class2")
+        if (args.WidgetId == "Class2")
         {
-            players[playerid].playerclass = PlayerClass.Medic;
-            ShowSubclassSelectionDialog(playerid);
+            players[args.Player].playerclass = PlayerClass.Medic;
+            ShowSubclassSelectionDialog(args.Player);
         }
 
-        if (widget == "Class3")
+        if (args.WidgetId == "Class3")
         {
-            players[playerid].playerclass = PlayerClass.Support;
-            ShowSubclassSelectionDialog(playerid);
+            players[args.Player].playerclass = PlayerClass.Support;
+            ShowSubclassSelectionDialog(args.Player);
         }
 
-        if (widget is "Class1" or "Class2" or "Class3")
+        if (args.WidgetId is "Class1" or "Class2" or "Class3")
         {
-            m.SendDialog(playerid, "SelectClass" + playerid, null);
+            m.SendDialog(args.Player, "SelectClass" + args.Player, null);
         }
     }
 
-    private void DialogClickSelectSubclass(int playerid, string widget)
+    private void DialogClickSelectSubclass(DialogClickArgs args)
     {
-        if (widget is not ("Subclass1" or "Subclass2" or "Subclass3"))
-        {
+        if (args.WidgetId is not ("Subclass1" or "Subclass2" or "Subclass3"))
             return;
-        }
 
-        if (players[playerid].firstteam)
-        {
-            Respawn(playerid);
-        }
+        if (players[args.Player].firstteam)
+            Respawn(args.Player);
         else
-        {
-            Die(playerid);
-        }
+            Die(args.Player);
 
-        players[playerid].firstteam = false;
+        players[args.Player].firstteam = false;
 
-        m.SendDialog(playerid, "SelectSubclass" + playerid, null);
+        m.SendDialog(args.Player, "SelectSubclass" + args.Player, null);
 
-        PlayerClass pclass = players[playerid].playerclass;
+        PlayerClass pclass = players[args.Player].playerclass;
         if (pclass == PlayerClass.Soldier)
         {
-            if (widget == "Subclass1")
-            {
-                players[playerid].soldierSubclass = SoldierSubclass.SubmachineGun;
-            }
+            if (args.WidgetId == "Subclass1")
+                players[args.Player].soldierSubclass = SoldierSubclass.SubmachineGun;
 
-            if (widget == "Subclass2")
-            {
-                players[playerid].soldierSubclass = SoldierSubclass.Shotgun;
-            }
+            if (args.WidgetId == "Subclass2")
+                players[args.Player].soldierSubclass = SoldierSubclass.Shotgun;
 
-            if (widget == "Subclass3")
-            {
-                players[playerid].soldierSubclass = SoldierSubclass.Rifle;
-            }
+            if (args.WidgetId == "Subclass3")
+                players[args.Player].soldierSubclass = SoldierSubclass.Rifle;
         }
 
         if (pclass == PlayerClass.Medic)
         {
-            if (widget == "Subclass1")
+            if (args.WidgetId == "Subclass1")
             {
                 //todo medic subclass
             }
@@ -436,13 +426,13 @@ public class War : IMod
 
         if (pclass == PlayerClass.Support)
         {
-            if (widget == "Subclass1")
+            if (args.WidgetId == "Subclass1")
             {
                 //todo support subclass
             }
         }
 
-        ResetInventoryOnRespawn(playerid);
+        ResetInventoryOnRespawn(args.Player);
     }
 
     private void ResetInventoryOnRespawn(int playerid)
@@ -516,101 +506,97 @@ public class War : IMod
         m.NotifyAmmo(playerid, players[playerid].totalAmmo);
     }
 
-    private void OnSelectTeamKey(int player, SpecialKey key)
+    private void OnSelectTeamKey(SpecialKeyArgs args)
     {
-        if (key != SpecialKey.SelectTeam)
-        {
+        if (args.Key != SpecialKey.SelectTeam)
             return;
-        }
 
         if (warmode == WarMode.Edit)
-        {
             return;
-        }
 
-        ShowTeamSelectionDialog(player);
+        ShowTeamSelectionDialog(args.Player);
     }
 
-    private void OnPlayerDeath(int player, DeathReason reason, int sourceID)
+    private void OnPlayerDeath(PlayerDeathArgs args)
     {
         string deathMessage = "";
-        switch (reason)
+        switch (args.Reason)
         {
             case DeathReason.FallDamage:
-                Die(player);
-                deathMessage = string.Format("{0}{1} &7was doomed to fall.", GetTeamColorString(players[player].team), m.GetPlayerName(player));
+                Die(args.Player);
+                deathMessage = string.Format("{0}{1} &7was doomed to fall.", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player));
                 break;
             case DeathReason.BlockDamage:
-                if (sourceID == m.GetBlockId("Lava"))
+                if (args.SourceId == m.GetBlockId("Lava"))
                 {
-                    Die(player);
-                    deathMessage = string.Format("{0}{1} &7thought they could swim in Lava.", GetTeamColorString(players[player].team), m.GetPlayerName(player));
+                    Die(args.Player);
+                    deathMessage = string.Format("{0}{1} &7thought they could swim in Lava.", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player));
                 }
-                else if (sourceID == m.GetBlockId("Fire"))
+                else if (args.SourceId == m.GetBlockId("Fire"))
                 {
-                    Die(player);
-                    deathMessage = string.Format("{0}{1} &7was burned alive.", GetTeamColorString(players[player].team), m.GetPlayerName(player));
+                    Die(args.Player);
+                    deathMessage = string.Format("{0}{1} &7was burned alive.", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player));
                 }
                 else
                 {
-                    Die(player);
-                    deathMessage = string.Format("{0}{1} &7was killed by {2}.", GetTeamColorString(players[player].team), m.GetPlayerName(player), m.GetBlockName(sourceID));
+                    Die(args.Player);
+                    deathMessage = string.Format("{0}{1} &7was killed by {2}.", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player), m.GetBlockName(args.SourceId));
                 }
 
                 break;
             case DeathReason.Drowning:
-                Die(player);
-                deathMessage = string.Format("{0}{1} &7tried to breathe under water.", GetTeamColorString(players[player].team), m.GetPlayerName(player));
+                Die(args.Player);
+                deathMessage = string.Format("{0}{1} &7tried to breathe under water.", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player));
                 break;
             case DeathReason.Explosion:
                 if (!EnableTeamkill)
                 {
-                    if (players[sourceID].team == players[player].team)
+                    if (players[args.SourceId].team == players[args.Player].team)
                     {
                         break;
                     }
                 }
                 //Check if one of the players is spectator
-                if (players[sourceID].team == Team.Spectator || players[player].team == Team.Spectator)
+                if (players[args.SourceId].team == Team.Spectator || players[args.Player].team == Team.Spectator)
                 {
                     //Just here for safety. Spectators shouldn't have weapons...
                     break;
                 }
                 //Check if one of the players is dead
-                if (players[player].isdead || players[sourceID].isdead)
+                if (players[args.Player].isdead || players[args.SourceId].isdead)
                 {
                     break;
                 }
 
-                Die(player);
-                if (sourceID == player)
+                Die(args.Player);
+                if (args.SourceId == args.Player)
                 {
-                    deathMessage = string.Format("{0}{1} &7blew himself up.", GetTeamColorString(players[player].team), m.GetPlayerName(player));
+                    deathMessage = string.Format("{0}{1} &7blew himself up.", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player));
                     break;
                 }
 
-                if (players[sourceID].team != players[player].team)
+                if (players[args.SourceId].team != players[args.Player].team)
                 {
-                    players[sourceID].kills = players[sourceID].kills + 1;
+                    players[args.SourceId].kills = players[args.SourceId].kills + 1;
                 }
                 else
                 {
-                    players[sourceID].kills = players[sourceID].kills - 2;
+                    players[args.SourceId].kills = players[args.SourceId].kills - 2;
                 }
 
-                if (players[sourceID].team == players[player].team)
+                if (players[args.SourceId].team == players[args.Player].team)
                 {
-                    deathMessage = string.Format("{0}{1} &7was blown into pieces by {2}{3}. - {4}TEAMKILL", GetTeamColorString(players[player].team), m.GetPlayerName(player), GetTeamColorString(players[sourceID].team), m.GetPlayerName(sourceID), m.ColorError);
+                    deathMessage = string.Format("{0}{1} &7was blown into pieces by {2}{3}. - {4}TEAMKILL", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player), GetTeamColorString(players[args.SourceId].team), m.GetPlayerName(args.SourceId), m.ColorError);
                 }
                 else
                 {
-                    deathMessage = string.Format("{0}{1} &7was blown into pieces by {2}{3}&7.", GetTeamColorString(players[player].team), m.GetPlayerName(player), GetTeamColorString(players[sourceID].team), m.GetPlayerName(sourceID));
+                    deathMessage = string.Format("{0}{1} &7was blown into pieces by {2}{3}&7.", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player), GetTeamColorString(players[args.SourceId].team), m.GetPlayerName(args.SourceId));
                 }
 
                 break;
             default:
-                Die(player);
-                deathMessage = string.Format("{0}{1} &7died.", GetTeamColorString(players[player].team), m.GetPlayerName(player));
+                Die(args.Player);
+                deathMessage = string.Format("{0}{1} &7died.", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player));
                 break;
         }
 
@@ -658,44 +644,42 @@ public class War : IMod
 
         return m.GetMapSizeZ() / 2;
     }
-    private void Shot(int sourceplayer, int block)
+
+    private void Shot(WeaponShotArgs args)
     {
-        if (!players[sourceplayer].totalAmmo.TryGetValue(block, out int value))
+        if (!players[args.SourcePlayer].totalAmmo.TryGetValue(args.Block, out int value))
         {
             value = 0;
-            players[sourceplayer].totalAmmo[block] = value;
+            players[args.SourcePlayer].totalAmmo[args.Block] = value;
         }
 
-        players[sourceplayer].totalAmmo[block] = value - 1;
-        m.NotifyAmmo(sourceplayer, players[sourceplayer].totalAmmo);
+        players[args.SourcePlayer].totalAmmo[args.Block] = value - 1;
+        m.NotifyAmmo(args.SourcePlayer, players[args.SourcePlayer].totalAmmo);
     }
-    private void Hit(int sourceplayer, int targetplayer, int block, bool head)
+
+    private void Hit(WeaponHitArgs args)
     {
         if (!EnableTeamkill)
         {
-            if (players[sourceplayer].team == players[targetplayer].team)
-            {
+            if (players[args.SourcePlayer].team == players[args.TargetPlayer].team)
                 return;
-            }
-        }
-        //Check if one of the players is a spectator
-        if (players[sourceplayer].team == Team.Spectator || players[targetplayer].team == Team.Spectator)
-        {
-            return;
-        }
-        //Check if one of the players is dead
-        if (players[targetplayer].isdead || players[sourceplayer].isdead)
-        {
-            return;
         }
 
+        //Check if one of the players is a spectator
+        if (players[args.SourcePlayer].team == Team.Spectator || players[args.TargetPlayer].team == Team.Spectator)
+            return;
+
+        //Check if one of the players is dead
+        if (players[args.TargetPlayer].isdead || players[args.SourcePlayer].isdead)
+            return;
+
         {
-            float x1 = m.GetPlayerPositionX(sourceplayer);
-            float y1 = m.GetPlayerPositionY(sourceplayer);
-            float z1 = m.GetPlayerPositionZ(sourceplayer);
-            float x2 = m.GetPlayerPositionX(targetplayer);
-            float y2 = m.GetPlayerPositionY(targetplayer);
-            float z2 = m.GetPlayerPositionZ(targetplayer);
+            float x1 = m.GetPlayerPositionX(args.SourcePlayer);
+            float y1 = m.GetPlayerPositionY(args.SourcePlayer);
+            float z1 = m.GetPlayerPositionZ(args.SourcePlayer);
+            float x2 = m.GetPlayerPositionX(args.TargetPlayer);
+            float y2 = m.GetPlayerPositionY(args.TargetPlayer);
+            float z2 = m.GetPlayerPositionZ(args.TargetPlayer);
             float dx = x1 - x2;
             float dy = y1 - y2;
             float dz = z1 - z2;
@@ -703,51 +687,38 @@ public class War : IMod
             dx = dx / dist * 0.1f;
             dy = dy / dist * 0.1f;
             dz = dz / dist * 0.1f;
-            m.SendExplosion(targetplayer, dx, dy, dz, true, m.GetBlockType(block).ExplosionRange, m.GetBlockType(block).ExplosionTime);
+            m.SendExplosion(args.TargetPlayer, dx, dy, dz, true, m.GetBlockType(args.Block).ExplosionRange, m.GetBlockType(args.Block).ExplosionTime);
         }
 
-        int health = m.GetPlayerHealth(targetplayer);
+        int health = m.GetPlayerHealth(args.TargetPlayer);
         int dmghead = 50;
         int dmgbody = 15;
-        if (m.GetBlockType(block).DamageHead != 0)
-        {
-            dmghead = (int)m.GetBlockType(block).DamageHead;
-        }
+        if (m.GetBlockType(args.Block).DamageHead != 0)
+            dmghead = (int)m.GetBlockType(args.Block).DamageHead;
 
-        if (m.GetBlockType(block).DamageBody != 0)
-        {
-            dmgbody = (int)m.GetBlockType(block).DamageBody;
-        }
+        if (m.GetBlockType(args.Block).DamageBody != 0)
+            dmgbody = (int)m.GetBlockType(args.Block).DamageBody;
 
-        health -= head ? dmghead : dmgbody;
+        health -= args.Headshot ? dmghead : dmgbody;
         if (health <= 0)
         {
-            if (players[sourceplayer].team != players[targetplayer].team)
-            {
-                players[sourceplayer].kills = players[sourceplayer].kills + 1;
-            }
+            if (players[args.SourcePlayer].team != players[args.TargetPlayer].team)
+                players[args.SourcePlayer].kills = players[args.SourcePlayer].kills + 1;
             else
-            {
-                players[sourceplayer].kills = players[sourceplayer].kills - 2;
-            }
+                players[args.SourcePlayer].kills = players[args.SourcePlayer].kills - 2;
 
-            Die(targetplayer);
-            if (players[sourceplayer].team == players[targetplayer].team)
-            {
-                m.SendMessageToAll(string.Format("{0} kills {1} - " + m.ColorError + "TEAMKILL", m.GetPlayerName(sourceplayer), m.GetPlayerName(targetplayer)));
-
-            }
+            Die(args.TargetPlayer);
+            if (players[args.SourcePlayer].team == players[args.TargetPlayer].team)
+                m.SendMessageToAll(string.Format("{0} kills {1} - " + m.ColorError + "TEAMKILL", m.GetPlayerName(args.SourcePlayer), m.GetPlayerName(args.TargetPlayer)));
             else
-            {
-                m.SendMessageToAll(string.Format("{0} kills {1}", m.GetPlayerName(sourceplayer), m.GetPlayerName(targetplayer)));
-            }
+                m.SendMessageToAll(string.Format("{0} kills {1}", m.GetPlayerName(args.SourcePlayer), m.GetPlayerName(args.TargetPlayer)));
         }
         else
         {
-            m.SetPlayerHealth(targetplayer, health, m.GetPlayerMaxHealth(targetplayer));
-            m.PlaySoundAt((int)m.GetPlayerPositionX(targetplayer),
-                          (int)m.GetPlayerPositionY(targetplayer),
-                          (int)m.GetPlayerPositionZ(targetplayer), "grunt1.ogg");
+            m.SetPlayerHealth(args.TargetPlayer, health, m.GetPlayerMaxHealth(args.TargetPlayer));
+            m.PlaySoundAt((int)m.GetPlayerPositionX(args.TargetPlayer),
+                          (int)m.GetPlayerPositionY(args.TargetPlayer),
+                          (int)m.GetPlayerPositionZ(args.TargetPlayer), "grunt1.ogg");
         }
     }
 
@@ -760,38 +731,32 @@ public class War : IMod
         players[player].isdead = true;
         m.SetPlayerHealth(player, m.GetPlayerMaxHealth(player), m.GetPlayerMaxHealth(player));
         m.FollowPlayer(player, player, true);
-        UpdatePlayerModel(player);
+        UpdatePlayerModel(new ChangedActiveMaterialSlotArgs { Player = player });
     }
 
-    private void RespawnKey(int player, SpecialKey key)
+    private void RespawnKey(SpecialKeyArgs args)
     {
-        if (key != SpecialKey.Respawn)
-        {
+        if (args.Key != SpecialKey.Respawn)
             return;
-        }
 
         if (warmode == WarMode.Edit)
-        {
             return;
-        }
 
-        if (players[player].isdead)
-        {
+        if (players[args.Player].isdead)
             return;     //Don't allow dead players to respawn
-        }
 
-        m.SendMessage(player, "Respawn.");
-        Die(player);
+        m.SendMessage(args.Player, "Respawn.");
+        Die(args.Player);
     }
 
-    private void OnTabKey(int player, SpecialKey key)
+    private void OnTabKey(SpecialKeyArgs args)
     {
-        if (key != SpecialKey.TabPlayerList)
+        if (args.Key != SpecialKey.TabPlayerList)
         {
             return;
         }
 
-        tabOpen[m.GetPlayerName(player)] = true;
+        tabOpen[m.GetPlayerName(args.Player)] = true;
         Dialog d = new()
         {
             IsModal = true
@@ -799,7 +764,7 @@ public class War : IMod
         List<Widget> widgets = [];
 
         // table alignment
-        float tableX = XCenter(m.GetScreenResolution(player)[0], tableWidth);
+        float tableX = XCenter(m.GetScreenResolution(args.Player)[0], tableWidth);
         float tableY = tableMarginTop;
 
         // text to draw
@@ -810,7 +775,7 @@ public class War : IMod
         row2 = CutText(row2, SmallFontBold, tableWidth - (2 * tablePadding));
 
         string row3_1 = $"IP: {m.ServerIp}:{m.ServerPort}";
-        string row3_2 = $"{(int)(m.GetPlayerPing(player) * 1000)}ms";
+        string row3_2 = $"{(int)(m.GetPlayerPing(args.Player) * 1000)}ms";
 
         string row4_1 = $"Players: {m.AllPlayers().Length}";
         string row4_2 = $"Page: {page + 1}/{pageCount + 1}";
@@ -830,7 +795,7 @@ public class War : IMod
         float heightOffset = 0;
 
         // determine how many entries can be displayed
-        tableHeight = m.GetScreenResolution(player)[1] - tableMarginTop - tableMarginBottom;
+        tableHeight = m.GetScreenResolution(args.Player)[1] - tableMarginTop - tableMarginBottom;
         float availableEntrySpace = tableHeight - row1Height - row2Height - row3Height - row4Height - (row5Height + tableLineWidth);
 
         int entriesPerPage = (int)(availableEntrySpace / listEntryHeight);
@@ -900,10 +865,10 @@ public class War : IMod
         wesc.Id = "Esc";
         widgets.Add(wesc);
 
-        d.Width = m.GetScreenResolution(player)[0];
-        d.Height = m.GetScreenResolution(player)[1];
+        d.Width = m.GetScreenResolution(args.Player)[0];
+        d.Height = m.GetScreenResolution(args.Player)[1];
         d.Widgets = [.. widgets];
-        m.SendDialog(player, "PlayerList", d);
+        m.SendDialog(args.Player, "PlayerList", d);
     }
 
 
@@ -969,12 +934,12 @@ public class War : IMod
         return text;
     }
 
-    private void OnTabResponse(int player, string widgetid)
+    private void OnTabResponse(DialogClickArgs args)
     {
-        if (widgetid is "Tab" or "Esc")
+        if (args.WidgetId is "Tab" or "Esc")
         {
-            m.SendDialog(player, "PlayerList", null);
-            tabOpen.Remove(m.GetPlayerName(player));
+            m.SendDialog(args.Player, "PlayerList", null);
+            tabOpen.Remove(m.GetPlayerName(args.Player));
         }
     }
 
@@ -988,7 +953,7 @@ public class War : IMod
             {
                 if (k.Key == m.GetPlayerName(p))
                 {
-                    OnTabKey(p, SpecialKey.TabPlayerList);
+                    OnTabKey(new SpecialKeyArgs { Player = p, Key = SpecialKey.TabPlayerList });
                     goto nexttab;
                 }
             }
@@ -999,10 +964,10 @@ public class War : IMod
         }
     }
 
-    private void UpdatePlayerModel(int player)
+    private void UpdatePlayerModel(ChangedActiveMaterialSlotArgs args)
     {
-        Inventory inv = m.GetInventory(player);
-        InventoryItem item = inv.RightHand[m.GetActiveMaterialSlot(player)];
+        Inventory inv = m.GetInventory(args.Player);
+        InventoryItem item = inv.RightHand[m.GetActiveMaterialSlot(args.Player)];
         int blockid = 0;
         if (item != null && item.InventoryItemType == InventoryItemType.Block)
         {
@@ -1030,23 +995,23 @@ public class War : IMod
             model = "playerwarrifle.txt";
         }
 
-        if (players[player].isdead)
+        if (players[args.Player].isdead)
         {
             model = "playerwardead.txt";
         }
 
-        m.SetPlayerHeight(player, 2.2f, 2.4f);
-        Team team = players[player].team;
+        m.SetPlayerHeight(args.Player, 2.2f, 2.4f);
+        Team team = players[args.Player].team;
         switch (team)
         {
             case Team.Blue:
-                m.SetPlayerModel(player, model, "playerblue.png");
+                m.SetPlayerModel(args.Player, model, "playerblue.png");
                 break;
             case Team.Green:
-                m.SetPlayerModel(player, model, "playergreen.png");
+                m.SetPlayerModel(args.Player, model, "playergreen.png");
                 break;
             case Team.Spectator:
-                m.SetPlayerModel(player, model, "mineplayer.png");
+                m.SetPlayerModel(args.Player, model, "mineplayer.png");
                 break;
         }
     }
@@ -1072,7 +1037,7 @@ public class War : IMod
                     m.FollowPlayer(p, -1, false);
                     Respawn(p);
                     players[p].isdead = false;
-                    UpdatePlayerModel(p);
+                    UpdatePlayerModel(new ChangedActiveMaterialSlotArgs { Player = p });
                 }
             }
 
@@ -1170,41 +1135,35 @@ public class War : IMod
         }
     }
 
-    private string OnChat(int player, string message, bool toteam)
+    private void OnChat(PlayerChatArgs args)
     {
         if (warmode == WarMode.Edit)
-        {
-            return message;
-        }
+            return;
 
         int[] allplayers = m.AllPlayers();
-        string sender = m.GetPlayerName(player);
-        string senderColorString = GetTeamColorString(players[player].team);
-        string s = message;
-        if (players[player].team == Team.Spectator)
-        {
+        string sender = m.GetPlayerName(args.Player);
+        string senderColorString = GetTeamColorString(players[args.Player].team);
+        string s = args.Message;
+        bool toteam = args.ToTeam;
+
+        if (players[args.Player].team == Team.Spectator)
             toteam = true;
-        }
 
         if (toteam)
-        {
-            s = GetTeamColorString(players[player].team) + s;
-        }
+            s = GetTeamColorString(players[args.Player].team) + s;
 
         foreach (int p in allplayers)
         {
             if (toteam)
             {
-                if (!(players[p].team == players[player].team || players[p].team == Team.Spectator))
-                {
+                if (!(players[p].team == players[args.Player].team || players[p].team == Team.Spectator))
                     continue;
-                }
             }
 
             m.SendMessage(p, $"{senderColorString}{sender}&f: {s}");
         }
 
-        if (players[player].team == Team.Spectator)
+        if (players[args.Player].team == Team.Spectator)
         {
             Console.WriteLine($"[Spectator] {sender}: {s}");
         }
@@ -1212,14 +1171,10 @@ public class War : IMod
         {
             if (toteam)
             {
-                if (players[player].team == Team.Blue)
-                {
+                if (players[args.Player].team == Team.Blue)
                     Console.WriteLine($"[Blue] {sender}: {s}");
-                }
                 else
-                {
                     Console.WriteLine($"[Green] {sender}: {s}");
-                }
             }
             else
             {
@@ -1228,27 +1183,28 @@ public class War : IMod
         }
 
         m.LogChat($"{senderColorString}{sender}&f: {s}");
-        return null;
+        args.FinalMessage = null;
     }
 
-    private bool OnCommand(int player, string command, string arguments)
+    private void OnCommand(CommandArgs args)
     {
-        if (command == "mode")
+        if (args.Command == "mode")
         {
-            if (!m.PlayerHasPrivilege(player, "mode"))
+            if (!m.PlayerHasPrivilege(args.Player, "mode"))
             {
-                m.SendMessage(player, m.ColorError + "No privilege: mode");
-                return true;
+                m.SendMessage(args.Player, m.ColorError + "No privilege: mode");
+                args.Handled = true;
+                return;
             }
 
-            if (arguments == "edit")
+            if (args.Argument == "edit")
             {
                 warmode = WarMode.Edit;
                 m.LoadWorld(m.CurrentWorld);
                 m.SetWorldDatabaseReadOnly(false);
                 Restart();
             }
-            else if (arguments == "tdm")
+            else if (args.Argument == "tdm")
             {
                 warmode = WarMode.TeamDeathmatch;
                 m.LoadWorld(m.CurrentWorld);
@@ -1257,13 +1213,11 @@ public class War : IMod
             }
             else
             {
-                m.SendMessage(player, m.ColorError + "Usage: /mode [edit/tdm]");
+                m.SendMessage(args.Player, m.ColorError + "Usage: /mode [edit/tdm]");
             }
 
-            return true;
+            args.Handled = true;
         }
-
-        return false;
     }
 
     private void Restart()
@@ -1271,15 +1225,15 @@ public class War : IMod
         int[] allplayers = m.AllPlayers();
         foreach (int p in allplayers)
         {
-            PlayerJoin(p);
+            PlayerJoin(new PlayerJoinArgs { Player = p });
         }
     }
 
-    private void OnBuild(int player, int x, int y, int z)
+    private void OnBuild(BlockBuildArgs args)
     {
-        if (m.GetBlockNameAt(x, y, z) == "Water")
+        if (m.GetBlockNameAt(args.X, args.Y, args.Z) == "Water")
         {
-            m.SetBlock(x, y, z, 0);
+            m.SetBlock(args.X, args.Y, args.Z, 0);
         }
     }
 }

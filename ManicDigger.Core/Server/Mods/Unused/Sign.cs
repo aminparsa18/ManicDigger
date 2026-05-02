@@ -6,7 +6,7 @@ public class Sign : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         m.SetBlockType(154, "Sign", new BlockType()

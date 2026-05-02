@@ -20,9 +20,15 @@ public class TreeGenerator : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
+        int Seed = m.Seed;
+        treenoise.Seed = Seed + 2;
+        treenoise.OctaveCount = 6;
+        treenoise.Frequency = 1f / 180f;
+        treenoise.Lacunarity = treeCount / 20f * (treeCount / 20f) * 2f;
+
         BLOCK_GRASS = m.GetBlockId("Grass");
         BLOCK_OAKTRUNK = m.GetBlockId("OakTreeTrunk");
         BLOCK_OAKLEAVES = m.GetBlockId("OakLeaves");
@@ -31,30 +37,22 @@ public class TreeGenerator : IMod
         BLOCK_SPRUCELEAVES = m.GetBlockId("SpruceLeaves");
         BLOCK_BIRCHTRUNK = m.GetBlockId("BirchTreeTrunk");
         BLOCK_BIRCHLEAVES = m.GetBlockId("BirchLeaves");
-        m.RegisterPopulateChunk(PopulateChunk);
+        modEvents.PopulateChunk += PopulateChunk;
     }
 
-    private void Init()
+    private void PopulateChunk(PopulateChunkArgs args)
     {
-        int Seed = m.Seed;
-        treenoise.Seed = Seed + 2;
-        treenoise.OctaveCount = 6;
-        treenoise.Frequency = 1f / 180f;
-        treenoise.Lacunarity = treeCount / 20f * (treeCount / 20f) * 2f;
-    }
+        int x = args.X * m.GetChunkSize();
+        int y = args.Y * m.GetChunkSize();
+        int z = args.Z * m.GetChunkSize();
 
-    private void PopulateChunk(int x, int y, int z)
-    {
-        x *= m.GetChunkSize();
-        y *= m.GetChunkSize();
-        z *= m.GetChunkSize();
         //forests
-        // forests
         float count = treenoise.GetValue(x / 512f, 0f, y / 512f) * 1000f;
         {
             count = MathF.Min(count, 300f);
             MakeSmallTrees(x, y, z, m.GetChunkSize(), _rnd, (int)count);
         }
+
         //random trees
         MakeSmallTrees(x, y, z, m.GetChunkSize(), _rnd, treeCount + 10 - (10 - (treeCount / 10)));
     }

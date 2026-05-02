@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using ManicDigger;
+using System.Net.Http.Headers;
 
 /// <summary>
 /// Sends a heartbeat to the public server list every 60 seconds when the server
@@ -15,7 +16,7 @@ public class ServerSystemHeartbeat : ServerSystem
     private bool hashPrinted;
     private readonly ServerHeartbeat heartbeat = new();
 
-    public ServerSystemHeartbeat()
+    public ServerSystemHeartbeat(IModEvents modEvents) : base(modEvents)
     {
         // Pre-fill the timer so the first heartbeat fires on the first tick
         elapsed = HeartbeatInterval;

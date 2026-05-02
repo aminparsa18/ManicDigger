@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using ManicDigger;
+
+/// <summary>
 /// Sends a ping packet to every connected client once per second and disconnects
 /// any client that fails to respond within the timeout window.
 /// Half-dropped connections (where the TCP socket appears open but the client is
@@ -10,7 +12,7 @@ public class ServerSystemNotifyPing : ServerSystem
     private readonly IGameService gameService;
     private readonly IGameExit gameExit;
 
-    public ServerSystemNotifyPing(IGameService gameService, IGameExit gameExit)
+    public ServerSystemNotifyPing(IGameService gameService, IGameExit gameExit, IModEvents modEvents) : base(modEvents)
     {
         this.gameService = gameService;
         this.gameExit = gameExit;

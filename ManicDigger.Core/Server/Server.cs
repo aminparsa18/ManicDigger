@@ -1,3 +1,4 @@
+using ENet;
 using ManicDigger;
 using OpenTK.Mathematics;
 using System.Diagnostics;
@@ -13,35 +14,38 @@ public partial class Server : ICurrentTime, IDropItem
     private readonly IGameExit _gameExit;
     private IBlockRegistry _blockRegistry;
     private readonly IAssetManager _assetManager;
+    private readonly IModEvents _modEvents;
 
     public List<ServerSystem> Systems { get; set; }
 
-    public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry, IAssetManager assetManager)
+    public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry,
+        IAssetManager assetManager, IModEvents modEvents)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
         _blockRegistry = blockRegistry;
         _assetManager = assetManager;
+        _modEvents = modEvents;
 
         Systems =
         [
             // This ServerSystem should always be loaded first
-            new ServerSystemLoadFirst(),
+            new ServerSystemLoadFirst(_modEvents),
             // Regular ServerSystems
-            new ServerSystemLoadConfig(),
-            new ServerSystemHeartbeat(),
-            new ServerSystemHttpServer(),
-            new ServerSystemUnloadUnusedChunks(),
-            new ServerSystemNotifyMap(),
-            new ServerSystemNotifyPing(gameplatform, gameExit),
-            new ServerSystemChunksSimulation(),
-            new ServerSystemBanList(),
-            new ServerSystemModLoader(gameExit, blockRegistry),
-            new ServerSystemLoadServerClient(),
-            new ServerSystemNotifyEntities(),
-            new ServerSystemMonsterWalk(),
+            new ServerSystemLoadConfig(_modEvents),
+            new ServerSystemHeartbeat(_modEvents),
+            new ServerSystemHttpServer(_modEvents),
+            new ServerSystemUnloadUnusedChunks(_modEvents),
+            new ServerSystemNotifyMap(_modEvents),
+            new ServerSystemNotifyPing(gameplatform, gameExit, _modEvents),
+            new ServerSystemChunksSimulation(_blockRegistry, _modEvents),
+            new ServerSystemBanList(_modEvents),
+            new ServerSystemModLoader(gameExit, blockRegistry, _modEvents),
+            new ServerSystemLoadServerClient(_modEvents),
+            new ServerSystemNotifyEntities(_modEvents),
+            new ServerSystemMonsterWalk(_modEvents),
             // This ServerSystem should always be loaded last
-            new ServerSystemLoadLast(),
+            new ServerSystemLoadLast(_modEvents),
         ];
 
         //Load translations
@@ -232,12 +236,8 @@ public partial class Server : ICurrentTime, IDropItem
     public void OnConfigLoaded()
     {
         //Initialize server map
-        ServerMapStorage map = new()
-        {
-            server = this,
-            ChunkSize = 32
-        };
-        BlockTypes = [];
+        ServerMapStorage map = new(_blockRegistry, _modEvents); ;
+       // _blockRegistry.Start();
         map.Heightmap = new InfiniteMapChunked2dServer() { d_Map = map };
         map.Reset(Config.MapSizeX, Config.MapSizeY, Config.MapSizeZ);
         Map = map;
@@ -248,16 +248,14 @@ public partial class Server : ICurrentTime, IDropItem
         _assetManager.LoadAssets();
 
         //Initialize game components
-        BlockRegistry data = new();
-        data.Start();
-        _blockRegistry = data;
-        CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = data };
+        
+        CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = _blockRegistry };
         _localConnectionsOnly = true;
         ChunkDbCompressed chunkdb = new() { InnerChunkDb = new ChunkDbSqlite(), Compression = new CompressionGzip() };
         ChunkDb = chunkdb;
         map.d_ChunkDb = chunkdb;
         NetworkCompression = new CompressionGzip();
-        _dataItems = new GameDataItemsBlocks() { d_Data = data };
+        _dataItems = new GameDataItemsBlocks() { d_Data = _blockRegistry };
         if (MainSockets == null)
         {
             MainSockets = new NetServer[3];
@@ -922,7 +920,7 @@ public partial class Server : ICurrentTime, IDropItem
         int y = 0;
         InventoryUtil util = GetInventoryUtil(inv);
 
-        foreach ((int id, BlockType? blockType) in BlockTypes)
+        foreach ((int id, BlockType? blockType) in _blockRegistry.BlockTypes)
         {
             _blockRegistry.StartInventoryAmount.TryGetValue(id, out int amount);
 
@@ -981,15 +979,8 @@ public partial class Server : ICurrentTime, IDropItem
             return;
         }
 
-        for (int i = 0; i < ModEventHandlers.onplayerleave.Count; i++)
-        {
-            ModEventHandlers.onplayerleave[i](clientid);
-        }
-
-        for (int i = 0; i < ModEventHandlers.onplayerdisconnect.Count; i++)
-        {
-            ModEventHandlers.onplayerdisconnect[i](clientid);
-        }
+        _modEvents.RaisePlayerLeave(clientid);
+        _modEvents.RaisePlayerDisconnect(clientid);
 
         string coloredName = Clients[clientid].ColoredPlayername(colorNormal);
         string name = Clients[clientid].PlayerName;
@@ -1205,10 +1196,7 @@ public partial class Server : ICurrentTime, IDropItem
                     SendLightLevels(clientid);
                     SendCraftingRecipes(clientid);
 
-                    for (int i = 0; i < ModEventHandlers.onplayerjoin.Count; i++)
-                    {
-                        ModEventHandlers.onplayerjoin[i](clientid);
-                    }
+                    _modEvents.RaisePlayerJoin(clientid);
 
                     SendPacket(clientid, ServerPackets.LevelFinalize());
                     Clients[clientid].State = ClientStateOnServer.Playing;
@@ -1344,10 +1332,7 @@ public partial class Server : ICurrentTime, IDropItem
                     else
                     {
                         string message = packet.Message.Message;
-                        for (int i = 0; i < ModEventHandlers.onplayerchat.Count; i++)
-                        {
-                            message = ModEventHandlers.onplayerchat[i](clientid, message, packet.Message.IsTeamchat != 0);
-                        }
+                        message = _modEvents.RaisePlayerChat(clientid, message, packet.Message.IsTeamchat != 0) ?? message;
 
                         if (Clients[clientid].Privileges.Contains(ServerClientMisc.Privilege.chat))
                         {
@@ -1391,19 +1376,7 @@ public partial class Server : ICurrentTime, IDropItem
             case PacketType.Death:
                 {
                     //DiagLog.Write("Death Packet Received. Client: {0}, Reason: {1}, Source: {2}", clientid, packet.Death.Reason, packet.Death.SourcePlayer);
-                    for (int i = 0; i < ModEventHandlers.onplayerdeath.Count; i++)
-                    {
-                        try
-                        {
-                            ModEventHandlers.onplayerdeath[i](clientid, packet.Death.Reason, packet.Death.SourcePlayer);
-                        }
-                        catch (Exception ex)
-                        {
-                            DiagLog.Write("Mod exception: OnPlayerDeath");
-                            DiagLog.Write(ex.Message);
-                            DiagLog.Write(ex.StackTrace);
-                        }
-                    }
+                    _modEvents.RaisePlayerDeath(clientid, packet.Death.Reason, packet.Death.SourcePlayer);
                 }
 
                 break;
@@ -1420,25 +1393,21 @@ public partial class Server : ICurrentTime, IDropItem
                 HitMonsters(clientid, packet.Health.CurrentHealth);
                 break;
             case PacketType.DialogClick:
-                for (int i = 0; i < ModEventHandlers.ondialogclick.Count; i++)
-                {
-                    ModEventHandlers.ondialogclick[i](clientid, packet.DialogClick_.WidgetId);
-                }
+                _modEvents.RaiseDialogClick(clientid, packet.DialogClick_.WidgetId);
 
-                for (int i = 0; i < ModEventHandlers.ondialogclick2.Count; i++)
+                _modEvents.RaiseDialogClick2(new DialogClick2Args
                 {
-                    DialogClickArgs args = new();
-                    args.Player = clientid;
-                    args.WidgetId = packet.DialogClick_.WidgetId;
-                    args.TextBoxValue = packet.DialogClick_.TextBoxValue;
-                    ModEventHandlers.ondialogclick2[i](args);
-                }
+                    Player = clientid,
+                    WidgetId = packet.DialogClick_.WidgetId,
+                    TextBoxValue = packet.DialogClick_.TextBoxValue
+                });
 
                 break;
             case PacketType.Shot:
-                int shootSoundIndex = pistolcycle++ % BlockTypes[packet.Shot.WeaponBlock].Sounds.ShootEnd.Length;	//Cycle all given ShootEnd sounds
-                PlaySoundAtExceptPlayer((int)DeserializeFloat(packet.Shot.FromX), (int)DeserializeFloat(packet.Shot.FromZ), (int)DeserializeFloat(packet.Shot.FromY), BlockTypes[packet.Shot.WeaponBlock].Sounds.ShootEnd[shootSoundIndex] + ".ogg", clientid);
-                if (BlockTypes[packet.Shot.WeaponBlock].ProjectileSpeed == 0)
+                int shootSoundIndex = pistolcycle++ % _blockRegistry.BlockTypes[packet.Shot.WeaponBlock].Sounds.ShootEnd.Length;	//Cycle all given ShootEnd sounds
+                PlaySoundAtExceptPlayer((int)DeserializeFloat(packet.Shot.FromX), (int)DeserializeFloat(packet.Shot.FromZ), (int)DeserializeFloat(packet.Shot.FromY),
+                    _blockRegistry.BlockTypes[packet.Shot.WeaponBlock].Sounds.ShootEnd[shootSoundIndex] + ".ogg", clientid);
+                if (_blockRegistry.BlockTypes[packet.Shot.WeaponBlock].ProjectileSpeed == 0)
                 {
                     SendBullet(clientid, DeserializeFloat(packet.Shot.FromX), DeserializeFloat(packet.Shot.FromY), DeserializeFloat(packet.Shot.FromZ),
                        DeserializeFloat(packet.Shot.ToX), DeserializeFloat(packet.Shot.ToY), DeserializeFloat(packet.Shot.ToZ), 150);
@@ -1449,32 +1418,23 @@ public partial class Server : ICurrentTime, IDropItem
                     Vector3 to = new(DeserializeFloat(packet.Shot.ToX), DeserializeFloat(packet.Shot.ToY), DeserializeFloat(packet.Shot.ToZ));
                     Vector3 v = to - from;
                     v.Normalize();
-                    v *= BlockTypes[packet.Shot.WeaponBlock].ProjectileSpeed;
+                    v *= _blockRegistry.BlockTypes[packet.Shot.WeaponBlock].ProjectileSpeed;
                     SendProjectile(clientid, DeserializeFloat(packet.Shot.FromX), DeserializeFloat(packet.Shot.FromY), DeserializeFloat(packet.Shot.FromZ),
                         v.X, v.Y, v.Z, packet.Shot.WeaponBlock, DeserializeFloat(packet.Shot.ExplodesAfter));
                     //Handle OnWeaponShot so grenade ammo is correct
-                    for (int i = 0; i < ModEventHandlers.onweaponshot.Count; i++)
-                    {
-                        ModEventHandlers.onweaponshot[i](clientid, packet.Shot.WeaponBlock);
-                    }
+                    _modEvents.RaiseWeaponShot(clientid, packet.Shot.WeaponBlock);
 
                     return;
                 }
 
-                for (int i = 0; i < ModEventHandlers.onweaponshot.Count; i++)
-                {
-                    ModEventHandlers.onweaponshot[i](clientid, packet.Shot.WeaponBlock);
-                }
+                _modEvents.RaiseWeaponShot(clientid, packet.Shot.WeaponBlock);
 
                 if (Clients[clientid].LastPing < 0.3)
                 {
                     if (packet.Shot.HitPlayer != -1)
                     {
                         //client-side shooting
-                        for (int i = 0; i < ModEventHandlers.onweaponhit.Count; i++)
-                        {
-                            ModEventHandlers.onweaponhit[i](clientid, packet.Shot.HitPlayer, packet.Shot.WeaponBlock, packet.Shot.IsHitHead != 0);
-                        }
+                        _modEvents.RaiseWeaponHit(clientid, packet.Shot.HitPlayer, packet.Shot.WeaponBlock, packet.Shot.IsHitHead != 0);
                     }
 
                     return;
@@ -1511,34 +1471,22 @@ public partial class Server : ICurrentTime, IDropItem
 
                     if (Intersection.CheckLineBoxExact(pick, headbox) != null)
                     {
-                        for (int i = 0; i < ModEventHandlers.onweaponhit.Count; i++)
-                        {
-                            ModEventHandlers.onweaponhit[i](clientid, k.Key, packet.Shot.WeaponBlock, true);
-                        }
+                        _modEvents.RaiseWeaponHit(clientid, k.Key, packet.Shot.WeaponBlock, true);
                     }
                     else if (Intersection.CheckLineBoxExact(pick, bodybox) != null)
                     {
-                        for (int i = 0; i < ModEventHandlers.onweaponhit.Count; i++)
-                        {
-                            ModEventHandlers.onweaponhit[i](clientid, k.Key, packet.Shot.WeaponBlock, false);
-                        }
+                        _modEvents.RaiseWeaponHit(clientid, k.Key, packet.Shot.WeaponBlock, false);
                     }
                 }
 
                 break;
             case PacketType.SpecialKey:
-                for (int i = 0; i < ModEventHandlers.onspecialkey.Count; i++)
-                {
-                    ModEventHandlers.onspecialkey[i](clientid, packet.SpecialKey_.Key_);
-                }
+                _modEvents.RaiseSpecialKey(clientid, packet.SpecialKey_.Key_);
 
                 break;
             case PacketType.ActiveMaterialSlot:
                 Clients[clientid].ActiveMaterialSlot = packet.ActiveMaterialSlot.ActiveMaterialSlot;
-                for (int i = 0; i < ModEventHandlers.changedactivematerialslot.Count; i++)
-                {
-                    ModEventHandlers.changedactivematerialslot[i](clientid);
-                }
+                _modEvents.RaiseChangedActiveMaterialSlot(clientid);
 
                 break;
             case PacketType.Leave:
@@ -1608,20 +1556,13 @@ public partial class Server : ICurrentTime, IDropItem
                 switch (packet.EntityInteraction.InteractionType)
                 {
                     case PacketEntityInteractionType.Use:
-                        for (int i = 0; i < ModEventHandlers.onuseentity.Count; i++)
-                        {
-                            ServerEntityId id = c.SpawnedEntities[packet.EntityInteraction.EntityId - 64];
-                            ModEventHandlers.onuseentity[i](clientid, id.ChunkX, id.ChunkY, id.ChunkZ, id.Id);
-                        }
-
+                        ServerEntityId useId = c.SpawnedEntities[packet.EntityInteraction.EntityId - 64];
+                        _modEvents.RaiseUseEntity(clientid, useId.ChunkX, useId.ChunkY, useId.ChunkZ, useId.Id);
                         break;
-                    case PacketEntityInteractionType.Hit:
-                        for (int i = 0; i < ModEventHandlers.onhitentity.Count; i++)
-                        {
-                            ServerEntityId id = c.SpawnedEntities[packet.EntityInteraction.EntityId - 64];
-                            ModEventHandlers.onhitentity[i](clientid, id.ChunkX, id.ChunkY, id.ChunkZ, id.Id);
-                        }
 
+                    case PacketEntityInteractionType.Hit:
+                        ServerEntityId hitId = c.SpawnedEntities[packet.EntityInteraction.EntityId - 64];
+                        _modEvents.RaiseHitEntity(clientid, hitId.ChunkX, hitId.ChunkY, hitId.ChunkZ, hitId.Id);
                         break;
                     default:
                         DiagLog.Write("Unknown EntityInteractionType: {0}, clientid: {1}", packet.EntityInteraction.InteractionType, clientid);
@@ -1666,20 +1607,9 @@ public partial class Server : ICurrentTime, IDropItem
             return false;
         }
 
-        for (int i = 0; i < server.ModEventHandlers.onpermission.Count; i++)
+        if (_modEvents.RaisePermission(new PermissionArgs { Player = player, X = x, Y = y, Z = z }))
         {
-            PermissionArgs args = new()
-            {
-                Player = player,
-                X = x,
-                Y = y,
-                Z = z
-            };
-            server.ModEventHandlers.onpermission[i](args);
-            if (args.Allowed)
-            {
-                return true;
-            }
+            return true;
         }
 
         if (!server.Config.CanUserBuild(server.Clients[player], x, y, z)
@@ -1692,19 +1622,11 @@ public partial class Server : ICurrentTime, IDropItem
         bool retval = true;
         if (mode == PacketBlockSetMode.Create)
         {
-            for (int i = 0; i < ModEventHandlers.checkonbuild.Count; i++)
-            {
-                // All handlers must return true for operation to be permitted.
-                retval = retval && ModEventHandlers.checkonbuild[i](player, x, y, z);
-            }
+            retval = retval && _modEvents.RaiseCheckBlockBuild(player, x, y, z);
         }
         else if (mode == PacketBlockSetMode.Destroy)
         {
-            for (int i = 0; i < ModEventHandlers.checkondelete.Count; i++)
-            {
-                // All handlers must return true for operation to be permitted.
-                retval = retval && ModEventHandlers.checkondelete[i](player, x, y, z);
-            }
+            retval = retval && _modEvents.RaiseCheckBlockDelete(player, x, y, z);
         }
 
         return retval;
@@ -1725,14 +1647,7 @@ public partial class Server : ICurrentTime, IDropItem
             return false;
         }
 
-        bool retval = true;
-        for (int i = 0; i < ModEventHandlers.checkonuse.Count; i++)
-        {
-            // All handlers must return true for operation to be permitted.
-            retval = retval && ModEventHandlers.checkonuse[i](player, x, y, z);
-        }
-
-        return retval;
+        return _modEvents.RaiseCheckBlockUse(player, x, y, z);
     }
 
     public void SendServerRedirect(int clientid, string ip_, int port_)
@@ -1895,7 +1810,7 @@ public partial class Server : ICurrentTime, IDropItem
         if (client.Interpreter == null)
         {
             client.Interpreter = new JavaScriptInterpreter();
-            client.Console = new ScriptConsole(this, clientid);
+            client.Console = new ScriptConsole(this, _blockRegistry, clientid);
             client.Console.InjectConsoleCommands(client.Interpreter);
             client.Interpreter.SetVariables(new Dictionary<string, object>() { { "client", client }, { "server", this }, });
             client.Interpreter.Execute("function inspect(obj) { for( property in obj) { out(property)}}");
@@ -2244,20 +2159,14 @@ public partial class Server : ICurrentTime, IDropItem
         Inventory inventory = GetPlayerInventory(Clients[player_id].PlayerName);
         if (cmd.Mode == PacketBlockSetMode.Use)
         {
-            for (int i = 0; i < ModEventHandlers.onuse.Count; i++)
-            {
-                ModEventHandlers.onuse[i](player_id, cmd.X, cmd.Y, cmd.Z);
-            }
+            _modEvents.RaiseBlockUse(player_id, cmd.X, cmd.Y, cmd.Z);
 
             return true;
         }
 
         if (cmd.Mode == PacketBlockSetMode.UseWithTool)
         {
-            for (int i = 0; i < ModEventHandlers.onusewithtool.Count; i++)
-            {
-                ModEventHandlers.onusewithtool[i](player_id, cmd.X, cmd.Y, cmd.Z, cmd.BlockType);
-            }
+            _modEvents.RaiseBlockUseWithTool(player_id, cmd.X, cmd.Y, cmd.Z, cmd.BlockType);
 
             return true;
         }
@@ -2277,7 +2186,7 @@ public partial class Server : ICurrentTime, IDropItem
         if (cmd.Mode == PacketBlockSetMode.Create)
         {
             int oldblock = Map.GetBlock(cmd.X, cmd.Y, cmd.Z);
-            if (!(oldblock == 0 || BlockTypes[oldblock].IsFluid()))
+            if (!(oldblock == 0 || _blockRegistry.BlockTypes[oldblock].IsFluid()))
             {
                 return false;
             }
@@ -2302,10 +2211,7 @@ public partial class Server : ICurrentTime, IDropItem
                     }
 
                     SetBlockAndNotify(cmd.X, cmd.Y, cmd.Z, item.BlockId);
-                    for (int i = 0; i < ModEventHandlers.onbuild.Count; i++)
-                    {
-                        ModEventHandlers.onbuild[i](player_id, cmd.X, cmd.Y, cmd.Z);
-                    }
+                    _modEvents.RaiseBlockBuild(player_id, cmd.X, cmd.Y, cmd.Z);
 
                     break;
                 default:
@@ -2327,10 +2233,7 @@ public partial class Server : ICurrentTime, IDropItem
             }
 
             SetBlockAndNotify(cmd.X, cmd.Y, cmd.Z, SpecialBlockId.Empty);
-            for (int i = 0; i < ModEventHandlers.ondelete.Count; i++)
-            {
-                ModEventHandlers.ondelete[i](player_id, cmd.X, cmd.Y, cmd.Z, blockid);
-            }
+            _modEvents.RaiseBlockDelete(player_id, cmd.X, cmd.Y, cmd.Z, blockid);
         }
 
         Clients[player_id].IsInventoryDirty = true;
@@ -2372,10 +2275,7 @@ public partial class Server : ICurrentTime, IDropItem
         }
 
         SetBlockAndNotify(cmd.X, cmd.Y, cmd.Z, cmd.BlockType);
-        for (int i = 0; i < ModEventHandlers.onbuild.Count; i++)
-        {
-            ModEventHandlers.onbuild[i](player_id, cmd.X, cmd.Y, cmd.Z);
-        }
+        _modEvents.RaiseBlockBuild(player_id, cmd.X, cmd.Y, cmd.Z);
 
         Clients[player_id].IsInventoryDirty = true;
         NotifyInventory(player_id);
@@ -2413,17 +2313,14 @@ public partial class Server : ICurrentTime, IDropItem
         }
 
         SetBlockAndNotify(cmd.X, cmd.Y, cmd.Z, SpecialBlockId.Empty);
-        for (int i = 0; i < ModEventHandlers.ondelete.Count; i++)
-        {
-            ModEventHandlers.ondelete[i](player_id, cmd.X, cmd.Y, cmd.Z, blockid);
-        }
+        _modEvents.RaiseBlockDelete(player_id, cmd.X, cmd.Y, cmd.Z, blockid);
 
         Clients[player_id].IsInventoryDirty = true;
         NotifyInventory(player_id);
         return true;
     }
 
-    private bool IsValid(int blocktype) => BlockTypes[blocktype].Name != null;
+    private bool IsValid(int blocktype) => _blockRegistry.BlockTypes[blocktype].Name != null;
 
     public void SetBlockAndNotify(int x, int y, int z, int blocktype)
     {
@@ -2611,11 +2508,9 @@ public partial class Server : ICurrentTime, IDropItem
         SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.BlobFinalize, BlobFinalize = p }));
     }
 
-    public Dictionary<int, BlockType> BlockTypes { get; set; } = [];
-
     public void SendBlockTypes(int clientid)
     {
-        foreach ((int id, BlockType? blockType) in BlockTypes)
+        foreach ((int id, BlockType? blockType) in _blockRegistry.BlockTypes)
         {
             Packet_ServerBlockType p1 = new() { Id = id, Blocktype = blockType };
             SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.BlockType, BlockType = p1 }));
@@ -2863,14 +2758,14 @@ public partial class Server : ICurrentTime, IDropItem
 
     public void SetBlockType(int id, string name, BlockType block)
     {
-        BlockTypes[id] = block;
+        _blockRegistry.BlockTypes[id] = block;
         block.Name = name;
         _blockRegistry.RegisterBlockType(id, block);
     }
 
     public void SetBlockType(string name, BlockType block)
     {
-        int id = BlockTypes.Count == 0 ? 0 : BlockTypes.Keys.Max() + 1;
+        int id = _blockRegistry.BlockTypes.Count == 0 ? 0 : _blockRegistry.BlockTypes.Keys.Max() + 1;
         SetBlockType(id, name, block);
     }
 
@@ -3006,8 +2901,6 @@ public partial class Server : ICurrentTime, IDropItem
     }
 
     public List<ActiveHttpModule> HttpModules { get; set; } = [];
-
-    public ModEventHandlers ModEventHandlers { get; set; } = new();
 
     public int GetSimulationCurrentFrame() => SimulationCurrentFrame;
 

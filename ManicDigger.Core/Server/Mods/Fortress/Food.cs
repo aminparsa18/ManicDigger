@@ -8,32 +8,29 @@ public class Food : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
 
-        m.RegisterOnBlockUse(OnUse);
-
+        modEvents.BlockUse += OnUse;
         Cake = m.GetBlockId("Cake");
         Apples = m.GetBlockId("Apples");
     }
 
-    private void OnUse(int player, int x, int y, int z)
+    private void OnUse(BlockUseArgs args)
     {
-        if (m.GetBlock(x, y, z) == Cake || m.GetBlock(x, y, z) == Apples)
+        if (m.GetBlock(args.X, args.Y, args.Z) == Cake || m.GetBlock(args.X, args.Y, args.Z) == Apples)
         {
-            int health = m.GetPlayerHealth(player);
-            int maxhealth = m.GetPlayerMaxHealth(player);
+            int health = m.GetPlayerHealth(args.Player);
+            int maxhealth = m.GetPlayerMaxHealth(args.Player);
 
             health += 30;
 
             if (health > maxhealth)
-            {
                 health = maxhealth;
-            }
 
-            m.SetPlayerHealth(player, health, maxhealth);
-            m.SetBlock(x, y, z, 0);
+            m.SetPlayerHealth(args.Player, health, maxhealth);
+            m.SetBlock(args.X, args.Y, args.Z, 0);
         }
     }
 }

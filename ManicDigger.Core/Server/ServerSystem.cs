@@ -1,7 +1,16 @@
+using ManicDigger;
+
 public abstract class ServerSystem
 {
     protected const int One = 1;
     private bool _initialized;
+
+    protected readonly IModEvents ModEvents;
+
+    public ServerSystem(IModEvents modEvents)
+    {
+        ModEvents = modEvents;
+    }
 
     public void Update(Server server, float dt)
     {

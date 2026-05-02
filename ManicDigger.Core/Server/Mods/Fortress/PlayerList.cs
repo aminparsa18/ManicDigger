@@ -2,9 +2,9 @@
 
 public class PlayerList : IMod
 {
-    public void PreStart(IModManager m) { }
+    public void PreStart(IServerModManager m) { }
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
         modEvents.SpecialKey += OnTabKey;
@@ -12,7 +12,7 @@ public class PlayerList : IMod
         m.RegisterTimer(UpdateTab, 1);
     }
 
-    private IModManager m;
+    private IServerModManager m;
     
     public string GetPrefix(int playerID) => $"[{m.GetGroupColor(playerID)}{m.GetGroupName(playerID)}&0] ";
 

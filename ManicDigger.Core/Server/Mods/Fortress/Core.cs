@@ -5,8 +5,8 @@
 /// </summary>
 public class Core : IMod
 {
-    public void PreStart(IModManager m) { }
-    public void Start(IModManager m, IModEvents modEvents)
+    public void PreStart(IServerModManager m) { }
+    public void Start(IServerModManager m, IModEvents modEvents)
     {
         //Render hint to send to clients
         m.RenderHint(RenderHint.Fast);

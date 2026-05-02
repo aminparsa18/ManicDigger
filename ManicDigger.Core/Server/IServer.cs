@@ -32,7 +32,7 @@ public interface IServer
     NetServer[] MainSockets { get; set; }
     ServerMapStorage Map { get; set; }
     Dictionary<string, byte[]> ModData { get; set; }
-    ModManager ModManager { get; set; }
+    ServerModManager ModManager { get; set; }
     List<string> ModPaths { get; set; }
     ICompression NetworkCompression { get; set; }
     List<Action> OnLoad { get; set; }

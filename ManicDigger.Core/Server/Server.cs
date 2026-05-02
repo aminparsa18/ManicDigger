@@ -380,7 +380,7 @@ public partial class Server : ICurrentTime, IDropItem
 
     public List<string> AllPrivileges { get; set; } = [];
     public List<string> ModPaths { get; set; } = [];
-    public ModManager ModManager { get; set; }
+    public ServerModManager ModManager { get; set; }
     public string GameMode { get; set; } = "Fortress";
     public int ServerConsoleId { get; } = -1;
     public ClientOnServer ServerConsoleClient { get; set; }

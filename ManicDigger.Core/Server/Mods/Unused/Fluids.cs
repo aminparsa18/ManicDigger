@@ -27,9 +27,9 @@ public class Fluids : IMod
     private readonly int[] dx = { -1, 0, 1, 1, 1, 0, -1, -1 };
     private readonly int[] dy = { 1, 1, 1, 0, -1, -1, -1, 0 };
 
-    public void PreStart(IModManager m) => m.RequireMod("Default");
+    public void PreStart(IServerModManager m) => m.RequireMod("Default");
 
-    public void Start(IModManager m, IModEvents modEvents)
+    public void Start(IServerModManager m, IModEvents modEvents)
     {
         this.m = m;
         modEvents.BlockUpdate += CheckNeighbors;
@@ -40,7 +40,7 @@ public class Fluids : IMod
         Lava = m.GetBlockId("Lava");
     }
 
-    private IModManager m;
+    private IServerModManager m;
 
     private static int PositionHash(int x, int y, int z) => (((x * 9973) + y) * 127) + z; //this hash value may overflow, but we don't care
 

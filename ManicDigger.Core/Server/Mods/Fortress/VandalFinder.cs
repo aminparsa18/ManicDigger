@@ -2,16 +2,16 @@
 
 public class VandalFinder : IMod
 {
-    private IModManager m;
+    private IServerModManager m;
     private List<object[]> lines = [];
 
-    public void PreStart(IModManager m)
+    public void PreStart(IServerModManager m)
     {
         m.RequireMod("CoreBlocks");
         m.RequireMod("BuildLog");
     }
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
         m.SetBlockType("VandalFinder", new BlockType()

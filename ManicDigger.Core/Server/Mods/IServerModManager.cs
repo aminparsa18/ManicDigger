@@ -1,6 +1,6 @@
 ﻿namespace ManicDigger;
 
-public interface IModManager
+public interface IServerModManager
 {
     /// <summary>
     /// Get the maximum number of blocks supported by the server (default: 1024)
@@ -596,11 +596,11 @@ public interface IMod
     /// Called once before the Mod is loaded. Use this to declare dependencies to other Mods.
     /// </summary>
     /// <param name="m">ModManager object</param>
-    void PreStart(IModManager m);
+    void PreStart(IServerModManager m);
     /// <summary>
     /// Called once when the Mod is started. Use this if you need to initialize fields, etc...
     /// </summary>
     /// <param name="m">ModManager object</param>
-    void Start(IModManager m, IModEvents modEvents);
+    void Start(IServerModManager m, IModEvents modEvents);
 }
 

@@ -16,7 +16,7 @@ namespace ManicDigger;
 /// individually so that one broken mod does not prevent others from loading.
 /// </para>
 /// <para>
-/// Mods may declare dependencies via <see cref="IModManager.required"/> during
+/// Mods may declare dependencies via <see cref="IServerModManager.required"/> during
 /// <see cref="IMod.PreStart"/>. The loader respects those dependencies and starts
 /// mods in topological order.
 /// </para>
@@ -35,7 +35,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// <summary>Tracks which mods have been started to prevent double-starting during dependency resolution.</summary>
     private readonly Dictionary<string, bool> loadedMods = [];
 
-    private static readonly string[] ExtraAssemblyReferences = ["ScriptingApi.dll"];
+    private static readonly string[] ExtraAssemblyReferences = ["ManicDigger.Domain.dll"];
 
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
@@ -109,8 +109,8 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// </param>
     private void LoadMods(Server server, bool restart)
     {
-        server.ModManager = new ModManager(gameExit, _blockRegistry );
-        ModManager manager = server.ModManager;
+        server.ModManager = new ServerModManager(gameExit, _blockRegistry );
+        ServerModManager manager = server.ModManager;
         manager.Start(server);
 
         Dictionary<string, string> scripts = GetScriptSources(server);
@@ -460,7 +460,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// <param name="currentRequires">
     /// The dependency list populated by the mod manager during <see cref="IMod.PreStart"/>.
     /// </param>
-    private void StartMods(IModManager manager, List<string> currentRequires)
+    private void StartMods(IServerModManager manager, List<string> currentRequires)
     {
         modRequirements.Clear();
         loadedMods.Clear();
@@ -482,7 +482,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// Starts a single mod, recursively ensuring all of its declared dependencies
     /// are started first. Already-started mods are skipped.
     /// </summary>
-    private void StartModWithDependencies(string name, IMod mod, IModManager manager)
+    private void StartModWithDependencies(string name, IMod mod, IServerModManager manager)
     {
         if (loadedMods.ContainsKey(name))
         {

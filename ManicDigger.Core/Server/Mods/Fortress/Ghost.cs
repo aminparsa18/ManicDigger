@@ -5,12 +5,12 @@ public class Ghost : IMod
 {
     private readonly bool enabled = false;
     private readonly List<Pos> history = [];
-    private IModManager m;
+    private IServerModManager m;
     private int ghost;
 
-    public void PreStart(IModManager m) { }
+    public void PreStart(IServerModManager m) { }
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
         if (enabled)

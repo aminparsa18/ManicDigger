@@ -4,7 +4,7 @@ public class VegetationGrowth : IMod
 {
     private readonly Random rnd = new();
 
-    private IModManager? m;
+    private IServerModManager? m;
     private int DirtForFarming;
     private int OakSapling;
     private int BirchSapling;
@@ -27,9 +27,9 @@ public class VegetationGrowth : IMod
     private int BirchTreeTrunk;
     private int SpruceTreeTrunk;
 
-    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
+    public void PreStart(IServerModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
         DirtForFarming = m.GetBlockId("DirtForFarming");

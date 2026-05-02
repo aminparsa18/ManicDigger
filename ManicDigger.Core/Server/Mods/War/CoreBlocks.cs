@@ -5,15 +5,15 @@
 /// </summary>
 public class CoreBlocks : IMod
 {
-    private IModManager? m;
+    private IServerModManager? m;
     private SoundSet? solidSounds;
     private SoundSet? snowSounds;
     private SoundSet? noSound;
     private int lastseason;
 
-    public void PreStart(IModManager m) => m.RequireMod("CoreWar");
+    public void PreStart(IServerModManager m) => m.RequireMod("CoreWar");
 
-    public void Start(IModManager manager, IModEvents modEvents)
+    public void Start(IServerModManager manager, IModEvents modEvents)
     {
         m = manager;
 

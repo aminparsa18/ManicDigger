@@ -136,6 +136,7 @@ public partial class Game
                 return i;
             }
         }
+
         return -1;
     }
 
@@ -162,6 +163,7 @@ public partial class Game
                 return i;
             }
         }
+
         return null;
     }
 
@@ -302,6 +304,7 @@ public partial class Game
                 nearest = pick2[i];
             }
         }
+
         return nearest;
     }
 

@@ -12,7 +12,7 @@
 /// </list>
 /// On first render, any saved credentials are tried automatically.
 /// </summary>
-public class LoginScreen : ScreenBase
+public class LoginScreen : ScreenBase, ILoginScreen
 {
     private readonly MenuWidget buttonLogin;
     private readonly MenuWidget textboxUsername;
@@ -87,6 +87,13 @@ public class LoginScreen : ScreenBase
 
         textboxUsername.GetFocus();
         loginResult = new LoginResult();
+    }
+
+    public void Configure(string serverHash, string ip, int port)
+    {
+        this.serverHash = serverHash;
+        this.serverIp = ip;
+        this.serverPort = port;
     }
 
     /// <inheritdoc/>

@@ -58,6 +58,7 @@ public class GameService : IGameService
         {
             Directory.CreateDirectory(GameLogsPath);
         }
+
         string filename = Path.Combine(GameLogsPath, MakeValidFileName(servername) + ".txt");
         File.AppendAllText(filename, string.Format("{0} {1}\n", DateTime.Now, p));
         return true;
@@ -95,6 +96,7 @@ public class GameService : IGameService
             //Check if string is an URL - if not, abort
             return;
         }
+
         Process.Start(url);
     }
 
@@ -222,6 +224,7 @@ public class GameService : IGameService
         {
             return Enum.GetName(typeof(Keys), key)!;
         }
+
         return key.ToString();
     }
 
@@ -250,6 +253,7 @@ public class GameService : IGameService
                 resolutions.Add(resolution);
             }
         }
+
         return resolutions;
     }
 
@@ -367,6 +371,7 @@ public class GameService : IGameService
                     i += 4;
                 }
             }
+
             bmp.Dispose();
             Window.Cursor = new MouseCursor(hotx, hoty, sizex, sizey, data);
         }
@@ -386,11 +391,13 @@ public class GameService : IGameService
             {
                 return;
             }
+
             if (!mouseCursorVisible)
             {
                 //Cursor already hidden. Do nothing.
                 return;
             }
+
             Window.CursorState = CursorState.Grabbed;
             mouseCursorVisible = false;
         }
@@ -401,6 +408,7 @@ public class GameService : IGameService
                 //Cursor already visible. Do nothing.
                 return;
             }
+
             Window.CursorState = CursorState.Normal;
             mouseCursorVisible = true;
         }

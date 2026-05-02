@@ -77,6 +77,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
                 return false;
             }
         }
+
         return true;
     }
 

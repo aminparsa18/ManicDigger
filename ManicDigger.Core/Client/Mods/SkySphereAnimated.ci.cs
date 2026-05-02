@@ -183,6 +183,7 @@ public class ModSkySphereAnimated : ModBase
                 indices[i++] = bl;
             }
         }
+
         return indices;
     }
 

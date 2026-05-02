@@ -120,6 +120,7 @@ public class War : IMod
                 m.GrabBlocks(playerid, i, 9999);
             }
         }
+
         m.NotifyInventory(playerid);
     }
 
@@ -208,6 +209,7 @@ public class War : IMod
             };
             widgets.Add(w);
         }
+
         d.Width = 800;
         d.Height = 600;
         d.Widgets = [.. widgets];
@@ -232,14 +234,17 @@ public class War : IMod
         {
             subclasses = ["Submachine gun", "Shotgun", "Rifle"];
         }
+
         if (players[playerid].playerclass == PlayerClass.Medic)
         {
             subclasses = ["Pistol"];
         }
+
         if (players[playerid].playerclass == PlayerClass.Support)
         {
             subclasses = ["Pistol"];
         }
+
         for (int i = 0; i < subclasses.Length; i++)
         {
             Widget w = new()
@@ -252,6 +257,7 @@ public class War : IMod
             };
             widgets.Add(w);
         }
+
         d.Width = 800;
         d.Height = 600;
         d.Widgets = [.. widgets];
@@ -285,6 +291,7 @@ public class War : IMod
             {
                 //return;
             }
+
             if (players[playerid].team != Team.Blue)
             {
                 //Player changed team
@@ -292,11 +299,13 @@ public class War : IMod
                 players[playerid].kills = 0;
                 m.SendMessageToAll(string.Format("{0} joins {1}&f team.", m.GetPlayerName(playerid), $"{BlueColor} Blue"));
             }
+
             m.SetPlayerSpectator(playerid, false);
             UpdatePlayerModel(playerid);
             m.EnableFreemove(playerid, false);
             ShowClassSelectionDialog(playerid);
         }
+
         if (widget == "Team2")
         {
             m.SendDialog(playerid, "SelectTeam" + playerid, null);
@@ -304,6 +313,7 @@ public class War : IMod
             {
                 //return;
             }
+
             if (players[playerid].team != Team.Green)
             {
                 //Player changed team
@@ -311,11 +321,13 @@ public class War : IMod
                 players[playerid].kills = 0;
                 m.SendMessageToAll(string.Format("{0} joins {1}&f team.", m.GetPlayerName(playerid), GreenColor + " " + "Green"));
             }
+
             m.SetPlayerSpectator(playerid, false);
             UpdatePlayerModel(playerid);
             m.EnableFreemove(playerid, false);
             ShowClassSelectionDialog(playerid);
         }
+
         if (widget == "Team3")
         {
             m.SendDialog(playerid, "SelectTeam" + playerid, null);
@@ -323,6 +335,7 @@ public class War : IMod
             {
                 return;
             }
+
             players[playerid].team = Team.Spectator;
             players[playerid].kills = 0;
             m.SetPlayerSpectator(playerid, true);
@@ -331,6 +344,7 @@ public class War : IMod
             m.SendMessageToAll(string.Format("{0} becomes a &7 spectator&f.", m.GetPlayerName(playerid)));
             ClearInventory(playerid);
         }
+
         if (widget is "Team1" or "Team2" or "Team3")
         {
             if (!spawnedBot)
@@ -354,16 +368,19 @@ public class War : IMod
             players[playerid].playerclass = PlayerClass.Soldier;
             ShowSubclassSelectionDialog(playerid);
         }
+
         if (widget == "Class2")
         {
             players[playerid].playerclass = PlayerClass.Medic;
             ShowSubclassSelectionDialog(playerid);
         }
+
         if (widget == "Class3")
         {
             players[playerid].playerclass = PlayerClass.Support;
             ShowSubclassSelectionDialog(playerid);
         }
+
         if (widget is "Class1" or "Class2" or "Class3")
         {
             m.SendDialog(playerid, "SelectClass" + playerid, null);
@@ -385,6 +402,7 @@ public class War : IMod
         {
             Die(playerid);
         }
+
         players[playerid].firstteam = false;
 
         m.SendDialog(playerid, "SelectSubclass" + playerid, null);
@@ -396,15 +414,18 @@ public class War : IMod
             {
                 players[playerid].soldierSubclass = SoldierSubclass.SubmachineGun;
             }
+
             if (widget == "Subclass2")
             {
                 players[playerid].soldierSubclass = SoldierSubclass.Shotgun;
             }
+
             if (widget == "Subclass3")
             {
                 players[playerid].soldierSubclass = SoldierSubclass.Rifle;
             }
         }
+
         if (pclass == PlayerClass.Medic)
         {
             if (widget == "Subclass1")
@@ -412,6 +433,7 @@ public class War : IMod
                 //todo medic subclass
             }
         }
+
         if (pclass == PlayerClass.Support)
         {
             if (widget == "Subclass1")
@@ -419,6 +441,7 @@ public class War : IMod
                 //todo support subclass
             }
         }
+
         ResetInventoryOnRespawn(playerid);
     }
 
@@ -441,12 +464,14 @@ public class War : IMod
                 m.GrabBlock(playerid, m.GetBlockId("Pistol"));
                 m.GrabBlock(playerid, m.GetBlockId("Grenade"));
             }
+
             if (sclass == SoldierSubclass.Shotgun)
             {
                 m.GrabBlock(playerid, m.GetBlockId("Shotgun"));
                 m.GrabBlock(playerid, m.GetBlockId("Pistol"));
                 m.GrabBlock(playerid, m.GetBlockId("Grenade"));
             }
+
             if (sclass == SoldierSubclass.Rifle)
             {
                 m.GrabBlock(playerid, m.GetBlockId("Rifle"));
@@ -454,6 +479,7 @@ public class War : IMod
                 m.GrabBlock(playerid, m.GetBlockId("Grenade"));
             }
         }
+
         if (pclass == PlayerClass.Medic)
         {
             m.GrabBlock(playerid, m.GetBlockId("Pistol"));
@@ -462,6 +488,7 @@ public class War : IMod
                 m.GrabBlock(playerid, m.GetBlockId("MedicalKit"));
             }
         }
+
         if (pclass == PlayerClass.Support)
         {
             m.GrabBlock(playerid, m.GetBlockId("Pistol"));
@@ -470,6 +497,7 @@ public class War : IMod
                 m.GrabBlock(playerid, m.GetBlockId("AmmoPack"));
             }
         }
+
         m.NotifyInventory(playerid);
         Inventory inv = m.GetInventory(playerid);
         for (int i = 0; i < 10; i++)
@@ -484,6 +512,7 @@ public class War : IMod
                 }
             }
         }
+
         m.NotifyAmmo(playerid, players[playerid].totalAmmo);
     }
 
@@ -493,10 +522,12 @@ public class War : IMod
         {
             return;
         }
+
         if (warmode == WarMode.Edit)
         {
             return;
         }
+
         ShowTeamSelectionDialog(player);
     }
 
@@ -525,6 +556,7 @@ public class War : IMod
                     Die(player);
                     deathMessage = string.Format("{0}{1} &7was killed by {2}.", GetTeamColorString(players[player].team), m.GetPlayerName(player), m.GetBlockName(sourceID));
                 }
+
                 break;
             case DeathReason.Drowning:
                 Die(player);
@@ -549,12 +581,14 @@ public class War : IMod
                 {
                     break;
                 }
+
                 Die(player);
                 if (sourceID == player)
                 {
                     deathMessage = string.Format("{0}{1} &7blew himself up.", GetTeamColorString(players[player].team), m.GetPlayerName(player));
                     break;
                 }
+
                 if (players[sourceID].team != players[player].team)
                 {
                     players[sourceID].kills = players[sourceID].kills + 1;
@@ -563,6 +597,7 @@ public class War : IMod
                 {
                     players[sourceID].kills = players[sourceID].kills - 2;
                 }
+
                 if (players[sourceID].team == players[player].team)
                 {
                     deathMessage = string.Format("{0}{1} &7was blown into pieces by {2}{3}. - {4}TEAMKILL", GetTeamColorString(players[player].team), m.GetPlayerName(player), GetTeamColorString(players[sourceID].team), m.GetPlayerName(sourceID), m.ColorError);
@@ -571,12 +606,14 @@ public class War : IMod
                 {
                     deathMessage = string.Format("{0}{1} &7was blown into pieces by {2}{3}&7.", GetTeamColorString(players[player].team), m.GetPlayerName(player), GetTeamColorString(players[sourceID].team), m.GetPlayerName(sourceID));
                 }
+
                 break;
             default:
                 Die(player);
                 deathMessage = string.Format("{0}{1} &7died.", GetTeamColorString(players[player].team), m.GetPlayerName(player));
                 break;
         }
+
         if (!string.IsNullOrEmpty(deathMessage))
         {
             m.SendMessageToAll(deathMessage);
@@ -603,6 +640,7 @@ public class War : IMod
                 posy = m.GetMapSizeY() / 2;
                 break;
         }
+
         posz = BlockHeight(posx, posy);
         m.SetPlayerPosition(playerid, posx, posy, posz);
         ResetInventoryOnRespawn(playerid);
@@ -617,6 +655,7 @@ public class War : IMod
                 return z + 1;
             }
         }
+
         return m.GetMapSizeZ() / 2;
     }
     private void Shot(int sourceplayer, int block)
@@ -626,6 +665,7 @@ public class War : IMod
             value = 0;
             players[sourceplayer].totalAmmo[block] = value;
         }
+
         players[sourceplayer].totalAmmo[block] = value - 1;
         m.NotifyAmmo(sourceplayer, players[sourceplayer].totalAmmo);
     }
@@ -648,6 +688,7 @@ public class War : IMod
         {
             return;
         }
+
         {
             float x1 = m.GetPlayerPositionX(sourceplayer);
             float y1 = m.GetPlayerPositionY(sourceplayer);
@@ -664,6 +705,7 @@ public class War : IMod
             dz = dz / dist * 0.1f;
             m.SendExplosion(targetplayer, dx, dy, dz, true, m.GetBlockType(block).ExplosionRange, m.GetBlockType(block).ExplosionTime);
         }
+
         int health = m.GetPlayerHealth(targetplayer);
         int dmghead = 50;
         int dmgbody = 15;
@@ -671,10 +713,12 @@ public class War : IMod
         {
             dmghead = (int)m.GetBlockType(block).DamageHead;
         }
+
         if (m.GetBlockType(block).DamageBody != 0)
         {
             dmgbody = (int)m.GetBlockType(block).DamageBody;
         }
+
         health -= head ? dmghead : dmgbody;
         if (health <= 0)
         {
@@ -686,6 +730,7 @@ public class War : IMod
             {
                 players[sourceplayer].kills = players[sourceplayer].kills - 2;
             }
+
             Die(targetplayer);
             if (players[sourceplayer].team == players[targetplayer].team)
             {
@@ -724,14 +769,17 @@ public class War : IMod
         {
             return;
         }
+
         if (warmode == WarMode.Edit)
         {
             return;
         }
+
         if (players[player].isdead)
         {
             return;     //Don't allow dead players to respawn
         }
+
         m.SendMessage(player, "Respawn.");
         Die(player);
     }
@@ -742,6 +790,7 @@ public class War : IMod
         {
             return;
         }
+
         tabOpen[m.GetPlayerName(player)] = true;
         Dialog d = new()
         {
@@ -828,6 +877,7 @@ public class War : IMod
         {
             playersByTeam[players[p].team].Add(p);
         }
+
         Team[] allteams = [Team.Blue, Team.Spectator, Team.Green];
         for (int t = 0; t < allteams.Length; t++)
         {
@@ -886,6 +936,7 @@ public class War : IMod
             this.page++;
             return true;
         }
+
         return false;
     }
 
@@ -896,6 +947,7 @@ public class War : IMod
             this.page--;
             return true;
         }
+
         return false;
     }
 
@@ -913,6 +965,7 @@ public class War : IMod
         {
             text = text[..^1];
         }
+
         return text;
     }
 
@@ -955,27 +1008,33 @@ public class War : IMod
         {
             blockid = item.BlockId;
         }
+
         string model = "playerwar.txt";
         if (blockid == m.GetBlockId("Pistol"))
         {
             model = "playerwarpistol.txt";
         }
+
         if (blockid == m.GetBlockId("SubmachineGun"))
         {
             model = "playerwarsubmachinegun.txt";
         }
+
         if (blockid == m.GetBlockId("Shotgun"))
         {
             model = "playerwarshotgun.txt";
         }
+
         if (blockid == m.GetBlockId("Rifle"))
         {
             model = "playerwarrifle.txt";
         }
+
         if (players[player].isdead)
         {
             model = "playerwardead.txt";
         }
+
         m.SetPlayerHeight(player, 2.2f, 2.4f);
         Team team = players[player].team;
         switch (team)
@@ -1006,6 +1065,7 @@ public class War : IMod
                     //Skip this player as he hasn't joined yet
                     continue;
                 }
+
                 if (players[p].isdead)
                 {
                     m.SendDialog(p, "RespawnCountdown" + p, null);
@@ -1015,8 +1075,10 @@ public class War : IMod
                     UpdatePlayerModel(p);
                 }
             }
+
             CurrentRespawnTime = DateTime.UtcNow;
         }
+
         for (int i = 0; i < allplayers.Length; i++)
         {
             int p = allplayers[i];
@@ -1025,6 +1087,7 @@ public class War : IMod
                 //Skip this player as he hasn't joined yet
                 continue;
             }
+
             if (players[p].isdead)
             {
                 Dialog d = new()
@@ -1047,6 +1110,7 @@ public class War : IMod
         {
             return;
         }
+
         int[] allplayers = m.AllPlayers();
         int medicalkit = m.GetBlockId("MedicalKit");
         int ammopack = m.GetBlockId("AmmoPack");
@@ -1066,17 +1130,20 @@ public class War : IMod
                     {
                         continue;
                     }
+
                     health += 30;
                     if (health > maxhealth)
                     {
                         health = maxhealth;
                     }
+
                     m.SetPlayerHealth(p, health, maxhealth);
                     m.SetBlock(px, py, pz, 0);
                     //m.PlaySoundAt((int)m.GetPlayerPositionX(targetplayer),
                     //    (int)m.GetPlayerPositionY(targetplayer),
                     //    (int)m.GetPlayerPositionZ(targetplayer), "heal.ogg");
                 }
+
                 if (block == ammopack)
                 {
                     foreach (var k in new List<int>(players[p].totalAmmo.Keys))
@@ -1086,13 +1153,16 @@ public class War : IMod
                         {
                             ammo = players[p].totalAmmo[k];
                         }
+
                         ammo += m.GetBlockType(k).AmmoTotal / 3;
                         if (ammo > m.GetBlockType(k).AmmoTotal)
                         {
                             ammo = m.GetBlockType(k).AmmoTotal;
                         }
+
                         players[p].totalAmmo[k] = ammo;
                     }
+
                     m.NotifyAmmo(p, players[p].totalAmmo);
                     m.SetBlock(px, py, pz, 0);
                 }
@@ -1106,6 +1176,7 @@ public class War : IMod
         {
             return message;
         }
+
         int[] allplayers = m.AllPlayers();
         string sender = m.GetPlayerName(player);
         string senderColorString = GetTeamColorString(players[player].team);
@@ -1114,10 +1185,12 @@ public class War : IMod
         {
             toteam = true;
         }
+
         if (toteam)
         {
             s = GetTeamColorString(players[player].team) + s;
         }
+
         foreach (int p in allplayers)
         {
             if (toteam)
@@ -1127,8 +1200,10 @@ public class War : IMod
                     continue;
                 }
             }
+
             m.SendMessage(p, $"{senderColorString}{sender}&f: {s}");
         }
+
         if (players[player].team == Team.Spectator)
         {
             Console.WriteLine($"[Spectator] {sender}: {s}");
@@ -1151,6 +1226,7 @@ public class War : IMod
                 Console.WriteLine($"[Players] {sender}: {s}");
             }
         }
+
         m.LogChat($"{senderColorString}{sender}&f: {s}");
         return null;
     }
@@ -1164,6 +1240,7 @@ public class War : IMod
                 m.SendMessage(player, m.ColorError + "No privilege: mode");
                 return true;
             }
+
             if (arguments == "edit")
             {
                 warmode = WarMode.Edit;
@@ -1182,8 +1259,10 @@ public class War : IMod
             {
                 m.SendMessage(player, m.ColorError + "Usage: /mode [edit/tdm]");
             }
+
             return true;
         }
+
         return false;
     }
 

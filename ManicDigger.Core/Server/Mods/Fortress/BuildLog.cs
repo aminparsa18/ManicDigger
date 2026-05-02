@@ -61,6 +61,7 @@ public class BuildLog : IMod
             bw.Write((string)l[6]);//playername
             bw.Write((string)l[7]);//ip
         }
+
         m.SetGlobalData("BuildLog", ms.ToArray());
     }
 

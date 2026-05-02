@@ -193,6 +193,7 @@ public class NetworkInterpolation : INetworkInterpolation
                 hi = mid - 1;
             }
         }
+
         return result;
     }
 }
@@ -234,6 +235,7 @@ public static class AngleInterpolation
 
             a += (int)(progress * diff);
         }
+
         return NormalizeAngle256(a);
     }
 
@@ -252,6 +254,7 @@ public static class AngleInterpolation
 
             a += progress * diff;
         }
+
         return NormalizeAngle360(a);
     }
 

@@ -37,22 +37,27 @@ public class BlockPosSide
         {
             translated[0] -= 1;
         }
+
         if (collisionPos[1] == blockPos[1])
         {
             translated[1] -= 1;
         }
+
         if (collisionPos[2] == blockPos[2])
         {
             translated[2] -= 1;
         }
+
         if (collisionPos[0] == blockPos[0] + 1)
         {
             translated[0] += 1;
         }
+
         if (collisionPos[1] == blockPos[1] + 1)
         {
             translated[1] += 1;
         }
+
         if (collisionPos[2] == blockPos[2] + 1)
         {
             translated[2] += 1;

@@ -130,6 +130,7 @@ public class TaskScheduler : ITaskScheduler
                 return false;
             }
         }
+
         return true;
     }
 

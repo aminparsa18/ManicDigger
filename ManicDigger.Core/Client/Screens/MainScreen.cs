@@ -9,7 +9,7 @@
 public class MainScreen : ScreenBase, IMainScreen
 {
     public MainScreen(IGameService platform, ISinglePlayerService singlePlayerService, IOpenGlService openGlService,
-        ILanguageService languageService, IAssetManager assetManager, IScreenManager menu)
+        ILanguageService languageService, IAssetManager assetManager, INavigator navigator)
         : base(platform, openGlService, assetManager)
     {
         buttonSingleplayer = new MenuWidget { text = "Singleplayer" };
@@ -18,7 +18,7 @@ public class MainScreen : ScreenBase, IMainScreen
 
         this.singlePlayerService = singlePlayerService;
         this._languageService = languageService;
-        this._menu = menu;
+        _navigator = navigator;
 
         Widgets.Add(buttonSingleplayer);
         Widgets.Add(buttonMultiplayer);
@@ -27,7 +27,7 @@ public class MainScreen : ScreenBase, IMainScreen
 
     private readonly ISinglePlayerService singlePlayerService;
     private readonly ILanguageService _languageService;
-    private readonly IScreenManager _menu;
+    private readonly INavigator _navigator;
 
     private readonly MenuWidget buttonSingleplayer;
     private readonly MenuWidget buttonMultiplayer;
@@ -133,7 +133,7 @@ public class MainScreen : ScreenBase, IMainScreen
 
         if (ip != null)
         {
-            _menu.StartLogin(null, ip, portInt);
+            _navigator.StartLogin(null, ip, portInt);
         }
     }
 
@@ -142,13 +142,13 @@ public class MainScreen : ScreenBase, IMainScreen
     {
         if (w == buttonSingleplayer)
         {
-            _menu.StartSingleplayer();
+            _navigator.StartSingleplayer();
             return;
         }
 
         if (w == buttonMultiplayer)
         {
-            _menu.StartMultiplayer();
+            _navigator.StartMultiplayer();
             return;
         }
 
@@ -170,12 +170,12 @@ public class MainScreen : ScreenBase, IMainScreen
         if (e.KeyChar == (int)Keys.F5)
         {
             singlePlayerService.SinglePlayerServerAvailable = false;
-            _menu.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mdss"), null);
+            _navigator.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mdss"), null);
         }
         // F6 — launch default singleplayer save (database .mddbs format).
         if (e.KeyChar == (int)Keys.F6)
         {
-            _menu.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mddbs"), null);
+            _navigator.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mddbs"), null);
         }
 #endif
     }

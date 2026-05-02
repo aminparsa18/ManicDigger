@@ -128,6 +128,7 @@ public class DialogScreen : ModScreen
                 s ??= "";
                 textValues[i] = s;
             }
+
             Game.SendPacketClient(ClientPackets.DialogClick(w.id, textValues, WidgetCount));
         }
     }

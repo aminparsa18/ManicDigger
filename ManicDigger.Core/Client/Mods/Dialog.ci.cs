@@ -102,6 +102,7 @@ public class ModDialog : ModBase
                     return;
                 }
             }
+
             Game.ShowEscapeMenu();
             args.Handled = true;
             return;
@@ -119,6 +120,7 @@ public class ModDialog : ModBase
                         Game.Dialogs[i] = null;
                     }
                 }
+
                 Game.SendPacketClient(ClientPackets.DialogClick("Esc", Empty, 0));
                 Game.GuiStateBackToGame();
                 args.Handled = true;

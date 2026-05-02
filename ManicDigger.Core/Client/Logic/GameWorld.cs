@@ -228,6 +228,7 @@ public partial class Game
                 break;
             }
         }
+
         Heightmap.SetBlock(x, y, height);
     }
 
@@ -330,6 +331,7 @@ public partial class Game
             speculative[_speculativeFreeSlots.Pop()] = s;
             return;
         }
+
         speculative[speculativeCount++] = s;
     }
 
@@ -389,6 +391,7 @@ public partial class Game
                 return;
             }
         }
+
         Config3d.ViewDistance = FogDrawDistances[0];
         RedrawAllBlocks();
     }

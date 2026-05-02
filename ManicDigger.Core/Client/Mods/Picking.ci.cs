@@ -96,6 +96,7 @@ public class ModPicking : ModBase
             Game.SelectedBlockPositionZ = -1;
             return;
         }
+
         NextBullet(bulletsShot: 0);
     }
 
@@ -133,10 +134,12 @@ public class ModPicking : ModBase
                 left = false;
             }
         }
+
         if (!left)
         {
             Game.CurrentAttackedBlock = null;
         }
+
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
         bool isPistol = item != null && blockTypeRegistry.BlockTypes[item.BlockId].IsPistol;
         bool isGrenade = isPistol && blockTypeRegistry.BlockTypes[item.BlockId].PistolType == PistolType.Grenade;
@@ -258,6 +261,7 @@ public class ModPicking : ModBase
             {
                 OnPick_(pick0);
             }
+
             return;
         }
 
@@ -277,6 +281,7 @@ public class ModPicking : ModBase
         {
             lastbuildMilliseconds = platform.TimeMillisecondsFromStart;
         }
+
         if (isGrenade && Game.mouseleftdeclick)
         {
             lastbuildMilliseconds = platform.TimeMillisecondsFromStart;
@@ -370,6 +375,7 @@ public class ModPicking : ModBase
             {
                 throw new ArgumentException("Error in picking - NextBullet()");
             }
+
             OnPick(newtileX, newtileZ, newtileY,
                 (int)pick0.Current()[0], (int)pick0.Current()[2], (int)pick0.Current()[1],
                 pick0.collisionPos, right);
@@ -450,6 +456,7 @@ public class ModPicking : ModBase
                 {
                     continue;
                 }
+
                 if (k.Value_.InventoryItemType != InventoryItemType.Block || k.Value_.BlockId != cloneSource2)
                 {
                     continue;
@@ -560,6 +567,7 @@ public class ModPicking : ModBase
             {
                 continue;
             }
+
             if (!entity.networkPosition.PositionLoaded)
             {
                 continue;
@@ -579,6 +587,7 @@ public class ModPicking : ModBase
             {
                 hit = Intersection.CheckLineBoxExact(pick, bodyBox);
             }
+
             if (hit == null)
             {
                 continue;
@@ -693,6 +702,7 @@ public class ModPicking : ModBase
                 blockposY = blockposOldY;
                 blockposZ = blockposOldZ;
             }
+
             activeMaterial = railStart + (dir | DirectionUtils.ToRailDirectionFlags(dirNew));
         }
 
@@ -715,6 +725,7 @@ public class ModPicking : ModBase
                 OnPickUseWithTool(blockposX, blockposY, blockposZ);
                 return;
             }
+
             if (activeMaterial == blockTypeRegistry.BlockIdCuboid)
             {
                 ClearFillArea();
@@ -725,18 +736,22 @@ public class ModPicking : ModBase
                     {
                         fillarea[(f.X, f.Y, f.Z)] = voxelMap.GetBlock(f.X, f.Y, f.Z);
                     }
+
                     Game.SetBlock(f.X, f.Y, f.Z, blockTypeRegistry.BlockIdFillStart);
                     FillFill(v, fillstart);
                 }
+
                 if (!Game.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
                 {
                     fillarea[(v.X, v.Y, v.Z)] = voxelMap.GetBlock(v.X, v.Y, v.Z);
                 }
+
                 Game.SetBlock(v.X, v.Y, v.Z, blockTypeRegistry.BlockIdCuboid);
                 fillend = v;
                 Game.RedrawBlock(v.X, v.Y, v.Z);
                 return;
             }
+
             if (activeMaterial == blockTypeRegistry.BlockIdFillStart)
             {
                 ClearFillArea();
@@ -744,12 +759,14 @@ public class ModPicking : ModBase
                 {
                     fillarea[(v.X, v.Y, v.Z)] = voxelMap.GetBlock(v.X, v.Y, v.Z);
                 }
+
                 Game.SetBlock(v.X, v.Y, v.Z, blockTypeRegistry.BlockIdFillStart);
                 fillstart = v;
                 fillend = null;
                 Game.RedrawBlock(v.X, v.Y, v.Z);
                 return;
             }
+
             if (fillarea.ContainsKey((v.X, v.Y, v.Z)))
             {
                 Game.SendFillArea(fillstart.Value.X, fillstart.Value.Y, fillstart.Value.Z,
@@ -768,6 +785,7 @@ public class ModPicking : ModBase
                 OnPickUseWithTool(blockposX, blockposY, blockposOldZ);
                 return;
             }
+
             if (fillstart?.X == v.X && fillstart?.Y == v.Y && fillstart?.Z == v.Z)
             {
                 ClearFillArea();
@@ -775,6 +793,7 @@ public class ModPicking : ModBase
                 fillend = null;
                 return;
             }
+
             if (fillend?.X == v.X && fillend?.Y == v.Y && fillend?.Z == v.Z)
             {
                 ClearFillArea();
@@ -797,6 +816,7 @@ public class ModPicking : ModBase
             Game.SetBlock(x, y, z, (int)value);
             Game.RedrawBlock(x, y, z);
         }
+
         fillarea.Clear();
     }
 
@@ -823,6 +843,7 @@ public class ModPicking : ModBase
                         ClearFillArea();
                         return;
                     }
+
                     if (!Game.IsFillBlock(voxelMap.GetBlock(x, y, z)))
                     {
                         fillarea[(x, y, z)] = voxelMap.GetBlock(x, y, z);
@@ -850,10 +871,12 @@ public class ModPicking : ModBase
         {
             return RailDirection.Vertical;
         }
+
         if (yFract < xFract && yFract < 1 - xFract)
         {
             return RailDirection.Vertical;
         }
+
         return RailDirection.Horizontal;
     }
 
@@ -867,14 +890,17 @@ public class ModPicking : ModBase
         {
             return RailDirection.UpLeft;
         }
+
         if (xFract >= 0.5f && zFract < 0.5f)
         {
             return RailDirection.UpRight;
         }
+
         if (xFract < 0.5f && zFract >= 0.5f)
         {
             return RailDirection.DownLeft;
         }
+
         return RailDirection.DownRight;
     }
 
@@ -898,10 +924,12 @@ public class ModPicking : ModBase
             {
                 continue;
             }
+
             if (entity.networkPosition == null || !entity.networkPosition.PositionLoaded)
             {
                 continue;
             }
+
             if (!entity.usable)
             {
                 continue;
@@ -956,8 +984,10 @@ public class ModPicking : ModBase
             {
                 continue;
             }
+
             modRegistry.Mods[i].OnHitEntity(new OnUseEntityArgs { Id = Game.CurrentlyAttackedEntity });
         }
+
         Game.SendPacketClient(ClientPackets.HitEntity(Game.CurrentlyAttackedEntity));
     }
 

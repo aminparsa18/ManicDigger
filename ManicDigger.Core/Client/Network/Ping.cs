@@ -61,6 +61,7 @@ public class Ping
             IsReady = true;
             return true;
         }
+
         return false;
     }
 }

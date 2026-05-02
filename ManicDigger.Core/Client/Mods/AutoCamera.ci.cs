@@ -352,6 +352,7 @@ public class ModAutoCamera : ModBase
                 sb.Append(',');
             }
         }
+
         Clipboard.SetText(sb.ToString());
         Game.AddChatLine("Camera points copied to clipboard.");
     }

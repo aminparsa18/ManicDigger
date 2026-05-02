@@ -71,6 +71,7 @@ public class TreeGenerator : IMod
             {
                 continue;
             }
+
             chooseTreeType = rnd.Next(0, 3);
             switch (chooseTreeType)
             {
@@ -78,6 +79,7 @@ public class TreeGenerator : IMod
                 case 1: MakeTreeType2(x, y, z, rnd); break; //Oak
                 case 2: MakeTreeType3(x, y, z, rnd); break; //Birch
             }
+
             ;
         }
     }
@@ -121,6 +123,7 @@ public class TreeGenerator : IMod
                     }
                 }
             }
+
             if (i == treeHeight - 1)
             {
                 for (int j = 1; j < 9; j++)
@@ -226,6 +229,7 @@ public class TreeGenerator : IMod
                     }
                 }
             }
+
             if (i % 3 == 2 && i > 3)
             {
                 dir = 45;
@@ -248,6 +252,7 @@ public class TreeGenerator : IMod
                     }
                 }
             }
+
             SetBlockIfEmpty(x, y, z + treeHeight, BLOCK_BIRCHLEAVES);
         }
     }

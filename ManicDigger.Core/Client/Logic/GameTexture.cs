@@ -26,6 +26,7 @@ public partial class Game
             using Bitmap bmp = buf.ToBitmap();
             whitetexture = openGlService.LoadTextureFromBitmap(bmp);
         }
+
         return whitetexture;
     }
 
@@ -89,6 +90,7 @@ public partial class Game
             id = openGlService.LoadTextureFromBitmap(bmp);
             textures[p] = id;
         }
+
         return id;
     }
 
@@ -103,6 +105,7 @@ public partial class Game
             id = openGlService.LoadTextureFromBitmap(bmp);
             textures[name] = id;
         }
+
         return id;
     }
 
@@ -118,6 +121,7 @@ public partial class Game
             openGlService.GLDeleteTexture(id);
             return true;
         }
+
         return false;
     }
 

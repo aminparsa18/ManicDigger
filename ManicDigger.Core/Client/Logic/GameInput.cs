@@ -17,6 +17,7 @@ public partial class Game
             mouseLeft = true;
             MouseLeftClick = true;
         }
+
         if (btn == (int)MouseButton.Middle)
         {
             mouseMiddle = true;
@@ -57,6 +58,7 @@ public partial class Game
             mouseLeft = false;
             mouseleftdeclick = true;
         }
+
         if (btn == (int)MouseButton.Middle)
         {
             mouseMiddle = false;
@@ -90,6 +92,7 @@ public partial class Game
             MouseCurrentX = e.GetX();
             MouseCurrentY = e.GetY();
         }
+
         if (e.GetEmulated() || e.GetForceUsage())
         {
             // Accumulate delta only from emulated events (actual events negate previous ones).
@@ -395,9 +398,11 @@ public partial class Game
                 AddChatLine(strFreemoveNotAllowed);
                 return;
             }
+
             MoveSpeed = Basemovespeed * 1;
             AddChatLine("Move speed: 1x.");
         }
+
         if (eKey == GetKey(Keys.F2))
         {
             if (!AllowFreeMove)
@@ -405,9 +410,11 @@ public partial class Game
                 AddChatLine(strFreemoveNotAllowed);
                 return;
             }
+
             MoveSpeed = Basemovespeed * 10;
             AddChatLine(string.Format(Language.MoveSpeed(), "10"));
         }
+
         if (eKey == GetKey(Keys.F3))
         {
             if (!AllowFreeMove)
@@ -415,6 +422,7 @@ public partial class Game
                 AddChatLine(strFreemoveNotAllowed);
                 return;
             }
+
             StopPlayerMove = true;
             if (!Controls.FreeMove)
             {
@@ -433,6 +441,7 @@ public partial class Game
                 AddChatLine(Language.MoveNormal());
             }
         }
+
         if (eKey == GetKey(Keys.I))
         {
             DrawBlockInfo = !DrawBlockInfo;
@@ -461,6 +470,7 @@ public partial class Game
                 TppCameraDistance -= 1;
             }
         }
+
         if (eKey == GetKey(Keys.Minus) || eKey == GetKey(Keys.KeyPadSubtract))
         {
             if (CameraType == CameraType.Overhead)
@@ -583,6 +593,7 @@ public partial class Game
 
                 t.OnUseEntity(args);
             }
+
             SendPacketClient(ClientPackets.UseEntity(CurrentlyAttackedEntity));
         }
     }
@@ -593,38 +604,47 @@ public partial class Game
         {
             ActiveMaterial = 0;
         }
+
         if (eKey == GetKey(Keys.KeyPad2))
         {
             ActiveMaterial = 1;
         }
+
         if (eKey == GetKey(Keys.KeyPad3))
         {
             ActiveMaterial = 2;
         }
+
         if (eKey == GetKey(Keys.KeyPad4))
         {
             ActiveMaterial = 3;
         }
+
         if (eKey == GetKey(Keys.KeyPad5))
         {
             ActiveMaterial = 4;
         }
+
         if (eKey == GetKey(Keys.KeyPad6))
         {
             ActiveMaterial = 5;
         }
+
         if (eKey == GetKey(Keys.KeyPad7))
         {
             ActiveMaterial = 6;
         }
+
         if (eKey == GetKey(Keys.KeyPad8))
         {
             ActiveMaterial = 7;
         }
+
         if (eKey == GetKey(Keys.KeyPad9))
         {
             ActiveMaterial = 8;
         }
+
         if (eKey == GetKey(Keys.KeyPad0))
         {
             ActiveMaterial = 9;
@@ -637,10 +657,12 @@ public partial class Game
         {
             return (int)key;
         }
+
         if (options.Keys[(int)key] != 0)
         {
             return options.Keys[(int)key];
         }
+
         return (int)key;
     }
 }

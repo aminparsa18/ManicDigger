@@ -137,6 +137,7 @@ public class MeshBatcher : IMeshBatcher
 
             meshDrawer.DrawModels(_tocallTransparent[i], _tocallTransparent[i].Count);
         }
+
         _platform.GlEnableCullFace();
     }
 
@@ -209,6 +210,7 @@ public class MeshBatcher : IMeshBatcher
                 sum += entry.IndicesCount;
             }
         }
+
         return sum / 3;
     }
 
@@ -222,6 +224,7 @@ public class MeshBatcher : IMeshBatcher
                 Remove(i);
             }
         }
+
         _glTextures.Clear();
         _textureIndexMap.Clear();
     }

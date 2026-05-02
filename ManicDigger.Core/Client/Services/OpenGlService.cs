@@ -433,6 +433,7 @@ public sealed class OpenGlService : IOpenGlService
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 g.DrawImage(bmpArg, 0, 0, w, h);
             }
+
             converted = true;
         }
 

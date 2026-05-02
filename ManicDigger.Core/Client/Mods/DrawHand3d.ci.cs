@@ -163,6 +163,7 @@ public class ModDrawHand3d : ModBase
                 SetAttack(isAttack: true, isBuild: true);
                 Game.handSetAttackBuild = false;
             }
+
             if (Game.handSetAttackDestroy)
             {
                 SetAttack(isAttack: true, isBuild: false);
@@ -208,6 +209,7 @@ public class ModDrawHand3d : ModBase
             {
                 return Game.TextureId[blockTypeRegistry.BlockIdEmptyHand][(int)TileSide.Top];
             }
+
             return Game.TextureId[blockTypeRegistry.BlockIdEmptyHand][(int)TileSide.Front];
         }
 
@@ -666,14 +668,17 @@ public class ModDrawHand3d : ModBase
             {
                 bottomX = x - TorchSizeXY;
             }
+
             if (type == TorchType.Back)
             {
                 bottomX = x + 1f;
             }
+
             if (type == TorchType.Left)
             {
                 bottomY = y - TorchSizeXY;
             }
+
             if (type == TorchType.Right)
             {
                 bottomY = y + 1f;

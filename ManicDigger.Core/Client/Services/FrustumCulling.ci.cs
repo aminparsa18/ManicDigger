@@ -52,6 +52,7 @@ public class FrustumCulling : IFrustumCulling
                 return false;
             }
         }
+
         return true;
     }
 

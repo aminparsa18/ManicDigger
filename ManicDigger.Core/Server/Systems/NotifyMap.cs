@@ -224,6 +224,7 @@ public class ServerSystemNotifyMap : ServerSystem
                 return false;
             }
         }
+
         return true;
     }
 }

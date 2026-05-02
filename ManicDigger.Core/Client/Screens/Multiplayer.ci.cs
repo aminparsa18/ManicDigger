@@ -1,7 +1,10 @@
 ﻿using OpenTK.Windowing.Common;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
-public class MultiplayerScreen : ScreenBase
+public interface IScreenMultiplayer : IScreenBase
+{
+}
+
+public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
 {
     private readonly IOpenGlService openGlService;
     private readonly ILanguageService _languageService;
@@ -9,7 +12,9 @@ public class MultiplayerScreen : ScreenBase
 
     public MultiplayerScreen(IGameService platform, IOpenGlService openGlService, IPreferences preferences,
         ILanguageService languageService, IAssetManager assetManager, IScreenManager menu)
-        : base(platform, openGlService, assetManager)
+        : base(platform,
+               openGlService,
+               assetManager)
     {
         this.preferences = preferences;
         this.openGlService = openGlService;
@@ -79,6 +84,7 @@ public class MultiplayerScreen : ScreenBase
             serverButtons[i] = b;
             Widgets.Add(b); // 8 + i
         }
+
         loading = true;
     }
 
@@ -108,10 +114,12 @@ public class MultiplayerScreen : ScreenBase
         {
             loaded = true;
         }
+
         if (serverListAddress.Done)
         {
             serverListAddress.Done = false;
         }
+
         if (serverListCsv.Done)
         {
             loading = false;
@@ -121,6 +129,7 @@ public class MultiplayerScreen : ScreenBase
                 serversOnList[i] = null;
                 thumbResponses[i] = null;
             }
+
             string[] servers = serverListCsv.GetString().Split("\n");
             for (int i = 0; i < servers.Length; i++)
             {
@@ -129,6 +138,7 @@ public class MultiplayerScreen : ScreenBase
                 {
                     continue;
                 }
+
                 ServerOnList s = new()
                 {
                     Hash = ss[0],
@@ -197,6 +207,7 @@ public class MultiplayerScreen : ScreenBase
                 loggedInName.text = preferences.GetString("Username", "Invalid");
             }
         }
+
         logout.visible = loggedInName.text != "";
 
         logout.x = GameService.CanvasWidth - (228 * scale);
@@ -227,6 +238,7 @@ public class MultiplayerScreen : ScreenBase
             // Do not let this get negative
             serversPerPage = 1;
         }
+
         for (int i = 0; i < serversPerPage; i++)
         {
             int index = i + (serversPerPage * page);
@@ -236,11 +248,13 @@ public class MultiplayerScreen : ScreenBase
                 page = 0;
                 index = i + (serversPerPage * page);
             }
+
             ServerOnList s = serversOnList[index];
             if (s == null)
             {
                 continue;
             }
+
             string t = string.Format("{1}", index.ToString(), s.Name);
             t = string.Format("{0}\n{1}", t, s.Motd);
             t = string.Format("{0}\n{1}", t, s.GameMode);
@@ -264,6 +278,7 @@ public class MultiplayerScreen : ScreenBase
             {
                 serverButtons[i].description = null;
             }
+
             if (s.ThumbnailFetched && !s.ThumbnailError)
             {
                 serverButtons[i].image = string.Format("serverlist_entry_{0}.png", s.Hash);
@@ -273,12 +288,13 @@ public class MultiplayerScreen : ScreenBase
                 serverButtons[i].image = "serverlist_entry_noimage.png";
             }
         }
+
         UpdateScrollButtons();
         DrawWidgets();
     }
 
     private readonly ThumbnailResponseCi[] thumbResponses;
-    public void UpdateThumbnails()
+    private void UpdateThumbnails()
     {
         for (int i = 0; i < serversOnListCount; i++)
         {
@@ -287,11 +303,13 @@ public class MultiplayerScreen : ScreenBase
             {
                 continue;
             }
+
             if (server.ThumbnailFetched)
             {
                 //Thumbnail already loaded
                 continue;
             }
+
             if (!server.ThumbnailDownloading)
             {
                 //Not started downloading yet
@@ -313,9 +331,11 @@ public class MultiplayerScreen : ScreenBase
                             RegisterTexture(string.Format("serverlist_entry_{0}.png", server.Hash), texture);
                             bmp.Dispose();
                         }
+
                         server.ThumbnailDownloading = false;
                         server.ThumbnailFetched = true;
                     }
+
                     if (thumbResponses[i].Error)
                     {
                         //Error while trying to download thumbnail
@@ -335,21 +355,23 @@ public class MultiplayerScreen : ScreenBase
         }
     }
 
-    public void PageUp_()
+    private void PageUp()
     {
         if (pageUp.visible && page < (serverButtonsCount / serversPerPage) - 1)
         {
             page++;
         }
     }
-    public void PageDown_()
+
+    private void PageDown()
     {
         if (page > 0)
         {
             page--;
         }
     }
-    public void UpdateScrollButtons()
+
+    private void UpdateScrollButtons()
     {
         //Determine if this page is the highest page containing servers
         bool maxpage = false;
@@ -373,6 +395,7 @@ public class MultiplayerScreen : ScreenBase
         {
             pageDown.visible = true;
         }
+
         if (maxpage)
         {
             pageUp.visible = false;
@@ -400,14 +423,15 @@ public class MultiplayerScreen : ScreenBase
         if (e.OffsetX < 0)
         {
             //Mouse wheel turned down
-            PageUp_();
+            PageUp();
         }
         else if (e.OffsetX > 0)
         {
             //Mouse wheel turned up
-            PageDown_();
+            PageDown();
         }
     }
+
     private string selectedServerHash;
     public override void OnButton(MenuWidget w)
     {
@@ -423,18 +447,22 @@ public class MultiplayerScreen : ScreenBase
                 }
             }
         }
+
         if (w == pageUp)
         {
-            PageUp_();
+            PageUp();
         }
+
         if (w == pageDown)
         {
-            PageDown_();
+            PageDown();
         }
+
         if (w == back)
         {
             OnBackPressed();
         }
+
         if (w == connect)
         {
             if (selectedServerHash != null)
@@ -442,15 +470,18 @@ public class MultiplayerScreen : ScreenBase
                 _menu.StartLogin(selectedServerHash, null, 0);
             }
         }
+
         if (w == connectToIp)
         {
             _menu.StartConnectToIp();
         }
+
         if (w == refresh)
         {
             loaded = false;
             loading = true;
         }
+
         if (w == logout)
         {
             preferences.Remove("Username");

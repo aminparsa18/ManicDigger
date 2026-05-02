@@ -61,10 +61,12 @@ public class ModGuiEscapeMenu : ModBase
         {
             Game.GuiStateBackToGame();
         }
+
         if (b == buttonMainOptions)
         {
             SetEscapeMenuState(EscapeMenuState.Options);
         }
+
         if (b == buttonMainExit)
         {
             Game.SendLeave(PacketLeaveReason.Leave);
@@ -109,14 +111,17 @@ public class ModGuiEscapeMenu : ModBase
         {
             SetEscapeMenuState(EscapeMenuState.Graphics);
         }
+
         if (b == optionsKeys)
         {
             SetEscapeMenuState(EscapeMenuState.Keys);
         }
+
         if (b == optionsOther)
         {
             SetEscapeMenuState(EscapeMenuState.Other);
         }
+
         if (b == optionsReturnToMainMenu)
         {
             SaveOptions();
@@ -202,38 +207,47 @@ public class ModGuiEscapeMenu : ModBase
                 options.BlockShadowSave = 0.6f;
                 Game.TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
             }
+
             Game.RedrawAllBlocks();
         }
+
         if (b == graphicsOptionDarkenSides)
         {
             options.EnableBlockShadow = !options.EnableBlockShadow;
             Game.TerrainChunkTesselator.option_DarkenBlockSides = options.EnableBlockShadow;
             Game.RedrawAllBlocks();
         }
+
         if (b == graphicsViewDistanceOption)
         {
             Game.ToggleFog();
         }
+
         if (b == graphicsOptionFramerate)
         {
             Game.ToggleVsync();
         }
+
         if (b == graphicsOptionResolution)
         {
             ToggleResolution();
         }
+
         if (b == graphicsOptionFullscreen)
         {
             options.Fullscreen = !options.Fullscreen;
         }
+
         if (b == graphicsUseServerTexturesOption)
         {
             options.UseServerTextures = !options.UseServerTextures;
         }
+
         if (b == graphicsFontOption)
         {
             ToggleFont();
         }
+
         if (b == graphicsReturnToOptionsMenu)
         {
             UseFullscreen();
@@ -280,15 +294,18 @@ public class ModGuiEscapeMenu : ModBase
         {
             Game.AudioEnabled = !Game.AudioEnabled;
         }
+
         if (b == otherAutoJumpOption)
         {
             Game.AutoJumpEnabled = !Game.AutoJumpEnabled;
         }
+
         if (b == otherLanguageSetting)
         {
             //Switch language based on available languages
             Game.Language.NextLanguage();
         }
+
         if (b == otherReturnToOptionsMenu)
         {
             SetEscapeMenuState(EscapeMenuState.Options);
@@ -318,12 +335,14 @@ public class ModGuiEscapeMenu : ModBase
             {
                 break;
             }
+
             int defaultkey = helps[i].DefaultKey;
             int key = defaultkey;
             if (game.options.Keys[defaultkey] != 0)
             {
                 key = game.options.Keys[defaultkey];
             }
+
             keyButtons[i] = new Button
             {
                 Text = string.Format(language.KeyChange(), helps[i].Text, KeyName(key))
@@ -331,6 +350,7 @@ public class ModGuiEscapeMenu : ModBase
             AddWidget(keyButtons[i]);
 
         }
+
         keysDefaultKeys = new Button
         {
             Text = language.DefaultKeys()
@@ -355,10 +375,12 @@ public class ModGuiEscapeMenu : ModBase
                 }
             }
         }
+
         if (b == keysDefaultKeys)
         {
             Game.options.Keys = new int[256];
         }
+
         if (b == keysReturnToOptionsMenu)
         {
             SetEscapeMenuState(EscapeMenuState.Options);
@@ -445,6 +467,7 @@ public class ModGuiEscapeMenu : ModBase
                 originalResolutionHeight = platform.GetDisplayResolutionDefault().Height;
                 changedResolution = true;
             }
+
             platform.SetWindowState(WindowState.Fullscreen);
             UseResolution();
         }
@@ -523,6 +546,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             options.Resolution = 0;
         }
+
         DisplayResolutionCi res = resolutions[options.Resolution];
         if (platform.GetWindowState() == WindowState.Fullscreen)
         {
@@ -551,6 +575,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             options.Font = 0;
         }
+
         Game.Font = fontValues[options.Font];
         TextRenderer.SetFont(Game.Font);
 
@@ -599,15 +624,18 @@ public class ModGuiEscapeMenu : ModBase
             loaded = true;
             LoadOptions();
         }
+
         if (Game.EscapeMenuRestart)
         {
             Game.EscapeMenuRestart = false;
             SetEscapeMenuState(EscapeMenuState.Main);
         }
+
         if (Game.GuiState != GuiState.EscapeMenu)
         {
             return;
         }
+
         SetEscapeMenuState(escapemenustate);
         EscapeMenuMouse1();
         for (int i = 0; i < widgetsCount; i++)
@@ -625,6 +653,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             helps[i] = null;
         }
+
         LanguageService language = Game.Language;
         int count = 0;
         helps[count++] = KeyHelpCreate(language.KeyMoveFoward(), Keys.W);
@@ -687,8 +716,10 @@ public class ModGuiEscapeMenu : ModBase
                 SetEscapeMenuState(EscapeMenuState.Main);
                 Game.GuiStateBackToGame();
             }
+
             args.Handled = true;
         }
+
         if (escapemenustate == EscapeMenuState.Keys)
         {
             if (keyselectid != -1)
@@ -698,6 +729,7 @@ public class ModGuiEscapeMenu : ModBase
                 args.Handled = true;
             }
         }
+
         if (eKey == Game.GetKey(Keys.F11))
         {
             if (platform.GetWindowState() == WindowState.Fullscreen)
@@ -712,6 +744,7 @@ public class ModGuiEscapeMenu : ModBase
                 UseResolution();
                 SaveOptions();
             }
+
             args.Handled = true;
         }
     }
@@ -722,6 +755,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             return;
         }
+
         Game.options = o;
         GameOption options = o;
 
@@ -735,6 +769,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             Game.Language.OverrideLanguage = options.ClientLanguage;
         }
+
         Game.TerrainChunkTesselator.EnableSmoothLight = options.Smoothshadows;
         Game.TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
         Game.TerrainChunkTesselator.option_DarkenBlockSides = options.EnableBlockShadow;
@@ -789,6 +824,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             options.ClientLanguage = Game.Language.OverrideLanguage;
         }
+
         options.Framerate = Game.EnableLog;
         options.Fullscreen = platform.GetWindowState() == WindowState.Fullscreen;
         options.Smoothshadows = Game.TerrainChunkTesselator.EnableSmoothLight;
@@ -809,6 +845,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             preferences.SetString("ClientLanguage", options.ClientLanguage);
         }
+
         preferences.SetInt("Framerate", options.Framerate);
         preferences.SetInt("Resolution", options.Resolution);
         preferences.SetBool("Fullscreen", options.Fullscreen);

@@ -102,6 +102,7 @@ public class BlockId : IMod
                 Console.WriteLine($"{k.Key}: {k.Value.Name}");
             }
         }
+
         SaveBlockIdsToDatabase(newBlockIDs);
     }
 
@@ -132,6 +133,7 @@ public class BlockId : IMod
         {
             throw new Exception("Error at loading blocks!");
         }
+
         return blocks;
     }
 
@@ -175,6 +177,7 @@ public class BlockId : IMod
                         break;
                     }
                 }
+
                 expectedBlocks.Remove(index);
                 reassignedBlocks.Add(index, new Block { Name = k.Value.Name, Type = k.Value.Type });
                 keysToRemove.Add(k.Key);
@@ -215,8 +218,10 @@ public class BlockId : IMod
             {
                 i++;
             }
+
             reassignedBlocks.Add(i, new Block { Name = k.Value.Name, Type = k.Value.Type });
         }
+
         return reassignedBlocks;
     }
 

@@ -94,6 +94,7 @@ public class ModUnloadRendererChunks : ModBase
                 System.Buffers.ArrayPool<byte>.Shared.Return(rendered.Light);
                 rendered.LightRented = false;
             }
+
             rendered.Light = null;
         }
 

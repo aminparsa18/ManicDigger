@@ -102,11 +102,13 @@ public class TextColorRenderer
                         parts.Add(new TextPart { text = currenttext.ToString(), color = currentcolor });
                         currenttext.Clear();
                     }
+
                     currentcolor = GetColor(color);
                     i++; // skip the hex digit
                     continue;
                 }
             }
+
             currenttext.Append(s[i]);
         }
 

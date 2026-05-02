@@ -139,11 +139,13 @@ public class ModCameraKeys : ModBase
             Game.Controls.MovedX -= 1;
             Game.LocalStance = 1;
         }
+
         if (leanRight)
         {
             Game.Controls.MovedX += 1;
             Game.LocalStance = 2;
         }
+
         if (!leanLeft && !leanRight)
         {
             Game.LocalStance = 0;

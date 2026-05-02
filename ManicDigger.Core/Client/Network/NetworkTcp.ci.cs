@@ -47,6 +47,7 @@ public sealed class TcpNetClient : NetClient
                 SenderConnection = _connection,
             };
         }
+
         return null;
     }
 

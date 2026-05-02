@@ -22,6 +22,7 @@ public class PlayerList : IMod
         {
             return;
         }
+
         tabOpen[m.GetPlayerName(player)] = true;
         Dialog d = new()
         {
@@ -130,6 +131,7 @@ public class PlayerList : IMod
             {
                 entryRowColor = Color.Honeydew;
             }
+
             widgets.Add(Widget.MakeSolid(tableX, tableY + heightOffset, tableIdColumnWidth, listEntryHeight, entryRowColor.ToArgb()));
             widgets.Add(Widget.MakeSolid(tableX + tableIdColumnWidth, tableY + heightOffset, tablePlayerColumnWidth, listEntryHeight, entryRowColor.ToArgb()));
             widgets.Add(Widget.MakeSolid(tableX + tableIdColumnWidth + tablePlayerColumnWidth, tableY + heightOffset, tablePingColumnWidth, listEntryHeight, entryRowColor.ToArgb()));
@@ -149,9 +151,11 @@ public class PlayerList : IMod
             {
                 pingString = ((int)(m.GetPlayerPing(AllPlayers[i]) * 1000)).ToString();
             }
+
             widgets.Add(Widget.MakeText(pingString, NormalFont, tableX + tableIdColumnWidth + tablePlayerColumnWidth + tablePingColumnWidth - TextWidth(pingString, NormalFont) - tablePadding, tableY + heightOffset + listEntryPaddingTopBottom, TEXT_COLOR.ToArgb()));
             heightOffset += listEntryHeight;
         }
+
         Widget wtab = Widget.MakeSolid(0, 0, 0, 0, 0);
         wtab.ClickKey = '\t';
         wtab.Id = "Tab";
@@ -196,6 +200,7 @@ public class PlayerList : IMod
             this.page++;
             return true;
         }
+
         return false;
     }
 
@@ -206,6 +211,7 @@ public class PlayerList : IMod
             this.page--;
             return true;
         }
+
         return false;
     }
 
@@ -223,6 +229,7 @@ public class PlayerList : IMod
         {
             text = text[..^1];
         }
+
         return text;
     }
 

@@ -28,6 +28,7 @@ public class ServerConsole
                 {
                     continue;
                 }
+
                 input = input.Trim();
                 server.ReceiveServerConsole(input);
             }

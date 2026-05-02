@@ -205,22 +205,27 @@ public class Intersection
         {
             return false;
         }
+
         if (l2.X > b2.X && l1.X > b2.X)
         {
             return false;
         }
+
         if (l2.Y < b1.Y && l1.Y < b1.Y)
         {
             return false;
         }
+
         if (l2.Y > b2.Y && l1.Y > b2.Y)
         {
             return false;
         }
+
         if (l2.Z < b1.Z && l1.Z < b1.Z)
         {
             return false;
         }
+
         if (l2.Z > b2.Z && l1.Z > b2.Z)
         {
             return false;
@@ -272,6 +277,7 @@ public class Intersection
         {
             return null;
         }
+
         return hit;
     }
 }

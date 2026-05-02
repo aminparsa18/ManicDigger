@@ -34,16 +34,10 @@ public class ScreenManager : IScreenManager
     // -------------------------------------------------------------------------
 
     /// <summary>The active platform abstraction (windowing, GL, input, etc.).</summary>
-    private readonly IGameService GameService;
-    private readonly IGameExit _gameExit;
+    private readonly IScreenFactory _screenFactory;
+    private readonly IGameService _gameService;
     private readonly IOpenGlService _platformOpenGl;
-    private readonly ISinglePlayerService _singlePlayerService;
-    private readonly IPreferences _preferences;
-    private readonly IDummyNetwork dummyNetwork;
-    private readonly IBlockRegistry _blockRegistry;
     private readonly IAssetManager _assetManager;
-    private readonly IGame game;
-    /// <summary>Loaded localisation/translation data.</summary>
     private readonly ILanguageService _lang;
 
     private bool[] currentlyPressedKeys;
@@ -59,7 +53,7 @@ public class ScreenManager : IScreenManager
     private int touchId;
     private int previousTouchX;
     private int previousTouchY;
-    
+
 
     private readonly LoginClientCi loginClient;
 
@@ -67,21 +61,15 @@ public class ScreenManager : IScreenManager
     // Constructor
     // -------------------------------------------------------------------------
 
-    public ScreenManager(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, IAssetManager assetManager,
-        IPreferences preferences, IGameExit gameExit, IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry, ILanguageService languageService)
+    public ScreenManager(IScreenFactory screenFactory, IGameService platform, IOpenGlService platformOpenGl,
+        IAssetManager assetManager, ILanguageService languageService)
     {
-        GameService = platform;
+        _screenFactory = screenFactory;
+        _gameService = platform;
         _platformOpenGl = platformOpenGl;
-        _singlePlayerService = singlePlayerService;
-        _preferences = preferences;
         _lang = languageService;
-        _gameExit = gameExit;
-        this.dummyNetwork = dummyNetwork;
-        screen = new MainScreen(GameService, singlePlayerService, _platformOpenGl, languageService, assetManager, this);
         loginClient = new LoginClientCi();
         _assetManager = assetManager;
-        this.game = game;
-        _blockRegistry = blockRegistry;
     }
 
     // -------------------------------------------------------------------------
@@ -96,8 +84,10 @@ public class ScreenManager : IScreenManager
     /// <param name="platform">The platform implementation to bind to.</param>
     public void Start(string[] args)
     {
+        screen = (MainScreen)_screenFactory.CreateMainScreen();
+
         _lang.LoadTranslations();
-        GameService.SetTitle(_lang.GameName());
+        _gameService.SetTitle(_lang.GameName());
 
         TextColorRenderer = new TextColorRenderer();
         _assetManager.LoadAssets();
@@ -106,17 +96,17 @@ public class ScreenManager : IScreenManager
 
         currentlyPressedKeys = new bool[360];
 
-        GameService.AddOnNewFrame(OnNewFrame);
-        GameService.AddOnKeyEvent(HandleKeyDown, HandleKeyUp, HandleKeyPress);
-        GameService.AddOnMouseEvent(HandleMouseDown, HandleMouseUp, HandleMouseMove, HandleMouseWheel);
-        GameService.AddOnTouchEvent(HandleTouchStart, HandleTouchMove, HandleTouchEnd);
+        _gameService.AddOnNewFrame(OnNewFrame);
+        _gameService.AddOnKeyEvent(HandleKeyDown, HandleKeyUp, HandleKeyPress);
+        _gameService.AddOnMouseEvent(HandleMouseDown, HandleMouseUp, HandleMouseMove, HandleMouseWheel);
+        _gameService.AddOnTouchEvent(HandleTouchStart, HandleTouchMove, HandleTouchEnd);
 
         if (args.Length > 0)
         {
             StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));
         }
 
-        GameService.Start();
+        _gameService.Start();
     }
 
     // -------------------------------------------------------------------------
@@ -151,21 +141,21 @@ public class ScreenManager : IScreenManager
     /// <summary>Navigates to the main (home) screen and releases any mouse pointer lock.</summary>
     public void StartMainMenu()
     {
-        screen = new MainScreen(GameService, _singlePlayerService, _platformOpenGl, _lang, _assetManager, this);
-        GameService.ExitMousePointerLock();
+        screen = (MainScreen)_screenFactory.CreateMainScreen();
+        _gameService.ExitMousePointerLock();
     }
 
     /// <summary>Navigates to the single-player world selection screen.</summary>
     public void StartSingleplayer()
     {
-        screen = new SingleplayerScreen(GameService, _platformOpenGl, _assetManager, _singlePlayerService, _lang, this);
+        screen = (SingleplayerScreen)_screenFactory.CreateSingleplayerScreen();
         screen.LoadTranslations();
     }
 
     /// <summary>Navigates to the multiplayer server-browser screen.</summary>
     public void StartMultiplayer()
     {
-        screen = new MultiplayerScreen(GameService, _platformOpenGl, _preferences, _lang, _assetManager, this);
+        screen = (MultiplayerScreen)_screenFactory.CreateMultiplayerScreen();
         screen.LoadTranslations();
     }
 
@@ -177,19 +167,14 @@ public class ScreenManager : IScreenManager
     /// <param name="port">Server port number.</param>
     public void StartLogin(string serverHash, string ip, int port)
     {
-        screen = new LoginScreen(GameService, _preferences, _platformOpenGl, _assetManager, _lang, this)
-        {
-            serverHash = serverHash,
-            serverIp = ip,
-            serverPort = port,
-        };
+        screen = (LoginScreen)_screenFactory.CreateLoginScreen(serverHash, ip, port);
         screen.LoadTranslations();
     }
 
     /// <summary>Navigates to the direct-connect / manual IP entry screen.</summary>
     public void StartConnectToIp()
     {
-        screen = new ConnectionScreen(_lang, GameService, _preferences, _platformOpenGl, _assetManager);
+        screen = (ConnectionScreen)_screenFactory.CreateConnectionScreen();
         screen.LoadTranslations();
     }
 
@@ -202,8 +187,7 @@ public class ScreenManager : IScreenManager
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
     public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
     {
-        ScreenGame screenGame = new(GameService, _platformOpenGl, _assetManager, _singlePlayerService, _preferences,
-            _gameExit, this, dummyNetwork, game, _blockRegistry);
+        ScreenGame screenGame = (ScreenGame)_screenFactory.CreateScreenGame();
         screenGame.Start(singleplayer, singleplayerSavePath, connectData);
         screen = screenGame;
     }
@@ -253,7 +237,8 @@ public class ScreenManager : IScreenManager
             loginResult = LoginResult.Failed;
             return;
         }
-        loginClient.Login(GameService, user, password, serverHash, token, loginResult, loginResultData);
+
+        loginClient.Login(_gameService, user, password, serverHash, token, loginResult, loginResultData);
     }
 
     /// <summary>
@@ -261,7 +246,7 @@ public class ScreenManager : IScreenManager
     /// actual account creation is not yet implemented.
     /// </summary>
     /// <returns><see cref="LoginResult.Failed"/> on invalid input; <see cref="LoginResult.Ok"/> otherwise.</returns>
-    public static LoginResult CreateAccount(string user, string password) 
+    public static LoginResult CreateAccount(string user, string password)
         => string.IsNullOrEmpty(user) || string.IsNullOrEmpty(password) ? LoginResult.Failed : LoginResult.Ok;
 
     // -------------------------------------------------------------------------

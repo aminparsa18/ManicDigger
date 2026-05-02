@@ -78,6 +78,7 @@ public class ServerSystemBanList : ServerSystem
                     SendInvalidArgs();
                     return true;
                 }
+
                 BanIP(server, sourceClientId, banipId, TrailingReason(1));
                 return true;
 
@@ -91,6 +92,7 @@ public class ServerSystemBanList : ServerSystem
                     SendInvalidArgs();
                     return true;
                 }
+
                 Ban(server, sourceClientId, banId, TrailingReason(1));
                 return true;
 
@@ -104,11 +106,13 @@ public class ServerSystemBanList : ServerSystem
                     SendInvalidArgs();
                     return true;
                 }
+
                 if (tbanipByIdDur <= 0)
                 {
                     server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue"));
                     return true;
                 }
+
                 TimeBanIP(server, sourceClientId, tbanipById, TrailingReason(2), tbanipByIdDur);
                 return true;
 
@@ -118,11 +122,13 @@ public class ServerSystemBanList : ServerSystem
                     SendInvalidArgs();
                     return true;
                 }
+
                 if (tbanipDur <= 0)
                 {
                     server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue"));
                     return true;
                 }
+
                 TimeBanIP(server, sourceClientId, args[0], TrailingReason(2), tbanipDur);
                 return true;
 
@@ -132,11 +138,13 @@ public class ServerSystemBanList : ServerSystem
                     SendInvalidArgs();
                     return true;
                 }
+
                 if (tbanByIdDur <= 0)
                 {
                     server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue"));
                     return true;
                 }
+
                 TimeBan(server, sourceClientId, tbanById, TrailingReason(2), tbanByIdDur);
                 return true;
 
@@ -146,11 +154,13 @@ public class ServerSystemBanList : ServerSystem
                     SendInvalidArgs();
                     return true;
                 }
+
                 if (tbanDur <= 0)
                 {
                     server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue"));
                     return true;
                 }
+
                 TimeBan(server, sourceClientId, args[0], TrailingReason(2), tbanDur);
                 return true;
 
@@ -164,6 +174,7 @@ public class ServerSystemBanList : ServerSystem
                     Unban(server, sourceClientId, args[0], args[1]);
                     return true;
                 }
+
                 SendInvalidArgs();
                 return true;
 
@@ -387,6 +398,7 @@ public class ServerSystemBanList : ServerSystem
                     server.Language.Get("Server_CommandInvalidGroup"), server.colorError));
                 return false;
             }
+
             ClientOnServer sourceClient = server.GetClient(sourceClientId);
             if (targetGroup.IsSuperior(sourceClient.ClientGroup) || targetGroup.EqualLevel(sourceClient.ClientGroup))
             {
@@ -394,6 +406,7 @@ public class ServerSystemBanList : ServerSystem
                     server.Language.Get("Server_CommandTargetUserSuperior"), server.colorError));
                 return false;
             }
+
             server.ServerClient.Clients.Remove(targetConfigEntry);
             server.ServerClientNeedsSaving = true;
         }
@@ -427,6 +440,7 @@ public class ServerSystemBanList : ServerSystem
                 server.SendMessage(sourceClientId, string.Format(server.Language.Get("Server_CommandUnbanSuccess"), server.colorSuccess, target));
                 server.ServerEventLog($"{server.GetClient(sourceClientId).PlayerName} unbans player {target}.");
             }
+
             return true;
         }
 
@@ -443,6 +457,7 @@ public class ServerSystemBanList : ServerSystem
                 server.SendMessage(sourceClientId, string.Format(server.Language.Get("Server_CommandUnbanIPSuccess"), server.colorSuccess, target));
                 server.ServerEventLog($"{server.GetClient(sourceClientId).PlayerName} unbans IP {target}.");
             }
+
             return true;
         }
 
@@ -487,6 +502,7 @@ public class ServerSystemBanList : ServerSystem
             {
                 Console.WriteLine(server.Language.ServerBanlistCorruptNoBackup());
             }
+
             server.BanList = null;
             SaveBanlist(server);
             return;
@@ -531,6 +547,7 @@ public class ServerSystemBanList : ServerSystem
                 server.Language.Get("Server_CommandTargetUserSuperior"), server.colorError));
             return false;
         }
+
         return true;
     }
 

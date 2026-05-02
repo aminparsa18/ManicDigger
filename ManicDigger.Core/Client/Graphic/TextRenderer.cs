@@ -19,6 +19,7 @@ public class TextRenderer
             using Graphics g = Graphics.FromImage(bmp);
             size = g.MeasureString(t.Text, font, new PointF(0, 0), new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
         }
+
         size.Width *= 0.7f;
 
         SizeF size2 = new(NextPowerOfTwo((uint)size.Width), NextPowerOfTwo((uint)size.Height));
@@ -26,6 +27,7 @@ public class TextRenderer
         {
             return new Bitmap(1, 1);
         }
+
         Bitmap bmp2 = new((int)size2.Width, (int)size2.Height);
         using (Graphics g2 = Graphics.FromImage(bmp2))
         {
@@ -46,10 +48,12 @@ public class TextRenderer
                     g2.FillPath(b, offPath);
                     b.Dispose();
                 }
+
                 g2.FillPath(new SolidBrush(Color.FromArgb(t.Color)), path);
                 g2.DrawPath(Pens.Black, path);
             }
         }
+
         return bmp2;
     }
 
@@ -68,6 +72,7 @@ public class TextRenderer
         {
             return new Bitmap(1, 1);
         }
+
         Bitmap bmp2 = new((int)size2.Width, (int)size2.Height);
         using (Graphics g2 = Graphics.FromImage(bmp2))
         {
@@ -77,6 +82,7 @@ public class TextRenderer
                 g2.DrawString(t.Text, font, new SolidBrush(Color.FromArgb(t.Color)), 0, 0);
             }
         }
+
         return bmp2;
     }
 
@@ -96,6 +102,7 @@ public class TextRenderer
         {
             return new Bitmap(1, 1);
         }
+
         Bitmap bmp2 = new((int)size2.Width, (int)size2.Height);
 
         using (Graphics g2 = Graphics.FromImage(bmp2))
@@ -107,6 +114,7 @@ public class TextRenderer
                 g2.DrawString(t.Text, font, new SolidBrush(Color.FromArgb(t.Color)), 0, 0);
             }
         }
+
         return bmp2;
     }
 
@@ -130,6 +138,7 @@ public class TextRenderer
         {
             return new Bitmap(1, 1);
         }
+
         Bitmap bmp2 = new((int)size2.Width, (int)size2.Height);
         using (Graphics g2 = Graphics.FromImage(bmp2))
         {
@@ -146,6 +155,7 @@ public class TextRenderer
                 g2.DrawString(t.Text, font, new SolidBrush(Color.FromArgb(t.Color)), 0, 0);
             }
         }
+
         return bmp2;
     }
 
@@ -188,66 +198,82 @@ public class TextRenderer
         {
             return 0;
         }
+
         if (c == '1')
         {
             return 1;
         }
+
         if (c == '2')
         {
             return 2;
         }
+
         if (c == '3')
         {
             return 3;
         }
+
         if (c == '4')
         {
             return 4;
         }
+
         if (c == '5')
         {
             return 5;
         }
+
         if (c == '6')
         {
             return 6;
         }
+
         if (c == '7')
         {
             return 7;
         }
+
         if (c == '8')
         {
             return 8;
         }
+
         if (c == '9')
         {
             return 9;
         }
+
         if (c == 'a')
         {
             return 10;
         }
+
         if (c == 'b')
         {
             return 11;
         }
+
         if (c == 'c')
         {
             return 12;
         }
+
         if (c == 'd')
         {
             return 13;
         }
+
         if (c == 'e')
         {
             return 14;
         }
+
         if (c == 'f')
         {
             return 15;
         }
+
         return -1;
     }
 
@@ -274,6 +300,7 @@ public class TextRenderer
                 text2 += text[i];
             }
         }
+
         using Font font = new("Verdana", fontsize);
         using Bitmap bmp = new(1, 1);
         using Graphics g = Graphics.FromImage(bmp);

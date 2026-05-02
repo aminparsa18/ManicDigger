@@ -30,14 +30,17 @@ public partial class Server
                     bonusset = true;
                 }
             }
+
             if (bonusset && bonus-- < 0)
             {
                 break;
             }
+
             pos.X++;
             int newblockheight = VectorUtils.BlockHeight(Map, 0, pos.X, pos.Y);
             pos.Z = newblockheight + 1;
         }
+
         return pos;
     }
 
@@ -54,6 +57,7 @@ public partial class Server
                 }
             }
         }
+
         return true;
     }
 
@@ -96,6 +100,7 @@ public partial class Server
         {
             return Map.GetBlock(x, y, z);
         }
+
         return 0;
     }
 
@@ -194,6 +199,7 @@ public partial class Server
             z /= ChunkSize;
             return Map.GetChunkValid(x, y, z).Data;
         }
+
         return null;
     }
 
@@ -230,6 +236,7 @@ public partial class Server
                 chunks.Add(new Vector3i() { X = x, Y = y, Z = z });
             }
         }
+
         if (chunks.Count != 0)
         {
             global::ChunkDbHelper.DeleteChunks(ChunkDb, chunks);
@@ -254,10 +261,12 @@ public partial class Server
                 Console.WriteLine($"Invalid backup filename: {filename}");
                 return null;
             }
+
             if (!Directory.Exists(GameStorePath.gamepathbackup))
             {
                 Directory.CreateDirectory(GameStorePath.gamepathbackup);
             }
+
             string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{filename}{FileConstatns.DbFileExtension}");
 
             x /= ChunkSize;
@@ -271,6 +280,7 @@ public partial class Server
                 return c.Data;
             }
         }
+
         return null;
     }
 
@@ -286,10 +296,12 @@ public partial class Server
             Console.WriteLine("Invalid backup filename: " + filename);
             return null;
         }
+
         if (!Directory.Exists(GameStorePath.gamepathbackup))
         {
             Directory.CreateDirectory(GameStorePath.gamepathbackup);
         }
+
         string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{filename}{FileConstatns.DbFileExtension}");
 
         Dictionary<Vector3i, ushort[]> deserializedChunks = [];
@@ -302,8 +314,10 @@ public partial class Server
             {
                 c = DeserializeChunk(k.Value);
             }
+
             deserializedChunks.Add(k.Key, c.Data);
         }
+
         return deserializedChunks;
     }
 
@@ -318,8 +332,10 @@ public partial class Server
             {
                 c.Data[i] = c.DataOld[i];
             }
+
             c.DataOld = null;
         }
+
         return c;
     }
 
@@ -330,10 +346,12 @@ public partial class Server
             Console.WriteLine("Invalid backup filename: " + filename);
             return;
         }
+
         if (!Directory.Exists(GameStorePath.gamepathbackup))
         {
             Directory.CreateDirectory(GameStorePath.gamepathbackup);
         }
+
         string finalFilename = Path.Combine(GameStorePath.gamepathbackup, filename + FileConstatns.DbFileExtension);
 
         List<DbChunk> dbchunks = [];
@@ -346,6 +364,7 @@ public partial class Server
             ServerChunk cc = new() { Data = this.GetChunk(pos.X, pos.Y, pos.Z) };
             dbchunks.Add(new DbChunk() { Position = new Vector3i() { X = dx, Y = dy, Z = dz }, Chunk = MemoryPackSerializer.Serialize(cc) });
         }
+
         if (dbchunks.Count != 0)
         {
             IChunkDb d_ChunkDb = new ChunkDbCompressed() { InnerChunkDb = new ChunkDbSqlite(), Compression = new CompressionGzip() };
@@ -355,6 +374,7 @@ public partial class Server
         {
             Console.WriteLine(string.Format("0 chunks selected. Nothing to do."));
         }
+
         Console.WriteLine(string.Format("Saved {0} chunk(s) to database.", dbchunks.Count));
     }
 }

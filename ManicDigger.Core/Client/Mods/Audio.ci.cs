@@ -163,6 +163,7 @@ public sealed class ModAudio : ModBase
                 Game.GetAssetFileLength(name));
             _audioCache[name] = data;
         }
+
         return data;
     }
 }

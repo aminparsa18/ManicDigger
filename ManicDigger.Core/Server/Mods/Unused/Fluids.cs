@@ -249,6 +249,7 @@ public class Fluids : IMod
                 }
             }
         }
+
         return false;
     }
 
@@ -269,6 +270,7 @@ public class Fluids : IMod
                     activeFluids.Remove(key);
                     continue;
                 }
+
                 b1 = foundBlock;
                 if (!HighestFluidBlock(p.X, p.Y, p.Z, b1.Z + 1))
                 {
@@ -276,6 +278,7 @@ public class Fluids : IMod
                     activeFluids.Remove(key);
                     continue;
                 }
+
                 b2 = foundBlock;
 
                 m.SetBlock(b1.X, b1.Y, b1.Z, searchMedium);
@@ -395,6 +398,7 @@ public class Fluids : IMod
 
                     zz -= preferedSearchDirection;
                 }
+
                 if ((!found) || (((zz - foundBlock.Z) * preferedSearchDirection) > 0))
                 {
                     foundBlock = new Vector3i(x, y, zz);
@@ -430,6 +434,7 @@ public class Fluids : IMod
             int yy = y + dy[dd];
             RecursiveSearch(depth, xx, yy, z);
         }
+
         RecursiveSearch(depth, x, y, z - preferedSearchDirection);
     }
 }

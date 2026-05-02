@@ -17,6 +17,7 @@ public partial class Server
                     this.PrivateMessage(sourceClientId, ss[0], string.Join(" ", ss, 1, ss.Length - 1));
                     return;
                 }
+
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                 return;
             case "re":
@@ -25,6 +26,7 @@ public partial class Server
                     this.AnswerMessage(sourceClientId, argument);
                     return;
                 }
+
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                 return;
             case "op":
@@ -36,6 +38,7 @@ public partial class Server
                     this.ChangeGroup(sourceClientId, ss[0], ss[1]);
                     return;
                 }
+
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                 return;
             case "op_offline":
@@ -47,6 +50,7 @@ public partial class Server
                     this.ChangeGroupOffline(sourceClientId, ss[0], ss[1]);
                     return;
                 }
+
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                 return;
             case "remove_client":
@@ -56,6 +60,7 @@ public partial class Server
                     this.RemoveClientFromConfig(sourceClientId, ss[0]);
                     return;
                 }
+
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                 return;
             case "login":
@@ -66,6 +71,7 @@ public partial class Server
                     this.Login(sourceClientId, ss[0], ss[1]);
                     return;
                 }
+
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                 return;
             case "welcome":
@@ -81,11 +87,13 @@ public partial class Server
                     this.SetLogging(sourceClientId, ss[0], "");
                     return;
                 }
+
                 if (ss.Length == 2)
                 {
                     this.SetLogging(sourceClientId, ss[0], ss[1]);
                     return;
                 }
+
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                 return;
             case "kick_id":
@@ -95,11 +103,13 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
                 }
+
                 if (ss.Length >= 2)
                 {
                     this.Kick(sourceClientId, id, string.Join(" ", ss, 1, ss.Length - 1));
                     return;
                 }
+
                 this.Kick(sourceClientId, id);
                 return;
             case "kick":
@@ -109,6 +119,7 @@ public partial class Server
                     this.Kick(sourceClientId, ss[0], string.Join(" ", ss, 1, ss.Length - 1));
                     return;
                 }
+
                 this.Kick(sourceClientId, argument);
                 return;
             case "list":
@@ -130,8 +141,10 @@ public partial class Server
                     {
                         this.Give(sourceClientId, ss[0], ss[1], amount);
                     }
+
                     return;
                 }
+
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                 return;
             case "monsters":
@@ -140,6 +153,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
                 }
+
                 this.Monsters(sourceClientId, argument);
                 return;
             case "area_add":
@@ -157,6 +171,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
                 }
+
                 string coords = ss[1];
                 string[] permittedGroups = ss[2].ToString().Split([',']);
                 string[] permittedUsers = ss[3].ToString().Split([',']);
@@ -189,6 +204,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
                 }
+
                 this.AreaDelete(sourceClientId, areaId);
                 return;
             case "help":
@@ -267,6 +283,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
+
                 this.SetSpawnPosition(sourceClientId, ss[0], ss[1], x, y, z);
                 return;
             case "set_home":
@@ -288,6 +305,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
                 }
+
                 try
                 {
                     x = Convert.ToInt32(ss[0]);
@@ -327,6 +345,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
+
                 this.SetSpawnPosition(sourceClientId, x, y, z);
                 return;
             case "privilege_add":
@@ -336,6 +355,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
                 }
+
                 this.PrivilegeAdd(sourceClientId, ss[0], ss[1]);
                 return;
             case "privilege_remove":
@@ -345,6 +365,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
                 }
+
                 this.PrivilegeRemove(sourceClientId, ss[0], ss[1]);
                 return;
             case "restart":
@@ -366,6 +387,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
                 }
+
                 foreach (var k in Clients)
                 {
                     if (k.Value.PlayerName.Equals(ss[0], StringComparison.InvariantCultureIgnoreCase))
@@ -374,6 +396,7 @@ public partial class Server
                         return;
                     }
                 }
+
                 foreach (var k in Clients)
                 {
                     if (k.Value.PlayerName.StartsWith(ss[0], StringComparison.InvariantCultureIgnoreCase))
@@ -382,6 +405,7 @@ public partial class Server
                         return;
                     }
                 }
+
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandNonexistantPlayer"), colorError, ss[0]));
                 break;
             case "tp_pos":
@@ -431,6 +455,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidPosition"));
                     return;
                 }
+
                 this.TeleportToPosition(sourceClientId, x, y, z);
                 break;
             case "teleport_player":
@@ -481,6 +506,7 @@ public partial class Server
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidPosition"));
                     return;
                 }
+
                 this.TeleportPlayer(sourceClientId, ss[0], x, y, z);
                 break;
             case "backup_database":
@@ -489,6 +515,7 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
                     break;
                 }
+
                 if (!BackupDatabase(argument))
                 {
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandBackupFailed"), colorError));
@@ -498,6 +525,7 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandBackupCreated"), colorSuccess));
                     ServerEventLog(string.Format("{0} backups database: {1}.", GetClient(sourceClientId).PlayerName, argument));
                 }
+
                 break;
             /*
         case "load":
@@ -543,6 +571,7 @@ public partial class Server
                     Array.Copy(ss, 1, ssTemp, 2, ss.Length - 1);
                     ss = ssTemp;
                 }
+
                 if (!int.TryParse(ss[2], out int maxFill))
                 {
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
@@ -552,11 +581,13 @@ public partial class Server
                 {
                     this.SetFillAreaLimit(sourceClientId, ss[0], ss[1], maxFill);
                 }
+
                 return;
             case "time":
                 {
                     TimeCommand(sourceClientId, argument);
                 }
+
                 break;
             default:
                 for (int i = 0; i < Systems.Count; i++)
@@ -565,6 +596,7 @@ public partial class Server
                     {
                         continue;
                     }
+
                     try
                     {
                         if (Systems[i].OnCommand(this, sourceClientId, command, argument))
@@ -577,6 +609,7 @@ public partial class Server
                         SendMessage(sourceClientId, Language.Get("Server_CommandException"));
                     }
                 }
+
                 for (int i = 0; i < ModEventHandlers.oncommand.Count; i++)
                 {
                     try
@@ -591,6 +624,7 @@ public partial class Server
                         SendMessage(sourceClientId, Language.Get("Server_CommandException"));
                     }
                 }
+
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandUnknown") + command);
                 return;
         }
@@ -697,6 +731,7 @@ public partial class Server
                 {
                     return commandhelps[command];
                 }
+
                 return "No description available.";
         }
     }
@@ -724,8 +759,10 @@ public partial class Server
             {
                 SendSound(targetClient.Id, "message.wav", 0, 0, 0);
             }
+
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandPlayerNotFound"), colorError, recipient));
         return false;
     }
@@ -756,8 +793,10 @@ public partial class Server
             {
                 SendSound(targetClient.Id, "message.wav", 0, 0, 0);
             }
+
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandPlayerNotFound"), colorError, lastSender[sourceClient.PlayerName]));
         return false;
     }
@@ -824,6 +863,7 @@ public partial class Server
             {
                 clientConfig.Group = newGroup.Name;
             }
+
             ServerClientNeedsSaving = true;
             SendMessageToAll(string.Format(Language.Get("Server_CommandSetGroupTo"), colorSuccess, GetClient(sourceClientId).ColoredPlayername(colorSuccess), targetClient.ColoredPlayername(colorSuccess), newGroup.GroupColorString() + newGroupName));
             ServerEventLog(string.Format("{0} sets group of {1} to {2}.", GetClient(sourceClientId).PlayerName, targetClient.PlayerName, newGroupName));
@@ -907,11 +947,13 @@ public partial class Server
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInvalidGroup"), colorError));
                 return false;
             }
+
             if (oldGroup.IsSuperior(GetClient(sourceClientId).ClientGroup) || oldGroup.EqualLevel(GetClient(sourceClientId).ClientGroup))
             {
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandTargetUserSuperior"), colorError));
                 return false;
             }
+
             clientConfig.Group = newGroup.Name;
         }
 
@@ -966,10 +1008,12 @@ public partial class Server
                 GetClient(target).AssignGroup(this.DefaultGroupGuest);
                 SendMessageToAll(string.Format(Language.Get("Server_CommandSetGroupTo"), colorSuccess, GetClient(sourceClientId).ColoredPlayername(colorSuccess), GetClient(target).ColoredPlayername(colorSuccess), this.DefaultGroupGuest.GroupColorString() + DefaultGroupGuest.Name));
             }
+
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandRemoveSuccess"), colorSuccess, target));
             ServerEventLog(string.Format("{0} removes client {1} from config.", GetClient(sourceClientId).PlayerName, target));
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandRemoveNotFound"), colorError, target));
         return false;
     }
@@ -981,6 +1025,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         Group? targetGroup = ServerClient.Groups.Find(
             delegate (Group grp)
             {
@@ -992,11 +1037,13 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandGroupNotFound"), colorError, targetGroupString));
             return false;
         }
+
         if (string.IsNullOrEmpty(targetGroup.Password))
         {
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandLoginNoPW"), colorError, targetGroupString));
             return false;
         }
+
         if (targetGroup.Password.Equals(password))
         {
             GetClient(sourceClientId).AssignGroup(targetGroup);
@@ -1006,6 +1053,7 @@ public partial class Server
             ServerEventLog(string.Format("{0} logs in group {1}.", GetClient(sourceClientId).PlayerName, targetGroupString));
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandLoginInvalidPassword"), colorError));
         ServerEventLog(string.Format("{0} fails to log in (invalid password: {1}).", GetClient(sourceClientId).PlayerName, password));
         return false;
@@ -1018,6 +1066,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         Config.WelcomeMessage = welcomeMessage;
         SendMessageToAll(string.Format(Language.Get("Server_CommandWelcomeChanged"), colorSuccess, GetClient(sourceClientId).ColoredPlayername(colorSuccess), welcomeMessage));
         ServerEventLog(string.Format("{0} changes welcome message to {1}.", GetClient(sourceClientId).PlayerName, welcomeMessage));
@@ -1032,6 +1081,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         switch (type)
         {
             // all logging state
@@ -1049,6 +1099,7 @@ public partial class Server
                     ServerEventLog(string.Format("{0} enables build logging.", GetClient(sourceClientId).PlayerName));
                     return true;
                 }
+
                 if (option.Equals("off"))
                 {
                     Config.BuildLogging = false;
@@ -1057,6 +1108,7 @@ public partial class Server
                     ServerEventLog(string.Format("{0} disables build logging.", GetClient(sourceClientId).PlayerName));
                     return true;
                 }
+
                 SendMessage(sourceClientId, string.Format("{0}Build logging: {1}", colorNormal, Config.BuildLogging));
                 return true;
             case "-se":
@@ -1068,6 +1120,7 @@ public partial class Server
                     ServerEventLog(string.Format("{0} enables server event logging.", GetClient(sourceClientId).PlayerName));
                     return true;
                 }
+
                 if (option.Equals("off"))
                 {
                     ServerEventLog(string.Format("{0} disables server event logging.", GetClient(sourceClientId).PlayerName));
@@ -1076,6 +1129,7 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format("{0}Server event logging disabled.", colorSuccess));
                     return true;
                 }
+
                 SendMessage(sourceClientId, string.Format("{0}Server event logging: {1}", colorNormal, Config.ServerEventLogging));
                 return true;
             case "-c":
@@ -1087,6 +1141,7 @@ public partial class Server
                     ServerEventLog(string.Format("{0} enables chat logging.", GetClient(sourceClientId).PlayerName));
                     return true;
                 }
+
                 if (option.Equals("off"))
                 {
                     Config.ChatLogging = false;
@@ -1095,6 +1150,7 @@ public partial class Server
                     ServerEventLog(string.Format("{0} disables chat logging.", GetClient(sourceClientId).PlayerName));
                     return true;
                 }
+
                 SendMessage(sourceClientId, string.Format("{0}Chat logging: {1}", colorNormal, Config.ChatLogging));
                 return true;
             default:
@@ -1112,6 +1168,7 @@ public partial class Server
         {
             return this.Kick(sourceClientId, targetClient.Id, reason);
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandPlayerNotFound"), colorError, target));
         return false;
     }
@@ -1125,10 +1182,12 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         if (!reason.Equals(""))
         {
             reason = Language.Get("Server_CommandKickBanReason") + reason + ".";
         }
+
         ClientOnServer targetClient = GetClient(targetClientId);
         if (targetClient != null)
         {
@@ -1137,6 +1196,7 @@ public partial class Server
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandTargetUserSuperior"), colorError));
                 return false;
             }
+
             string targetName = targetClient.PlayerName;
             string sourceName = GetClient(sourceClientId).PlayerName;
             string targetNameColored = targetClient.ColoredPlayername(colorImportant);
@@ -1147,6 +1207,7 @@ public partial class Server
             KillPlayer(targetClientId);
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandNonexistantID"), colorError, targetClientId));
         return false;
     }
@@ -1162,12 +1223,14 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
                     return false;
                 }
+
                 SendMessage(sourceClientId, colorImportant + "List of Players:");
                 foreach (var k in Clients)
                 {
                     // Format: Key Playername IP
                     SendMessage(sourceClientId, string.Format("[{0}] {1} {2}", k.Key, k.Value.ColoredPlayername(colorNormal), k.Value.Socket.RemoteEndPoint().AddressToString()));
                 }
+
                 return true;
             case "-clients2":
             case "-c2":
@@ -1176,12 +1239,14 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
                     return false;
                 }
+
                 SendMessage(sourceClientId, colorImportant + "List of Players:");
                 foreach (var k in Clients)
                 {
                     // Format: Key Playername:Group:Privileges IP
                     SendMessage(sourceClientId, string.Format("[{0}] {1}", k.Key, k.Value.ToString()));
                 }
+
                 return true;
             case "-areas":
             case "-a":
@@ -1190,11 +1255,13 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
                     return false;
                 }
+
                 SendMessage(sourceClientId, $"{colorImportant}List of Areas:");
                 foreach (AreaConfig area in Config.Areas)
                 {
                     SendMessage(sourceClientId, area.ToString());
                 }
+
                 return true;
             case "-bannedusers":
             case "-bu":
@@ -1203,6 +1270,7 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
                     return false;
                 }
+
                 SendMessage(sourceClientId, $"{colorImportant}List of Banned Users:");
                 foreach (UserEntry currentUser in BanList.BannedUsers)
                 {
@@ -1215,6 +1283,7 @@ public partial class Server
 
                     SendMessage(sourceClientId, string.Format("{0}:{1}", currentUser.UserName, reason));
                 }
+
                 return true;
             case "-bannedips":
             case "-bip":
@@ -1223,6 +1292,7 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
                     return false;
                 }
+
                 SendMessage(sourceClientId, $"{colorImportant}List of Banned IPs:");
                 foreach (IPEntry currentIP in BanList.BannedIPs)
                 {
@@ -1235,6 +1305,7 @@ public partial class Server
 
                     SendMessage(sourceClientId, string.Format("{0}:{1}", currentIP.IPAdress, reason));
                 }
+
                 return true;
             case "-groups":
             case "-g":
@@ -1243,11 +1314,13 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
                     return false;
                 }
+
                 SendMessage(sourceClientId, $"{colorImportant}List of groups:");
                 foreach (Group currenGroup in ServerClient.Groups)
                 {
                     SendMessage(sourceClientId, currenGroup.ToString());
                 }
+
                 return true;
             case "-saved_clients":
             case "-sc":
@@ -1256,12 +1329,14 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
                     return false;
                 }
+
                 SendMessage(sourceClientId, colorImportant + "List of saved clients:");
                 foreach (Client currenClient in ServerClient.Clients)
                 {
 
                     SendMessage(sourceClientId, currenClient.ToString());
                 }
+
                 return true;
             default:
                 SendMessage(sourceClientId, "Invalid parameter.");
@@ -1276,6 +1351,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         ClientOnServer targetClient = GetClient(target);
         if (targetClient != null)
         {
@@ -1336,10 +1412,12 @@ public partial class Server
 
                 targetClient.IsInventoryDirty = true;
             }
+
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandGiveAll"), colorSuccess, targetName));
             ServerEventLog(string.Format("{0} gives all to {1}.", sourcename, targetName));
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandPlayerNotFound"), colorError, target));
         return false;
     }
@@ -1362,10 +1440,12 @@ public partial class Server
             {
                 return false;
             }
+
             if (amount > maxStack)
             {
                 amount = maxStack;
             }
+
             Inventory inventory = GetPlayerInventory(targetName);
             InventoryUtil util = GetInventoryUtil(inventory);
             foreach (var (id, blockType) in BlockTypes)
@@ -1435,10 +1515,12 @@ public partial class Server
 
                 targetClient.IsInventoryDirty = true;
             }
+
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandGiveSuccess"), colorSuccess, amount, blockname, targetName));
             ServerEventLog(string.Format("{0} gives {1} {2} to {3}.", sourcename, amount, blockname, targetName));
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandPlayerNotFound"), colorError, target));
         return false;
     }
@@ -1450,6 +1532,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         ClientOnServer targetClient = GetClient(target);
         if (targetClient != null)
         {
@@ -1466,6 +1549,7 @@ public partial class Server
             ServerEventLog(string.Format("{0} resets inventory of {1} (offline).", GetClient(sourceClientId).PlayerName, target));
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandPlayerNotFound"), colorError, target));
         return false;
     }
@@ -1477,6 +1561,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         Config.Monsters = option.Equals("off") ? false : true;
         ConfigNeedsSaving = true;
         if (!Config.Monsters)
@@ -1489,6 +1574,7 @@ public partial class Server
                 }));
             }
         }
+
         SendMessageToAll(string.Format(Language.Get("Server_CommandMonstersToggle"), GetClient(sourceClientId).ColoredPlayername(colorSuccess), option));
         ServerEventLog(string.Format("{0} turns monsters {1}.", GetClient(sourceClientId).PlayerName, option));
         return true;
@@ -1516,6 +1602,7 @@ public partial class Server
                 newArea.PermittedGroups.Add(permittedGroups[i]);
             }
         }
+
         if (permittedUsers != null)
         {
             for (int i = 0; i < permittedUsers.Length; i++)
@@ -1523,6 +1610,7 @@ public partial class Server
                 newArea.PermittedUsers.Add(permittedUsers[i]);
             }
         }
+
         if (level != null)
         {
             newArea.Level = level;
@@ -1542,12 +1630,14 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         AreaConfig targetArea = Config.Areas.Find(v => v.Id == id);
         if (targetArea == null)
         {
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandAreaDeleteNonexistant"), colorError));
             return false;
         }
+
         Config.Areas.Remove(targetArea);
         ConfigNeedsSaving = true;
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandAreaDeleteSuccess"), colorSuccess));
@@ -1562,6 +1652,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         ServerEventLog(string.Format("{0} announced: {1}.", GetClient(sourceClientId).PlayerName, message));
         SendMessageToAll(string.Format(Language.Get("Server_CommandAnnouncementMessage"), colorError, message));
         return true;
@@ -1574,6 +1665,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         GetClient(sourceClientId).Interpreter = null;
         SendMessage(sourceClientId, "Interpreter cleared.");
         return true;
@@ -1596,12 +1688,14 @@ public partial class Server
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandSetSpawnInvalidCoordinates"), colorError));
                 return false;
             }
+
             rZ = VectorUtils.BlockHeight(Map, 0, x, y);
         }
         else
         {
             rZ = z.Value;
         }
+
         if (!VectorUtils.IsValidPos(Map, x, y, rZ))
         {
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandSetSpawnInvalidCoordinates"), colorError));
@@ -1633,15 +1727,18 @@ public partial class Server
                                 {
                                     hasEntry = true;
                                 }
+
                                 break;
                             }
                         }
                     }
+
                     if (!hasEntry)
                     {
                         this.SendPlayerSpawnPosition(k.Key, x, y, rZ);
                     }
                 }
+
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandSetSpawnDefaultSuccess"), colorSuccess, x, y, rZ));
                 ServerEventLog(string.Format("{0} sets default spawn to {1},{2}{3}.", GetClient(sourceClientId).PlayerName, x, y, z == null ? "" : "," + z.Value));
                 return true;
@@ -1659,6 +1756,7 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandGroupNotFound"), colorError, target));
                     return false;
                 }
+
                 targetGroup.Spawn = new Spawn()
                 {
                     x = x,
@@ -1681,15 +1779,18 @@ public partial class Server
                                 {
                                     hasEntry = true;
                                 }
+
                                 break;
                             }
                         }
+
                         if (!hasEntry)
                         {
                             this.SendPlayerSpawnPosition(k.Key, x, y, rZ);
                         }
                     }
                 }
+
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandSetSpawnGroupSuccess"), colorSuccess, targetGroup.Name, x, y, rZ));
                 ServerEventLog(string.Format("{0} sets spawn of group {1} to {2},{3}{4}.", GetClient(sourceClientId).PlayerName, targetGroup.Name, x, y, z == null ? "" : "," + z.Value));
                 return true;
@@ -1702,6 +1803,7 @@ public partial class Server
                 {
                     targetClientId = targetClient.Id;
                 }
+
                 string targetClientPlayername = targetClient == null ? target : targetClient.PlayerName;
 
                 Client? clientEntry = ServerClient.Clients.Find(
@@ -1728,6 +1830,7 @@ public partial class Server
                 {
                     this.SendPlayerSpawnPosition(targetClientId.Value, x, y, rZ);
                 }
+
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandSetSpawnPlayerSuccess"), colorSuccess, targetClientPlayername, x, y, rZ));
                 ServerEventLog(string.Format("{0} sets spawn of player {1} to {2},{3}{4}.", GetClient(sourceClientId).PlayerName, targetClientPlayername, x, y, z == null ? "" : "," + z.Value));
                 return true;
@@ -1744,6 +1847,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         Console.WriteLine($"{x} {y} {z}");
 
         // Validate spawn position.
@@ -1755,12 +1859,14 @@ public partial class Server
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandSetSpawnInvalidCoordinates"), colorError));
                 return false;
             }
+
             rZ = VectorUtils.BlockHeight(Map, 0, x, y);
         }
         else
         {
             rZ = z.Value;
         }
+
         if (!VectorUtils.IsValidPos(Map, x, y, rZ))
         {
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandSetSpawnInvalidCoordinates"), colorError));
@@ -1813,15 +1919,18 @@ public partial class Server
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandPrivilegeAddHasAlready"), colorError, target, privilege.ToString()));
                 return false;
             }
+
             targetClient.Privileges.Add(privilege);
             if (privilege.Equals(ServerClientMisc.Privilege.freemove))
             {
                 SendFreemoveState(targetClient.Id, targetClient.Privileges.Contains(ServerClientMisc.Privilege.freemove));
             }
+
             SendMessageToAll(string.Format(Language.Get("Server_CommandPrivilegeAddSuccess"), colorSuccess, targetClient.ColoredPlayername(colorSuccess), privilege.ToString()));
             ServerEventLog(string.Format("{0} gives {1} privilege {2}.", GetClient(sourceClientId).PlayerName, targetClient.PlayerName, privilege.ToString()));
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandNonexistantPlayer"), colorError, target));
         return false;
     }
@@ -1842,14 +1951,17 @@ public partial class Server
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandPrivilegeRemoveNoPriv"), colorError, target, privilege.ToString()));
                 return false;
             }
+
             if (privilege.Equals(ServerClientMisc.Privilege.freemove))
             {
                 SendFreemoveState(targetClient.Id, targetClient.Privileges.Contains(ServerClientMisc.Privilege.freemove));
             }
+
             SendMessageToAll(string.Format(Language.Get("Server_CommandPrivilegeRemoveSuccess"), colorImportant, targetClient.ColoredPlayername(colorImportant), privilege.ToString()));
             ServerEventLog(string.Format("{0} removes {1} privilege {2}.", GetClient(sourceClientId).PlayerName, targetClient.PlayerName, privilege.ToString()));
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandNonexistantPlayer"), colorError, target));
         return false;
     }
@@ -1861,6 +1973,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         SendMessageToAll(string.Format(Language.Get("Server_CommandRestartSuccess"), colorImportant, GetClient(sourceClientId).ColoredPlayername(colorImportant)));
         ServerEventLog(string.Format("{0} restarts server.", GetClient(sourceClientId).PlayerName));
         Restart();
@@ -1874,6 +1987,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         SendMessageToAll(string.Format(Language.Get("Server_CommandShutdownSuccess"), colorImportant, GetClient(sourceClientId).ColoredPlayername(colorImportant)));
         ServerEventLog(string.Format("{0} shuts down server.", GetClient(sourceClientId).PlayerName));
         Exit();
@@ -1887,6 +2001,7 @@ public partial class Server
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandInsufficientPrivileges"), colorError));
             return false;
         }
+
         ClientOnServer t = Clients[clientTo];
         ServerEntityPositionAndOrientation pos = t.Entity.Position.Clone();
         Clients[sourceClientId].PositionOverride = pos;
@@ -1910,12 +2025,14 @@ public partial class Server
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandTeleportInvalidCoordinates"), colorError));
                 return false;
             }
+
             rZ = VectorUtils.BlockHeight(Map, 0, x, y);
         }
         else
         {
             rZ = z.Value;
         }
+
         if (!VectorUtils.IsValidPos(Map, x, y, rZ))
         {
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandTeleportInvalidCoordinates"), colorError));
@@ -1949,17 +2066,20 @@ public partial class Server
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandTeleportInvalidCoordinates"), colorError));
                 return false;
             }
+
             rZ = VectorUtils.BlockHeight(Map, 0, x, y);
         }
         else
         {
             rZ = z.Value;
         }
+
         if (!VectorUtils.IsValidPos(Map, x, y, rZ))
         {
             SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandTeleportInvalidCoordinates"), colorError));
             return false;
         }
+
         ClientOnServer targetClient = GetClient(target);
         if (targetClient != null)
         {
@@ -1973,6 +2093,7 @@ public partial class Server
             ServerEventLog(string.Format("{0} teleports {1} to {2} {3} {4}.", GetClient(sourceClientId).PlayerName, targetClient.PlayerName, x, y, rZ));
             return true;
         }
+
         SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandNonexistantPlayer"), colorError, target));
         return false;
     }
@@ -2010,15 +2131,18 @@ public partial class Server
                                 {
                                     hasEntry = true;
                                 }
+
                                 break;
                             }
                         }
                     }
+
                     if (!hasEntry)
                     {
                         this.SetFillAreaLimit(k.Key);
                     }
                 }
+
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandFillLimitDefaultSuccess"), colorSuccess, maxFill));
                 ServerEventLog(string.Format("{0} sets default fill area limit to {1}.", GetClient(sourceClientId).PlayerName, maxFill));
                 return true;
@@ -2036,6 +2160,7 @@ public partial class Server
                     SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandGroupNotFound"), colorError, target));
                     return false;
                 }
+
                 targetGroup.FillLimit = maxFill;
                 ServerClientNeedsSaving = true;
                 // Inform related players.
@@ -2053,15 +2178,18 @@ public partial class Server
                                 {
                                     hasEntry = true;
                                 }
+
                                 break;
                             }
                         }
+
                         if (!hasEntry)
                         {
                             this.SetFillAreaLimit(k.Key);
                         }
                     }
                 }
+
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandFillLimitGroupSuccess"), colorSuccess, targetGroup.Name, maxFill));
                 ServerEventLog(string.Format("{0} sets spawn of group {1} to {2}.", GetClient(sourceClientId).PlayerName, targetGroup.Name, maxFill));
                 return true;
@@ -2074,6 +2202,7 @@ public partial class Server
                 {
                     targetClientId = targetClient.Id;
                 }
+
                 string targetClientPlayername = targetClient == null ? target : targetClient.PlayerName;
 
                 Client? clientEntry = ServerClient.Clients.Find(
@@ -2095,6 +2224,7 @@ public partial class Server
                 {
                     this.SetFillAreaLimit(targetClientId.Value);
                 }
+
                 SendMessage(sourceClientId, string.Format(Language.Get("Server_CommandFillLimitPlayerSuccess"), colorSuccess, targetClientPlayername, maxFill));
                 ServerEventLog(string.Format("{0} sets fill area limit of player {1} to {2}.", GetClient(sourceClientId).PlayerName, targetClientPlayername, maxFill));
                 return true;
@@ -2140,6 +2270,7 @@ public partial class Server
                             SendMessage(sourceClientId, $"{colorError}{Language.Get("Server_CommandException")} unable to convert \"{strValue}\" to a time");
                         }
                     }
+
                     break;
                 case "add":
                     {
@@ -2161,6 +2292,7 @@ public partial class Server
                             SendMessage(sourceClientId, $"{colorError}{Language.Get("Server_CommandException")} unable to convert \"{strValue}\" to a time");
                         }
                     }
+
                     break;
                 case "speed":
                     {
@@ -2175,6 +2307,7 @@ public partial class Server
                             SendMessage(sourceClientId, "speed of time changed");
                         }
                     }
+
                     break;
             }
         }
@@ -2182,6 +2315,7 @@ public partial class Server
         {
             SendMessage(sourceClientId, string.Format("Current time: Year {0}, Day {1}, {2}:{3}:{4}", _gameTimer.Year, _gameTimer.Day, _gameTimer.Time.Hours, _gameTimer.Time.Minutes, _gameTimer.Time.Seconds));
         }
+
         return true;
     }
 }

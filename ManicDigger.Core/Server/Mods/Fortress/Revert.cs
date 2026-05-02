@@ -27,6 +27,7 @@ public class Revert : IMod
                 m.SendMessage(player, $"{m.ColorError}Insufficient privileges to use revert.");
                 return true;
             }
+
             string targetplayername;
             int n;
             try
@@ -40,6 +41,7 @@ public class Revert : IMod
                 m.SendMessage(player, $"{m.ColorError}Invalid arguments. Type /help to see command's usage.");
                 return false;
             }
+
             if (n > MaxRevert)
             {
                 m.SendMessage(player, $"{m.ColorError}Can't revert more than {MaxRevert} block changes");
@@ -65,6 +67,7 @@ public class Revert : IMod
                     {
                         m.SetBlock(lx, ly, lz, lblocktype);
                     }
+
                     reverted++;
                     if (reverted >= n)
                     {
@@ -72,6 +75,7 @@ public class Revert : IMod
                     }
                 }
             }
+
             if (reverted == 0)
             {
                 m.SendMessage(player, string.Format(m.ColorError + "Not reverted any block changes by player {0}.", targetplayername));
@@ -81,8 +85,10 @@ public class Revert : IMod
                 m.SendMessageToAll(string.Format("{0} reverted {1} block changes by player {2}", m.GetPlayerName(player), reverted, targetplayername));
                 m.LogServerEvent(string.Format("{0} reverts {1} block changes by player {2}", m.GetPlayerName(player), reverted, targetplayername));
             }
+
             return true;
         }
+
         return false;
     }
 }

@@ -40,6 +40,7 @@ public class PermissionBlock : IMod
             {
                 continue;
             }
+
             for (int i = 0; i < PermissionLevelsCount; i++)
             {
                 if (m.GetBlock(x, y, zz) == permissionblock + i)
@@ -62,6 +63,7 @@ public class PermissionBlock : IMod
                     m.SetBlock(x, y, z, 0);
                     return;
                 }
+
                 m.AddPermissionArea(x - AreaSize, y - AreaSize, 0, x + AreaSize, y + AreaSize, m.GetMapSizeZ(), i);
             }
         }
@@ -82,6 +84,7 @@ public class PermissionBlock : IMod
                     m.SetBlock(x, y, z, oldblock);
                     return;
                 }
+
                 m.RemovePermissionArea(x - AreaSize, y - AreaSize, 0, x + AreaSize, y + AreaSize, m.GetMapSizeZ());
             }
         }

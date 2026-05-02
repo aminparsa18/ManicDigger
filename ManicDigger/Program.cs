@@ -42,12 +42,18 @@ public class Program
         services.AddSingleton<IMeshDrawer, MeshDrawer>();
         services.AddSingleton<ISinglePlayerService, SinglePlayerService>();
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
-        services.AddSingleton<IScreenManager, ScreenManager>();
+        services.AddSingleton<IScreenFactory, ScreenFactory>();
         services.AddSingleton<IModRegistry, ModRegistry>();
         services.AddSingleton<ITaskScheduler, TaskScheduler>();
         services.AddSingleton<IAssetManager, AssetManager>();
         services.AddSingleton<ILanguageService, LanguageService>();
         services.AddSingleton<IBlockRegistry, BlockRegistry>();
+
+        // ScreenManager satisfies both contracts from the same singleton instance.
+        services.AddSingleton<ScreenManager>();
+        services.AddSingleton<IScreenManager>(sp => sp.GetRequiredService<ScreenManager>());
+        services.AddSingleton<INavigator>(sp => sp.GetRequiredService<ScreenManager>());
+
         services.AddSingleton<IGame, Game>();
 
         // ── Player logic ──────────────────────────────────────────────────────
@@ -119,6 +125,10 @@ public class Program
         services.AddScoped<IModBase, ModGuiChat>();
         services.AddScoped<IModBase, ModScreenshot>();
 
+        services.AddScoped<IMainScreen, MainScreen>();
+        services.AddScoped<IScreenGame, ScreenGame>();
+        services.AddScoped<ISingleplayerScreen, SingleplayerScreen>();
+        services.AddScoped<IScreenMultiplayer, MultiplayerScreen>();
     }
 
     // ── Startup ───────────────────────────────────────────────────────────────

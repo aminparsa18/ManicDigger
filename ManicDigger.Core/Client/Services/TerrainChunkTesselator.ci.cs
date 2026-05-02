@@ -596,16 +596,19 @@ public class TerrainChunkTesselator
                 fShadowRation[c] += lightlevels[shadowRationInt[d1]];
                 facesconsidered++;
             }
+
             if (!occupied[d2])
             {
                 fShadowRation[c] += lightlevels[shadowRationInt[d2]];
                 facesconsidered++;
             }
+
             if (!occupied[db])
             {
                 fShadowRation[c] += lightlevels[shadowRationInt[db]];
                 facesconsidered++;
             }
+
             fShadowRation[c] /= facesconsidered;
 
             if (occupied[d1] || occupied[d2] || occupied[db])
@@ -659,6 +662,7 @@ public class TerrainChunkTesselator
                 y + vOffsetY + (v.Y * 0.5f * vScaleY),
                 _texrecRight, texrecTop, ColorMultiply(color, fShadowRation[(int)Corner.TopRight]));
         }
+
         {
             Vector3i v = vNeighbors[(int)TileDirection.TopLeft] + new Vector3i(1, 1, 1);
             GeometryModel.AddVertex(toreturn,
@@ -667,6 +671,7 @@ public class TerrainChunkTesselator
                 y + vOffsetY + (v.Y * 0.5f * vScaleY),
                 _texrecLeft, texrecTop, ColorMultiply(color, fShadowRation[(int)Corner.TopLeft]));
         }
+
         {
             Vector3i v = vNeighbors[(int)TileDirection.BottomRight] + new Vector3i(1, 1, 1);
             GeometryModel.AddVertex(toreturn,
@@ -675,6 +680,7 @@ public class TerrainChunkTesselator
                 y + vOffsetY + (v.Y * 0.5f * vScaleY),
                 _texrecRight, texrecBottom, ColorMultiply(color, fShadowRation[(int)Corner.BottomRight]));
         }
+
         {
             Vector3i v = vNeighbors[(int)TileDirection.BottomLeft] + new Vector3i(1, 1, 1);
             GeometryModel.AddVertex(toreturn,
@@ -823,6 +829,7 @@ public class TerrainChunkTesselator
                 vOffsetY = fOffset;
                 blnDrawn = true;
             }
+
             if (!blnDrawn ||
                 currentChunk[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)] == 0 &&
                 currentChunk[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)] == 0)
@@ -841,6 +848,7 @@ public class TerrainChunkTesselator
                 BuildBlockFace(x, y, z, tiletype, 0, -0.5f, 0, vScaleX, vScaleY, vScaleZ, currentChunk, TileSide.Front);
                 blnSideDrawn = true;
             }
+
             if (!blnSideDrawn ||
                 currentChunk[Index3d(xx, yy - 1, zz, chunksize + 2, chunksize + 2)] != 0 ||
                 currentChunk[Index3d(xx, yy + 1, zz, chunksize + 2, chunksize + 2)] != 0)
@@ -1037,16 +1045,19 @@ public class TerrainChunkTesselator
             front = true;
             wallscount++;
         }
+
         if (currentChunk[Index3d(x, y + 1, z, chunksize + 2, chunksize + 2)] != 0)
         {
             back = true;
             wallscount++;
         }
+
         if (currentChunk[Index3d(x - 1, y, z, chunksize + 2, chunksize + 2)] != 0)
         {
             left = true;
             wallscount++;
         }
+
         if (currentChunk[Index3d(x + 1, y, z, chunksize + 2, chunksize + 2)] != 0)
         {
             wallscount++;
@@ -1094,6 +1105,7 @@ public class TerrainChunkTesselator
 
             dz += dir;
         }
+
         return 0;
     }
 
@@ -1175,16 +1187,19 @@ public class TerrainChunkTesselator
             t01.Y -= 0.1f;
             t11.Y -= 0.1f;
         }
+
         if (type == TorchType.Right)
         {
             t10.Y -= 0.1f;
             t00.Y -= 0.1f;
         }
+
         if (type == TorchType.Front)
         {
             t10.Y -= 0.1f;
             t11.Y -= 0.1f;
         }
+
         if (type == TorchType.Back)
         {
             t01.Y -= 0.1f;
@@ -1241,6 +1256,7 @@ public class TerrainChunkTesselator
                 retCount++;
             }
         }
+
         for (int i = 0; i < toreturnatlas1dLength; i++)
         {
             if (toreturnatlas1dtransparent[i].IndicesCount > 0)
@@ -1255,6 +1271,7 @@ public class TerrainChunkTesselator
                 retCount++;
             }
         }
+
         return _verticesReturnBuffer;
     }
 
@@ -1272,6 +1289,7 @@ public class TerrainChunkTesselator
             retCount = 0;
             return [];
         }
+
         if (!started)
         {
             throw new ArgumentException("not started");

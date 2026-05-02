@@ -76,6 +76,7 @@ public class ServerSystemHeartbeat : ServerSystem
                 }
             }
         }
+
         heartbeat.Players = playerNames;
         heartbeat.UsersCount = playerNames.Count;
 

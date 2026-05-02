@@ -30,6 +30,7 @@ public class InventoryUtil
                     retCount = 0;
                     return null;
                 }
+
                 if (ItemAtCell(cell) != null)
                 {
                     bool contains = false;
@@ -39,12 +40,14 @@ public class InventoryUtil
                         {
                             continue;
                         }
+
                         if (itemsAtArea[i].Value.X == ItemAtCell(cell).Value.X
                             && itemsAtArea[i].Value.Y == ItemAtCell(cell).Value.Y)
                         {
                             contains = true;
                         }
                     }
+
                     if (!contains)
                     {
                         itemsAtArea[itemsAtAreaCount++] = ItemAtCell(cell);
@@ -52,6 +55,7 @@ public class InventoryUtil
                 }
             }
         }
+
         retCount = itemsAtAreaCount;
         return itemsAtArea;
     }
@@ -82,6 +86,7 @@ public class InventoryUtil
                 }
             }
         }
+
         return null;
     }
 
@@ -128,6 +133,7 @@ public class InventoryUtil
                     {
                         continue;
                     }
+
                     InventoryItem result = d_Items.Stack(d_Inventory.RightHand[i], item);
                     if (result != null)
                     {
@@ -135,6 +141,7 @@ public class InventoryUtil
                         return true;
                     }
                 }
+
                 if (d_Inventory.RightHand[ActiveMaterial] == null)
                 {
                     d_Inventory.RightHand[ActiveMaterial] = item;
@@ -186,6 +193,7 @@ public class InventoryUtil
                         }
                     }
                 }
+
                 return false;
             default:
                 throw new NotImplementedException();
@@ -207,6 +215,7 @@ public class InventoryUtil
                 return freehand;
             }
         }
+
         return null;
     }
 }
@@ -338,6 +347,7 @@ public class InventoryServer : IInventoryController
                     //invalid area
                     return;
                 }
+
                 if (itemsAtAreaCount == 0)
                 {
                     d_Inventory.Items.Add(new GridPoint(pos.AreaX, pos.AreaY), d_Inventory.DragDropItem);
@@ -363,6 +373,7 @@ public class InventoryServer : IInventoryController
                         d_Inventory.DragDropItem = z;
                     }
                 }
+
                 SendInventory();
             }
         }
@@ -401,6 +412,7 @@ public class InventoryServer : IInventoryController
                     d_Inventory.DragDropItem = oldHand;
                 }
             }
+
             SendInventory();
         }
         else if (pos.Type == PacketInventoryPositionType.WearPlace)
@@ -412,6 +424,7 @@ public class InventoryServer : IInventoryController
                 d_InventoryUtil.SetItemAtWearPlace(pos.WearPlace, pos.ActiveMaterial, d_Inventory.DragDropItem);
                 d_Inventory.DragDropItem = wear;
             }
+
             SendInventory();
         }
         else
@@ -495,6 +508,7 @@ public class GameDataItemsBlocks : IGameDataItems
         {
             return 1;
         }
+
         throw new NotImplementedException();
     }
 
@@ -504,6 +518,7 @@ public class GameDataItemsBlocks : IGameDataItems
         {
             return 1;
         }
+
         throw new NotImplementedException();
     }
 
@@ -539,10 +554,12 @@ public class GameDataItemsBlocks : IGameDataItems
         {
             return true;
         }
+
         if (item == null)
         {
             return true;
         }
+
         return selectedWear switch
         {
             //case WearPlace.LeftHand: return false;

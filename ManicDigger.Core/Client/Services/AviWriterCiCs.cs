@@ -18,6 +18,7 @@
         {
             g.DrawImage(bmp_, 0, 0);
         }
+
         openbmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
         avi.AddFrame();

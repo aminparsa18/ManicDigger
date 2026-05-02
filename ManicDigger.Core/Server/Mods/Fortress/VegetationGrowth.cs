@@ -85,6 +85,7 @@ public class VegetationGrowth : IMod
                 {
                     return;
                 }
+
                 m.SetBlock(x, y, z + 1, blockabove);
             }
         }
@@ -99,6 +100,7 @@ public class VegetationGrowth : IMod
                 {
                     return;
                 }
+
                 MakeTree(x, y, z, OakTreeTrunk, OakLeaves, true);
                 break;
 
@@ -107,6 +109,7 @@ public class VegetationGrowth : IMod
                 {
                     return;
                 }
+
                 MakeTree(x, y, z, BirchTreeTrunk, BirchLeaves, false);
                 break;
 
@@ -115,6 +118,7 @@ public class VegetationGrowth : IMod
                 {
                     return;
                 }
+
                 MakeTree(x, y, z, SpruceTreeTrunk, SpruceLeaves, false);
                 break;
         }
@@ -131,14 +135,17 @@ public class VegetationGrowth : IMod
         {
             return TreeType.Oak;
         }
+
         if (id_sapling == BirchSapling)
         {
             return TreeType.Birch;
         }
+
         if (id_sapling == SpruceSapling)
         {
             return TreeType.Spruce;
         }
+
         return TreeType.None;
     }
 
@@ -155,11 +162,13 @@ public class VegetationGrowth : IMod
         {
             return false;
         }
+
         int block = m.GetBlock(x, y, z);
         if (!(block == Dirt || block == Grass || block == DirtForFarming))
         {
             return false;
         }
+
         return true;
     }
 
@@ -306,6 +315,7 @@ public class VegetationGrowth : IMod
                 m.SetBlock(x, y, z, 0);
                 return;
             }
+
             if (!IsShadow(x, y, z - 1))
             {
                 m.SetBlock(x, y, z, 0);
@@ -333,6 +343,7 @@ public class VegetationGrowth : IMod
                 m.SetBlock(x, y, z, 0);
                 return;
             }
+
             if (IsShadow(x, y, z - 1))
             {
                 m.SetBlock(x, y, z, 0);
@@ -360,6 +371,7 @@ public class VegetationGrowth : IMod
                 return true;
             }
         }
+
         return false;
     }
 

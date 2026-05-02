@@ -159,6 +159,7 @@ public partial class Game
                 }
             }
         }
+
         return fov;
     }
 
@@ -205,6 +206,7 @@ public partial class Game
         {
             PlayAudio(rnd.Next() % 2 == 0 ? "grunt1.wav" : "grunt2.wav");
         }
+
         SendPacketClient(ClientPackets.Health(PlayerStats.CurrentHealth));
     }
 
@@ -231,6 +233,7 @@ public partial class Game
                 }
             }
         }
+
         return IsPlayerInPos(Player.position.x, Player.position.y, Player.position.z,
             blockposX, blockposY, blockposZ, Player.drawModel.ModelHeight);
     }
@@ -248,6 +251,7 @@ public partial class Game
                 return true;
             }
         }
+
         return false;
     }
 }

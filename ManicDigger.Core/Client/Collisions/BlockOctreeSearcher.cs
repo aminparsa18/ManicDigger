@@ -39,6 +39,7 @@ public class BlockOctreeSearcher
         {
             return [];
         }
+
         return SearchRecursive(query, StartBox);
     }
 
@@ -61,6 +62,7 @@ public class BlockOctreeSearcher
                 result.AddRange(SearchRecursive(query, child));
             }
         }
+
         return result;
     }
 

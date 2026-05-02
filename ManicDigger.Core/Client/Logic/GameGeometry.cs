@@ -76,6 +76,7 @@ public partial class Game
                 return z + 1;
             }
         }
+
         return 0;
     }
 
@@ -489,6 +490,7 @@ public partial class Game
             font = new Font("Arial", fontsize, FontStyle.Regular);
             _fontCache[fontsize] = font;
         }
+
         Draw2dText(text, font, x, y, color, enabledepthtest);
     }
 
@@ -571,6 +573,7 @@ public partial class Game
                 _circleModelData.Indices[i * 2] = i;
                 _circleModelData.Indices[(i * 2) + 1] = (i + 1) % CircleSegments;
             }
+
             _circleModelData.Rgba.AsSpan().Fill(255);
         }
 

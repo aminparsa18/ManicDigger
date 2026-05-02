@@ -6,7 +6,7 @@
 /// When the platform does not support singleplayer (i.e. web/mobile), all world
 /// widgets are hidden and an explanatory message is displayed instead.
 /// </remarks>
-public class SingleplayerScreen : ScreenBase
+public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
 {
     // Maximum number of save-file buttons shown in the list.
     private const int MaxWorldButtons = 10;
@@ -32,7 +32,7 @@ public class SingleplayerScreen : ScreenBase
 
     private string title;
 
-    public SingleplayerScreen(IGameService platform, IOpenGlService platformOpenGl, IAssetManager assetManager, 
+    public SingleplayerScreen(IGameService platform, IOpenGlService platformOpenGl, IAssetManager assetManager,
         ISinglePlayerService singlePlayerService, ILanguageService languageService, IScreenManager menu) : base(platform, platformOpenGl, assetManager)
     {
         play = new MenuWidget
@@ -135,6 +135,7 @@ public class SingleplayerScreen : ScreenBase
         {
             worldButtons[i].visible = false;
         }
+
         for (int i = 0; i < savegames.Count; i++)
         {
             worldButtons[i].visible = true;

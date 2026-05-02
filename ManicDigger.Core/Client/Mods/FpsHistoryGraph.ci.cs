@@ -121,6 +121,7 @@ public class ModFpsHistoryGraph : ModBase
 
             idx++;
         }
+
         fpsText = sb.ToString();
     }
 
@@ -168,6 +169,7 @@ public class ModFpsHistoryGraph : ModBase
             todraw[i].inAtlasId = -1;
             todraw[i].color = ColorUtils.InterpolateColor((float)i / MaxCount, colors, 2);
         }
+
         Game.Draw2dTextures(todraw, MaxCount, whiteTexture);
 
         // Reference FPS lines

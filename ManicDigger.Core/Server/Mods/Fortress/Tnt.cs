@@ -61,6 +61,7 @@ public class Tnt : IMod
                 m.SendMessage(player, m.ColorError + "Insufficient privileges to use TNT.");
                 return;
             }
+
             if (tntStack.Count < tntMax)
             {
                 tntStack.Push(new Vector3i(x, y, z));
@@ -77,6 +78,7 @@ public class Tnt : IMod
             {
                 return;
             }
+
             Vector3i pos = tntStack.Pop();
             int nearestplayer = m.NearestPlayer(pos.x, pos.y, pos.z);
             m.PlaySoundAt(pos.x, pos.y, pos.z, "tnt.wav");
@@ -96,6 +98,7 @@ public class Tnt : IMod
                             {
                                 continue;
                             }
+
                             int block = m.GetBlock(pos2.x, pos2.y, pos2.z);
                             if (tntStack.Count < tntMax
                                 && (pos2.x != pos.x || pos2.y != pos.y || pos2.z != pos.z)
@@ -127,6 +130,7 @@ public class Tnt : IMod
                     }
                 }
             }
+
             m.NotifyInventory(nearestplayer);
         }
     }

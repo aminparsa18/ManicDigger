@@ -562,6 +562,7 @@ public class AdvanceWorldGenerator : IMod
                     break;
                 }
             }
+
             if (surfaceZ == -1)
                 continue;
 
@@ -626,6 +627,7 @@ public class AdvanceWorldGenerator : IMod
             m.SendMessageToAll($"{avg}ms generation avg");
             totalGetChunkMs = 0; getChunkCalls = 0;
         }
+
         if (populateChunkCalls > 0)
         {
             long avg = totalPopulateMs / populateChunkCalls;

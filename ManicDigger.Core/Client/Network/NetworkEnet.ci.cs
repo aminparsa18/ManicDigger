@@ -177,6 +177,7 @@ public sealed class EnetNetClient : NetClient
             _pendingSend.Enqueue(payload);
             return;
         }
+
         _connection!.SendMessage(payload, method);
     }
 
@@ -347,6 +348,7 @@ public sealed class EnetNetServer : NetServer
             conn = new EnetNetConnection(_platform, peer);
             _connections[id] = conn;
         }
+
         return conn;
     }
 }

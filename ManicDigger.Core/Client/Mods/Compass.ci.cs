@@ -43,6 +43,7 @@ public class ModCompass : ModBase
                 return true;
             }
         }
+
         return false;
     }
 

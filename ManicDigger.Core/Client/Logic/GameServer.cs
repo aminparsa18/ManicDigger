@@ -49,6 +49,7 @@ public partial class Game
                     }
                 }
             }
+
             ChatLog(string.Format("[GAME] Will download {0} missing assets", getCount));
         }
 

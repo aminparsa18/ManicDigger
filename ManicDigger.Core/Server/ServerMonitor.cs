@@ -64,6 +64,7 @@ public class ServerMonitor
                     // TODO: revert block at client
                     return false;
                 }
+
                 if (monitorClients[clientId].BlocksSet < config.MaxBlocks)
                 {
                     monitorClients[clientId].BlocksSet++;
@@ -77,6 +78,7 @@ public class ServerMonitor
                     server.SendMessage(clientId, server.Language.ServerMonitorChatNotSent(), Server.MessageType.Error);
                     return false;
                 }
+
                 if (monitorClients[clientId].MessagesSent < config.MaxMessages)
                 {
                     monitorClients[clientId].MessagesSent++;
@@ -118,6 +120,7 @@ public class ServerMonitor
             {
                 return false;
             }
+
             return this.SetBlockPunishment.Active();
         }
 
@@ -128,6 +131,7 @@ public class ServerMonitor
             {
                 return false;
             }
+
             return this.MessagePunishment.Active();
         }
     }
@@ -158,10 +162,12 @@ public class ServerMonitor
             {
                 return true;
             }
+
             if (DateTime.UtcNow.Subtract(this.punishmentStartDate).CompareTo(duration) == -1)
             {
                 return true;
             }
+
             return false;
         }
     }
@@ -214,6 +220,7 @@ public class ServerMonitor
                 this.config = new ServerMonitorConfig();
             }
         }
+
         Console.WriteLine(server.Language.ServerMonitorConfigLoaded());
     }
 

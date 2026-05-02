@@ -359,6 +359,7 @@ public class ServerSystemNotifyEntities : ServerSystem
                 return true;
             }
         }
+
         return false;
     }
 

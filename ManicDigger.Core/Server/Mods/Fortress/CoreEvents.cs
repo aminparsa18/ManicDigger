@@ -30,6 +30,7 @@ public class CoreEvents : IMod
         {
             return;
         }
+
         float[] pos = [m.GetPlayerPositionX(player), m.GetPlayerPositionY(player), m.GetPlayerPositionZ(player)];
         spawnPositions[m.GetPlayerName(player)] = pos;
         m.SendMessage(player, "&7Spawn position set");
@@ -41,6 +42,7 @@ public class CoreEvents : IMod
         {
             return;
         }
+
         Respawn(player);
         m.SendMessage(player, "&7Respawn");
     }
@@ -74,6 +76,7 @@ public class CoreEvents : IMod
                 {
                     deathMessage = string.Format("{0} &7was killed by {1}.", ColoredPlayername(player), m.GetBlockName(sourceID));
                 }
+
                 break;
             case DeathReason.Drowning:
                 deathMessage = string.Format("{0} &7tried to breathe under water.", ColoredPlayername(player));
@@ -85,6 +88,7 @@ public class CoreEvents : IMod
                 deathMessage = string.Format("{0} &7died.", ColoredPlayername(player));
                 break;
         }
+
         m.SendMessageToAll(deathMessage);
     }
 
@@ -111,6 +115,7 @@ public class CoreEvents : IMod
                 m.SendMessage(player, m.ColorError + "No setmodel privilege");
                 return true;
             }
+
             string[] ss = argument.Split(' ');
             string targetplayername = ss[0];
             string modelname = ss[1];
@@ -119,6 +124,7 @@ public class CoreEvents : IMod
             {
                 texturename = ss[2];
             }
+
             bool found = false;
             foreach (int p in m.AllPlayers())
             {
@@ -128,12 +134,15 @@ public class CoreEvents : IMod
                     found = true;
                 }
             }
+
             if (!found)
             {
                 m.SendMessage(player, m.ColorError + string.Format("Player {0} not found", targetplayername));
             }
+
             return true;
         }
+
         return false;
     }
 }

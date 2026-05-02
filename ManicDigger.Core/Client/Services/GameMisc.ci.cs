@@ -415,26 +415,32 @@ public class DirectionUtils
         {
             count++;
         }
+
         if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.DownRight)) != 0)
         {
             count++;
         }
+
         if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.Horizontal)) != 0)
         {
             count++;
         }
+
         if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.UpLeft)) != 0)
         {
             count++;
         }
+
         if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.UpRight)) != 0)
         {
             count++;
         }
+
         if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.Vertical)) != 0)
         {
             count++;
         }
+
         return count;
     }
 
@@ -446,6 +452,7 @@ public class DirectionUtils
             VehicleDirection12 d = directions[i];
             flags = flags | ToVehicleDirection12Flags(d);
         }
+
         return flags;
     }
 
@@ -484,6 +491,7 @@ public class DirectionUtils
             default:
                 return null;
         }
+
         return ret;
     }
 }

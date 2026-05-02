@@ -949,6 +949,7 @@ public class CoreBlocks : IMod
                 Rail = i,
             });
         }
+
         m.SetBlockType(241, "RedCarpet", new BlockType()
         {
             AllTextures = "RedCloth",

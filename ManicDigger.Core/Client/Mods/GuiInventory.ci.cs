@@ -130,6 +130,7 @@ public class ModGuiInventory : ModBase
         {
             Game.ActiveMaterial = keyChar - 49;
         }
+
         if (keyChar == 48)
         {
             Game.ActiveMaterial = 9;
@@ -192,6 +193,7 @@ public class ModGuiInventory : ModBase
             {
                 args.SetHandled(true);
             }
+
             return;
         }
 
@@ -247,6 +249,7 @@ public class ModGuiInventory : ModBase
         {
             return;
         }
+
         _scrollingUpTimeMs = 0;
         _scrollingDownTimeMs = 0;
     }
@@ -271,6 +274,7 @@ public class ModGuiInventory : ModBase
             {
                 ScrollUp();
             }
+
             if (delta < 0)
             {
                 ScrollDown();
@@ -604,6 +608,7 @@ public class ModGuiInventory : ModBase
             _scrollingUpTimeMs = now;
             ScrollUp();
         }
+
         if (_scrollingDownTimeMs != 0 && now - _scrollingDownTimeMs > 250)
         {
             _scrollingDownTimeMs = now;
@@ -625,6 +630,7 @@ public class ModGuiInventory : ModBase
         {
             return null;
         }
+
         return new Point((mouse.X - CellsStartX()) / CellDrawSize,
                          (mouse.Y - CellsStartY()) / CellDrawSize);
     }
@@ -656,6 +662,7 @@ public class ModGuiInventory : ModBase
                 return i;
             }
         }
+
         return null;
     }
 
@@ -675,6 +682,7 @@ public class ModGuiInventory : ModBase
         {
             return (mouse.X - startX) / cellSize;
         }
+
         return null;
     }
 
@@ -698,6 +706,7 @@ public class ModGuiInventory : ModBase
                 return inventory.Items[i].Value_;
             }
         }
+
         return null;
     }
 }

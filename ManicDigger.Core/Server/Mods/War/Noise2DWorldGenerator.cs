@@ -71,6 +71,7 @@ public class Noise2DWorldGeneratorWar : IMod
                 }
             }
         }
+
         if (z == 0)
         {
             for (int xx = 0; xx < this.chunksize; xx++)
@@ -96,6 +97,7 @@ public class Noise2DWorldGeneratorWar : IMod
                 {
                     return this.emtpy;
                 }
+
                 if (z == height)
                 {
                     return this.grass;
@@ -107,19 +109,23 @@ public class Noise2DWorldGeneratorWar : IMod
                 {
                     return this.emtpy;
                 }
+
                 if (z == height)
                 {
                     return this.hay;
                 }
+
                 if (z == height + 1)
                 {
                     return this.hay;
                 }
             }
+
             if (z > height - 5)
             {
                 return this.dirt;
             }
+
             return this.stone;
         }
         else
@@ -128,10 +134,12 @@ public class Noise2DWorldGeneratorWar : IMod
             {
                 return this.water;
             }
+
             if (z == height)
             {
                 return this.sand;
             }
+
             return this.stone;
         }
     }
@@ -151,16 +159,19 @@ public class Noise2DWorldGeneratorWar : IMod
             double amplitude = Math.Pow(p, a);//This decreases the amplitude with every loop of the octave.
             getnoise += Noise(x * frequency / zoom, y / zoom * frequency, this.seed) * amplitude;//This uses our perlin noise functions. It calculates all our zoom and frequency and amplitude
         }
+
         double maxheight = 64;
         int height = (int)((getnoise + 1) / 2.0 * (maxheight - 5)) + 3;//(int)((getnoise * 128.0) + 128.0);
         if (height > maxheight - 1)
         {
             height = (int)maxheight - 1;
         }
+
         if (height < 2)
         {
             height = 2;
         }
+
         return (byte)height;
     }
 

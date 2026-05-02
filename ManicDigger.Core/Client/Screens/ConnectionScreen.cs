@@ -6,7 +6,7 @@
 /// <remarks>
 /// Tab order (by list index): [0] Connect → [3] Back → [1] IP → [2] Port → [0] Connect.
 /// </remarks>
-public class ConnectionScreen : ScreenBase
+public class ConnectionScreen : ScreenBase, IConnectionScreen
 {
     private readonly MenuWidget buttonConnect;
     private readonly MenuWidget buttonBack;

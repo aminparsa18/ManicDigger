@@ -191,6 +191,7 @@ public class CrashReporter
                 Thread.Sleep(50);
                 Application.DoEvents();
             }
+
             MessageBox.Show(message, "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
@@ -234,6 +235,7 @@ public static class GameStorePath
         {
             return false;
         }
+
         for (int i = 0; i < s.Length; i++)
         {
             if (!AllowedNameChars.Contains(s[i].ToString()))
@@ -241,6 +243,7 @@ public static class GameStorePath
                 return false;
             }
         }
+
         return true;
     }
     public static string AllowedNameChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-";
@@ -261,6 +264,7 @@ public class CompressionGzip : ICompression
         {
             compress.Write(data);
         }
+
         return output.ToArray();
     }
 
@@ -280,6 +284,7 @@ public class CompressionGzip : ICompression
                 ms.Write(buffer, 0, numRead);
             }
         }
+
         return ms.ToArray();
     }
 

@@ -73,6 +73,7 @@ public sealed class DummyNetClient : NetClient
                 SenderConnection = _connection,
             };
         }
+
         return null;
     }
 

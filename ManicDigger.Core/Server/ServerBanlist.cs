@@ -12,6 +12,7 @@
                 return true;
             }
         }
+
         return false;
     }
 
@@ -24,6 +25,7 @@
                 return true;
             }
         }
+
         return false;
     }
 
@@ -56,6 +58,7 @@
                 counter++;
             }
         }
+
         foreach (string ipadress in unbanIPs)
         {
             if (UnbanIP(ipadress))
@@ -63,10 +66,12 @@
                 counter++;
             }
         }
+
         if (counter > 0)
         {
             Console.WriteLine("Removed {0} expired timebans.", counter);
         }
+
         return counter;
     }
 
@@ -78,6 +83,7 @@
         {
             return false;
         }
+
         UserEntry newBan = new()
         {
             UserName = username,
@@ -87,10 +93,12 @@
         {
             newBan.BannedUntil = DateTime.UtcNow + TimeSpan.FromMinutes(intervalMinutes);
         }
+
         if (!string.IsNullOrEmpty(reason))
         {
             newBan.Reason = reason;
         }
+
         BannedUsers.Add(newBan);
         return true;
     }
@@ -103,6 +111,7 @@
         {
             return false;
         }
+
         IPEntry newBan = new()
         {
             IPAdress = ipadress,
@@ -112,10 +121,12 @@
         {
             newBan.BannedUntil = DateTime.UtcNow + TimeSpan.FromMinutes(intervalMinutes);
         }
+
         if (!string.IsNullOrEmpty(reason))
         {
             newBan.Reason = reason;
         }
+
         BannedIPs.Add(newBan);
         return true;
     }
@@ -133,6 +144,7 @@
                 break;
             }
         }
+
         return exists;
     }
 
@@ -149,6 +161,7 @@
                 break;
             }
         }
+
         return exists;
     }
 
@@ -161,6 +174,7 @@
                 return banneduser;
             }
         }
+
         return null;
     }
 
@@ -173,6 +187,7 @@
                 return bannedip;
             }
         }
+
         return null;
     }
 

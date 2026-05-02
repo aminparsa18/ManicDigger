@@ -168,6 +168,7 @@ public class ModGuiCrafting : ModBase
                     break;
                 }
             }
+
             if (canCraft)
             {
                 currentRecipes[currentRecipesCount++] = i;
@@ -337,6 +338,7 @@ public class CraftingTableTool
             Vector3i v = table[i];
             _onTableBuffer[count++] = d_Map.GetBlock(v.X, v.Y, v.Z + 1);
         }
+
         retCount = count;
         return _onTableBuffer;
     }

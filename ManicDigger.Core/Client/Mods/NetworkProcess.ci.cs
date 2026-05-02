@@ -100,6 +100,7 @@ public class ModNetworkProcess : ModBase
                         CurrentChunkCount = 0;
                         break;
                     }
+
                     Buffer.BlockCopy(arr, 0, CurrentChunk, CurrentChunkCount, arr.Length);
                     CurrentChunkCount += arr.Length;
                     break;
@@ -205,6 +206,7 @@ public class ModNetworkProcess : ModBase
                     {
                         Game.ProcessServerIdentification(packet);
                     }
+
                     Game.ReceivedMapLength = 0;
                     break;
                 }
@@ -279,6 +281,7 @@ public class ModNetworkProcess : ModBase
                     Game.MoveSpeed = Game.Basemovespeed;
                     Game.AddChatLine(Game.Language.MoveNormal());
                 }
+
                 break;
 
             case Packet_ServerIdEnum.PlayerSpawnPosition:
@@ -353,6 +356,7 @@ public class ModNetworkProcess : ModBase
                         Game.Sunlight = sunlight;
                         Game.RedrawAllBlocks();
                     }
+
                     break;
                 }
 
@@ -433,6 +437,7 @@ public class ModNetworkProcess : ModBase
                 {
                     Game.SetCamera(CameraType.Fpp);
                 }
+
                 break;
 
             case Packet_ServerIdEnum.Bullet:

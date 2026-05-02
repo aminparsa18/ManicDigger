@@ -127,6 +127,7 @@ public class PositionStorage
                 return i;
             }
         }
+
         return -1;
     }
 
@@ -136,6 +137,7 @@ public class PositionStorage
         {
             Delete(player);
         }
+
         UserEntry entry = new()
         {
             Name = player,
@@ -164,6 +166,7 @@ public class PositionStorage
         {
             return StringToPos(PlayerPositions[index].Position);
         }
+
         return null;
     }
 

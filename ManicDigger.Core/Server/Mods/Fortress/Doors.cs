@@ -109,6 +109,7 @@ public class Doors : IMod
         {
             m.SetBlock(x, y, z + 1, 0);
         }
+
         if (m.IsValidPos(x, y, z - 1) && (m.GetBlock(x, y, z - 1) == DoorBottomOpen || m.GetBlock(x, y, z - 1) == DoorBottomClosed))
         {
             m.SetBlock(x, y, z - 1, 0);

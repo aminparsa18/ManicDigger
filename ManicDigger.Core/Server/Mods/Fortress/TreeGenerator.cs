@@ -121,6 +121,7 @@ public class TreeGenerator : IMod
                 return z;
             }
         }
+
         return -1;
     }
 

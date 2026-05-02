@@ -53,6 +53,7 @@
                 }
             }
         }
+
         return null;
     }
 
@@ -69,6 +70,7 @@
             ChatLines = [.. lines2];
             ChatLinesMax *= 2;
         }
+
         ChatLines.Add(chatline);
     }
 
@@ -137,6 +139,7 @@
 
                     AddChatLine(string.Format("{0} {1}", i.ToString(), entity.drawName.Name));
                 }
+
                 break;
 
             case "reconnect":
@@ -162,6 +165,7 @@
                     AddChatLine(strFreemoveNotAllowed);
                     return;
                 }
+
                 Controls.FreeMove = BoolCommandArgument(arguments);
                 break;
 
@@ -180,6 +184,7 @@
                     string chatline = GuiTypingBuffer[..Math.Min(GuiTypingBuffer.Length, 256)];
                     SendChat(chatline);
                 }
+
                 break;
         }
 
@@ -220,6 +225,7 @@
                     fov = 2 * MathF.PI * (arg / 360);
                     OnResize();
                 }
+
                 break;
 
             case "movespeed":
@@ -228,6 +234,7 @@
                     AddChatLine(strFreemoveNotAllowed);
                     return;
                 }
+
                 float speed = float.Parse(arguments);
                 if (speed > 500)
                 {
@@ -238,6 +245,7 @@
                     MoveSpeed = Basemovespeed * speed;
                     AddChatLine(string.Format("Movespeed: {0}x", arguments));
                 }
+
                 break;
 
             case "serverinfo":
@@ -261,8 +269,10 @@
                         AddChatLine(result.PublicHash);
                         AddChatLine(result.ServerVersion);
                     }
+
                     AddChatLine(message);
                 }
+
                 break;
         }
     }

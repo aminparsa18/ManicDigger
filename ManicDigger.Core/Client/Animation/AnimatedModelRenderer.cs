@@ -71,6 +71,7 @@ public class AnimatedModelRenderer
                 list = [];
                 keyframeCache[key] = list;
             }
+
             list.Add(k);
         }
     }
@@ -89,20 +90,24 @@ public class AnimatedModelRenderer
         {
             return;
         }
+
         if (m.Animations == null)
         {
             return;
         }
+
         if (m.Animations[anim] == null)
         {
             return;
         }
+
         float length = m.Animations[anim].Length;
         if (moves)
         {
             frame += dt * fps;
             frame %= length;
         }
+
         if (walkAnimation)
         {
             // Ease the animation to the nearest rest pose (frame 0 or length/2)
@@ -116,6 +121,7 @@ public class AnimatedModelRenderer
                     : Math.Min(frame, length);
             }
         }
+
         DrawNode("root", headDeg, light);
     }
 
@@ -135,6 +141,7 @@ public class AnimatedModelRenderer
             {
                 continue;
             }
+
             if (n.ParentName != parent)
             {
                 continue;
@@ -165,10 +172,12 @@ public class AnimatedModelRenderer
             {
                 meshDrawer.GLRotate(rotation.X, 1, 0, 0);
             }
+
             if (rotation.Y != 0)
             {
                 meshDrawer.GLRotate(rotation.Y, 0, 1, 0);
             }
+
             if (rotation.Z != 0)
             {
                 meshDrawer.GLRotate(rotation.Z, 0, 0, 1);

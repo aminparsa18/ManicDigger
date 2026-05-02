@@ -74,6 +74,7 @@
                 s = new Sound { Name = file_, Loop = true };
                 audioService.Add(s);
             }
+
             s.X = EyesPosX;
             s.Y = EyesPosY;
             s.Z = EyesPosZ;
@@ -93,6 +94,7 @@
                 return audioService.Sounds[i];
             }
         }
+
         return null;
     }
 

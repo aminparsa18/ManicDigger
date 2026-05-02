@@ -105,6 +105,7 @@ public class ScriptConsole
                 }
             }
         }
+
         m_server.DeleteChunks(chunkPositions);
     }
 
@@ -152,6 +153,7 @@ public class ScriptConsole
                 }
             }
         }
+
         m_server.SaveChunksToDatabase(chunkPositions, file);
     }
 
@@ -260,6 +262,7 @@ public class Turtle
                     return "Down";
                 }
             }
+
             if (dir.Z == 0)
             {
                 if (dir.Y == 1)
@@ -283,6 +286,7 @@ public class Turtle
                 return "East";
             }
         }
+
         return "Unknown direction";
     }
 

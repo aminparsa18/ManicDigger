@@ -201,6 +201,7 @@ public class ScriptCharacterPhysics : IEntityScript
             push.Y *= 5;
             push.Z *= 5;
         }
+
         diff1.X += push.X * dt;
         diff1.Y += push.Y * dt;
         diff1.Z += push.Z * dt;
@@ -232,6 +233,7 @@ public class ScriptCharacterPhysics : IEntityScript
                 ? -constGravity * constWaterGravityMultiplier
                 : -constGravity;
         }
+
         game.MovedZ = movedz;
 
         if (constEnableAcceleration)
@@ -298,6 +300,7 @@ public class ScriptCharacterPhysics : IEntityScript
                 diffy *= inv;
                 diffz *= inv;
             }
+
             newposition.X = stateplayerposition.x + (diffx * dt);
             newposition.Y = stateplayerposition.y + (diffy * dt);
             newposition.Z = stateplayerposition.z + (diffz * dt);
@@ -336,6 +339,7 @@ public class ScriptCharacterPhysics : IEntityScript
                 jumpacceleration = 0;
                 movedz = 0;
             }
+
             if ((move.WantsJump || move.WantsJumpHalf)
                 && (jumpacceleration == 0 && isplayeronground || swimmingBody)
                 && loaded

@@ -397,6 +397,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
             Textures[name] = value;
             bmp.Dispose();
         }
+
         return value;
     }
 
@@ -415,6 +416,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
                 return AssetManager.Assets[i].data;
             }
         }
+
         return null;
     }
 
@@ -432,6 +434,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
                 return AssetManager.Assets[i].dataLength;
             }
         }
+
         return 0;
     }
 
@@ -643,6 +646,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
                 xInv = false;
                 xSpeed = minspeed + rnd.Next(5);
             }
+
             xRot -= xSpeed * dt;
         }
         else
@@ -652,6 +656,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
                 xInv = true;
                 xSpeed = minspeed + rnd.Next(5);
             }
+
             xRot += xSpeed * dt;
         }
 
@@ -663,6 +668,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
                 yInv = false;
                 ySpeed = minspeed + rnd.Next(5);
             }
+
             yRot -= ySpeed * dt;
         }
         else
@@ -672,6 +678,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
                 yInv = true;
                 ySpeed = minspeed + rnd.Next(5);
             }
+
             yRot += ySpeed * dt;
         }
     }

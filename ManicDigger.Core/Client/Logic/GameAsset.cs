@@ -15,6 +15,7 @@
                 return true;
             }
         }
+
         return false;
     }
 
@@ -28,6 +29,7 @@
                 return _assetManager.Assets[i].data;
             }
         }
+
         return null;
     }
 
@@ -41,6 +43,7 @@
                 return _assetManager.Assets[i].dataLength;
             }
         }
+
         return 0;
     }
 
@@ -103,6 +106,7 @@
                 return;
             }
         }
+
         _assetManager.Assets.Add(newAsset);
         CacheAsset(newAsset);
     }

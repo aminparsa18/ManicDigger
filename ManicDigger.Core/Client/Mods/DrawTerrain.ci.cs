@@ -95,6 +95,7 @@ public class ModDrawTerrain : ModBase
             Game.ShouldRedrawAllBlocks = false;
             RedrawAllBlocks(Game);
         }
+
         DrawTerrain(Game);
         UpdatePerformanceInfo(Game);
     }
@@ -298,6 +299,7 @@ public class ModDrawTerrain : ModBase
                 ArrayPool<VerticesIndicesToLoad>.Shared.Return(_redrawQueue[i].Data);
             }
         }
+
         _redrawQueueCount = 0;
     }
 
@@ -430,6 +432,7 @@ public class ModDrawTerrain : ModBase
                 _shadowLightRadius[id] = blockType.LightRadius;
                 _shadowIsTransparent[id] = IsTransparentForLight(_game, id);
             }
+
             _blockTypeCacheDirty = false;
         }
 
@@ -564,6 +567,7 @@ public class ModDrawTerrain : ModBase
             dest.VerticesCount = source.VerticesCount;
             dest.IndicesCount = source.IndicesCount;
         }
+
         return dest;
     }
 
@@ -574,16 +578,19 @@ public class ModDrawTerrain : ModBase
             ArrayPool<float>.Shared.Return(model.Xyz);
             model.Xyz = null;
         }
+
         if (model.Uv != null)
         {
             ArrayPool<float>.Shared.Return(model.Uv);
             model.Uv = null;
         }
+
         if (model.Rgba != null)
         {
             ArrayPool<byte>.Shared.Return(model.Rgba);
             model.Rgba = null;
         }
+
         if (model.Indices != null)
         {
             ArrayPool<int>.Shared.Return(model.Indices);

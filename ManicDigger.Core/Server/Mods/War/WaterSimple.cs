@@ -30,6 +30,7 @@ public class WaterSimple : IMod
         {
             return;
         }
+
         if ((DateTime.UtcNow - lastflood).TotalSeconds > 1)
         {
             lastflood = DateTime.UtcNow;
@@ -57,6 +58,7 @@ public class WaterSimple : IMod
                 }
             }
         }
+
         return false;
     }
 
@@ -67,6 +69,7 @@ public class WaterSimple : IMod
         {
             return;
         }
+
         this.flooded = new Dictionary<Vector3i, Vector3i>();
         //sponge just built.
         if (m.IsValidPos(x, y, z) && m.GetBlock(x, y, z) == Sponge)
@@ -100,6 +103,7 @@ public class WaterSimple : IMod
                 }
             }
         }
+
         BlockChangeFlood(x, y, z);
         //var v = new Vector3i(x, y, z);
         //tosetwater.Sort((a, b) => Distance(v, a).CompareTo(Distance(v, b)));
@@ -148,10 +152,12 @@ public class WaterSimple : IMod
         {
             return;
         }
+
         if (flooded.ContainsKey(v))
         {
             return;
         }
+
         flooded.Add(v, v);
         foreach (Vector3i vv in BlocksAround(v))
         {
@@ -159,6 +165,7 @@ public class WaterSimple : IMod
             {
                 continue;
             }
+
             var type = m.GetBlock(vv.X, vv.Y, vv.Z);
             if (type == 0 && (!IsSpongeNear(vv.X, vv.Y, vv.Z)))
             {

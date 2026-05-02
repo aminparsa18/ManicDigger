@@ -89,6 +89,7 @@ public class ChunkDbSqlite : IChunkDb
                 return true;
             }
         }
+
         return false;
     }
 
@@ -102,6 +103,7 @@ public class ChunkDbSqlite : IChunkDb
             Console.WriteLine("Cannot overwrite current running database. Choose another destination.");
             return;
         }
+
         if (File.Exists(backupFilename))
         {
             Console.WriteLine($"File {backupFilename} exists. Overwriting.");
@@ -165,6 +167,7 @@ public class ChunkDbSqlite : IChunkDb
 
             return;
         }
+
         using SQLiteTransaction tx = _conn.BeginTransaction();
         foreach (DbChunk c in chunks)
         {
@@ -200,6 +203,7 @@ public class ChunkDbSqlite : IChunkDb
 
             return;
         }
+
         using SQLiteTransaction tx = _conn.BeginTransaction();
         foreach (Vector3i xyz in chunkpositions)
         {
@@ -208,6 +212,7 @@ public class ChunkDbSqlite : IChunkDb
             cmd.Parameters.Add(CreateParameter("position", DbType.UInt64, ToMapPos(xyz.X, xyz.Y, xyz.Z), cmd));
             cmd.ExecuteNonQuery();
         }
+
         tx.Commit();
     }
 
@@ -224,6 +229,7 @@ public class ChunkDbSqlite : IChunkDb
             Console.WriteLine($"File {filename} does not exist.");
             return [];
         }
+
         using SQLiteConnection conn = new(BuildConnectionString(filename));
         conn.Open();
         Dictionary<Vector3i, byte[]> result = [];
@@ -245,6 +251,7 @@ public class ChunkDbSqlite : IChunkDb
             Console.WriteLine("Cannot overwrite current running database. Choose another destination.");
             return;
         }
+
         if (File.Exists(filename))
         {
             Console.WriteLine($"File {filename} exists. Overwriting.");

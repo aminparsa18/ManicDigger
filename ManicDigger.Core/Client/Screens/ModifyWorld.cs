@@ -36,7 +36,7 @@ public class ModifyWorldScreen : ScreenBase
         Menu.DrawText(title, 14 * scale, GameService.CanvasWidth / 2, 0, TextAlign.Center, TextBaseline.Top);
 
         buttonBack.x = 40 * scale;
-        buttonBack.y = GameService.CanvasHeight - 104 * scale;
+        buttonBack.y = GameService.CanvasHeight - (104 * scale);
         buttonBack.sizex = 256 * scale;
         buttonBack.sizey = 64 * scale;
         buttonBack.fontSize = 14 * scale;
@@ -50,6 +50,9 @@ public class ModifyWorldScreen : ScreenBase
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
     {
-        if (w == buttonBack) { OnBackPressed(); }
+        if (w == buttonBack)
+        {
+            OnBackPressed();
+        }
     }
 }

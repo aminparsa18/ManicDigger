@@ -159,8 +159,8 @@ public class TreeGenerator : IMod
                     continue;
                 }
 
-                int bx = x + dx * length;
-                int by = y + dy * length;
+                int bx = x + (dx * length);
+                int by = y + (dy * length);
 
                 Set(bx, by, z, BLOCK_SPRUCETRUNK);
                 SetIfEmpty(bx, by, z + 1, BLOCK_SPRUCELEAVES);
@@ -254,8 +254,8 @@ public class TreeGenerator : IMod
                     continue;
                 }
 
-                int bx = x + dx * length;
-                int by = y + dy * length;
+                int bx = x + (dx * length);
+                int by = y + (dy * length);
 
                 Set(bx, by, z, BLOCK_BIRCHTRUNK);
                 SetIfEmpty(bx, by, z + 1, BLOCK_BIRCHLEAVES);

@@ -185,10 +185,14 @@ public class CrashReporter
         else
         {
             // Nudge the cursor visible in case the game hid it
-            for (int i = 0; i < 3; i++) { Cursor.Show(); Thread.Sleep(50); Application.DoEvents(); }
+            for (int i = 0; i < 3; i++)
+            {
+                Cursor.Show();
+                Thread.Sleep(50);
+                Application.DoEvents();
+            }
             MessageBox.Show(message, "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-
     }
 }
 
@@ -226,7 +230,7 @@ public static class GameStorePath
 
     public static bool IsValidName(string s)
     {
-        if (s.Length < 1 || s.Length > 32)
+        if (s.Length is < 1 or > 32)
         {
             return false;
         }

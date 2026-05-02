@@ -41,8 +41,14 @@
 /// block-type metadata (physics, sounds, special IDs) sent by the server.
 /// </para>
 /// </remarks>
-public class BlockTypeRegistry : IBlockTypeRegistry
+public class BlockRegistry : IBlockRegistry
 {
+    /// <summary>Block type definitions indexed by block type ID.</summary>
+    public Dictionary<int, BlockType> BlockTypes { get; set; } = [];
+
+    /// <summary>Pending block type definitions received from the server before map load.</summary>
+    public Dictionary<int, BlockType> NewBlockTypes { get; set; } = [];
+
     // ── Block-type property dictionaries (keyed by block ID) ──────────────────
 
     /// <summary>Maps a placed block ID to the block ID it converts into on placement.</summary>

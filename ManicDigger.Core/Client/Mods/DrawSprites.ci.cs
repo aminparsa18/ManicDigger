@@ -26,7 +26,7 @@ public class ModDrawSprites : ModBase
             if (b.animationcount > 0)
             {
                 float progress = 1f - (entity.expires.timeLeft / entity.expires.totalTime);
-                frame = (int)(progress * (b.animationcount * b.animationcount - 1));
+                frame = (int)(progress * ((b.animationcount * b.animationcount) - 1));
             }
 
             meshDrawer.GLMatrixModeModelView();

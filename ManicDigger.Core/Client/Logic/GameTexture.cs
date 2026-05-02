@@ -193,7 +193,7 @@ public partial class Game
             {
                 tile.Argb
                     .AsSpan(row * tilesize, tilesize)
-                    .CopyTo(atlas2d.Argb.AsSpan((destY + row) * atlas2d.Width + destX, tilesize));
+                    .CopyTo(atlas2d.Argb.AsSpan(((destY + row) * atlas2d.Width) + destX, tilesize));
             }
         }
 

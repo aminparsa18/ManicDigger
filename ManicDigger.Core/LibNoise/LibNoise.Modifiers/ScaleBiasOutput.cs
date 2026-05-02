@@ -21,5 +21,5 @@ public class ScaleBiasOutput : IModule
     }
 
     public float GetValue(float x, float y, float z)
-        => SourceModule.GetValue(x, y, z) * Scale + Bias;
+        => (SourceModule.GetValue(x, y, z) * Scale) + Bias;
 }

@@ -146,7 +146,7 @@ public partial class Server
                 int areaId;
                 ss = argument.Split([' ']);
 
-                if (ss.Length < 4 || ss.Length > 5)
+                if (ss.Length is < 4 or > 5)
                 {
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
@@ -209,7 +209,7 @@ public partial class Server
                 // argument: type target x y z
                 ss = argument.Split([' ']);
 
-                if (ss.Length < 3 || ss.Length > 5)
+                if (ss.Length is < 3 or > 5)
                 {
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
@@ -283,7 +283,7 @@ public partial class Server
                 // agrument:  x y z
                 ss = argument.Split([' ']);
 
-                if (ss.Length < 2 || ss.Length > 3)
+                if (ss.Length is < 2 or > 3)
                 {
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
@@ -386,7 +386,7 @@ public partial class Server
                 break;
             case "tp_pos":
                 ss = argument.Split([' ']);
-                if (ss.Length < 2 || ss.Length > 3)
+                if (ss.Length is < 2 or > 3)
                 {
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
@@ -436,7 +436,7 @@ public partial class Server
             case "teleport_player":
                 ss = argument.Split([' ']);
 
-                if (ss.Length < 3 || ss.Length > 4)
+                if (ss.Length is < 3 or > 4)
                 {
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
@@ -529,7 +529,7 @@ public partial class Server
                 //           0    1      2
                 // agrument: type target maxFill
                 ss = argument.Split([' ']);
-                if (ss.Length < 2 || ss.Length > 3)
+                if (ss.Length is < 2 or > 3)
                 {
                     SendMessage(sourceClientId, colorError + Language.Get("Server_CommandInvalidArgs"));
                     return;
@@ -561,7 +561,10 @@ public partial class Server
             default:
                 for (int i = 0; i < Systems.Count; i++)
                 {
-                    if (Systems[i] == null) { continue; }
+                    if (Systems[i] == null)
+                    {
+                        continue;
+                    }
                     try
                     {
                         if (Systems[i].OnCommand(this, sourceClientId, command, argument))

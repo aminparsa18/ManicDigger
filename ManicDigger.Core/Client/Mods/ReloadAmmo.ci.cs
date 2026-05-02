@@ -6,11 +6,13 @@
 public class ModReloadAmmo : ModBase
 {
     private readonly IGameService platform;
+    private readonly IBlockRegistry blockTypeRegistry;
     private readonly Random random;
 
-    public ModReloadAmmo(IGameService platform, IGame game) : base(game)
+    public ModReloadAmmo(IGameService platform, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
+        this.blockTypeRegistry = blockTypeRegistry;
         random = new Random();
     }
 
@@ -22,14 +24,14 @@ public class ModReloadAmmo : ModBase
         }
 
         float elapsed = (platform.TimeMillisecondsFromStart - Game.ReloadStartMilliseconds) / 1000f;
-        float reloadDelay = Game.BlockTypes[Game.ReloadBlock].ReloadDelay;
+        float reloadDelay = blockTypeRegistry.BlockTypes[Game.ReloadBlock].ReloadDelay;
         if (elapsed <= reloadDelay)
         {
             return;
         }
 
         int blockId = Game.ReloadBlock;
-        Game.LoadedAmmo[blockId] = Math.Min(Game.BlockTypes[blockId].AmmoMagazine, Game.TotalAmmo[blockId]);
+        Game.LoadedAmmo[blockId] = Math.Min(blockTypeRegistry.BlockTypes[blockId].AmmoMagazine, Game.TotalAmmo[blockId]);
         Game.ReloadStartMilliseconds = 0;
         Game.ReloadBlock = -1;
     }
@@ -52,7 +54,7 @@ public class ModReloadAmmo : ModBase
             return;
         }
 
-        if (!Game.BlockTypes[item.BlockId].IsPistol)
+        if (!blockTypeRegistry.BlockTypes[item.BlockId].IsPistol)
         {
             return;
         }
@@ -62,7 +64,7 @@ public class ModReloadAmmo : ModBase
             return;
         }
 
-        var sounds = Game.BlockTypes[item.BlockId].Sounds;
+        var sounds = blockTypeRegistry.BlockTypes[item.BlockId].Sounds;
         int sound = random.Next() % sounds.Reload.Length;
         Game.PlayAudio(sounds.Reload[sound] + ".ogg");
         Game.ReloadStartMilliseconds = platform.TimeMillisecondsFromStart;

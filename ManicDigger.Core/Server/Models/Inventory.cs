@@ -76,7 +76,10 @@ public class InventoryUtil
         {
             foreach (var pp in ItemCells(new Point(k.Key.X, k.Key.Y)))
             {
-                if (p.X == pp.X && p.Y == pp.Y) { return new Point(k.Key.X, k.Key.Y); }
+                if (p.X == pp.X && p.Y == pp.Y)
+                {
+                    return new Point(k.Key.X, k.Key.Y);
+                }
             }
         }
         return null;
@@ -484,17 +487,23 @@ public class InventoryServer : IInventoryController
 }
 public class GameDataItemsBlocks : IGameDataItems
 {
-    public BlockTypeRegistry? d_Data;
+    public BlockRegistry? d_Data;
 
     public int ItemSizeX(InventoryItem item)
     {
-        if (item.InventoryItemType == InventoryItemType.Block) { return 1; }
+        if (item.InventoryItemType == InventoryItemType.Block)
+        {
+            return 1;
+        }
         throw new NotImplementedException();
     }
 
     public int ItemSizeY(InventoryItem item)
     {
-        if (item.InventoryItemType == InventoryItemType.Block) { return 1; }
+        if (item.InventoryItemType == InventoryItemType.Block)
+        {
+            return 1;
+        }
         throw new NotImplementedException();
     }
 
@@ -526,8 +535,14 @@ public class GameDataItemsBlocks : IGameDataItems
 
     public bool CanWear(WearPlace selectedWear, InventoryItem item)
     {
-        if (item == null) { return true; }
-        if (item == null) { return true; }
+        if (item == null)
+        {
+            return true;
+        }
+        if (item == null)
+        {
+            return true;
+        }
         return selectedWear switch
         {
             //case WearPlace.LeftHand: return false;

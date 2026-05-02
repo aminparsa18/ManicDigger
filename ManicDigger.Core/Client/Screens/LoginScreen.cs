@@ -123,9 +123,9 @@ public class LoginScreen : ScreenBase
 
         Menu.DrawBackground();
 
-        float leftx = GameService.CanvasWidth / 2 - 400 * scale;
-        float rightx = GameService.CanvasWidth / 2 + 150 * scale;
-        float y = GameService.CanvasHeight / 2 - 250 * scale;
+        float leftx = (GameService.CanvasWidth / 2) - (400 * scale);
+        float rightx = (GameService.CanvasWidth / 2) + (150 * scale);
+        float y = (GameService.CanvasHeight / 2) - (250 * scale);
 
         string loginResultText = loginResult switch
         {
@@ -136,21 +136,21 @@ public class LoginScreen : ScreenBase
 
         if (loginResultText != null)
         {
-            Menu.DrawText(loginResultText, 14 * scale, leftx, y - 50 * scale, TextAlign.Left, TextBaseline.Top);
+            Menu.DrawText(loginResultText, 14 * scale, leftx, y - (50 * scale), TextAlign.Left, TextBaseline.Top);
         }
 
-        Menu.DrawText(title, 14 * scale, leftx, y + 50 * scale, TextAlign.Left, TextBaseline.Top);
+        Menu.DrawText(title, 14 * scale, leftx, y + (50 * scale), TextAlign.Left, TextBaseline.Top);
 
-        LayoutWidget(textboxUsername, leftx, y + 100 * scale, scale);
-        LayoutWidget(textboxPassword, leftx, y + 200 * scale, scale);
-        LayoutWidget(buttonRememberMe, leftx, y + 300 * scale, scale);
-        LayoutWidget(buttonLogin, leftx, y + 400 * scale, scale);
+        LayoutWidget(textboxUsername, leftx, y + (100 * scale), scale);
+        LayoutWidget(textboxPassword, leftx, y + (200 * scale), scale);
+        LayoutWidget(buttonRememberMe, leftx, y + (300 * scale), scale);
+        LayoutWidget(buttonLogin, leftx, y + (400 * scale), scale);
 
         // Create-account column — laid out but hidden pending a future registration flow.
-        LayoutWidget(textboxCreateUsername, rightx, y + 100 * scale, scale);
-        LayoutWidget(textboxCreatePassword, rightx, y + 200 * scale, scale);
-        LayoutWidget(buttonCreateRememberMe, rightx, y + 300 * scale, scale);
-        LayoutWidget(buttonCreateAccount, rightx, y + 400 * scale, scale);
+        LayoutWidget(textboxCreateUsername, rightx, y + (100 * scale), scale);
+        LayoutWidget(textboxCreatePassword, rightx, y + (200 * scale), scale);
+        LayoutWidget(buttonCreateRememberMe, rightx, y + (300 * scale), scale);
+        LayoutWidget(buttonCreateAccount, rightx, y + (400 * scale), scale);
 
         textboxCreateUsername.visible = false;
         textboxCreatePassword.visible = false;
@@ -158,7 +158,7 @@ public class LoginScreen : ScreenBase
         buttonCreateAccount.visible = false;
 
         buttonBack.x = 40 * scale;
-        buttonBack.y = GameService.CanvasHeight - 104 * scale;
+        buttonBack.y = GameService.CanvasHeight - (104 * scale);
         buttonBack.sizex = 256 * scale;
         buttonBack.sizey = 64 * scale;
         buttonBack.fontSize = 14 * scale;

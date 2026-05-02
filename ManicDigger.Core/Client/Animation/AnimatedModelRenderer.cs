@@ -85,9 +85,18 @@ public class AnimatedModelRenderer
     /// <param name="light">Light intensity applied to the model, in the range 0-1.</param>
     public void Render(float dt, float headDeg, bool walkAnimation, bool moves, float light)
     {
-        if (m == null) { return; }
-        if (m.Animations == null) { return; }
-        if (m.Animations[anim] == null) { return; }
+        if (m == null)
+        {
+            return;
+        }
+        if (m.Animations == null)
+        {
+            return;
+        }
+        if (m.Animations[anim] == null)
+        {
+            return;
+        }
         float length = m.Animations[anim].Length;
         if (moves)
         {
@@ -152,9 +161,18 @@ public class AnimatedModelRenderer
 
             // Rotation — applied per axis to match GL convention
             Vector3 rotation = GetAnimation(n, KeyframeType.Rotation);
-            if (rotation.X != 0) { meshDrawer.GLRotate(rotation.X, 1, 0, 0); }
-            if (rotation.Y != 0) { meshDrawer.GLRotate(rotation.Y, 0, 1, 0); }
-            if (rotation.Z != 0) { meshDrawer.GLRotate(rotation.Z, 0, 0, 1); }
+            if (rotation.X != 0)
+            {
+                meshDrawer.GLRotate(rotation.X, 1, 0, 0);
+            }
+            if (rotation.Y != 0)
+            {
+                meshDrawer.GLRotate(rotation.Y, 0, 1, 0);
+            }
+            if (rotation.Z != 0)
+            {
+                meshDrawer.GLRotate(rotation.Z, 0, 0, 1);
+            }
 
             // Head pitch — applied after rotation so it compounds correctly
             if (n.Head == 1)

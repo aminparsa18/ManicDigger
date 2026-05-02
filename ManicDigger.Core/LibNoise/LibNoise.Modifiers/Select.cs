@@ -108,9 +108,9 @@ public class Select : IModule
 
     /// <summary>Cubic S-curve: 3t² - 2t³.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float SCurve3(float t) => t * t * (3f - 2f * t);
+    private static float SCurve3(float t) => t * t * (3f - (2f * t));
 
     /// <summary>Inline linear interpolation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float Lerp(float a, float b, float t) => a + t * (b - a);
+    private static float Lerp(float a, float b, float t) => a + (t * (b - a));
 }

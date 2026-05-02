@@ -7,10 +7,10 @@ public class ModDraw2dMisc : ModBase
     private readonly IGameService platform;
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IVoxelMap voxelMap;
-    private readonly IBlockTypeRegistry blockTypeRegistry;
+    private readonly IBlockRegistry blockTypeRegistry;
 
     public ModDraw2dMisc(IOpenGlService platformOpenGl, IGameService platform, ISinglePlayerService singlePlayerService,
-        IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
+        IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platformOpenGl = platformOpenGl;
         this.platform = platform;
@@ -78,7 +78,7 @@ public class ModDraw2dMisc : ModBase
             float progress = health / blockTypeRegistry.Strength[blocktype];
 
             // Cache the translated name — used in up to two calls below.
-            string name = game.Language.Get("Block_" + game.BlockTypes[blocktype].Name);
+            string name = game.Language.Get("Block_" + blockTypeRegistry.BlockTypes[blocktype].Name);
 
             if (Game.IsUsableBlock(blocktype))
             {
@@ -160,8 +160,8 @@ public class ModDraw2dMisc : ModBase
         }
 
         game.Draw2dBitmapFile("target.png",
-            platform.CanvasWidth / 2 - AimSize / 2,
-            platform.CanvasHeight / 2 - AimSize / 2,
+            (platform.CanvasWidth / 2) - (AimSize / 2),
+            (platform.CanvasHeight / 2) - (AimSize / 2),
             AimSize, AimSize);
     }
 
@@ -190,7 +190,7 @@ public class ModDraw2dMisc : ModBase
             return;
         }
 
-        if (!game.BlockTypes[item.BlockId].IsPistol)
+        if (!blockTypeRegistry.BlockTypes[item.BlockId].IsPistol)
         {
             return;
         }
@@ -274,6 +274,6 @@ public class ModDraw2dMisc : ModBase
 
         const string Reconnect = "Press F6 to reconnect";
         Game.Draw2dText1(Reconnect,
-            platform.CanvasWidth / 2 - 200 / 2, 50, 12, null, false);
+            (platform.CanvasWidth / 2) - (200 / 2), 50, 12, null, false);
     }
 }

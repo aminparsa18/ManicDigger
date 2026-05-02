@@ -92,7 +92,7 @@ public class LightBetweenChunks
     /// <param name="sizeX">Number of columns per row.</param>
     /// <param name="sizeY">Number of rows per layer.</param>
     /// <returns>The corresponding flat array index.</returns>
-    private static int Index3d(int x, int y, int z, int sizeX, int sizeY) => (z * sizeY + y) * sizeX + x;
+    private static int Index3d(int x, int y, int z, int sizeX, int sizeY) => (((z * sizeY) + y) * sizeX) + x;
 
     /// <summary>
     /// Loads block and base light data from each chunk in the 3×3×3 neighbourhood

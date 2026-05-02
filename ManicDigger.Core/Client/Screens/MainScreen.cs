@@ -78,9 +78,9 @@ public class MainScreen : ScreenBase, IMainScreen
 
         Menu.DrawBackground();
         Menu.Draw2dQuad(Menu.GetTexture("logo.png"),
-            windowX / 2 - 1024 * scale / 2, 0, 1024 * scale, 512 * scale);
+            (windowX / 2) - (1024 * scale / 2), 0, 1024 * scale, 512 * scale);
 
-        float centerX = windowX / 2 - ButtonWidth / 2 * scale;
+        float centerX = (windowX / 2) - (ButtonWidth / 2 * scale);
 
         buttonSingleplayer.x = centerX;
         buttonSingleplayer.y = ButtonY(3, scale);
@@ -106,7 +106,7 @@ public class MainScreen : ScreenBase, IMainScreen
     /// measured from the bottom of the canvas.
     /// </summary>
     private float ButtonY(int slot, float scale)
-        => windowY - slot * (ButtonHeight * scale + SpaceBetween) - OffsetFromBorder * scale;
+        => windowY - (slot * ((ButtonHeight * scale) + SpaceBetween)) - (OffsetFromBorder * scale);
 
     /// <summary>
     /// On the first call, checks the page query string for <c>ip</c> and <c>port</c>
@@ -114,7 +114,10 @@ public class MainScreen : ScreenBase, IMainScreen
     /// </summary>
     private void UseQueryStringIpAndPort()
     {
-        if (queryStringChecked) { return; }
+        if (queryStringChecked)
+        {
+            return;
+        }
 
         queryStringChecked = true;
 
@@ -132,11 +135,23 @@ public class MainScreen : ScreenBase, IMainScreen
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
     {
-        if (w == buttonSingleplayer) { Menu.StartSingleplayer(); return; }
+        if (w == buttonSingleplayer)
+        {
+            Menu.StartSingleplayer();
+            return;
+        }
 
-        if (w == buttonMultiplayer) { Menu.StartMultiplayer(); return; }
+        if (w == buttonMultiplayer)
+        {
+            Menu.StartMultiplayer();
+            return;
+        }
 
-        if (w == buttonExit) { Environment.Exit(0); return; }
+        if (w == buttonExit)
+        {
+            Environment.Exit(0);
+            return;
+        }
     }
 
     /// <inheritdoc/>

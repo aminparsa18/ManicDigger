@@ -34,15 +34,15 @@ public class ModDialog : ModBase
                 continue;
             }
 
-            d.screen.screenx = platform.CanvasWidth / 2 - d.value.Width / 2;
-            d.screen.screeny = platform.CanvasHeight / 2 - d.value.Height / 2;
+            d.screen.screenx = (platform.CanvasWidth / 2) - (d.value.Width / 2);
+            d.screen.screeny = (platform.CanvasHeight / 2) - (d.value.Height / 2);
             d.screen.DrawWidgets(game);
         }
     }
 
     public override void OnKeyPress(KeyPressEventArgs args)
     {
-        if (Game.GuiState != GuiState.ModalDialog && Game.GuiState != GuiState.Normal)
+        if (Game.GuiState is not GuiState.ModalDialog and not GuiState.Normal)
         {
             return;
         }

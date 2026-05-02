@@ -5,9 +5,9 @@
 public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
 {
     private readonly IVoxelMap voxelMap;
-    private readonly IBlockTypeRegistry blockTypeRegistry;
+    private readonly IBlockRegistry blockTypeRegistry;
 
-    public ClientPacketHandlerEntitySpawn(IGameService gameService, IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(gameService, game)
+    public ClientPacketHandlerEntitySpawn(IGameService gameService, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGame game) : base(gameService, game)
     {
         this.voxelMap = voxelMap;
         this.blockTypeRegistry = blockTypeRegistry;

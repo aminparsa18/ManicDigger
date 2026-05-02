@@ -236,7 +236,7 @@ public class ServerSystemLoadConfig : ServerSystem
 
         if (int.TryParse(line, out int port))
         {
-            if (port > 0 && port <= 65565)
+            if (port is > 0 and <= 65565)
             {
                 return port;
             }

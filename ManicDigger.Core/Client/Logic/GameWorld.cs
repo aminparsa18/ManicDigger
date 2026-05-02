@@ -47,13 +47,13 @@ public partial class Game
     /// to pass through it (everything except solid blocks and closed doors).
     /// </summary>
     public static bool IsTransparentForLight(BlockType b)
-        => b.DrawType != DrawType.Solid
-        && b.DrawType != DrawType.ClosedDoor;
+        => b.DrawType is not DrawType.Solid
+        and not DrawType.ClosedDoor;
 
     /// <summary>
     /// Returns <see langword="true"/> when the block at this ID has a name assigned.
     /// </summary>
-    public bool IsValid(int blocktype) => BlockTypes[blocktype].Name != null;
+    public bool IsValid(int blocktype) => _blockRegistry.BlockTypes[blocktype].Name != null;
 
     /// <summary>
     /// Fix #1: use registry ID instead of name-based string check.
@@ -61,7 +61,7 @@ public partial class Game
     /// </summary>
     public bool IsWater(int blockType)
     {
-        string name = BlockTypes[blockType].Name;
+        string name = _blockRegistry.BlockTypes[blockType].Name;
         return name != null && name.Contains("Water");
     }
 
@@ -70,23 +70,23 @@ public partial class Game
     /// Returns <see langword="true"/> when the block is the registered lava block.
     /// </summary>
     internal bool IsLava(int blockType)
-        => BlockRegistry.BlockIdLava >= 0 && blockType == BlockRegistry.BlockIdLava;
+        => _blockRegistry.BlockIdLava >= 0 && blockType == _blockRegistry.BlockIdLava;
 
     /// <summary>
     /// Returns <see langword="true"/> when <paramref name="blocktype"/> is one of
     /// the fill/cuboid tool blocks that should not be treated as real terrain.
     /// </summary>
     public bool IsFillBlock(int blocktype)
-        => blocktype == BlockRegistry.BlockIdFillArea
-        || blocktype == BlockRegistry.BlockIdFillStart
-        || blocktype == BlockRegistry.BlockIdCuboid;
+        => blocktype == _blockRegistry.BlockIdFillArea
+        || blocktype == _blockRegistry.BlockIdFillStart
+        || blocktype == _blockRegistry.BlockIdCuboid;
 
     /// <summary>
     /// Returns <see langword="true"/> when the block can be interacted with
     /// (rail tiles or blocks with the <c>IsUsable</c> flag).
     /// </summary>
     public bool IsUsableBlock(int blocktype)
-        => BlockRegistry.IsRailTile(blocktype) || BlockTypes[blocktype].IsUsable;
+        => _blockRegistry.IsRailTile(blocktype) || _blockRegistry.BlockTypes[blocktype].IsUsable;
 
     /// <summary>
     /// Returns <see langword="true"/> when the tile at the given position does
@@ -113,7 +113,7 @@ public partial class Game
 
         int block = voxelMap.GetBlockValid(x, y, z);
         return block == SpecialBlockId.Empty
-            || block == BlockRegistry.BlockIdFillArea
+            || block == _blockRegistry.BlockIdFillArea
             || IsWater(block);
     }
 
@@ -133,7 +133,7 @@ public partial class Game
             return false;
         }
 
-        BlockType bt = BlockTypes[voxelMap.GetBlock(x, y, z)];
+        BlockType bt = _blockRegistry.BlockTypes[voxelMap.GetBlock(x, y, z)];
         return bt.DrawType == DrawType.HalfHeight || IsEmptyForPhysics(bt);
     }
 
@@ -209,7 +209,7 @@ public partial class Game
         if (currentHeight > 0)
         {
             int blockAtHeight = voxelMap.GetBlock(x, y, currentHeight);
-            if (!IsTransparentForLight(BlockTypes[blockAtHeight]))
+            if (!IsTransparentForLight(_blockRegistry.BlockTypes[blockAtHeight]))
             {
                 // The current recorded height is still solid — no change needed
                 // unless a block was placed above it (full scan still required
@@ -223,7 +223,7 @@ public partial class Game
         for (int i = voxelMap.MapSizeZ - 1; i >= 0; i--)
         {
             height = i;
-            if (!IsTransparentForLight(BlockTypes[voxelMap.GetBlock(x, y, i)]))
+            if (!IsTransparentForLight(_blockRegistry.BlockTypes[voxelMap.GetBlock(x, y, i)]))
             {
                 break;
             }
@@ -260,9 +260,9 @@ public partial class Game
             {
                 for (int zz = 0; zz < 3; zz++)
                 {
-                    int cx = x / GameConstants.CHUNK_SIZE + xx - 1;
-                    int cy = y / GameConstants.CHUNK_SIZE + yy - 1;
-                    int cz = z / GameConstants.CHUNK_SIZE + zz - 1;
+                    int cx = (x / GameConstants.CHUNK_SIZE) + xx - 1;
+                    int cy = (y / GameConstants.CHUNK_SIZE) + yy - 1;
+                    int cz = (z / GameConstants.CHUNK_SIZE) + zz - 1;
                     if (voxelMap.IsValidChunkPos(cx, cy, cz))
                     {
                         voxelMap.SetChunkDirty(cx, cy, cz, true, false);
@@ -281,7 +281,7 @@ public partial class Game
     public float GetCurrentBlockHealth(int x, int y, int z)
         => blockHealth.TryGetValue((x, y, z), out float health)
             ? health
-            : BlockRegistry.Strength[voxelMap.GetBlock(x, y, z)];
+            : _blockRegistry.Strength[voxelMap.GetBlock(x, y, z)];
 
     // ── Speculative block placement ───────────────────────────────────────────
 

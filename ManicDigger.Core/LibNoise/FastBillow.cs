@@ -57,19 +57,31 @@ public sealed class FastBillow : FastNoiseBasis, IModule
     public float Frequency
     {
         get => _frequency;
-        set { _frequency = value; _tablesDirty = true; }
+        set
+        {
+            _frequency = value;
+            _tablesDirty = true;
+        }
     }
 
     public float Lacunarity
     {
         get => _lacunarity;
-        set { _lacunarity = value; _tablesDirty = true; }
+        set
+        {
+            _lacunarity = value;
+            _tablesDirty = true;
+        }
     }
 
     public float Persistence
     {
         get => _persistence;
-        set { _persistence = value; _tablesDirty = true; }
+        set
+        {
+            _persistence = value;
+            _tablesDirty = true;
+        }
     }
 
     public int OctaveCount
@@ -118,7 +130,7 @@ public sealed class FastBillow : FastNoiseBasis, IModule
             // Billow fold: reflect negative values upward and rescale to [-1, 1].
             // MathF.Abs compiles to ANDPS (clears sign bit — one instruction).
             // The 2×|signal|−1 expression then maps [0,1] → [-1,1] before weighting.
-            sum += (2f * MathF.Abs(signal) - 1f) * _amplitudes[i];
+            sum += ((2f * MathF.Abs(signal)) - 1f) * _amplitudes[i];
         }
 
         // Lift output to approximately [0, 1].

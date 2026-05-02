@@ -90,7 +90,7 @@ public class ServerSystemNotifyMap : ServerSystem
                     int dx = px - x;
                     int dy = py - y;
                     int dz = pz - z;
-                    int dist = dx * dx + dy * dy + dz * dz;
+                    int dist = (dx * dx) + (dy * dy) + (dz * dz);
 
                     if (dist < nearestDist)
                     {

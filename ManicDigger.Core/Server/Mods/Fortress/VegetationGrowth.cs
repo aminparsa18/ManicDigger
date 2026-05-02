@@ -69,10 +69,22 @@ public class VegetationGrowth : IMod
             if (m.IsValidPos(x, y, z + 1))
             {
                 int blockabove = m.GetBlock(x, y, z + 1);
-                if (blockabove == Crops1) { blockabove = Crops2; }
-                else if (blockabove == Crops2) { blockabove = Crops3; }
-                else if (blockabove == Crops3) { blockabove = Crops4; }
-                else { return; }
+                if (blockabove == Crops1)
+                {
+                    blockabove = Crops2;
+                }
+                else if (blockabove == Crops2)
+                {
+                    blockabove = Crops3;
+                }
+                else if (blockabove == Crops3)
+                {
+                    blockabove = Crops4;
+                }
+                else
+                {
+                    return;
+                }
                 m.SetBlock(x, y, z + 1, blockabove);
             }
         }
@@ -267,11 +279,16 @@ public class VegetationGrowth : IMod
                         PlaceIfEmpty(x + xx, y + yy, z + i, TileIdTreeTrunk);
                         float appleChance = isAppleTree ? 0.45f : 0f;
                         int tile;
-                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves; PlaceIfEmpty(x + xx, y + yy, z + i + 1, tile);
-                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves; PlaceIfEmpty(x + xx + 1, y + yy, z + i, tile);
-                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves; PlaceIfEmpty(x + xx - 1, y + yy, z + i, tile);
-                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves; PlaceIfEmpty(x + xx, y + yy + 1, z + i, tile);
-                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves; PlaceIfEmpty(x + xx, y + yy - 1, z + i, tile);
+                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves;
+                        PlaceIfEmpty(x + xx, y + yy, z + i + 1, tile);
+                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves;
+                        PlaceIfEmpty(x + xx + 1, y + yy, z + i, tile);
+                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves;
+                        PlaceIfEmpty(x + xx - 1, y + yy, z + i, tile);
+                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves;
+                        PlaceIfEmpty(x + xx, y + yy + 1, z + i, tile);
+                        tile = rnd.NextDouble() < appleChance ? TileIdApples : TileIdLeaves;
+                        PlaceIfEmpty(x + xx, y + yy - 1, z + i, tile);
                     }
                 }
             }
@@ -284,7 +301,11 @@ public class VegetationGrowth : IMod
         int block = m.GetBlock(x, y, z);
         if (block == BrownMushroom || block == RedMushroom)
         {
-            if (rnd.NextDouble() < 0.2) { m.SetBlock(x, y, z, 0); return; }
+            if (rnd.NextDouble() < 0.2)
+            {
+                m.SetBlock(x, y, z, 0);
+                return;
+            }
             if (!IsShadow(x, y, z - 1))
             {
                 m.SetBlock(x, y, z, 0);
@@ -307,7 +328,11 @@ public class VegetationGrowth : IMod
         int block = m.GetBlock(x, y, z);
         if (block == YellowFlowerDecorations || block == RedRoseDecorations)
         {
-            if (rnd.NextDouble() < 0.02) { m.SetBlock(x, y, z, 0); return; }
+            if (rnd.NextDouble() < 0.02)
+            {
+                m.SetBlock(x, y, z, 0);
+                return;
+            }
             if (IsShadow(x, y, z - 1))
             {
                 m.SetBlock(x, y, z, 0);

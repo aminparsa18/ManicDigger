@@ -202,7 +202,7 @@ public class War : IMod
             {
                 Id = $"Class{i + 1}",
                 Text = string.Format("Press {0} for {1}", i + 1, classes[i]),
-                X = 50 + 250 * i,
+                X = 50 + (250 * i),
                 Y = 400,
                 ClickKey = (i + 1).ToString()[0]
             };
@@ -246,7 +246,7 @@ public class War : IMod
             {
                 Id = $"Subclass{i + 1}",
                 Text = string.Format("Press {0} for {1}", i + 1, subclasses[i]),
-                X = 50 + 275 * i,
+                X = 50 + (275 * i),
                 Y = 400,
                 ClickKey = (i + 1).ToString()[0]
             };
@@ -331,7 +331,7 @@ public class War : IMod
             m.SendMessageToAll(string.Format("{0} becomes a &7 spectator&f.", m.GetPlayerName(playerid)));
             ClearInventory(playerid);
         }
-        if (widget == "Team1" || widget == "Team2" || widget == "Team3")
+        if (widget is "Team1" or "Team2" or "Team3")
         {
             if (!spawnedBot)
             {
@@ -364,7 +364,7 @@ public class War : IMod
             players[playerid].playerclass = PlayerClass.Support;
             ShowSubclassSelectionDialog(playerid);
         }
-        if (widget == "Class1" || widget == "Class2" || widget == "Class3")
+        if (widget is "Class1" or "Class2" or "Class3")
         {
             m.SendDialog(playerid, "SelectClass" + playerid, null);
         }
@@ -372,7 +372,7 @@ public class War : IMod
 
     private void DialogClickSelectSubclass(int playerid, string widget)
     {
-        if (!(widget == "Subclass1" || widget == "Subclass2" || widget == "Subclass3"))
+        if (widget is not ("Subclass1" or "Subclass2" or "Subclass3"))
         {
             return;
         }
@@ -658,7 +658,7 @@ public class War : IMod
             float dx = x1 - x2;
             float dy = y1 - y2;
             float dz = z1 - z2;
-            float dist = MathF.Sqrt(dx * dx + dy * dy + dz * dz);
+            float dist = MathF.Sqrt((dx * dx) + (dy * dy) + (dz * dz));
             dx = dx / dist * 0.1f;
             dy = dy / dist * 0.1f;
             dz = dz / dist * 0.1f;
@@ -667,8 +667,14 @@ public class War : IMod
         int health = m.GetPlayerHealth(targetplayer);
         int dmghead = 50;
         int dmgbody = 15;
-        if (m.GetBlockType(block).DamageHead != 0) { dmghead = (int)m.GetBlockType(block).DamageHead; }
-        if (m.GetBlockType(block).DamageBody != 0) { dmgbody = (int)m.GetBlockType(block).DamageBody; }
+        if (m.GetBlockType(block).DamageHead != 0)
+        {
+            dmghead = (int)m.GetBlockType(block).DamageHead;
+        }
+        if (m.GetBlockType(block).DamageBody != 0)
+        {
+            dmgbody = (int)m.GetBlockType(block).DamageBody;
+        }
         health -= head ? dmghead : dmgbody;
         if (health <= 0)
         {
@@ -749,10 +755,10 @@ public class War : IMod
 
         // text to draw
         string row1 = m.ServerName;
-        row1 = CutText(row1, HeadingFont, tableWidth - 2 * tablePadding);
+        row1 = CutText(row1, HeadingFont, tableWidth - (2 * tablePadding));
 
         string row2 = m.ServerMotd;
-        row2 = CutText(row2, SmallFontBold, tableWidth - 2 * tablePadding);
+        row2 = CutText(row2, SmallFontBold, tableWidth - (2 * tablePadding));
 
         string row3_1 = $"IP: {m.ServerIp}:{m.ServerPort}";
         string row3_2 = $"{(int)(m.GetPlayerPing(player) * 1000)}ms";
@@ -765,12 +771,12 @@ public class War : IMod
         //string row5_3 = "Ping";
 
         // row heights
-        float row1Height = TextHeight(row1, HeadingFont) + 2 * tablePadding;
-        float row2Height = TextHeight(row2, SmallFontBold) + 2 * tablePadding;
-        float row3Height = TextHeight(row3_1, SmallFont) + 2 * tablePadding;
-        float row4Height = TextHeight(row4_1, SmallFont) + 2 * tablePadding;
-        float row5Height = TextHeight(row5_1, NormalFontBold) + 2 * tablePadding;
-        float listEntryHeight = TextHeight("Player", NormalFont) + 2 * listEntryPaddingTopBottom;
+        float row1Height = TextHeight(row1, HeadingFont) + (2 * tablePadding);
+        float row2Height = TextHeight(row2, SmallFontBold) + (2 * tablePadding);
+        float row3Height = TextHeight(row3_1, SmallFont) + (2 * tablePadding);
+        float row4Height = TextHeight(row4_1, SmallFont) + (2 * tablePadding);
+        float row5Height = TextHeight(row5_1, NormalFontBold) + (2 * tablePadding);
+        float listEntryHeight = TextHeight("Player", NormalFont) + (2 * listEntryPaddingTopBottom);
 
         float heightOffset = 0;
 
@@ -830,7 +836,7 @@ public class War : IMod
             for (int i = 0; i < players.Count; i++)
             {
                 string s = string.Format("{0} {1}ms {2} kills", m.GetPlayerName(players[i]), (int)(m.GetPlayerPing(players[i]) * 1000), this.players[players[i]].kills);
-                widgets.Add(Widget.MakeText(s, NormalFont, tableX + 200 * t, tableY + heightOffset + listEntryHeight * i, Color.White.ToArgb()));
+                widgets.Add(Widget.MakeText(s, NormalFont, tableX + (200 * t), tableY + heightOffset + (listEntryHeight * i), Color.White.ToArgb()));
             }
         }
 
@@ -893,9 +899,9 @@ public class War : IMod
         return false;
     }
 
-    private static float XCenter(float outerWidth, float innerWidth) => outerWidth / 2 - innerWidth / 2;
+    private static float XCenter(float outerWidth, float innerWidth) => (outerWidth / 2) - (innerWidth / 2);
 
-    private static float YCenter(float outerHeight, float innerHeight) => outerHeight / 2 - innerHeight / 2;
+    private static float YCenter(float outerHeight, float innerHeight) => (outerHeight / 2) - (innerHeight / 2);
 
     private float TextWidth(string text, DialogFont font) => m.MeasureTextSize(text, font)[0];
 
@@ -912,7 +918,7 @@ public class War : IMod
 
     private void OnTabResponse(int player, string widgetid)
     {
-        if (widgetid == "Tab" || widgetid == "Esc")
+        if (widgetid is "Tab" or "Esc")
         {
             m.SendDialog(player, "PlayerList", null);
             tabOpen.Remove(m.GetPlayerName(player));
@@ -945,13 +951,31 @@ public class War : IMod
         Inventory inv = m.GetInventory(player);
         InventoryItem item = inv.RightHand[m.GetActiveMaterialSlot(player)];
         int blockid = 0;
-        if (item != null && item.InventoryItemType == InventoryItemType.Block) { blockid = item.BlockId; }
+        if (item != null && item.InventoryItemType == InventoryItemType.Block)
+        {
+            blockid = item.BlockId;
+        }
         string model = "playerwar.txt";
-        if (blockid == m.GetBlockId("Pistol")) { model = "playerwarpistol.txt"; }
-        if (blockid == m.GetBlockId("SubmachineGun")) { model = "playerwarsubmachinegun.txt"; }
-        if (blockid == m.GetBlockId("Shotgun")) { model = "playerwarshotgun.txt"; }
-        if (blockid == m.GetBlockId("Rifle")) { model = "playerwarrifle.txt"; }
-        if (players[player].isdead) { model = "playerwardead.txt"; }
+        if (blockid == m.GetBlockId("Pistol"))
+        {
+            model = "playerwarpistol.txt";
+        }
+        if (blockid == m.GetBlockId("SubmachineGun"))
+        {
+            model = "playerwarsubmachinegun.txt";
+        }
+        if (blockid == m.GetBlockId("Shotgun"))
+        {
+            model = "playerwarshotgun.txt";
+        }
+        if (blockid == m.GetBlockId("Rifle"))
+        {
+            model = "playerwarrifle.txt";
+        }
+        if (players[player].isdead)
+        {
+            model = "playerwardead.txt";
+        }
         m.SetPlayerHeight(player, 2.2f, 2.4f);
         Team team = players[player].team;
         switch (team)

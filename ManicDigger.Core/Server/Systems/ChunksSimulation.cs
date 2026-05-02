@@ -172,8 +172,8 @@ public class ServerSystemChunksSimulation : ServerSystem
                     for (int z = 0; z < zDrawDistance; z++)
                     {
                         Vector3i p = new(
-                            playerPos.X + x * Server.ChunkSize,
-                            playerPos.Y + y * Server.ChunkSize,
+                            playerPos.X + (x * Server.ChunkSize),
+                            playerPos.Y + (y * Server.ChunkSize),
                             z * Server.ChunkSize);
 
                         if (VectorUtils.IsValidPos(server.Map, p.X, p.Y, p.Z))

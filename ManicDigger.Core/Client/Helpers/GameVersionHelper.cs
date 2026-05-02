@@ -45,5 +45,5 @@ public static class GameVersionHelper
 
     /// <summary>Encodes a date as a comparable integer in the form <c>yyyyMMdd</c>.</summary>
     private static int DateToInt(int year, int month, int day)
-        => year * 10000 + month * 100 + day;
+        => (year * 10000) + (month * 100) + day;
 }

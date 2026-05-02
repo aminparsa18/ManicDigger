@@ -5,7 +5,7 @@ public class EntityHeading
         float deltaX = targetx - posx;
         float deltaY = targety - posy;
         //Angle to x-axis: cos(beta) = x / |length|
-        double headingDeg = 360.0 / (2.0 * Math.PI) * Math.Acos(deltaX / Math.Sqrt(deltaX * deltaX + deltaY * deltaY)) + 90.0;
+        double headingDeg = (360.0 / (2.0 * Math.PI) * Math.Acos(deltaX / Math.Sqrt((deltaX * deltaX) + (deltaY * deltaY)))) + 90.0;
         //Add 2 Pi if value is negative
         if (deltaY < 0)
         {

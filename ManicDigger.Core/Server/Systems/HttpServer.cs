@@ -40,8 +40,14 @@ public class ServerSystemHttpServer : ServerSystem
                 var context = await _listener.GetContextAsync();
                 _ = Task.Run(() => RouteRequest(server, context), ct);
             }
-            catch (HttpListenerException) { break; }
-            catch (ObjectDisposedException) { break; }
+            catch (HttpListenerException)
+            {
+                break;
+            }
+            catch (ObjectDisposedException)
+            {
+                break;
+            }
         }
     }
 

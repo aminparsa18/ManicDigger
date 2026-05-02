@@ -141,10 +141,10 @@ public class Quad
             byte[] rgba = ArrayPool<byte>.Shared.Rent(ColorComponents * VertexCount);
             for (int i = 0; i < VertexCount; i++)
             {
-                rgba[i * ColorComponents + 0] = r;
-                rgba[i * ColorComponents + 1] = g;
-                rgba[i * ColorComponents + 2] = b;
-                rgba[i * ColorComponents + 3] = a;
+                rgba[(i * ColorComponents) + 0] = r;
+                rgba[(i * ColorComponents) + 1] = g;
+                rgba[(i * ColorComponents) + 2] = b;
+                rgba[(i * ColorComponents) + 3] = a;
             }
 
             m.Rgba = rgba;

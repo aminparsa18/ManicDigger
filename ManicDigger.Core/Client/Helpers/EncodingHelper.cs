@@ -34,7 +34,7 @@
         char[] chars = checksum.ToCharArray();
         for (int i = 0; i < chars.Length; i++)
         {
-            if ((chars[i] < '0' || chars[i] > '9') && (chars[i] < 'a' || chars[i] > 'f'))
+            if (chars[i] is (< '0' or > '9') and (< 'a' or > 'f'))
             {
                 //Return false if any character inside the checksum is not hexadecimal
                 return false;

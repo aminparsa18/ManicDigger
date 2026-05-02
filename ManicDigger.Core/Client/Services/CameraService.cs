@@ -37,9 +37,9 @@ public sealed class CameraService : ICameraService
     public void GetPosition(ref Vector3 ret)
     {
         float flatDist = FlatDistance();
-        ret.X = MathF.Cos(_azimuth) * flatDist + Center.X;
+        ret.X = (MathF.Cos(_azimuth) * flatDist) + Center.X;
         ret.Y = Center.Y + HeightFromCenter();
-        ret.Z = MathF.Sin(_azimuth) * flatDist + Center.Z;
+        ret.Z = (MathF.Sin(_azimuth) * flatDist) + Center.Z;
     }
 
     /// <inheritdoc/>

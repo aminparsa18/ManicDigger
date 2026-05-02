@@ -92,17 +92,17 @@ public partial class Game
         }
 
         int block = voxelMap.GetBlock(x, y, z);
-        if (BlockTypes[block].Rail != 0)
+        if (_blockRegistry.BlockTypes[block].Rail != 0)
         {
             return RailBlockHeight;
         }
 
-        if (BlockTypes[block].DrawType == DrawType.HalfHeight)
+        if (_blockRegistry.BlockTypes[block].DrawType == DrawType.HalfHeight)
         {
             return 0.5f;
         }
 
-        if (BlockTypes[block].DrawType == DrawType.Flat)
+        if (_blockRegistry.BlockTypes[block].DrawType == DrawType.Flat)
         {
             return 0.05f;
         }
@@ -151,7 +151,7 @@ public partial class Game
         // Collapsed: Translate(x1,y1) · Scale(w,h) · Scale(0.5,0.5) · Translate(1,1)
         // = Translate(x1 + w*0.5, y1 + h*0.5) · Scale(w*0.5, h*0.5)
         meshDrawer.GLPushMatrix();
-        meshDrawer.GLTranslate(x1 + width * 0.5f, y1 + height * 0.5f, 0f);
+        meshDrawer.GLTranslate(x1 + (width * 0.5f), y1 + (height * 0.5f), 0f);
         meshDrawer.GLScale(width * 0.5f, height * 0.5f, 0f);
         meshDrawer.DrawModel(_quadModel);
         meshDrawer.GLPopMatrix();
@@ -245,16 +245,28 @@ public partial class Game
         };
 
         float[] xyz = _atlasQuadModel.Xyz;
-        xyz[0] = dx; xyz[1] = dy; xyz[2] = 0f;
-        xyz[3] = dx + dw; xyz[4] = dy; xyz[5] = 0f;
-        xyz[6] = dx + dw; xyz[7] = dy + dh; xyz[8] = 0f;
-        xyz[9] = dx; xyz[10] = dy + dh; xyz[11] = 0f;
+        xyz[0] = dx;
+        xyz[1] = dy;
+        xyz[2] = 0f;
+        xyz[3] = dx + dw;
+        xyz[4] = dy;
+        xyz[5] = 0f;
+        xyz[6] = dx + dw;
+        xyz[7] = dy + dh;
+        xyz[8] = 0f;
+        xyz[9] = dx;
+        xyz[10] = dy + dh;
+        xyz[11] = 0f;
 
         float[] uv = _atlasQuadModel.Uv;
-        uv[0] = sx; uv[1] = sy;
-        uv[2] = sx + sw; uv[3] = sy;
-        uv[4] = sx + sw; uv[5] = sy + sh;
-        uv[6] = sx; uv[7] = sy + sh;
+        uv[0] = sx;
+        uv[1] = sy;
+        uv[2] = sx + sw;
+        uv[3] = sy;
+        uv[4] = sx + sw;
+        uv[5] = sy + sh;
+        uv[6] = sx;
+        uv[7] = sy + sh;
 
         // Fix #7: 16 direct assignments — clearer and avoids multiply+add per vertex.
         byte r = (byte)ColorUtils.ColorR(color);
@@ -262,10 +274,22 @@ public partial class Game
         byte b = (byte)ColorUtils.ColorB(color);
         byte a = (byte)ColorUtils.ColorA(color);
         byte[] rgba = _atlasQuadModel.Rgba;
-        rgba[0] = r; rgba[1] = g; rgba[2] = b; rgba[3] = a;
-        rgba[4] = r; rgba[5] = g; rgba[6] = b; rgba[7] = a;
-        rgba[8] = r; rgba[9] = g; rgba[10] = b; rgba[11] = a;
-        rgba[12] = r; rgba[13] = g; rgba[14] = b; rgba[15] = a;
+        rgba[0] = r;
+        rgba[1] = g;
+        rgba[2] = b;
+        rgba[3] = a;
+        rgba[4] = r;
+        rgba[5] = g;
+        rgba[6] = b;
+        rgba[7] = a;
+        rgba[8] = r;
+        rgba[9] = g;
+        rgba[10] = b;
+        rgba[11] = a;
+        rgba[12] = r;
+        rgba[13] = g;
+        rgba[14] = b;
+        rgba[15] = a;
     }
 
     /// <summary>
@@ -332,22 +356,46 @@ public partial class Game
         byte r, byte g, byte b, byte a)
     {
         float[] xyz = m.Xyz;
-        xyz[0] = dx; xyz[1] = dy; xyz[2] = 0f;
-        xyz[3] = dx + dw; xyz[4] = dy; xyz[5] = 0f;
-        xyz[6] = dx + dw; xyz[7] = dy + dh; xyz[8] = 0f;
-        xyz[9] = dx; xyz[10] = dy + dh; xyz[11] = 0f;
+        xyz[0] = dx;
+        xyz[1] = dy;
+        xyz[2] = 0f;
+        xyz[3] = dx + dw;
+        xyz[4] = dy;
+        xyz[5] = 0f;
+        xyz[6] = dx + dw;
+        xyz[7] = dy + dh;
+        xyz[8] = 0f;
+        xyz[9] = dx;
+        xyz[10] = dy + dh;
+        xyz[11] = 0f;
 
         float[] uv = m.Uv;
-        uv[0] = sx; uv[1] = sy;
-        uv[2] = sx + sw; uv[3] = sy;
-        uv[4] = sx + sw; uv[5] = sy + sh;
-        uv[6] = sx; uv[7] = sy + sh;
+        uv[0] = sx;
+        uv[1] = sy;
+        uv[2] = sx + sw;
+        uv[3] = sy;
+        uv[4] = sx + sw;
+        uv[5] = sy + sh;
+        uv[6] = sx;
+        uv[7] = sy + sh;
 
         byte[] rgba = m.Rgba;
-        rgba[0] = r; rgba[1] = g; rgba[2] = b; rgba[3] = a;
-        rgba[4] = r; rgba[5] = g; rgba[6] = b; rgba[7] = a;
-        rgba[8] = r; rgba[9] = g; rgba[10] = b; rgba[11] = a;
-        rgba[12] = r; rgba[13] = g; rgba[14] = b; rgba[15] = a;
+        rgba[0] = r;
+        rgba[1] = g;
+        rgba[2] = b;
+        rgba[3] = a;
+        rgba[4] = r;
+        rgba[5] = g;
+        rgba[6] = b;
+        rgba[7] = a;
+        rgba[8] = r;
+        rgba[9] = g;
+        rgba[10] = b;
+        rgba[11] = a;
+        rgba[12] = r;
+        rgba[13] = g;
+        rgba[14] = b;
+        rgba[15] = a;
     }
 
     /// <summary>Runs the 2D draw pass for all registered mods.</summary>
@@ -521,7 +569,7 @@ public partial class Game
             for (int i = 0; i < CircleSegments; i++)
             {
                 _circleModelData.Indices[i * 2] = i;
-                _circleModelData.Indices[i * 2 + 1] = (i + 1) % CircleSegments;
+                _circleModelData.Indices[(i * 2) + 1] = (i + 1) % CircleSegments;
             }
             _circleModelData.Rgba.AsSpan().Fill(255);
         }
@@ -529,9 +577,9 @@ public partial class Game
         for (int i = 0; i < CircleSegments; i++)
         {
             float angle = i * 2f * MathF.PI / CircleSegments;
-            _circleModelData.Xyz[i * 3 + 0] = x + MathF.Cos(angle) * radius;
-            _circleModelData.Xyz[i * 3 + 1] = y + MathF.Sin(angle) * radius;
-            _circleModelData.Xyz[i * 3 + 2] = 0f;
+            _circleModelData.Xyz[(i * 3) + 0] = x + (MathF.Cos(angle) * radius);
+            _circleModelData.Xyz[(i * 3) + 1] = y + (MathF.Sin(angle) * radius);
+            _circleModelData.Xyz[(i * 3) + 2] = 0f;
         }
 
         openGlService.UpdateModel(_circleModelData);

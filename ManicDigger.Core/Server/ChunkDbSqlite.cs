@@ -274,7 +274,7 @@ public class ChunkDbSqlite : IChunkDb
     /// Each axis occupies 20 bits, supporting coordinates up to 2²⁰ = 1,048,576.
     /// </summary>
     public static ulong ToMapPos(int x, int y, int z)
-        => (ulong)x << 40 | (ulong)y << 20 | (ulong)z;
+        => ((ulong)x << 40) | ((ulong)y << 20) | (ulong)z;
 
     private static DbParameter CreateParameter(string name, DbType type, object value, DbCommand cmd)
     {

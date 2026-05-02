@@ -7,7 +7,7 @@ public interface IServer
     static abstract double InvertedChunkSize { get; set; }
     List<string> AllPrivileges { get; set; }
     ServerBanlist BanList { get; set; }
-    BlockTypeRegistry BlockTypeRegistry { get; set; }
+    BlockRegistry BlockTypeRegistry { get; set; }
     Dictionary<int, BlockType> BlockTypes { get; set; }
     IChunkDb ChunkDb { get; set; }
     int ChunkDrawDistance { get; }

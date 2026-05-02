@@ -21,9 +21,9 @@ public class ModNetworkProcess : ModBase
     private readonly IGameService _platform;
     private readonly IVoxelMap voxelMap;
     private readonly ITaskScheduler taskScheduler;
-    private readonly IBlockTypeRegistry blockTypeRegistry;
+    private readonly IBlockRegistry blockTypeRegistry;
 
-    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, ITaskScheduler taskScheduler, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
+    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, ITaskScheduler taskScheduler, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         _platform = gamePlatform;
         this.voxelMap = voxelMap;
@@ -46,7 +46,7 @@ public class ModNetworkProcess : ModBase
     private readonly string[] _textureIdScratch = new string[7];
 
     private static int Index3d(int x, int y, int h, int sizex, int sizey)
-        => (h * sizey + y) * sizex + x;
+        => (((h * sizey) + y) * sizex) + x;
 
     public override void OnReadOnlyBackgroundThread(float dt)
         => NetworkProcess();
@@ -406,7 +406,7 @@ public class ModNetworkProcess : ModBase
                 break;
 
             case Packet_ServerIdEnum.BlockType:
-                Game.NewBlockTypes[packet.BlockType.Id] = packet.BlockType.Blocktype;
+                blockTypeRegistry.NewBlockTypes[packet.BlockType.Id] = packet.BlockType.Blocktype;
                 break;
 
             case Packet_ServerIdEnum.SunLevels:
@@ -455,7 +455,7 @@ public class ModNetworkProcess : ModBase
                         {
                             Packet_IntInt k = packet.Ammo.TotalAmmo[i];
                             Game.LoadedAmmo[k.Key_] = Math.Min(
-                                k.Value_, Game.BlockTypes[k.Key_].AmmoMagazine);
+                                k.Value_, blockTypeRegistry.BlockTypes[k.Key_].AmmoMagazine);
                         }
                     }
 
@@ -513,8 +513,8 @@ public class ModNetworkProcess : ModBase
 
             case Packet_ServerIdEnum.BlockTypes:
                 {
-                    Game.BlockTypes = Game.NewBlockTypes;
-                    Game.NewBlockTypes = [];
+                    blockTypeRegistry.BlockTypes = blockTypeRegistry.NewBlockTypes;
+                    blockTypeRegistry.NewBlockTypes = [];
 
                     // Old code: Contains() + IndexOf() scanned a 1024-entry array
                     // for every texture of every block type (up to 7168 scans).
@@ -527,7 +527,7 @@ public class ModNetworkProcess : ModBase
 
                     string[] scratch = _textureIdScratch;
 
-                    foreach (var (_, blockType) in Game.BlockTypes)
+                    foreach (var (_, blockType) in blockTypeRegistry.BlockTypes)
                     {
                         scratch[0] = blockType.TextureIdLeft;
                         scratch[1] = blockType.TextureIdRight;
@@ -547,12 +547,12 @@ public class ModNetworkProcess : ModBase
                     }
 
                     // Convert to array for downstream APIs that expect string[].
-                    string[] textureInAtlasIds = textureList.ToArray();
+                    string[] textureInAtlasIds = [.. textureList];
                     int textureInAtlasIdsCount = textureInAtlasIds.Length;
 
-                    blockTypeRegistry.UseBlockTypes(Game.BlockTypes);
+                    blockTypeRegistry.UseBlockTypes(blockTypeRegistry.BlockTypes);
 
-                    foreach (var (id, b) in Game.BlockTypes)
+                    foreach (var (id, b) in blockTypeRegistry.BlockTypes)
                     {
                         Game.TextureId[id] = [
                             textureList.IndexOf(b.TextureIdTop),
@@ -592,7 +592,10 @@ public class ModNetworkProcess : ModBase
 
         static DiagLog()
         {
-            try { File.WriteAllText(_path, $"=== DiagLog started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ==={Environment.NewLine}"); }
+            try
+            {
+                File.WriteAllText(_path, $"=== DiagLog started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ==={Environment.NewLine}");
+            }
             catch { }
         }
 
@@ -600,7 +603,10 @@ public class ModNetworkProcess : ModBase
         {
             lock (_lock)
             {
-                try { File.AppendAllText(_path, $"[{DateTime.Now:HH:mm:ss.fff}] {message}{Environment.NewLine}"); }
+                try
+                {
+                    File.AppendAllText(_path, $"[{DateTime.Now:HH:mm:ss.fff}] {message}{Environment.NewLine}");
+                }
                 catch { }
             }
         }

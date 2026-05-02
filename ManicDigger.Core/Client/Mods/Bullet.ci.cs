@@ -36,9 +36,9 @@ public class ModBullet : ModBase
 
             b.progress += b.speed * dt;
 
-            entity.sprite.positionX = b.fromX + dirX * b.progress;
-            entity.sprite.positionY = b.fromY + dirY * b.progress;
-            entity.sprite.positionZ = b.fromZ + dirZ * b.progress;
+            entity.sprite.positionX = b.fromX + (dirX * b.progress);
+            entity.sprite.positionY = b.fromY + (dirY * b.progress);
+            entity.sprite.positionZ = b.fromZ + (dirZ * b.progress);
 
             if (b.progress > length)
             {

@@ -199,7 +199,11 @@ public sealed class AudioService : IAudioService, IDisposable
             return;
         }
 
-        try { Process.Start(installer, "/s"); } catch { }
+        try
+        {
+            Process.Start(installer, "/s");
+        }
+        catch { }
     }
 
     private const int SoundsMax = 64;

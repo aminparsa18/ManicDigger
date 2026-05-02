@@ -38,7 +38,7 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
         }
 
         float height = e.drawModel.ModelHeight;
-        lines.DrawWireframeCube_(e.position.x, e.position.y + height / 2, e.position.z,
+        lines.DrawWireframeCube_(e.position.x, e.position.y + (height / 2), e.position.z,
             SelectionScale, SelectionScale * height, SelectionScale);
     }
 
@@ -49,7 +49,7 @@ public class ModDrawLinesAroundSelectedBlock : ModBase
         int z = game.SelectedBlockPositionZ;
         float blockHeight = game.Getblockheight(x, z, y);
 
-        lines.DrawWireframeCube_(x + 0.5f, y + blockHeight * 0.5f, z + 0.5f,
+        lines.DrawWireframeCube_(x + 0.5f, y + (blockHeight * 0.5f), z + 0.5f,
             SelectionScale, SelectionScale * blockHeight, SelectionScale);
     }
 }

@@ -32,9 +32,9 @@ public class ModDrawText : ModBase
             }
 
             EntityDrawText p = e.drawText;
-            float posX = -MathF.Sin(e.position.roty) * p.dx + e.position.x;
+            float posX = (-MathF.Sin(e.position.roty) * p.dx) + e.position.x;
             float posY = p.dy + e.position.y;
-            float posZ = MathF.Cos(e.position.roty) * p.dz + e.position.z;
+            float posZ = (MathF.Cos(e.position.roty) * p.dz) + e.position.z;
 
             bool nearEnough = Vector3.Distance(new Vector3(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z), new Vector3(posX, posY, posZ)) < TextDrawDistance;
             bool altHeld = Game.KeyboardState[KeyConstants.KeyAltLeft] || Game.KeyboardState[KeyConstants.KeyAltRight];

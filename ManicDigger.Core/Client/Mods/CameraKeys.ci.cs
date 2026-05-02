@@ -114,7 +114,7 @@ public class ModCameraKeys : ModBase
 
             float qX = Game.PlayerDestination.X - Game.Player.position.x;
             float qZ = Game.PlayerDestination.Z - Game.Player.position.z;
-            Game.Player.position.roty = MathF.PI / 2 + MathF.Atan2(qX, qZ);
+            Game.Player.position.roty = (MathF.PI / 2) + MathF.Atan2(qX, qZ);
             Game.Player.position.rotx = MathF.PI;
         }
     }
@@ -134,8 +134,16 @@ public class ModCameraKeys : ModBase
 
         bool leanLeft = Game.KeyboardState[Game.GetKey(Keys.A)];
         bool leanRight = Game.KeyboardState[Game.GetKey(Keys.D)];
-        if (leanLeft) { Game.Controls.MovedX -= 1; Game.LocalStance = 1; }
-        if (leanRight) { Game.Controls.MovedX += 1; Game.LocalStance = 2; }
+        if (leanLeft)
+        {
+            Game.Controls.MovedX -= 1;
+            Game.LocalStance = 1;
+        }
+        if (leanRight)
+        {
+            Game.Controls.MovedX += 1;
+            Game.LocalStance = 2;
+        }
         if (!leanLeft && !leanRight)
         {
             Game.LocalStance = 0;

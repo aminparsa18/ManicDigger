@@ -33,6 +33,7 @@ public class ModDrawTerrain : ModBase
     private readonly IVoxelMap _voxelMap;
     private readonly IMeshBatcher meshBatcher;
     private readonly ITaskScheduler taskScheduler;
+    private readonly IBlockRegistry _blockTypeRegistry;
 
     private readonly LightBase _lightBase;
     private readonly LightBetweenChunks _lightBetweenChunks;
@@ -62,10 +63,11 @@ public class ModDrawTerrain : ModBase
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
 
     public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap, IMeshBatcher meshBatcher,
-        ITaskScheduler taskScheduler, IGame game) : base(game)
+        IBlockRegistry blockRegistry, ITaskScheduler taskScheduler, IGame game) : base(game)
     {
         _platform = platform;
         _voxelMap = voxelMap;
+        _blockTypeRegistry = blockRegistry;
         this.meshBatcher = meshBatcher;
         this.taskScheduler = taskScheduler;
         _currentChunk = new int[BufferedChunkVolume];
@@ -259,8 +261,12 @@ public class ModDrawTerrain : ModBase
                     }
 
                     int dx = px - ix, dy = py - iy, dz = pz - iz;
-                    int dist = dx * dx + dy * dy + dz * dz;
-                    if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+                    int dist = (dx * dx) + (dy * dy) + (dz * dz);
+                    if (dist < bestDist)
+                    {
+                        bestDist = dist;
+                        bestIdx = i;
+                    }
                 }
             }
         }
@@ -317,9 +323,9 @@ public class ModDrawTerrain : ModBase
                 continue;
             }
 
-            float cx = submesh.PositionX + chunksize * 0.5f;
-            float cy = submesh.PositionZ + chunksize * 0.5f;
-            float cz = submesh.PositionY + chunksize * 0.5f;
+            float cx = submesh.PositionX + (chunksize * 0.5f);
+            float cy = submesh.PositionZ + (chunksize * 0.5f);
+            float cz = submesh.PositionY + (chunksize * 0.5f);
             float radius = _sqrt3Half * chunksize;
 
             _batcherIds[_batcherIdsCount++] = meshBatcher.Add(
@@ -393,7 +399,7 @@ public class ModDrawTerrain : ModBase
     {
         _voxelMap.GetMapPortion(
             _currentChunk,
-            x * chunksize - 1, y * chunksize - 1, z * chunksize - 1,
+            (x * chunksize) - 1, (y * chunksize) - 1, (z * chunksize) - 1,
             bufferedChunkSize, bufferedChunkSize, bufferedChunkSize);
     }
 
@@ -419,7 +425,7 @@ public class ModDrawTerrain : ModBase
     {
         if (_blockTypeCacheDirty)
         {
-            foreach (var (id, blockType) in _game.BlockTypes)
+            foreach (var (id, blockType) in _blockTypeRegistry.BlockTypes)
             {
                 _shadowLightRadius[id] = blockType.LightRadius;
                 _shadowIsTransparent[id] = IsTransparentForLight(_game, id);
@@ -481,9 +487,9 @@ public class ModDrawTerrain : ModBase
 
     public bool IsTransparentForLight(IGame _game, int blockId)
     {
-        BlockType b = _game.BlockTypes[blockId];
-        return b.DrawType != DrawType.Solid
-            && b.DrawType != DrawType.ClosedDoor;
+        BlockType b = _blockTypeRegistry.BlockTypes[blockId];
+        return b.DrawType is not DrawType.Solid
+            and not DrawType.ClosedDoor;
     }
 
     // ── Drawing ───────────────────────────────────────────────────────────────
@@ -563,10 +569,26 @@ public class ModDrawTerrain : ModBase
 
     private static void ReturnModelArrays(GeometryModel model)
     {
-        if (model.Xyz != null) { ArrayPool<float>.Shared.Return(model.Xyz); model.Xyz = null; }
-        if (model.Uv != null) { ArrayPool<float>.Shared.Return(model.Uv); model.Uv = null; }
-        if (model.Rgba != null) { ArrayPool<byte>.Shared.Return(model.Rgba); model.Rgba = null; }
-        if (model.Indices != null) { ArrayPool<int>.Shared.Return(model.Indices); model.Indices = null; }
+        if (model.Xyz != null)
+        {
+            ArrayPool<float>.Shared.Return(model.Xyz);
+            model.Xyz = null;
+        }
+        if (model.Uv != null)
+        {
+            ArrayPool<float>.Shared.Return(model.Uv);
+            model.Uv = null;
+        }
+        if (model.Rgba != null)
+        {
+            ArrayPool<byte>.Shared.Return(model.Rgba);
+            model.Rgba = null;
+        }
+        if (model.Indices != null)
+        {
+            ArrayPool<int>.Shared.Return(model.Indices);
+            model.Indices = null;
+        }
     }
 }
 

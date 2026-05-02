@@ -77,9 +77,17 @@ public class ModManager(IGameExit gameExit) : IModManager
 
     public void AddCraftingRecipe(string output, int outputAmount, string Input0, int Input0Amount)
     {
-        if (GetBlockId(output) == -1) { Console.WriteLine(recipeError + output); return; }
+        if (GetBlockId(output) == -1)
+        {
+            Console.WriteLine(recipeError + output);
+            return;
+        }
 
-        if (GetBlockId(Input0) == -1) { Console.WriteLine(recipeError + Input0); return; }
+        if (GetBlockId(Input0) == -1)
+        {
+            Console.WriteLine(recipeError + Input0);
+            return;
+        }
 
         CraftingRecipe r = new()
         {
@@ -94,11 +102,23 @@ public class ModManager(IGameExit gameExit) : IModManager
 
     public void AddCraftingRecipe2(string output, int outputAmount, string Input0, int Input0Amount, string Input1, int Input1Amount)
     {
-        if (GetBlockId(output) == -1) { Console.WriteLine(recipeError + output); return; }
+        if (GetBlockId(output) == -1)
+        {
+            Console.WriteLine(recipeError + output);
+            return;
+        }
 
-        if (GetBlockId(Input0) == -1) { Console.WriteLine(recipeError + Input0); return; }
+        if (GetBlockId(Input0) == -1)
+        {
+            Console.WriteLine(recipeError + Input0);
+            return;
+        }
 
-        if (GetBlockId(Input1) == -1) { Console.WriteLine(recipeError + Input1); return; }
+        if (GetBlockId(Input1) == -1)
+        {
+            Console.WriteLine(recipeError + Input1);
+            return;
+        }
 
         CraftingRecipe r = new()
         {
@@ -114,13 +134,29 @@ public class ModManager(IGameExit gameExit) : IModManager
 
     public void AddCraftingRecipe3(string output, int outputAmount, string Input0, int Input0Amount, string Input1, int Input1Amount, string Input2, int Input2Amount)
     {
-        if (GetBlockId(output) == -1) { Console.WriteLine(recipeError + output); return; }
+        if (GetBlockId(output) == -1)
+        {
+            Console.WriteLine(recipeError + output);
+            return;
+        }
 
-        if (GetBlockId(Input0) == -1) { Console.WriteLine(recipeError + Input0); return; }
+        if (GetBlockId(Input0) == -1)
+        {
+            Console.WriteLine(recipeError + Input0);
+            return;
+        }
 
-        if (GetBlockId(Input1) == -1) { Console.WriteLine(recipeError + Input1); return; }
+        if (GetBlockId(Input1) == -1)
+        {
+            Console.WriteLine(recipeError + Input1);
+            return;
+        }
 
-        if (GetBlockId(Input2) == -1) { Console.WriteLine(recipeError + Input2); return; }
+        if (GetBlockId(Input2) == -1)
+        {
+            Console.WriteLine(recipeError + Input2);
+            return;
+        }
 
         CraftingRecipe r = new()
         {
@@ -227,7 +263,7 @@ public class ModManager(IGameExit gameExit) : IModManager
 
     public int Seed => server.Seed;
 
-    public int Index3d(int x, int y, int h, int sizex, int sizey) => (h * sizey + y) * sizex + x;
+    public int Index3d(int x, int y, int h, int sizex, int sizey) => (((h * sizey) + y) * sizex) + x;
 
     public void RegisterPopulateChunk(ModDelegates.PopulateChunk f) => server.ModEventHandlers.populatechunk.Add(f);
 

@@ -182,7 +182,7 @@ public class ModFpsHistoryGraph : ModBase
     private void DrawFpsLine(IGame _game, int posy, int fps, int color)
     {
         int whiteTexture = _game.GetOrCreateWhiteTexture();
-        float y = posy - GraphHeight * (60f / fps);
+        float y = posy - (GraphHeight * (60f / fps));
 
         _game.Draw2dTexture(whiteTexture, GraphPosX, (int)y, MaxCount, 1, -1, 0, color, false);
         _game.Draw2dText(fps.ToString(), new Font("Arial", 6), GraphPosX, y, null, false);

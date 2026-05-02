@@ -49,7 +49,10 @@ public static class KeyframeTypeExtensions
     {
         foreach (KeyframeType type in Enum.GetValues<KeyframeType>())
         {
-            if (type.ToSerializedName() == name) { return type; }
+            if (type.ToSerializedName() == name)
+            {
+                return type;
+            }
         }
 
         throw new ArgumentException($"Unknown KeyframeType serialized name: '{name}'");

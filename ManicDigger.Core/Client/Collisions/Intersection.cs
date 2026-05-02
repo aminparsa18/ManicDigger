@@ -119,7 +119,7 @@ public class Intersection
         {
             if (whichPlane != i)
             {
-                coord[i] = origin[i] + maxT[whichPlane] * dir[i];
+                coord[i] = origin[i] + (maxT[whichPlane] * dir[i]);
                 if (coord[i] < minB[i] || coord[i] > maxB[i])
                 {
                     return false;
@@ -153,7 +153,7 @@ public class Intersection
             return false;
         }
 
-        hit = p1 + (p2 - p1) * (-fDst1 / (fDst2 - fDst1));
+        hit = p1 + ((p2 - p1) * (-fDst1 / (fDst2 - fDst1)));
         return true;
     }
 
@@ -201,12 +201,30 @@ public class Intersection
         hit = Vector3.Zero;
 
         // Broad-phase rejection: if both endpoints are outside the same face, no intersection.
-        if (l2.X < b1.X && l1.X < b1.X) { return false; }
-        if (l2.X > b2.X && l1.X > b2.X) { return false; }
-        if (l2.Y < b1.Y && l1.Y < b1.Y) { return false; }
-        if (l2.Y > b2.Y && l1.Y > b2.Y) { return false; }
-        if (l2.Z < b1.Z && l1.Z < b1.Z) { return false; }
-        if (l2.Z > b2.Z && l1.Z > b2.Z) { return false; }
+        if (l2.X < b1.X && l1.X < b1.X)
+        {
+            return false;
+        }
+        if (l2.X > b2.X && l1.X > b2.X)
+        {
+            return false;
+        }
+        if (l2.Y < b1.Y && l1.Y < b1.Y)
+        {
+            return false;
+        }
+        if (l2.Y > b2.Y && l1.Y > b2.Y)
+        {
+            return false;
+        }
+        if (l2.Z < b1.Z && l1.Z < b1.Z)
+        {
+            return false;
+        }
+        if (l2.Z > b2.Z && l1.Z > b2.Z)
+        {
+            return false;
+        }
 
         // Start point is inside the box.
         if (l1.X > b1.X && l1.X < b2.X &&

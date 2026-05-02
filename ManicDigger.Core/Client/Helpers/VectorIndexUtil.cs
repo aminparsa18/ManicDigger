@@ -20,7 +20,7 @@ public class VectorIndexUtil
     /// <param name="sizex">Grid width (number of elements along X).</param>
     /// <param name="sizey">Grid depth (number of elements along Y).</param>
     /// <returns>The flat index corresponding to (<paramref name="x"/>, <paramref name="y"/>, <paramref name="h"/>).</returns>
-    public static int Index3d(int x, int y, int h, int sizex, int sizey) => (h * sizey + y) * sizex + x;
+    public static int Index3d(int x, int y, int h, int sizex, int sizey) => (((h * sizey) + y) * sizex) + x;
 
     /// <summary>
     /// Converts 2D grid coordinates to a flat array index.
@@ -30,7 +30,7 @@ public class VectorIndexUtil
     /// <param name="y">Y coordinate.</param>
     /// <param name="sizex">Grid width (number of elements along X).</param>
     /// <returns>The flat index corresponding to (<paramref name="x"/>, <paramref name="y"/>).</returns>
-    public static int Index2d(int x, int y, int sizex) => x + y * sizex;
+    public static int Index2d(int x, int y, int sizex) => x + (y * sizex);
 
     /// <summary>
     /// Decomposes a flat array index into 3D grid coordinates, writing them into

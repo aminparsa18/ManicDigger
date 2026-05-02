@@ -275,7 +275,7 @@ public class MainMenu : IMenu
 
         if (!string.IsNullOrEmpty(text))
         {
-            DrawText(text, fontSize, dx + dw / 2, dy + dh / 2, TextAlign.Center, TextBaseline.Middle);
+            DrawText(text, fontSize, dx + (dw / 2), dy + (dh / 2), TextAlign.Center, TextBaseline.Middle);
         }
     }
 
@@ -340,8 +340,8 @@ public class MainMenu : IMenu
         WindowX = GameService.CanvasWidth;
         WindowY = GameService.CanvasHeight;
 
-        int countX = (int)((WindowX + 2 * overlap) / BackgroundW) + 1;
-        int countY = (int)((WindowY + 2 * overlap) / BackgroundH) + 1;
+        int countX = (int)((WindowX + (2 * overlap)) / BackgroundW) + 1;
+        int countY = (int)((WindowY + (2 * overlap)) / BackgroundH) + 1;
 
         int bgTexture = GetTexture("background.png");
         for (int x = 0; x < countX; x++)
@@ -350,8 +350,8 @@ public class MainMenu : IMenu
             {
                 Draw2dQuad(
                     bgTexture,
-                    x * BackgroundW + xRot - overlap,
-                    y * BackgroundH + yRot - overlap,
+                    (x * BackgroundW) + xRot - overlap,
+                    (y * BackgroundH) + yRot - overlap,
                     BackgroundW, BackgroundH);
             }
         }
@@ -585,7 +585,7 @@ public class MainMenu : IMenu
     /// <summary>Navigates to the multiplayer server-browser screen.</summary>
     public void StartMultiplayer()
     {
-        screen = new MultiplayerScreen(this, GameService, default, default);
+        screen = new MultiplayerScreen(this, GameService, default, _preferences);
         screen.LoadTranslations();
     }
 

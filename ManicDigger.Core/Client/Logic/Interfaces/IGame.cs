@@ -301,12 +301,6 @@ public interface IGame : IDisposable
     // Block registry
     // =========================================================================
 
-    /// <summary>Block type definitions indexed by block type ID.</summary>
-    Dictionary<int, BlockType> BlockTypes { get; set; }
-
-    /// <summary>Pending block type definitions received from the server before map load.</summary>
-    Dictionary<int, BlockType> NewBlockTypes { get; set; }
-
     /// <summary>Returns the block type ID currently held in hand, or <c>null</c> if empty.</summary>
     int? BlockInHand();
 

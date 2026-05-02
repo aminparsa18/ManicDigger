@@ -39,7 +39,7 @@ public partial class Game
 
         // ── Rendering subsystems ──────────────────────────────────────────────
 
-        TerrainChunkTesselator = new TerrainChunkTesselator(this, gameService, BlockRegistry);
+        TerrainChunkTesselator = new TerrainChunkTesselator(this, gameService, _blockRegistry);
 
         // ── World / map ───────────────────────────────────────────────────────
         voxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);
@@ -47,7 +47,7 @@ public partial class Game
 
         // ── Inventory ─────────────────────────────────────────────────────────
         Packet_Inventory inventory = new() { RightHand = new InventoryItem[10] };
-        InventoryService dataItems = new(this);
+        InventoryService dataItems = new(this, _blockRegistry);
         Inventory = inventory;
         InventoryUtil = new InventoryUtilClient(inventory, dataItems);
 

@@ -47,9 +47,9 @@ public class ModCamera : ModBase
         }
         else
         {
-            eye = new Vector3(eyeX + forward.X * -Game.TppCameraDistance,
-                                 eyeY + forward.Y * -Game.TppCameraDistance,
-                                 eyeZ + forward.Z * -Game.TppCameraDistance);
+            eye = new Vector3(eyeX + (forward.X * -Game.TppCameraDistance),
+                                 eyeY + (forward.Y * -Game.TppCameraDistance),
+                                 eyeZ + (forward.Z * -Game.TppCameraDistance));
             target = new Vector3(eyeX, eyeY, eyeZ);
             Game.TppCameraDistance = LimitThirdPersonCameraToWalls(ref eye, ref target, Game.TppCameraDistance);
         }
@@ -70,7 +70,7 @@ public class ModCamera : ModBase
         float dirLength = dir.Length;
         dir /= dirLength;
 
-        Vector3 rayEnd = target + dir * (Game.TppCameraDistance + 1);
+        Vector3 rayEnd = target + (dir * (Game.TppCameraDistance + 1));
         Line3D pick = new()
         {
             Start = target,
@@ -85,7 +85,7 @@ public class ModCamera : ModBase
             distance = Math.Max(MinDistance, Math.Min(pickDistance - 1, distance));
         }
 
-        eye = target + dir * distance;
+        eye = target + (dir * distance);
         return distance;
     }
 

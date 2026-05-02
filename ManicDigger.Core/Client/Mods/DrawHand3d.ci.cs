@@ -29,7 +29,7 @@ public class ModDrawHand3d : ModBase
     /// <summary>Reference to the current game instance, set each frame in <see cref="OnNewFrameDraw3d"/>.</summary>
     private readonly IOpenGlService platform;
     private readonly IMeshDrawer meshDrawer;
-    private readonly IBlockTypeRegistry blockTypeRegistry;
+    private readonly IBlockRegistry blockTypeRegistry;
 
     /// <summary>Torch block renderer used to draw held torches and the empty-hand model.</summary>
     internal BlockRendererTorch d_BlockRendererTorch;
@@ -122,7 +122,7 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Initialises all animation parameters and creates the torch renderer dependency.
     /// </summary>
-    public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
+    public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
@@ -183,8 +183,8 @@ public class ModDrawHand3d : ModBase
         }
 
         return Game.IronSights
-            ? Game.BlockTypes[item.BlockId].IronSightsImage
-            : Game.BlockTypes[item.BlockId].handimage;
+            ? blockTypeRegistry.BlockTypes[item.BlockId].IronSightsImage
+            : blockTypeRegistry.BlockTypes[item.BlockId].handimage;
     }
 
     /// <summary>Returns the OpenGL texture ID of the terrain texture atlas.</summary>
@@ -241,7 +241,7 @@ public class ModDrawHand3d : ModBase
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
         return item != null
             && item.InventoryItemType == InventoryItemType.Block
-            && Game.BlockTypes[item.BlockId].DrawType == DrawType.Torch;
+            && blockTypeRegistry.BlockTypes[item.BlockId].DrawType == DrawType.Torch;
     }
 
     /// <summary>
@@ -330,11 +330,11 @@ public class ModDrawHand3d : ModBase
 
         // Position and orient the hand in view space.
         meshDrawer.GLTranslate(
-            (0.3f) + _bobOffsetZ - _attackOffset * 5,
-            -(1f * 15 / 10) + _bobOffsetX - _buildOffset * 10,
+            (0.3f) + _bobOffsetZ - (_attackOffset * 5),
+            -(1f * 15 / 10) + _bobOffsetX - (_buildOffset * 10),
             -(1f * 15 / 10) + _restOffsetY);
 
-        meshDrawer.GLRotate(30 + _restRotateX - _attackOffset * 300, 1, 0, 0);
+        meshDrawer.GLRotate(30 + _restRotateX - (_attackOffset * 300), 1, 0, 0);
         meshDrawer.GLRotate(60 + _restRotateY, 0, 1, 0);
         meshDrawer.GLScale(1f * 8 / 10, 1f * 8 / 10, 1f * 8 / 10);
 
@@ -408,7 +408,7 @@ public class ModDrawHand3d : ModBase
             // half-period so the bob finishes its current half-cycle cleanly.
             if (_slowdownTimer == _slowdownTimerMax)
             {
-                _slowdownTimer = _animPeriod / 2 - (_bobTime % (_animPeriod / 2));
+                _slowdownTimer = (_animPeriod / 2) - (_bobTime % (_animPeriod / 2));
             }
 
             _slowdownTimer -= dt;
@@ -445,8 +445,14 @@ public class ModDrawHand3d : ModBase
         {
             // Swing complete — reset whichever offset was active.
             _attack = -1;
-            if (_isBuildSwing) { _buildOffset = 0; }
-            else { _attackOffset = 0; }
+            if (_isBuildSwing)
+            {
+                _buildOffset = 0;
+            }
+            else
+            {
+                _attackOffset = 0;
+            }
         }
         else
         {
@@ -642,12 +648,12 @@ public class ModDrawHand3d : ModBase
         /// <param name="y">Block-grid Y origin of the torch.</param>
         /// <param name="z">Block-grid Z (vertical) origin of the torch.</param>
         /// <param name="type">Mount type that determines the tilt direction.</param>
-        public void AddTorch(IBlockTypeRegistry d_Data, GeometryModel m,
+        public void AddTorch(IBlockRegistry d_Data, GeometryModel m,
                              int x, int y, int z, TorchType type)
         {
             // --- Compute top-cap corners ---
             // The top cap is always centred in X/Y regardless of mount type.
-            float centreOffset = 0.5f - TorchSizeXY / 2f;
+            float centreOffset = 0.5f - (TorchSizeXY / 2f);
             float topX = centreOffset + x;
             float topY = centreOffset + y;
 
@@ -656,10 +662,22 @@ public class ModDrawHand3d : ModBase
             float bottomX = centreOffset + x;
             float bottomY = centreOffset + y;
 
-            if (type == TorchType.Front) { bottomX = x - TorchSizeXY; }
-            if (type == TorchType.Back) { bottomX = x + 1f; }
-            if (type == TorchType.Left) { bottomY = y - TorchSizeXY; }
-            if (type == TorchType.Right) { bottomY = y + 1f; }
+            if (type == TorchType.Front)
+            {
+                bottomX = x - TorchSizeXY;
+            }
+            if (type == TorchType.Back)
+            {
+                bottomX = x + 1f;
+            }
+            if (type == TorchType.Left)
+            {
+                bottomY = y - TorchSizeXY;
+            }
+            if (type == TorchType.Right)
+            {
+                bottomY = y + 1f;
+            }
 
             // Top-cap quad — four corners at height TorchTopZ.
             // Corner layout (viewed from above, X right, Y into screen):

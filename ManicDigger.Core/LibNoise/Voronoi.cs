@@ -89,7 +89,7 @@ public class Voronoi : ValueNoiseBasis, IModule
                     float dx = fpX - x;
                     float dy = fpY - y;
                     float dz = fpZ - z;
-                    float distSq = dx * dx + dy * dy + dz * dz;
+                    float distSq = (dx * dx) + (dy * dy) + (dz * dz);
 
                     if (distSq < minDistSq)
                     {
@@ -110,7 +110,7 @@ public class Voronoi : ValueNoiseBasis, IModule
             float dx = nearestX - x;
             float dy = nearestY - y;
             float dz = nearestZ - z;
-            distanceContribution = MathF.Sqrt(dx * dx + dy * dy + dz * dz) * Sqrt3 - 1f;
+            distanceContribution = (MathF.Sqrt((dx * dx) + (dy * dy) + (dz * dz)) * Sqrt3) - 1f;
         }
 
         // Cell colour: noise value at the nearest feature point's integer cell.
@@ -120,6 +120,6 @@ public class Voronoi : ValueNoiseBasis, IModule
         int ny = nearestY > 0f ? (int)nearestY : (int)nearestY - 1;
         int nz = nearestZ > 0f ? (int)nearestZ : (int)nearestZ - 1;
 
-        return distanceContribution + displacement * ValueNoise(nx, ny, nz);
+        return distanceContribution + (displacement * ValueNoise(nx, ny, nz));
     }
 }

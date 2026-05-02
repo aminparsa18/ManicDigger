@@ -69,9 +69,15 @@ public class ModGuiTouchButtons : GameScreen
     /// <inheritdoc/>
     public override void OnNewFrameDraw2d(float deltaTime)
     {
-        if (!_touchButtonsEnabled) { return; }
+        if (!_touchButtonsEnabled)
+        {
+            return;
+        }
 
-        if (game.GuiState != GuiState.Normal) { return; }
+        if (game.GuiState != GuiState.Normal)
+        {
+            return;
+        }
 
         const int buttonSize = 80;
         float scale = Scale();
@@ -84,7 +90,7 @@ public class ModGuiTouchButtons : GameScreen
 
         if (!platform.IsMousePointerLocked())
         {
-            if (game.CameraType == CameraType.Fpp || game.CameraType == CameraType.Tpp)
+            if (game.CameraType is CameraType.Fpp or CameraType.Tpp)
             {
                 game.Draw2dText1("Move", platform.CanvasWidth * 5 / 100, platform.CanvasHeight * 85 / 100, (int)(scale * 50), null, false);
                 game.Draw2dText1("Look", platform.CanvasWidth * 80 / 100, platform.CanvasHeight * 85 / 100, (int)(scale * 50), null, false);
@@ -97,11 +103,20 @@ public class ModGuiTouchButtons : GameScreen
     /// <inheritdoc/>
     public override void OnButton(MenuWidget w)
     {
-        if (w == _buttonMenu) { game.ShowEscapeMenu(); }
+        if (w == _buttonMenu)
+        {
+            game.ShowEscapeMenu();
+        }
 
-        if (w == _buttonInventory) { game.ShowInventory(); }
+        if (w == _buttonInventory)
+        {
+            game.ShowInventory();
+        }
 
-        if (w == _buttonCamera) { game.CameraChange(); }
+        if (w == _buttonCamera)
+        {
+            game.CameraChange();
+        }
 
         if (w == _buttonTalk)
         {
@@ -126,7 +141,10 @@ public class ModGuiTouchButtons : GameScreen
 
         // Let the base class handle widget hit-testing via the overridden OnTouchStart.
         base.OnTouchStart(e);
-        if (e.GetHandled()) { return; }
+        if (e.GetHandled())
+        {
+            return;
+        }
 
         bool isLeftSide = e.GetX() <= platform.CanvasWidth / 2;
 
@@ -187,7 +205,10 @@ public class ModGuiTouchButtons : GameScreen
     public override void OnTouchEnd(TouchEventArgs e)
     {
         base.OnTouchEnd(e);
-        if (e.GetHandled()) { return; }
+        if (e.GetHandled())
+        {
+            return;
+        }
 
         if (e.GetId() == _touchIdMove)
         {
@@ -220,7 +241,7 @@ public class ModGuiTouchButtons : GameScreen
     private static void LayoutButton(MenuWidget button, int slot, int buttonSize, float scale)
     {
         button.x = 16 * scale;
-        button.y = (16 + 96 * slot) * scale;
+        button.y = (16 + (96 * slot)) * scale;
         button.sizex = buttonSize * scale;
         button.sizey = buttonSize * scale;
     }

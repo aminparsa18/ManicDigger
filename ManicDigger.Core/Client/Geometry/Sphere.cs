@@ -35,18 +35,18 @@ public class Sphere
                 float vy = height * MathF.Cos(phi);
                 float vz = radius * MathF.Sin(phi) * MathF.Sin(theta);
 
-                xyz[i * 3 + 0] = vx;
-                xyz[i * 3 + 1] = vy;
-                xyz[i * 3 + 2] = vz;
+                xyz[(i * 3) + 0] = vx;
+                xyz[(i * 3) + 1] = vy;
+                xyz[(i * 3) + 2] = vz;
 
-                uv[i * 2 + 0] = (float)x / (segments - 1);
-                uv[i * 2 + 1] = (float)y / (rings - 1);
+                uv[(i * 2) + 0] = (float)x / (segments - 1);
+                uv[(i * 2) + 1] = (float)y / (rings - 1);
 
                 // Default full-white vertex colour — tint at draw time if needed.
-                rgba[i * 4 + 0] = 255;
-                rgba[i * 4 + 1] = 255;
-                rgba[i * 4 + 2] = 255;
-                rgba[i * 4 + 3] = 255;
+                rgba[(i * 4) + 0] = 255;
+                rgba[(i * 4) + 1] = 255;
+                rgba[(i * 4) + 2] = 255;
+                rgba[(i * 4) + 3] = 255;
 
                 i++;
             }
@@ -80,10 +80,10 @@ public class Sphere
         {
             for (int x = 0; x < segments - 1; x++)
             {
-                int bottomLeft = (y + 0) * segments + x;
-                int topLeft = (y + 1) * segments + x;
-                int topRight = (y + 1) * segments + x + 1;
-                int bottomRight = (y + 0) * segments + x + 1;
+                int bottomLeft = ((y + 0) * segments) + x;
+                int topLeft = ((y + 1) * segments) + x;
+                int topRight = ((y + 1) * segments) + x + 1;
+                int bottomRight = ((y + 0) * segments) + x + 1;
 
                 indices[i++] = bottomLeft;
                 indices[i++] = topLeft;

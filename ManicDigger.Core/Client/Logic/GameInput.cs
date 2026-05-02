@@ -14,7 +14,8 @@ public partial class Game
 
         if (btn == (int)MouseButton.Left)
         {
-            mouseLeft = true; MouseLeftClick = true;
+            mouseLeft = true;
+            MouseLeftClick = true;
         }
         if (btn == (int)MouseButton.Middle)
         {
@@ -23,7 +24,8 @@ public partial class Game
 
         if (btn == (int)MouseButton.Right)
         {
-            mouseRight = true; mouserightclick = true;
+            mouseRight = true;
+            mouserightclick = true;
         }
 
         for (int i = 0; i < ClientMods.Count; i++)
@@ -50,13 +52,20 @@ public partial class Game
     {
         int btn = args.GetButton();
 
-        if (btn == (int)MouseButton.Left) { mouseLeft = false; mouseleftdeclick = true; }
+        if (btn == (int)MouseButton.Left)
+        {
+            mouseLeft = false;
+            mouseleftdeclick = true;
+        }
         if (btn == (int)MouseButton.Middle)
         {
             mouseMiddle = false;
         }
 
-        if (btn == (int)MouseButton.Right) { mouseRight = false; }
+        if (btn == (int)MouseButton.Right)
+        {
+            mouseRight = false;
+        }
 
         for (int i = 0; i < ClientMods.Count; i++)
         {
@@ -134,8 +143,8 @@ public partial class Game
             const float smoothing1 = 0.85f;
             const float smoothing2 = 0.8f;
             float scale = smoothing2 / (300f / 75);
-            mouseSmoothingVelX = (mouseSmoothingVelX + mouseDeltaX * scale) * smoothing1;
-            mouseSmoothingVelY = (mouseSmoothingVelY + mouseDeltaY * scale) * smoothing1;
+            mouseSmoothingVelX = (mouseSmoothingVelX + (mouseDeltaX * scale)) * smoothing1;
+            mouseSmoothingVelY = (mouseSmoothingVelY + (mouseDeltaY * scale)) * smoothing1;
         }
         else
         {
@@ -151,8 +160,8 @@ public partial class Game
                 Player.position.roty += mouseSmoothingVelX * rotScale;
                 Player.position.rotx += mouseSmoothingVelY * rotScale;
                 Player.position.rotx = Math.Clamp(Player.position.rotx,
-                    MathF.PI / 2 + (15 / 1000),
-                    MathF.PI / 2 + MathF.PI - (15 / 1000));
+                    (MathF.PI / 2) + (15 / 1000),
+                    (MathF.PI / 2) + MathF.PI - (15 / 1000));
             }
 
             if (!OverheadCamera)
@@ -381,19 +390,31 @@ public partial class Game
 
         if (eKey == GetKey(Keys.F1))
         {
-            if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
+            if (!AllowFreeMove)
+            {
+                AddChatLine(strFreemoveNotAllowed);
+                return;
+            }
             MoveSpeed = Basemovespeed * 1;
             AddChatLine("Move speed: 1x.");
         }
         if (eKey == GetKey(Keys.F2))
         {
-            if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
+            if (!AllowFreeMove)
+            {
+                AddChatLine(strFreemoveNotAllowed);
+                return;
+            }
             MoveSpeed = Basemovespeed * 10;
             AddChatLine(string.Format(Language.MoveSpeed(), "10"));
         }
         if (eKey == GetKey(Keys.F3))
         {
-            if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
+            if (!AllowFreeMove)
+            {
+                AddChatLine(strFreemoveNotAllowed);
+                return;
+            }
             StopPlayerMove = true;
             if (!Controls.FreeMove)
             {
@@ -505,8 +526,8 @@ public partial class Game
             PlayerPositionSpawnX = Player.position.x;
             PlayerPositionSpawnY = Player.position.y;
             PlayerPositionSpawnZ = Player.position.z;
-            Player.position.x = (int)Player.position.x + 1f / 2;
-            Player.position.z = (int)Player.position.z + 1f / 2;
+            Player.position.x = (int)Player.position.x + (1f / 2);
+            Player.position.z = (int)Player.position.z + (1f / 2);
         }
 
         if (eKey == GetKey(Keys.F))
@@ -536,7 +557,7 @@ public partial class Game
 
             if (IsUsableBlock(blocktype))
             {
-                if (BlockRegistry.IsRailTile(blocktype))
+                if (_blockRegistry.IsRailTile(blocktype))
                 {
                     Player.position.x = posX + (1f / 2);
                     Player.position.y = posZ + 1;
@@ -568,16 +589,46 @@ public partial class Game
 
     private void HandleMaterialKeys(int eKey)
     {
-        if (eKey == GetKey(Keys.KeyPad1)) { ActiveMaterial = 0; }
-        if (eKey == GetKey(Keys.KeyPad2)) { ActiveMaterial = 1; }
-        if (eKey == GetKey(Keys.KeyPad3)) { ActiveMaterial = 2; }
-        if (eKey == GetKey(Keys.KeyPad4)) { ActiveMaterial = 3; }
-        if (eKey == GetKey(Keys.KeyPad5)) { ActiveMaterial = 4; }
-        if (eKey == GetKey(Keys.KeyPad6)) { ActiveMaterial = 5; }
-        if (eKey == GetKey(Keys.KeyPad7)) { ActiveMaterial = 6; }
-        if (eKey == GetKey(Keys.KeyPad8)) { ActiveMaterial = 7; }
-        if (eKey == GetKey(Keys.KeyPad9)) { ActiveMaterial = 8; }
-        if (eKey == GetKey(Keys.KeyPad0)) { ActiveMaterial = 9; }
+        if (eKey == GetKey(Keys.KeyPad1))
+        {
+            ActiveMaterial = 0;
+        }
+        if (eKey == GetKey(Keys.KeyPad2))
+        {
+            ActiveMaterial = 1;
+        }
+        if (eKey == GetKey(Keys.KeyPad3))
+        {
+            ActiveMaterial = 2;
+        }
+        if (eKey == GetKey(Keys.KeyPad4))
+        {
+            ActiveMaterial = 3;
+        }
+        if (eKey == GetKey(Keys.KeyPad5))
+        {
+            ActiveMaterial = 4;
+        }
+        if (eKey == GetKey(Keys.KeyPad6))
+        {
+            ActiveMaterial = 5;
+        }
+        if (eKey == GetKey(Keys.KeyPad7))
+        {
+            ActiveMaterial = 6;
+        }
+        if (eKey == GetKey(Keys.KeyPad8))
+        {
+            ActiveMaterial = 7;
+        }
+        if (eKey == GetKey(Keys.KeyPad9))
+        {
+            ActiveMaterial = 8;
+        }
+        if (eKey == GetKey(Keys.KeyPad0))
+        {
+            ActiveMaterial = 9;
+        }
     }
 
     public int GetKey(Keys key)

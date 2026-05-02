@@ -58,9 +58,9 @@ public class ModGuiCrafting : ModBase
     private bool _handlerRegistered;
 
     private readonly IVoxelMap voxelMap;
-    private readonly IBlockTypeRegistry blockTypeRegistry;
+    private readonly IBlockRegistry blockTypeRegistry;
 
-    public ModGuiCrafting(IGameService gameService, IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
+    public ModGuiCrafting(IGameService gameService, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.voxelMap = voxelMap;
         this.blockTypeRegistry = blockTypeRegistry;
@@ -187,7 +187,7 @@ public class ModGuiCrafting : ModBase
         for (int i = 0; i < currentRecipesCount; i++)
         {
             CraftingRecipe r = craftingRecipes2[currentRecipes[i]];
-            int rowY = menuY + i * RecipeRowHeight;
+            int rowY = menuY + (i * RecipeRowHeight);
             int color = i == craftingSelectedRecipe
                 ? ColorUtils.ColorFromArgb(255, 255, 0, 0)
                 : ColorUtils.ColorFromArgb(255, 255, 255, 255);
@@ -196,11 +196,11 @@ public class ModGuiCrafting : ModBase
             for (int ii = 0; ii < r.Ingredients.Length; ii++)
             {
                 Ingredient ing = r.Ingredients[ii];
-                int colX = menuX + 20 + ii * 130;
+                int colX = menuX + 20 + (ii * 130);
                 Game.Draw2dTexture(Game.TerrainTexture,
                     colX, rowY, 32, 32,
                     Game.TextureIdForInventory[ing.Type], GameConstants.MAX_BLOCKTYPES_SQRT, white, false);
-                Game.Draw2dText1($"{ing.Amount} {Game.BlockTypes[ing.Type].Name}",
+                Game.Draw2dText1($"{ing.Amount} {blockTypeRegistry.BlockTypes[ing.Type].Name}",
                     colX + 50, rowY, FontSize, color, false);
             }
 
@@ -208,7 +208,7 @@ public class ModGuiCrafting : ModBase
             Game.Draw2dTexture(Game.TerrainTexture,
                 outX, rowY, 32, 32,
                 Game.TextureIdForInventory[r.Output.Type], GameConstants.MAX_BLOCKTYPES_SQRT, white, false);
-            Game.Draw2dText1($"{r.Output.Amount} {Game.BlockTypes[r.Output.Type].Name}",
+            Game.Draw2dText1($"{r.Output.Amount} {blockTypeRegistry.BlockTypes[r.Output.Type].Name}",
                 outX + 50, rowY, FontSize, color, false);
         }
     }
@@ -225,7 +225,7 @@ public class ModGuiCrafting : ModBase
         int menuY = Game.Ycenter(currentRecipesCount * RecipeRowHeight);
 
         if (Game.MouseCurrentY >= menuY
-         && Game.MouseCurrentY < menuY + currentRecipesCount * RecipeRowHeight)
+         && Game.MouseCurrentY < menuY + (currentRecipesCount * RecipeRowHeight))
         {
             craftingSelectedRecipe = (Game.MouseCurrentY - menuY) / RecipeRowHeight;
         }
@@ -288,7 +288,7 @@ public class ModGuiCrafting : ModBase
 public class CraftingTableTool
 {
     internal IMapStorage d_Map;
-    internal IBlockTypeRegistry d_Data;
+    internal IBlockRegistry d_Data;
 
     // ── Pre-allocated buffers ─────────────────────────────────────────────────
     // GetTable and GetOnTable are called together once per player interaction,

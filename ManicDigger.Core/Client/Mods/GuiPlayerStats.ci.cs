@@ -26,8 +26,8 @@ public class ModGuiPlayerStats : ModBase
         }
 
         int barY = platform.CanvasHeight - 122;
-        int healthX = platform.CanvasWidth / 2 - BarWidth - CenterOffset;
-        int oxygenX = platform.CanvasWidth / 2 + CenterOffset;
+        int healthX = (platform.CanvasWidth / 2) - BarWidth - CenterOffset;
+        int oxygenX = (platform.CanvasWidth / 2) + CenterOffset;
 
         DrawBar(healthX, barY, (float)Game.PlayerStats.CurrentHealth / Game.PlayerStats.MaxHealth, Red);
 

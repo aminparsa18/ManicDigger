@@ -34,32 +34,8 @@ public partial class App : Application
         // OpenTK's Run() is blocking so it must not run on the main thread
         MainThread.BeginInvokeOnMainThread(static () =>
         {
-            try
-            {
-                GameRunner.Start([.. Environment.GetCommandLineArgs().Skip(1)]);
-            }
-            catch (Exception ex)
-            {
-                File.WriteAllText(
-                Path.Combine(AppContext.BaseDirectory, "crash.txt"),
-                FlattenException(ex));
-            }
+            GameRunner.Start([.. Environment.GetCommandLineArgs().Skip(1)]);
         });
-    }
-
-    private static string FlattenException(Exception ex)
-    {
-        StringBuilder sb = new();
-        while (ex != null)
-        {
-            sb.AppendLine(ex.GetType().FullName);
-            sb.AppendLine(ex.Message);
-            sb.AppendLine(ex.StackTrace);
-            sb.AppendLine("--- Inner Exception ---");
-            ex = ex.InnerException!;
-        }
-
-        return sb.ToString();
     }
 }
 
@@ -89,7 +65,7 @@ public class GameRunner
         services.AddSingleton<IMenu, MainMenu>();
         services.AddSingleton<IModRegistry, ModRegistry>();
         services.AddSingleton<ITaskScheduler, TaskScheduler>();
-        services.AddSingleton<IBlockTypeRegistry, BlockTypeRegistry>();
+        services.AddSingleton<IBlockRegistry, BlockRegistry>();
         services.AddSingleton<IGame, Game>();
 
         // ── Player logic ──────────────────────────────────────────────────────

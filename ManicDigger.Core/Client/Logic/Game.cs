@@ -30,10 +30,10 @@ public partial class Game
     // ── Screen / layout helpers ───────────────────────────────────────────────
 
     /// <summary>Returns the X coordinate that centres a region of <paramref name="width"/> pixels.</summary>
-    public int Xcenter(float width) => gameService.CanvasWidth / 2 - (int)width / 2;
+    public int Xcenter(float width) => (gameService.CanvasWidth / 2) - ((int)width / 2);
 
     /// <summary>Returns the Y coordinate that centres a region of <paramref name="height"/> pixels.</summary>
-    public int Ycenter(float height) => gameService.CanvasHeight / 2 - (int)height / 2;
+    public int Ycenter(float height) => (gameService.CanvasHeight / 2) - ((int)height / 2);
 
     /// <summary>
     /// UI scale factor. Returns a width-relative scale on small screens
@@ -100,7 +100,7 @@ public partial class Game
             return item.BlockId;
         }
 
-        return BlockRegistry.BlockIdDirt;
+        return _blockRegistry.BlockIdDirt;
     }
 
     /// <summary>Replaces the active inventory with the server-sent packet and notifies the util layer.</summary>

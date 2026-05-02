@@ -27,7 +27,10 @@ public class ModLoadPlayerTextures : ModBase
     /// <inheritdoc/>
     public override void OnNewFrame(float args)
     {
-        if (Game.GuiState == GuiState.MapLoading) { return; }
+        if (Game.GuiState == GuiState.MapLoading)
+        {
+            return;
+        }
 
         if (!_started)
         {
@@ -70,13 +73,25 @@ public class ModLoadPlayerTextures : ModBase
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity e = Game.Entities[i];
-            if (e?.drawModel == null) { continue; }
+            if (e?.drawModel == null)
+            {
+                continue;
+            }
 
-            if (e.drawModel.CurrentTexture != -1) { continue; }
+            if (e.drawModel.CurrentTexture != -1)
+            {
+                continue;
+            }
 
-            if (TryLoadDownloadedSkin(e)) { continue; }
+            if (TryLoadDownloadedSkin(e))
+            {
+                continue;
+            }
 
-            if (TryLoadFileSkin(e)) { continue; }
+            if (TryLoadFileSkin(e))
+            {
+                continue;
+            }
         }
     }
 
@@ -109,9 +124,15 @@ public class ModLoadPlayerTextures : ModBase
             return true; // still downloading
         }
 
-        if (e.drawModel.SkinDownloadResponse.Error) { return false; }
+        if (e.drawModel.SkinDownloadResponse.Error)
+        {
+            return false;
+        }
 
-        if (!e.drawModel.SkinDownloadResponse.Done) { return true; }
+        if (!e.drawModel.SkinDownloadResponse.Done)
+        {
+            return true;
+        }
 
         // Download finished — decode and upload.
         Bitmap bmp = PixelBuffer.BitmapFromPng(

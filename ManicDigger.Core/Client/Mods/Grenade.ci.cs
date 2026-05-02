@@ -35,7 +35,7 @@ public class ModGrenade : ModBase
         Grenade grenade = grenadeEntity.grenade;
 
         Vector3 oldPos = new(grenadeSprite.positionX, grenadeSprite.positionY, grenadeSprite.positionZ);
-        Vector3 newPos = oldPos + new Vector3(grenade.velocityX, grenade.velocityY, grenade.velocityZ) * dt;
+        Vector3 newPos = oldPos + (new Vector3(grenade.velocityX, grenade.velocityY, grenade.velocityZ) * dt);
         grenade.velocityY -= ProjectileGravity * dt;
 
         Vector3 velocity = new(grenade.velocityX, grenade.velocityY, grenade.velocityZ);

@@ -87,11 +87,11 @@ public class Tnt : IMod
                 {
                     for (int zz = 0; zz < tntRange; zz++)
                     {
-                        if (SphereEq(xx - (tntRange - 1) / 2, yy - (tntRange - 1) / 2, zz - (tntRange - 1) / 2, tntRange / 2) <= 0)
+                        if (SphereEq(xx - ((tntRange - 1) / 2), yy - ((tntRange - 1) / 2), zz - ((tntRange - 1) / 2), tntRange / 2) <= 0)
                         {
-                            Vector3i pos2 = new(pos.x + xx - tntRange / 2,
-                                                         pos.y + yy - tntRange / 2,
-                                                         pos.z + zz - tntRange / 2);
+                            Vector3i pos2 = new(pos.x + xx - (tntRange / 2),
+                                                         pos.y + yy - (tntRange / 2),
+                                                         pos.z + zz - (tntRange / 2));
                             if (!m.IsValidPos(pos2.x, pos2.y, pos2.z))
                             {
                                 continue;
@@ -131,5 +131,5 @@ public class Tnt : IMod
         }
     }
 
-    private static int SphereEq(int x, int y, int z, int r) => x * x + y * y + z * z - r * r;
+    private static int SphereEq(int x, int y, int z, int r) => (x * x) + (y * y) + (z * z) - (r * r);
 }

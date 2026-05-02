@@ -225,16 +225,25 @@ public class ScreenGame(IMenu navigator, IGameService platform,
 
     public override void OnMouseDown(MouseEventArgs e)
     {
-        if (IsFocused) { game.MouseDown(e); }
+        if (IsFocused)
+        {
+            game.MouseDown(e);
+        }
     }
 
     public override void OnMouseMove(MouseEventArgs e)
     {
-        if (IsFocused) { game.MouseMove(e); }
+        if (IsFocused)
+        {
+            game.MouseMove(e);
+        }
     }
 
     public override void OnMouseUp(MouseEventArgs e)
     {
-        if (IsFocused) { game.MouseUp(e); }
+        if (IsFocused)
+        {
+            game.MouseUp(e);
+        }
     }
 }

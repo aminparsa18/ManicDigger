@@ -9,12 +9,14 @@ public class ModDrawHand2d : ModBase
     private readonly IGameService platform;
     private readonly IMeshDrawer meshDrawer;
     private readonly IOpenGlService openGlService;
+    private readonly IBlockRegistry _blockTypeRegistry;
 
-    public ModDrawHand2d(IGameService platform, IMeshDrawer meshDrawer, IOpenGlService openGlService, IGame game) : base(game)
+    public ModDrawHand2d(IGameService platform, IMeshDrawer meshDrawer, IOpenGlService openGlService,IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
         this.openGlService = openGlService;
+        _blockTypeRegistry = blockTypeRegistry;
     }
 
     public override void OnNewFrameDraw3d(float deltaTime)
@@ -61,7 +63,7 @@ public class ModDrawHand2d : ModBase
         }
 
         return Game.IronSights
-            ? Game.BlockTypes[item.BlockId].IronSightsImage
-            : Game.BlockTypes[item.BlockId].handimage;
+            ? _blockTypeRegistry.BlockTypes[item.BlockId].IronSightsImage
+            : _blockTypeRegistry.BlockTypes[item.BlockId].handimage;
     }
 }

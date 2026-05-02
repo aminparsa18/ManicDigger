@@ -1,13 +1,12 @@
 ﻿public class ServerMapStorage : IMapStorage
 {
-    internal Server server;
-    internal IChunkDb d_ChunkDb;
-    internal ICurrentTime d_CurrentTime;
-    internal ServerChunk[][] chunks;
+    private ServerChunk[][] chunks;
+    private int mapSizeX;
+    private int mapSizeY;
+    private int mapSizeZ;
 
-    internal int mapSizeX;
-    internal int mapSizeY;
-    internal int mapSizeZ;
+    public Server server { get; set; }
+    public IChunkDb d_ChunkDb { get; set; }
     public int MapSizeX => mapSizeX;
     public int MapSizeY => mapSizeY;
     public int MapSizeZ => mapSizeZ;
@@ -16,15 +15,6 @@
     {
         ServerChunk chunk = GetChunk(x, y, z);
         return chunk.Data[VectorIndexUtil.Index3d(BlockInChunk(x), BlockInChunk(y), BlockInChunk(z), chunksize, chunksize)];
-    }
-
-    public void SetBlock(int x, int y, int z, int tileType)
-    {
-        ServerChunk chunk = GetChunk(x, y, z);
-        chunk.Data[VectorIndexUtil.Index3d(BlockInChunk(x), BlockInChunk(y), BlockInChunk(z), chunksize, chunksize)] = (ushort)tileType;
-        chunk.LastChange = d_CurrentTime.GetSimulationCurrentFrame();
-        chunk.DirtyForSaving = true;
-        UpdateColumnHeight(x, y);
     }
 
     private void UpdateColumnHeight(int x, int y)
@@ -71,7 +61,7 @@
         }
     }
 
-    public ServerChunk GetChunk_(int chunkx, int chunky, int chunkz) => GetChunk(chunkx * chunksize, chunky * chunksize, chunkz * chunksize);
+    public ServerChunk GetChunkAt(int chunkx, int chunky, int chunkz) => GetChunk(chunkx * chunksize, chunky * chunksize, chunkz * chunksize);
 
     public ServerChunk GetChunk(int x, int y, int z)
     {
@@ -116,8 +106,8 @@
                 int inChunkHeight = GetColumnHeightInChunk(GetChunkValid(x, y, z).Data, xx, yy);
                 if (inChunkHeight != 0)
                 {
-                    int oldHeight = Heightmap.GetBlock(x * chunksize + xx, y * chunksize + yy);
-                    Heightmap.SetBlock(x * chunksize + xx, y * chunksize + yy, Math.Max(oldHeight, inChunkHeight + z * chunksize));
+                    int oldHeight = Heightmap.GetBlock((x * chunksize) + xx, (y * chunksize) + yy);
+                    Heightmap.SetBlock((x * chunksize) + xx, (y * chunksize) + yy, Math.Max(oldHeight, inChunkHeight + (z * chunksize)));
                 }
             }
         }
@@ -138,29 +128,15 @@
         return height;
     }
 
-    private ServerChunk DeserializeChunk(byte[] serializedChunk)
-    {
-        ServerChunk c = MemoryPackSerializer.Deserialize<ServerChunk>(serializedChunk);
-        if (c.DataOld != null)
-        {
-            c.Data = new ushort[chunksize * chunksize * chunksize];
-            for (int i = 0; i < c.DataOld.Length; i++)
-            {
-                c.Data[i] = c.DataOld[i];
-            }
-
-            c.DataOld = null;
-        }
-
-        return c;
-    }
+    private ServerChunk DeserializeChunk(byte[] serializedChunk) 
+        => MemoryPackSerializer.Deserialize<ServerChunk>(serializedChunk);
 
     private int chunksize = 16;
     private int chunksizebits = 4; // log2(16)
     private bool isPower2Chunk = true;
     public int ChunkSize
     {
-        get { return chunksize; }
+        get => chunksize;
         set
         {
             chunksize = value;
@@ -169,9 +145,9 @@
         }
     }
 
-    public int BlockInChunk(int num) => isPower2Chunk ? num & (chunksize - 1) : num % chunksize;
+    private int BlockInChunk(int num) => isPower2Chunk ? num & (chunksize - 1) : num % chunksize;
 
-    public int BlockToChunk(int num) => num >> chunksizebits;
+    private int BlockToChunk(int num) => num >> chunksizebits;
 
     public void Reset(int sizex, int sizey, int sizez)
     {
@@ -182,7 +158,7 @@
         Heightmap.Restart();
     }
 
-    public InfiniteMapChunked2dServer Heightmap;
+    public InfiniteMapChunked2dServer Heightmap { get; set; }
 
     public ServerChunk GetChunkValid(int cx, int cy, int cz)
     {

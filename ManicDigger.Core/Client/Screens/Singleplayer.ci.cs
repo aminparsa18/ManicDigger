@@ -90,35 +90,35 @@ public class SingleplayerScreen : ScreenBase
         Menu.DrawBackground();
         Menu.DrawText(title, 20 * scale, GameService.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
 
-        float leftx = GameService.CanvasWidth / 2 - 128 * scale;
-        float y = GameService.CanvasHeight / 2 + 0 * scale;
+        float leftx = (GameService.CanvasWidth / 2) - (128 * scale);
+        float y = (GameService.CanvasHeight / 2) + (0 * scale);
 
         play.x = leftx;
-        play.y = y + 100 * scale;
+        play.y = y + (100 * scale);
         play.sizex = 256 * scale;
         play.sizey = 64 * scale;
         play.fontSize = 14 * scale;
 
         newWorld.x = leftx;
-        newWorld.y = y + 170 * scale;
+        newWorld.y = y + (170 * scale);
         newWorld.sizex = 256 * scale;
         newWorld.sizey = 64 * scale;
         newWorld.fontSize = 14 * scale;
 
         modify.x = leftx;
-        modify.y = y + 240 * scale;
+        modify.y = y + (240 * scale);
         modify.sizex = 256 * scale;
         modify.sizey = 64 * scale;
         modify.fontSize = 14 * scale;
 
         back.x = 40 * scale;
-        back.y = GameService.CanvasHeight - 104 * scale;
+        back.y = GameService.CanvasHeight - (104 * scale);
         back.sizex = 256 * scale;
         back.sizey = 64 * scale;
         back.fontSize = 14 * scale;
 
         open.x = leftx;
-        open.y = y + 0 * scale;
+        open.y = y + (0 * scale);
         open.sizex = 256 * scale;
         open.sizey = 64 * scale;
         open.fontSize = 14 * scale;
@@ -136,7 +136,7 @@ public class SingleplayerScreen : ScreenBase
             worldButtons[i].visible = true;
             worldButtons[i].text = Path.GetFileNameWithoutExtension(savegames[i]);
             worldButtons[i].x = leftx;
-            worldButtons[i].y = 100 + 100 * scale * i;
+            worldButtons[i].y = 100 + (100 * scale * i);
             worldButtons[i].sizex = 256 * scale;
             worldButtons[i].sizey = 64 * scale;
             worldButtons[i].fontSize = 14 * scale;

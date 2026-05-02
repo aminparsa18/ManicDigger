@@ -44,7 +44,7 @@ public partial class Game
             return true;
         }
 
-        return BlockRegistry.WalkableType[eyesBlock] == WalkableType.Fluid;
+        return _blockRegistry.WalkableType[eyesBlock] == WalkableType.Fluid;
     }
 
     public bool SwimmingBody()
@@ -55,7 +55,7 @@ public partial class Game
             return true;
         }
 
-        return BlockRegistry.WalkableType[block] == WalkableType.Fluid;
+        return _blockRegistry.WalkableType[block] == WalkableType.Fluid;
     }
 
     public bool WaterSwimmingEyes()
@@ -102,7 +102,7 @@ public partial class Game
         int blockUnder = BlockUnderPlayer();
         if (blockUnder != -1)
         {
-            float floorSpeed = BlockRegistry.WalkSpeed[blockUnder];
+            float floorSpeed = _blockRegistry.WalkSpeed[blockUnder];
             if (floorSpeed != 0)
             {
                 speed *= floorSpeed;
@@ -122,7 +122,7 @@ public partial class Game
         InventoryItem item = Inventory.RightHand[ActiveMaterial];
         if (item != null && item.InventoryItemType == InventoryItemType.Block)
         {
-            float itemSpeed = BlockTypes[item.BlockId].WalkSpeedWhenUsed;
+            float itemSpeed = _blockRegistry.BlockTypes[item.BlockId].WalkSpeedWhenUsed;
             if (itemSpeed != 0)
             {
                 speed *= itemSpeed;
@@ -130,7 +130,7 @@ public partial class Game
 
             if (IronSights)
             {
-                float ironSpeed = BlockTypes[item.BlockId].IronSightsMoveSpeed;
+                float ironSpeed = _blockRegistry.BlockTypes[item.BlockId].IronSightsMoveSpeed;
                 if (ironSpeed != 0)
                 {
                     speed *= ironSpeed;
@@ -152,7 +152,7 @@ public partial class Game
             InventoryItem item = Inventory.RightHand[ActiveMaterial];
             if (item != null && item.InventoryItemType == InventoryItemType.Block)
             {
-                float ironFov = BlockTypes[item.BlockId].IronSightsFov;
+                float ironFov = _blockRegistry.BlockTypes[item.BlockId].IronSightsFov;
                 if (ironFov != 0)
                 {
                     return fov * ironFov;
@@ -170,7 +170,7 @@ public partial class Game
             return 0;
         }
 
-        return BlockTypes[item.BlockId].Recoil;
+        return _blockRegistry.BlockTypes[item.BlockId].Recoil;
     }
 
     public float CurrentAimRadius()
@@ -182,10 +182,10 @@ public partial class Game
         }
 
         float radius = IronSights
-            ? BlockTypes[item.BlockId].IronSightsAimRadius / 800 * gameService.CanvasWidth
-            : BlockTypes[item.BlockId].AimRadius / 800 * gameService.CanvasWidth;
+            ? _blockRegistry.BlockTypes[item.BlockId].IronSightsAimRadius / 800 * gameService.CanvasWidth
+            : _blockRegistry.BlockTypes[item.BlockId].AimRadius / 800 * gameService.CanvasWidth;
 
-        return radius + RadiusWhenMoving * radius * Math.Min(playervelocity.Length / MoveSpeed, 1);
+        return radius + (RadiusWhenMoving * radius * Math.Min(playervelocity.Length / MoveSpeed, 1));
     }
 
     // -------------------------------------------------------------------------

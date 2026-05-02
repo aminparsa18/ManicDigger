@@ -371,12 +371,12 @@ public class ModAutoCamera : ModBase
             // ── Fix #2: explicit float division to avoid integer truncation ────
             _cameraPoints[_cameraPointsCount++] = new CameraPoint
             {
-                PositionGlX = int.Parse(parts[1 + i * 6 + 0]) / 100f,
-                PositionGlY = int.Parse(parts[1 + i * 6 + 1]) / 100f,
-                PositionGlZ = int.Parse(parts[1 + i * 6 + 2]) / 100f,
-                OrientationGlX = int.Parse(parts[1 + i * 6 + 3]) / 1000f,
-                OrientationGlY = int.Parse(parts[1 + i * 6 + 4]) / 1000f,
-                OrientationGlZ = int.Parse(parts[1 + i * 6 + 5]) / 1000f,
+                PositionGlX = int.Parse(parts[1 + (i * 6) + 0]) / 100f,
+                PositionGlY = int.Parse(parts[1 + (i * 6) + 1]) / 100f,
+                PositionGlZ = int.Parse(parts[1 + (i * 6) + 2]) / 100f,
+                OrientationGlX = int.Parse(parts[1 + (i * 6) + 3]) / 1000f,
+                OrientationGlY = int.Parse(parts[1 + (i * 6) + 4]) / 1000f,
+                OrientationGlZ = int.Parse(parts[1 + (i * 6) + 5]) / 1000f,
             };
         }
 
@@ -490,7 +490,7 @@ public class ModAutoCamera : ModBase
         float dx = a.PositionGlX - b.PositionGlX;
         float dy = a.PositionGlY - b.PositionGlY;
         float dz = a.PositionGlZ - b.PositionGlZ;
-        return MathF.Sqrt(dx * dx + dy * dy + dz * dz);
+        return MathF.Sqrt((dx * dx) + (dy * dy) + (dz * dz));
     }
 
     /// <summary>
@@ -505,9 +505,9 @@ public class ModAutoCamera : ModBase
     {
         return 0.5f * (
               (2 * p1)
-            + (-p0 + p2) * t
-            + (2 * p0 - 5 * p1 + 4 * p2 - p3) * (t * t)
-            + (-p0 + 3 * p1 - 3 * p2 + p3) * (t * t * t));
+            + ((-p0 + p2) * t)
+            + (((2 * p0) - (5 * p1) + (4 * p2) - p3) * (t * t))
+            + ((-p0 + (3 * p1) - (3 * p2) + p3) * (t * t * t)));
     }
 }
 

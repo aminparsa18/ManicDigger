@@ -35,10 +35,10 @@ public class PlayerList : IMod
 
         // text to draw
         string row1 = m.ServerName;
-        row1 = CutText(row1, HeadingFont, tableWidth - 2 * tablePadding);
+        row1 = CutText(row1, HeadingFont, tableWidth - (2 * tablePadding));
 
         string row2 = m.ServerMotd;
-        row2 = CutText(row2, SmallFontBold, tableWidth - 2 * tablePadding);
+        row2 = CutText(row2, SmallFontBold, tableWidth - (2 * tablePadding));
 
 
         string row3_1 = $"IP: {m.ServerIp}:{m.ServerPort}";
@@ -52,12 +52,12 @@ public class PlayerList : IMod
         string row5_3 = "Ping";
 
         // row heights
-        float row1Height = TextHeight(row1, HeadingFont) + 2 * tablePadding;
-        float row2Height = TextHeight(row2, SmallFontBold) + 2 * tablePadding;
-        float row3Height = TextHeight(row3_1, SmallFont) + 2 * tablePadding;
-        float row4Height = TextHeight(row4_1, SmallFont) + 2 * tablePadding;
-        float row5Height = TextHeight(row5_1, NormalFontBold) + 2 * tablePadding;
-        float listEntryHeight = TextHeight("Player", NormalFont) + 2 * listEntryPaddingTopBottom;
+        float row1Height = TextHeight(row1, HeadingFont) + (2 * tablePadding);
+        float row2Height = TextHeight(row2, SmallFontBold) + (2 * tablePadding);
+        float row3Height = TextHeight(row3_1, SmallFont) + (2 * tablePadding);
+        float row4Height = TextHeight(row4_1, SmallFont) + (2 * tablePadding);
+        float row5Height = TextHeight(row5_1, NormalFontBold) + (2 * tablePadding);
+        float listEntryHeight = TextHeight("Player", NormalFont) + (2 * listEntryPaddingTopBottom);
 
         float heightOffset = 0;
 
@@ -108,9 +108,9 @@ public class PlayerList : IMod
         // row4_1 ID - align center
         widgets.Add(Widget.MakeText(row5_1, NormalFontBold, tableX + Xcenter(tableIdColumnWidth, TextWidth(row5_1, NormalFontBold)), tableY + heightOffset + tablePadding, TEXT_COLOR.ToArgb()));
         // row4_2 Player - align center
-        widgets.Add(Widget.MakeText(row5_2, NormalFontBold, tableX + tableIdColumnWidth + tablePlayerColumnWidth / 2 - TextWidth(row5_2, NormalFontBold) / 2, tableY + heightOffset + tablePadding, TEXT_COLOR.ToArgb()));
+        widgets.Add(Widget.MakeText(row5_2, NormalFontBold, tableX + tableIdColumnWidth + (tablePlayerColumnWidth / 2) - (TextWidth(row5_2, NormalFontBold) / 2), tableY + heightOffset + tablePadding, TEXT_COLOR.ToArgb()));
         // row4_3 Ping - align center
-        widgets.Add(Widget.MakeText(row5_3, NormalFontBold, tableX + tableIdColumnWidth + tablePlayerColumnWidth + tablePingColumnWidth / 2 - TextWidth(row5_3, NormalFontBold) / 2, tableY + heightOffset + tablePadding, TEXT_COLOR.ToArgb()));
+        widgets.Add(Widget.MakeText(row5_3, NormalFontBold, tableX + tableIdColumnWidth + tablePlayerColumnWidth + (tablePingColumnWidth / 2) - (TextWidth(row5_3, NormalFontBold) / 2), tableY + heightOffset + tablePadding, TEXT_COLOR.ToArgb()));
         heightOffset += row5Height;
         // horizontal line
         widgets.Add(Widget.MakeSolid(tableX, tableY + heightOffset, tableWidth, tableLineWidth, Color.DimGray.ToArgb()));
@@ -120,7 +120,7 @@ public class PlayerList : IMod
         // entries:
         Color entryRowColor;
         int[] AllPlayers = m.AllPlayers();
-        for (int i = page * entriesPerPage; i < Math.Min(AllPlayers.Length, page * entriesPerPage + entriesPerPage); i++)
+        for (int i = page * entriesPerPage; i < Math.Min(AllPlayers.Length, (page * entriesPerPage) + entriesPerPage); i++)
         {
             if (i % 2 == 0)
             {
@@ -209,9 +209,9 @@ public class PlayerList : IMod
         return false;
     }
 
-    private static float Xcenter(float outerWidth, float innerWidth) => outerWidth / 2 - innerWidth / 2;
+    private static float Xcenter(float outerWidth, float innerWidth) => (outerWidth / 2) - (innerWidth / 2);
 
-    private static float Ycenter(float outerHeight, float innerHeight) => outerHeight / 2 - innerHeight / 2;
+    private static float Ycenter(float outerHeight, float innerHeight) => (outerHeight / 2) - (innerHeight / 2);
 
     private float TextWidth(string text, DialogFont font) => m.MeasureTextSize(text, font)[0];
 
@@ -228,7 +228,7 @@ public class PlayerList : IMod
 
     private void OnTabResponse(int player, string widgetid)
     {
-        if (widgetid == "Tab" || widgetid == "Esc")
+        if (widgetid is "Tab" or "Esc")
         {
             m.SendDialog(player, "PlayerList", null);
             tabOpen.Remove(m.GetPlayerName(player));

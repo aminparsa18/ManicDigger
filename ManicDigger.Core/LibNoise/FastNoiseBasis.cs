@@ -103,7 +103,7 @@ public class FastNoiseBasis
             const float inv255 = 1f / 255f;
             for (int i = 0; i < 256; i++)
             {
-                _gradients[i] = -1f + 2f * (_permutations[i] * inv255);
+                _gradients[i] = -1f + (2f * (_permutations[i] * inv255));
             }
 
             _gradients.AsSpan(0, 256).CopyTo(_gradients.AsSpan(256));
@@ -158,14 +158,14 @@ public class FastNoiseBasis
                 sx = fx; sy = fy; sz = fz;
                 break;
             case NoiseQuality.Standard:
-                sx = fx * fx * (3f - 2f * fx);
-                sy = fy * fy * (3f - 2f * fy);
-                sz = fz * fz * (3f - 2f * fz);
+                sx = fx * fx * (3f - (2f * fx));
+                sy = fy * fy * (3f - (2f * fy));
+                sz = fz * fz * (3f - (2f * fz));
                 break;
             default: // High — quintic, C2-continuous
-                sx = fx * fx * fx * (fx * (6f * fx - 15f) + 10f);
-                sy = fy * fy * fy * (fy * (6f * fy - 15f) + 10f);
-                sz = fz * fz * fz * (fz * (6f * fz - 15f) + 10f);
+                sx = fx * fx * fx * ((fx * ((6f * fx) - 15f)) + 10f);
+                sy = fy * fy * fy * ((fy * ((6f * fy) - 15f)) + 10f);
+                sz = fz * fz * fz * ((fz * ((6f * fz) - 15f)) + 10f);
                 break;
         }
 
@@ -332,5 +332,5 @@ public class FastNoiseBasis
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float Lerp(float a, float b, float t) => a + t * (b - a);
+    private static float Lerp(float a, float b, float t) => a + (t * (b - a));
 }

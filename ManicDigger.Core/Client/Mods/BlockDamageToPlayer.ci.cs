@@ -19,9 +19,9 @@ public class ModBlockDamageToPlayer : ModBase
 
     private readonly IGameService _platform;
     private readonly IVoxelMap voxelMap;
-    private readonly IBlockTypeRegistry blockTypeRegistry;
+    private readonly IBlockRegistry blockTypeRegistry;
 
-    public ModBlockDamageToPlayer(IGameService platform, IGame game, IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry) : base(game)
+    public ModBlockDamageToPlayer(IGameService platform, IGame game, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry) : base(game)
     {
         _platform = platform;
         blockDamageTimer = new DamageTimer(BlockDamageToPlayerEvery, BlockDamageToPlayerEvery * 2);

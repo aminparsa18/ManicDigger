@@ -15,9 +15,9 @@ public class ModCompass : ModBase
     private float compassVelocity;
     private readonly IGameService platform;
     private readonly IMeshDrawer meshDrawer;
-    private readonly IBlockTypeRegistry blockTypeRegistry;
+    private readonly IBlockRegistry blockTypeRegistry;
 
-    public ModCompass(IGameService platform, IMeshDrawer meshDrawer, IBlockTypeRegistry blockTypeRegistry, IGame game) : base(game)
+    public ModCompass(IGameService platform, IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
@@ -71,7 +71,7 @@ public class ModCompass : ModBase
         int white = ColorUtils.ColorFromArgb(255, 255, 255, 255);
 
         // Compass rose
-        game.Draw2dTexture(compassId, posX - CompassSize / 2, posY - CompassSize / 2, CompassSize, CompassSize, null, 0, white, false);
+        game.Draw2dTexture(compassId, posX - (CompassSize / 2), posY - (CompassSize / 2), CompassSize, CompassSize, null, 0, white, false);
 
         // Compass needle (rotated to match orientation)
         meshDrawer.GLPushMatrix();

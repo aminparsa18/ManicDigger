@@ -62,7 +62,7 @@ public sealed class Billow : IModule
         get => _octaveCount;
         set
         {
-            if (value < 1 || value > MaxOctaves)
+            if (value is < 1 or > MaxOctaves)
             {
                 throw new ArgumentException(
                     $"OctaveCount must be between 1 and {MaxOctaves}, got {value}.");
@@ -122,7 +122,7 @@ public sealed class Billow : IModule
             signal = Unsafe.BitCast<int, float>(Unsafe.BitCast<float, int>(signal) & 0x7FFF_FFFF);
 
             // Fold: (2*|signal| - 1) * amplitude  →  |signal|*curAmp - amplitude
-            sum += signal * curAmp - amplitude;
+            sum += (signal * curAmp) - amplitude;
 
             x *= lacunarity;
             y *= lacunarity;

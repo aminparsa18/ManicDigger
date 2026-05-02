@@ -15,10 +15,8 @@ public partial class Game : IGame
     private readonly IGameService gameService;
     private readonly IOpenGlService openGlService;
     private readonly ISinglePlayerService singlePlayerService;
-    private readonly IPreferences preferences;
     private readonly ITaskScheduler taskScheduler;
     private readonly IModRegistry modRegistry;
-    private readonly IGameExit gameExit;
 
     public LanguageService Language { get; set; }
     public Config3d Config3d { get; set; }
@@ -274,10 +272,6 @@ public partial class Game : IGame
     public bool IsReconnecting { get; set; }
     public bool IsExitingToMainMenu { get; set; }
     public bool StartedConnecting { get; set; }
-
-    public Dictionary<int, BlockType> BlockTypes { get; set; }
-    public Dictionary<int, BlockType> NewBlockTypes { get; set; }
-
     public string BlobDownloadName { get; set; }
     public string BlobDownloadMd5 { get; set; }
     public MemoryStream BlobDownload { get; set; }
@@ -301,10 +295,9 @@ public partial class Game : IGame
     public List<Entity> Entities { get; set; }
     private IReadOnlyList<IModBase> ClientMods => modRegistry.Mods;
     public TerrainChunkTesselator TerrainChunkTesselator { get; set; }
-    private readonly IMeshBatcher Batcher;
     private readonly IMeshDrawer meshDrawer;
     public InventoryUtilClient InventoryUtil { get; set; }
-    private readonly IBlockTypeRegistry BlockRegistry;
+    private readonly IBlockRegistry _blockRegistry;
     public Packet_Inventory Inventory { get; set; }
 
     // -------------------------------------------------------------------------
@@ -356,23 +349,20 @@ public partial class Game : IGame
     // -------------------------------------------------------------------------
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITaskScheduler taskScheduler,
-        IPreferences preferences, IGameExit gameExit, IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService,
-        ICameraService cameraService, IFrustumCulling frustumCulling, IMeshBatcher meshBatcher, IMeshDrawer meshDrawer, IBlockTypeRegistry blockTypeRegistry)
+        IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService, IFrustumCulling frustumCulling,
+        IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry)
     {
         gameService = platform;
         openGlService = platformOpenGl;
         this.singlePlayerService = singlePlayerService;
-        this.preferences = preferences;
         this.taskScheduler = taskScheduler;
-        this.BlockRegistry = blockTypeRegistry;
-        this.gameExit = gameExit;
+        this._blockRegistry = blockTypeRegistry;
         this.modRegistry = modRegistry;
         this.voxelMap = voxelMap;
         this.OverheadCameraK = cameraService;
         this.FrustumCulling = frustumCulling;
-        this.Batcher = meshBatcher;
         this.meshDrawer = meshDrawer;
-        InitCore(modRegistry);
+        InitCore();
         InitMap();
         InitTextures();
         InitPlayer();
@@ -389,7 +379,7 @@ public partial class Game : IGame
     // Initialisation helpers
     // -------------------------------------------------------------------------
 
-    private void InitCore(IModRegistry modRegistry)
+    private void InitCore()
     {
         performanceinfo = [];
         Language = new LanguageService();
@@ -507,7 +497,6 @@ public partial class Game : IGame
     private void InitNetworking()
     {
         PacketHandlers = new ClientPacketHandler[256];
-        NewBlockTypes = [];
         speculativeCount = 0;
         speculative = new Speculative?[GameConstants.speculativeMax];
     }

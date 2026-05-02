@@ -40,7 +40,7 @@ public class ModGuiTextEditor : GameScreen
 
         for (int i = 0; i < MaxLines; i++)
         {
-            Game.Draw2dText(LineToString(buffer[i]), Font, StartX, StartY + CharSize * i, null, false);
+            Game.Draw2dText(LineToString(buffer[i]), Font, StartX, StartY + (CharSize * i), null, false);
         }
 
         // Draw cursor on current line
@@ -48,7 +48,7 @@ public class ModGuiTextEditor : GameScreen
         Array.Fill(spaces, CharSpace);
         spaces[cursorColumn] = CharCursor;
         string cursorRow = EncodingHelper.CharArrayToString(spaces, cursorColumn + 1);
-        Game.Draw2dText(cursorRow, Font, StartX, StartY + cursorLine * CharSize, null, false);
+        Game.Draw2dText(cursorRow, Font, StartX, StartY + (cursorLine * CharSize), null, false);
     }
 
     public override void OnKeyDown(KeyEventArgs e)

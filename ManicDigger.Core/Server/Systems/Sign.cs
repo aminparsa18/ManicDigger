@@ -34,9 +34,9 @@ public class ServerSystemSign : ServerSystem
         {
             Position = new ServerEntityPositionAndOrientation
             {
-                X = x + One / 2,
+                X = x + (One / 2),
                 Y = z,
-                Z = y + One / 2
+                Z = y + (One / 2)
             },
             Sign = new ServerEntitySign { Text = "Hello world!" }
         };

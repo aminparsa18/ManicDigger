@@ -100,8 +100,8 @@ public class ModGuiMapLoading : ModBase
 
     private void DrawBackground(int width, int height)
     {
-        int countX = width / BackgroundTileSize + 1;
-        int countY = height / BackgroundTileSize + 1;
+        int countX = (width / BackgroundTileSize) + 1;
+        int countY = (height / BackgroundTileSize) + 1;
         int tex = Game.GetTexture("background.png");
         int white = ColorUtils.ColorFromArgb(255, 255, 255, 255);
 

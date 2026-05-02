@@ -6,9 +6,10 @@ using OpenTK.Mathematics;
 /// </summary>
 public class ModExpire : ModBase
 {
-
-    public ModExpire(IGame game) : base(game)
+    private readonly IBlockRegistry _blockTypeRegistry;
+    public ModExpire(IGame game, IBlockRegistry blockTypeRegistry) : base(game)
     {
+        _blockTypeRegistry = blockTypeRegistry;
     }
 
     public override void OnNewFrameFixed(float args)
@@ -42,7 +43,7 @@ public class ModExpire : ModBase
         Entity grenadeEntity = Game.Entities[grenadeEntityId];
         Sprite sprite = grenadeEntity.sprite;
         Grenade grenade = grenadeEntity.grenade;
-        var blockType = Game.BlockTypes[grenade.block];
+        var blockType = _blockTypeRegistry.BlockTypes[grenade.block];
 
         float posX = sprite.positionX;
         float posY = sprite.positionY;
@@ -85,7 +86,7 @@ public class ModExpire : ModBase
 
         // Apply damage to local player based on distance
         float dist = Vector3.Distance(new Vector3(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z), new Vector3(posX, posY, posZ));
-        float dmg = (1f - dist / explosionRange) * blockType.DamageBody;
+        float dmg = (1f - (dist / explosionRange)) * blockType.DamageBody;
         if (dmg > 0)
         {
             Game.ApplyDamageToPlayer((int)dmg, DeathReason.Explosion, grenade.sourcePlayer);

@@ -13,9 +13,9 @@ public class VectorUtils
         float xRot = orientationx;
         float yRot = orientationy;
 
-        output.X = dx * MathF.Cos(yRot) + dy * MathF.Sin(xRot) * MathF.Sin(yRot) - dz * MathF.Cos(xRot) * MathF.Sin(yRot);
-        output.Y = dy * MathF.Cos(xRot) + dz * MathF.Sin(xRot);
-        output.Z = dx * MathF.Sin(yRot) - dy * MathF.Sin(xRot) * MathF.Cos(yRot) + dz * MathF.Cos(xRot) * MathF.Cos(yRot);
+        output.X = (dx * MathF.Cos(yRot)) + (dy * MathF.Sin(xRot) * MathF.Sin(yRot)) - (dz * MathF.Cos(xRot) * MathF.Sin(yRot));
+        output.Y = (dy * MathF.Cos(xRot)) + (dz * MathF.Sin(xRot));
+        output.Z = (dx * MathF.Sin(yRot)) - (dy * MathF.Sin(xRot) * MathF.Cos(yRot)) + (dz * MathF.Cos(xRot) * MathF.Cos(yRot));
     }
 
     public static bool UnProject(int winX, int winY, int winZ, Matrix4 model, Matrix4 proj, int[] view, out Vector3 objPos)
@@ -36,9 +36,9 @@ public class VectorUtils
         inp.Y = (inp.Y - view[1]) / view[3];
 
         // Map to range -1 to 1
-        inp.X = inp.X * 2 - 1;
-        inp.Y = inp.Y * 2 - 1;
-        inp.Z = inp.Z * 2 - 1;
+        inp.X = (inp.X * 2) - 1;
+        inp.Y = (inp.Y * 2) - 1;
+        inp.Z = (inp.Z * 2) - 1;
 
         Vector4.TransformRow(in inp, in finalMatrix, out Vector4 out_);
 
@@ -85,7 +85,7 @@ public class VectorUtils
         int dx = a.X - b.X;
         int dy = a.Y - b.Y;
         int dz = a.Z - b.Z;
-        return dx * dx + dy * dy + dz * dz;
+        return (dx * dx) + (dy * dy) + (dz * dz);
     }
 
     public static bool IsValidPos(IMapStorage map, int x, int y, int z)
@@ -129,8 +129,8 @@ public class VectorUtils
     public static Point PlayerArea(int playerAreaSize, int centerAreaSize, Vector3i blockPosition)
     {
         Point p = PlayerCenterArea(centerAreaSize, blockPosition);
-        int x = p.X + centerAreaSize / 2;
-        int y = p.Y + centerAreaSize / 2;
+        int x = p.X + (centerAreaSize / 2);
+        int y = p.Y + (centerAreaSize / 2);
         x -= playerAreaSize / 2;
         y -= playerAreaSize / 2;
         return new Point(x, y);
@@ -167,7 +167,7 @@ public class VectorUtils
     {
         Matrix4 m = meshDrawer.mvMatrix.Peek();
 
-        float d = MathF.Sqrt(m.Row0.X * m.Row0.X + m.Row0.Y * m.Row0.Y + m.Row0.Z * m.Row0.Z);
+        float d = MathF.Sqrt((m.Row0.X * m.Row0.X) + (m.Row0.Y * m.Row0.Y) + (m.Row0.Z * m.Row0.Z));
 
         m.Row0 = new Vector4(d, 0, 0, 0);
         m.Row1 = new Vector4(0, d, 0, 0);

@@ -123,7 +123,10 @@ public class BlockOctreeSearcher
             int by = (int)node.Min.Z; // note: Y/Z are swapped in world space
             int bz = (int)node.Min.Y;
 
-            if (isEmpty(bx, by, bz)) { continue; }
+            if (isEmpty(bx, by, bz))
+            {
+                continue;
+            }
 
             Box3 adjustedBox = new(node.Min, new Vector3(
                 node.Max.X,

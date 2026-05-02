@@ -68,19 +68,20 @@ public class ModRail : ModBase
     internal float MinecartHeight() => 1f / 2;
 
     private readonly IVoxelMap _voxelMap;
-    private readonly IBlockTypeRegistry _blockTypeRegistry;
+    private readonly IBlockRegistry _blockTypeRegistry;
 
-    public ModRail(IGameService platform, IVoxelMap voxelMap, IGame game) : base(game)
+    public ModRail(IGameService platform, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
         this._voxelMap = voxelMap;
+        this._blockTypeRegistry = blockTypeRegistry;
         _railHeight = 0.3f;
     }
 
     /// <inheritdoc/>
     public override void OnNewFrameFixed(float args)
     {
-        d_RailMapUtil ??= new RailMapUtil(_voxelMap) { game = Game };
+        d_RailMapUtil ??= new RailMapUtil(_voxelMap, _blockTypeRegistry) { game = Game };
         RailOnNewFrame(args);
     }
 
@@ -121,7 +122,11 @@ public class ModRail : ModBase
     /// </summary>
     private void EnsureMinecartEntity()
     {
-        if (localMinecart != null) { return; }
+        if (localMinecart != null)
+        {
+            return;
+        }
+
         localMinecart = new Entity { minecart = new Minecart() };
         Game.EntityAddLocal(localMinecart);
     }
@@ -130,7 +135,10 @@ public class ModRail : ModBase
     private void SyncMinecartEntity()
     {
         localMinecart.minecart.Enabled = railriding;
-        if (!railriding) { return; }
+        if (!railriding)
+        {
+            return;
+        }
 
         Minecart m = localMinecart.minecart;
         m.PositionX = localMinecart.position?.x ?? 0;
@@ -213,11 +221,25 @@ public class ModRail : ModBase
     /// </summary>
     private void HandleSpeedInput(float dt)
     {
-        if (Game.GuiTyping == TypingState.Typing) { return; }
+        if (Game.GuiTyping == TypingState.Typing)
+        {
+            return;
+        }
 
-        if (Game.KeyboardState[Game.GetKey(Keys.W)]) { currentvehiclespeed += 1 * dt; }
-        if (Game.KeyboardState[Game.GetKey(Keys.S)]) { currentvehiclespeed -= 5 * dt; }
-        if (currentvehiclespeed < 0) { currentvehiclespeed = 0; }
+        if (Game.KeyboardState[Game.GetKey(Keys.W)])
+        {
+            currentvehiclespeed += 1 * dt;
+        }
+
+        if (Game.KeyboardState[Game.GetKey(Keys.S)])
+        {
+            currentvehiclespeed -= 5 * dt;
+        }
+
+        if (currentvehiclespeed < 0)
+        {
+            currentvehiclespeed = 0;
+        }
     }
 
     /// <summary>
@@ -226,7 +248,10 @@ public class ModRail : ModBase
     private void HandleReverseInput()
     {
         bool qPressed = Game.KeyboardState[Game.GetKey(Keys.Q)] && Game.GuiTyping != TypingState.Typing;
-        if (!wasqpressed && qPressed) { Reverse(); }
+        if (!wasqpressed && qPressed)
+        {
+            Reverse();
+        }
     }
 
     /// <summary>
@@ -235,7 +260,10 @@ public class ModRail : ModBase
     private void HandleEnterExitInput(bool turnLeft, bool turnRight)
     {
         bool ePressed = Game.KeyboardState[Game.GetKey(Keys.E)] && Game.GuiTyping != TypingState.Typing;
-        if (wasepressed || !ePressed) { return; }
+        if (wasepressed || !ePressed)
+        {
+            return;
+        }
 
         if (!railriding && !Game.Controls.FreeMove)
         {
@@ -270,12 +298,30 @@ public class ModRail : ModBase
         Game.SetCharacterEyesHeight(MinecartHeight());
         currentvehiclespeed = 0;
 
-        if ((railUnder & (int)RailDirectionFlags.Horizontal) != 0) { currentdirection = VehicleDirection12.HorizontalRight; }
-        else if ((railUnder & (int)RailDirectionFlags.Vertical) != 0) { currentdirection = VehicleDirection12.VerticalUp; }
-        else if ((railUnder & (int)RailDirectionFlags.UpLeft) != 0) { currentdirection = VehicleDirection12.UpLeftUp; }
-        else if ((railUnder & (int)RailDirectionFlags.UpRight) != 0) { currentdirection = VehicleDirection12.UpRightUp; }
-        else if ((railUnder & (int)RailDirectionFlags.DownLeft) != 0) { currentdirection = VehicleDirection12.DownLeftLeft; }
-        else if ((railUnder & (int)RailDirectionFlags.DownRight) != 0) { currentdirection = VehicleDirection12.DownRightRight; }
+        if ((railUnder & (int)RailDirectionFlags.Horizontal) != 0)
+        {
+            currentdirection = VehicleDirection12.HorizontalRight;
+        }
+        else if ((railUnder & (int)RailDirectionFlags.Vertical) != 0)
+        {
+            currentdirection = VehicleDirection12.VerticalUp;
+        }
+        else if ((railUnder & (int)RailDirectionFlags.UpLeft) != 0)
+        {
+            currentdirection = VehicleDirection12.UpLeftUp;
+        }
+        else if ((railUnder & (int)RailDirectionFlags.UpRight) != 0)
+        {
+            currentdirection = VehicleDirection12.UpRightUp;
+        }
+        else if ((railUnder & (int)RailDirectionFlags.DownLeft) != 0)
+        {
+            currentdirection = VehicleDirection12.DownLeftLeft;
+        }
+        else if ((railUnder & (int)RailDirectionFlags.DownRight) != 0)
+        {
+            currentdirection = VehicleDirection12.DownRightRight;
+        }
         else
         {
             ExitVehicle();
@@ -328,32 +374,64 @@ public class ModRail : ModBase
         {
             case VehicleDirection12.HorizontalRight:
                 xc += p; yc += half;
-                if (slope == RailSlope.TwoRightRaised) { zc += p; }
-                if (slope == RailSlope.TwoLeftRaised) { zc += 1 - p; }
+                if (slope == RailSlope.TwoRightRaised)
+                {
+                    zc += p;
+                }
+
+                if (slope == RailSlope.TwoLeftRaised)
+                {
+                    zc += 1 - p;
+                }
+
                 break;
             case VehicleDirection12.HorizontalLeft:
                 xc += 1 - p; yc += half;
-                if (slope == RailSlope.TwoRightRaised) { zc += 1 - p; }
-                if (slope == RailSlope.TwoLeftRaised) { zc += p; }
+                if (slope == RailSlope.TwoRightRaised)
+                {
+                    zc += 1 - p;
+                }
+
+                if (slope == RailSlope.TwoLeftRaised)
+                {
+                    zc += p;
+                }
+
                 break;
             case VehicleDirection12.VerticalDown:
                 xc += half; yc += p;
-                if (slope == RailSlope.TwoDownRaised) { zc += p; }
-                if (slope == RailSlope.TwoUpRaised) { zc += 1 - p; }
+                if (slope == RailSlope.TwoDownRaised)
+                {
+                    zc += p;
+                }
+
+                if (slope == RailSlope.TwoUpRaised)
+                {
+                    zc += 1 - p;
+                }
+
                 break;
             case VehicleDirection12.VerticalUp:
                 xc += half; yc += 1 - p;
-                if (slope == RailSlope.TwoDownRaised) { zc += 1 - p; }
-                if (slope == RailSlope.TwoUpRaised) { zc += p; }
+                if (slope == RailSlope.TwoDownRaised)
+                {
+                    zc += 1 - p;
+                }
+
+                if (slope == RailSlope.TwoUpRaised)
+                {
+                    zc += p;
+                }
+
                 break;
             case VehicleDirection12.UpLeftLeft: xc += half * (1 - p); yc += half * p; break;
-            case VehicleDirection12.UpLeftUp: xc += half * p; yc += half - half * p; break;
-            case VehicleDirection12.UpRightRight: xc += half + half * p; yc += half * p; break;
-            case VehicleDirection12.UpRightUp: xc += 1 - half * p; yc += half - half * p; break;
-            case VehicleDirection12.DownLeftLeft: xc += half * (1 - p); yc += 1 - half * p; break;
-            case VehicleDirection12.DownLeftDown: xc += half * p; yc += half + half * p; break;
-            case VehicleDirection12.DownRightRight: xc += half + half * p; yc += 1 - half * p; break;
-            case VehicleDirection12.DownRightDown: xc += 1 - half * p; yc += half + half * p; break;
+            case VehicleDirection12.UpLeftUp: xc += half * p; yc += half - (half * p); break;
+            case VehicleDirection12.UpRightRight: xc += half + (half * p); yc += half * p; break;
+            case VehicleDirection12.UpRightUp: xc += 1 - (half * p); yc += half - (half * p); break;
+            case VehicleDirection12.DownLeftLeft: xc += half * (1 - p); yc += 1 - (half * p); break;
+            case VehicleDirection12.DownLeftDown: xc += half * p; yc += half + (half * p); break;
+            case VehicleDirection12.DownRightRight: xc += half + (half * p); yc += 1 - (half * p); break;
+            case VehicleDirection12.DownRightDown: xc += 1 - (half * p); yc += half + (half * p); break;
         }
 
         // +1 so the player sits above the rail block and picking still works.
@@ -367,19 +445,52 @@ public class ModRail : ModBase
     /// <returns>One of <see cref="RailDirection.Up"/>, <see cref="RailDirection.Down"/>, or <see cref="RailDirection.None"/>.</returns>
     internal int GetUpDownMove(int railblockX, int railblockY, int railblockZ, TileEnterDirection dir)
     {
-        if (!_voxelMap.IsValidPos(railblockX, railblockY, railblockZ)) { return (int)RailPosition.None; }
+        if (!_voxelMap.IsValidPos(railblockX, railblockY, railblockZ))
+        {
+            return (int)RailPosition.None;
+        }
 
         RailSlope slope = d_RailMapUtil.GetRailSlope(railblockX, railblockY, railblockZ);
 
-        if (slope == RailSlope.TwoDownRaised && dir == TileEnterDirection.Up) { return (int)RailPosition.Up; }
-        if (slope == RailSlope.TwoUpRaised && dir == TileEnterDirection.Down) { return (int)RailPosition.Up; }
-        if (slope == RailSlope.TwoLeftRaised && dir == TileEnterDirection.Right) { return (int)RailPosition.Up; }
-        if (slope == RailSlope.TwoRightRaised && dir == TileEnterDirection.Left) { return (int)RailPosition.Up; }
+        if (slope == RailSlope.TwoDownRaised && dir == TileEnterDirection.Up)
+        {
+            return (int)RailPosition.Up;
+        }
 
-        if (slope == RailSlope.TwoDownRaised && dir == TileEnterDirection.Down) { return (int)RailPosition.Down; }
-        if (slope == RailSlope.TwoUpRaised && dir == TileEnterDirection.Up) { return (int)RailPosition.Down; }
-        if (slope == RailSlope.TwoLeftRaised && dir == TileEnterDirection.Left) { return (int)RailPosition.Down; }
-        if (slope == RailSlope.TwoRightRaised && dir == TileEnterDirection.Right) { return (int)RailPosition.Down; }
+        if (slope == RailSlope.TwoUpRaised && dir == TileEnterDirection.Down)
+        {
+            return (int)RailPosition.Up;
+        }
+
+        if (slope == RailSlope.TwoLeftRaised && dir == TileEnterDirection.Right)
+        {
+            return (int)RailPosition.Up;
+        }
+
+        if (slope == RailSlope.TwoRightRaised && dir == TileEnterDirection.Left)
+        {
+            return (int)RailPosition.Up;
+        }
+
+        if (slope == RailSlope.TwoDownRaised && dir == TileEnterDirection.Down)
+        {
+            return (int)RailPosition.Down;
+        }
+
+        if (slope == RailSlope.TwoUpRaised && dir == TileEnterDirection.Up)
+        {
+            return (int)RailPosition.Down;
+        }
+
+        if (slope == RailSlope.TwoLeftRaised && dir == TileEnterDirection.Left)
+        {
+            return (int)RailPosition.Down;
+        }
+
+        if (slope == RailSlope.TwoRightRaised && dir == TileEnterDirection.Right)
+        {
+            return (int)RailPosition.Down;
+        }
 
         return (int)RailPosition.None;
     }
@@ -392,7 +503,10 @@ public class ModRail : ModBase
         float soundRate = Math.Min(currentvehiclespeed, 10f);
         Game.AudioPlayLoop("railnoise.wav", railriding && soundRate > 0.1f, false);
 
-        if (!railriding || soundRate <= 0) { return; }
+        if (!railriding || soundRate <= 0)
+        {
+            return;
+        }
 
         if ((platform.TimeMillisecondsFromStart - _lastRailSoundTimeMs) > 1000 / soundRate)
         {
@@ -468,45 +582,122 @@ public class ModRail : ModBase
 
         if (turnRight)
         {
-            if ((dirFlags & VehicleDirection12Flags.DownRightRight) != 0) { return VehicleDirection12.DownRightRight; }
-            if ((dirFlags & VehicleDirection12Flags.UpRightUp) != 0) { return VehicleDirection12.UpRightUp; }
-            if ((dirFlags & VehicleDirection12Flags.UpLeftLeft) != 0) { return VehicleDirection12.UpLeftLeft; }
-            if ((dirFlags & VehicleDirection12Flags.DownLeftDown) != 0) { return VehicleDirection12.DownLeftDown; }
+            if ((dirFlags & VehicleDirection12Flags.DownRightRight) != 0)
+            {
+                return VehicleDirection12.DownRightRight;
+            }
+
+            if ((dirFlags & VehicleDirection12Flags.UpRightUp) != 0)
+            {
+                return VehicleDirection12.UpRightUp;
+            }
+
+            if ((dirFlags & VehicleDirection12Flags.UpLeftLeft) != 0)
+            {
+                return VehicleDirection12.UpLeftLeft;
+            }
+
+            if ((dirFlags & VehicleDirection12Flags.DownLeftDown) != 0)
+            {
+                return VehicleDirection12.DownLeftDown;
+            }
         }
 
         if (turnLeft)
         {
-            if ((dirFlags & VehicleDirection12Flags.DownRightDown) != 0) { return VehicleDirection12.DownRightDown; }
-            if ((dirFlags & VehicleDirection12Flags.UpRightRight) != 0) { return VehicleDirection12.UpRightRight; }
-            if ((dirFlags & VehicleDirection12Flags.UpLeftUp) != 0) { return VehicleDirection12.UpLeftUp; }
-            if ((dirFlags & VehicleDirection12Flags.DownLeftLeft) != 0) { return VehicleDirection12.DownLeftLeft; }
+            if ((dirFlags & VehicleDirection12Flags.DownRightDown) != 0)
+            {
+                return VehicleDirection12.DownRightDown;
+            }
+
+            if ((dirFlags & VehicleDirection12Flags.UpRightRight) != 0)
+            {
+                return VehicleDirection12.UpRightRight;
+            }
+
+            if ((dirFlags & VehicleDirection12Flags.UpLeftUp) != 0)
+            {
+                return VehicleDirection12.UpLeftUp;
+            }
+
+            if ((dirFlags & VehicleDirection12Flags.DownLeftLeft) != 0)
+            {
+                return VehicleDirection12.DownLeftLeft;
+            }
         }
 
         // Straight directions take priority.
-        if ((dirFlags & VehicleDirection12Flags.VerticalDown) != 0) { return VehicleDirection12.VerticalDown; }
-        if ((dirFlags & VehicleDirection12Flags.VerticalUp) != 0) { return VehicleDirection12.VerticalUp; }
-        if ((dirFlags & VehicleDirection12Flags.HorizontalLeft) != 0) { return VehicleDirection12.HorizontalLeft; }
-        if ((dirFlags & VehicleDirection12Flags.HorizontalRight) != 0) { return VehicleDirection12.HorizontalRight; }
+        if ((dirFlags & VehicleDirection12Flags.VerticalDown) != 0)
+        {
+            return VehicleDirection12.VerticalDown;
+        }
 
-        if ((dirFlags & VehicleDirection12Flags.DownLeftDown) != 0) { return VehicleDirection12.DownLeftDown; }
-        if ((dirFlags & VehicleDirection12Flags.DownLeftLeft) != 0) { return VehicleDirection12.DownLeftLeft; }
-        if ((dirFlags & VehicleDirection12Flags.DownRightDown) != 0) { return VehicleDirection12.DownRightDown; }
-        if ((dirFlags & VehicleDirection12Flags.DownRightRight) != 0) { return VehicleDirection12.DownRightRight; }
-        if ((dirFlags & VehicleDirection12Flags.UpLeftLeft) != 0) { return VehicleDirection12.UpLeftLeft; }
-        if ((dirFlags & VehicleDirection12Flags.UpLeftUp) != 0) { return VehicleDirection12.UpLeftUp; }
-        if ((dirFlags & VehicleDirection12Flags.UpRightRight) != 0) { return VehicleDirection12.UpRightRight; }
-        if ((dirFlags & VehicleDirection12Flags.UpRightUp) != 0) { return VehicleDirection12.UpRightUp; }
+        if ((dirFlags & VehicleDirection12Flags.VerticalUp) != 0)
+        {
+            return VehicleDirection12.VerticalUp;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.HorizontalLeft) != 0)
+        {
+            return VehicleDirection12.HorizontalLeft;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.HorizontalRight) != 0)
+        {
+            return VehicleDirection12.HorizontalRight;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.DownLeftDown) != 0)
+        {
+            return VehicleDirection12.DownLeftDown;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.DownLeftLeft) != 0)
+        {
+            return VehicleDirection12.DownLeftLeft;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.DownRightDown) != 0)
+        {
+            return VehicleDirection12.DownRightDown;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.DownRightRight) != 0)
+        {
+            return VehicleDirection12.DownRightRight;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.UpLeftLeft) != 0)
+        {
+            return VehicleDirection12.UpLeftLeft;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.UpLeftUp) != 0)
+        {
+            return VehicleDirection12.UpLeftUp;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.UpRightRight) != 0)
+        {
+            return VehicleDirection12.UpRightRight;
+        }
+
+        if ((dirFlags & VehicleDirection12Flags.UpRightUp) != 0)
+        {
+            return VehicleDirection12.UpRightUp;
+        }
 
         retFound = false;
         return VehicleDirection12.DownLeftDown; // sentinel — caller checks retFound
     }
 }
+
 public class TileEnterData
 {
-    internal int BlockPositionX;
-    internal int BlockPositionY;
-    internal int BlockPositionZ;
-    internal TileEnterDirection EnterDirection;
+    public int BlockPositionX { get; set; }
+    public int BlockPositionY { get; set; }
+    public int BlockPositionZ { get; set; }
+    public TileEnterDirection EnterDirection { get; set; }
 }
 
 public class RailMapUtil
@@ -514,41 +705,45 @@ public class RailMapUtil
     internal IGame game;
 
     private readonly IVoxelMap voxelMap;
+    private readonly IBlockRegistry blockTypeRegistry;
 
-    public RailMapUtil(IVoxelMap voxelMap)
+    public RailMapUtil(IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry)
     {
         this.voxelMap = voxelMap;
+        this.blockTypeRegistry = blockTypeRegistry;
     }
 
     public RailSlope GetRailSlope(int x, int y, int z)
     {
         int tiletype = voxelMap.GetBlock(x, y, z);
-        int railDirectionFlags = game.BlockTypes[tiletype].Rail;
+        int railDirectionFlags = blockTypeRegistry.BlockTypes[tiletype].Rail;
         int blocknear;
         if (x < voxelMap.MapSizeX - 1)
         {
             blocknear = voxelMap.GetBlock(x + 1, y, z);
             if (railDirectionFlags == (int)RailDirectionFlags.Horizontal &&
-                 blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
+                 blocknear != 0 && blockTypeRegistry.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoRightRaised;
             }
         }
+
         if (x > 0)
         {
             blocknear = voxelMap.GetBlock(x - 1, y, z);
             if (railDirectionFlags == (int)RailDirectionFlags.Horizontal &&
-                 blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
+                 blocknear != 0 && blockTypeRegistry.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoLeftRaised;
 
             }
         }
+
         if (y > 0)
         {
             blocknear = voxelMap.GetBlock(x, y - 1, z);
             if (railDirectionFlags == (int)RailDirectionFlags.Vertical &&
-                  blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
+                  blocknear != 0 && blockTypeRegistry.BlockTypes[blocknear].Rail == 0)
             {
                 return RailSlope.TwoUpRaised;
             }
@@ -561,10 +756,11 @@ public class RailMapUtil
 
         blocknear = voxelMap.GetBlock(x, y + 1, z);
         if (railDirectionFlags == (int)RailDirectionFlags.Vertical &&
-            blocknear != 0 && game.BlockTypes[blocknear].Rail == 0)
+            blocknear != 0 && blockTypeRegistry.BlockTypes[blocknear].Rail == 0)
         {
             return RailSlope.TwoDownRaised;
         }
+
         return RailSlope.Flat;
     }
 }

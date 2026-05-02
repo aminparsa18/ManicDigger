@@ -47,7 +47,7 @@ public class ModGuiChat : ModBase
             }
 
             float chatlineStartX = dx * Game.Scale();
-            float chatlineStartY = (90 + i * 25) * Game.Scale();
+            float chatlineStartY = (90 + (i * 25)) * Game.Scale();
             float chatlineSizeX = 500 * Game.Scale();
             float chatlineSizeY = 20 * Game.Scale();
             if (args.GetX() > chatlineStartX && args.GetX() < chatlineStartX + chatlineSizeX)
@@ -80,7 +80,7 @@ public class ModGuiChat : ModBase
             scroll = ChatPageScroll;
         }
 
-        int first = Game.ChatLinesCount - ChatLinesMaxToDraw * (scroll + 1);
+        int first = Game.ChatLinesCount - (ChatLinesMaxToDraw * (scroll + 1));
         if (first < 0)
         {
             first = 0;
@@ -127,12 +127,12 @@ public class ModGuiChat : ModBase
                 font = new Font("Arial", currentFontSize, currentFontStyle);
             }
 
-            Game.Draw2dText(chatlines2[i].text, font, dx * Game.Scale(), (90 + i * 25) * Game.Scale(), null, false);
+            Game.Draw2dText(chatlines2[i].text, font, dx * Game.Scale(), (90 + (i * 25)) * Game.Scale(), null, false);
         }
 
         if (ChatPageScroll != 0)
         {
-            Game.Draw2dText(string.Format("&7Page: {0}", ChatPageScroll.ToString()), font, dx * Game.Scale(), (90 + (-1) * 25) * Game.Scale(), null, false);
+            Game.Draw2dText(string.Format("&7Page: {0}", ChatPageScroll.ToString()), font, dx * Game.Scale(), (90 + ((-1) * 25)) * Game.Scale(), null, false);
         }
     }
     private Font font;
@@ -148,11 +148,11 @@ public class ModGuiChat : ModBase
 
         if (platform.IsSmallScreen())
         {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (platform.CanvasHeight / 2) - 100 * game.Scale(), null, true);
+            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (platform.CanvasHeight / 2) - (100 * game.Scale()), null, true);
         }
         else
         {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), platform.CanvasHeight - 100 * game.Scale(), null, true);
+            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), platform.CanvasHeight - (100 * game.Scale()), null, true);
         }
     }
 
@@ -246,7 +246,10 @@ public class ModGuiChat : ModBase
             if (key == Game.GetKey(Keys.Up))
             {
                 Game.TypingLogPos--;
-                if (Game.TypingLogPos < 0) { Game.TypingLogPos = 0; }
+                if (Game.TypingLogPos < 0)
+                {
+                    Game.TypingLogPos = 0;
+                }
 
                 if (Game.TypingLogPos >= 0 && Game.TypingLogPos < Game.TypingLog.Count)
                 {
@@ -259,7 +262,10 @@ public class ModGuiChat : ModBase
             if (key == Game.GetKey(Keys.Down))
             {
                 Game.TypingLogPos++;
-                if (Game.TypingLogPos > Game.TypingLog.Count) { Game.TypingLogPos = Game.TypingLog.Count; }
+                if (Game.TypingLogPos > Game.TypingLog.Count)
+                {
+                    Game.TypingLogPos = Game.TypingLog.Count;
+                }
 
                 if (Game.TypingLogPos >= 0 && Game.TypingLogPos < Game.TypingLog.Count)
                 {
@@ -351,11 +357,20 @@ public class ModGuiChat : ModBase
             for (int i = 0; i < Game.Entities.Count; i++)
             {
                 Entity entity = Game.Entities[i];
-                if (entity == null) { continue; }
+                if (entity == null)
+                {
+                    continue;
+                }
 
-                if (entity.drawName == null) { continue; }
+                if (entity.drawName == null)
+                {
+                    continue;
+                }
 
-                if (!entity.drawName.ClientAutoComplete) { continue; }
+                if (!entity.drawName.ClientAutoComplete)
+                {
+                    continue;
+                }
 
                 DrawName p = entity.drawName;
                 //Use substring here because player names are internally in format &xNAME (so we need to cut first 2 characters)

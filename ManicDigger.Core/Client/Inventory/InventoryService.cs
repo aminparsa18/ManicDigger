@@ -12,6 +12,7 @@ public class InventoryService : IInventoryService
 
     /// <summary>Reference to the core game instance (language, platform, block types).</summary>
     private readonly IGame _game;
+    private readonly IBlockRegistry _blockTypeRegistry;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -24,9 +25,10 @@ public class InventoryService : IInventoryService
     /// <exception cref="ArgumentNullException">
     ///     Thrown if <paramref name="game"/> is <c>null</c>.
     /// </exception>
-    public InventoryService(IGame game)
+    public InventoryService(IGame game, IBlockRegistry blockTypeRegistry)
     {
         _game = game ?? throw new ArgumentNullException(nameof(game));
+        _blockTypeRegistry = blockTypeRegistry;
     }
 
     // -------------------------------------------------------------------------
@@ -47,7 +49,7 @@ public class InventoryService : IInventoryService
 
         if (item.InventoryItemType == InventoryItemType.Block)
         {
-            string key = string.Concat("Block_", _game.BlockTypes[item.BlockId].Name);
+            string key = string.Concat("Block_", _blockTypeRegistry.BlockTypes[item.BlockId].Name);
             return _game.Language.Get(key);
         }
 

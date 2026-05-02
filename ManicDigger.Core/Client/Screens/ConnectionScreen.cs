@@ -82,22 +82,22 @@ public class ConnectionScreen : ScreenBase
 
         Menu.DrawBackground();
 
-        float leftx = GameService.CanvasWidth / 2 - 400 * scale;
-        float y = GameService.CanvasHeight / 2 - 250 * scale;
+        float leftx = (GameService.CanvasWidth / 2) - (400 * scale);
+        float y = (GameService.CanvasHeight / 2) - (250 * scale);
 
         if (errorText != null)
         {
-            Menu.DrawText(errorText, 14 * scale, leftx, y - 50 * scale, TextAlign.Left, TextBaseline.Top);
+            Menu.DrawText(errorText, 14 * scale, leftx, y - (50 * scale), TextAlign.Left, TextBaseline.Top);
         }
 
-        Menu.DrawText(title, 14 * scale, leftx, y + 50 * scale, TextAlign.Left, TextBaseline.Top);
+        Menu.DrawText(title, 14 * scale, leftx, y + (50 * scale), TextAlign.Left, TextBaseline.Top);
 
-        LayoutWidget(textboxIp, leftx, y + 100 * scale, 256, 64, scale);
-        LayoutWidget(textboxPort, leftx, y + 200 * scale, 256, 64, scale);
-        LayoutWidget(buttonConnect, leftx, y + 400 * scale, 256, 64, scale);
+        LayoutWidget(textboxIp, leftx, y + (100 * scale), 256, 64, scale);
+        LayoutWidget(textboxPort, leftx, y + (200 * scale), 256, 64, scale);
+        LayoutWidget(buttonConnect, leftx, y + (400 * scale), 256, 64, scale);
 
         buttonBack.x = 40 * scale;
-        buttonBack.y = GameService.CanvasHeight - 104 * scale;
+        buttonBack.y = GameService.CanvasHeight - (104 * scale);
         buttonBack.sizex = 256 * scale;
         buttonBack.sizey = 64 * scale;
         buttonBack.fontSize = 14 * scale;

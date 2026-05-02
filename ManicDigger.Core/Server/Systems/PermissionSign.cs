@@ -68,9 +68,9 @@ public class ServerSystemPermissionSign : ServerSystem
         {
             Position = new ServerEntityPositionAndOrientation
             {
-                X = x + One / 2,
+                X = x + (One / 2),
                 Y = z,
-                Z = y + One / 2
+                Z = y + (One / 2)
             },
             PermissionSign = new ServerEntityPermissionSign
             {
@@ -139,7 +139,7 @@ public class ServerSystemPermissionSign : ServerSystem
         int half = AreaSize / 2;
 
         // Quantise heading into 4 cardinal directions (north/east/south/west)
-        int rotDir = (byte)(e.Position.Heading + 255 / 8) / 64;
+        int rotDir = (byte)(e.Position.Heading + (255 / 8)) / 64;
         e.DrawArea.X = rotDir switch
         {
             1 => px,
@@ -189,7 +189,7 @@ public class ServerSystemPermissionSign : ServerSystem
             Width = 400,
             Height = 400,
             IsModal = true,
-            Widgets = new Widget[4 + groups.Count * 2]
+            Widgets = new Widget[4 + (groups.Count * 2)]
         };
 
         d.Widgets[widgetCount++] = Widget.MakeSolid(0, 0, 400, 400, ColorUtils.ColorFromArgb(255, 50, 50, 50));
@@ -197,7 +197,7 @@ public class ServerSystemPermissionSign : ServerSystem
 
         for (int i = 0; i < groups.Count; i++)
         {
-            int buttonY = GroupButtonOffsetY + i * GroupButtonStepY;
+            int buttonY = GroupButtonOffsetY + (i * GroupButtonStepY);
             Widget groupButton = Widget.MakeSolid(50, buttonY, 100, 40, ColorUtils.ColorFromArgb(255, 100, 100, 100));
             groupButton.ClickKey = (char)13;
             groupButton.Id = GroupIdPrefix + groups[i].Name;
@@ -322,16 +322,16 @@ public class ServerSystemPermissionSign : ServerSystem
             {
                 for (int dz = -1; dz <= 1; dz++)
                 {
-                    int cx = blockX / Server.ChunkSize + dx;
-                    int cy = blockY / Server.ChunkSize + dy;
-                    int cz = blockZ / Server.ChunkSize + dz;
+                    int cx = (blockX / Server.ChunkSize) + dx;
+                    int cy = (blockY / Server.ChunkSize) + dy;
+                    int cz = (blockZ / Server.ChunkSize) + dz;
 
                     if (!VectorUtils.IsValidChunkPos(server.Map, cx, cy, cz, Server.ChunkSize))
                     {
                         continue;
                     }
 
-                    ServerChunk chunk = server.Map.GetChunk_(cx, cy, cz);
+                    ServerChunk chunk = server.Map.GetChunkAt(cx, cy, cz);
                     if (chunk == null)
                     {
                         return;

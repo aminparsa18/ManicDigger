@@ -54,7 +54,7 @@ public sealed class RidgedMultifractal : IModule
         get => _octaveCount;
         set
         {
-            if (value < 1 || value > MaxOctaves)
+            if (value is < 1 or > MaxOctaves)
             {
                 throw new ArgumentException(
                     $"OctaveCount must be between 1 and {MaxOctaves}, got {value}.");
@@ -119,7 +119,7 @@ public sealed class RidgedMultifractal : IModule
             z *= lacunarity;
         }
 
-        return sum * 1.25f - 1f;
+        return (sum * 1.25f) - 1f;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

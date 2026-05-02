@@ -139,9 +139,9 @@ public class PlayerInterpolate : IInterpolation
 
         return new PlayerInterpolationState
         {
-            positionX = aa.positionX + (bb.positionX - aa.positionX) * progress,
-            positionY = aa.positionY + (bb.positionY - aa.positionY) * progress,
-            positionZ = aa.positionZ + (bb.positionZ - aa.positionZ) * progress,
+            positionX = aa.positionX + ((bb.positionX - aa.positionX) * progress),
+            positionY = aa.positionY + ((bb.positionY - aa.positionY) * progress),
+            positionZ = aa.positionZ + ((bb.positionZ - aa.positionZ) * progress),
             // Rotations are already in degrees — no conversion needed here.
             rotx = AngleInterpolation.InterpolateAngle360(aa.rotx, bb.rotx, progress),
             roty = AngleInterpolation.InterpolateAngle360(aa.roty, bb.roty, progress),

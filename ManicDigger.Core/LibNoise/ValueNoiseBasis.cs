@@ -32,13 +32,13 @@ public class ValueNoiseBasis
     public int IntValueNoise(int x, int y, int z, int seed)
     {
         // Mix coordinates and seed using large primes to spread bits.
-        int n = (1619 * x + 31337 * y + 6971 * z + 1013 * seed) & 0x7FFFFFFF;
+        int n = ((1619 * x) + (31337 * y) + (6971 * z) + (1013 * seed)) & 0x7FFFFFFF;
 
         // XOR-shift to further scramble the bits.
         n = (n >> 13) ^ n;
 
         // Polynomial finalisation — produces a well-distributed output in [0, 2³¹ − 1].
-        return (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7FFFFFFF;
+        return ((n * ((n * n * 60493) + 19990303)) + 1376312589) & 0x7FFFFFFF;
     }
 
     /// <summary>
@@ -54,5 +54,5 @@ public class ValueNoiseBasis
     /// from 1 to map the integer range to [−1, 1].
     /// </summary>
     public float ValueNoise(int x, int y, int z, int seed)
-    => 1f - IntValueNoise(x, y, z, seed) * (1f / 1_073_741_824f);
+    => 1f - (IntValueNoise(x, y, z, seed) * (1f / 1_073_741_824f));
 }

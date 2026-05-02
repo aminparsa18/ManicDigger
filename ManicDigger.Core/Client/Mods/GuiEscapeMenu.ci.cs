@@ -119,7 +119,8 @@ public class ModGuiEscapeMenu : ModBase
         }
         if (b == optionsReturnToMainMenu)
         {
-            SaveOptions(); SetEscapeMenuState(EscapeMenuState.Main);
+            SaveOptions();
+            SetEscapeMenuState(EscapeMenuState.Main);
         }
     }
 
@@ -456,9 +457,18 @@ public class ModGuiEscapeMenu : ModBase
 
     private string VsyncString()
     {
-        if (Game.EnableLog == 0) { return "Vsync"; }
-        else if (Game.EnableLog == 1) { return "Unlimited"; }
-        else if (Game.EnableLog == 2) { return "Lag"; }
+        if (Game.EnableLog == 0)
+        {
+            return "Vsync";
+        }
+        else if (Game.EnableLog == 1)
+        {
+            return "Unlimited";
+        }
+        else if (Game.EnableLog == 2)
+        {
+            return "Lag";
+        }
         else
         {
             return null; //throw new Exception();
@@ -568,7 +578,7 @@ public class ModGuiEscapeMenu : ModBase
             int Width = (int)sizeWidth + 10;
             int Height = (int)sizeHeight;
             int X = Game.Xcenter(sizeWidth);
-            int Y = starty + textheight * i;
+            int Y = starty + (textheight * i);
             widgets[i].x = X;
             widgets[i].y = Y;
             widgets[i].width = Width;
@@ -661,9 +671,9 @@ public class ModGuiEscapeMenu : ModBase
         int eKey = args.KeyChar;
         if (eKey == Game.GetKey(Keys.Escape))
         {
-            if (escapemenustate == EscapeMenuState.Graphics
-                || escapemenustate == EscapeMenuState.Keys
-                || escapemenustate == EscapeMenuState.Other)
+            if (escapemenustate is EscapeMenuState.Graphics
+                or EscapeMenuState.Keys
+                or EscapeMenuState.Other)
             {
                 SetEscapeMenuState(EscapeMenuState.Options);
             }
@@ -808,7 +818,8 @@ public class ModGuiEscapeMenu : ModBase
 
         for (int i = 0; i < 256; i++)
         {
-            int value = options.Keys[i]; string preferencesKey = string.Concat(platform, "Key", i.ToString());
+            int value = options.Keys[i];
+            string preferencesKey = string.Concat(platform, "Key", i.ToString());
             if (value != 0)
             {
                 preferences.SetInt(preferencesKey, value);

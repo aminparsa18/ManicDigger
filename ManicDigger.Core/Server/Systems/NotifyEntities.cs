@@ -267,9 +267,9 @@ public class ServerSystemNotifyEntities : ServerSystem
             {
                 for (int dz = -1; dz <= 1; dz++)
                 {
-                    int chunkX = playerX / Server.ChunkSize + dx;
-                    int chunkY = playerY / Server.ChunkSize + dy;
-                    int chunkZ = playerZ / Server.ChunkSize + dz;
+                    int chunkX = (playerX / Server.ChunkSize) + dx;
+                    int chunkY = (playerY / Server.ChunkSize) + dy;
+                    int chunkZ = (playerZ / Server.ChunkSize) + dz;
 
                     if (!VectorUtils.IsValidChunkPos(server.Map, chunkX, chunkY, chunkZ, Server.ChunkSize))
                     {

@@ -8,10 +8,10 @@ public class ModWalkSound : ModBase
 
     private float walkSoundTimer;
     private int lastWalkSound;
-    private readonly IBlockTypeRegistry blockTypeRegistry;
+    private readonly IBlockRegistry blockTypeRegistry;
     private readonly Random random;
 
-    public ModWalkSound(IGame game, IBlockTypeRegistry blockTypeRegistry) : base(game)
+    public ModWalkSound(IGame game, IBlockRegistry blockTypeRegistry) : base(game)
     {
         this.blockTypeRegistry = blockTypeRegistry;
         random = new Random();
@@ -71,7 +71,7 @@ public class ModWalkSound : ModBase
     internal static int GetSoundCount(string[] sounds)
     {
         int count = 0;
-        for (int i = 0; i < BlockTypeRegistry.SoundCount; i++)
+        for (int i = 0; i < BlockRegistry.SoundCount; i++)
         {
             if (sounds[i] != null)
             {

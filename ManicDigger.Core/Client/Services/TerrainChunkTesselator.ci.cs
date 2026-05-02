@@ -32,7 +32,7 @@ public class TerrainChunkTesselator
 
     private readonly IGame _terrain;
     private readonly IGameService _platform;
-    private readonly IBlockTypeRegistry _blockTypeRegistry;
+    private readonly IBlockRegistry _blockTypeRegistry;
 
     private const int chunksize = 16;
 
@@ -91,7 +91,7 @@ public class TerrainChunkTesselator
 
     private readonly int[] tmpnPos;
 
-    public TerrainChunkTesselator(IGame terrain, IGameService platform, IBlockTypeRegistry blockTypeRegistry)
+    public TerrainChunkTesselator(IGame terrain, IGameService platform, IBlockRegistry blockTypeRegistry)
     {
         _terrain = terrain;
         _platform = platform;
@@ -222,7 +222,7 @@ public class TerrainChunkTesselator
     }
 
     private static int Index3d(int x, int y, int h, int sizex, int sizey)
-        => (h * sizey + y) * sizex + x;
+        => (((h * sizey) + y) * sizex) + x;
 
     public void Start()
     {
@@ -289,11 +289,11 @@ public class TerrainChunkTesselator
     /// </summary>
     public void RefreshBlockTypeCache()
     {
-        foreach (var (id, b) in _terrain.BlockTypes)
+        foreach (var (id, b) in _blockTypeRegistry.BlockTypes)
         {
             BlockRenderFlags flags = BlockRenderFlags.None;
 
-            if (b.DrawType != DrawType.Solid && b.DrawType != DrawType.Fluid)
+            if (b.DrawType is not DrawType.Solid and not DrawType.Fluid)
             {
                 flags |= BlockRenderFlags.Transparent;
             }
@@ -503,7 +503,7 @@ public class TerrainChunkTesselator
                 {
                     if (currentChunkDraw16[Index3d(xx, yy, zz, chunksize, chunksize)] != 0)
                     {
-                        BuildSingleBlockPolygon(x * chunksize + xx, y * chunksize + yy, z * chunksize + zz, currentChunk18);
+                        BuildSingleBlockPolygon((x * chunksize) + xx, (y * chunksize) + yy, (z * chunksize) + zz, currentChunk18);
                     }
                 }
             }
@@ -528,9 +528,9 @@ public class TerrainChunkTesselator
         float vScaleX, float vScaleY, float vScaleZ,
         int[] currentChunk, TileSide tileSide)
     {
-        int xx = x % chunksize + 1;
-        int yy = y % chunksize + 1;
-        int zz = z % chunksize + 1;
+        int xx = (x % chunksize) + 1;
+        int yy = (y % chunksize) + 1;
+        int zz = (z % chunksize) + 1;
         Vector3i[] vNeighbors = c_OcclusionNeighbors[(int)tileSide];
 
         int[] shadowration = tmpshadowration;
@@ -591,9 +591,21 @@ public class TerrainChunkTesselator
         else
         {
             byte facesconsidered = 1;
-            if (!occupied[d1]) { fShadowRation[c] += lightlevels[shadowRationInt[d1]]; facesconsidered++; }
-            if (!occupied[d2]) { fShadowRation[c] += lightlevels[shadowRationInt[d2]]; facesconsidered++; }
-            if (!occupied[db]) { fShadowRation[c] += lightlevels[shadowRationInt[db]]; facesconsidered++; }
+            if (!occupied[d1])
+            {
+                fShadowRation[c] += lightlevels[shadowRationInt[d1]];
+                facesconsidered++;
+            }
+            if (!occupied[d2])
+            {
+                fShadowRation[c] += lightlevels[shadowRationInt[d2]];
+                facesconsidered++;
+            }
+            if (!occupied[db])
+            {
+                fShadowRation[c] += lightlevels[shadowRationInt[db]];
+                facesconsidered++;
+            }
             fShadowRation[c] /= facesconsidered;
 
             if (occupied[d1] || occupied[d2] || occupied[db])
@@ -623,8 +635,8 @@ public class TerrainChunkTesselator
 
         int sidetexture = TextureId(tileType, tileSide);
         GeometryModel toreturn = GetModelData(tileType, sidetexture);
-        float texrecTop = terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas)
-                           + AtiArtifactFix * terrainTexturesPerAtlasInverse;
+        float texrecTop = (terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas))
+                           + (AtiArtifactFix * terrainTexturesPerAtlasInverse);
         float texrecBottom = texrecTop + _texrecHeight;
         int lastelement = toreturn.VerticesCount;
 
@@ -642,33 +654,33 @@ public class TerrainChunkTesselator
         {
             Vector3i v = vNeighbors[(int)TileDirection.TopRight] + new Vector3i(1, 1, 1);
             GeometryModel.AddVertex(toreturn,
-                x + vOffsetX + v.X * 0.5f * vScaleX,
+                x + vOffsetX + (v.X * 0.5f * vScaleX),
                 AddVertex_GetZ(Corner.TopRight),
-                y + vOffsetY + v.Y * 0.5f * vScaleY,
+                y + vOffsetY + (v.Y * 0.5f * vScaleY),
                 _texrecRight, texrecTop, ColorMultiply(color, fShadowRation[(int)Corner.TopRight]));
         }
         {
             Vector3i v = vNeighbors[(int)TileDirection.TopLeft] + new Vector3i(1, 1, 1);
             GeometryModel.AddVertex(toreturn,
-                x + vOffsetX + v.X * 0.5f * vScaleX,
+                x + vOffsetX + (v.X * 0.5f * vScaleX),
                 AddVertex_GetZ(Corner.TopLeft),
-                y + vOffsetY + v.Y * 0.5f * vScaleY,
+                y + vOffsetY + (v.Y * 0.5f * vScaleY),
                 _texrecLeft, texrecTop, ColorMultiply(color, fShadowRation[(int)Corner.TopLeft]));
         }
         {
             Vector3i v = vNeighbors[(int)TileDirection.BottomRight] + new Vector3i(1, 1, 1);
             GeometryModel.AddVertex(toreturn,
-                x + vOffsetX + v.X * 0.5f * vScaleX,
+                x + vOffsetX + (v.X * 0.5f * vScaleX),
                 AddVertex_GetZ(Corner.BottomRight),
-                y + vOffsetY + v.Y * 0.5f * vScaleY,
+                y + vOffsetY + (v.Y * 0.5f * vScaleY),
                 _texrecRight, texrecBottom, ColorMultiply(color, fShadowRation[(int)Corner.BottomRight]));
         }
         {
             Vector3i v = vNeighbors[(int)TileDirection.BottomLeft] + new Vector3i(1, 1, 1);
             GeometryModel.AddVertex(toreturn,
-                x + vOffsetX + v.X * 0.5f * vScaleX,
+                x + vOffsetX + (v.X * 0.5f * vScaleX),
                 AddVertex_GetZ(Corner.BottomLeft),
-                y + vOffsetY + v.Y * 0.5f * vScaleY,
+                y + vOffsetY + (v.Y * 0.5f * vScaleY),
                 _texrecLeft, texrecBottom, ColorMultiply(color, fShadowRation[(int)Corner.BottomLeft]));
         }
 
@@ -734,9 +746,9 @@ public class TerrainChunkTesselator
     {
         _cornerHeights.Clear();
 
-        int xx = x % chunksize + 1;
-        int yy = y % chunksize + 1;
-        int zz = z % chunksize + 1;
+        int xx = (x % chunksize) + 1;
+        int yy = (y % chunksize) + 1;
+        int zz = (z % chunksize) + 1;
 
         TileSideFlags nToDraw = GetToDrawFlags(xx, yy, zz);
         int tiletype = currentChunk[Index3d(xx, yy, zz, chunksize + 2, chunksize + 2)];
@@ -779,13 +791,15 @@ public class TerrainChunkTesselator
 
         if (IsFlower(tiletype))
         {
-            vScaleX = 0.9f; vScaleY = 0.9f; vScaleZ = 1f;
+            vScaleX = 0.9f;
+            vScaleY = 0.9f;
+            vScaleZ = 1f;
             BuildBlockFace(x, y, z, tiletype, 0.5f, 0.05f, 0f, vScaleX, vScaleY, vScaleZ, currentChunk, TileSide.Left);
             BuildBlockFace(x, y, z, tiletype, 0.05f, 0.5f, 0f, vScaleX, vScaleY, vScaleZ, currentChunk, TileSide.Back);
             return;
         }
 
-        DrawType drawType = _terrain.BlockTypes[tiletype].DrawType;
+        DrawType drawType = _blockTypeRegistry.BlockTypes[tiletype].DrawType;
 
         if (drawType == DrawType.Cactus)
         {
@@ -797,7 +811,7 @@ public class TerrainChunkTesselator
             BuildBlockFace(x, y, z, tiletype, 0, fOffset, 0, 1f, fScale, 1f, currentChunk, TileSide.Back);
             nToDraw = nToDraw & (TileSideFlags.Top | TileSideFlags.Bottom);
         }
-        else if (drawType == DrawType.OpenDoorLeft || drawType == DrawType.OpenDoorRight)
+        else if (drawType is DrawType.OpenDoorLeft or DrawType.OpenDoorRight)
         {
             bool blnDrawn = false;
             float fOffset = 0.025f;
@@ -818,7 +832,7 @@ public class TerrainChunkTesselator
                 nToDraw = TileSideFlags.Front;
             }
         }
-        else if (drawType == DrawType.Fence || drawType == DrawType.ClosedDoor)
+        else if (drawType is DrawType.Fence or DrawType.ClosedDoor)
         {
             bool blnSideDrawn = false;
             if (currentChunk[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)] != 0 ||
@@ -838,8 +852,11 @@ public class TerrainChunkTesselator
         }
         else if (drawType == DrawType.Ladder)
         {
-            vOffsetX = 0.025f; vOffsetY = 0.025f;
-            vScaleX = 0.95f; vScaleY = 0.95f; vScaleZ = 1f;
+            vOffsetX = 0.025f;
+            vOffsetY = 0.025f;
+            vScaleX = 0.95f;
+            vScaleY = 0.95f;
+            vScaleZ = 1f;
             nToDraw = TileSideFlags.None;
 
             int ladderWall = GetBestLadderWall(xx, yy, zz, currentChunk);
@@ -949,8 +966,8 @@ public class TerrainChunkTesselator
 
     private bool IsTransparentForLight(int block)
     {
-        BlockType b = _terrain.BlockTypes[block];
-        return b.DrawType != DrawType.Solid && b.DrawType != DrawType.ClosedDoor;
+        BlockType b = _blockTypeRegistry.BlockTypes[block];
+        return b.DrawType is not DrawType.Solid and not DrawType.ClosedDoor;
     }
 
     private GeometryModel GetModelData(int tiletype, int textureid)
@@ -964,7 +981,7 @@ public class TerrainChunkTesselator
         => _terrain.TextureId[tiletype][(int)side];
 
     private bool CanSupportTorch(int blocktype)
-        => blocktype != 0 && _terrain.BlockTypes[blocktype].DrawType != DrawType.Torch;
+        => blocktype != 0 && _blockTypeRegistry.BlockTypes[blocktype].DrawType != DrawType.Torch;
 
     internal int TorchTopTexture;
     internal int TorchSideTexture;
@@ -1002,23 +1019,38 @@ public class TerrainChunkTesselator
         return RailSlope.Flat;
     }
 
-    private int Rail(int tiletype) => _terrain.BlockTypes[tiletype].Rail;
+    private int Rail(int tiletype) => _blockTypeRegistry.BlockTypes[tiletype].Rail;
 
     private bool IsFlower(int tiletype)
-        => _terrain.BlockTypes[tiletype].DrawType == DrawType.Plant;
+        => _blockTypeRegistry.BlockTypes[tiletype].DrawType == DrawType.Plant;
 
     private bool Isvalid(int tt)
-        => _terrain.BlockTypes[tt]?.Name != null;
+        => _blockTypeRegistry.BlockTypes[tt]?.Name != null;
 
     private static int GetBestLadderWall(int x, int y, int z, int[] currentChunk)
     {
         bool front = false, back = false, left = false;
         int wallscount = 0;
 
-        if (currentChunk[Index3d(x, y - 1, z, chunksize + 2, chunksize + 2)] != 0) { front = true; wallscount++; }
-        if (currentChunk[Index3d(x, y + 1, z, chunksize + 2, chunksize + 2)] != 0) { back = true; wallscount++; }
-        if (currentChunk[Index3d(x - 1, y, z, chunksize + 2, chunksize + 2)] != 0) { left = true; wallscount++; }
-        if (currentChunk[Index3d(x + 1, y, z, chunksize + 2, chunksize + 2)] != 0) { wallscount++; }
+        if (currentChunk[Index3d(x, y - 1, z, chunksize + 2, chunksize + 2)] != 0)
+        {
+            front = true;
+            wallscount++;
+        }
+        if (currentChunk[Index3d(x, y + 1, z, chunksize + 2, chunksize + 2)] != 0)
+        {
+            back = true;
+            wallscount++;
+        }
+        if (currentChunk[Index3d(x - 1, y, z, chunksize + 2, chunksize + 2)] != 0)
+        {
+            left = true;
+            wallscount++;
+        }
+        if (currentChunk[Index3d(x + 1, y, z, chunksize + 2, chunksize + 2)] != 0)
+        {
+            wallscount++;
+        }
 
         if (wallscount != 1)
         {
@@ -1083,15 +1115,21 @@ public class TerrainChunkTesselator
 
         if (!flipWinding)
         {
-            GeometryModel.AddIndex(model, e + 0); GeometryModel.AddIndex(model, e + 1);
-            GeometryModel.AddIndex(model, e + 2); GeometryModel.AddIndex(model, e + 1);
-            GeometryModel.AddIndex(model, e + 3); GeometryModel.AddIndex(model, e + 2);
+            GeometryModel.AddIndex(model, e + 0);
+            GeometryModel.AddIndex(model, e + 1);
+            GeometryModel.AddIndex(model, e + 2);
+            GeometryModel.AddIndex(model, e + 1);
+            GeometryModel.AddIndex(model, e + 3);
+            GeometryModel.AddIndex(model, e + 2);
         }
         else
         {
-            GeometryModel.AddIndex(model, e + 1); GeometryModel.AddIndex(model, e + 0);
-            GeometryModel.AddIndex(model, e + 2); GeometryModel.AddIndex(model, e + 3);
-            GeometryModel.AddIndex(model, e + 1); GeometryModel.AddIndex(model, e + 2);
+            GeometryModel.AddIndex(model, e + 1);
+            GeometryModel.AddIndex(model, e + 0);
+            GeometryModel.AddIndex(model, e + 2);
+            GeometryModel.AddIndex(model, e + 3);
+            GeometryModel.AddIndex(model, e + 1);
+            GeometryModel.AddIndex(model, e + 2);
         }
     }
 
@@ -1100,8 +1138,8 @@ public class TerrainChunkTesselator
         int color = _colorWhite;
         const float sxy = 0.16f;
 
-        float topx = 0.5f - sxy / 2 + x;
-        float topy = 0.5f - sxy / 2 + y;
+        float topx = 0.5f - (sxy / 2) + x;
+        float topy = 0.5f - (sxy / 2) + y;
         float botx = topx;
         float boty = topy;
 
@@ -1132,10 +1170,26 @@ public class TerrainChunkTesselator
         Vector3 t11 = new(topx + sxy, tz + 0.9f, topy + sxy);
 
         // Tilt torch top toward the wall it leans on.
-        if (type == TorchType.Left) { t01.Y -= 0.1f; t11.Y -= 0.1f; }
-        if (type == TorchType.Right) { t10.Y -= 0.1f; t00.Y -= 0.1f; }
-        if (type == TorchType.Front) { t10.Y -= 0.1f; t11.Y -= 0.1f; }
-        if (type == TorchType.Back) { t01.Y -= 0.1f; t00.Y -= 0.1f; }
+        if (type == TorchType.Left)
+        {
+            t01.Y -= 0.1f;
+            t11.Y -= 0.1f;
+        }
+        if (type == TorchType.Right)
+        {
+            t10.Y -= 0.1f;
+            t00.Y -= 0.1f;
+        }
+        if (type == TorchType.Front)
+        {
+            t10.Y -= 0.1f;
+            t11.Y -= 0.1f;
+        }
+        if (type == TorchType.Back)
+        {
+            t01.Y -= 0.1f;
+            t00.Y -= 0.1f;
+        }
 
         Vector3 b00 = new(botx, tz, boty);
         Vector3 b01 = new(botx, tz, boty + sxy);
@@ -1213,7 +1267,11 @@ public class TerrainChunkTesselator
 
         // Call RefreshBlockTypeCache() externally when block definitions change.
 
-        if (x < 0 || y < 0 || z < 0) { retCount = 0; return []; }
+        if (x < 0 || y < 0 || z < 0)
+        {
+            retCount = 0;
+            return [];
+        }
         if (!started)
         {
             throw new ArgumentException("not started");
@@ -1221,7 +1279,11 @@ public class TerrainChunkTesselator
 
         if (x >= mapsizex / chunksize
          || y >= mapsizey / chunksize
-         || z >= mapsizez / chunksize) { retCount = 0; return []; }
+         || z >= mapsizez / chunksize)
+        {
+            retCount = 0;
+            return [];
+        }
 
         for (int i = 0; i < toreturnatlas1dLength; i++)
         {

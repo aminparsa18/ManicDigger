@@ -18,7 +18,9 @@ public class ScaleInput : IModule
     {
         ArgumentNullException.ThrowIfNull(sourceModule);
         SourceModule = sourceModule;
-        X = x; Y = y; Z = z;
+        X = x;
+        Y = y;
+        Z = z;
     }
 
     public float GetValue(float x, float y, float z)

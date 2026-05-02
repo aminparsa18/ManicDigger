@@ -97,7 +97,7 @@ public class ModSkySphereAnimated : ModBase
         }
 
         // Normalize sun direction once outside the vertex loop
-        float sunLength = MathF.Sqrt(sunX * sunX + sunY * sunY + sunZ * sunZ);
+        float sunLength = MathF.Sqrt((sunX * sunX) + (sunY * sunY) + (sunZ * sunZ));
         if (sunLength == 0)
         {
             sunLength = 1;
@@ -122,17 +122,17 @@ public class ModSkySphereAnimated : ModBase
                 float vz = radius * sinPhi * MathF.Sin(theta);
 
                 data.Xyz[i * 3] = vx;
-                data.Xyz[i * 3 + 1] = vy;
-                data.Xyz[i * 3 + 2] = vz;
+                data.Xyz[(i * 3) + 1] = vy;
+                data.Xyz[(i * 3) + 2] = vz;
                 data.Uv[i * 2] = x / (float)(segments - 1);
-                data.Uv[i * 2 + 1] = y / (float)(rings - 1);
-                float vertLen = MathF.Sqrt(vx * vx + vy * vy + vz * vz);
+                data.Uv[(i * 2) + 1] = y / (float)(rings - 1);
+                float vertLen = MathF.Sqrt((vx * vx) + (vy * vy) + (vz * vz));
                 float vxN = vx / vertLen, vyN = vy / vertLen, vzN = vz / vertLen;
 
                 float dx = vxN - sunXN, dy = vyN - sunYN, dz = vzN - sunZN;
-                float proximityToSun = 1f - MathF.Sqrt(dx * dx + dy * dy + dz * dz) / 2f;
+                float proximityToSun = 1f - (MathF.Sqrt((dx * dx) + (dy * dy) + (dz * dz)) / 2f);
 
-                int skyColor = Texture2d(skyPixels, (sunYN + 2f) / 4f, 1f - (vyN + 1f) / 2f);
+                int skyColor = Texture2d(skyPixels, (sunYN + 2f) / 4f, 1f - ((vyN + 1f) / 2f));
                 int glowColor = Texture2d(glowPixels, (sunYN + 1f) / 2f, 1f - proximityToSun);
 
                 float skyA = ColorUtils.ColorA(skyColor) / 255f;
@@ -145,10 +145,10 @@ public class ModSkySphereAnimated : ModBase
                 float glowB = ColorUtils.ColorB(glowColor) / 255f;
 
                 // Blend sky and glow
-                data.Rgba[i * 4] = (byte)(Math.Min(1f, skyR + glowR * glowA) * 255);
-                data.Rgba[i * 4 + 1] = (byte)(Math.Min(1f, skyG + glowG * glowA) * 255);
-                data.Rgba[i * 4 + 2] = (byte)(Math.Min(1f, skyB + glowB * glowA) * 255);
-                data.Rgba[i * 4 + 3] = (byte)(Math.Min(1f, skyA) * 255);
+                data.Rgba[i * 4] = (byte)(Math.Min(1f, skyR + (glowR * glowA)) * 255);
+                data.Rgba[(i * 4) + 1] = (byte)(Math.Min(1f, skyG + (glowG * glowA)) * 255);
+                data.Rgba[(i * 4) + 2] = (byte)(Math.Min(1f, skyB + (glowB * glowA)) * 255);
+                data.Rgba[(i * 4) + 3] = (byte)(Math.Min(1f, skyA) * 255);
                 i++;
             }
         }
@@ -170,13 +170,17 @@ public class ModSkySphereAnimated : ModBase
         {
             for (int x = 0; x < segments - 1; x++)
             {
-                int bl = y * segments + x;
-                int tl = (y + 1) * segments + x;
-                int tr = (y + 1) * segments + x + 1;
-                int br = y * segments + x + 1;
+                int bl = (y * segments) + x;
+                int tl = ((y + 1) * segments) + x;
+                int tr = ((y + 1) * segments) + x + 1;
+                int br = (y * segments) + x + 1;
 
-                indices[i++] = bl; indices[i++] = tl; indices[i++] = tr;
-                indices[i++] = tr; indices[i++] = br; indices[i++] = bl;
+                indices[i++] = bl;
+                indices[i++] = tl;
+                indices[i++] = tr;
+                indices[i++] = tr;
+                indices[i++] = br;
+                indices[i++] = bl;
             }
         }
         return indices;
@@ -189,5 +193,5 @@ public class ModSkySphereAnimated : ModBase
         return pixelsArgb[VectorIndexUtil.Index2d(px, py, TextureSize)];
     }
 
-    private static int PositiveMod(int i, int n) => (i % n + n) % n;
+    private static int PositiveMod(int i, int n) => ((i % n) + n) % n;
 }

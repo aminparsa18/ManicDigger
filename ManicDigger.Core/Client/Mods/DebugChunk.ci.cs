@@ -36,9 +36,9 @@ public class ModDebugChunk : ModBase
         int cz = (int)(Game.Player.position.z / cs) * cs;
 
         lines.DrawWireframeCube_(
-            cx + cs / 2,
-            cy + cs / 2,
-            cz + cs / 2,
+            cx + (cs / 2),
+            cy + (cs / 2),
+            cz + (cs / 2),
             cs, cs, cs);
     }
 }

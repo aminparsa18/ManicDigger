@@ -18,7 +18,7 @@ public class VoxelMap : IVoxelMap
     /// Converts 3D coordinates into a flat array index using the layout: <c>(h * sizeY + y) * sizeX + x</c>.
     /// Used for both block-space and chunk-space indexing depending on the size arguments passed.
     /// </summary>
-    private static int Index3d(int x, int y, int h, int sizex, int sizey) => (h * sizey + y) * sizex + x;
+    private static int Index3d(int x, int y, int h, int sizex, int sizey) => (((h * sizey) + y) * sizex) + x;
 
     /// <summary>
     /// Returns the block type at the given block-space position without performing map-bounds validation.
@@ -161,7 +161,7 @@ public class VoxelMap : IVoxelMap
             {
                 for (int cz = startCZ; cz <= endCZ; cz++)
                 {
-                    int cpos = (cz * mapchunksy + cy) * mapchunksx + cx;
+                    int cpos = (((cz * mapchunksy) + cy) * mapchunksx) + cx;
                     if ((uint)cpos >= (uint)mapsizechunks)
                     {
                         continue;
@@ -200,7 +200,7 @@ public class VoxelMap : IVoxelMap
 
                                 int pos = (((inChunkZ << csBits) + inChunkY) << csBits) + inChunkX;
                                 int block = chunk.GetBlock(pos);
-                                outPortion[((outZ * portionsizey) + outY) * portionsizex + outX] = block;
+                                outPortion[(((outZ * portionsizey) + outY) * portionsizex) + outX] = block;
                             }
                         }
                     }
@@ -376,7 +376,7 @@ public class VoxelMap : IVoxelMap
             int dstZRow = z << csBits;
             for (int y = 0; y < dcs; y++)
             {
-                int srcBase = (srcZRow + (y + srcY)) * srcSizeX + srcX;
+                int srcBase = ((srcZRow + (y + srcY)) * srcSizeX) + srcX;
                 int dstBase = (dstZRow + y) << csBits;
                 for (int x = 0; x < dcs; x++)
                 {

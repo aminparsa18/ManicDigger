@@ -34,12 +34,16 @@ public sealed class AudioTask(IGameExit gameExit, AudioData data)
     /// </summary>
     public Vector3 Position
     {
-        get { lock (_positionLock)
+        get
+        {
+            lock (_positionLock)
             {
                 return _position;
             }
         }
-        set { lock (_positionLock)
+        set
+        {
+            lock (_positionLock)
             {
                 _position = value;
             }

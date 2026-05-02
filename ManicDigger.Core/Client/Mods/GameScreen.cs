@@ -77,25 +77,34 @@ public class GameScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w == null || w.type != UIWidgetType.Textbox || !w.editing) { continue; }
+            if (w == null || w.type != UIWidgetType.Textbox || !w.editing)
+            {
+                continue;
+            }
 
             int key = e.KeyChar;
 
             if (key == 8) // backspace
             {
-                if (w.text.Length > 0) { w.text = w.text[..^1]; }
+                if (w.text.Length > 0)
+                {
+                    w.text = w.text[..^1];
+                }
 
                 return;
             }
 
-            if (key == 9 || key == 13) // tab, enter
+            if (key is 9 or 13) // tab, enter
             {
                 return;
             }
 
             if (key == 22) // paste (Ctrl+V)
             {
-                if (Clipboard.ContainsText()) { w.text = string.Concat(w.text, Clipboard.GetText()); }
+                if (Clipboard.ContainsText())
+                {
+                    w.text = string.Concat(w.text, Clipboard.GetText());
+                }
 
                 return;
             }
@@ -123,20 +132,29 @@ public class GameScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w == null) { continue; }
+            if (w == null)
+            {
+                continue;
+            }
 
             bool hit = VectorUtils.PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey);
 
             if (w.type == UIWidgetType.Button)
             {
                 w.pressed = hit;
-                if (hit) { handled = true; }
+                if (hit)
+                {
+                    handled = true;
+                }
             }
 
             if (w.type == UIWidgetType.Textbox)
             {
                 w.pressed = hit;
-                if (hit) { handled = true; }
+                if (hit)
+                {
+                    handled = true;
+                }
 
                 bool wasEditing = w.editing;
                 w.editing = hit;
@@ -167,13 +185,19 @@ public class GameScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w != null) { w.pressed = false; }
+            if (w != null)
+            {
+                w.pressed = false;
+            }
         }
 
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w == null || w.type != UIWidgetType.Button) { continue; }
+            if (w == null || w.type != UIWidgetType.Button)
+            {
+                continue;
+            }
 
             if (VectorUtils.PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey))
             {
@@ -188,7 +212,10 @@ public class GameScreen : ModBase
     /// </summary>
     private void MouseMove(MouseEventArgs e)
     {
-        if (e.GetEmulated() && !e.GetForceUsage()) { return; }
+        if (e.GetEmulated() && !e.GetForceUsage())
+        {
+            return;
+        }
 
         for (int i = 0; i < WidgetCount; i++)
         {
@@ -207,7 +234,10 @@ public class GameScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w == null || !w.visible) { continue; }
+            if (w == null || !w.visible)
+            {
+                continue;
+            }
 
             string text = w.text;
             if (w.selected)
@@ -228,16 +258,22 @@ public class GameScreen : ModBase
                         game.Draw2dTexture(game.GetOrCreateWhiteTexture(), screenx + w.x, screeny + w.y, w.sizex, w.sizey, null, 0, w.color, false);
                     }
 
-                    game.Draw2dText1(text, screenx + (int)w.x, screeny + (int)(w.y + w.sizey / 2), (int)w.fontSize, null, false);
+                    game.Draw2dText1(text, screenx + (int)w.x, screeny + (int)(w.y + (w.sizey / 2)), (int)w.fontSize, null, false);
                 }
                 // ButtonStyle.Text rendering is not yet implemented.
             }
 
             if (w.type == UIWidgetType.Textbox)
             {
-                if (w.password) { text = new string('*', w.text.Length); }
+                if (w.password)
+                {
+                    text = new string('*', w.text.Length);
+                }
 
-                if (w.editing) { text = string.Concat(platform, text, "_"); }
+                if (w.editing)
+                {
+                    text = string.Concat(platform, text, "_");
+                }
 
                 game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, null, false);
             }

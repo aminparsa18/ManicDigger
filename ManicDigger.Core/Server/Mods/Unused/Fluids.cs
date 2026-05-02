@@ -42,7 +42,7 @@ public class Fluids : IMod
 
     private IModManager m;
 
-    private static int PositionHash(int x, int y, int z) => (x * 9973 + y) * 127 + z; //this hash value may overflow, but we don't care
+    private static int PositionHash(int x, int y, int z) => (((x * 9973) + y) * 127) + z; //this hash value may overflow, but we don't care
 
     private void Build(int player, int x, int y, int z)
     {
@@ -223,7 +223,7 @@ public class Fluids : IMod
                 r = random.Next(4);
                 for (int d = r; d < r + 4; d += 1)
                 {
-                    int dd = (1 + 2 * d) % dx.Length;  //check only von Neumann neighbors
+                    int dd = (1 + (2 * d)) % dx.Length;  //check only von Neumann neighbors
                     int xx = x + dx[dd];
                     int yy = y + dy[dd];
                     if (!m.IsValidPos(xx, yy, z - 1))
@@ -425,7 +425,7 @@ public class Fluids : IMod
         int r = random.Next(4);
         for (int d = r; d < r + 4; d += 1)
         {
-            int dd = (1 + 2 * d) % dx.Length;  //check only von Neumann neighbors
+            int dd = (1 + (2 * d)) % dx.Length;  //check only von Neumann neighbors
             int xx = x + dx[dd];
             int yy = y + dy[dd];
             RecursiveSearch(depth, xx, yy, z);

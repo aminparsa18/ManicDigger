@@ -39,19 +39,16 @@ public partial class Server : ICurrentTime, IDropItem
             // This ServerSystem should always be loaded last
             new ServerSystemLoadLast(),
         ];
-        // Not finished
-        // systems[systemsCount++] = new ServerSystemSign();
-        // systems[systemsCount++] = new ServerSystemPermissionSign();
+
 
         //Load translations
-
         Language.LoadTranslations();
 
         MainSockets = new NetServer[3];
     }
 
     public ServerMapStorage Map { get; set; }
-    public BlockTypeRegistry BlockTypeRegistry { get; set; }
+    public BlockRegistry BlockTypeRegistry { get; set; }
     public CraftingTableTool CraftingTableTool { get; set; }
     public IChunkDb ChunkDb { get; set; }
     public ICompression NetworkCompression { get; set; }
@@ -236,7 +233,6 @@ public partial class Server : ICurrentTime, IDropItem
         ServerMapStorage map = new()
         {
             server = this,
-            d_CurrentTime = this,
             ChunkSize = 32
         };
         BlockTypes = [];
@@ -250,7 +246,7 @@ public partial class Server : ICurrentTime, IDropItem
         LoadAssets();
 
         //Initialize game components
-        BlockTypeRegistry data = new();
+        BlockRegistry data = new();
         data.Start();
         BlockTypeRegistry = data;
         CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = data };
@@ -1023,7 +1019,7 @@ public partial class Server : ICurrentTime, IDropItem
         Packet_Client packet = MemoryPackSerializer.Deserialize<Packet_Client>(data.AsSpan(0, data.Length));
         if (c.QueryClient)
         {
-            if (!(packet.Id == PacketType.ServerQuery || packet.Id == PacketType.PlayerIdentification))
+            if (packet.Id is not (PacketType.ServerQuery or PacketType.PlayerIdentification))
             {
                 //Reject all packets other than ServerQuery or PlayerIdentification
                 DiagLog.Write("Rejected packet from not authenticated client");
@@ -1121,7 +1117,10 @@ public partial class Server : ICurrentTime, IDropItem
 
                             // Duplicates are handled as guests.
                             username = GenerateUsername(username);
-                            if (!username.StartsWith('~')) { username = $"~{username}"; }
+                            if (!username.StartsWith('~'))
+                            {
+                                username = $"~{username}";
+                            }
 
                             break;
                         }
@@ -2573,8 +2572,8 @@ public partial class Server : ICurrentTime, IDropItem
             foreach (byte[] part in Parts(blob, blobPartLength))
             {
                 SendLevelProgress(clientid,
-                    (int)(((float)i / tosend.Count
-                        + (float)totalsent / blob.Length / tosend.Count) * 100),
+                    (int)((((float)i / tosend.Count)
+                        + ((float)totalsent / blob.Length / tosend.Count)) * 100),
                     Language.ServerProgressDownloadingData());
                 SendBlobPart(clientid, part);
                 totalsent += part.Length;
@@ -2797,7 +2796,10 @@ public partial class Server : ICurrentTime, IDropItem
             case InventoryItemType.Block:
                 for (int i = 0; i < dumpmax; i++)
                 {
-                    if (item.BlockCount == 0) { break; }
+                    if (item.BlockCount == 0)
+                    {
+                        break;
+                    }
                     //find empty position that is nearest to dump place AND has a block under.
                     Vector3i? nearpos = FindDumpPlace(pos);
                     if (nearpos == null)
@@ -2830,9 +2832,9 @@ public partial class Server : ICurrentTime, IDropItem
             {
                 for (int z = 0; z < 10; z++)
                 {
-                    int xx = pos.X + x - 10 / 2;
-                    int yy = pos.Y + y - 10 / 2;
-                    int zz = pos.Z + z - 10 / 2;
+                    int xx = pos.X + x - (10 / 2);
+                    int yy = pos.Y + y - (10 / 2);
+                    int zz = pos.Z + z - (10 / 2);
                     if (!VectorUtils.IsValidPos(Map, xx, yy, zz))
                     {
                         continue;

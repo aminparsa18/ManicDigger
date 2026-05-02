@@ -35,10 +35,10 @@ public class PixelBuffer
     }
 
     /// <summary>Sets the ARGB color of the pixel at (<paramref name="x"/>, <paramref name="y"/>).</summary>
-    public void SetPixel(int x, int y, int color) => Argb[x + y * Width] = color;
+    public void SetPixel(int x, int y, int color) => Argb[x + (y * Width)] = color;
 
     /// <summary>Gets the ARGB color of the pixel at (<paramref name="x"/>, <paramref name="y"/>).</summary>
-    public int GetPixel(int x, int y) => Argb[x + y * Width];
+    public int GetPixel(int x, int y) => Argb[x + (y * Width)];
 
     /// <summary>Renders this buffer into a new <see cref="Bitmap"/>.</summary>
     public Bitmap ToBitmap()
@@ -81,7 +81,7 @@ public class PixelBuffer
         {
             for (int x = 0; x < bmp.Width; x++)
             {
-                pixels[y * bmp.Width + x] = bmp.GetPixel(x, y).ToArgb();
+                pixels[(y * bmp.Width) + x] = bmp.GetPixel(x, y).ToArgb();
             }
         }
     }
@@ -127,7 +127,7 @@ public class PixelBuffer
         {
             for (int x = 0; x < bmp.Width; x++)
             {
-                bmp.SetPixel(x, y, Color.FromArgb(pixels[y * bmp.Width + x]));
+                bmp.SetPixel(x, y, Color.FromArgb(pixels[(y * bmp.Width) + x]));
             }
         }
     }
@@ -218,7 +218,7 @@ public class PixelBuffer
 
             for (int row = 0; row < tilesize; row++)
             {
-                int srcOffset = (srcBaseY + row) * orig.Width + tileX * tilesize;
+                int srcOffset = ((srcBaseY + row) * orig.Width) + (tileX * tilesize);
                 int dstOffset = (destY + row) * tilesize;
                 Array.Copy(src, srcOffset, dst, dstOffset, tilesize);
             }

@@ -12,12 +12,21 @@
     {
         float one = 1;
         int colora = (int)((colorsLength - 1) * progress);
-        if (colora < 0) { colora = 0; }
+        if (colora < 0)
+        {
+            colora = 0;
+        }
 
-        if (colora >= colorsLength) { colora = colorsLength - 1; }
+        if (colora >= colorsLength)
+        {
+            colora = colorsLength - 1;
+        }
 
         int colorb = colora + 1;
-        if (colorb >= colorsLength) { colorb = colorsLength - 1; }
+        if (colorb >= colorsLength)
+        {
+            colorb = colorsLength - 1;
+        }
 
         int a = colors[colora];
         int b = colors[colorb];

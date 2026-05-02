@@ -20,7 +20,7 @@ public partial class Server
         bool bonusset = false;
         int bonus = -1;
         Vector3i pos = initialSpawn;
-        for (int i = 0; i < playerareasize / 4 - 5; i++)
+        for (int i = 0; i < (playerareasize / 4) - 5; i++)
         {
             if (IsPlayerPositionDry(pos.X, pos.Y, pos.Z))
             {
@@ -71,7 +71,7 @@ public partial class Server
             {
                 for (int z = 0; z < Map.MapSizeZ / ChunkSize; z++)
                 {
-                    Vector3i v = new(p.X + x * ChunkSize, p.Y + y * ChunkSize, z * ChunkSize);
+                    Vector3i v = new(p.X + (x * ChunkSize), p.Y + (y * ChunkSize), z * ChunkSize);
                     if (VectorUtils.IsValidPos(Map, v.X, v.Y, v.Z))
                     {
                         yield return v;

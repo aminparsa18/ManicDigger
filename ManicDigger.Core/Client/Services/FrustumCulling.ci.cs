@@ -43,11 +43,14 @@ public class FrustumCulling : IFrustumCulling
     {
         for (int i = 0; i < frustumPlanes.Length; i++)
         {
-            float d = frustumPlanes[i].X * x
-                    + frustumPlanes[i].Y * y
-                    + frustumPlanes[i].Z * z
+            float d = (frustumPlanes[i].X * x)
+                    + (frustumPlanes[i].Y * y)
+                    + (frustumPlanes[i].Z * z)
                     + frustumPlanes[i].W;
-            if (d <= -radius) { return false; }
+            if (d <= -radius)
+            {
+                return false;
+            }
         }
         return true;
     }
@@ -88,7 +91,7 @@ public class FrustumCulling : IFrustumCulling
     /// </summary>
     private static Vector4 NormalizePlane(float a, float b, float c, float d)
     {
-        float magnitude = MathF.Sqrt(a * a + b * b + c * c);
+        float magnitude = MathF.Sqrt((a * a) + (b * b) + (c * c));
         return new Vector4(a / magnitude, b / magnitude, c / magnitude, d / magnitude);
     }
 }

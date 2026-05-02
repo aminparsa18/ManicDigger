@@ -42,7 +42,7 @@ public static class CuboidRenderer
         return
         [
             new RectangleF(tsizez + tstartx,                tsizez + tstarty, tsizex, tsizey), // front
-            new RectangleF(2 * tsizez + tsizex + tstartx,   tsizez + tstarty, tsizex, tsizey), // back
+            new RectangleF((2 * tsizez) + tsizex + tstartx,   tsizez + tstarty, tsizex, tsizey), // back
             new RectangleF(tstartx,                          tsizez + tstarty, tsizez, tsizey), // right
             new RectangleF(tsizez + tsizex + tstartx,       tsizez + tstarty, tsizez, tsizey), // left
             new RectangleF(tsizez + tstartx,                 tstarty,          tsizex, tsizez), // top
@@ -70,8 +70,8 @@ public static class CuboidRenderer
         {
             float x = (coords[i].X + AtiArtifactFix) / textureWidth;
             float y = (coords[i].Y + AtiArtifactFix) / textureHeight;
-            float w = (coords[i].X + coords[i].Width - AtiArtifactFix) / textureWidth - x;
-            float h = (coords[i].Y + coords[i].Height - AtiArtifactFix) / textureHeight - y;
+            float w = ((coords[i].X + coords[i].Width - AtiArtifactFix) / textureWidth) - x;
+            float h = ((coords[i].Y + coords[i].Height - AtiArtifactFix) / textureHeight) - y;
             coords[i] = new RectangleF(x, y, w, h);
         }
     }
@@ -90,12 +90,12 @@ public static class CuboidRenderer
         data.Indices = new int[FaceCount * IndicesPerFace];
         for (int i = 0; i < FaceCount; i++)
         {
-            data.Indices[i * IndicesPerFace + 0] = i * VerticesPerFace + 3;
-            data.Indices[i * IndicesPerFace + 1] = i * VerticesPerFace + 2;
-            data.Indices[i * IndicesPerFace + 2] = i * VerticesPerFace + 0;
-            data.Indices[i * IndicesPerFace + 3] = i * VerticesPerFace + 2;
-            data.Indices[i * IndicesPerFace + 4] = i * VerticesPerFace + 1;
-            data.Indices[i * IndicesPerFace + 5] = i * VerticesPerFace + 0;
+            data.Indices[(i * IndicesPerFace) + 0] = (i * VerticesPerFace) + 3;
+            data.Indices[(i * IndicesPerFace) + 1] = (i * VerticesPerFace) + 2;
+            data.Indices[(i * IndicesPerFace) + 2] = (i * VerticesPerFace) + 0;
+            data.Indices[(i * IndicesPerFace) + 3] = (i * VerticesPerFace) + 2;
+            data.Indices[(i * IndicesPerFace) + 4] = (i * VerticesPerFace) + 1;
+            data.Indices[(i * IndicesPerFace) + 5] = (i * VerticesPerFace) + 0;
         }
 
         data.IndicesCount = FaceCount * IndicesPerFace;

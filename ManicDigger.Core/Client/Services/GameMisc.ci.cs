@@ -411,12 +411,30 @@ public class DirectionUtils
     public static int RailDirectionFlagsCount(int railDirectionFlags)
     {
         int count = 0;
-        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.DownLeft)) != 0) { count++; }
-        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.DownRight)) != 0) { count++; }
-        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.Horizontal)) != 0) { count++; }
-        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.UpLeft)) != 0) { count++; }
-        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.UpRight)) != 0) { count++; }
-        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.Vertical)) != 0) { count++; }
+        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.DownLeft)) != 0)
+        {
+            count++;
+        }
+        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.DownRight)) != 0)
+        {
+            count++;
+        }
+        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.Horizontal)) != 0)
+        {
+            count++;
+        }
+        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.UpLeft)) != 0)
+        {
+            count++;
+        }
+        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.UpRight)) != 0)
+        {
+            count++;
+        }
+        if ((railDirectionFlags & ToRailDirectionFlags(RailDirection.Vertical)) != 0)
+        {
+            count++;
+        }
         return count;
     }
 

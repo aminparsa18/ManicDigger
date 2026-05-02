@@ -5,6 +5,25 @@ using Math = System.Math;
 
 namespace ManicDigger.Mods;
 
+/// <summary>
+/// Procedural world generator for Manic Digger.
+/// Produces continent-scale terrain by stacking four independent noise layers
+/// (continent mask, height, temperature, humidity), blending them into
+/// per-column biome weights, and converting those weights into block types
+/// through a continuous height ramp — no hard biome boundaries.
+/// <para>
+/// <b>Pipeline per chunk:</b>
+/// <list type="number">
+///   <item>Domain-warp the world coordinates with <see cref="Warp"/>.</item>
+///   <item>Sample continent, height, temperature, and humidity noise.</item>
+///   <item>Derive <see cref="BiomeWeights"/> and a surface Z for every column.</item>
+///   <item>Select block types using the precomputed column data — zero noise
+///         calls in the inner z-loop.</item>
+///   <item>Populate the chunk with vegetation in a second pass
+///         (<see cref="PopulateChunk"/>).</item>
+/// </list>
+/// </para>
+/// </summary>
 public class AdvanceWorldGenerator : IMod
 {
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
@@ -18,6 +37,10 @@ public class AdvanceWorldGenerator : IMod
         int seed = m.Seed;
 
         InitNoise(seed);
+
+        // Pre-allocate column buffer once — size is chunksize² and never changes.
+        // Avoids any allocation inside the hot GetChunk path.
+        _columns = new ColumnData[chunksize * chunksize];
 
         BLOCK_AIR = m.GetBlockId("Empty");
         BLOCK_ADMINIUM = m.GetBlockId("Adminium");
@@ -84,7 +107,6 @@ public class AdvanceWorldGenerator : IMod
     private readonly FastNoise vegetationNoise = new();
 
     private readonly Perlin heightDetail = new();
-
     private readonly FastNoise warpNoise = new();
 
     private void InitNoise(int seed)
@@ -113,7 +135,7 @@ public class AdvanceWorldGenerator : IMod
         heightSmooth.NoiseQuality = NoiseQuality.Standard;
 
         // Temperature — wider zones than humidity
-        tempNoise.Seed = seed * 3 + 137;
+        tempNoise.Seed = (seed * 3) + 137;
         tempNoise.Frequency = 1f;
         tempNoise.OctaveCount = 3;
         tempNoise.Persistence = 0.5f;
@@ -121,7 +143,7 @@ public class AdvanceWorldGenerator : IMod
         tempNoise.NoiseQuality = NoiseQuality.Standard;
 
         // Humidity — tighter zones, decorrelated from temperature
-        humidityNoise.Seed = seed * 7 + 53;
+        humidityNoise.Seed = (seed * 7) + 53;
         humidityNoise.Frequency = 1f;
         humidityNoise.OctaveCount = 4;
         humidityNoise.Persistence = 0.55f;
@@ -136,6 +158,47 @@ public class AdvanceWorldGenerator : IMod
         vegetationNoise.Seed = seed + 7;
     }
 
+    // =========================================================================
+    //  Column precomputation buffer
+    // =========================================================================
+
+    // Holds everything DetermineBlock needs for one (xx, yy) column.
+    // Filled in GetChunk Pass 1; read in Pass 2.
+    // Using a field array (not locals) keeps it off the stack and avoids
+    // re-allocation on every chunk call.
+    private ColumnData[] _columns = [];
+
+    private struct ColumnData
+    {
+        /// <summary>World-space Z of the topmost solid block.</summary>
+        public int SurfaceZ;
+
+        // Pre-normalised biome material fractions — derived from BiomeWeights
+        // after Normalize() guarantees their sum is already 1, so no per-block
+        // re-normalization is ever needed.
+        public float Sandness;   // weights.Desert
+        public float Grassness;  // weights.Plains + weights.Forest
+        public float Rockness;   // weights.Mountains + weights.Snow
+
+        // Noise values that are z-invariant but were previously evaluated inside
+        // the per-block BuildBlock call. Now computed once per column.
+        //
+        // Dune:       heightDetail at fine scale — drives sand vs red-sand split.
+        //             Only computed when Sandness > 0.5f; otherwise 0.
+        //
+        // VegDensity: vegetationNoise large-cluster sample.
+        // VegDetail:  vegetationNoise fine-detail sample.
+        //             Only computed when surface is above water AND Grassness > 0.4f.
+        //             Zero otherwise, so the vegetation threshold check stays correct.
+        public float Dune;
+        public float VegDensity;
+        public float VegDetail;
+    }
+
+    // =========================================================================
+    //  Continent and height helpers
+    // =========================================================================
+
     /// <summary>
     /// Radial bias — pushes map center above ocean threshold so spawn is always land.
     /// Returns up to +0.6 at center, fading to 0 at the edges.
@@ -146,8 +209,8 @@ public class AdvanceWorldGenerator : IMod
         float cy = mapSizeY * 0.5f;
         float dx = (wx - cx) / cx;
         float dy = (wy - cy) / cy;
-        float dist = MathF.Sqrt(dx * dx + dy * dy); // 0 at center, ~1.4 at corner
-        return MathF.Max(0f, 0.6f - dist * 0.55f);
+        float dist = MathF.Sqrt((dx * dx) + (dy * dy)); // 0 at center, ~1.4 at corner
+        return MathF.Max(0f, 0.6f - (dist * 0.55f));
     }
 
     /// <summary>
@@ -160,12 +223,8 @@ public class AdvanceWorldGenerator : IMod
         float c1 = continentNoise.GetValue(wx / CONTINENT_SCALE, 0f, wy / CONTINENT_SCALE);
         float c2 = continentNoise.GetValue(wx / (CONTINENT_SCALE * 3f), 0f, wy / (CONTINENT_SCALE * 3f));
 
-        float raw = c1 * 0.85f + c2 * 0.15f;
-
-        if (!float.IsFinite(raw))
-        {
-            raw = 0f;
-        }
+        float raw = (c1 * 0.85f) + (c2 * 0.15f);
+        if (!float.IsFinite(raw)) raw = 0f;
 
         float biased = raw + ContinentBias((int)wx, (int)wy); // bias can stay int-based
         return Math.Clamp((biased + 0.3f) / 1.6f, 0f, 1f);
@@ -175,7 +234,7 @@ public class AdvanceWorldGenerator : IMod
     //  Terrain height
     // =========================================================================
 
-    // Raw per-point noise sample — separated so the 5×5 loop stays clean
+    // Raw per-point noise sample — separated so the column precomputation loop stays clean
     private float SampleNormHeight(float wx, float wy, float cont)
     {
         float hx = wx / HEIGHT_SCALE;
@@ -186,20 +245,9 @@ public class AdvanceWorldGenerator : IMod
         float sRaw = heightSmooth.GetValue(hx, 0f, hy);
         float dRaw = heightDetail.GetValue(hx * 2f, 0f, hy * 2f);
 
-        if (!float.IsFinite(rRaw))
-        {
-            rRaw = 0f;
-        }
-
-        if (!float.IsFinite(sRaw))
-        {
-            sRaw = 0f;
-        }
-
-        if (!float.IsFinite(dRaw))
-        {
-            dRaw = 0f;
-        }
+        if (!float.IsFinite(rRaw)) rRaw = 0f;
+        if (!float.IsFinite(sRaw)) sRaw = 0f;
+        if (!float.IsFinite(dRaw)) dRaw = 0f;
 
         float rNorm = Math.Clamp((rRaw + 1.0f) / 2.0f, 0f, 1f);
         float sNorm = Math.Clamp((sRaw + 0.5f) / 2.0f, 0f, 1f);
@@ -208,10 +256,10 @@ public class AdvanceWorldGenerator : IMod
         float mw = MathF.Pow(inland, 2.0f);
         float baseH = float.Lerp(sNorm, rNorm, mw);
 
-        float h = baseH * 0.82f + dNorm * 0.18f;
+        float h = (baseH * 0.82f) + (dNorm * 0.18f);
 
         // fake erosion: sharpen high areas, flatten low areas
-        float erosion = h * h * (3f - 2f * h);   // smooth curve
+        float erosion = h * h * (3f - (2f * h));   // smooth curve
         h = float.Lerp(h, erosion, 0.5f);
 
         // optional: exaggerate peaks slightly
@@ -221,8 +269,19 @@ public class AdvanceWorldGenerator : IMod
     }
 
     // =========================================================================
-    //  Chunk generation
+    //  Chunk generation — two-pass
     // =========================================================================
+    //
+    // Pass 1  Iterate all (xx, yy) columns.
+    //         Evaluate every noise function and derive surfaceZ, biome fractions,
+    //         and the z-invariant noise values (dune, vegetation) that were
+    //         previously evaluated inside the per-block BuildBlock call.
+    //         Results written into _columns[].
+    //
+    // Pass 2  Iterate all (xx, yy, zz) blocks.
+    //         Reads only _columns[] and integer arithmetic — zero noise calls.
+    //         The tight inner loop can pipeline freely; each iteration is
+    //         independent of the previous one.
 
     private void GetChunk(int cx, int cy, int cz, ushort[] chunk)
     {
@@ -232,6 +291,8 @@ public class AdvanceWorldGenerator : IMod
         int ox = cx * chunksize;
         int oy = cy * chunksize;
         int oz = cz * chunksize;
+
+        // ── Pass 1: per-column precomputation ────────────────────────────────
 
         for (int xx = 0; xx < chunksize; xx++)
         {
@@ -248,18 +309,63 @@ public class AdvanceWorldGenerator : IMod
                 float rawTemp = tempNoise.GetValue(wxw / TEMP_SCALE, 0f, wyw / TEMP_SCALE);
                 float temp = Math.Clamp((rawTemp + 1f) * 0.5f, 0f, 1f);
 
-                // increase contrast (push toward extremes)
-                temp = MathF.Pow(temp, 0.85f);
-
                 float rawHum = humidityNoise.GetValue(wxw / HUMIDITY_SCALE, 0f, wyw / HUMIDITY_SCALE);
                 float humidity = Math.Clamp((rawHum + 1f) * 0.5f, 0f, 1f);
 
-                // push values away from middle → real dry/wet regions
-                temp = MathF.Pow(temp, 0.9f);
+                // Contrast-boost temp and humidity — push values toward extremes so
+                // biome regions have real character instead of mushy midtones.
+                // The original applied Pow(temp, 0.85f) then Pow(temp, 0.9f);
+                // two successive power calls combine into one: 0.85 × 0.9 = 0.765.
+                temp = MathF.Pow(temp, 0.765f);
                 humidity = MathF.Pow(humidity, 1.15f);
 
-                var weights = GetBiomeWeights(normH, temp, humidity);
+                BiomeWeights weights = GetBiomeWeights(normH, temp, humidity);
                 int surfaceZ = ComputeSurfaceZ(cont, normH, weights);
+
+                // blended material selection — pre-normalised here so DetermineBlock
+                // needs no per-block normalization. BiomeWeights.Normalize() guarantees
+                // the five fields sum to 1, so sandness + grassness + rockness = 1.
+                float sandness = weights.Desert;
+                float grassness = weights.Plains + weights.Forest;
+                float rockness = weights.Mountains + weights.Snow;
+
+                // Dune noise: only computed for desert-ish columns.
+                // A zero value is harmless — DetermineBlock only reads it when sandness > 0.5f.
+                float dune = 0f;
+                if (sandness > 0.5f)
+                    dune = heightDetail.GetValue(wx * 0.08f, 0f, wy * 0.08f);
+
+                // Vegetation noise: only computed when the surface is above (or at) water
+                // AND the column is grassy enough to ever spawn plants.
+                // Zero otherwise — the density > 0.2f threshold will correctly fail.
+                float vegDensity = 0f, vegDetail = 0f;
+                if (surfaceZ >= WATER_LEVEL && grassness > 0.4f)
+                {
+                    vegDensity = vegetationNoise.GetValue(wx / 20f, wy / 20f, 0f);  // large clusters
+                    vegDetail = vegetationNoise.GetValue(wx / 3f, wy / 3f, 0f);  // fine variation
+                }
+
+                _columns[xx * chunksize + yy] = new ColumnData
+                {
+                    SurfaceZ = surfaceZ,
+                    Sandness = sandness,
+                    Grassness = grassness,
+                    Rockness = rockness,
+                    Dune = dune,
+                    VegDensity = vegDensity,
+                    VegDetail = vegDetail,
+                };
+            }
+        }
+
+        // ── Pass 2: tight z-loop — no noise calls ────────────────────────────
+
+        for (int xx = 0; xx < chunksize; xx++)
+        {
+            for (int yy = 0; yy < chunksize; yy++)
+            {
+                ref readonly ColumnData col = ref _columns[xx * chunksize + yy];
+                int surfaceZ = col.SurfaceZ;
 
                 for (int zz = 0; zz < chunksize; zz++)
                 {
@@ -267,18 +373,12 @@ public class AdvanceWorldGenerator : IMod
                     int block;
 
                     if (wz == 0)
-                    {
                         block = BLOCK_ADMINIUM;
-                    }
                     else if (wz < surfaceZ - 5)
-                    {
                         // Deep underground — always solid stone, no biome logic needed
                         block = BLOCK_STONE;
-                    }
                     else
-                    {
-                        block = BuildBlock(weights, wz, surfaceZ, wx, wy);
-                    }
+                        block = DetermineBlock(in col, wz, surfaceZ);
 
                     chunk[m.Index3d(xx, yy, zz, chunksize, chunksize)] = (ushort)block;
                 }
@@ -296,21 +396,12 @@ public class AdvanceWorldGenerator : IMod
     private static float ContinentToBaseZ(float cont)
     {
         if (cont < 0.18f)
-        {
-            return Lerp(5f, 14f, cont / 0.18f);                    // deep ocean  z= 5→14
-        }
-
+            return Lerp(5f, 14f, cont / 0.18f);                              // deep ocean  z= 5→14
         if (cont < 0.28f)
-        {
-            return Lerp(14f, 22f, (cont - 0.18f) / 0.10f);          // ocean       z=14→22
-        }
-
+            return Lerp(14f, 22f, (cont - 0.18f) / 0.10f);                   // ocean       z=14→22
         if (cont < 0.36f)
-        {
-            return Lerp(22f, 30f, (cont - 0.28f) / 0.08f);          // shore slope z=22→30
-        }
-
-        return Lerp(30f, 36f, Math.Clamp((cont - 0.36f) / 0.64f, 0f, 1f));        // land base   z=30→36
+            return Lerp(22f, 30f, (cont - 0.28f) / 0.08f);                   // shore slope z=22→30
+        return Lerp(30f, 36f, Math.Clamp((cont - 0.36f) / 0.64f, 0f, 1f));   // land base   z=30→36
     }
 
     private static BiomeWeights GetBiomeWeights(float normH, float temp, float humidity)
@@ -327,12 +418,11 @@ public class AdvanceWorldGenerator : IMod
 
         // Humidity
         float wet = humidity;
-
         float dryness = SmoothStep(0.5f, 0.9f, 1f - humidity);
         float heat = SmoothStep(0.55f, 0.9f, temp);
 
         // additive instead of multiplicative bias
-        w.Desert = (heat * 0.7f + dryness * 0.6f) * (1f - w.Mountains);
+        w.Desert = ((heat * 0.7f) + (dryness * 0.6f)) * (1f - w.Mountains);
         w.Forest = wet * (1f - hot) * (1f - w.Mountains);
         w.Snow = cold * w.Mountains;
 
@@ -344,33 +434,35 @@ public class AdvanceWorldGenerator : IMod
     private static float SmoothStep(float a, float b, float x)
     {
         x = Math.Clamp((x - a) / (b - a), 0f, 1f);
-        return x * x * (3f - 2f * x);
+        return x * x * (3f - (2f * x));
     }
 
     private int ComputeSurfaceZ(float cont, float normH, BiomeWeights weights)
     {
         float baseZ = ContinentToBaseZ(cont);
-
         float inland = Math.Clamp((cont - 0.36f) / 0.64f, 0f, 1f);
         float amp = GetBlendedAmplitude(weights) * inland;
-
-        return Math.Clamp((int)(baseZ + normH * amp), 1, 90);
+        return Math.Clamp((int)(baseZ + (normH * amp)), 1, 90);
     }
 
-    private float GetBlendedAmplitude(BiomeWeights w) => w.Plains * 12f +
-            w.Forest * 14f +
-            w.Desert * 18f +
-            w.Mountains * 58f +
-            w.Snow * 64f;
+    private float GetBlendedAmplitude(BiomeWeights w)
+        => (w.Plains * 12f) + (w.Forest * 14f) + (w.Desert * 18f)
+         + (w.Mountains * 58f) + (w.Snow * 64f);
+
+    // ── Block type selection ──────────────────────────────────────────────────
+    //
+    // Renamed from BuildBlock. Accepts precomputed column data instead of
+    // deriving noise-dependent values mid-loop.
+    //
+    // Removed:
+    //  - wz <= 0 dead check (GetChunk handles wz==0 before calling here, and
+    //    wz = oz+zz >= 0 always)
+    //  - sandness/grassness/rockness re-normalization (sum is already 1)
+    //  - wx, wy parameters (all position-dependent values live in col now)
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private int BuildBlock(BiomeWeights w, int wz, int surfaceZ, int wx, int wy)
+    private int DetermineBlock(in ColumnData col, int wz, int surfaceZ)
     {
-        if (wz <= 0)
-        {
-            return BLOCK_ADMINIUM;
-        }
-
         int depth = surfaceZ - wz;
 
         // ── BELOW SURFACE ─────────────────────────────────────────────
@@ -378,84 +470,37 @@ public class AdvanceWorldGenerator : IMod
         {
             // deep underground
             if (depth > 6)
-            {
                 return BLOCK_STONE;
-            }
-
-            // blended material selection
-            float sandness = w.Desert;
-            float grassness = w.Plains + w.Forest;
-            float rockness = w.Mountains + w.Snow;
-
-            // normalize just in case
-            float sum = sandness + grassness + rockness;
-            if (sum > 0f)
-            {
-                sandness /= sum;
-                grassness /= sum;
-                rockness /= sum;
-            }
 
             // surface layer
             if (depth == 0)
             {
-                if (sandness > 0.5f)
-                {
-                    float dune = heightDetail.GetValue(wx * 0.08f, 0f, wy * 0.08f);
-                    if (dune > 0.2f)
-                    {
-                        return BLOCK_SAND;
-                    }
-                    else
-                    {
-                        return BLOCK_REDSAND;
-                    }
-                }
-                if (rockness > 0.6f)
-                {
+                if (col.Sandness > 0.5f)
+                    return col.Dune > 0.2f ? BLOCK_SAND : BLOCK_REDSAND;
+                if (col.Rockness > 0.6f)
                     return BLOCK_STONE;
-                }
-
                 return BLOCK_GRASS;
             }
 
             // subsurface
             if (depth <= 3)
-            {
-                if (sandness > 0.5f)
-                {
-                    return BLOCK_SAND;
-                }
-
-                return BLOCK_DIRT;
-            }
+                return col.Sandness > 0.5f ? BLOCK_SAND : BLOCK_DIRT;
 
             // transition to stone
-            if (rockness > 0.5f)
-            {
-                return BLOCK_STONE;
-            }
-
-            return BLOCK_DIRT;
+            return col.Rockness > 0.5f ? BLOCK_STONE : BLOCK_DIRT;
         }
 
         // ── ABOVE SURFACE ─────────────────────────────────────────────
-
         if (wz <= WATER_LEVEL)
-        {
             return BLOCK_WATER;
-        }
 
         // simple vegetation (can improve later)
-        if (wz == surfaceZ + 1)
+        if (wz == surfaceZ + 1
+         && col.VegDensity > 0.2f
+         && col.VegDetail > 0.5f
+         && col.Grassness > 0.4f)
         {
-            float density = vegetationNoise.GetValue(wx / 20f, wy / 20f, 0f);  // large clusters
-            float detail = vegetationNoise.GetValue(wx / 3f, wy / 3f, 0f);     // fine variation
-
-            if (density > 0.2f && detail > 0.5f && (w.Plains + w.Forest) > 0.4f)
-            {
-                return BLOCK_GRASSPLANT;
-            }
+            return BLOCK_GRASSPLANT;
         }
 
         return BLOCK_AIR;
@@ -464,7 +509,7 @@ public class AdvanceWorldGenerator : IMod
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private (float x, float y) Warp(int wx, int wy)
     {
-        float scale = 140f;      // controls size of distortion
+        float scale = 140f;   // controls size of distortion
         float strength = 30f;   // how strong the warp is
 
         float nx = wx / scale;
@@ -473,10 +518,7 @@ public class AdvanceWorldGenerator : IMod
         float dx = warpNoise.GetValue(nx, ny, 0f);
         float dy = warpNoise.GetValue(nx + 31.4f, ny + 47.2f, 0f);
 
-        return (
-            wx + dx * strength,
-            wy + dy * strength
-        );
+        return (wx + (dx * strength), wy + (dy * strength));
     }
 
     // =========================================================================
@@ -492,9 +534,7 @@ public class AdvanceWorldGenerator : IMod
 
         // Skip chunks outside safe bounds entirely
         if (cx < 0 || cy < 0 || cx * chunksize >= mapSizeX || cy * chunksize >= mapSizeY)
-        {
             return;
-        }
 
         int ox = cx * chunksize;
         int oy = cy * chunksize;
@@ -506,44 +546,32 @@ public class AdvanceWorldGenerator : IMod
             int y = oy + rnd.Next(chunksize);
 
             if (!m.IsValidPos(x, y, oz))
-            {
                 continue; // skip whole column if base invalid
-            }
 
             int surfaceZ = -1;
             for (int z = oz + chunksize - 1; z >= oz; z--)
             {
                 if (!m.IsValidPos(x, y, z))
-                {
                     break; // break not continue — if one is invalid, rest below are too
-                }
 
                 int b = m.GetBlock(x, y, z);
-                if (b != BLOCK_AIR && b != BLOCK_WATER &&
-                    m.IsValidPos(x, y, z + 1) && m.GetBlock(x, y, z + 1) == BLOCK_AIR)
+                if (b != BLOCK_AIR && b != BLOCK_WATER
+                 && m.IsValidPos(x, y, z + 1) && m.GetBlock(x, y, z + 1) == BLOCK_AIR)
                 {
                     surfaceZ = z;
                     break;
                 }
             }
             if (surfaceZ == -1)
-            {
                 continue;
-            }
 
             int at = m.GetBlock(x, y, surfaceZ);
             if (at == BLOCK_GRASS)
-            {
                 PlaceGrass(x, y, surfaceZ);
-            }
             else if (at == BLOCK_SAND || at == BLOCK_REDSAND)
-            {
                 PlaceDesert(x, y, surfaceZ);
-            }
             else if (at == BLOCK_MUD)
-            {
                 PlaceSwamp(x, y, surfaceZ);
-            }
         }
 
         totalPopulateMs += watch.ElapsedMilliseconds;
@@ -553,9 +581,7 @@ public class AdvanceWorldGenerator : IMod
     private void PlaceGrass(int x, int y, int z)
     {
         if (rnd.Next(10) == 0)
-        {
             TrySet(x, y, z + 1, BLOCK_GRASSPLANT);
-        }
     }
 
     private void PlaceDesert(int x, int y, int z)
@@ -565,13 +591,7 @@ public class AdvanceWorldGenerator : IMod
             case 0:
                 int h = rnd.Next(2, 5);
                 for (int j = 1; j <= h; j++)
-                {
-                    if (!TrySet(x, y, z + j, BLOCK_CACTUS))
-                    {
-                        break;
-                    }
-                }
-
+                    if (!TrySet(x, y, z + j, BLOCK_CACTUS)) break;
                 break;
             case 1:
                 TrySet(x, y, z + 1, BLOCK_DEADPLANT);
@@ -582,23 +602,13 @@ public class AdvanceWorldGenerator : IMod
     private void PlaceSwamp(int x, int y, int z)
     {
         if (rnd.Next(7) == 0)
-        {
             TrySet(x, y, z + 1, BLOCK_GRASSPLANT);
-        }
     }
 
     private bool TrySet(int x, int y, int z, int block)
     {
-        if (!m.IsValidPos(x, y, z))
-        {
-            return false;
-        }
-
-        if (m.GetBlock(x, y, z) != BLOCK_AIR)
-        {
-            return false;
-        }
-
+        if (!m.IsValidPos(x, y, z)) return false;
+        if (m.GetBlock(x, y, z) != BLOCK_AIR) return false;
         m.SetBlock(x, y, z, block);
         return true;
     }
@@ -627,7 +637,7 @@ public class AdvanceWorldGenerator : IMod
 
     // ── Lerp helper ───────────────────────────────────────────────────────────────
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float Lerp(float a, float b, float t) => a + t * (b - a);
+    private static float Lerp(float a, float b, float t) => a + (t * (b - a));
 
     private struct BiomeWeights
     {
@@ -640,11 +650,7 @@ public class AdvanceWorldGenerator : IMod
         public void Normalize()
         {
             float sum = Plains + Desert + Forest + Mountains + Snow;
-            if (sum <= 0f)
-            {
-                return;
-            }
-
+            if (sum <= 0f) return;
             Plains /= sum;
             Desert /= sum;
             Forest /= sum;

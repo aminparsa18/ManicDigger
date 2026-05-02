@@ -25,9 +25,9 @@ public class ModDrawArea : ModBase
                 continue;
             }
 
-            float cx = e.drawArea.x + e.drawArea.sizex / 2f;
-            float cy = e.drawArea.y + e.drawArea.sizey / 2f;
-            float cz = e.drawArea.z + e.drawArea.sizez / 2f;
+            float cx = e.drawArea.x + (e.drawArea.sizex / 2f);
+            float cy = e.drawArea.y + (e.drawArea.sizey / 2f);
+            float cz = e.drawArea.z + (e.drawArea.sizez / 2f);
 
             lines.DrawWireframeCube_(cx, cy, cz, e.drawArea.sizex, e.drawArea.sizey, e.drawArea.sizez);
         }

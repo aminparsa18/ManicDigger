@@ -1,7 +1,14 @@
 ﻿using ManicDigger;
 
-public interface IBlockTypeRegistry
+public interface IBlockRegistry
 {
+
+    /// <summary>Block type definitions indexed by block type ID.</summary>
+    Dictionary<int, BlockType> BlockTypes { get; set; } 
+
+    /// <summary>Pending block type definitions received from the server before map load.</summary>
+    Dictionary<int, BlockType> NewBlockTypes { get; set; }
+
     int BlockIdAdminium { get; }
     int BlockIdCompass { get; }
     int BlockIdCraftingTable { get; }

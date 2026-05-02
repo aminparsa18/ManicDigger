@@ -130,7 +130,10 @@ public class ModUnloadRendererChunks : ModBase
         for (int i = 0; i < checksPerTick; i++)
         {
             // Advance and wrap the round-robin iterator.
-            if (++_unloadIterator >= totalChunks) { _unloadIterator = 0; }
+            if (++_unloadIterator >= totalChunks)
+            {
+                _unloadIterator = 0;
+            }
 
             VectorIndexUtil.PosInt(_unloadIterator, _mapSizeXChunks, _mapSizeYChunks, ref _unloadXyzTemp);
             int x = _unloadXyzTemp.X;
@@ -141,7 +144,10 @@ public class ModUnloadRendererChunks : ModBase
             Chunk chunk = _voxelMap.Chunks[flatIndex];
 
             // Skip empty slots — nothing to free.
-            if (chunk == null) { continue; }
+            if (chunk == null)
+            {
+                continue;
+            }
 
             // Determine whether this chunk holds any state worth freeing.
             // Previously only rendered chunks (rendered.Ids != null) were unloaded.
@@ -154,7 +160,10 @@ public class ModUnloadRendererChunks : ModBase
             // Both categories must be unloaded when outside the view-distance box.
             bool hasRenderedGeometry = chunk.rendered?.Ids != null;
             bool hasBlockData = chunk.HasData();
-            if (!hasRenderedGeometry && !hasBlockData) { continue; }
+            if (!hasRenderedGeometry && !hasBlockData)
+            {
+                continue;
+            }
 
             // If the chunk is outside the view-distance box, queue its removal.
             if (x < startX || y < startY || z < startZ
@@ -166,7 +175,10 @@ public class ModUnloadRendererChunks : ModBase
                 // Data-only chunks are CPU-only and cheap — continue scanning
                 // so we can drain multiple per tick and keep pace with the
                 // server's chunk send rate during fast exploration.
-                if (hasRenderedGeometry) { break; }
+                if (hasRenderedGeometry)
+                {
+                    break;
+                }
             }
         }
     }

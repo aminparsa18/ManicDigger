@@ -73,7 +73,11 @@ public class ServerSystemBanList : ServerSystem
         switch (command)
         {
             case "banip_id":
-                if (!TryParseId(out int banipId)) { SendInvalidArgs(); return true; }
+                if (!TryParseId(out int banipId))
+                {
+                    SendInvalidArgs();
+                    return true;
+                }
                 BanIP(server, sourceClientId, banipId, TrailingReason(1));
                 return true;
 
@@ -82,7 +86,11 @@ public class ServerSystemBanList : ServerSystem
                 return true;
 
             case "ban_id":
-                if (!TryParseId(out int banId)) { SendInvalidArgs(); return true; }
+                if (!TryParseId(out int banId))
+                {
+                    SendInvalidArgs();
+                    return true;
+                }
                 Ban(server, sourceClientId, banId, TrailingReason(1));
                 return true;
 
@@ -91,26 +99,58 @@ public class ServerSystemBanList : ServerSystem
                 return true;
 
             case "timebanip_id": // /timebanip_id <id> <duration> [reason]
-                if (args.Length < 2 || !TryParseId(out int tbanipById) || !TryParseDuration(1, out int tbanipByIdDur)) { SendInvalidArgs(); return true; }
-                if (tbanipByIdDur <= 0) { server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue")); return true; }
+                if (args.Length < 2 || !TryParseId(out int tbanipById) || !TryParseDuration(1, out int tbanipByIdDur))
+                {
+                    SendInvalidArgs();
+                    return true;
+                }
+                if (tbanipByIdDur <= 0)
+                {
+                    server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue"));
+                    return true;
+                }
                 TimeBanIP(server, sourceClientId, tbanipById, TrailingReason(2), tbanipByIdDur);
                 return true;
 
             case "timebanip": // /timebanip <name> <duration> [reason]
-                if (args.Length < 2 || !TryParseDuration(1, out int tbanipDur)) { SendInvalidArgs(); return true; }
-                if (tbanipDur <= 0) { server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue")); return true; }
+                if (args.Length < 2 || !TryParseDuration(1, out int tbanipDur))
+                {
+                    SendInvalidArgs();
+                    return true;
+                }
+                if (tbanipDur <= 0)
+                {
+                    server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue"));
+                    return true;
+                }
                 TimeBanIP(server, sourceClientId, args[0], TrailingReason(2), tbanipDur);
                 return true;
 
             case "timeban_id": // /timeban_id <id> <duration> [reason]
-                if (args.Length < 2 || !TryParseId(out int tbanById) || !TryParseDuration(1, out int tbanByIdDur)) { SendInvalidArgs(); return true; }
-                if (tbanByIdDur <= 0) { server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue")); return true; }
+                if (args.Length < 2 || !TryParseId(out int tbanById) || !TryParseDuration(1, out int tbanByIdDur))
+                {
+                    SendInvalidArgs();
+                    return true;
+                }
+                if (tbanByIdDur <= 0)
+                {
+                    server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue"));
+                    return true;
+                }
                 TimeBan(server, sourceClientId, tbanById, TrailingReason(2), tbanByIdDur);
                 return true;
 
             case "timeban": // /timeban <name> <duration> [reason]
-                if (args.Length < 2 || !TryParseDuration(1, out int tbanDur)) { SendInvalidArgs(); return true; }
-                if (tbanDur <= 0) { server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue")); return true; }
+                if (args.Length < 2 || !TryParseDuration(1, out int tbanDur))
+                {
+                    SendInvalidArgs();
+                    return true;
+                }
+                if (tbanDur <= 0)
+                {
+                    server.SendMessage(sourceClientId, colorError + lang.Get("Server_CommandTimeBanInvalidValue"));
+                    return true;
+                }
                 TimeBan(server, sourceClientId, args[0], TrailingReason(2), tbanDur);
                 return true;
 

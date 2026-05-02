@@ -23,7 +23,7 @@
         {
             for (int i = 0; i <= s.Length / ChatLines.Count; i++)
             {
-                int displayLength = Math.Min(ChatLines.Count, s.Length - i * ChatLines.Count);
+                int displayLength = Math.Min(ChatLines.Count, s.Length - (i * ChatLines.Count));
                 string chunk = s.Substring(i * ChatLines.Count, displayLength);
                 ChatLinesAdd(containsLink
                     ? Chatline.CreateClickable(chunk, now, linkTarget)
@@ -112,7 +112,7 @@
     public bool BoolCommandArgument(string arguments)
     {
         arguments = arguments.Trim();
-        return arguments == "" || arguments == "1" || arguments == "on" || arguments == "yes";
+        return arguments is "" or "1" or "on" or "yes";
     }
 
     private void ExecuteClientCommand(string s_)
@@ -157,7 +157,11 @@
                 break;
 
             case "freemove":
-                if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
+                if (!AllowFreeMove)
+                {
+                    AddChatLine(strFreemoveNotAllowed);
+                    return;
+                }
                 Controls.FreeMove = BoolCommandArgument(arguments);
                 break;
 
@@ -219,7 +223,11 @@
                 break;
 
             case "movespeed":
-                if (!AllowFreeMove) { AddChatLine(strFreemoveNotAllowed); return; }
+                if (!AllowFreeMove)
+                {
+                    AddChatLine(strFreemoveNotAllowed);
+                    return;
+                }
                 float speed = float.Parse(arguments);
                 if (speed > 500)
                 {

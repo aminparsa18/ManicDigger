@@ -73,7 +73,10 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
                 }
             }
 
-            if (w.type != UIWidgetType.Textbox || !w.editing) { continue; }
+            if (w.type != UIWidgetType.Textbox || !w.editing)
+            {
+                continue;
+            }
 
             int key = e.KeyChar;
 
@@ -107,7 +110,10 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
     {
         foreach (MenuWidget w in Widgets)
         {
-            if (w.type != UIWidgetType.Textbox || !w.editing) { continue; }
+            if (w.type != UIWidgetType.Textbox || !w.editing)
+            {
+                continue;
+            }
 
             if (EncodingHelper.IsValidTypingChar(e.KeyChar))
             {
@@ -177,7 +183,10 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
 
         foreach (MenuWidget w in Widgets)
         {
-            if (w.type != UIWidgetType.Button) { continue; }
+            if (w.type != UIWidgetType.Button)
+            {
+                continue;
+            }
 
             if (VectorUtils.PointInRect(x, y, w.x, w.y, w.sizex, w.sizey))
             {
@@ -193,7 +202,10 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
     /// </summary>
     private void MouseMove(MouseEventArgs e)
     {
-        if (e.GetEmulated() && !e.GetForceUsage()) { return; }
+        if (e.GetEmulated() && !e.GetForceUsage())
+        {
+            return;
+        }
 
         foreach (MenuWidget w in Widgets)
         {
@@ -215,7 +227,10 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
     {
         foreach (MenuWidget w in Widgets)
         {
-            if (!w.visible) { continue; }
+            if (!w.visible)
+            {
+                continue;
+            }
 
             string text = w.selected ? string.Concat("&2", w.text) : w.text;
 
@@ -243,14 +258,14 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
                     Menu.Draw2dQuad(Menu.GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
                 }
 
-                Menu.DrawText(text, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Left, TextBaseline.Middle);
+                Menu.DrawText(text, w.fontSize, w.x, w.y + (w.sizey / 2), TextAlign.Left, TextBaseline.Middle);
                 break;
 
             case ButtonStyle.Button:
                 Menu.DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey, w.hover || w.hasKeyboardFocus);
                 if (w.description != null)
                 {
-                    Menu.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
+                    Menu.DrawText(w.description, w.fontSize, w.x, w.y + (w.sizey / 2), TextAlign.Right, TextBaseline.Middle);
                 }
 
                 break;
@@ -275,14 +290,14 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
                 {
                     // Server did not respond to the last ping — show a warning icon.
                     Menu.Draw2dQuad(Menu.GetTexture("serverlist_entry_noresponse.png"),
-                        w.x - 38 * Menu.GetScale(), w.y, w.sizey / 2, w.sizey / 2);
+                        w.x - (38 * Menu.GetScale()), w.y, w.sizey / 2, w.sizey / 2);
                 }
 
                 if (fields[4] != GameService.GetGameVersion())
                 {
                     // Server version differs from the client — show a version-mismatch icon.
                     Menu.Draw2dQuad(Menu.GetTexture("serverlist_entry_differentversion.png"),
-                        w.x - 38 * Menu.GetScale(), w.y + w.sizey / 2, w.sizey / 2, w.sizey / 2);
+                        w.x - (38 * Menu.GetScale()), w.y + (w.sizey / 2), w.sizey / 2, w.sizey / 2);
                 }
 
                 break;
@@ -295,9 +310,15 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
     /// </summary>
     private void DrawTextbox(MenuWidget w, string text)
     {
-        if (w.password) { text = new string('*', w.text.Length); }
+        if (w.password)
+        {
+            text = new string('*', w.text.Length);
+        }
 
-        if (w.editing) { text = string.Concat(text, "_"); }
+        if (w.editing)
+        {
+            text = string.Concat(text, "_");
+        }
 
         if (w.buttonStyle == ButtonStyle.Text)
         {
@@ -316,7 +337,7 @@ public class ScreenBase(IMenu menu, IGameService gameService) : IScreenBase
 
         if (w.description != null)
         {
-            Menu.DrawText(w.description, w.fontSize, w.x, w.y + w.sizey / 2, TextAlign.Right, TextBaseline.Middle);
+            Menu.DrawText(w.description, w.fontSize, w.x, w.y + (w.sizey / 2), TextAlign.Right, TextBaseline.Middle);
         }
     }
 }

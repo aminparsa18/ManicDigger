@@ -180,7 +180,7 @@ public class Noise2DWorldGeneratorWar : IMod
 
     private static double FindNoise2(double x, double y, int seed)
     {
-        int n = (int)x + (int)y * 57;
+        int n = (int)x + ((int)y * 57);
         return FindNoise1(n, seed);
     }
 
@@ -188,7 +188,7 @@ public class Noise2DWorldGeneratorWar : IMod
     {
         n += seed;
         n = (n << 13) ^ n;
-        int nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+        int nn = ((n * ((n * n * 60493) + 19990303)) + 1376312589) & 0x7fffffff;
         return 1.0 - (nn / 1073741824.0);
     }
 
@@ -196,6 +196,6 @@ public class Noise2DWorldGeneratorWar : IMod
     {
         double ft = x * 3.1415927;
         double f = (1.0 - Math.Cos(ft)) * 0.5;
-        return a * (1.0 - f) + b * f;
+        return (a * (1.0 - f)) + (b * f);
     }
 }

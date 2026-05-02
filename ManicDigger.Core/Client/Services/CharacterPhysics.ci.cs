@@ -26,7 +26,7 @@ public class ScriptCharacterPhysics : IEntityScript
 {
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public ScriptCharacterPhysics(IVoxelMap voxelMap, IBlockTypeRegistry blockTypeRegistry, IGame game)
+    public ScriptCharacterPhysics(IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGame game)
     {
         this.game = game;
         this.voxelMap = voxelMap;
@@ -46,7 +46,7 @@ public class ScriptCharacterPhysics : IEntityScript
     /// <summary>Reference to the active game instance, assigned at the start of each tick.</summary>
     private readonly IGame game;
     private readonly IVoxelMap voxelMap;
-    private readonly IBlockTypeRegistry blockTypeRegistry;
+    private readonly IBlockRegistry blockTypeRegistry;
 
     // ── Per-frame physics state ───────────────────────────────────────────────
 
@@ -290,7 +290,7 @@ public class ScriptCharacterPhysics : IEntityScript
             float diffx = newposition.X - stateplayerposition.x;
             float diffy = newposition.Y - stateplayerposition.y;
             float diffz = newposition.Z - stateplayerposition.z;
-            float difflength = MathF.Sqrt(diffx * diffx + diffy * diffy + diffz * diffz);
+            float difflength = MathF.Sqrt((diffx * diffx) + (diffy * diffy) + (diffz * diffz));
             if (difflength > 0)
             {
                 float inv = curspeed.Length / difflength;
@@ -298,15 +298,15 @@ public class ScriptCharacterPhysics : IEntityScript
                 diffy *= inv;
                 diffz *= inv;
             }
-            newposition.X = stateplayerposition.x + diffx * dt;
-            newposition.Y = stateplayerposition.y + diffy * dt;
-            newposition.Z = stateplayerposition.z + diffz * dt;
+            newposition.X = stateplayerposition.x + (diffx * dt);
+            newposition.Y = stateplayerposition.y + (diffy * dt);
+            newposition.Z = stateplayerposition.z + (diffz * dt);
         }
         else
         {
-            newposition.X = stateplayerposition.x + curspeed.X * dt;
-            newposition.Y = stateplayerposition.y + curspeed.Y * dt;
-            newposition.Z = stateplayerposition.z + curspeed.Z * dt;
+            newposition.X = stateplayerposition.x + (curspeed.X * dt);
+            newposition.Y = stateplayerposition.y + (curspeed.Y * dt);
+            newposition.Z = stateplayerposition.z + (curspeed.Z * dt);
         }
 
         // Apply accumulated vertical velocity (gravity + jump).
@@ -392,7 +392,7 @@ public class ScriptCharacterPhysics : IEntityScript
             return true;
         }
 
-        BlockType blocktype = game.BlockTypes[block];
+        BlockType blocktype = blockTypeRegistry.BlockTypes[block];
         return blocktype.WalkableType == WalkableType.Fluid
             || Game.IsEmptyForPhysics(blocktype)
             || IsRail(blocktype);
@@ -432,7 +432,7 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(newposition.X, tmpPlayerPosition.Y + 0.5f, tmpPlayerPosition.Z, out _))
             {
                 game.ReachedWall1BlockHigh = true;
-                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight)
+                if (blockTypeRegistry.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight)
                 {
                     game.ReachedHalfBlock = true;
                 }
@@ -461,7 +461,7 @@ public class ScriptCharacterPhysics : IEntityScript
             if (IsEmptyPoint(tmpPlayerPosition.X, tmpPlayerPosition.Y + 0.5f, newposition.Z, out _))
             {
                 game.ReachedWall1BlockHigh = true;
-                if (game.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight)
+                if (blockTypeRegistry.BlockTypes[tmpBlockingBlockType].DrawType == DrawType.HalfHeight)
                 {
                     game.ReachedHalfBlock = true;
                 }
@@ -483,7 +483,7 @@ public class ScriptCharacterPhysics : IEntityScript
     private bool StandingOnHalfBlock(float x, float y, float z)
     {
         int under = voxelMap.GetBlock((int)x, (int)z, (int)y);
-        return game.BlockTypes[under].DrawType == DrawType.HalfHeight;
+        return blockTypeRegistry.BlockTypes[under].DrawType == DrawType.HalfHeight;
     }
 
     private bool IsEmptySpaceForPlayer(bool high, float x, float y, float z, out int blockingBlockType)

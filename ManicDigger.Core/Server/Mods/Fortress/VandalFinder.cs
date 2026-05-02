@@ -3,7 +3,13 @@
 public class VandalFinder : IMod
 {
     private IModManager m;
+    private readonly IModEvents _modEvents;
     private List<object[]> lines = [];
+
+    public VandalFinder(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
+    }
 
     public void PreStart(IModManager m)
     {
@@ -23,16 +29,14 @@ public class VandalFinder : IMod
             IsTool = true,
         });
         m.AddToCreativeInventory("VandalFinder");
-        m.RegisterOnBlockUseWithTool(OnUseWithTool);
+        _modEvents.BlockUseWithTool += OnUseWithTool;
         lines = (List<object[]>)m.GetGlobalDataNotSaved("LogLines");
     }
 
-    private void OnUseWithTool(int player, int x, int y, int z, int tool)
+    private void OnUseWithTool(BlockUseWithToolArgs args)
     {
-        if (m.GetBlockName(tool) == "VandalFinder")
-        {
-            ShowBlockLog(player, x, y, z);
-        }
+        if (m.GetBlockName(args.Tool) == "VandalFinder")
+            ShowBlockLog(args.Player, args.X, args.Y, args.Z);
     }
 
     private void ShowBlockLog(int player, int x, int y, int z)

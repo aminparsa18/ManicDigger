@@ -6,7 +6,13 @@ public class Ghost : IMod
     private readonly bool enabled = false;
     private readonly List<Pos> history = [];
     private IModManager m;
+    private readonly IModEvents _modEvents;
     private int ghost;
+
+    public Ghost(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
+    }
 
     public void PreStart(IModManager m) { }
 
@@ -15,11 +21,11 @@ public class Ghost : IMod
         m = manager;
         if (enabled)
         {
-            m.RegisterOnLoadWorld(OnLoad);
+            _modEvents.LoadWorld += OnLoad;
         }
     }
 
-    private void OnLoad()
+    private void OnLoad(LoadWorldArgs args)
     {
         m.RegisterTimer(F, 0.1);
         ghost = m.AddBot("Ghost");

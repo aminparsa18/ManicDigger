@@ -5,23 +5,28 @@ public class WaterSimple : IMod
     private int Water;
     private int Sponge;
     private readonly int spongerange = 2;
+    private IModEvents _modEvents;
     private IModManager? m;
+
+    public WaterSimple(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
+    }
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {
         m = manager;
-        m.RegisterTimer(Update, 1);
-        m.RegisterOnBlockBuild(BlockBuild);
-        m.RegisterOnBlockDelete(BlockDelete);
+        _modEvents.BlockBuild += BlockBuild;
+        _modEvents.BlockDelete += BlockDelete;
         Water = m.GetBlockId("Water");
         Sponge = m.GetBlockId("Sponge");
     }
 
-    private void BlockBuild(int player, int x, int y, int z) => BlockChange(player, x, y, z);
+    private void BlockBuild(BlockBuildArgs args) => BlockChange(args.Player, args.X, args.Y, args.Z);
 
-    private void BlockDelete(int player, int x, int y, int z, int oldblock) => BlockChange(player, x, y, z);
+    private void BlockDelete(BlockDeleteArgs args) => BlockChange(args.Player, args.X, args.Y, args.Z);
 
     private void Update()
     {

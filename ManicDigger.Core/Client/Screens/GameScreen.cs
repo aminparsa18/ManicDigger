@@ -1,4 +1,5 @@
-﻿using OpenTK.Windowing.Common;
+﻿using ManicDigger;
+using OpenTK.Windowing.Common;
 using Serilog;
 
 /// <summary>
@@ -17,7 +18,7 @@ public interface IScreenGame : IScreenBase
 /// </summary>
 public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu,
-    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry) : ScreenBase(platform, openGlService, assetManager), IScreenGame
+    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry, IModEvents modEvents) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;
@@ -28,6 +29,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     private readonly IScreenManager _menu = menu;
     private readonly IDummyNetwork _dummyNetwork = dummyNetwork;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
+    private readonly IModEvents _modEvents = modEvents;
 
     /// <summary>
     /// Initialises the game with the given connection parameters and starts the
@@ -84,7 +86,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         Log.Debug("Single-player server thread started");
         DummyNetServer netServer = new(_dummyNetwork);
 
-        Server server = new(gameExit, GameService, _blockRegistry, AssetManager)
+        Server server = new(gameExit, GameService, _blockRegistry, AssetManager, _modEvents)
         {
             SaveFilenameOverride = singleplayerSavePath,
             MainSockets = new NetServer[3]

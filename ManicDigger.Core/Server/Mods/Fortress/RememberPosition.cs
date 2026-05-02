@@ -9,11 +9,17 @@ public class RememberPosition : IMod
         m = manager;
         LoadData();
         m.RegisterOnSave(SaveData);
-        m.RegisterOnPlayerJoin(OnJoin);
-        m.RegisterOnPlayerLeave(OnLeave);
+        _modEvents.PlayerJoin += OnJoin;
+        _modEvents.PlayerLeave += OnLeave;
+    }
+
+    public RememberPosition(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
     }
 
     private IModManager m;
+    private IModEvents _modEvents;
     public PositionStorage? positions;
 
     // Resolve path relative to exe, not working directory
@@ -73,37 +79,37 @@ public class RememberPosition : IMod
         }
     }
 
-    public void OnJoin(int player)
+    public void OnJoin(PlayerJoinArgs args)
     {
-        string name = m.GetPlayerName(player);
+        string name = m.GetPlayerName(args.Player);
         if (positions.IsStoredAt(name) != -1)
         {
             int[] pos = positions.Get(name);
             if (pos != null)
             {
-                m.SetPlayerPosition(player, pos[0], pos[1], pos[2]);
+                m.SetPlayerPosition(args.Player, pos[0], pos[1], pos[2]);
                 //Console.WriteLine("[INFO] Position restored: {0}({1},{2},{3})", name, pos[0], pos[1], pos[2]);
             }
         }
     }
 
-    public void OnLeave(int player)
+    public void OnLeave(PlayerLeaveArgs args)
     {
-        if (m.IsBot(player))
+        if (m.IsBot(args.Player))
         {
             //Don't store bot positions
             return;
         }
 
         //Do not save position if it is outside the map
-        int x = (int)m.GetPlayerPositionX(player);
-        int y = (int)m.GetPlayerPositionY(player);
-        int z = (int)m.GetPlayerPositionZ(player);
+        int x = (int)m.GetPlayerPositionX(args.Player);
+        int y = (int)m.GetPlayerPositionY(args.Player);
+        int z = (int)m.GetPlayerPositionZ(args.Player);
         if (x > 0 && y > 0 && z > 0)
         {
             if (x < m.GetMapSizeX() && y < m.GetMapSizeY() && z < m.GetMapSizeZ())
             {
-                positions.Store(m.GetPlayerName(player), x, y, z);
+                positions.Store(m.GetPlayerName(args.Player), x, y, z);
             }
         }
     }

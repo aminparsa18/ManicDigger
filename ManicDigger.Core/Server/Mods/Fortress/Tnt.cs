@@ -3,6 +3,7 @@ namespace ManicDigger.Mods;
 public class Tnt : IMod
 {
     private IModManager m;
+    private readonly IModEvents _modEvents;
     private int tnt;
     private int adminium;
     private readonly Random rnd = new();
@@ -10,6 +11,11 @@ public class Tnt : IMod
 
     public int tntRange = 10; // sphere diameter
     public int tntMax = 10;
+
+    public Tnt(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
+    }
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
     public void Start(IModManager manager)
@@ -40,7 +46,7 @@ public class Tnt : IMod
         adminium = m.GetBlockId("Adminium");
         m.AddToCreativeInventory("TNT");
         m.AddCraftingRecipe("TNT", 1, "GoldBlock", 1);
-        m.RegisterOnBlockUse(UseTnt);
+        _modEvents.BlockUse += UseTnt;
         m.RegisterPrivilege("use_tnt");
         m.RegisterTimer(UpdateTnt, 5);
     }
@@ -52,20 +58,18 @@ public class Tnt : IMod
         public int z = z;
     }
 
-    private void UseTnt(int player, int x, int y, int z)
+    private void UseTnt(BlockUseArgs args)
     {
-        if (m.GetBlock(x, y, z) == tnt)
+        if (m.GetBlock(args.X, args.Y, args.Z) == tnt)
         {
-            if (!m.PlayerHasPrivilege(player, "use_tnt"))
+            if (!m.PlayerHasPrivilege(args.Player, "use_tnt"))
             {
-                m.SendMessage(player, m.ColorError + "Insufficient privileges to use TNT.");
+                m.SendMessage(args.Player, m.ColorError + "Insufficient privileges to use TNT.");
                 return;
             }
 
             if (tntStack.Count < tntMax)
-            {
-                tntStack.Push(new Vector3i(x, y, z));
-            }
+                tntStack.Push(new Vector3i(args.X, args.Y, args.Z));
         }
     }
 

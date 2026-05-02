@@ -8,9 +8,9 @@ public class Doors : IMod
     {
         m = manager;
 
-        m.RegisterOnBlockBuild(OnBuild);
-        m.RegisterOnBlockDelete(OnDelete);
-        m.RegisterOnBlockUse(OnUse);
+        _modEvents.BlockBuild += OnBuild;
+        _modEvents.BlockDelete += OnDelete;
+        _modEvents.BlockUse += OnUse;
 
         m.SetString("en", "DoorBottomClosed", "Closed Door");
         m.SetString("en", "DoorTopClosed", "Closed Door");
@@ -72,119 +72,125 @@ public class Doors : IMod
         DoorTopOpen = m.GetBlockId("DoorTopOpen");
     }
 
+    public Doors(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
+    }
+
     private IModManager m;
+    private IModEvents _modEvents;
     private int DoorBottomClosed;
     private int DoorTopClosed;
     private int DoorBottomOpen;
     private int DoorTopOpen;
 
-    private void OnBuild(int player, int x, int y, int z)
+    private void OnBuild(BlockBuildArgs args)
     {
         //Check if placed block is bottom part of door (no need for further checks as player only has this type of block)
-        if (m.GetBlock(x, y, z) == DoorBottomClosed)
+        if (m.GetBlock(args.X, args.Y, args.Z) == DoorBottomClosed)
         {
             //check if block above is valid and empty
-            if (m.IsValidPos(x, y, z + 1) && m.GetBlock(x, y, z + 1) == 0)
+            if (m.IsValidPos(args.X, args.Y, args.Z + 1) && m.GetBlock(args.X, args.Y, args.Z + 1) == 0)
             {
-                m.SetBlock(x, y, z + 1, DoorTopClosed);
+                m.SetBlock(args.X, args.Y, args.Z + 1, DoorTopClosed);
             }
             //if not, try to move door down 1 block
-            else if (m.IsValidPos(x, y, z - 1) && m.GetBlock(x, y, z - 1) == 0)
+            else if (m.IsValidPos(args.X, args.Y, args.Z - 1) && m.GetBlock(args.X, args.Y, args.Z - 1) == 0)
             {
-                m.SetBlock(x, y, z, DoorTopClosed);
-                m.SetBlock(x, y, z - 1, DoorBottomClosed);
+                m.SetBlock(args.X, args.Y, args.Z, DoorTopClosed);
+                m.SetBlock(args.X, args.Y, args.Z - 1, DoorBottomClosed);
             }
             //if this fails, give the player back the block he built (survival mode) and set current block to empty
             else
             {
-                m.SetBlock(x, y, z, 0);
-                m.GrabBlock(player, DoorBottomClosed);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
+                m.GrabBlock(args.Player, DoorBottomClosed);
             }
         }
     }
 
-    private void OnDelete(int player, int x, int y, int z, int block)
+    private void OnDelete(BlockDeleteArgs args)
     {
-        if (m.IsValidPos(x, y, z + 1) && (m.GetBlock(x, y, z + 1) == DoorTopClosed || m.GetBlock(x, y, z + 1) == DoorTopOpen))
+        if (m.IsValidPos(args.X, args.Y, args.Z + 1) && (m.GetBlock(args.X, args.Y, args.Z + 1) == DoorTopClosed || m.GetBlock(args.X, args.Y, args.Z + 1) == DoorTopOpen))
         {
-            m.SetBlock(x, y, z + 1, 0);
+            m.SetBlock(args.X, args.Y, args.Z + 1, 0);
         }
 
-        if (m.IsValidPos(x, y, z - 1) && (m.GetBlock(x, y, z - 1) == DoorBottomOpen || m.GetBlock(x, y, z - 1) == DoorBottomClosed))
+        if (m.IsValidPos(args.X, args.Y, args.Z - 1) && (m.GetBlock(args.X, args.Y, args.Z - 1) == DoorBottomOpen || m.GetBlock(args.X, args.Y, args.Z - 1) == DoorBottomClosed))
         {
-            m.SetBlock(x, y, z - 1, 0);
+            m.SetBlock(args.X, args.Y, args.Z - 1, 0);
         }
     }
 
-    private void OnUse(int player, int x, int y, int z)
+    private void OnUse(BlockUseArgs args)
     {
         //Closed door - bottom part
-        if (m.GetBlock(x, y, z) == DoorBottomClosed)
+        if (m.GetBlock(args.X, args.Y, args.Z) == DoorBottomClosed)
         {
             //check block above
-            if (m.GetBlock(x, y, z + 1) == DoorTopClosed)
+            if (m.GetBlock(args.X, args.Y, args.Z + 1) == DoorTopClosed)
             {
                 //Modify blocks if there is a door counterpart
-                m.SetBlock(x, y, z, DoorBottomOpen);
-                m.SetBlock(x, y, z + 1, DoorTopOpen);
+                m.SetBlock(args.X, args.Y, args.Z, DoorBottomOpen);
+                m.SetBlock(args.X, args.Y, args.Z + 1, DoorTopOpen);
             }
             else
             {
                 //delete used block as it is a leftover
-                m.SetBlock(x, y, z, 0);
-                m.GrabBlock(player, DoorBottomClosed);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
+                m.GrabBlock(args.Player, DoorBottomClosed);
             }
         }
 
         //Open door - bottom part
-        else if (m.GetBlock(x, y, z) == DoorBottomOpen)
+        else if (m.GetBlock(args.X, args.Y, args.Z) == DoorBottomOpen)
         {
             //check block above
-            if (m.GetBlock(x, y, z + 1) == DoorTopOpen)
+            if (m.GetBlock(args.X, args.Y, args.Z + 1) == DoorTopOpen)
             {
                 //Modify blocks if there is a door counterpart
-                m.SetBlock(x, y, z, DoorBottomClosed);
-                m.SetBlock(x, y, z + 1, DoorTopClosed);
+                m.SetBlock(args.X, args.Y, args.Z, DoorBottomClosed);
+                m.SetBlock(args.X, args.Y, args.Z + 1, DoorTopClosed);
             }
             else
             {
                 //delete used block as it is a leftover
-                m.SetBlock(x, y, z, 0);
-                m.GrabBlock(player, DoorBottomClosed);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
+                m.GrabBlock(args.Player, DoorBottomClosed);
             }
         }
 
         //Closed door - top part
-        else if (m.GetBlock(x, y, z) == DoorTopClosed)
+        else if (m.GetBlock(args.X, args.Y, args.Z) == DoorTopClosed)
         {
             //check block under used one
-            if (m.GetBlock(x, y, z - 1) == DoorBottomClosed)
+            if (m.GetBlock(args.X, args.Y, args.Z - 1) == DoorBottomClosed)
             {
-                m.SetBlock(x, y, z, DoorTopOpen);
-                m.SetBlock(x, y, z - 1, DoorBottomOpen);
+                m.SetBlock(args.X, args.Y, args.Z, DoorTopOpen);
+                m.SetBlock(args.X, args.Y, args.Z - 1, DoorBottomOpen);
             }
             else
             {
                 //delete used block as it is a leftover
-                m.SetBlock(x, y, z, 0);
-                m.GrabBlock(player, DoorBottomClosed);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
+                m.GrabBlock(args.Player, DoorBottomClosed);
             }
         }
 
         //Open door - top part
-        else if (m.GetBlock(x, y, z) == DoorTopOpen)
+        else if (m.GetBlock(args.X, args.Y, args.Z) == DoorTopOpen)
         {
             //check block under used one
-            if (m.GetBlock(x, y, z - 1) == DoorBottomOpen)
+            if (m.GetBlock(args.X, args.Y, args.Z - 1) == DoorBottomOpen)
             {
-                m.SetBlock(x, y, z, DoorTopClosed);
-                m.SetBlock(x, y, z - 1, DoorBottomClosed);
+                m.SetBlock(args.X, args.Y, args.Z, DoorTopClosed);
+                m.SetBlock(args.X, args.Y, args.Z - 1, DoorBottomClosed);
             }
             else
             {
                 //delete used block as it is a leftover
-                m.SetBlock(x, y, z, 0);
-                m.GrabBlock(player, DoorBottomClosed);
+                m.SetBlock(args.X, args.Y, args.Z, 0);
+                m.GrabBlock(args.Player, DoorBottomClosed);
             }
         }
     }

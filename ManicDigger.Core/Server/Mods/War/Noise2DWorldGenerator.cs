@@ -3,6 +3,8 @@ namespace ManicDigger.Mods.War;
 public class Noise2DWorldGeneratorWar : IMod
 {
     private IModManager m;
+    private readonly IModEvents _modEvents;
+
     private byte[,] _heightcache;
     private int chunksize;
     private Random _rnd;
@@ -19,12 +21,18 @@ public class Noise2DWorldGeneratorWar : IMod
     private readonly int waterlevel = 10;
     private int seed;
 
+    public Noise2DWorldGeneratorWar(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
+    }
+
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
     {
         m = manager;
-        m.RegisterWorldGenerator(GetChunk);
+
+        _modEvents.WorldGenerator += GetChunk;
 
         this.emtpy = m.GetBlockId("Empty");
         this.stone = m.GetBlockId("Stone");
@@ -40,12 +48,12 @@ public class Noise2DWorldGeneratorWar : IMod
         this.seed = m.Seed;
     }
 
-    private void GetChunk(int x, int y, int z, ushort[] chunk)
+    private void GetChunk(WorldGeneratorArgs args)
     {
         _heightcache = new byte[this.chunksize, this.chunksize];
-        x *= this.chunksize;
-        y *= this.chunksize;
-        z *= this.chunksize;
+        int x = args.X * this.chunksize;
+        int y = args.Y * this.chunksize;
+        int z = args.Z * this.chunksize;
 
         for (int xx = 0; xx < this.chunksize; xx++)
         {
@@ -54,6 +62,7 @@ public class Noise2DWorldGeneratorWar : IMod
                 _heightcache[xx, yy] = GetHeight(x + xx, y + yy);
             }
         }
+
         // chance of get hay fields
         bool IsHay = _rnd.NextDouble() < 0.005 ? false : true;
 
@@ -65,7 +74,7 @@ public class Noise2DWorldGeneratorWar : IMod
                 {
                     int pos = m.Index3d(xx, yy, zz, chunksize, chunksize);
 
-                    chunk[pos] = IsHay
+                    args.Chunk[pos] = IsHay
                         ? (ushort)GetBlock(x + xx, y + yy, z + zz, _heightcache[xx, yy], 0)
                         : (ushort)GetBlock(x + xx, y + yy, z + zz, _heightcache[xx, yy], 1);
                 }
@@ -79,7 +88,7 @@ public class Noise2DWorldGeneratorWar : IMod
                 for (int yy = 0; yy < this.chunksize; yy++)
                 {
                     int pos = m.Index3d(xx, yy, 0, chunksize, chunksize);
-                    chunk[pos] = (ushort)this.lava;
+                    args.Chunk[pos] = (ushort)this.lava;
                 }
             }
         }

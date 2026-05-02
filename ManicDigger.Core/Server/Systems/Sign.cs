@@ -4,60 +4,56 @@ public class ServerSystemSign : ServerSystem
 {
     private Server server;
 
+    public ServerSystemSign(IModEvents modEvents) : base(modEvents)
+    {
+    }
+
     protected override void Initialize(Server server)
     {
         this.server = server;
-        server.ModManager.RegisterOnBlockUseWithTool(OnUseWithTool);
-        server.ModEventHandlers.OnUpdateEntity.Add(UpdateEntity);
-        server.ModEventHandlers.OnUseEntity.Add(OnUseEntity);
-        server.ModEventHandlers.OnDialogClick2.Add(OnDialogClick);
+        ModEvents.BlockUseWithTool += OnUseWithTool;
+        ModEvents.UpdateEntity += UpdateEntity;
+        ModEvents.UseEntity += OnUseEntity;
+        ModEvents.DialogClick2 += OnDialogClick;
     }
 
-    private void OnUseWithTool(int player, int x, int y, int z, int tool)
+    private void OnUseWithTool(BlockUseWithToolArgs args)
     {
-        if (server.ModManager.GetBlockName(tool) != "Sign")
-        {
+        if (server.ModManager.GetBlockName(args.Tool) != "Sign")
             return;
-        }
 
-        if (server.Map.GetChunk(x, y, z) == null)
-        {
+        if (server.Map.GetChunk(args.X, args.Y, args.Z) == null)
             return;
-        }
 
-        if (!server.CheckBuildPrivileges(player, x, y, z, PacketBlockSetMode.Create))
-        {
+        if (!server.CheckBuildPrivileges(args.Player, args.X, args.Y, args.Z, PacketBlockSetMode.Create))
             return;
-        }
 
         ServerEntity e = new()
         {
             Position = new ServerEntityPositionAndOrientation
             {
-                X = x + (One / 2),
-                Y = z,
-                Z = y + (One / 2)
+                X = args.X + (One / 2),
+                Y = args.Z,
+                Z = args.Y + (One / 2)
             },
             Sign = new ServerEntitySign { Text = "Hello world!" }
         };
 
         e.Position.Heading = EntityHeading.GetHeading(
-            server.ModManager.GetPlayerPositionX(player),
-            server.ModManager.GetPlayerPositionY(player),
+            server.ModManager.GetPlayerPositionX(args.Player),
+            server.ModManager.GetPlayerPositionY(args.Player),
             e.Position.X,
             e.Position.Z
         );
 
-        server.AddEntity(x, y, z, e);
+        server.AddEntity(args.X, args.Y, args.Z, e);
     }
 
-    private void UpdateEntity(int chunkx, int chunky, int chunkz, int id)
+    private void UpdateEntity(UpdateEntityArgs args)
     {
-        ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
+        ServerEntity e = server.GetEntity(args.ChunkX, args.ChunkY, args.ChunkZ, args.Id);
         if (e.Sign == null)
-        {
             return;
-        }
 
         e.DrawModel ??= new ServerEntityAnimatedModel();
         e.DrawModel.Model = "signmodel.txt";
@@ -78,18 +74,14 @@ public class ServerSystemSign : ServerSystem
         };
     }
 
-    private void OnUseEntity(int player, int chunkx, int chunky, int chunkz, int id)
+    private void OnUseEntity(UseEntityArgs args)
     {
-        ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
+        ServerEntity e = server.GetEntity(args.ChunkX, args.ChunkY, args.ChunkZ, args.Id);
         if (e.Sign == null)
-        {
             return;
-        }
 
-        if (!server.CheckBuildPrivileges(player, (int)e.Position.X, (int)e.Position.Z, (int)e.Position.Y, PacketBlockSetMode.Use))
-        {
+        if (!server.CheckBuildPrivileges(args.Player, (int)e.Position.X, (int)e.Position.Z, (int)e.Position.Y, PacketBlockSetMode.Use))
             return;
-        }
 
         DialogFont font = new("Verdana", 11f, DialogFontStyle.Bold);
 
@@ -104,25 +96,25 @@ public class ServerSystemSign : ServerSystem
             IsModal = true,
             Widgets =
             [
-            Widget.MakeSolid(0, 0, 300, 200, ColorUtils.ColorFromArgb(255, 50, 50, 50)),
+                Widget.MakeSolid(0, 0, 300, 200, ColorUtils.ColorFromArgb(255, 50, 50, 50)),
             Widget.MakeTextBox(e.Sign.Text, font, 50, 50, 200, 50, ColorUtils.ColorFromArgb(255, 0, 0, 0)),
             okButton,
             Widget.MakeText("OK", font, 100, 100, ColorUtils.ColorFromArgb(255, 0, 0, 0))
             ]
         };
 
-        server.Clients[player].EditingSign = new ServerEntityId
+        server.Clients[args.Player].EditingSign = new ServerEntityId
         {
-            ChunkX = chunkx,
-            ChunkY = chunky,
-            ChunkZ = chunkz,
-            Id = id
+            ChunkX = args.ChunkX,
+            ChunkY = args.ChunkY,
+            ChunkZ = args.ChunkZ,
+            Id = args.Id
         };
 
-        server.SendDialog(player, "UseSign", d);
+        server.SendDialog(args.Player, "UseSign", d);
     }
 
-    private void OnDialogClick(DialogClickArgs args)
+    private void OnDialogClick(DialogClick2Args args)
     {
         if (args.WidgetId != "UseSign_OK")
         {

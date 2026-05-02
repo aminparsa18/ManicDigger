@@ -18,6 +18,10 @@ public class ServerSystemPermissionSign : ServerSystem
     private const string OkWidgetId = "UsePermissionSign_OK";
     private const string DialogKey = "UseSign";
 
+    public ServerSystemPermissionSign(IModEvents modEvents) : base(modEvents)
+    {
+    }
+
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------
@@ -26,11 +30,11 @@ public class ServerSystemPermissionSign : ServerSystem
     protected override void Initialize(Server server)
     {
         this.server = server;
-        server.ModManager.RegisterOnBlockUseWithTool(OnUseWithTool);
-        server.ModEventHandlers.OnUpdateEntity.Add(UpdateEntity);
-        server.ModEventHandlers.OnUseEntity.Add(OnUseEntity);
-        server.ModEventHandlers.OnDialogClick2.Add(OnDialogClick);
-        server.ModEventHandlers.OnPermission.Add(OnPermission);
+        ModEvents.BlockUseWithTool += OnUseWithTool;
+        ModEvents.UpdateEntity += UpdateEntity;
+        ModEvents.UseEntity += OnUseEntity;
+        ModEvents.DialogClick2 += OnDialogClick;
+        ModEvents.Permission += OnPermission;
     }
 
     // -------------------------------------------------------------------------
@@ -42,35 +46,27 @@ public class ServerSystemPermissionSign : ServerSystem
     /// <see cref="ServerEntityPermissionSign"/> entity at the target position,
     /// facing the placing player, defaulting to the "Admin" group.
     /// </summary>
-    private void OnUseWithTool(int player, int x, int y, int z, int tool)
+    private void OnUseWithTool(BlockUseWithToolArgs args)
     {
-        if (server.ModManager.GetBlockName(tool) != "PermissionSign")
-        {
+        if (server.ModManager.GetBlockName(args.Tool) != "PermissionSign")
             return;
-        }
 
-        if (server.Map.GetChunk(x, y, z) == null)
-        {
+        if (server.Map.GetChunk(args.X, args.Y, args.Z) == null)
             return;
-        }
 
-        if (!server.CheckBuildPrivileges(player, x, y, z, PacketBlockSetMode.Create))
-        {
+        if (!server.CheckBuildPrivileges(args.Player, args.X, args.Y, args.Z, PacketBlockSetMode.Create))
             return;
-        }
 
-        if (!CheckAreaPrivilege(player))
-        {
+        if (!CheckAreaPrivilege(args.Player))
             return;
-        }
 
         ServerEntity e = new()
         {
             Position = new ServerEntityPositionAndOrientation
             {
-                X = x + (One / 2),
-                Y = z,
-                Z = y + (One / 2)
+                X = args.X + (One / 2),
+                Y = args.Z,
+                Z = args.Y + (One / 2)
             },
             PermissionSign = new ServerEntityPermissionSign
             {
@@ -80,11 +76,11 @@ public class ServerSystemPermissionSign : ServerSystem
         };
 
         e.Position.Heading = EntityHeading.GetHeading(
-            server.ModManager.GetPlayerPositionX(player),
-            server.ModManager.GetPlayerPositionY(player),
+            server.ModManager.GetPlayerPositionX(args.Player),
+            server.ModManager.GetPlayerPositionY(args.Player),
             e.Position.X, e.Position.Z);
 
-        server.AddEntity(x, y, z, e);
+        server.AddEntity(args.X, args.Y, args.Z, e);
     }
 
     // -------------------------------------------------------------------------
@@ -96,21 +92,17 @@ public class ServerSystemPermissionSign : ServerSystem
     /// and restricted draw area for permission sign entities. The area extends
     /// in the direction the sign faces, determined by the entity's heading.
     /// </summary>
-    private void UpdateEntity(int chunkx, int chunky, int chunkz, int id)
+    private void UpdateEntity(UpdateEntityArgs args)
     {
-        ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
+        ServerEntity e = server.GetEntity(args.ChunkX, args.ChunkY, args.ChunkZ, args.Id);
         if (e.PermissionSign == null)
-        {
             return;
-        }
 
-        // Model
         e.DrawModel ??= new ServerEntityAnimatedModel();
         e.DrawModel.Model = "signmodel.txt";
         e.DrawModel.Texture = "permissionsignmodel.png";
         e.DrawModel.ModelHeight = One * 13 / 10;
 
-        // Text (group names are prefixed red)
         e.DrawText ??= new ServerEntityDrawText();
         e.DrawText.Text = e.PermissionSign.Type == PermissionSignType.Group
             ? $"&4{e.PermissionSign.Name}"
@@ -119,10 +111,8 @@ public class ServerSystemPermissionSign : ServerSystem
         e.DrawText.Dy = One * 36 / 32;
         e.DrawText.Dz = One * 3 / 32;
 
-        // Name tag
         e.Usable = true;
         e.DrawName ??= new ServerEntityDrawName { Name = "Permission Sign", OnlyWhenSelected = true };
-        // Restricted area (extends in the direction the sign faces)
         e.DrawArea ??= new ServerEntityDrawArea();
         UpdateDrawArea(e);
     }
@@ -167,18 +157,14 @@ public class ServerSystemPermissionSign : ServerSystem
     /// The dialog contains a text box for entering a player name, a "Set player"
     /// button, and one button per server group.
     /// </summary>
-    private void OnUseEntity(int player, int chunkx, int chunky, int chunkz, int id)
+    private void OnUseEntity(UseEntityArgs args)
     {
-        ServerEntity e = server.GetEntity(chunkx, chunky, chunkz, id);
+        ServerEntity e = server.GetEntity(args.ChunkX, args.ChunkY, args.ChunkZ, args.Id);
         if (e.PermissionSign == null)
-        {
             return;
-        }
 
-        if (!CheckAreaPrivilege(player))
-        {
+        if (!CheckAreaPrivilege(args.Player))
             return;
-        }
 
         DialogFont font = new("Verdana", 11f, DialogFontStyle.Bold);
         var groups = server.ServerClient.Groups;
@@ -211,14 +197,14 @@ public class ServerSystemPermissionSign : ServerSystem
         d.Widgets[widgetCount++] = okButton;
         d.Widgets[widgetCount++] = Widget.MakeText("Set player", font, 200, 50, ColorUtils.ColorFromArgb(255, 0, 0, 0));
 
-        server.Clients[player].EditingSign = new ServerEntityId
+        server.Clients[args.Player].EditingSign = new ServerEntityId
         {
-            ChunkX = chunkx,
-            ChunkY = chunky,
-            ChunkZ = chunkz,
-            Id = id
+            ChunkX = args.ChunkX,
+            ChunkY = args.ChunkY,
+            ChunkZ = args.ChunkZ,
+            Id = args.Id
         };
-        server.SendDialog(player, DialogKey, d);
+        server.SendDialog(args.Player, DialogKey, d);
     }
 
     // -------------------------------------------------------------------------
@@ -234,7 +220,7 @@ public class ServerSystemPermissionSign : ServerSystem
     /// </list>
     /// An empty name despawns the sign; a non-empty name updates and marks it dirty.
     /// </summary>
-    private void OnDialogClick(DialogClickArgs args)
+    private void OnDialogClick(DialogClick2Args args)
     {
         if (!TryResolveDialogTarget(args, out string name, out PermissionSignType type))
         {
@@ -264,7 +250,7 @@ public class ServerSystemPermissionSign : ServerSystem
     /// Parses the clicked widget ID to determine the target name and type.
     /// Returns <c>false</c> if the widget belongs to an unrelated dialog.
     /// </summary>
-    private bool TryResolveDialogTarget(DialogClickArgs args, out string name, out PermissionSignType type)
+    private bool TryResolveDialogTarget(DialogClick2Args args, out string name, out PermissionSignType type)
     {
         name = null;
         type = PermissionSignType.Player;

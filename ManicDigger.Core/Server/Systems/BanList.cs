@@ -474,6 +474,10 @@ public class ServerSystemBanList : ServerSystem
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
+    public ServerSystemBanList(IModEvents modEvents) : base(modEvents)
+    {
+    }
+
     public static void LoadBanlist(Server server)
     {
         string path = Path.Combine(GameStorePath.gamepathconfig, BanlistFilename);

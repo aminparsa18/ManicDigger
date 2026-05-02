@@ -10,6 +10,12 @@ public class TreeGenerator : IMod
     private readonly Random _rnd = new();
     private readonly Billow _treeNoise = new();
     private IModManager _m;
+    private readonly IModEvents _modEvents;
+
+    public TreeGenerator(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
+    }
 
     private int BLOCK_GRASS;
     private int BLOCK_OAKTRUNK, BLOCK_OAKLEAVES, BLOCK_APPLES;
@@ -44,7 +50,7 @@ public class TreeGenerator : IMod
 
         InitNoise(_m.Seed);
 
-        _m.RegisterPopulateChunk(PopulateChunk);
+        _modEvents.PopulateChunk += PopulateChunk;
     }
 
     private void InitNoise(int seed)
@@ -60,12 +66,12 @@ public class TreeGenerator : IMod
 
     // ── Chunk population ──────────────────────────────────────────────────────
 
-    private void PopulateChunk(int cx, int cy, int cz)
+    private void PopulateChunk(PopulateChunkArgs args)
     {
         int chunkSize = _m.GetChunkSize();
-        int ox = cx * chunkSize;
-        int oy = cy * chunkSize;
-        int oz = cz * chunkSize;
+        int ox = args.X * chunkSize;
+        int oy = args.Y * chunkSize;
+        int oz = args.Z * chunkSize;
 
         // Forest density: billow value in [-0.5, 1.5] × 1000, capped at 300.
         // High-value areas get dense forest clusters; low-value areas get sparse trees.

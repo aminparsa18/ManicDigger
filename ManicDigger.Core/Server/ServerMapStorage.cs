@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using ManicDigger;
+using System.Runtime.CompilerServices;
 
 public class ServerMapStorage : IMapStorage
 {
@@ -13,17 +14,18 @@ public class ServerMapStorage : IMapStorage
     private int _chunksX;
 
     private readonly IBlockRegistry _blockRegistry;
+    private readonly IModEvents _modEvents;
 
-    public ServerMapStorage(IBlockRegistry blockRegistry, int chunkSize = 32)
+    public ServerMapStorage(IBlockRegistry blockRegistry, IModEvents modEvents, int chunkSize = 32)
     {
         _blockRegistry = blockRegistry;
+        _modEvents = modEvents;
         // Route through the property setter so chunksizebits, isPower2Chunk,
         // and _chunksX are always derived from the same source of truth.
         // Never assign chunksize directly — the three fields must move together.
         ChunkSize = chunkSize;
     }
 
-    public Server server { get; set; }
     public IChunkDb d_ChunkDb { get; set; }
     public int MapSizeX => mapSizeX;
     public int MapSizeY => mapSizeY;
@@ -42,8 +44,9 @@ public class ServerMapStorage : IMapStorage
         // GetBlock is called extremely frequently (lighting, physics, rendering)
         // — those callers must not silently generate chunks as a side effect.
         ServerChunk chunk = GetChunkValid(BlockToChunk(x), BlockToChunk(y), BlockToChunk(z));
-        if (chunk == null) return 0;
-        return chunk.Data[VectorIndexUtil.Index3d(BlockInChunk(x), BlockInChunk(y), BlockInChunk(z), _chunksize, _chunksize)];
+        return chunk == null
+            ? 0
+            : chunk.Data[VectorIndexUtil.Index3d(BlockInChunk(x), BlockInChunk(y), BlockInChunk(z), _chunksize, _chunksize)];
     }
 
     // ── Heightmap maintenance ─────────────────────────────────────────────────
@@ -119,7 +122,9 @@ public class ServerMapStorage : IMapStorage
 
         ServerChunk chunk = GetChunkValid(x, y, z);
         if (chunk != null)
+        {
             return chunk;
+        }
 
         // Try loading from the database first.
         byte[] serializedChunk = ChunkDbHelper.GetChunk(d_ChunkDb, x, y, z);
@@ -134,8 +139,7 @@ public class ServerMapStorage : IMapStorage
 
         // Not in DB — generate via mod handlers.
         ushort[] newData = new ushort[_chunksize * _chunksize * _chunksize];
-        for (int i = 0; i < server.ModEventHandlers.Getchunk.Count; i++)
-            server.ModEventHandlers.Getchunk[i](x, y, z, newData);
+        _modEvents.RaiseWorldGenerator(x, y, z, newData);
 
         ServerChunk newChunk = new ServerChunk { Data = newData, DirtyForSaving = true };
         SetChunkValid(x, y, z, newChunk);

@@ -3,9 +3,15 @@
 public class PermissionBlock : IMod
 {
     private IModManager? m;
+    private IModEvents _modEvents;
 
     public int PermissionLevelsCount = 4;
     public int AreaSize = 64;
+
+    public PermissionBlock(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
+    }
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
@@ -25,28 +31,26 @@ public class PermissionBlock : IMod
             m.AddToCreativeInventory("BuildPermission" + i);
         }
 
-        m.RegisterOnBlockBuild(OnBuild);
-        m.RegisterOnBlockDelete(OnDelete);
+        _modEvents.BlockBuild += OnBuild;
+        _modEvents.BlockDelete += OnDelete;
     }
 
-    private void OnBuild(int playerid, int x, int y, int z)
+    private void OnBuild(BlockBuildArgs args)
     {
         int permissionblock = m.GetBlockId("BuildPermission0");
 
         //can't build any block in column
         for (int zz = 0; zz < m.GetMapSizeZ(); zz++)
         {
-            if (zz == z)
-            {
+            if (zz == args.Z)
                 continue;
-            }
 
             for (int i = 0; i < PermissionLevelsCount; i++)
             {
-                if (m.GetBlock(x, y, zz) == permissionblock + i)
+                if (m.GetBlock(args.X, args.Y, zz) == permissionblock + i)
                 {
-                    m.SetBlock(x, y, z, 0);
-                    m.SendMessage(playerid, "You can't build in a column that contains permission block.");
+                    m.SetBlock(args.X, args.Y, args.Z, 0);
+                    m.SendMessage(args.Player, "You can't build in a column that contains permission block.");
                     return;
                 }
             }
@@ -55,37 +59,37 @@ public class PermissionBlock : IMod
         //add area
         for (int i = 0; i < PermissionLevelsCount; i++)
         {
-            if (m.GetBlock(x, y, z) == permissionblock + i)
+            if (m.GetBlock(args.X, args.Y, args.Z) == permissionblock + i)
             {
-                if (m.GetPlayerPermissionLevel(playerid) <= i)
+                if (m.GetPlayerPermissionLevel(args.Player) <= i)
                 {
-                    m.SendMessage(playerid, "No permission");
-                    m.SetBlock(x, y, z, 0);
+                    m.SendMessage(args.Player, "No permission");
+                    m.SetBlock(args.X, args.Y, args.Z, 0);
                     return;
                 }
 
-                m.AddPermissionArea(x - AreaSize, y - AreaSize, 0, x + AreaSize, y + AreaSize, m.GetMapSizeZ(), i);
+                m.AddPermissionArea(args.X - AreaSize, args.Y - AreaSize, 0, args.X + AreaSize, args.Y + AreaSize, m.GetMapSizeZ(), i);
             }
         }
     }
 
-    private void OnDelete(int playerid, int x, int y, int z, int oldblock)
+    private void OnDelete(BlockDeleteArgs args)
     {
         int permissionblock = m.GetBlockId("BuildPermission0");
 
         //remove area
         for (int i = 0; i < PermissionLevelsCount; i++)
         {
-            if (oldblock == permissionblock + i)
+            if (args.OldBlock == permissionblock + i)
             {
-                if (m.GetPlayerPermissionLevel(playerid) <= i)
+                if (m.GetPlayerPermissionLevel(args.Player) <= i)
                 {
-                    m.SendMessage(playerid, "No permission");
-                    m.SetBlock(x, y, z, oldblock);
+                    m.SendMessage(args.Player, "No permission");
+                    m.SetBlock(args.X, args.Y, args.Z, args.OldBlock);
                     return;
                 }
 
-                m.RemovePermissionArea(x - AreaSize, y - AreaSize, 0, x + AreaSize, y + AreaSize, m.GetMapSizeZ());
+                m.RemovePermissionArea(args.X - AreaSize, args.Y - AreaSize, 0, args.X + AreaSize, args.Y + AreaSize, m.GetMapSizeZ());
             }
         }
     }

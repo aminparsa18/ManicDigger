@@ -19,6 +19,10 @@ public class ServerSystemNotifyEntities : ServerSystem
     private const int EntityPositionUpdatesPerSecond = 10;
     private const int SpawnMaxEntities = 32;
 
+    public ServerSystemNotifyEntities(IModEvents modEvents) : base(modEvents)
+    {
+    }
+
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------
@@ -183,10 +187,7 @@ public class ServerSystemNotifyEntities : ServerSystem
                 continue;
             }
 
-            foreach (var handler in server.ModEventHandlers.OnUpdateEntity)
-            {
-                handler(e.ChunkX, e.ChunkY, e.ChunkZ, e.Id);
-            }
+            ModEvents.RaiseUpdateEntity(e.ChunkX, e.ChunkY, e.ChunkZ, e.Id);
         }
 
         // --- Despawn entities that left range ---

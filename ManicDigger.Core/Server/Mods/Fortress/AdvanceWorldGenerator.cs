@@ -26,6 +26,11 @@ namespace ManicDigger.Mods;
 /// </summary>
 public class AdvanceWorldGenerator : IMod
 {
+    public AdvanceWorldGenerator(IModEvents modEvents)
+    {
+        _modEvents = modEvents;
+    }
+
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
     public void Start(IModManager manager)
@@ -54,8 +59,8 @@ public class AdvanceWorldGenerator : IMod
         BLOCK_DEADPLANT = m.GetBlockId("DeadPlant");
         BLOCK_GRASSPLANT = m.GetBlockId("GrassPlant");
 
-        m.RegisterWorldGenerator(GetChunk);
-        m.RegisterPopulateChunk(PopulateChunk);
+        _modEvents.WorldGenerator += GetChunk;
+        _modEvents.PopulateChunk += PopulateChunk;
         m.RegisterOnSave(DisplayTimes);
     }
 
@@ -64,6 +69,8 @@ public class AdvanceWorldGenerator : IMod
     // =========================================================================
 
     private IModManager m;
+    private readonly IModEvents _modEvents;
+
     private int chunksize, mapSizeX, mapSizeY;
 
     private int BLOCK_AIR, BLOCK_ADMINIUM, BLOCK_STONE, BLOCK_DIRT, BLOCK_GRASS;
@@ -283,14 +290,14 @@ public class AdvanceWorldGenerator : IMod
     //         The tight inner loop can pipeline freely; each iteration is
     //         independent of the previous one.
 
-    private void GetChunk(int cx, int cy, int cz, ushort[] chunk)
+    private void GetChunk(WorldGeneratorArgs args)
     {
         getChunkCalls++;
         watch.Restart();
 
-        int ox = cx * chunksize;
-        int oy = cy * chunksize;
-        int oz = cz * chunksize;
+        int ox = args.X * chunksize;
+        int oy = args.Y * chunksize;
+        int oz = args.Z * chunksize;
 
         // ── Pass 1: per-column precomputation ────────────────────────────────
 
@@ -301,7 +308,7 @@ public class AdvanceWorldGenerator : IMod
                 int wx = ox + xx;
                 int wy = oy + yy;
 
-                var (wxw, wyw) = Warp(wx, wy);
+                (float wxw, float wyw) = Warp(wx, wy);
 
                 float cont = GetContinentF(wxw, wyw);
                 float normH = SampleNormHeight(wxw, wyw, cont);
@@ -333,7 +340,9 @@ public class AdvanceWorldGenerator : IMod
                 // A zero value is harmless — DetermineBlock only reads it when sandness > 0.5f.
                 float dune = 0f;
                 if (sandness > 0.5f)
+                {
                     dune = heightDetail.GetValue(wx * 0.08f, 0f, wy * 0.08f);
+                }
 
                 // Vegetation noise: only computed when the surface is above (or at) water
                 // AND the column is grassy enough to ever spawn plants.
@@ -373,14 +382,20 @@ public class AdvanceWorldGenerator : IMod
                     int block;
 
                     if (wz == 0)
+                    {
                         block = BLOCK_ADMINIUM;
+                    }
                     else if (wz < surfaceZ - 5)
+                    {
                         // Deep underground — always solid stone, no biome logic needed
                         block = BLOCK_STONE;
+                    }
                     else
+                    {
                         block = DetermineBlock(in col, wz, surfaceZ);
+                    }
 
-                    chunk[m.Index3d(xx, yy, zz, chunksize, chunksize)] = (ushort)block;
+                    args.Chunk[m.Index3d(xx, yy, zz, chunksize, chunksize)] = (ushort)block;
                 }
             }
         }
@@ -396,20 +411,30 @@ public class AdvanceWorldGenerator : IMod
     private static float ContinentToBaseZ(float cont)
     {
         if (cont < 0.18f)
+        {
             return Lerp(5f, 14f, cont / 0.18f);                              // deep ocean  z= 5→14
+        }
+
         if (cont < 0.28f)
+        {
             return Lerp(14f, 22f, (cont - 0.18f) / 0.10f);                   // ocean       z=14→22
+        }
+
         if (cont < 0.36f)
+        {
             return Lerp(22f, 30f, (cont - 0.28f) / 0.08f);                   // shore slope z=22→30
+        }
+
         return Lerp(30f, 36f, Math.Clamp((cont - 0.36f) / 0.64f, 0f, 1f));   // land base   z=30→36
     }
 
     private static BiomeWeights GetBiomeWeights(float normH, float temp, float humidity)
     {
-        BiomeWeights w = new();
-
-        // Height influence
-        w.Mountains = SmoothStep(0.5f, 0.8f, normH);
+        BiomeWeights w = new()
+        {
+            // Height influence
+            Mountains = SmoothStep(0.5f, 0.8f, normH)
+        };
         w.Plains = 1f - w.Mountains;
 
         // Temperature
@@ -527,18 +552,18 @@ public class AdvanceWorldGenerator : IMod
 
     private readonly Random rnd = new();
 
-    private void PopulateChunk(int cx, int cy, int cz)
+    private void PopulateChunk(PopulateChunkArgs args)
     {
         populateChunkCalls++;
         watch.Restart();
 
         // Skip chunks outside safe bounds entirely
-        if (cx < 0 || cy < 0 || cx * chunksize >= mapSizeX || cy * chunksize >= mapSizeY)
+        if (args.X < 0 || args.Y < 0 || args.X * chunksize >= mapSizeX || args.Y * chunksize >= mapSizeY)
             return;
 
-        int ox = cx * chunksize;
-        int oy = cy * chunksize;
-        int oz = cz * chunksize;
+        int ox = args.X * chunksize;
+        int oy = args.Y * chunksize;
+        int oz = args.Z * chunksize;
 
         for (int i = 0; i < rnd.Next(30, 120); i++)
         {

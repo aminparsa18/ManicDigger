@@ -610,20 +610,8 @@ public partial class Server
                     }
                 }
 
-                for (int i = 0; i < ModEventHandlers.OnCommand.Count; i++)
-                {
-                    try
-                    {
-                        if (ModEventHandlers.OnCommand[i](sourceClientId, command, argument))
-                        {
-                            return;
-                        }
-                    }
-                    catch
-                    {
-                        SendMessage(sourceClientId, Language.Get("Server_CommandException"));
-                    }
-                }
+                if (_modEvents.RaiseCommand(sourceClientId, command, argument))
+                    return;
 
                 SendMessage(sourceClientId, colorError + Language.Get("Server_CommandUnknown") + command);
                 return;

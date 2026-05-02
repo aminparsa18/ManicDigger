@@ -21,7 +21,7 @@ namespace ManicDigger;
 /// mods in topological order.
 /// </para>
 /// </summary>
-public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegistry) : ServerSystem
+public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegistry, IModEvents modEvents) : ServerSystem(modEvents)
 {
     /// <summary>All successfully compiled and instantiated mods, keyed by type name.</summary>
     private readonly Dictionary<string, IMod> mods = [];
@@ -86,7 +86,6 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
             server.colorImportant, caller.ColoredPlayername(server.colorImportant)));
         server.ServerEventLog($"{caller.PlayerName} restarts mods.");
 
-        server.ModEventHandlers = new ModEventHandlers();
         for (int i = 0; i < server.Systems.Count; i++)
         {
             server.Systems[i]?.OnRestart(server);

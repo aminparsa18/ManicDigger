@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 
 /// <summary>
 /// Iterates through all map chunks and unloads those no longer within any human
@@ -21,6 +22,10 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
     // Chunks inspected per tick. Kept small to avoid stalling the server loop.
     private const int InspectionsPerTick = 100;
+
+    public ServerSystemUnloadUnusedChunks(IModEvents modEvents) : base(modEvents)
+    {
+    }
 
     // -------------------------------------------------------------------------
     // Lifecycle

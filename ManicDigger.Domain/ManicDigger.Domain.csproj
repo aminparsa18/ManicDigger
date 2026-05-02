@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <RootNamespace>ScriptingApi</RootNamespace>
-    <AssemblyName>ScriptingApi</AssemblyName>
+    <RootNamespace>ManicDigger.Domain</RootNamespace>
+    <AssemblyName>ManicDigger.Domain</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>

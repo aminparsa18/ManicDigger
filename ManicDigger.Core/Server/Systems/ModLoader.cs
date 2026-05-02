@@ -35,7 +35,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// <summary>Tracks which mods have been started to prevent double-starting during dependency resolution.</summary>
     private readonly Dictionary<string, bool> loadedMods = [];
 
-    private static readonly string[] ExtraAssemblyReferences = ["ScriptingApi.dll"];
+    private static readonly string[] ExtraAssemblyReferences = ["ManicDigger.Domain.dll"];
 
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
@@ -109,8 +109,8 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// </param>
     private void LoadMods(Server server, bool restart)
     {
-        server.ModManager = new ModManager(gameExit, _blockRegistry );
-        ModManager manager = server.ModManager;
+        server.ModManager = new ServerModManager(gameExit, _blockRegistry );
+        ServerModManager manager = server.ModManager;
         manager.Start(server);
 
         Dictionary<string, string> scripts = GetScriptSources(server);

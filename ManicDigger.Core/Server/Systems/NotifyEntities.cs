@@ -101,7 +101,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     {
         ClientOnServer client = server.Clients[clientId];
         client.NotifyPlayerPositionsAccum += dt;
-        if (client.NotifyPlayerPositionsAccum < (One / PlayerPositionUpdatesPerSecond))
+        if (client.NotifyPlayerPositionsAccum < (1f / PlayerPositionUpdatesPerSecond))
         {
             return;
         }
@@ -168,7 +168,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     {
         ClientOnServer client = server.Clients[clientId];
         client.NotifyEntitiesAccum += dt;
-        if (client.NotifyEntitiesAccum < (One / EntityPositionUpdatesPerSecond))
+        if (client.NotifyEntitiesAccum < (1f / EntityPositionUpdatesPerSecond))
         {
             return;
         }

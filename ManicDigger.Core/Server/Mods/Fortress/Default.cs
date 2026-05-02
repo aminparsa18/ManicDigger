@@ -12,5 +12,5 @@ public class Default : IMod
         m.RequireMod("CoreBlocks");
         m.RequireMod("CoreCrafting");
     }
-    public void Start(IModManager manager) { }
+    public void Start(IModManager manager, IModEvents modEvents) { }
 }

@@ -7,7 +7,7 @@ public class CoreCrafting : IMod
 {
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager m)
+    public void Start(IModManager m, IModEvents modEvents)
     {
         /* Crafting recipes are given in the following style:
          * 

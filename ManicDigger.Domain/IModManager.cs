@@ -601,6 +601,6 @@ public interface IMod
     /// Called once when the Mod is started. Use this if you need to initialize fields, etc...
     /// </summary>
     /// <param name="m">ModManager object</param>
-    void Start(IModManager m);
+    void Start(IModManager m, IModEvents modEvents);
 }
 

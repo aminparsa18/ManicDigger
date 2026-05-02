@@ -4,22 +4,16 @@ public class PlayerList : IMod
 {
     public void PreStart(IModManager m) { }
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
-        _modEvents.SpecialKey += OnTabKey;
-        _modEvents.DialogClick += OnTabResponse;
+        modEvents.SpecialKey += OnTabKey;
+        modEvents.DialogClick += OnTabResponse;
         m.RegisterTimer(UpdateTab, 1);
     }
 
-    public PlayerList(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
-
     private IModManager m;
-    private IModEvents _modEvents;
-
+    
     public string GetPrefix(int playerID) => $"[{m.GetGroupColor(playerID)}{m.GetGroupName(playerID)}&0] ";
 
     private void OnTabKey(SpecialKeyArgs args)

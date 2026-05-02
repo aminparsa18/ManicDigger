@@ -3,25 +3,20 @@
 public class Revert : IMod
 {
     private IModManager m;
-    private readonly IModEvents _modEvents;
     private List<object[]> lines = [];
 
     public int MaxRevert = 2000;
 
-    public Revert(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
 
     public void PreStart(IModManager m) => m.RequireMod("BuildLog");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         m.RegisterPrivilege("revert");
         m.RegisterCommandHelp("revert", "/revert [playername] [number of changes]");
         lines = (List<object[]>)m.GetGlobalDataNotSaved("LogLines");
-        _modEvents.Command += OnCommand;
+        modEvents.Command += OnCommand;
     }
 
     private void OnCommand(CommandArgs args)

@@ -3,19 +3,13 @@
 public class PermissionBlock : IMod
 {
     private IModManager? m;
-    private IModEvents _modEvents;
 
     public int PermissionLevelsCount = 4;
     public int AreaSize = 64;
 
-    public PermissionBlock(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
-
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
 
@@ -31,8 +25,8 @@ public class PermissionBlock : IMod
             m.AddToCreativeInventory("BuildPermission" + i);
         }
 
-        _modEvents.BlockBuild += OnBuild;
-        _modEvents.BlockDelete += OnDelete;
+        modEvents.BlockBuild += OnBuild;
+        modEvents.BlockDelete += OnDelete;
     }
 
     private void OnBuild(BlockBuildArgs args)

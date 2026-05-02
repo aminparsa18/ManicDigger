@@ -5,7 +5,6 @@ public class VegetationGrowth : IMod
     private readonly Random rnd = new();
 
     private IModManager? m;
-    private readonly IModEvents _modEvents;
     private int DirtForFarming;
     private int OakSapling;
     private int BirchSapling;
@@ -28,14 +27,9 @@ public class VegetationGrowth : IMod
     private int BirchTreeTrunk;
     private int SpruceTreeTrunk;
 
-    public VegetationGrowth(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
-
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         DirtForFarming = m.GetBlockId("DirtForFarming");
@@ -60,12 +54,12 @@ public class VegetationGrowth : IMod
         BirchTreeTrunk = m.GetBlockId("BirchTreeTrunk");
         SpruceTreeTrunk = m.GetBlockId("SpruceTreeTrunk");
 
-        _modEvents.BlockUpdate += BlockTickGrowCropsCycle;
-        _modEvents.BlockUpdate += BlockTickGrowSapling;
-        _modEvents.BlockUpdate += BlockTickMushroomDeath;
-        _modEvents.BlockUpdate += BlockTickFlowerDeath;
-        _modEvents.BlockUpdate += BlockTickGrowGrassOrMushroomsOnDirt;
-        _modEvents.BlockUpdate += BlockTickGrassDeathInDarkness;
+        modEvents.BlockUpdate += BlockTickGrowCropsCycle;
+        modEvents.BlockUpdate += BlockTickGrowSapling;
+        modEvents.BlockUpdate += BlockTickMushroomDeath;
+        modEvents.BlockUpdate += BlockTickFlowerDeath;
+        modEvents.BlockUpdate += BlockTickGrowGrassOrMushroomsOnDirt;
+        modEvents.BlockUpdate += BlockTickGrassDeathInDarkness;
     }
 
     private void BlockTickGrowCropsCycle(BlockUpdateArgs args)

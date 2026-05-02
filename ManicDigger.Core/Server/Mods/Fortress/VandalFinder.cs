@@ -3,13 +3,7 @@
 public class VandalFinder : IMod
 {
     private IModManager m;
-    private readonly IModEvents _modEvents;
     private List<object[]> lines = [];
-
-    public VandalFinder(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
 
     public void PreStart(IModManager m)
     {
@@ -17,7 +11,7 @@ public class VandalFinder : IMod
         m.RequireMod("BuildLog");
     }
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         m.SetBlockType("VandalFinder", new BlockType()
@@ -29,7 +23,7 @@ public class VandalFinder : IMod
             IsTool = true,
         });
         m.AddToCreativeInventory("VandalFinder");
-        _modEvents.BlockUseWithTool += OnUseWithTool;
+        modEvents.BlockUseWithTool += OnUseWithTool;
         lines = (List<object[]>)m.GetGlobalDataNotSaved("LogLines");
     }
 

@@ -26,14 +26,9 @@ namespace ManicDigger.Mods;
 /// </summary>
 public class AdvanceWorldGenerator : IMod
 {
-    public AdvanceWorldGenerator(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
-
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         chunksize = m.GetChunkSize();
@@ -59,8 +54,8 @@ public class AdvanceWorldGenerator : IMod
         BLOCK_DEADPLANT = m.GetBlockId("DeadPlant");
         BLOCK_GRASSPLANT = m.GetBlockId("GrassPlant");
 
-        _modEvents.WorldGenerator += GetChunk;
-        _modEvents.PopulateChunk += PopulateChunk;
+        modEvents.WorldGenerator += GetChunk;
+        modEvents.PopulateChunk += PopulateChunk;
         m.RegisterOnSave(DisplayTimes);
     }
 
@@ -69,7 +64,6 @@ public class AdvanceWorldGenerator : IMod
     // =========================================================================
 
     private IModManager m;
-    private readonly IModEvents _modEvents;
 
     private int chunksize, mapSizeX, mapSizeY;
 

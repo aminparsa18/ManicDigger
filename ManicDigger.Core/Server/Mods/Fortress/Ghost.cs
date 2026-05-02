@@ -6,22 +6,16 @@ public class Ghost : IMod
     private readonly bool enabled = false;
     private readonly List<Pos> history = [];
     private IModManager m;
-    private readonly IModEvents _modEvents;
     private int ghost;
-
-    public Ghost(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
 
     public void PreStart(IModManager m) { }
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         if (enabled)
         {
-            _modEvents.LoadWorld += OnLoad;
+            modEvents.LoadWorld += OnLoad;
         }
     }
 

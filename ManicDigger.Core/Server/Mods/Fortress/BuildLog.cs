@@ -3,7 +3,6 @@
 public class BuildLog : IMod
 {
     private IModManager? m;
-    private readonly IModEvents? _modEvents;
     //can't pass LogLine object between mods. Store object as an array of fields instead.
     private readonly List<object[]> lines = [];
 
@@ -11,19 +10,14 @@ public class BuildLog : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
-        _modEvents.BlockBuild += OnBuild;
-        _modEvents.BlockDelete += OnDelete;
+        modEvents.BlockBuild += OnBuild;
+        modEvents.BlockDelete += OnDelete;
         m.RegisterOnLoad(OnLoad);
         m.RegisterOnSave(OnSave);
         m.SetGlobalDataNotSaved("LogLines", lines);
-    }
-
-    public BuildLog(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
     }
 
     private void OnLoad()

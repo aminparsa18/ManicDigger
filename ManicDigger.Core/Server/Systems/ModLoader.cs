@@ -39,6 +39,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
 
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
+    private readonly IModEvents _modEvents = modEvents;
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -502,7 +503,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
             }
         }
 
-        mod.Start(manager);
+        mod.Start(manager, _modEvents);
         loadedMods[name] = true;
     }
 

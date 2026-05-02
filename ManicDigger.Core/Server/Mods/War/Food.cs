@@ -3,22 +3,15 @@
 public class Food : IMod
 {
     private IModManager? m;
-    private readonly IModEvents _modEvents;
     private int Cake;
     private int Apples;
 
-    public Food(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
-
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
 
-        _modEvents.BlockUse += OnUse;
-
+        modEvents.BlockUse += OnUse;
         Cake = m.GetBlockId("Cake");
         Apples = m.GetBlockId("Apples");
     }

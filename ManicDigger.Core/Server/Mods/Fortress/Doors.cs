@@ -4,13 +4,13 @@ public class Doors : IMod
 {
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
 
-        _modEvents.BlockBuild += OnBuild;
-        _modEvents.BlockDelete += OnDelete;
-        _modEvents.BlockUse += OnUse;
+        modEvents.BlockBuild += OnBuild;
+        modEvents.BlockDelete += OnDelete;
+        modEvents.BlockUse += OnUse;
 
         m.SetString("en", "DoorBottomClosed", "Closed Door");
         m.SetString("en", "DoorTopClosed", "Closed Door");
@@ -72,13 +72,7 @@ public class Doors : IMod
         DoorTopOpen = m.GetBlockId("DoorTopOpen");
     }
 
-    public Doors(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
-
     private IModManager m;
-    private IModEvents _modEvents;
     private int DoorBottomClosed;
     private int DoorTopClosed;
     private int DoorBottomOpen;

@@ -3,7 +3,6 @@ namespace ManicDigger.Mods;
 public class Tnt : IMod
 {
     private IModManager m;
-    private readonly IModEvents _modEvents;
     private int tnt;
     private int adminium;
     private readonly Random rnd = new();
@@ -12,13 +11,8 @@ public class Tnt : IMod
     public int tntRange = 10; // sphere diameter
     public int tntMax = 10;
 
-    public Tnt(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
-
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         SoundSet solidSounds = new()
@@ -46,7 +40,7 @@ public class Tnt : IMod
         adminium = m.GetBlockId("Adminium");
         m.AddToCreativeInventory("TNT");
         m.AddCraftingRecipe("TNT", 1, "GoldBlock", 1);
-        _modEvents.BlockUse += UseTnt;
+        modEvents.BlockUse += UseTnt;
         m.RegisterPrivilege("use_tnt");
         m.RegisterTimer(UpdateTnt, 5);
     }

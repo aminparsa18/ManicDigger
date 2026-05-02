@@ -6,22 +6,16 @@
 public class CoreEvents : IMod
 {
     private IModManager m;
-    private readonly IModEvents _modEvents;
-
-    public CoreEvents(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
 
-        _modEvents.Command += OnCommandSetModel;
-        _modEvents.SpecialKey += OnRespawnKey;
-        _modEvents.SpecialKey += OnSetSpawnKey;
-        _modEvents.PlayerDeath += OnPlayerDeath;
+        modEvents.Command += OnCommandSetModel;
+        modEvents.SpecialKey += OnRespawnKey;
+        modEvents.SpecialKey += OnSetSpawnKey;
+        modEvents.PlayerDeath += OnPlayerDeath;
     }
 
     //Dictionary to store temporary spawn positions

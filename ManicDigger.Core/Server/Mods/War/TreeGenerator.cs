@@ -5,7 +5,6 @@ namespace ManicDigger.Mods.War;
 public class TreeGenerator : IMod
 {
     private IModManager? m;
-    private readonly IModEvents? _modEvents;
     private readonly int treeCount = 20;
     private readonly Billow treenoise = new();
     private readonly Random _rnd = new();
@@ -19,21 +18,17 @@ public class TreeGenerator : IMod
     private int BLOCK_BIRCHTRUNK;
     private int BLOCK_BIRCHLEAVES;
 
-    public TreeGenerator(IModEvents modEvents)
+    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
+
+    public void Start(IModManager manager, IModEvents modEvents)
     {
-        _modEvents = modEvents;
+        m = manager;
         int Seed = m.Seed;
         treenoise.Seed = Seed + 2;
         treenoise.OctaveCount = 6;
         treenoise.Frequency = 1f / 180f;
         treenoise.Lacunarity = treeCount / 20f * (treeCount / 20f) * 2f;
-    }
 
-    public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
-
-    public void Start(IModManager manager)
-    {
-        m = manager;
         BLOCK_GRASS = m.GetBlockId("Grass");
         BLOCK_OAKTRUNK = m.GetBlockId("OakTreeTrunk");
         BLOCK_OAKLEAVES = m.GetBlockId("OakLeaves");
@@ -42,7 +37,7 @@ public class TreeGenerator : IMod
         BLOCK_SPRUCELEAVES = m.GetBlockId("SpruceLeaves");
         BLOCK_BIRCHTRUNK = m.GetBlockId("BirchTreeTrunk");
         BLOCK_BIRCHLEAVES = m.GetBlockId("BirchLeaves");
-        _modEvents.PopulateChunk += PopulateChunk;
+        modEvents.PopulateChunk += PopulateChunk;
     }
 
     private void PopulateChunk(PopulateChunkArgs args)

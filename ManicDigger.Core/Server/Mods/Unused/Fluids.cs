@@ -29,21 +29,18 @@ public class Fluids : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("Default");
 
-    public void Start(IModManager m)
+    public void Start(IModManager m, IModEvents modEvents)
     {
         this.m = m;
-        _modEvents.BlockUpdate += CheckNeighbors;
-        _modEvents.BlockBuild += Build;
+        modEvents.BlockUpdate += CheckNeighbors;
+        modEvents.BlockBuild += Build;
         m.RegisterTimer(UpdateFluids, 1);
-        _modEvents.BlockDelete += Delete;
+        modEvents.BlockDelete += Delete;
         Water = m.GetBlockId("Water");
         Lava = m.GetBlockId("Lava");
     }
 
-    public Fluids(IModEvents modEvents) => _modEvents = modEvents;
-
     private IModManager m;
-    private readonly IModEvents _modEvents;
 
     private static int PositionHash(int x, int y, int z) => (((x * 9973) + y) * 127) + z; //this hash value may overflow, but we don't care
 

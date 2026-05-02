@@ -4,22 +4,16 @@ public class RememberPosition : IMod
 {
     public void PreStart(IModManager m) { }
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         LoadData();
         m.RegisterOnSave(SaveData);
-        _modEvents.PlayerJoin += OnJoin;
-        _modEvents.PlayerLeave += OnLeave;
-    }
-
-    public RememberPosition(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
+        modEvents.PlayerJoin += OnJoin;
+        modEvents.PlayerLeave += OnLeave;
     }
 
     private IModManager m;
-    private IModEvents _modEvents;
     public PositionStorage? positions;
 
     // Resolve path relative to exe, not working directory

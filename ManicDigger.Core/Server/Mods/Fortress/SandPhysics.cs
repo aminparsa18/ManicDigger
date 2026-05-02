@@ -3,20 +3,14 @@
 public class SandPhysics : IMod
 {
     private IModManager m;
-    private readonly IModEvents _modEvents;
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
-        _modEvents.BlockBuild += Build;
-        _modEvents.BlockDelete += Delete;
-    }
-
-    public SandPhysics(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
+        modEvents.BlockBuild += Build;
+        modEvents.BlockDelete += Delete;
     }
 
     private void Build(BlockBuildArgs args) => Update(args.X, args.Y, args.Z);

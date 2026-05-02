@@ -10,12 +10,6 @@ public class TreeGenerator : IMod
     private readonly Random _rnd = new();
     private readonly Billow _treeNoise = new();
     private IModManager _m;
-    private readonly IModEvents _modEvents;
-
-    public TreeGenerator(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
 
     private int BLOCK_GRASS;
     private int BLOCK_OAKTRUNK, BLOCK_OAKLEAVES, BLOCK_APPLES;
@@ -35,7 +29,7 @@ public class TreeGenerator : IMod
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
 
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         _m = manager;
 
@@ -50,7 +44,7 @@ public class TreeGenerator : IMod
 
         InitNoise(_m.Seed);
 
-        _modEvents.PopulateChunk += PopulateChunk;
+        modEvents.PopulateChunk += PopulateChunk;
     }
 
     private void InitNoise(int seed)

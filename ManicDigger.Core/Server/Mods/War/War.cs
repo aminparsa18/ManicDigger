@@ -7,12 +7,6 @@ public class War : IMod
     private readonly string BlueColor = "&1";
     private readonly string GreenColor = "&2";
     private readonly string SpectatorColor = "&7";
-    private readonly IModEvents _modEvents;
-
-    public War(IModEvents modEvents)
-    {
-        _modEvents = modEvents;
-    }
 
     private bool spawnedBot = false;
     private DateTime CurrentRespawnTime;
@@ -20,7 +14,7 @@ public class War : IMod
     public bool EnableTeamkill = true;
 
     public void PreStart(IModManager m) => m.RequireMod("CoreBlocks");
-    public void Start(IModManager manager)
+    public void Start(IModManager manager, IModEvents modEvents)
     {
         m = manager;
         CurrentRespawnTime = DateTime.UtcNow;
@@ -31,22 +25,21 @@ public class War : IMod
         m.DisablePrivilege("tp");
 
         //Register specific functions
-        _modEvents.PlayerJoin += PlayerJoin;
-        _modEvents.DialogClick += DialogClickSelectTeam;
-        _modEvents.DialogClick += DialogClickSelectClass;
-        _modEvents.DialogClick += DialogClickSelectSubclass;
-        _modEvents.WeaponHit += Hit;
-        _modEvents.SpecialKey += RespawnKey;
-        _modEvents.SpecialKey += OnTabKey;
-        _modEvents.DialogClick += OnTabResponse;
-        _modEvents.SpecialKey += OnSelectTeamKey;
-        _modEvents.ChangedActiveMaterialSlot += UpdatePlayerModel;
-        _modEvents.WeaponShot += Shot;
-        _modEvents.PlayerChat += OnChat;
-        _modEvents.Command += OnCommand;
-        _modEvents.BlockBuild += OnBuild;
-        _modEvents.PlayerDeath += OnPlayerDeath;
-
+        modEvents.PlayerJoin += PlayerJoin;
+        modEvents.DialogClick += DialogClickSelectTeam;
+        modEvents.DialogClick += DialogClickSelectClass;
+        modEvents.DialogClick += DialogClickSelectSubclass;
+        modEvents.WeaponHit += Hit;
+        modEvents.SpecialKey += RespawnKey;
+        modEvents.SpecialKey += OnTabKey;
+        modEvents.DialogClick += OnTabResponse;
+        modEvents.SpecialKey += OnSelectTeamKey;
+        modEvents.ChangedActiveMaterialSlot += UpdatePlayerModel;
+        modEvents.WeaponShot += Shot;
+        modEvents.PlayerChat += OnChat;
+        modEvents.Command += OnCommand;
+        modEvents.BlockBuild += OnBuild;
+        modEvents.PlayerDeath += OnPlayerDeath;
         //Register timers
         m.RegisterTimer(UpdateMedicalKitAmmoPack, 0.1);
         m.RegisterTimer(UpdateRespawnTimer, 1);

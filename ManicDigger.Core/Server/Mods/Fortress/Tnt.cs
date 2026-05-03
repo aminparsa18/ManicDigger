@@ -58,7 +58,7 @@ public class Tnt : IMod
         {
             if (!m.PlayerHasPrivilege(args.Player, "use_tnt"))
             {
-                m.SendMessage(args.Player, m.ColorError + "Insufficient privileges to use TNT.");
+                m.SendMessage(args.Player, GameConstants.colorError + "Insufficient privileges to use TNT.");
                 return;
             }
 

@@ -5,18 +5,17 @@ public class ServerSystemSign : ServerSystem
     private Server server;
     private readonly IServerModManager _modManager;
     private readonly IServerMapStorage _serverMapStorage;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
 
-    public ServerSystemSign(IModEvents modEvents, IServerModManager modManager, IServerMapStorage serverMapStorage, IServerClientService serverClientService) : base(modEvents)
+    public ServerSystemSign(IModEvents modEvents, IServerModManager modManager, IServerMapStorage serverMapStorage, IClientRegistry serverClientService) : base(modEvents)
     {
         _modManager = modManager;
         _serverMapStorage = serverMapStorage;
         _serverClientService = serverClientService;
     }
 
-    protected override void Initialize(Server server)
+    protected override void Initialize()
     {
-        this.server = server;
         ModEvents.BlockUseWithTool += OnUseWithTool;
         ModEvents.UpdateEntity += UpdateEntity;
         ModEvents.UseEntity += OnUseEntity;
@@ -127,7 +126,7 @@ public class ServerSystemSign : ServerSystem
             return;
         }
 
-        ClientOnServer client = _serverClientService.Clients[args.Player];
+        ServerPlayer client = _serverClientService.Clients[args.Player];
         string newText = args.TextBoxValue[1];
         ServerEntityId id = client.EditingSign;
 

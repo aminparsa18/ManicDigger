@@ -26,7 +26,7 @@ public class Revert : IMod
 
         if (!m.PlayerHasPrivilege(args.Player, "revert"))
         {
-            m.SendMessage(args.Player, $"{m.ColorError}Insufficient privileges to use revert.");
+            m.SendMessage(args.Player, $"{GameConstants.colorError}Insufficient privileges to use revert.");
             args.Handled = true;
             return;
         }
@@ -41,12 +41,12 @@ public class Revert : IMod
         }
         catch
         {
-            m.SendMessage(args.Player, $"{m.ColorError}Invalid arguments. Type /help to see command's usage.");
+            m.SendMessage(args.Player, $"{GameConstants.colorError}Invalid arguments. Type /help to see command's usage.");
             return;
         }
 
         if (n > MaxRevert)
-            m.SendMessage(args.Player, $"{m.ColorError}Can't revert more than {MaxRevert} block changes");
+            m.SendMessage(args.Player, $"{GameConstants.colorError}Can't revert more than {MaxRevert} block changes");
 
         int reverted = 0;
         for (int i = lines.Count - 1; i >= 0; i--)
@@ -72,7 +72,7 @@ public class Revert : IMod
         }
 
         if (reverted == 0)
-            m.SendMessage(args.Player, string.Format(m.ColorError + "Not reverted any block changes by player {0}.", targetplayername));
+            m.SendMessage(args.Player, string.Format(GameConstants.colorError + "Not reverted any block changes by player {0}.", targetplayername));
         else
         {
             m.SendMessageToAll(string.Format("{0} reverted {1} block changes by player {2}", m.GetPlayerName(args.Player), reverted, targetplayername));

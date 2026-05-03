@@ -20,9 +20,11 @@ public class ServerSystemLoadConfig : ServerSystem
     };
     private readonly ILanguageService _languageService;
     private readonly IServerConfig _serverConfig;
+    private readonly Server server;
 
-    public ServerSystemLoadConfig(IModEvents modEvents, ILanguageService languageService, IServerConfig serverConfig) : base(modEvents)
+    public ServerSystemLoadConfig(Server server, IModEvents modEvents, ILanguageService languageService, IServerConfig serverConfig) : base(modEvents)
     {
+        this.server = server;
         _languageService = languageService;
         _serverConfig = serverConfig;
     }
@@ -35,7 +37,7 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Loads the configuration once on startup, then flushes any pending save
     /// on subsequent ticks when <see cref="Server.ConfigNeedsSaving"/> is set.
     /// </summary>
-    protected override void Initialize(Server server)
+    protected override void Initialize()
     {
         LoadConfig();
         server.OnConfigLoaded();
@@ -157,7 +159,7 @@ public class ServerSystemLoadConfig : ServerSystem
 
         if (_serverConfig.Areas.Count == 0)
         {
-            _serverConfig.Areas = ServerConfigMisc.getDefaultAreas();
+            _serverConfig.Areas = AreaConfig.GetDefaultAreas();
         }
 
         File.WriteAllText(

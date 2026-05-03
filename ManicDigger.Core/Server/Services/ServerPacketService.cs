@@ -16,8 +16,8 @@ public interface IServerPacketService
 
 public class ServerPacketService : IServerPacketService
 {
-    private readonly IServerClientService _serverClientService;
-    public ServerPacketService(IServerClientService serverClientService)
+    private readonly IClientRegistry _serverClientService;
+    public ServerPacketService(IClientRegistry serverClientService)
     {
         _serverClientService = serverClientService;
     }

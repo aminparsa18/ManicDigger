@@ -5,7 +5,7 @@ namespace ManicDigger;
 
 public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb,
     IServerMapStorage serverMapStorage, ILanguageService languageService, IServerConfig config, IServerPacketService serverPacketService,
-    Server server, ISaveGameService saveGameService, IServerClientService serverClientService, IPlayerStatusService playerStatusService) : IServerModManager
+    Server server, ISaveGameService saveGameService, IClientRegistry serverClientService, PlayerStatusService playerStatusService) : IServerModManager
 {
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
@@ -13,8 +13,8 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
     private readonly IServerMapStorage _serverMapStorage = serverMapStorage;
     private readonly ILanguageService _languageService = languageService;
     private readonly IServerConfig _config = config;
-    private readonly IServerClientService _serverClientService = serverClientService;
-    private readonly IPlayerStatusService _playerStatusService = playerStatusService;
+    private readonly IClientRegistry _serverClientService = serverClientService;
+    private readonly PlayerStatusService _playerStatusService = playerStatusService;
     private readonly IServerPacketService _serverPacketService = serverPacketService;
 
     public int GetMaxBlockTypes() => GameConstants.MAX_BLOCKTYPES;
@@ -174,23 +174,17 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void SetString(string language, string id, string translation) => _languageService.Override(language, id, translation);
 
-    public string GetString(string id)
-        //Returns string depending on server language
-        => _languageService.Get(id);
-
     public bool IsValidPos(int x, int y, int z) => VectorUtils.IsValidPos(_serverMapStorage, x, y, z);
 
     public void RegisterTimer(Action a, double interval) => _server.Timers[new Timer() { INTERVAL = interval }] = delegate { a(); };
 
     public void PlaySoundAt(int posx, int posy, int posz, string sound) => _server.PlaySoundAt(posx, posy, posz, sound);
 
-    public void PlaySoundAt(int x, int y, int z, string sound, int range) => _server.PlaySoundAt(x, y, z, sound, range);
-
     public int NearestPlayer(int x, int y, int z)
     {
         int closeplayer = -1;
         int closedistance = -1;
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             int distance = VectorUtils.DistanceSquared(new Vector3i(k.Value.PositionMul32GlX / 32, k.Value.PositionMul32GlZ / 32, k.Value.PositionMul32GlY / 32), new Vector3i(x, y, z));
             if (closedistance == -1 || distance < closedistance)
@@ -230,8 +224,6 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         _server.NotifyInventory(player);
     }
 
-    public string ColorError => _server.colorError;
-
     public void SendMessage(int player, string p) => _serverPacketService.SendMessage(player, p);
 
     public void RegisterPrivilege(string p)
@@ -260,14 +252,12 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public int Seed => saveGameService.Seed;
 
-    public int Index3d(int x, int y, int h, int sizex, int sizey) => (((h * sizey) + y) * sizex) + x;
-
     public void SetDefaultSounds(SoundSet defaultSounds) => this.defaultSounds = defaultSounds;
     private SoundSet defaultSounds;
 
     public byte[] GetGlobalData(string name)
     {
-        if (_server.ModData.TryGetValue(name, out byte[]? value))
+        if (saveGameService.ModData.TryGetValue(name, out byte[]? value))
         {
             return value;
         }
@@ -275,7 +265,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         return null;
     }
 
-    public void SetGlobalData(string name, byte[] value) => _server.ModData[name] = value;
+    public void SetGlobalData(string name, byte[] value) => saveGameService.ModData[name] = value;
 
     public void RegisterOnLoad(Action f) => _server.OnLoad.Add(f);
 
@@ -339,7 +329,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void UpdateBlockTypes()
     {
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             _server.SendBlockTypes(k.Key);
         }
@@ -423,7 +413,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
     public int[] AllPlayers()
     {
         List<int> players = [];
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             players.Add(k.Key);
         }
@@ -622,7 +612,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
     public int AddBot(string name)
     {
         int id = _serverClientService.GenerateClientId();
-        ClientOnServer c = new()
+        ServerPlayer c = new()
         {
             Id = id,
             IsBot = true,
@@ -703,7 +693,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public int MaxPlayers => _config.MaxClients;
 
-    public ServerClient GetServerClient() => _serverClientService.ServerClient;
+    public ServerRoster GetServerClient() => _serverClientService.ServerClient;
 
     public long TotalReceivedBytes => _server.TotalReceivedBytes;
 

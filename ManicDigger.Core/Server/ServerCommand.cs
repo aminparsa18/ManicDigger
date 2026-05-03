@@ -34,7 +34,7 @@ public partial class Server
                     return;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                 return;
             case "re":
                 if (!string.IsNullOrEmpty(argument))
@@ -43,7 +43,7 @@ public partial class Server
                     return;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                 return;
             case "op":
             case "chgrp":
@@ -55,7 +55,7 @@ public partial class Server
                     return;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                 return;
             case "op_offline":
             case "chgrp_offline":
@@ -67,7 +67,7 @@ public partial class Server
                     return;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                 return;
             case "remove_client":
                 ss = argument.Split([' ']);
@@ -77,7 +77,7 @@ public partial class Server
                     return;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                 return;
             case "login":
                 // enables to change temporary group with a group's password (only if group allows it)
@@ -88,7 +88,7 @@ public partial class Server
                     return;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                 return;
             case "welcome":
                 this.WelcomeMessage(sourceClientId, argument);
@@ -110,13 +110,13 @@ public partial class Server
                     return;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                 return;
             case "kick_id":
                 ss = argument.Split([' ']);
                 if (!int.TryParse(ss[0], out id))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -150,7 +150,7 @@ public partial class Server
                 {
                     if (!int.TryParse(ss[2], out int amount))
                     {
-                        _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                        _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                         return;
                     }
                     else
@@ -161,12 +161,12 @@ public partial class Server
                     return;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                 return;
             case "monsters":
                 if (!argument.Equals("off") && !argument.Equals("on"))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -178,13 +178,13 @@ public partial class Server
 
                 if (ss.Length is < 4 or > 5)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
                 if (!int.TryParse(ss[0], out areaId))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -203,12 +203,12 @@ public partial class Server
                 }
                 catch (FormatException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
                 catch (OverflowException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -217,7 +217,7 @@ public partial class Server
             case "area_delete":
                 if (!int.TryParse(argument, out areaId))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -243,7 +243,7 @@ public partial class Server
 
                 if (ss.Length is < 3 or > 5)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -267,17 +267,17 @@ public partial class Server
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
                 catch (FormatException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
                 catch (OverflowException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
 
@@ -291,12 +291,12 @@ public partial class Server
                 }
                 catch (FormatException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
                 catch (OverflowException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
 
@@ -318,7 +318,7 @@ public partial class Server
 
                 if (ss.Length is < 2 or > 3)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -329,17 +329,17 @@ public partial class Server
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
                 catch (FormatException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
                 catch (OverflowException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
 
@@ -353,12 +353,12 @@ public partial class Server
                 }
                 catch (FormatException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
                 catch (OverflowException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidSpawnPosition"));
                     return;
                 }
 
@@ -368,7 +368,7 @@ public partial class Server
                 ss = argument.Split([' ']);
                 if (ss.Length != 2)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -378,7 +378,7 @@ public partial class Server
                 ss = argument.Split([' ']);
                 if (ss.Length != 2)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -400,11 +400,11 @@ public partial class Server
                 ss = argument.Split([' ']);
                 if (ss.Length != 1)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
-                foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                 {
                     if (k.Value.PlayerName.Equals(ss[0], StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -413,7 +413,7 @@ public partial class Server
                     }
                 }
 
-                foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                 {
                     if (k.Value.PlayerName.StartsWith(ss[0], StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -422,13 +422,13 @@ public partial class Server
                     }
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantPlayer"), colorError, ss[0]));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantPlayer"), GameConstants.colorError, ss[0]));
                 break;
             case "tp_pos":
                 ss = argument.Split([' ']);
                 if (ss.Length is < 2 or > 3)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -439,17 +439,17 @@ public partial class Server
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
                 catch (FormatException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
                 catch (OverflowException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
 
@@ -463,12 +463,12 @@ public partial class Server
                 }
                 catch (FormatException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
                 catch (OverflowException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
 
@@ -479,7 +479,7 @@ public partial class Server
 
                 if (ss.Length is < 3 or > 4)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
 
@@ -490,17 +490,17 @@ public partial class Server
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
                 catch (FormatException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
                 catch (OverflowException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
 
@@ -514,31 +514,31 @@ public partial class Server
                 }
                 catch (FormatException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
                 catch (OverflowException)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidPosition"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidPosition"));
                     return;
                 }
 
                 this.TeleportPlayer(sourceClientId, ss[0], x, y, z);
                 break;
             case "backup_database":
-                if (!_serverClientService.GetClient(sourceClientId).Privileges.Contains(ServerClientMisc.Privilege.backup_database))
+                if (!_serverClientService.GetClient(sourceClientId).Privileges.Contains(Privilege.backup_database))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                     break;
                 }
 
                 if (!_saveGameService.BackupDatabase(argument))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandBackupFailed"), colorError));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandBackupFailed"), GameConstants.colorError));
                 }
                 else
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandBackupCreated"), colorSuccess));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandBackupCreated"), GameConstants.colorSuccess));
                     ServerEventLog(string.Format("{0} backups database: {1}.", _serverClientService.GetClient(sourceClientId).PlayerName, argument));
                 }
 
@@ -547,7 +547,7 @@ public partial class Server
         case "load":
             if (!GetClient(sourceClientId).privileges.Contains(ServerClientMisc.Privilege.load))
             {
-                SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                 break;
             }
             if (!GameStorePath.IsValidName(argument))
@@ -557,11 +557,11 @@ public partial class Server
             }
             if (!LoadDatabase(argument))
             {
-                SendMessage(sourceClientId, string.Format("{0}World could not be loaded. Check filename.", colorError));
+                SendMessage(sourceClientId, string.Format("{0}World could not be loaded. Check filename.", GameConstants.colorError));
             }
             else
             {
-                SendMessage(sourceClientId, string.Format("{0}World loaded.", colorSuccess));
+                SendMessage(sourceClientId, string.Format("{0}World loaded.", GameConstants.colorSuccess));
                 ServerEventLog(String.Format("{0} loads world: {1}.", GetClient(sourceClientId).playername, argument));
             }
             break;
@@ -575,7 +575,7 @@ public partial class Server
                 ss = argument.Split([' ']);
                 if (ss.Length is < 2 or > 3)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
                 // Add an empty target argument, when user sets default max-fill.
@@ -590,7 +590,7 @@ public partial class Server
 
                 if (!int.TryParse(ss[2], out int maxFill))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+                    _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                     return;
                 }
                 else
@@ -629,17 +629,17 @@ public partial class Server
                 if (_modEvents.RaiseCommand(sourceClientId, command, argument))
                     return;
 
-                _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandUnknown") + command);
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandUnknown") + command);
                 return;
         }
     }
 
     public void Help(int sourceClientId)
     {
-        _serverPacketService.SendMessage(sourceClientId, colorHelp + "Available privileges:");
+        _serverPacketService.SendMessage(sourceClientId, GameConstants.colorHelp + "Available privileges:");
         foreach (string privilege in _serverClientService.GetClient(sourceClientId).Privileges)
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format("{0}{1}: {2}", colorHelp, privilege.ToString(), this.CommandHelp(privilege.ToString())));
+            _serverPacketService.SendMessage(sourceClientId, string.Format("{0}{1}: {2}", GameConstants.colorHelp, privilege.ToString(), this.CommandHelp(privilege.ToString())));
         }
     }
 
@@ -745,18 +745,18 @@ public partial class Server
 
     public bool PrivateMessage(int sourceClientId, string recipient, string message)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.pm))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.pm))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer targetClient = _serverClientService.GetClient(recipient);
-        ClientOnServer sourceClient = _serverClientService.GetClient(sourceClientId);
+        ServerPlayer targetClient = _serverClientService.GetClient(recipient);
+        ServerPlayer sourceClient = _serverClientService.GetClient(sourceClientId);
         if (targetClient != null)
         {
-            _serverPacketService.SendMessage(targetClient.Id, string.Format("PM {0}: {1}", sourceClient.ColoredPlayername(colorNormal), message));
-            _serverPacketService.SendMessage(sourceClientId, string.Format("PM -> {0}: {1}", targetClient.ColoredPlayername(colorNormal), message));
+            _serverPacketService.SendMessage(targetClient.Id, string.Format("PM {0}: {1}", sourceClient.ColoredPlayername(GameConstants.colorNormal), message));
+            _serverPacketService.SendMessage(sourceClientId, string.Format("PM -> {0}: {1}", targetClient.ColoredPlayername(GameConstants.colorNormal), message));
             lastSender[targetClient.PlayerName] = sourceClient.PlayerName;
             // TODO: move message sound to client
             if (targetClient.Id != GameConstants.ServerConsoleId)
@@ -767,30 +767,30 @@ public partial class Server
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), colorError, recipient));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), GameConstants.colorError, recipient));
         return false;
     }
 
     public bool AnswerMessage(int sourceClientId, string message)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.pm))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.pm))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer sourceClient = _serverClientService.GetClient(sourceClientId);
+        ServerPlayer sourceClient = _serverClientService.GetClient(sourceClientId);
         if (!lastSender.ContainsKey(sourceClient.PlayerName))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPMNoAnswer"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPMNoAnswer"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer targetClient = _serverClientService.GetClient(lastSender[sourceClient.PlayerName]);
+        ServerPlayer targetClient = _serverClientService.GetClient(lastSender[sourceClient.PlayerName]);
         if (targetClient != null)
         {
-            _serverPacketService.SendMessage(targetClient.Id, string.Format("PM {0}: {1}", sourceClient.ColoredPlayername(colorNormal), message));
-            _serverPacketService.SendMessage(sourceClientId, string.Format("PM -> {0}: {1}", targetClient.ColoredPlayername(colorNormal), message));
+            _serverPacketService.SendMessage(targetClient.Id, string.Format("PM {0}: {1}", sourceClient.ColoredPlayername(GameConstants.colorNormal), message));
+            _serverPacketService.SendMessage(sourceClientId, string.Format("PM -> {0}: {1}", targetClient.ColoredPlayername(GameConstants.colorNormal), message));
             lastSender[targetClient.PlayerName] = sourceClient.PlayerName;
             // TODO: move message sound to client
             if (targetClient.Id != GameConstants.ServerConsoleId)
@@ -801,15 +801,15 @@ public partial class Server
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), colorError, lastSender[sourceClient.PlayerName]));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), GameConstants.colorError, lastSender[sourceClient.PlayerName]));
         return false;
     }
 
     public bool ChangeGroup(int sourceClientId, string target, string newGroupName)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.chgrp))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.chgrp))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -822,14 +822,14 @@ public partial class Server
         );
         if (newGroup == null)
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), colorError, newGroupName));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), GameConstants.colorError, newGroupName));
             return false;
         }
 
         // Forbid to assign groups with levels higher then the source's client group level.
         if (newGroup.IsSuperior(_serverClientService.GetClient(sourceClientId).ClientGroup))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetGroupSuperior"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetGroupSuperior"), GameConstants.colorError));
             return false;
         }
 
@@ -842,13 +842,13 @@ public partial class Server
         );
 
         // Get related client.
-        ClientOnServer targetClient = _serverClientService.GetClient(target);
+        ServerPlayer targetClient = _serverClientService.GetClient(target);
 
         if (targetClient != null)
         {
             if (targetClient.ClientGroup.IsSuperior(_serverClientService.GetClient(sourceClientId).ClientGroup) || targetClient.ClientGroup.EqualLevel(_serverClientService.GetClient(sourceClientId).ClientGroup))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetUserSuperior"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetUserSuperior"), GameConstants.colorError));
                 return false;
             }
             // Add or change group membership in config file.
@@ -869,24 +869,24 @@ public partial class Server
             }
 
             _serverClientService.ServerClientNeedsSaving = true;
-            SendMessageToAll(string.Format(_languageService.Get("Server_CommandSetGroupTo"), colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorSuccess), targetClient.ColoredPlayername(colorSuccess), newGroup.GroupColorString() + newGroupName));
+            SendMessageToAll(string.Format(_languageService.Get("Server_CommandSetGroupTo"), GameConstants.colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorSuccess), targetClient.ColoredPlayername(GameConstants.colorSuccess), newGroup.GroupColorString() + newGroupName));
             ServerEventLog(string.Format("{0} sets group of {1} to {2}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetClient.PlayerName, newGroupName));
             targetClient.AssignGroup(newGroup);
-            SendFreemoveState(targetClient.Id, targetClient.Privileges.Contains(ServerClientMisc.Privilege.freemove));
+            SendFreemoveState(targetClient.Id, targetClient.Privileges.Contains(Privilege.freemove));
             SetFillAreaLimit(targetClient.Id);
             return true;
         }
 
         // Target is at the moment not online.
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandOpTargetOffline"), colorError, target));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandOpTargetOffline"), GameConstants.colorError, target));
         return false;
     }
 
     public bool ChangeGroupOffline(int sourceClientId, string target, string newGroupName)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.chgrp_offline))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.chgrp_offline))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -899,14 +899,14 @@ public partial class Server
         );
         if (newGroup == null)
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), colorError, newGroupName));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), GameConstants.colorError, newGroupName));
             return false;
         }
 
         // Forbid to assign groups with levels higher then the source's client group level.
         if (newGroup.IsSuperior(_serverClientService.GetClient(sourceClientId).ClientGroup))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetGroupSuperior"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetGroupSuperior"), GameConstants.colorError));
             return false;
         }
 
@@ -919,11 +919,11 @@ public partial class Server
         );
 
         // Get related client.
-        ClientOnServer targetClient = _serverClientService.GetClient(target);
+        ServerPlayer targetClient = _serverClientService.GetClient(target);
 
         if (targetClient != null)
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandOpTargetOnline"), colorError, target));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandOpTargetOnline"), GameConstants.colorError, target));
             return false;
         }
 
@@ -948,13 +948,13 @@ public partial class Server
             );
             if (oldGroup == null)
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInvalidGroup"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInvalidGroup"), GameConstants.colorError));
                 return false;
             }
 
             if (oldGroup.IsSuperior(_serverClientService.GetClient(sourceClientId).ClientGroup) || oldGroup.EqualLevel(_serverClientService.GetClient(sourceClientId).ClientGroup))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetUserSuperior"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetUserSuperior"), GameConstants.colorError));
                 return false;
             }
 
@@ -962,16 +962,16 @@ public partial class Server
         }
 
         _serverClientService.ServerClientNeedsSaving = true;
-        SendMessageToAll(string.Format(_languageService.Get("Server_CommandSetOfflineGroupTo"), colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorSuccess), target, newGroup.GroupColorString() + newGroupName));
+        SendMessageToAll(string.Format(_languageService.Get("Server_CommandSetOfflineGroupTo"), GameConstants.colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorSuccess), target, newGroup.GroupColorString() + newGroupName));
         ServerEventLog(string.Format("{0} sets group of {1} to {2} (offline).", _serverClientService.GetClient(sourceClientId).PlayerName, target, newGroupName));
         return true;
     }
 
     public bool RemoveClientFromConfig(int sourceClientId, string target)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.remove_client))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.remove_client))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -994,13 +994,13 @@ public partial class Server
             );
             if (targetGroup == null)
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInvalidGroup"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInvalidGroup"), GameConstants.colorError));
                 return false;
             }
             // Check if target's group is superior.
             if (targetGroup.IsSuperior(_serverClientService.GetClient(sourceClientId).ClientGroup) || targetGroup.EqualLevel(_serverClientService.GetClient(sourceClientId).ClientGroup))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetUserSuperior"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetUserSuperior"), GameConstants.colorError));
                 return false;
             }
             // Remove target's entry.
@@ -1010,23 +1010,23 @@ public partial class Server
             if (_serverClientService.GetClient(target) != null)
             {
                 _serverClientService.GetClient(target).AssignGroup(this.DefaultGroupGuest);
-                SendMessageToAll(string.Format(_languageService.Get("Server_CommandSetGroupTo"), colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorSuccess), _serverClientService.GetClient(target).ColoredPlayername(colorSuccess), this.DefaultGroupGuest.GroupColorString() + DefaultGroupGuest.Name));
+                SendMessageToAll(string.Format(_languageService.Get("Server_CommandSetGroupTo"), GameConstants.colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorSuccess), _serverClientService.GetClient(target).ColoredPlayername(GameConstants.colorSuccess), this.DefaultGroupGuest.GroupColorString() + DefaultGroupGuest.Name));
             }
 
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandRemoveSuccess"), colorSuccess, target));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandRemoveSuccess"), GameConstants.colorSuccess, target));
             ServerEventLog(string.Format("{0} removes client {1} from config.", _serverClientService.GetClient(sourceClientId).PlayerName, target));
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandRemoveNotFound"), colorError, target));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandRemoveNotFound"), GameConstants.colorError, target));
         return false;
     }
 
     public bool Login(int sourceClientId, string targetGroupString, string password)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.login))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.login))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -1038,41 +1038,41 @@ public partial class Server
         );
         if (targetGroup == null)
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), colorError, targetGroupString));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), GameConstants.colorError, targetGroupString));
             return false;
         }
 
         if (string.IsNullOrEmpty(targetGroup.Password))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandLoginNoPW"), colorError, targetGroupString));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandLoginNoPW"), GameConstants.colorError, targetGroupString));
             return false;
         }
 
         if (targetGroup.Password.Equals(password))
         {
             _serverClientService.GetClient(sourceClientId).AssignGroup(targetGroup);
-            SendFreemoveState(sourceClientId, _serverClientService.GetClient(sourceClientId).Privileges.Contains(ServerClientMisc.Privilege.freemove));
-            SendMessageToAll(string.Format(_languageService.Get("Server_CommandLoginSuccess"), colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorSuccess), targetGroupString));
+            SendFreemoveState(sourceClientId, _serverClientService.GetClient(sourceClientId).Privileges.Contains(Privilege.freemove));
+            SendMessageToAll(string.Format(_languageService.Get("Server_CommandLoginSuccess"), GameConstants.colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorSuccess), targetGroupString));
             _serverPacketService.SendMessage(sourceClientId, _languageService.Get("Server_CommandLoginInfo"));
             ServerEventLog(string.Format("{0} logs in group {1}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetGroupString));
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandLoginInvalidPassword"), colorError));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandLoginInvalidPassword"), GameConstants.colorError));
         ServerEventLog(string.Format("{0} fails to log in (invalid password: {1}).", _serverClientService.GetClient(sourceClientId).PlayerName, password));
         return false;
     }
 
     public bool WelcomeMessage(int sourceClientId, string welcomeMessage)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.welcome))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.welcome))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
         _config.WelcomeMessage = welcomeMessage;
-        SendMessageToAll(string.Format(_languageService.Get("Server_CommandWelcomeChanged"), colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorSuccess), welcomeMessage));
+        SendMessageToAll(string.Format(_languageService.Get("Server_CommandWelcomeChanged"), GameConstants.colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorSuccess), welcomeMessage));
         ServerEventLog(string.Format("{0} changes welcome message to {1}.", _serverClientService.GetClient(sourceClientId).PlayerName, welcomeMessage));
         _config.ConfigNeedsSaving = true;
         return true;
@@ -1080,9 +1080,9 @@ public partial class Server
 
     public bool SetLogging(int sourceClientId, string type, string option)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.logging))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.logging))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -1099,7 +1099,7 @@ public partial class Server
                 {
                     _config.BuildLogging = true;
                     _config.ConfigNeedsSaving = true;
-                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Build logging enabled.", colorSuccess));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Build logging enabled.", GameConstants.colorSuccess));
                     ServerEventLog(string.Format("{0} enables build logging.", _serverClientService.GetClient(sourceClientId).PlayerName));
                     return true;
                 }
@@ -1108,19 +1108,19 @@ public partial class Server
                 {
                     _config.BuildLogging = false;
                     _config.ConfigNeedsSaving = true;
-                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Build logging disabled.", colorSuccess));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Build logging disabled.", GameConstants.colorSuccess));
                     ServerEventLog(string.Format("{0} disables build logging.", _serverClientService.GetClient(sourceClientId).PlayerName));
                     return true;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Build logging: {1}", colorNormal, _config.BuildLogging));
+                _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Build logging: {1}", GameConstants.colorNormal, _config.BuildLogging));
                 return true;
             case "-se":
                 if (option.Equals("on"))
                 {
                     _config.ServerEventLogging = true;
                     _config.ConfigNeedsSaving = true;
-                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Server event logging enabled.", colorSuccess));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Server event logging enabled.", GameConstants.colorSuccess));
                     ServerEventLog(string.Format("{0} enables server event logging.", _serverClientService.GetClient(sourceClientId).PlayerName));
                     return true;
                 }
@@ -1130,18 +1130,18 @@ public partial class Server
                     ServerEventLog(string.Format("{0} disables server event logging.", _serverClientService.GetClient(sourceClientId).PlayerName));
                     _config.ServerEventLogging = false;
                     _config.ConfigNeedsSaving = true;
-                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Server event logging disabled.", colorSuccess));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Server event logging disabled.", GameConstants.colorSuccess));
                     return true;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Server event logging: {1}", colorNormal, _config.ServerEventLogging));
+                _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Server event logging: {1}", GameConstants.colorNormal, _config.ServerEventLogging));
                 return true;
             case "-c":
                 if (option.Equals("on"))
                 {
                     _config.ChatLogging = true;
                     _config.ConfigNeedsSaving = true;
-                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Chat logging enabled.", colorSuccess));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Chat logging enabled.", GameConstants.colorSuccess));
                     ServerEventLog(string.Format("{0} enables chat logging.", _serverClientService.GetClient(sourceClientId).PlayerName));
                     return true;
                 }
@@ -1150,15 +1150,15 @@ public partial class Server
                 {
                     _config.ChatLogging = false;
                     _config.ConfigNeedsSaving = true;
-                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Chat logging disabled.", colorSuccess));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Chat logging disabled.", GameConstants.colorSuccess));
                     ServerEventLog(string.Format("{0} disables chat logging.", _serverClientService.GetClient(sourceClientId).PlayerName));
                     return true;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Chat logging: {1}", colorNormal, _config.ChatLogging));
+                _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Chat logging: {1}", GameConstants.colorNormal, _config.ChatLogging));
                 return true;
             default:
-                _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Invalid type: {1}", colorError, type));
+                _serverPacketService.SendMessage(sourceClientId, string.Format("{0}Invalid type: {1}", GameConstants.colorError, type));
                 return false;
         }
     }
@@ -1167,13 +1167,13 @@ public partial class Server
 
     public bool Kick(int sourceClientId, string target, string reason)
     {
-        ClientOnServer targetClient = _serverClientService.GetClient(target);
+        ServerPlayer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             return this.Kick(sourceClientId, targetClient.Id, reason);
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), colorError, target));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), GameConstants.colorError, target));
         return false;
     }
 
@@ -1181,9 +1181,9 @@ public partial class Server
 
     public bool Kick(int sourceClientId, int targetClientId, string reason)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.kick))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.kick))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -1192,27 +1192,27 @@ public partial class Server
             reason = _languageService.Get("Server_CommandKickBanReason") + reason + ".";
         }
 
-        ClientOnServer targetClient = _serverClientService.GetClient(targetClientId);
+        ServerPlayer targetClient = _serverClientService.GetClient(targetClientId);
         if (targetClient != null)
         {
             if (targetClient.ClientGroup.IsSuperior(_serverClientService.GetClient(sourceClientId).ClientGroup) || targetClient.ClientGroup.EqualLevel(_serverClientService.GetClient(sourceClientId).ClientGroup))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetUserSuperior"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTargetUserSuperior"), GameConstants.colorError));
                 return false;
             }
 
             string targetName = targetClient.PlayerName;
             string sourceName = _serverClientService.GetClient(sourceClientId).PlayerName;
-            string targetNameColored = targetClient.ColoredPlayername(colorImportant);
-            string sourceNameColored = _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorImportant);
-            SendMessageToAll(string.Format(_languageService.Get("Server_CommandKickMessage"), colorImportant, targetNameColored, sourceNameColored, reason));
+            string targetNameColored = targetClient.ColoredPlayername(GameConstants.colorImportant);
+            string sourceNameColored = _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorImportant);
+            SendMessageToAll(string.Format(_languageService.Get("Server_CommandKickMessage"), GameConstants.colorImportant, targetNameColored, sourceNameColored, reason));
             ServerEventLog(string.Format("{0} kicks {1}.{2}", sourceName, targetName, reason));
             _serverPacketService.SendPacket(targetClientId, ServerPackets.DisconnectPlayer(string.Format(_languageService.Get("Server_CommandKickNotification"), reason)));
             KillPlayer(targetClientId);
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantID"), colorError, targetClientId));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantID"), GameConstants.colorError, targetClientId));
         return false;
     }
 
@@ -1222,30 +1222,30 @@ public partial class Server
         {
             case "-clients":
             case "-c":
-                if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.list_clients))
+                if (!PlayerHasPrivilege(sourceClientId, Privilege.list_clients))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                     return false;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorImportant + "List of Players:");
-                foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorImportant + "List of Players:");
+                foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                 {
                     // Format: Key Playername IP
-                    _serverPacketService.SendMessage(sourceClientId, string.Format("[{0}] {1} {2}", k.Key, k.Value.ColoredPlayername(colorNormal), k.Value.Socket.RemoteEndPoint().AddressToString()));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format("[{0}] {1} {2}", k.Key, k.Value.ColoredPlayername(GameConstants.colorNormal), k.Value.Socket.RemoteEndPoint().AddressToString()));
                 }
 
                 return true;
             case "-clients2":
             case "-c2":
-                if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.list_clients))
+                if (!PlayerHasPrivilege(sourceClientId, Privilege.list_clients))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                     return false;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorImportant + "List of Players:");
-                foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorImportant + "List of Players:");
+                foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                 {
                     // Format: Key Playername:Group:Privileges IP
                     _serverPacketService.SendMessage(sourceClientId, string.Format("[{0}] {1}", k.Key, k.Value.ToString()));
@@ -1254,13 +1254,13 @@ public partial class Server
                 return true;
             case "-areas":
             case "-a":
-                if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.list_areas))
+                if (!PlayerHasPrivilege(sourceClientId, Privilege.list_areas))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                     return false;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, $"{colorImportant}List of Areas:");
+                _serverPacketService.SendMessage(sourceClientId, $"{GameConstants.colorImportant}List of Areas:");
                 foreach (AreaConfig area in _config.Areas)
                 {
                     _serverPacketService.SendMessage(sourceClientId, area.ToString());
@@ -1269,14 +1269,14 @@ public partial class Server
                 return true;
             case "-bannedusers":
             case "-bu":
-                if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.list_banned_users))
+                if (!PlayerHasPrivilege(sourceClientId, Privilege.list_banned_users))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                     return false;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, $"{colorImportant}List of Banned Users:");
-                foreach (UserEntry currentUser in BanList.BannedUsers)
+                _serverPacketService.SendMessage(sourceClientId, $"{GameConstants.colorImportant}List of Banned Users:");
+                foreach (UserEntry currentUser in _serverClientService.BanList.BannedUsers)
                 {
                     //Format:	Name: Reason
                     string reason = currentUser.Reason;
@@ -1291,14 +1291,14 @@ public partial class Server
                 return true;
             case "-bannedips":
             case "-bip":
-                if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.list_banned_users))
+                if (!PlayerHasPrivilege(sourceClientId, Privilege.list_banned_users))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                     return false;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, $"{colorImportant}List of Banned IPs:");
-                foreach (IPEntry currentIP in BanList.BannedIPs)
+                _serverPacketService.SendMessage(sourceClientId, $"{GameConstants.colorImportant}List of Banned IPs:");
+                foreach (IPEntry currentIP in _serverClientService.BanList.BannedIPs)
                 {
                     //Format:	IP: Reason
                     string reason = currentIP.Reason;
@@ -1313,13 +1313,13 @@ public partial class Server
                 return true;
             case "-groups":
             case "-g":
-                if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.list_groups))
+                if (!PlayerHasPrivilege(sourceClientId, Privilege.list_groups))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                     return false;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, $"{colorImportant}List of groups:");
+                _serverPacketService.SendMessage(sourceClientId, $"{GameConstants.colorImportant}List of groups:");
                 foreach (Group currenGroup in _serverClientService.ServerClient.Groups)
                 {
                     _serverPacketService.SendMessage(sourceClientId, currenGroup.ToString());
@@ -1328,13 +1328,13 @@ public partial class Server
                 return true;
             case "-saved_clients":
             case "-sc":
-                if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.list_saved_clients))
+                if (!PlayerHasPrivilege(sourceClientId, Privilege.list_saved_clients))
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                     return false;
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, colorImportant + "List of saved clients:");
+                _serverPacketService.SendMessage(sourceClientId, GameConstants.colorImportant + "List of saved clients:");
                 foreach (Client currenClient in _serverClientService.ServerClient.Clients)
                 {
 
@@ -1350,13 +1350,13 @@ public partial class Server
 
     public bool GiveAll(int sourceClientId, string target)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.giveall))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.giveall))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer targetClient = _serverClientService.GetClient(target);
+        ServerPlayer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             string targetName = targetClient.PlayerName;
@@ -1417,24 +1417,24 @@ public partial class Server
                 targetClient.IsInventoryDirty = true;
             }
 
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGiveAll"), colorSuccess, targetName));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGiveAll"), GameConstants.colorSuccess, targetName));
             ServerEventLog(string.Format("{0} gives all to {1}.", sourcename, targetName));
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), colorError, target));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), GameConstants.colorError, target));
         return false;
     }
 
     public bool Give(int sourceClientId, string target, string blockname, int amount)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.give))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.give))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer targetClient = _serverClientService.GetClient(target);
+        ServerPlayer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             string targetName = targetClient.PlayerName;
@@ -1520,28 +1520,28 @@ public partial class Server
                 targetClient.IsInventoryDirty = true;
             }
 
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGiveSuccess"), colorSuccess, amount, blockname, targetName));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGiveSuccess"), GameConstants.colorSuccess, amount, blockname, targetName));
             ServerEventLog(string.Format("{0} gives {1} {2} to {3}.", sourcename, amount, blockname, targetName));
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), colorError, target));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), GameConstants.colorError, target));
         return false;
     }
 
     public bool ResetInventory(int sourceClientId, string target)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.reset_inventory))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.reset_inventory))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer targetClient = _serverClientService.GetClient(target);
+        ServerPlayer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             ResetPlayerInventory(targetClient);
-            SendMessageToAll(string.Format(_languageService.Get("Server_CommandResetInventorySuccess"), colorImportant, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorImportant), targetClient.ColoredPlayername(colorImportant)));
+            SendMessageToAll(string.Format(_languageService.Get("Server_CommandResetInventorySuccess"), GameConstants.colorImportant, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorImportant), targetClient.ColoredPlayername(GameConstants.colorImportant)));
             ServerEventLog(string.Format("{0} resets inventory of {1}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetClient.PlayerName));
             return true;
         }
@@ -1549,20 +1549,20 @@ public partial class Server
         if (Inventory != null && Inventory.ContainsKey(target))
         {
             Inventory.Remove(target);
-            SendMessageToAll(string.Format(_languageService.Get("Server_CommandResetInventoryOfflineSuccess"), colorImportant, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorImportant), target));
+            SendMessageToAll(string.Format(_languageService.Get("Server_CommandResetInventoryOfflineSuccess"), GameConstants.colorImportant, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorImportant), target));
             ServerEventLog(string.Format("{0} resets inventory of {1} (offline).", _serverClientService.GetClient(sourceClientId).PlayerName, target));
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), colorError, target));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), GameConstants.colorError, target));
         return false;
     }
 
     public bool Monsters(int sourceClientId, string option)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.monsters))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.monsters))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -1570,7 +1570,7 @@ public partial class Server
         _config.ConfigNeedsSaving = true;
         if (!_config.Monsters)
         {
-            foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+            foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
             {
                 _serverPacketService.SendPacket(k.Key, Serialize(new Packet_Server()
                 {
@@ -1579,22 +1579,22 @@ public partial class Server
             }
         }
 
-        SendMessageToAll(string.Format(_languageService.Get("Server_CommandMonstersToggle"), _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorSuccess), option));
+        SendMessageToAll(string.Format(_languageService.Get("Server_CommandMonstersToggle"), _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorSuccess), option));
         ServerEventLog(string.Format("{0} turns monsters {1}.", _serverClientService.GetClient(sourceClientId).PlayerName, option));
         return true;
     }
 
     public bool AreaAdd(int sourceClientId, int id, string coords, string[] permittedGroups, string[] permittedUsers, int? level)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.area_add))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.area_add))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
         if (_config.Areas.Find(v => v.Id == id) != null)
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaAddIdInUse"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaAddIdInUse"), GameConstants.colorError));
             return false;
         }
 
@@ -1622,51 +1622,51 @@ public partial class Server
 
         _config.Areas.Add(newArea);
         _config.ConfigNeedsSaving = true;
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaAddSuccess"), colorSuccess, newArea.ToString()));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaAddSuccess"), GameConstants.colorSuccess, newArea.ToString()));
         ServerEventLog(string.Format("{0} adds area: {1}.", _serverClientService.GetClient(sourceClientId), newArea.ToString()));
         return true;
     }
 
     public bool AreaDelete(int sourceClientId, int id)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.area_delete))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.area_delete))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
         AreaConfig targetArea = _config.Areas.Find(v => v.Id == id);
         if (targetArea == null)
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaDeleteNonexistant"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaDeleteNonexistant"), GameConstants.colorError));
             return false;
         }
 
         _config.Areas.Remove(targetArea);
         _config.ConfigNeedsSaving = true;
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaDeleteSuccess"), colorSuccess));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaDeleteSuccess"), GameConstants.colorSuccess));
         ServerEventLog(string.Format("{0} deletes area: {1}.", _serverClientService.GetClient(sourceClientId).PlayerName, id));
         return true;
     }
 
     public bool Announcement(int sourceClientId, string message)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.announcement))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.announcement))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
         ServerEventLog(string.Format("{0} announced: {1}.", _serverClientService.GetClient(sourceClientId).PlayerName, message));
-        SendMessageToAll(string.Format(_languageService.Get("Server_CommandAnnouncementMessage"), colorError, message));
+        SendMessageToAll(string.Format(_languageService.Get("Server_CommandAnnouncementMessage"), GameConstants.colorError, message));
         return true;
     }
 
     public bool ClearInterpreter(int sourceClientId)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.run))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.run))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -1677,9 +1677,9 @@ public partial class Server
 
     public bool SetSpawnPosition(int sourceClientId, string targetType, string target, int x, int y, int? z)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.set_spawn))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.set_spawn))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -1689,7 +1689,7 @@ public partial class Server
         {
             if (!VectorUtils.IsValidPos(_serverMapStorage, x, y))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnInvalidCoordinates"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnInvalidCoordinates"), GameConstants.colorError));
                 return false;
             }
 
@@ -1702,7 +1702,7 @@ public partial class Server
 
         if (!VectorUtils.IsValidPos(_serverMapStorage, x, y, rZ))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnInvalidCoordinates"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnInvalidCoordinates"), GameConstants.colorError));
             return false;
         }
 
@@ -1714,7 +1714,7 @@ public partial class Server
                 _serverClientService.ServerClientNeedsSaving = true;
                 // Inform related players.
                 bool hasEntry = false;
-                foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                 {
                     hasEntry = false;
                     if (k.Value.ClientGroup.Spawn != null)
@@ -1743,7 +1743,7 @@ public partial class Server
                     }
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnDefaultSuccess"), colorSuccess, x, y, rZ));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnDefaultSuccess"), GameConstants.colorSuccess, x, y, rZ));
                 ServerEventLog(string.Format("{0} sets default spawn to {1},{2}{3}.", _serverClientService.GetClient(sourceClientId).PlayerName, x, y, z == null ? "" : "," + z.Value));
                 return true;
             case "-group":
@@ -1757,7 +1757,7 @@ public partial class Server
                 );
                 if (targetGroup == null)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), colorError, target));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), GameConstants.colorError, target));
                     return false;
                 }
 
@@ -1770,7 +1770,7 @@ public partial class Server
                 _serverClientService.ServerClientNeedsSaving = true;
                 // Inform related players.
                 hasEntry = false;
-                foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                 {
                     if (k.Value.ClientGroup.Name.Equals(targetGroup.Name))
                     {
@@ -1795,13 +1795,13 @@ public partial class Server
                     }
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnGroupSuccess"), colorSuccess, targetGroup.Name, x, y, rZ));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnGroupSuccess"), GameConstants.colorSuccess, targetGroup.Name, x, y, rZ));
                 ServerEventLog(string.Format("{0} sets spawn of group {1} to {2},{3}{4}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetGroup.Name, x, y, z == null ? "" : "," + z.Value));
                 return true;
             case "-player":
             case "-p":
                 // Get related client.
-                ClientOnServer targetClient = _serverClientService.GetClient(target);
+                ServerPlayer targetClient = _serverClientService.GetClient(target);
                 int? targetClientId = null;
                 if (targetClient != null)
                 {
@@ -1818,7 +1818,7 @@ public partial class Server
                 );
                 if (clientEntry == null)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), colorError, target));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), GameConstants.colorError, target));
                     return false;
                 }
                 // Change or add spawn entry of client.
@@ -1835,7 +1835,7 @@ public partial class Server
                     this.SendPlayerSpawnPosition(targetClientId.Value, x, y, rZ);
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnPlayerSuccess"), colorSuccess, targetClientPlayername, x, y, rZ));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnPlayerSuccess"), GameConstants.colorSuccess, targetClientPlayername, x, y, rZ));
                 ServerEventLog(string.Format("{0} sets spawn of player {1} to {2},{3}{4}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetClientPlayername, x, y, z == null ? "" : "," + z.Value));
                 return true;
             default:
@@ -1846,9 +1846,9 @@ public partial class Server
 
     public bool SetSpawnPosition(int sourceClientId, int x, int y, int? z)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.set_home))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.set_home))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -1860,7 +1860,7 @@ public partial class Server
         {
             if (!VectorUtils.IsValidPos(_serverMapStorage, x, y))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnInvalidCoordinates"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnInvalidCoordinates"), GameConstants.colorError));
                 return false;
             }
 
@@ -1873,7 +1873,7 @@ public partial class Server
 
         if (!VectorUtils.IsValidPos(_serverMapStorage, x, y, rZ))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnInvalidCoordinates"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnInvalidCoordinates"), GameConstants.colorError));
             return false;
         }
 
@@ -1909,76 +1909,76 @@ public partial class Server
 
     public bool PrivilegeAdd(int sourceClientId, string target, string privilege)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.privilege_add))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.privilege_add))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer targetClient = _serverClientService.GetClient(target);
+        ServerPlayer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             if (targetClient.Privileges.Contains(privilege))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPrivilegeAddHasAlready"), colorError, target, privilege.ToString()));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPrivilegeAddHasAlready"), GameConstants.colorError, target, privilege.ToString()));
                 return false;
             }
 
             targetClient.Privileges.Add(privilege);
-            if (privilege.Equals(ServerClientMisc.Privilege.freemove))
+            if (privilege.Equals(Privilege.freemove))
             {
-                SendFreemoveState(targetClient.Id, targetClient.Privileges.Contains(ServerClientMisc.Privilege.freemove));
+                SendFreemoveState(targetClient.Id, targetClient.Privileges.Contains(Privilege.freemove));
             }
 
-            SendMessageToAll(string.Format(_languageService.Get("Server_CommandPrivilegeAddSuccess"), colorSuccess, targetClient.ColoredPlayername(colorSuccess), privilege.ToString()));
+            SendMessageToAll(string.Format(_languageService.Get("Server_CommandPrivilegeAddSuccess"), GameConstants.colorSuccess, targetClient.ColoredPlayername(GameConstants.colorSuccess), privilege.ToString()));
             ServerEventLog(string.Format("{0} gives {1} privilege {2}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetClient.PlayerName, privilege.ToString()));
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantPlayer"), colorError, target));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantPlayer"), GameConstants.colorError, target));
         return false;
     }
 
     public bool PrivilegeRemove(int sourceClientId, string target, string privilege)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.privilege_remove))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.privilege_remove))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer targetClient = _serverClientService.GetClient(target);
+        ServerPlayer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             if (!targetClient.Privileges.Remove(privilege))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPrivilegeRemoveNoPriv"), colorError, target, privilege.ToString()));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPrivilegeRemoveNoPriv"), GameConstants.colorError, target, privilege.ToString()));
                 return false;
             }
 
-            if (privilege.Equals(ServerClientMisc.Privilege.freemove))
+            if (privilege.Equals(Privilege.freemove))
             {
-                SendFreemoveState(targetClient.Id, targetClient.Privileges.Contains(ServerClientMisc.Privilege.freemove));
+                SendFreemoveState(targetClient.Id, targetClient.Privileges.Contains(Privilege.freemove));
             }
 
-            SendMessageToAll(string.Format(_languageService.Get("Server_CommandPrivilegeRemoveSuccess"), colorImportant, targetClient.ColoredPlayername(colorImportant), privilege.ToString()));
+            SendMessageToAll(string.Format(_languageService.Get("Server_CommandPrivilegeRemoveSuccess"), GameConstants.colorImportant, targetClient.ColoredPlayername(GameConstants.colorImportant), privilege.ToString()));
             ServerEventLog(string.Format("{0} removes {1} privilege {2}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetClient.PlayerName, privilege.ToString()));
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantPlayer"), colorError, target));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantPlayer"), GameConstants.colorError, target));
         return false;
     }
 
     public bool RestartServer(int sourceClientId)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.restart))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.restart))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        SendMessageToAll(string.Format(_languageService.Get("Server_CommandRestartSuccess"), colorImportant, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorImportant)));
+        SendMessageToAll(string.Format(_languageService.Get("Server_CommandRestartSuccess"), GameConstants.colorImportant, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorImportant)));
         ServerEventLog(string.Format("{0} restarts server.", _serverClientService.GetClient(sourceClientId).PlayerName));
         Restart();
         return true;
@@ -1986,13 +1986,13 @@ public partial class Server
 
     public bool ShutdownServer(int sourceClientId)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.shutdown))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.shutdown))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        SendMessageToAll(string.Format(_languageService.Get("Server_CommandShutdownSuccess"), colorImportant, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorImportant)));
+        SendMessageToAll(string.Format(_languageService.Get("Server_CommandShutdownSuccess"), GameConstants.colorImportant, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorImportant)));
         ServerEventLog(string.Format("{0} shuts down server.", _serverClientService.GetClient(sourceClientId).PlayerName));
         Exit();
         return true;
@@ -2000,13 +2000,13 @@ public partial class Server
 
     public bool TeleportToPlayer(int sourceClientId, int clientTo)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.tp))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.tp))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer t = _serverClientService.GetClient(clientTo);
+        ServerPlayer t = _serverClientService.GetClient(clientTo);
         ServerEntityPositionAndOrientation pos = t.Entity.Position.Clone();
         _serverClientService.GetClient(sourceClientId).PositionOverride = pos;
         return true;
@@ -2014,9 +2014,9 @@ public partial class Server
 
     public bool TeleportToPosition(int sourceClientId, int x, int y, int? z)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.tp_pos))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.tp_pos))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -2026,7 +2026,7 @@ public partial class Server
         {
             if (!VectorUtils.IsValidPos(_serverMapStorage, x, y))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportInvalidCoordinates"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportInvalidCoordinates"), GameConstants.colorError));
                 return false;
             }
 
@@ -2039,25 +2039,25 @@ public partial class Server
 
         if (!VectorUtils.IsValidPos(_serverMapStorage, x, y, rZ))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportInvalidCoordinates"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportInvalidCoordinates"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer client = _serverClientService.GetClient(sourceClientId);
+        ServerPlayer client = _serverClientService.GetClient(sourceClientId);
         ServerEntityPositionAndOrientation pos = client.Entity.Position.Clone();
         pos.X = x;
         pos.Y = rZ;
         pos.Z = y;
         client.PositionOverride = pos;
-        _serverPacketService.SendMessage(client.Id, string.Format(_languageService.Get("Server_CommandTeleportSuccess"), colorSuccess, x, y, rZ));
+        _serverPacketService.SendMessage(client.Id, string.Format(_languageService.Get("Server_CommandTeleportSuccess"), GameConstants.colorSuccess, x, y, rZ));
         return true;
     }
 
     public bool TeleportPlayer(int sourceClientId, string target, int x, int y, int? z)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.teleport_player))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.teleport_player))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -2067,7 +2067,7 @@ public partial class Server
         {
             if (!VectorUtils.IsValidPos(_serverMapStorage, x, y))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportInvalidCoordinates"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportInvalidCoordinates"), GameConstants.colorError));
                 return false;
             }
 
@@ -2080,11 +2080,11 @@ public partial class Server
 
         if (!VectorUtils.IsValidPos(_serverMapStorage, x, y, rZ))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportInvalidCoordinates"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportInvalidCoordinates"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer targetClient = _serverClientService.GetClient(target);
+        ServerPlayer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             ServerEntityPositionAndOrientation pos = _serverClientService.Clients[targetClient.Id].Entity.Position;
@@ -2092,21 +2092,21 @@ public partial class Server
             pos.Y = rZ;
             pos.Z = y;
             _serverClientService.Clients[targetClient.Id].PositionOverride = pos;
-            _serverPacketService.SendMessage(targetClient.Id, string.Format(_languageService.Get("Server_CommandTeleportTargetMessage"), colorImportant, x, y, rZ, _serverClientService.GetClient(sourceClientId).ColoredPlayername(colorImportant)));
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportSourceMessage"), colorSuccess, targetClient.ColoredPlayername(colorSuccess), x, y, rZ));
+            _serverPacketService.SendMessage(targetClient.Id, string.Format(_languageService.Get("Server_CommandTeleportTargetMessage"), GameConstants.colorImportant, x, y, rZ, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorImportant)));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandTeleportSourceMessage"), GameConstants.colorSuccess, targetClient.ColoredPlayername(GameConstants.colorSuccess), x, y, rZ));
             ServerEventLog(string.Format("{0} teleports {1} to {2} {3} {4}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetClient.PlayerName, x, y, rZ));
             return true;
         }
 
-        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantPlayer"), colorError, target));
+        _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandNonexistantPlayer"), GameConstants.colorError, target));
         return false;
     }
 
     public bool SetFillAreaLimit(int sourceClientId, string targetType, string target, int maxFill)
     {
-        if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.fill_limit))
+        if (!PlayerHasPrivilege(sourceClientId, Privilege.fill_limit))
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+            _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
@@ -2118,7 +2118,7 @@ public partial class Server
                 _serverClientService.ServerClientNeedsSaving = true;
                 // Inform related players.
                 bool hasEntry = false;
-                foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                 {
                     hasEntry = false;
                     if (k.Value.ClientGroup.FillLimit != null)
@@ -2147,7 +2147,7 @@ public partial class Server
                     }
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandFillLimitDefaultSuccess"), colorSuccess, maxFill));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandFillLimitDefaultSuccess"), GameConstants.colorSuccess, maxFill));
                 ServerEventLog(string.Format("{0} sets default fill area limit to {1}.", _serverClientService.GetClient(sourceClientId).PlayerName, maxFill));
                 return true;
             case "-group":
@@ -2161,7 +2161,7 @@ public partial class Server
                 );
                 if (targetGroup == null)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), colorError, target));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandGroupNotFound"), GameConstants.colorError, target));
                     return false;
                 }
 
@@ -2169,7 +2169,7 @@ public partial class Server
                 _serverClientService.ServerClientNeedsSaving = true;
                 // Inform related players.
                 hasEntry = false;
-                foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                 {
                     if (k.Value.ClientGroup.Name.Equals(targetGroup.Name))
                     {
@@ -2194,13 +2194,13 @@ public partial class Server
                     }
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandFillLimitGroupSuccess"), colorSuccess, targetGroup.Name, maxFill));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandFillLimitGroupSuccess"), GameConstants.colorSuccess, targetGroup.Name, maxFill));
                 ServerEventLog(string.Format("{0} sets spawn of group {1} to {2}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetGroup.Name, maxFill));
                 return true;
             case "-player":
             case "-p":
                 // Get related client.
-                ClientOnServer targetClient = _serverClientService.GetClient(target);
+                ServerPlayer targetClient = _serverClientService.GetClient(target);
                 int? targetClientId = null;
                 if (targetClient != null)
                 {
@@ -2217,7 +2217,7 @@ public partial class Server
                 );
                 if (clientEntry == null)
                 {
-                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), colorError, target));
+                    _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), GameConstants.colorError, target));
                     return false;
                 }
                 // Change or add spawn entry of client.
@@ -2229,7 +2229,7 @@ public partial class Server
                     this.SetFillAreaLimit(targetClientId.Value);
                 }
 
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandFillLimitPlayerSuccess"), colorSuccess, targetClientPlayername, maxFill));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandFillLimitPlayerSuccess"), GameConstants.colorSuccess, targetClientPlayername, maxFill));
                 ServerEventLog(string.Format("{0} sets fill area limit of player {1} to {2}.", _serverClientService.GetClient(sourceClientId).PlayerName, targetClientPlayername, maxFill));
                 return true;
             default:
@@ -2245,9 +2245,9 @@ public partial class Server
         if (strSplit.Length == 2)
         {
             //We assume that all parameterized commands require a privilege
-            if (!PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.time))
+            if (!PlayerHasPrivilege(sourceClientId, Privilege.time))
             {
-                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), colorError));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
                 return false;
             }
 
@@ -2262,7 +2262,7 @@ public partial class Server
                         {
                             //If only a number is present, the days will be set to the given number
                             //since we don't want that, a ":" is enforced
-                            _serverPacketService.SendMessage(sourceClientId, $"{colorError}{_languageService.Get("Server_CommandException")} unable to convert \"{strValue}\" to a time");
+                            _serverPacketService.SendMessage(sourceClientId, $"{GameConstants.colorError}{_languageService.Get("Server_CommandException")} unable to convert \"{strValue}\" to a time");
                         }
                         else if (TimeSpan.TryParse(strValue, out TimeSpan time))
                         {
@@ -2271,7 +2271,7 @@ public partial class Server
                         }
                         else
                         {
-                            _serverPacketService.SendMessage(sourceClientId, $"{colorError}{_languageService.Get("Server_CommandException")} unable to convert \"{strValue}\" to a time");
+                            _serverPacketService.SendMessage(sourceClientId, $"{GameConstants.colorError}{_languageService.Get("Server_CommandException")} unable to convert \"{strValue}\" to a time");
                         }
                     }
 
@@ -2293,7 +2293,7 @@ public partial class Server
                         }
                         else
                         {
-                            _serverPacketService.SendMessage(sourceClientId, $"{colorError}{_languageService.Get("Server_CommandException")} unable to convert \"{strValue}\" to a time");
+                            _serverPacketService.SendMessage(sourceClientId, $"{GameConstants.colorError}{_languageService.Get("Server_CommandException")} unable to convert \"{strValue}\" to a time");
                         }
                     }
 
@@ -2303,7 +2303,7 @@ public partial class Server
 
                         if (!int.TryParse(strValue, out int nSpeed))
                         {
-                            _serverPacketService.SendMessage(sourceClientId, $"{colorError}{_languageService.Get("Server_CommandException")} unable to convert \"{strValue}\" to a number");
+                            _serverPacketService.SendMessage(sourceClientId, $"{GameConstants.colorError}{_languageService.Get("Server_CommandException")} unable to convert \"{strValue}\" to a number");
                         }
                         else
                         {

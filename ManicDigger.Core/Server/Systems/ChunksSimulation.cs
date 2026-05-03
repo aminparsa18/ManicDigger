@@ -8,10 +8,10 @@ public class ServerSystemChunksSimulation : ServerSystem
     private readonly IServerMapStorage _serverMapStorage;
     private readonly IServerConfig _config;
     private readonly ISaveGameService _saveGameService;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
 
     public ServerSystemChunksSimulation(IBlockRegistry blockRegistry, IServerMapStorage serverMapStorage, IModEvents modEvents,
-        IServerConfig config, ISaveGameService saveGameService, IServerClientService serverClientService) : base(modEvents)
+        IServerConfig config, ISaveGameService saveGameService, IClientRegistry serverClientService) : base(modEvents)
     {
         _blockRegistry = blockRegistry;
         _serverMapStorage = serverMapStorage;
@@ -33,10 +33,10 @@ public class ServerSystemChunksSimulation : ServerSystem
     // Lifecycle
     // -------------------------------------------------------------------------
 
-    protected override void Initialize(Server server)
+    protected override void Initialize()
     {
         // Frames between full chunk updates: once per 10 minutes of simulation time
-        simulationInterval = (int)(1f / server.SIMULATION_STEP_LENGTH) * 60 * 10;
+        simulationInterval = (int)(1f / GameConstants.SIMULATION_STEP_LENGTH) * 60 * 10;
         _rnd = new Random();
     }
 
@@ -59,7 +59,7 @@ public class ServerSystemChunksSimulation : ServerSystem
     {
         unchecked
         {
-            foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+            foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
             {
                 Vector3i playerPos = server.PlayerBlockPosition(k.Value);
 

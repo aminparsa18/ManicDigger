@@ -57,8 +57,8 @@ public class Program
         services.AddSingleton<IServerMapStorage, ServerMapStorage>();
         services.AddSingleton<IServerConfig, ServerConfig>();
         services.AddSingleton<ISaveGameService, SaveGameService>();
-        services.AddSingleton<IPlayerStatusService, PlayerStatusService>();
-        services.AddSingleton<IServerClientService, ServerClientService>();
+        services.AddSingleton<PlayerStatusService, PlayerStatusService>();
+        services.AddSingleton<IClientRegistry, ClientRegistry>();
         services.AddSingleton<IServerPacketService, ServerPacketService>();
 
         // ScreenManager satisfies both contracts from the same singleton instance.

@@ -21,15 +21,15 @@ public partial class Server : IServer, IDropItem
     private readonly ILanguageService _languageService;
     private readonly IServerConfig _config;
     private readonly ISaveGameService _saveGameService;
-    private readonly IPlayerStatusService _playerStatusService;
-    private readonly IServerClientService _serverClientService;
+    private readonly PlayerStatusService _playerStatusService;
+    private readonly IClientRegistry _serverClientService;
     private readonly IServerPacketService _serverPacketService;
 
     public List<ServerSystem> Systems { get; set; }
 
     public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb, ILanguageService languageService,
     IAssetManager assetManager, IModEvents modEvents,ICompression compression, IServerMapStorage serverMapStorage, IServerPacketService serverPacketService,
-    IServerConfig config, ISaveGameService saveGameService, IPlayerStatusService playerStatusService, IServerClientService serverClientService)
+    IServerConfig config, ISaveGameService saveGameService, PlayerStatusService playerStatusService, IClientRegistry serverClientService)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
@@ -137,7 +137,7 @@ public partial class Server : IServer, IDropItem
         {
             _nLastHourChangeNotify = _gameTimer.GetQuarterHourPartOfDay();
 
-            foreach (KeyValuePair<int, ClientOnServer> c in _serverClientService.Clients)
+            foreach (KeyValuePair<int, ServerPlayer> c in _serverClientService.Clients)
             {
                 NotifySeason(c.Key);
             }
@@ -146,7 +146,7 @@ public partial class Server : IServer, IDropItem
         double currenttime = GetTime() - starttime;
         double deltaTime = currenttime - oldtime;
         accumulator += deltaTime;
-        double dt = SIMULATION_STEP_LENGTH;
+        double dt = GameConstants.SIMULATION_STEP_LENGTH;
         while (accumulator > dt)
         {
             _saveGameService.SimulationCurrentFrame++;
@@ -173,13 +173,13 @@ public partial class Server : IServer, IDropItem
             }
         }
 
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             k.Value.Socket.Update();
         }
 
         //Send updates to player
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             //k.Value.notifyMapTimer.Update(delegate { NotifyMapChunks(k.Key, 1); });
             NotifyInventory(k.Key);
@@ -236,7 +236,7 @@ public partial class Server : IServer, IDropItem
             }
         }
 
-        AllPrivileges.AddRange(ServerClientMisc.Privilege.All());
+        AllPrivileges.AddRange(Privilege.All());
 
         //Load the savegame file
         if (!Directory.Exists(GameStorePath.gamepathsaves))
@@ -274,7 +274,7 @@ public partial class Server : IServer, IDropItem
             GroupPrivileges = []
         };
         serverGroup.GroupPrivileges = AllPrivileges;
-        serverGroup.GroupColor = ServerClientMisc.ClientColor.Red;
+        serverGroup.GroupColor = ClientColor.Red;
         _serverClientService.ServerConsoleClient.AssignGroup(serverGroup);
 
         if (_config.AutoRestartCycle > 0)
@@ -387,11 +387,7 @@ public partial class Server : IServer, IDropItem
     public List<Action> OnLoad { get; set; } = [];
     public List<Action> OnSave { get; set; } = [];
     public Dictionary<string, Inventory> Inventory { get; set; } = new(StringComparer.InvariantCultureIgnoreCase);
-    public Dictionary<string, byte[]> ModData { get; set; } = [];
-
-    public ServerBanlist BanList { get; set; }
     
-
     public void Dispose()
     {
         if (!disposed)
@@ -420,7 +416,7 @@ public partial class Server : IServer, IDropItem
         }
 
         int clientid = -1;
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             if (k.Value.MainSocket != mainSocket)
             {
@@ -439,7 +435,7 @@ public partial class Server : IServer, IDropItem
                 //new connection
                 NetConnection client1 = msg.SenderConnection;
 
-                ClientOnServer c = new()
+                ServerPlayer c = new()
                 {
                     MainSocket = mainSocket,
                     Socket = client1
@@ -486,7 +482,7 @@ public partial class Server : IServer, IDropItem
 
     private void NotifyPing(int targetClientId, int ping)
     {
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             SendPlayerPing(k.Key, targetClientId, ping);
         }
@@ -509,7 +505,7 @@ public partial class Server : IServer, IDropItem
 
     public void NotifyInventory(int clientid)
     {
-        ClientOnServer c = _serverClientService.Clients[clientid];
+        ServerPlayer c = _serverClientService.Clients[clientid];
         if (c.IsInventoryDirty && c.PlayerName != GameConstants.InvalidPlayerName && !c.UsingFill)
         {
             Packet_ServerInventory p = ConvertInventory(GetPlayerInventory(c.PlayerName));
@@ -573,7 +569,7 @@ public partial class Server : IServer, IDropItem
 
     private void HitMonsters(int clientid, int health)
     {
-        ClientOnServer c = _serverClientService.Clients[clientid];
+        ServerPlayer c = _serverClientService.Clients[clientid];
         int mapx = c.PositionMul32GlX / 32;
         int mapy = c.PositionMul32GlZ / 32;
         int mapz = c.PositionMul32GlY / 32;
@@ -639,7 +635,7 @@ public partial class Server : IServer, IDropItem
         return value;
     }
 
-    public void ResetPlayerInventory(ClientOnServer client)
+    public void ResetPlayerInventory(ServerPlayer client)
     {
         Inventory ??= new Dictionary<string, Inventory>(StringComparer.InvariantCultureIgnoreCase);
         this.Inventory[client.PlayerName] = StartInventory();
@@ -685,11 +681,11 @@ public partial class Server : IServer, IDropItem
         return inv;
     }
 
-    public Vector3i PlayerBlockPosition(ClientOnServer c) => new(c.PositionMul32GlX / 32, c.PositionMul32GlZ / 32, c.PositionMul32GlY / 32);
+    public Vector3i PlayerBlockPosition(ServerPlayer c) => new(c.PositionMul32GlX / 32, c.PositionMul32GlZ / 32, c.PositionMul32GlY / 32);
 
     public void KillPlayer(int clientid)
     {
-        if (!_serverClientService.Clients.TryGetValue(clientid, out ClientOnServer? value))
+        if (!_serverClientService.Clients.TryGetValue(clientid, out ServerPlayer? value))
         {
             return;
         }
@@ -712,7 +708,7 @@ public partial class Server : IServer, IDropItem
             this.serverMonitor.RemoveMonitorClient(clientid);
         }
 
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             _serverPacketService.SendPacket(k.Key, ServerPackets.EntityDespawn(clientid));
         }
@@ -730,7 +726,7 @@ public partial class Server : IServer, IDropItem
 
     private void TryReadPacket(int clientid, byte[] data)
     {
-        ClientOnServer c = _serverClientService.Clients[clientid];
+        ServerPlayer c = _serverClientService.Clients[clientid];
         Packet_Client packet = MemoryPackSerializer.Deserialize<Packet_Client>(data.AsSpan(0, data.Length));
         if (c.QueryClient)
         {
@@ -760,7 +756,7 @@ public partial class Server : IServer, IDropItem
                 break;
             case PacketType.PlayerIdentification:
                 {
-                    foreach (KeyValuePair<int, ClientOnServer> cl in _serverClientService.Clients)
+                    foreach (KeyValuePair<int, ServerPlayer> cl in _serverClientService.Clients)
                     {
                         if (cl.Value.IsBot)
                         {
@@ -819,7 +815,7 @@ public partial class Server : IServer, IDropItem
                     }
 
                     //When a duplicate user connects, append a number to name.
-                    foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                    foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                     {
                         if (k.Value.PlayerName.Equals(username, StringComparison.InvariantCultureIgnoreCase))
                         {
@@ -882,7 +878,7 @@ public partial class Server : IServer, IDropItem
                     }
 
                     this.SetFillAreaLimit(clientid);
-                    this.SendFreemoveState(clientid, _serverClientService.Clients[clientid].Privileges.Contains(ServerClientMisc.Privilege.freemove));
+                    this.SendFreemoveState(clientid, _serverClientService.Clients[clientid].Privileges.Contains(Privilege.freemove));
                     c.QueryClient = false;
                     _serverClientService.Clients[clientid].Entity.DrawName.Name = username;
                     if (_config.EnablePlayerPushing)
@@ -963,7 +959,7 @@ public partial class Server : IServer, IDropItem
                 break;
             case PacketType.FillArea:
                 {
-                    if (!_serverClientService.Clients[clientid].Privileges.Contains(ServerClientMisc.Privilege.build))
+                    if (!_serverClientService.Clients[clientid].Privileges.Contains(Privilege.build))
                     {
                         _serverPacketService.SendMessage(clientid, colorError + _languageService.ServerNoBuildPrivilege());
                         break;
@@ -1056,7 +1052,7 @@ public partial class Server : IServer, IDropItem
                         string message = packet.Message.Message;
                         message = _modEvents.RaisePlayerChat(clientid, message, packet.Message.IsTeamchat != 0) ?? message;
 
-                        if (_serverClientService.Clients[clientid].Privileges.Contains(ServerClientMisc.Privilege.chat))
+                        if (_serverClientService.Clients[clientid].Privileges.Contains(Privilege.chat))
                         {
                             if (message == null)
                             {
@@ -1162,7 +1158,7 @@ public partial class Server : IServer, IDropItem
                     return;
                 }
 
-                foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                 {
                     if (k.Key == clientid)
                     {
@@ -1234,7 +1230,7 @@ public partial class Server : IServer, IDropItem
                 List<string> playernames = [];
                 lock (_serverClientService.Clients)
                 {
-                    foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+                    foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
                     {
                         if (k.Value.QueryClient || k.Value.IsBot)
                         {
@@ -1316,7 +1312,7 @@ public partial class Server : IServer, IDropItem
 
     public bool CheckBuildPrivileges(int player, int x, int y, int z, PacketBlockSetMode mode)
     {
-        if (!PlayerHasPrivilege(player, ServerClientMisc.Privilege.build))
+        if (!PlayerHasPrivilege(player, Privilege.build))
         {
             _serverPacketService.SendMessage(player, colorError + _languageService.ServerNoBuildPrivilege());
             return false;
@@ -1334,7 +1330,7 @@ public partial class Server : IServer, IDropItem
         }
 
         if (!_config.CanUserBuild(_serverClientService.Clients[player], x, y, z)
-            && !ExtraPrivileges.ContainsKey(ServerClientMisc.Privilege.build))
+            && !ExtraPrivileges.ContainsKey(Privilege.build))
         {
             _serverPacketService.SendMessage(player, colorError + _languageService.ServerNoBuildPermissionHere());
             return false;
@@ -1355,7 +1351,7 @@ public partial class Server : IServer, IDropItem
 
     private bool CheckUsePrivileges(int player, int x, int y, int z)
     {
-        if (!PlayerHasPrivilege(player, ServerClientMisc.Privilege.use))
+        if (!PlayerHasPrivilege(player, Privilege.use))
         {
             _serverPacketService.SendMessage(player, colorError + _languageService.ServerNoUsePrivilege());
             return false;
@@ -1422,7 +1418,7 @@ public partial class Server : IServer, IDropItem
 
     private void SendProjectile(int player, float fromx, float fromy, float fromz, float velocityx, float velocityy, float velocityz, int block, float explodesafter)
     {
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             if (k.Key == player)
             {
@@ -1451,7 +1447,7 @@ public partial class Server : IServer, IDropItem
 
     private void SendBullet(int player, float fromx, float fromy, float fromz, float tox, float toy, float toz, float speed)
     {
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             if (k.Key == player)
             {
@@ -1513,14 +1509,14 @@ public partial class Server : IServer, IDropItem
 
     private void RunInClientSandbox(string script, int clientid)
     {
-        ClientOnServer client = _serverClientService.GetClient(clientid);
+        ServerPlayer client = _serverClientService.GetClient(clientid);
         if (!_config.AllowScripting)
         {
             _serverPacketService.SendMessage(clientid, "Server scripts disabled.", MessageType.Error);
             return;
         }
 
-        if (!client.Privileges.Contains(ServerClientMisc.Privilege.run))
+        if (!client.Privileges.Contains(Privilege.run))
         {
             _serverPacketService.SendMessage(clientid, "Insufficient privileges to access this command.", MessageType.Error);
             return;
@@ -1556,17 +1552,9 @@ public partial class Server : IServer, IDropItem
         _serverPacketService.SendMessage(clientid, $"{colorError}Error.");
     }
 
-    public string colorNormal = "&f"; //white
-    public string colorHelp = "&4"; //red
-    public string colorOpUsername = "&2"; //green
-    public string colorSuccess = "&2"; //green
-    public string colorError = "&4"; //red
-    public string colorImportant = "&4"; // red
-    public string colorAdmin = "&e"; //yellow
-
     private void NotifyBlock(int x, int y, int z, int blocktype)
     {
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             SendSetBlock(k.Key, x, y, z, blocktype);
         }
@@ -1689,7 +1677,7 @@ public partial class Server : IServer, IDropItem
         NotifyInventory(player_id);
     }
 
-    private bool IsFillAreaValid(ClientOnServer client, Vector3i a, Vector3i b)
+    private bool IsFillAreaValid(ServerPlayer client, Vector3i a, Vector3i b)
     {
         if (!VectorUtils.IsValidPos(_serverMapStorage, a.X, a.Y, a.Z) || !VectorUtils.IsValidPos(_serverMapStorage, b.X, b.Y, b.Z))
         {
@@ -1813,7 +1801,7 @@ public partial class Server : IServer, IDropItem
 
     private void SetFillAreaLimit(int clientid)
     {
-        ClientOnServer client = _serverClientService.GetClient(clientid);
+        ServerPlayer client = _serverClientService.GetClient(clientid);
         if (client == null)
         {
             return;
@@ -2055,7 +2043,7 @@ public partial class Server : IServer, IDropItem
     public void SendMessageToAll(string message)
     {
         DiagLog.Write("Message to all: " + message);
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             _serverPacketService.SendMessage(k.Key, message);
         }
@@ -2282,8 +2270,6 @@ public partial class Server : IServer, IDropItem
         byte[] hash = MD5.HashData(Encoding.ASCII.GetBytes(input));
         return Convert.ToHexString(hash).ToLower();
     }
-
-    public float SIMULATION_STEP_LENGTH { get; set; } = 1f / 64f;
     
     public Dictionary<string, bool> Disabledprivileges { get; set; } = [];
     public Dictionary<string, bool> ExtraPrivileges { get; set; } = [];
@@ -2375,7 +2361,7 @@ public partial class Server : IServer, IDropItem
                         && _serverMapStorage.GetBlock(xx, yy, zz - 1) != SpecialBlockId.Empty)
                     {
                         bool playernear = false;
-                        foreach (KeyValuePair<int, ClientOnServer> player in _serverClientService.Clients)
+                        foreach (KeyValuePair<int, ServerPlayer> player in _serverClientService.Clients)
                         {
                             if (VectorUtils.DistanceSquared(PlayerBlockPosition(player.Value), new Vector3i(xx, yy, zz)) < 9)
                             {
@@ -2454,7 +2440,7 @@ public partial class Server : IServer, IDropItem
     private void PlaySoundAtExceptPlayer(int posx, int posy, int posz, string sound, int? player)
     {
         Vector3i pos = new(posx, posy, posz);
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             if (player != null && player == k.Key)
             {
@@ -2474,7 +2460,7 @@ public partial class Server : IServer, IDropItem
     private void PlaySoundAtExceptPlayer(int posx, int posy, int posz, string sound, int? player, int range)
     {
         Vector3i pos = new(posx, posy, posz);
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             if (player != null && player == k.Key)
             {
@@ -2548,7 +2534,7 @@ public partial class Server : IServer, IDropItem
 
     public void PlayerEntitySetDirty(int player)
     {
-        foreach (ClientOnServer k in _serverClientService.Clients.Values)
+        foreach (ServerPlayer k in _serverClientService.Clients.Values)
         {
             k.PlayersDirty[player] = true;
         }
@@ -2562,7 +2548,7 @@ public partial class Server : IServer, IDropItem
 
     public void SetEntityDirty(ServerEntityId id)
     {
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             for (int i = 0; i < k.Value.SpawnedEntities.Length; i++)
             {

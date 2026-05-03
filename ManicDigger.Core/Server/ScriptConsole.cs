@@ -5,7 +5,7 @@ using static ManicDigger.ServerPacketService;
 
 public class ScriptConsole
 {
-    public ScriptConsole(Server s, IBlockRegistry blockRegistry, ISaveGameService saveGameService, IServerClientService serverClientService, IServerPacketService serverPacketService, int client_id)
+    public ScriptConsole(Server s, IBlockRegistry blockRegistry, ISaveGameService saveGameService, IClientRegistry serverClientService, IServerPacketService serverPacketService, int client_id)
     {
         m_server = s;
         _blockRegistry = blockRegistry;
@@ -42,7 +42,7 @@ public class ScriptConsole
 
     private readonly IBlockRegistry _blockRegistry;
     private readonly ISaveGameService _saveGameService;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
     private readonly IServerPacketService _serverPacketService;
     private readonly Server m_server;
     private readonly int m_client;
@@ -80,14 +80,14 @@ public class ScriptConsole
 
     public void PrintPosition()
     {
-        ClientOnServer client = _serverClientService.GetClient(m_client);
+        ServerPlayer client = _serverClientService.GetClient(m_client);
         Vector3i pos = GetPosition();
         Print(string.Format("Position: X {0}, Y {1}, Z{2}", pos.X, pos.Y, pos.Z));
     }
 
     public Vector3i GetPosition()
     {
-        ClientOnServer client = _serverClientService.GetClient(m_client);
+        ServerPlayer client = _serverClientService.GetClient(m_client);
         return m_server.PlayerBlockPosition(client);
     }
 

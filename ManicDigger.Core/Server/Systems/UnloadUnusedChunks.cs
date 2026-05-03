@@ -25,9 +25,9 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
     private readonly IServerMapStorage _serverMapStorage;
     private readonly ISaveGameService _saveGameService;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
 
-    public ServerSystemUnloadUnusedChunks(IModEvents modEvents, IServerMapStorage serverMapStorage, ISaveGameService saveGameService, IServerClientService serverClientService) : base(modEvents)
+    public ServerSystemUnloadUnusedChunks(IModEvents modEvents, IServerMapStorage serverMapStorage, ISaveGameService saveGameService, IClientRegistry serverClientService) : base(modEvents)
     {
         _serverMapStorage = serverMapStorage;
         _saveGameService = saveGameService;
@@ -78,7 +78,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
         int unloadDist = (int)(server.ChunkDrawDistance * GameConstants.ServerChunkSize * UnloadDistanceMultiplier);
         int unloadDistSq = unloadDist * unloadDist;
 
-        foreach ((int _, ClientOnServer? client) in _serverClientService.Clients)
+        foreach ((int _, ServerPlayer? client) in _serverClientService.Clients)
         {
             if (client.IsBot)
             {
@@ -112,7 +112,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
         _serverMapStorage.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);
 
-        foreach ((int clientId, ClientOnServer _) in _serverClientService.Clients)
+        foreach ((int clientId, ServerPlayer _) in _serverClientService.Clients)
         {
             server.ClientSeenChunkRemove(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z);
         }

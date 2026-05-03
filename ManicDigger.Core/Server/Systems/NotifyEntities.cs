@@ -22,10 +22,10 @@ public class ServerSystemNotifyEntities : ServerSystem
     private readonly IServerMapStorage _serverMapStorage;
     private readonly IServerPacketService _serverPacketService;
     private readonly IServerConfig _config;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
 
     public ServerSystemNotifyEntities(IModEvents modEvents, IServerMapStorage serverMapStorage, IServerConfig config,
-        IServerClientService serverClientService, IServerPacketService serverPacketService) : base(modEvents)
+        IClientRegistry serverClientService, IServerPacketService serverPacketService) : base(modEvents)
     {
         _serverMapStorage = serverMapStorage;
         _config = config;
@@ -40,9 +40,9 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
     {
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
-            ClientOnServer client = k.Value;
+            ServerPlayer client = k.Value;
 
             if (client.IsBot)
             {
@@ -74,9 +74,9 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private void NotifyPlayers(Server server, int clientId)
     {
-        ClientOnServer client = _serverClientService.Clients[clientId];
+        ServerPlayer client = _serverClientService.Clients[clientId];
 
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             if (k.Value.State != ClientStateOnServer.Playing)
             {
@@ -109,7 +109,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private void NotifyPlayerPositions(Server server, int clientId, float dt)
     {
-        ClientOnServer client = _serverClientService.Clients[clientId];
+        ServerPlayer client = _serverClientService.Clients[clientId];
         client.NotifyPlayerPositionsAccum += dt;
         if (client.NotifyPlayerPositionsAccum < (1f / PlayerPositionUpdatesPerSecond))
         {
@@ -118,7 +118,7 @@ public class ServerSystemNotifyEntities : ServerSystem
 
         client.NotifyPlayerPositionsAccum = 0;
 
-        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             if (k.Value.State != ClientStateOnServer.Playing)
             {
@@ -176,7 +176,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private void NotifyEntities(Server server, int clientId, float dt)
     {
-        ClientOnServer client = _serverClientService.Clients[clientId];
+        ServerPlayer client = _serverClientService.Clients[clientId];
         client.NotifyEntitiesAccum += dt;
         if (client.NotifyEntitiesAccum < (1f / EntityPositionUpdatesPerSecond))
         {
@@ -264,7 +264,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// world entities from the 3×3×3 chunk neighbourhood around the player,
     /// sorted nearest-first.
     /// </summary>
-    private void FindNearEntities(Server server, ClientOnServer client, int maxCount, ServerEntityId[] result)
+    private void FindNearEntities(Server server, ServerPlayer client, int maxCount, ServerEntityId[] result)
     {
         int playerX = client.PositionMul32GlX / 32;
         int playerY = client.PositionMul32GlZ / 32;

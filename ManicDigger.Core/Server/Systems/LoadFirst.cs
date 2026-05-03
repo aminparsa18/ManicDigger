@@ -11,7 +11,7 @@ public class ServerSystemLoadFirst : ServerSystem
     }
 
     /// <inheritdoc/>
-    protected override void Initialize(Server server)
+    protected override void Initialize()
     {
         // Add things that need to be done prior to all other systems here.
     }

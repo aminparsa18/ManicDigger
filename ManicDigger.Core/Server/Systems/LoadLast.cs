@@ -1,5 +1,4 @@
-﻿
-namespace ManicDigger;
+﻿namespace ManicDigger;
 
 /// <summary>
 /// The last <see cref="ServerSystem"/> to run on startup. Use <see cref="Initialize"/>
@@ -7,12 +6,16 @@ namespace ManicDigger;
 /// </summary>
 public class ServerSystemLoadLast : ServerSystem
 {
-    public ServerSystemLoadLast(IModEvents modEvents) : base(modEvents)
+    private readonly ISaveGameService saveGameService;
+    private readonly Server server;
+    public ServerSystemLoadLast(Server server, IModEvents modEvents, ISaveGameService saveGameService) : base(modEvents)
     {
+        this.server = server;
+        this.saveGameService = saveGameService;
     }
 
     /// <inheritdoc/>
-    protected override void Initialize(Server server) => CallModOnLoad(server);
+    protected override void Initialize() => CallModOnLoad();
 
     /// <summary>
     /// Fires all mod load callbacks in registration order.
@@ -22,10 +25,10 @@ public class ServerSystemLoadLast : ServerSystem
     /// single bad mod cannot abort the rest of the load sequence.
     /// </para>
     /// </summary>
-    private void CallModOnLoad(Server server)
+    private void CallModOnLoad()
     {
         // Ensure mod data storage exists even if nothing was loaded from a savegame
-        server.ModData ??= [];
+        saveGameService.ModData ??= [];
 
         foreach (Action handler in server.OnLoad)
         {

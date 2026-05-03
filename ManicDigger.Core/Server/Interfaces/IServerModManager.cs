@@ -36,12 +36,6 @@ public interface IServerModManager
     /// <param name="blockType">Name of the BlockType</param>
     void AddToCreativeInventory(string blockType);
 
-    /// <summary>
-    /// Subscribe to and unsubscribe from game events.
-    /// Use += to register and -= to unregister in OnStop.
-    /// </summary>
-   // IModEvents Events { get; }
-
     int GetMapSizeX();
     int GetMapSizeY();
     int GetMapSizeZ();
@@ -95,13 +89,6 @@ public interface IServerModManager
     void SetString(string language, string id, string translation);
 
     /// <summary>
-    /// Get a certain translated string by ID
-    /// </summary>
-    /// <param name="id">ID string to look for</param>
-    /// <returns>The translation if found. ID if no match could be found</returns>
-    string GetString(string id);
-
-    /// <summary>
     /// Checks if a given position is valid
     /// </summary>
     /// <param name="x">x coordinate</param>
@@ -120,16 +107,6 @@ public interface IServerModManager
     /// <param name="z">z coordinate</param>
     /// <param name="sound">Filename of the sound to play</param>
     void PlaySoundAt(int x, int y, int z, string sound);
-
-    /// <summary>
-    /// Plays a sound at the given position. Every player in the given range will hear the sound. Only sounds that were present when the user joined will be played.
-    /// </summary>
-    /// <param name="x">x coordinate</param>
-    /// <param name="y">y coordinate</param>
-    /// <param name="z">z coordinate</param>
-    /// <param name="sound">Filename of the sound to play</param>
-    /// <param name="range">Range for the given sound to be heard</param>
-    void PlaySoundAt(int x, int y, int z, string sound, int range);
 
     /// <summary>
     /// Find the nearest player to the given position
@@ -174,12 +151,6 @@ public interface IServerModManager
     void NotifyInventory(int player);
 
     /// <summary>
-    /// Returns the server's color string for errors
-    /// </summary>
-    /// <returns>Color code for errors (by default "&4")</returns>
-    string ColorError { get; }
-
-    /// <summary>
     /// Sends a message to the given player. No formatting is done. Message is sent as given
     /// </summary>
     /// <param name="player"></param>
@@ -202,8 +173,6 @@ public interface IServerModManager
     /// </summary>
     /// <returns>The map seed</returns>
     int Seed { get; }
-
-    int Index3d(int x, int y, int h, int sizex, int sizey);
 
     /// <summary>
     /// Sets the given SoundSet as default SoundSet for all blocks
@@ -544,7 +513,7 @@ public interface IServerModManager
 
     int MaxPlayers { get; }
 
-    ServerClient GetServerClient();
+    ServerRoster GetServerClient();
     long TotalReceivedBytes { get; }
 
     long TotalSentBytes { get; }

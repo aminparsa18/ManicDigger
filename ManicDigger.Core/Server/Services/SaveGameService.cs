@@ -18,7 +18,7 @@ public class SaveGameService : ISaveGameService
     private readonly GameTimer _gameTimer;
 
     // Needed by LoadDatabase to reset per-client chunk visibility after a world switch.
-    public Dictionary<int, ClientOnServer> Clients { get; set; } = [];
+    public Dictionary<int, ServerPlayer> Clients { get; set; } = [];
 
     // ── Session state — set once by InitialiseSession, never changes ──────────
 
@@ -173,7 +173,7 @@ public class SaveGameService : ISaveGameService
         _serverMapStorage.Clear();
         Load();
 
-        foreach (KeyValuePair<int, ClientOnServer> k in Clients)
+        foreach (KeyValuePair<int, ServerPlayer> k in Clients)
         {
             Array.Clear(k.Value.chunksseen, 0, k.Value.chunksseen.Length);
             k.Value.chunksseenTime.Clear();
@@ -317,88 +317,6 @@ public class SaveGameService : ISaveGameService
         // Flush any remaining chunks below the batch threshold.
         _chunkDb.SetChunks(toSave);
     }
-}
-
-// ── Supporting types ──────────────────────────────────────────────────────────
-
-/// <summary>
-/// Contract for <see cref="SaveGameService"/>.
-/// </summary>
-public interface ISaveGameService
-{
-    public int Seed { get; set; }
-    public long SimulationCurrentFrame { get; set; }
-
-    /// <summary>
-    /// Returns the fully-resolved path to the active save file.
-    /// Replaces <c>Server.GetSaveFilename()</c> and <c>Server.SaveFilenameOverride</c>.
-    /// </summary>
-    string GetSaveFilename();
-
-    /// <summary>
-    /// Sets the active save target for this session. Must be called exactly once,
-    /// before any call to <see cref="Load"/> or <see cref="Save"/>.
-    /// </summary>
-    void InitialiseSession(SaveTarget target);
-
-    /// <summary>
-    /// Creates a backup of the current database at the given name inside the
-    /// backup folder. Returns <c>false</c> and logs a warning if the name fails
-    /// validation.
-    /// </summary>
-    bool BackupDatabase(string backupFilename);
-
-    /// <summary>
-    /// Serialises the given world-space chunk positions and writes them to a
-    /// named file in the backup folder. Skips positions outside the map bounds.
-    /// </summary>
-    void SaveChunksToDatabase(List<Vector3i> chunkPositions, string filename);
-
-    /// <summary>
-    /// Returns the raw block data for the chunk that contains world-space
-    /// position (<paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>),
-    /// or <c>null</c> if the position is outside the map.
-    /// </summary>
-    ushort[] GetChunk(int x, int y, int z);
-
-    /// <summary>
-    /// Saves every loaded chunk unconditionally (not just dirty ones), then
-    /// persists global data. Use for world-switch or clean shutdown scenarios.
-    /// </summary>
-    void SaveAll();
-
-    /// <summary>
-    /// Serialises and persists a single chunk to the chunk database immediately.
-    /// </summary>
-    void DoSaveChunk(int x, int y, int z, ServerChunk chunk);
-
-    /// <summary>
-    /// Saves the current world, optionally switches to a different save file,
-    /// clears transient chunk state, reloads world data, and resets per-client
-    /// chunk visibility so every connected client receives a fresh level stream.
-    /// </summary>
-    bool LoadDatabase(string filename);
-
-    /// <summary>
-    /// Serialises current world state and flushes dirty chunks to the database.
-    /// Returns the raw serialised global-data blob written to the database.
-    /// </summary>
-    byte[] Save();
-
-    /// <summary>
-    /// Convenience wrapper — serialises world state and immediately persists it
-    /// to the chunk database as global data. Equivalent to
-    /// <c>chunkDb.SetGlobalData(Save())</c>.
-    /// </summary>
-    void SaveGlobalData();
-
-    /// <summary>
-    /// Opens the database, reads global state, and restores server fields.
-    /// Creates a fresh save if the database contains no global data yet.
-    /// </summary>
-    void Load();
-
-    int LastMonsterId { get; set; }
 }
 
 /// <summary>

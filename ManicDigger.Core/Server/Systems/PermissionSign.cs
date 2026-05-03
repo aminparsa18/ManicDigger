@@ -21,10 +21,10 @@ public class ServerSystemPermissionSign : ServerSystem
     private readonly IServerModManager _serverModManager;
     private readonly IServerMapStorage _serverMapStorage;
     private readonly ILanguageService _languageService;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
     private readonly IServerPacketService _serverPacketService;
 
-    public ServerSystemPermissionSign(IModEvents modEvents, IServerModManager serverModManager, IServerMapStorage serverMapStorage, IServerClientService serverClientService, 
+    public ServerSystemPermissionSign(IModEvents modEvents, IServerModManager serverModManager, IServerMapStorage serverMapStorage, IClientRegistry serverClientService, 
         ILanguageService languageService, IServerPacketService serverPacketService) : base(modEvents)
     {
         _serverModManager = serverModManager;
@@ -39,9 +39,8 @@ public class ServerSystemPermissionSign : ServerSystem
     // -------------------------------------------------------------------------
 
     /// <inheritdoc/>
-    protected override void Initialize(Server server)
+    protected override void Initialize()
     {
-        this.server = server;
         ModEvents.BlockUseWithTool += OnUseWithTool;
         ModEvents.UpdateEntity += UpdateEntity;
         ModEvents.UseEntity += OnUseEntity;
@@ -239,7 +238,7 @@ public class ServerSystemPermissionSign : ServerSystem
             return;
         }
 
-        ClientOnServer client = _serverClientService.Clients[args.Player];
+        ServerPlayer client = _serverClientService.Clients[args.Player];
         ServerEntityId id = client.EditingSign;
         client.EditingSign = null;
 
@@ -349,7 +348,7 @@ public class ServerSystemPermissionSign : ServerSystem
                             continue;
                         }
 
-                        ClientOnServer client = _serverClientService.Clients[args.Player];
+                        ServerPlayer client = _serverClientService.Clients[args.Player];
 
                         bool allowed = entity.PermissionSign.Type switch
                         {
@@ -379,13 +378,13 @@ public class ServerSystemPermissionSign : ServerSystem
     /// </summary>
     private bool CheckAreaPrivilege(int player)
     {
-        if (server.PlayerHasPrivilege(player, ServerClientMisc.Privilege.area_add))
+        if (server.PlayerHasPrivilege(player, Privilege.area_add))
         {
             return true;
         }
 
         _serverPacketService.SendMessage(player,
-            server.colorError + _languageService.Get("Server_CommandInsufficientPrivileges"));
+            GameConstants.colorError + _languageService.Get("Server_CommandInsufficientPrivileges"));
         return false;
     }
 

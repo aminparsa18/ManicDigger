@@ -99,7 +99,7 @@ public class CoreEvents : IMod
 
         if (!(m.PlayerHasPrivilege(args.Player, "setmodel") || m.IsSinglePlayer()))
         {
-            m.SendMessage(args.Player, m.ColorError + "No setmodel privilege");
+            m.SendMessage(args.Player, GameConstants.colorError + "No setmodel privilege");
             args.Handled = true;
             return;
         }
@@ -122,7 +122,7 @@ public class CoreEvents : IMod
         }
 
         if (!found)
-            m.SendMessage(args.Player, m.ColorError + string.Format("Player {0} not found", targetplayername));
+            m.SendMessage(args.Player, GameConstants.colorError + string.Format("Player {0} not found", targetplayername));
 
         args.Handled = true;
     }

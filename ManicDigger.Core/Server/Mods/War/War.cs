@@ -586,7 +586,7 @@ public class War : IMod
 
                 if (players[args.SourceId].team == players[args.Player].team)
                 {
-                    deathMessage = string.Format("{0}{1} &7was blown into pieces by {2}{3}. - {4}TEAMKILL", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player), GetTeamColorString(players[args.SourceId].team), m.GetPlayerName(args.SourceId), m.ColorError);
+                    deathMessage = string.Format("{0}{1} &7was blown into pieces by {2}{3}. - {4}TEAMKILL", GetTeamColorString(players[args.Player].team), m.GetPlayerName(args.Player), GetTeamColorString(players[args.SourceId].team), m.GetPlayerName(args.SourceId), GameConstants.colorError);
                 }
                 else
                 {
@@ -709,7 +709,7 @@ public class War : IMod
 
             Die(args.TargetPlayer);
             if (players[args.SourcePlayer].team == players[args.TargetPlayer].team)
-                m.SendMessageToAll(string.Format("{0} kills {1} - " + m.ColorError + "TEAMKILL", m.GetPlayerName(args.SourcePlayer), m.GetPlayerName(args.TargetPlayer)));
+                m.SendMessageToAll(string.Format("{0} kills {1} - " + GameConstants.colorError + "TEAMKILL", m.GetPlayerName(args.SourcePlayer), m.GetPlayerName(args.TargetPlayer)));
             else
                 m.SendMessageToAll(string.Format("{0} kills {1}", m.GetPlayerName(args.SourcePlayer), m.GetPlayerName(args.TargetPlayer)));
         }
@@ -1192,7 +1192,7 @@ public class War : IMod
         {
             if (!m.PlayerHasPrivilege(args.Player, "mode"))
             {
-                m.SendMessage(args.Player, m.ColorError + "No privilege: mode");
+                m.SendMessage(args.Player, GameConstants.colorError + "No privilege: mode");
                 args.Handled = true;
                 return;
             }
@@ -1213,7 +1213,7 @@ public class War : IMod
             }
             else
             {
-                m.SendMessage(args.Player, m.ColorError + "Usage: /mode [edit/tdm]");
+                m.SendMessage(args.Player, GameConstants.colorError + "Usage: /mode [edit/tdm]");
             }
 
             args.Handled = true;

@@ -25,4 +25,14 @@
 
     public const string InvalidPlayerName = "invalid";
 
+    public const float SIMULATION_STEP_LENGTH = 1f / 64f;
+
+    public const string colorNormal = "&f"; //white
+    public const string colorHelp = "&4"; //red
+    public const string colorOpUsername = "&2"; //green
+    public const string colorSuccess = "&2"; //green
+    public const string colorError = "&4"; //red
+    public const string colorImportant = "&4"; // red
+    public const string colorAdmin = "&e"; //yellow
+
 }

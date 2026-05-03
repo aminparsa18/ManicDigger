@@ -24,10 +24,12 @@ public class ServerSystemLoadServerClient : ServerSystem
 
     private readonly IServerMapStorage _serverMapStorage;
     private readonly ILanguageService _languageService;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
+    private readonly Server server;
 
-    public ServerSystemLoadServerClient(IModEvents modEvents, IServerMapStorage serverMapStorage, ILanguageService languageService, IServerClientService serverClientService) : base(modEvents)
+    public ServerSystemLoadServerClient(Server server, IModEvents modEvents, IServerMapStorage serverMapStorage, ILanguageService languageService, IClientRegistry serverClientService) : base(modEvents)
     {
+        this.server = server;
         _serverMapStorage = serverMapStorage;
         _languageService = languageService;
         _serverClientService = serverClientService;
@@ -38,7 +40,7 @@ public class ServerSystemLoadServerClient : ServerSystem
     // -------------------------------------------------------------------------
 
     /// <inheritdoc/>
-    protected override void Initialize(Server server) => LoadServerClient(server);
+    protected override void Initialize() => LoadServerClient();
 
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
@@ -46,7 +48,7 @@ public class ServerSystemLoadServerClient : ServerSystem
         if (_serverClientService.ServerClientNeedsSaving)
         {
             _serverClientService.ServerClientNeedsSaving = false;
-            SaveServerClient(server);
+            SaveServerClient();
         }
     }
 
@@ -68,22 +70,22 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// Thrown if the guest or registered default group name in the config does not
     /// match any group defined in <c>ServerClient.txt</c>.
     /// </exception>
-    public void LoadServerClient(Server server)
+    public void LoadServerClient()
     {
         string path = Path.Combine(GameStorePath.gamepathconfig, ClientFilename);
 
         if (!File.Exists(path))
         {
             Console.WriteLine(_languageService.ServerClientConfigNotFound());
-            SaveServerClient(server);
+            SaveServerClient();
         }
         else
         {
-            TryLoadCurrentFormat(server, path);
+            TryLoadCurrentFormat(path);
         }
 
-        ResolveSpawn(server);
-        ResolveDefaultGroups(server);
+        ResolveSpawn();
+        ResolveDefaultGroups();
         Console.WriteLine(_languageService.ServerClientConfigLoaded());
     }
 
@@ -92,15 +94,15 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// <see cref="XmlSerializer"/> format. Groups are sorted after a successful load.
     /// </summary>
     /// <returns><c>true</c> on success; <c>false</c> if deserialization fails.</returns>
-    private bool TryLoadCurrentFormat(Server server, string path)
+    private bool TryLoadCurrentFormat(string path)
     {
         try
         {
             string json = File.ReadAllText(path);
-            _serverClientService.ServerClient = JsonSerializer.Deserialize<ServerClient>(json, JsonOptions)
-                                  ?? new ServerClient();
+            _serverClientService.ServerClient = JsonSerializer.Deserialize<ServerRoster>(json, JsonOptions)
+                                  ?? new ServerRoster();
             _serverClientService.ServerClient.Groups.Sort();
-            SaveServerClient(server);
+            SaveServerClient();
             return true;
         }
         catch
@@ -125,7 +127,7 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// When no configured spawn exists, <see cref="Server.DontSpawnPlayerInWater"/>
     /// is applied to push the position above any water surface.
     /// </summary>
-    private void ResolveSpawn(Server server)
+    private void ResolveSpawn()
     {
         if (_serverClientService.ServerClient.DefaultSpawn == null)
         {
@@ -154,7 +156,7 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// Thrown if either group name cannot be found, indicating a misconfigured
     /// <c>ServerClient.txt</c>.
     /// </exception>
-    private void ResolveDefaultGroups(Server server)
+    private void ResolveDefaultGroups()
     {
         server.DefaultGroupGuest = _serverClientService.ServerClient.Groups
             .Find(g => g.Name.Equals(_serverClientService.ServerClient.DefaultGroupGuests))
@@ -174,20 +176,20 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// If the object has not yet been initialized, or if its groups or client
     /// lists are empty, defaults are populated before saving.
     /// </summary>
-    public void SaveServerClient(Server server)
+    public void SaveServerClient()
     {
         Directory.CreateDirectory(GameStorePath.gamepathconfig);
 
-        _serverClientService.ServerClient ??= new ServerClient();
+        _serverClientService.ServerClient ??= new ServerRoster();
 
         if (_serverClientService.ServerClient.Groups.Count == 0)
         {
-            _serverClientService.ServerClient.Groups = ServerClientMisc.getDefaultGroups();
+            _serverClientService.ServerClient.Groups = ServerClientMisc.GetDefaultGroups();
         }
 
         if (_serverClientService.ServerClient.Clients.Count == 0)
         {
-            _serverClientService.ServerClient.Clients = ServerClientMisc.getDefaultClients();
+            _serverClientService.ServerClient.Clients = ServerClientMisc.GetDefaultClients();
         }
 
         _serverClientService.ServerClient.Clients.Sort();

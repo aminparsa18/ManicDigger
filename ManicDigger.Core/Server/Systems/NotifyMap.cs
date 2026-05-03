@@ -13,11 +13,11 @@ public class ServerSystemNotifyMap : ServerSystem
 {
     private readonly ICompression _compression;
     private readonly IServerMapStorage _serverMapStorage;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
     private readonly ISaveGameService _saveGameService;
     private readonly IServerPacketService _serverPacketService;
 
-    public ServerSystemNotifyMap(IModEvents modEvents, ICompression compression, IServerMapStorage serverMapStorage, IServerClientService serverClientService, 
+    public ServerSystemNotifyMap(IModEvents modEvents, ICompression compression, IServerMapStorage serverMapStorage, IClientRegistry serverClientService, 
         ISaveGameService saveGameService, IServerPacketService serverPacketService) : base(modEvents)
     {
         _compression = compression;
@@ -40,7 +40,7 @@ public class ServerSystemNotifyMap : ServerSystem
         while (sentAny && stopwatch.ElapsedMilliseconds < 10)
         {
             sentAny = false;
-            foreach ((int clientId, ClientOnServer? client) in _serverClientService.Clients)
+            foreach ((int clientId, ServerPlayer? client) in _serverClientService.Clients)
             {
                 if (client.State == ClientStateOnServer.Connecting)
                 {
@@ -162,7 +162,7 @@ public class ServerSystemNotifyMap : ServerSystem
     /// <param name="chunkPos">Chunk-space coordinates of the chunk.</param>
     private void SendChunk(Server server, int clientId, Vector3i globalPos, Vector3i chunkPos)
     {
-        ClientOnServer client = _serverClientService.Clients[clientId];
+        ServerPlayer client = _serverClientService.Clients[clientId];
         ServerChunk chunk = _serverMapStorage.GetChunk(globalPos.X, globalPos.Y, globalPos.Z);
         server.ClientSeenChunkSet(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z, (int)_saveGameService.SimulationCurrentFrame);
 

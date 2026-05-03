@@ -7,7 +7,7 @@ namespace ManicDigger;
 /// Serialized to and from XML (typically ServerClient.xml) to persist player groups,
 /// registered clients, and spawn/fill-limit defaults across server restarts.
 /// </summary>
-public class ServerClient
+public class ServerRoster
 {
     /// <summary>
     /// XML format version of this file. Used for forward-compatibility checks
@@ -58,11 +58,11 @@ public class ServerClient
     public int? DefaultFillLimit { get; set; }
 
     /// <summary>
-    /// Initialises a new <see cref="ServerClient"/> with safe defaults:
+    /// Initialises a new <see cref="ServerRoster"/> with safe defaults:
     /// format version 1, both default groups set to "Guest", and empty
     /// group/client lists ready to be populated.
     /// </summary>
-    public ServerClient()
+    public ServerRoster()
     {
         this.Format = 1;
         this.DefaultGroupGuests = "Guest";
@@ -104,14 +104,14 @@ public class Group : IComparable<Group>
 
     /// <summary>
     /// Optional spawn point override for all members of this group.
-    /// Takes precedence over <see cref="ServerClient.DefaultSpawn"/> but is
+    /// Takes precedence over <see cref="ServerRoster.DefaultSpawn"/> but is
     /// overridden by a per-<see cref="Client"/> spawn if one exists.
     /// </summary>
     public Spawn Spawn { get; set; }
 
     /// <summary>
     /// Optional fill-limit override for this group. Overrides
-    /// <see cref="ServerClient.DefaultFillLimit"/>. Null means fall back to the
+    /// <see cref="ServerRoster.DefaultFillLimit"/>. Null means fall back to the
     /// server default.
     /// </summary>
     public int? FillLimit { get; set; }
@@ -129,7 +129,7 @@ public class Group : IComparable<Group>
     /// converted to a Minecraft-style colour code via
     /// <see cref="ServerClientMisc.ClientColorToString"/>.
     /// </summary>
-    public ServerClientMisc.ClientColor GroupColor { get; set; }
+    public ClientColor GroupColor { get; set; }
 
     /// <summary>
     /// Initialises a new <see cref="Group"/> with empty name, level 0,
@@ -140,7 +140,7 @@ public class Group : IComparable<Group>
         this.Name = "";
         this.Level = 0;
         this.GroupPrivileges = [];
-        this.GroupColor = ServerClientMisc.ClientColor.White;
+        this.GroupColor = ClientColor.White;
     }
 
     /// <summary>
@@ -214,20 +214,20 @@ public class Client : IComparable<Client>
 
     /// <summary>
     /// Name of the <see cref="Group"/> this player is permanently assigned to,
-    /// overriding the server's <see cref="ServerClient.DefaultGroupGuests"/> /
-    /// <see cref="ServerClient.DefaultGroupRegistered"/> defaults.
+    /// overriding the server's <see cref="ServerRoster.DefaultGroupGuests"/> /
+    /// <see cref="ServerRoster.DefaultGroupRegistered"/> defaults.
     /// </summary>
     public string Group { get; set; }
 
     /// <summary>
     /// Optional per-player spawn point. Takes precedence over both the group
-    /// spawn and <see cref="ServerClient.DefaultSpawn"/>.
+    /// spawn and <see cref="ServerRoster.DefaultSpawn"/>.
     /// </summary>
     public Spawn Spawn { get; set; }
 
     /// <summary>
     /// Optional per-player fill limit, overriding both the group fill limit and
-    /// <see cref="ServerClient.DefaultFillLimit"/>.
+    /// <see cref="ServerRoster.DefaultFillLimit"/>.
     /// </summary>
     public int? FillLimit { get; set; }
 
@@ -355,57 +355,45 @@ public class Spawn
 }
 
 /// <summary>
-/// Static helpers and nested types shared across the server client system:
-/// colour codes, privilege name constants, and default group/client factories.
+/// Chat colour palette supported by the Manic Digger client.
+/// Maps to Minecraft-style <c>&amp;0</c>–<c>&amp;f</c> colour codes via
+/// <see cref="ClientColorToString"/>.
 /// </summary>
-public class ServerClientMisc
+public enum ClientColor
 {
-    /// <summary>
-    /// Placeholder username shown in the default client entry before a real
-    /// player name is configured.
-    /// </summary>
-    public static string DefaultPlayerName = "Player name?";
+    Black,       // &0
+    Blue,        // &1
+    Green,       // &2
+    Cyan,        // &3
+    Red,         // &4
+    Purple,      // &5
+    Yellow,      // &6
+    Grey,        // &7
+    DarkGrey,    // &8
+    LightBlue,   // &9
+    LightGreen,  // &a
+    LightCyan,   // &b
+    LightRed,    // &c
+    LightPink,   // &d
+    LightYellow, // &e
+    White        // &f
+};
 
-    /// <summary>
-    /// Chat colour palette supported by the Manic Digger client.
-    /// Maps to Minecraft-style <c>&amp;0</c>–<c>&amp;f</c> colour codes via
-    /// <see cref="ClientColorToString"/>.
-    /// </summary>
-    public enum ClientColor
+/// <summary>
+/// Centralised list of all recognised privilege strings.
+/// Use these constants (e.g. <c>Privilege.build</c>) everywhere instead of
+/// raw strings to prevent silent typo bugs.
+/// <see cref="All"/> returns every privilege in one array, useful when
+/// initialising a superadmin group or validating user input.
+/// </summary>
+public class Privilege
+{
+    /// <summary>Returns an array of every defined privilege string.</summary>
+    public static string[] All()
     {
-        Black,       // &0
-        Blue,        // &1
-        Green,       // &2
-        Cyan,        // &3
-        Red,         // &4
-        Purple,      // &5
-        Yellow,      // &6
-        Grey,        // &7
-        DarkGrey,    // &8
-        LightBlue,   // &9
-        LightGreen,  // &a
-        LightCyan,   // &b
-        LightRed,    // &c
-        LightPink,   // &d
-        LightYellow, // &e
-        White        // &f
-    };
-
-    /// <summary>
-    /// Centralised list of all recognised privilege strings.
-    /// Use these constants (e.g. <c>Privilege.build</c>) everywhere instead of
-    /// raw strings to prevent silent typo bugs.
-    /// <see cref="All"/> returns every privilege in one array, useful when
-    /// initialising a superadmin group or validating user input.
-    /// </summary>
-    public class Privilege
-    {
-        /// <summary>Returns an array of every defined privilege string.</summary>
-        public static string[] All()
-        {
-            return
-            [
-                build, use, freemove, chat, pm,
+        return
+        [
+            build, use, freemove, chat, pm,
                 kick, kick_id, ban, ban_id, ban_id,
                 banip, banip_id, ban_offline, unban,
                 run, chgrp, chgrp_offline, remove_client,
@@ -421,111 +409,123 @@ public class ServerClientMisc
                 backup_database, reset_inventory,
                 fill_limit, mode, load, time,
             ];
-        }
+    }
 
-        /// <summary>Place and destroy blocks in the world.</summary>
-        public static string build = "build";
-        /// <summary>Interact with objects (doors, buttons, etc.).</summary>
-        public static string use = "use";
-        /// <summary>Enable free/fly movement mode.</summary>
-        public static string freemove = "freemove";
-        /// <summary>Send public chat messages.</summary>
-        public static string chat = "chat";
-        /// <summary>Send private messages to other players.</summary>
-        public static string pm = "pm";
-        /// <summary>Kick an online player by name.</summary>
-        public static string kick = "kick";
-        /// <summary>Kick an online player by connection ID.</summary>
-        public static string kick_id = "kick_id";
-        /// <summary>Ban a player by name.</summary>
-        public static string ban = "ban";
-        /// <summary>Ban a player by connection ID.</summary>
-        public static string ban_id = "ban_id";
-        /// <summary>Ban a player's IP address by name.</summary>
-        public static string banip = "banip";
-        /// <summary>Ban a player's IP address by connection ID.</summary>
-        public static string banip_id = "banip_id";
-        /// <summary>Ban a player who is currently offline.</summary>
-        public static string ban_offline = "ban_offline";
-        /// <summary>Lift an existing ban.</summary>
-        public static string unban = "unban";
-        /// <summary>Execute server-side scripts or run commands.</summary>
-        public static string run = "run";
-        /// <summary>Change the group of an online player.</summary>
-        public static string chgrp = "chgrp";
-        /// <summary>Change the group of an offline player.</summary>
-        public static string chgrp_offline = "chgrp_offline";
-        /// <summary>Remove a client entry from the server config.</summary>
-        public static string remove_client = "remove_client";
-        /// <summary>Authenticate to a password-protected group via /login.</summary>
-        public static string login = "login";
-        /// <summary>Set or change the server welcome message.</summary>
-        public static string welcome = "welcome";
-        /// <summary>Access server logs.</summary>
-        public static string logging = "logging";
-        /// <summary>List currently connected players.</summary>
-        public static string list_clients = "list_clients";
-        /// <summary>List all players saved in the server config.</summary>
-        public static string list_saved_clients = "list_saved_clients";
-        /// <summary>List all defined permission groups.</summary>
-        public static string list_groups = "list_groups";
-        /// <summary>View the ban list.</summary>
-        public static string list_banned_users = "list_banned_users";
-        /// <summary>List all defined world areas/zones.</summary>
-        public static string list_areas = "list_areas";
-        /// <summary>Give items to a specific player.</summary>
-        public static string give = "give";
-        /// <summary>Give items to all connected players.</summary>
-        public static string giveall = "giveall";
-        /// <summary>Control monster spawning.</summary>
-        public static string monsters = "monsters";
-        /// <summary>Create a new protected area/zone.</summary>
-        public static string area_add = "area_add";
-        /// <summary>Delete an existing protected area/zone.</summary>
-        public static string area_delete = "area_delete";
-        /// <summary>Broadcast a server-wide announcement.</summary>
-        public static string announcement = "announcement";
-        /// <summary>Set the global or group spawn point.</summary>
-        public static string set_spawn = "set_spawn";
-        /// <summary>Set the player's personal home spawn.</summary>
-        public static string set_home = "set_home";
-        /// <summary>Use TNT explosives.</summary>
-        public static string use_tnt = "use_tnt";
-        /// <summary>Grant a privilege to a group or player.</summary>
-        public static string privilege_add = "privilege_add";
-        /// <summary>Revoke a privilege from a group or player.</summary>
-        public static string privilege_remove = "privilege_remove";
-        /// <summary>Restart the server.</summary>
-        public static string restart = "restart";
-        /// <summary>Shut the server down cleanly.</summary>
-        public static string shutdown = "shutdown";
-        /// <summary>Teleport yourself to another player.</summary>
-        public static string tp = "tp";
-        /// <summary>Teleport yourself to specific world coordinates.</summary>
-        public static string tp_pos = "tp_pos";
-        /// <summary>Teleport another player to a location.</summary>
-        public static string teleport_player = "teleport_player";
-        /// <summary>Trigger a manual database backup.</summary>
-        public static string backup_database = "backup_database";
-        /// <summary>Reset a player's inventory to its default state.</summary>
-        public static string reset_inventory = "reset_inventory";
-        /// <summary>Set the maximum blocks allowed in a single fill operation.</summary>
-        public static string fill_limit = "fill_limit";
-        /// <summary>Switch between game modes (e.g. survival / creative).</summary>
-        public static string mode = "mode";
-        /// <summary>Load a saved world or map.</summary>
-        public static string load = "load";
-        /// <summary>Get or set the in-game time of day.</summary>
-        public static string time = "time";
-    };
+    /// <summary>Place and destroy blocks in the world.</summary>
+    public static string build = "build";
+    /// <summary>Interact with objects (doors, buttons, etc.).</summary>
+    public static string use = "use";
+    /// <summary>Enable free/fly movement mode.</summary>
+    public static string freemove = "freemove";
+    /// <summary>Send public chat messages.</summary>
+    public static string chat = "chat";
+    /// <summary>Send private messages to other players.</summary>
+    public static string pm = "pm";
+    /// <summary>Kick an online player by name.</summary>
+    public static string kick = "kick";
+    /// <summary>Kick an online player by connection ID.</summary>
+    public static string kick_id = "kick_id";
+    /// <summary>Ban a player by name.</summary>
+    public static string ban = "ban";
+    /// <summary>Ban a player by connection ID.</summary>
+    public static string ban_id = "ban_id";
+    /// <summary>Ban a player's IP address by name.</summary>
+    public static string banip = "banip";
+    /// <summary>Ban a player's IP address by connection ID.</summary>
+    public static string banip_id = "banip_id";
+    /// <summary>Ban a player who is currently offline.</summary>
+    public static string ban_offline = "ban_offline";
+    /// <summary>Lift an existing ban.</summary>
+    public static string unban = "unban";
+    /// <summary>Execute server-side scripts or run commands.</summary>
+    public static string run = "run";
+    /// <summary>Change the group of an online player.</summary>
+    public static string chgrp = "chgrp";
+    /// <summary>Change the group of an offline player.</summary>
+    public static string chgrp_offline = "chgrp_offline";
+    /// <summary>Remove a client entry from the server config.</summary>
+    public static string remove_client = "remove_client";
+    /// <summary>Authenticate to a password-protected group via /login.</summary>
+    public static string login = "login";
+    /// <summary>Set or change the server welcome message.</summary>
+    public static string welcome = "welcome";
+    /// <summary>Access server logs.</summary>
+    public static string logging = "logging";
+    /// <summary>List currently connected players.</summary>
+    public static string list_clients = "list_clients";
+    /// <summary>List all players saved in the server config.</summary>
+    public static string list_saved_clients = "list_saved_clients";
+    /// <summary>List all defined permission groups.</summary>
+    public static string list_groups = "list_groups";
+    /// <summary>View the ban list.</summary>
+    public static string list_banned_users = "list_banned_users";
+    /// <summary>List all defined world areas/zones.</summary>
+    public static string list_areas = "list_areas";
+    /// <summary>Give items to a specific player.</summary>
+    public static string give = "give";
+    /// <summary>Give items to all connected players.</summary>
+    public static string giveall = "giveall";
+    /// <summary>Control monster spawning.</summary>
+    public static string monsters = "monsters";
+    /// <summary>Create a new protected area/zone.</summary>
+    public static string area_add = "area_add";
+    /// <summary>Delete an existing protected area/zone.</summary>
+    public static string area_delete = "area_delete";
+    /// <summary>Broadcast a server-wide announcement.</summary>
+    public static string announcement = "announcement";
+    /// <summary>Set the global or group spawn point.</summary>
+    public static string set_spawn = "set_spawn";
+    /// <summary>Set the player's personal home spawn.</summary>
+    public static string set_home = "set_home";
+    /// <summary>Use TNT explosives.</summary>
+    public static string use_tnt = "use_tnt";
+    /// <summary>Grant a privilege to a group or player.</summary>
+    public static string privilege_add = "privilege_add";
+    /// <summary>Revoke a privilege from a group or player.</summary>
+    public static string privilege_remove = "privilege_remove";
+    /// <summary>Restart the server.</summary>
+    public static string restart = "restart";
+    /// <summary>Shut the server down cleanly.</summary>
+    public static string shutdown = "shutdown";
+    /// <summary>Teleport yourself to another player.</summary>
+    public static string tp = "tp";
+    /// <summary>Teleport yourself to specific world coordinates.</summary>
+    public static string tp_pos = "tp_pos";
+    /// <summary>Teleport another player to a location.</summary>
+    public static string teleport_player = "teleport_player";
+    /// <summary>Trigger a manual database backup.</summary>
+    public static string backup_database = "backup_database";
+    /// <summary>Reset a player's inventory to its default state.</summary>
+    public static string reset_inventory = "reset_inventory";
+    /// <summary>Set the maximum blocks allowed in a single fill operation.</summary>
+    public static string fill_limit = "fill_limit";
+    /// <summary>Switch between game modes (e.g. survival / creative).</summary>
+    public static string mode = "mode";
+    /// <summary>Load a saved world or map.</summary>
+    public static string load = "load";
+    /// <summary>Get or set the in-game time of day.</summary>
+    public static string time = "time";
+};
 
+/// <summary>
+/// Static helpers and nested types shared across the server client system:
+/// colour codes, privilege name constants, and default group/client factories.
+/// </summary>
+public class ServerClientMisc
+{
+    /// <summary>
+    /// Placeholder username shown in the default client entry before a real
+    /// player name is configured.
+    /// </summary>
+    public static string DefaultPlayerName = "Player name?";
+   
     /// <summary>
     /// Creates and returns the four default groups (Guest, Builder, Moderator, Admin)
     /// with their canonical privilege sets and colours. Called when generating a
     /// fresh server config or resetting groups to defaults.
     /// The returned list is sorted by <see cref="Group.Level"/> ascending.
     /// </summary>
-    public static List<Group> getDefaultGroups()
+    public static List<Group> GetDefaultGroups()
     {
         List<Group> defaultGroups = [];
 
@@ -607,13 +607,13 @@ public class ServerClientMisc
     /// Creates and returns a default client list containing a single placeholder
     /// entry assigned to the Guest group. Used when generating a fresh server config.
     /// </summary>
-    public static List<Client> getDefaultClients()
+    public static List<Client> GetDefaultClients()
     {
         List<Client> defaultClients = [];
         Client defaultClient = new()
         {
             Name = DefaultPlayerName,
-            Group = getDefaultGroups()[0].Name
+            Group = GetDefaultGroups()[0].Name
         };
         defaultClients.Add(defaultClient);
         return defaultClients;

@@ -1,9 +1,9 @@
 using ManicDigger;
 using OpenTK.Mathematics;
 
-public class ClientOnServer
+public class ServerPlayer
 {
-    public ClientOnServer()
+    public ServerPlayer()
     {
         Entity = new ServerEntity
         {

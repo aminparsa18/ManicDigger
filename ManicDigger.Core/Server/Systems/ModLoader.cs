@@ -1,14 +1,14 @@
 ﻿namespace ManicDigger;
 
 public class ServerSystemModLoader(IEnumerable<IMod> mods, IModEvents modEvents, IServerModManager modManager,
-    ILanguageService languageService, IServerClientService serverClientService, IServerPacketService serverPacketService) : ServerSystem(modEvents)
+    ILanguageService languageService, IClientRegistry serverClientService, IServerPacketService serverPacketService) : ServerSystem(modEvents)
 {
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------
 
     /// <inheritdoc/>
-    protected override void Initialize(Server server) => LoadMods();
+    protected override void Initialize() => LoadMods();
 
     /// <inheritdoc/>
     public override bool OnCommand(Server server, int sourceClientId, string command, string argument)
@@ -36,17 +36,17 @@ public class ServerSystemModLoader(IEnumerable<IMod> mods, IModEvents modEvents,
     /// <returns><c>true</c> if the caller had sufficient privileges and the reload was initiated.</returns>
     public bool RestartMods(Server server, int sourceClientId)
     {
-        if (!server.PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.restart))
+        if (!server.PlayerHasPrivilege(sourceClientId, Privilege.restart))
         {
             serverPacketService.SendMessage(sourceClientId, string.Format(
-                languageService.Get("Server_CommandInsufficientPrivileges"), server.colorError));
+                languageService.Get("Server_CommandInsufficientPrivileges"), GameConstants.colorError));
             return false;
         }
 
-        ClientOnServer caller = serverClientService.GetClient(sourceClientId);
+        ServerPlayer caller = serverClientService.GetClient(sourceClientId);
         server.SendMessageToAll(string.Format(
             languageService.Get("Server_CommandRestartModsSuccess"),
-            server.colorImportant, caller.ColoredPlayername(server.colorImportant)));
+            GameConstants.colorImportant, caller.ColoredPlayername(GameConstants.colorImportant)));
         server.ServerEventLog($"{caller.PlayerName} restarts mods.");
 
         // restart mods if needed in an iteration

@@ -6,7 +6,6 @@ public interface IServer
 {
     double InvertedChunkSize { get; set; }
     List<string> AllPrivileges { get; set; }
-    ServerBanlist BanList { get; set; }
     int ChunkDrawDistance { get; }
     List<CraftingRecipe> CraftingRecipes { get; set; }
     Group? DefaultGroupGuest { get; set; }
@@ -21,21 +20,19 @@ public interface IServer
     Dictionary<string, Inventory> Inventory { get; set; }
     bool IsSinglePlayer { get; }
     NetServer[] MainSockets { get; set; }
-    Dictionary<string, byte[]> ModData { get; set; }
     List<string> ModPaths { get; set; }
     List<Action> OnLoad { get; set; }
     List<Action> OnSave { get; set; }
     int Port { get; set; }
     string ReceivedKey { get; set; }
     RenderHint RenderHint { get; set; }
-    float SIMULATION_STEP_LENGTH { get; set; }
     Dictionary<Timer, Timer.Tick> Timers { get; set; }
     long TotalReceivedBytes { get; set; }
     TimeSpan Uptime { get; }
 
     abstract int InvertChunk(int num);
     abstract IEnumerable<byte[]> Parts(byte[] blob, int partsize);
-    abstract Vector3i PlayerBlockPosition(ClientOnServer c);
+    abstract Vector3i PlayerBlockPosition(ServerPlayer c);
     abstract byte[] Serialize(Packet_Server p);
     abstract int SerializeFloat(float p);
     void AddEntity(int x, int y, int z, ServerEntity e);
@@ -99,7 +96,7 @@ public interface IServer
     void ReceiveServerConsole(string message);
     bool RemoveClientFromConfig(int sourceClientId, string target);
     bool ResetInventory(int sourceClientId, string target);
-    void ResetPlayerInventory(ClientOnServer client);
+    void ResetPlayerInventory(ServerPlayer client);
     void Restart();
     bool RestartServer(int sourceClientId);
     void SaveChunksToDatabase(List<Vector3i> chunkPositions, string filename);

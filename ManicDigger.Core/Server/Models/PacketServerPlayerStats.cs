@@ -13,7 +13,10 @@ public partial class PacketServerPlayerStats
     /// <summary>Player's maximum health points. Defaults to <c>20</c>.</summary>
     public int MaxHealth { get; set; } = 20;
 
-    /// <summary>Player's current oxygen level. Depletes while underwater. Defaults to <c>10</c>.</summary>
+    /// <summary>
+    /// Player's current oxygen level. Depletes while the player is underwater.
+    /// Defaults to <c>10</c>.
+    /// </summary>
     public int CurrentOxygen { get; set; } = 10;
 
     /// <summary>Player's maximum oxygen capacity. Defaults to <c>10</c>.</summary>

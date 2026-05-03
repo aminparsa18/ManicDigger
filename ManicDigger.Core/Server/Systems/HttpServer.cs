@@ -8,14 +8,15 @@ public class ServerSystemHttpServer : ServerSystem
     private CancellationTokenSource _cts;
     private readonly ILanguageService _languageService;
     private readonly IServerConfig _config;
-
-    public ServerSystemHttpServer(IModEvents modEvents, ILanguageService languageService, IServerConfig config) : base(modEvents)
+    private readonly Server server;
+    public ServerSystemHttpServer(Server server, IModEvents modEvents, ILanguageService languageService, IServerConfig config) : base(modEvents)
     {
+        this.server = server;
         _languageService = languageService;
         _config = config;
     }
 
-    protected override void Initialize(Server server)
+    protected override void Initialize()
     {
         if (!_config.EnableHTTPServer || server.IsSinglePlayer)
         {

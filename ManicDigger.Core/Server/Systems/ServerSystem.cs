@@ -16,13 +16,13 @@ public abstract class ServerSystem
         if (!_initialized)
         {
             _initialized = true;
-            Initialize(server);
+            Initialize();
         }
 
         OnUpdate(server, dt);
     }
 
-    protected virtual void Initialize(Server server) { }
+    protected virtual void Initialize() { }
     protected virtual void OnUpdate(Server server, float dt) { }
     public virtual void OnRestart(Server server) { }
     public virtual bool OnCommand(Server server, int sourceClientId, string command, string argument) => false;

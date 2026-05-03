@@ -8,12 +8,12 @@ public class ServerMonitor
     private ServerMonitorConfig config;
     public IGameExit Exit;
     private readonly ILanguageService _languageService;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
     private readonly IServerPacketService _serverPacketService;
     private readonly Server server;
     private readonly Dictionary<int, MonitorClient> monitorClients;
 
-    public ServerMonitor(Server server, IGameExit exit, ILanguageService languageService, IServerClientService serverClientService, IServerPacketService serverPacketService)
+    public ServerMonitor(Server server, IGameExit exit, ILanguageService languageService, IClientRegistry serverClientService, IServerPacketService serverPacketService)
     {
         this.server = server;
         this._serverClientService = serverClientService;

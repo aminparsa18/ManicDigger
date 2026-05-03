@@ -16,10 +16,10 @@ public class ServerSystemHeartbeat : ServerSystem
     private bool hashPrinted;
     private readonly ServerHeartbeat heartbeat = new();
     private readonly ILanguageService _languageService;
-    private readonly IServerClientService _serverClientService;
+    private readonly IClientRegistry _serverClientService;
     private readonly IServerConfig _config;
 
-    public ServerSystemHeartbeat(IModEvents modEvents, ILanguageService languageService, IServerClientService serverClientService, IServerConfig config) : base(modEvents)
+    public ServerSystemHeartbeat(IModEvents modEvents, ILanguageService languageService, IClientRegistry serverClientService, IServerConfig config) : base(modEvents)
     {
         _languageService = languageService;
         _serverClientService = serverClientService;
@@ -75,7 +75,7 @@ public class ServerSystemHeartbeat : ServerSystem
         List<string> playerNames = new();
         lock (_serverClientService.Clients)
         {
-            foreach ((int _, ClientOnServer? client) in _serverClientService.Clients)
+            foreach ((int _, ServerPlayer? client) in _serverClientService.Clients)
             {
                 if (!client.IsBot)
                 {

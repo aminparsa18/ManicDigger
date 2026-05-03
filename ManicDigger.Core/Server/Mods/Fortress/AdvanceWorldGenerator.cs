@@ -389,7 +389,7 @@ public class AdvanceWorldGenerator : IMod
                         block = DetermineBlock(in col, wz, surfaceZ);
                     }
 
-                    args.Chunk[m.Index3d(xx, yy, zz, chunksize, chunksize)] = (ushort)block;
+                    args.Chunk[VectorIndexUtil.Index3d(xx, yy, zz, chunksize, chunksize)] = (ushort)block;
                 }
             }
         }

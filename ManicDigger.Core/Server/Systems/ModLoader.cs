@@ -67,6 +67,11 @@ public class ServerSystemModLoader(IEnumerable<IMod> mods, IModEvents modEvents,
     {
         foreach (IMod mod in mods)
         {
+            mod.PreStart(modManager);
+        }
+
+        foreach (IMod mod in mods)
+        {
             mod.Start(modManager, modEvents);
         }
     }

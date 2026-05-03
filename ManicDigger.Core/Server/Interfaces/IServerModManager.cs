@@ -284,6 +284,8 @@ public interface IServerModManager
 
     long GetCurrentTick();
 
+    long SetCurrentTick(int tick);
+
     /// <summary>
     /// Gets the number of real hours that one ingame day takes
     /// </summary>

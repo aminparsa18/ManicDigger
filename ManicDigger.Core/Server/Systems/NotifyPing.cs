@@ -11,11 +11,16 @@ public class ServerSystemNotifyPing : ServerSystem
     private readonly Timer pingTimer = new() { INTERVAL = 1, MaxDeltaTime = 5 };
     private readonly IGameService gameService;
     private readonly IGameExit gameExit;
+    private readonly IServerClientService _serverClientService;
+    private readonly IServerPacketService _serverPacketService;
 
-    public ServerSystemNotifyPing(IGameService gameService, IGameExit gameExit, IModEvents modEvents) : base(modEvents)
+    public ServerSystemNotifyPing(IGameService gameService, IGameExit gameExit, IModEvents modEvents, IServerClientService serverClientService, 
+        IServerPacketService serverPacketService) : base(modEvents)
     {
         this.gameService = gameService;
         this.gameExit = gameExit;
+        _serverClientService = serverClientService;
+        _serverPacketService = serverPacketService;
     }
 
     /// <inheritdoc/>
@@ -30,7 +35,7 @@ public class ServerSystemNotifyPing : ServerSystem
 
             List<int> timedOut = new();
 
-            foreach ((int clientId, ClientOnServer? client) in server.Clients)
+            foreach ((int clientId, ClientOnServer? client) in _serverClientService.Clients)
             {
                 if (!client.Ping.Send(gameService.TimeMillisecondsFromStart))
                 {
@@ -42,7 +47,7 @@ public class ServerSystemNotifyPing : ServerSystem
                 }
                 else
                 {
-                    server.SendPacket(clientId, ServerPackets.Ping());
+                    _serverPacketService.SendPacket(clientId, ServerPackets.Ping());
                 }
             }
 

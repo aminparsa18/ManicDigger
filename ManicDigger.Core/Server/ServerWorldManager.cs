@@ -60,7 +60,7 @@ public partial class Server
     public int playerareasize = 256;
     public int centerareasize = 128;
 
-    private PointG PlayerArea(int playerId) => VectorUtils.PlayerArea(playerareasize, centerareasize, PlayerBlockPosition(Clients[playerId]));
+    private PointG PlayerArea(int playerId) => VectorUtils.PlayerArea(playerareasize, centerareasize, PlayerBlockPosition(_serverClientService.Clients[playerId]));
 
     private IEnumerable<Vector3i> PlayerAreaChunks(int playerId)
     {
@@ -115,7 +115,7 @@ public partial class Server
             c.DirtyForSaving = true;
             _serverMapStorage.SetChunkValid(x, y, z, c);
             // update related chunk at clients
-            foreach (KeyValuePair<int, ClientOnServer> k in Clients)
+            foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
             {
                 //todo wrong
                 //k.Value.chunksseen.Clear();
@@ -147,7 +147,7 @@ public partial class Server
         }
 
         // update related chunk at clients
-        foreach (KeyValuePair<int, ClientOnServer> k in Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
         {
             //TODO wrong
             //k.Value.chunksseen.Clear();
@@ -178,7 +178,7 @@ public partial class Server
         }
 
         // update related chunk at clients
-        foreach (KeyValuePair<int, ClientOnServer> k in Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
         {
             //TODO wrong
             //k.Value.chunksseen.Clear();
@@ -209,7 +209,7 @@ public partial class Server
             ChunkDbHelper.DeleteChunk(_chunkDb, x, y, z);
             _serverMapStorage.SetChunkValid(x, y, z, null);
             // update related chunk at clients
-            foreach (KeyValuePair<int, ClientOnServer> k in Clients)
+            foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
             {
                 //todo wrong
                 //k.Value.chunksseen.Clear();
@@ -237,7 +237,7 @@ public partial class Server
         {
             global::ChunkDbHelper.DeleteChunks(_chunkDb, chunks);
             // force to update chunks at clients
-            foreach (KeyValuePair<int, ClientOnServer> k in Clients)
+            foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
             {
                 //todo wrong
                 //k.Value.chunksseen.Clear();

@@ -57,6 +57,9 @@ public class Program
         services.AddSingleton<IServerMapStorage, ServerMapStorage>();
         services.AddSingleton<IServerConfig, ServerConfig>();
         services.AddSingleton<ISaveGameService, SaveGameService>();
+        services.AddSingleton<IPlayerStatusService, PlayerStatusService>();
+        services.AddSingleton<IServerClientService, ServerClientService>();
+        services.AddSingleton<IServerPacketService, ServerPacketService>();
 
         // ScreenManager satisfies both contracts from the same singleton instance.
         services.AddSingleton<ScreenManager>();
@@ -152,6 +155,7 @@ public class Program
         services.AddScoped<IMod, VandalFinder>();
         services.AddScoped<IMod, VegetationGrowth>();
 
+
        // services.AddSingleton<ModBootstrapper>();
 
         services.AddScoped<IMainScreen, MainScreen>();
@@ -160,6 +164,7 @@ public class Program
         services.AddScoped<IScreenMultiplayer, MultiplayerScreen>();
 
         services.AddSingleton<Server>();
+        services.AddSingleton<GameTimer>();
         services.AddSingleton<ServerSystemLoadFirst>();
         services.AddSingleton<ServerSystemLoadConfig>();
         services.AddSingleton<ServerSystemHeartbeat>();

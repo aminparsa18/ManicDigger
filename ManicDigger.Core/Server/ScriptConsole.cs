@@ -1,13 +1,17 @@
 ﻿// Copyright (c) 2011 by Henon <meinrad.recheis@gmail.com>
+using ManicDigger;
 using OpenTK.Mathematics;
+using static ManicDigger.ServerPacketService;
 
 public class ScriptConsole
 {
-    public ScriptConsole(Server s, IBlockRegistry blockRegistry, ISaveGameService saveGameService, int client_id)
+    public ScriptConsole(Server s, IBlockRegistry blockRegistry, ISaveGameService saveGameService, IServerClientService serverClientService, IServerPacketService serverPacketService, int client_id)
     {
         m_server = s;
         _blockRegistry = blockRegistry;
         _saveGameService = saveGameService;
+        _serverClientService = serverClientService;
+        _serverPacketService = serverPacketService;
         m_client = client_id;
     }
 
@@ -38,6 +42,8 @@ public class ScriptConsole
 
     private readonly IBlockRegistry _blockRegistry;
     private readonly ISaveGameService _saveGameService;
+    private readonly IServerClientService _serverClientService;
+    private readonly IServerPacketService _serverPacketService;
     private readonly Server m_server;
     private readonly int m_client;
 
@@ -48,7 +54,7 @@ public class ScriptConsole
             return;
         }
 
-        m_server.SendMessage(m_client, obj.ToString(), Server.MessageType.Normal);
+        _serverPacketService.SendMessage(m_client, obj.ToString(), MessageType.Normal);
     }
 
     public void PrintMaterials() => PrintMaterials(0, GameConstants.MAX_BLOCKTYPES);
@@ -74,14 +80,14 @@ public class ScriptConsole
 
     public void PrintPosition()
     {
-        ClientOnServer client = m_server.GetClient(m_client);
+        ClientOnServer client = _serverClientService.GetClient(m_client);
         Vector3i pos = GetPosition();
         Print(string.Format("Position: X {0}, Y {1}, Z{2}", pos.X, pos.Y, pos.Z));
     }
 
     public Vector3i GetPosition()
     {
-        ClientOnServer client = m_server.GetClient(m_client);
+        ClientOnServer client = _serverClientService.GetClient(m_client);
         return m_server.PlayerBlockPosition(client);
     }
 

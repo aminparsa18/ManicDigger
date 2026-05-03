@@ -7,13 +7,17 @@ public class ServerSystemChunksSimulation : ServerSystem
     private IBlockRegistry _blockRegistry;
     private readonly IServerMapStorage _serverMapStorage;
     private readonly IServerConfig _config;
+    private readonly ISaveGameService _saveGameService;
+    private readonly IServerClientService _serverClientService;
 
     public ServerSystemChunksSimulation(IBlockRegistry blockRegistry, IServerMapStorage serverMapStorage, IModEvents modEvents,
-        IServerConfig config) : base(modEvents)
+        IServerConfig config, ISaveGameService saveGameService, IServerClientService serverClientService) : base(modEvents)
     {
         _blockRegistry = blockRegistry;
         _serverMapStorage = serverMapStorage;
         _config = config;
+        _saveGameService = saveGameService;
+        _serverClientService = serverClientService;
     }
 
     public int[] MonsterTypesUnderground = [1, 2];
@@ -55,7 +59,7 @@ public class ServerSystemChunksSimulation : ServerSystem
     {
         unchecked
         {
-            foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
+            foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
             {
                 Vector3i playerPos = server.PlayerBlockPosition(k.Value);
 
@@ -80,9 +84,9 @@ public class ServerSystemChunksSimulation : ServerSystem
                     }
 
                     // Guard against future timestamps
-                    if (chunk.LastUpdate > server.SimulationCurrentFrame)
+                    if (chunk.LastUpdate > _saveGameService.SimulationCurrentFrame)
                     {
-                        chunk.LastUpdate = server.SimulationCurrentFrame;
+                        chunk.LastUpdate = _saveGameService.SimulationCurrentFrame;
                     }
 
                     if (chunk.LastUpdate < oldestTime)
@@ -98,7 +102,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                     }
                 }
 
-                if (server.SimulationCurrentFrame - oldestTime > simulationInterval)
+                if (_saveGameService.SimulationCurrentFrame - oldestTime > simulationInterval)
                 {
                     UpdateChunk(server, oldestPos);
 
@@ -107,7 +111,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                         server.InvertChunk(oldestPos.Y),
                         server.InvertChunk(oldestPos.Z));
 
-                    chunk.LastUpdate = server.SimulationCurrentFrame;
+                    chunk.LastUpdate = _saveGameService.SimulationCurrentFrame;
                     return;
                 }
             }
@@ -218,7 +222,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                     X = px,
                     Y = py,
                     Z = pz,
-                    Id = server.LastMonsterId++,
+                    Id = _saveGameService.LastMonsterId++,
                     Health = 20,
                     MonsterType = monsterType
                 });

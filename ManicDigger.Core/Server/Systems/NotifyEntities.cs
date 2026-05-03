@@ -20,12 +20,17 @@ public class ServerSystemNotifyEntities : ServerSystem
     private const int SpawnMaxEntities = 32;
 
     private readonly IServerMapStorage _serverMapStorage;
+    private readonly IServerPacketService _serverPacketService;
     private readonly IServerConfig _config;
+    private readonly IServerClientService _serverClientService;
 
-    public ServerSystemNotifyEntities(IModEvents modEvents, IServerMapStorage serverMapStorage, IServerConfig config) : base(modEvents)
+    public ServerSystemNotifyEntities(IModEvents modEvents, IServerMapStorage serverMapStorage, IServerConfig config,
+        IServerClientService serverClientService, IServerPacketService serverPacketService) : base(modEvents)
     {
         _serverMapStorage = serverMapStorage;
         _config = config;
+        _serverClientService = serverClientService;
+        _serverPacketService = serverPacketService;
     }
 
     // -------------------------------------------------------------------------
@@ -35,7 +40,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
     {
-        foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
         {
             ClientOnServer client = k.Value;
 
@@ -67,11 +72,11 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// Sends <c>EntitySpawn</c> packets to <paramref name="clientId"/> for any
     /// players whose dirty flag has been set since the last notification.
     /// </summary>
-    private static void NotifyPlayers(Server server, int clientId)
+    private void NotifyPlayers(Server server, int clientId)
     {
-        ClientOnServer client = server.Clients[clientId];
+        ClientOnServer client = _serverClientService.Clients[clientId];
 
-        foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
         {
             if (k.Value.State != ClientStateOnServer.Playing)
             {
@@ -84,7 +89,7 @@ public class ServerSystemNotifyEntities : ServerSystem
             }
 
             Packet_ServerEntity entity = ToNetworkEntity(k.Value.Entity);
-            server.SendPacket(clientId, ServerPackets.EntitySpawn(k.Key, entity));
+            _serverPacketService.SendPacket(clientId, ServerPackets.EntitySpawn(k.Key, entity));
             client.PlayersDirty[k.Key] = false;
         }
     }
@@ -104,7 +109,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private void NotifyPlayerPositions(Server server, int clientId, float dt)
     {
-        ClientOnServer client = server.Clients[clientId];
+        ClientOnServer client = _serverClientService.Clients[clientId];
         client.NotifyPlayerPositionsAccum += dt;
         if (client.NotifyPlayerPositionsAccum < (1f / PlayerPositionUpdatesPerSecond))
         {
@@ -113,7 +118,7 @@ public class ServerSystemNotifyEntities : ServerSystem
 
         client.NotifyPlayerPositionsAccum = 0;
 
-        foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
         {
             if (k.Value.State != ClientStateOnServer.Playing)
             {
@@ -139,8 +144,8 @@ public class ServerSystemNotifyEntities : ServerSystem
             else
             {
                 // Skip players beyond the configured draw distance
-                Vector3i otherPos = server.PlayerBlockPosition(server.Clients[k.Key]);
-                Vector3i selfPos = server.PlayerBlockPosition(server.Clients[clientId]);
+                Vector3i otherPos = server.PlayerBlockPosition(_serverClientService.Clients[k.Key]);
+                Vector3i selfPos = server.PlayerBlockPosition(_serverClientService.Clients[clientId]);
                 int drawDistanceSq = _config.PlayerDrawDistance * _config.PlayerDrawDistance;
                 if (VectorUtils.DistanceSquared(otherPos, selfPos) > drawDistanceSq)
                 {
@@ -149,8 +154,8 @@ public class ServerSystemNotifyEntities : ServerSystem
             }
 
             Packet_PositionAndOrientation position =
-                ToNetworkEntityPosition(server.Clients[k.Key].Entity.Position);
-            server.SendPacket(clientId, ServerPackets.EntityPositionAndOrientation(k.Key, position));
+                ToNetworkEntityPosition(_serverClientService.Clients[k.Key].Entity.Position);
+            _serverPacketService.SendPacket(clientId, ServerPackets.EntityPositionAndOrientation(k.Key, position));
         }
     }
 
@@ -171,7 +176,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// </summary>
     private void NotifyEntities(Server server, int clientId, float dt)
     {
-        ClientOnServer client = server.Clients[clientId];
+        ClientOnServer client = _serverClientService.Clients[clientId];
         client.NotifyEntitiesAccum += dt;
         if (client.NotifyEntitiesAccum < (1f / EntityPositionUpdatesPerSecond))
         {
@@ -210,7 +215,7 @@ public class ServerSystemNotifyEntities : ServerSystem
             }
 
             client.SpawnedEntities[i] = null;
-            server.SendPacket(clientId, ServerPackets.EntityDespawn(64 + i));
+            _serverPacketService.SendPacket(clientId, ServerPackets.EntityDespawn(64 + i));
         }
 
         // --- Spawn entities that entered range ---
@@ -231,7 +236,7 @@ public class ServerSystemNotifyEntities : ServerSystem
             client.SpawnedEntities[slotId] = e.Clone();
 
             ServerEntity entity = GetEntity(server, e);
-            server.SendPacket(clientId, ServerPackets.EntitySpawn(64 + slotId, ToNetworkEntity(entity)));
+            _serverPacketService.SendPacket(clientId, ServerPackets.EntitySpawn(64 + slotId, ToNetworkEntity(entity)));
         }
 
         // --- Re-send dirty entity data ---
@@ -246,7 +251,7 @@ public class ServerSystemNotifyEntities : ServerSystem
 
             ServerEntityId e = client.SpawnedEntities[i];
             ServerEntity entity = GetEntity(server, e);
-            server.SendPacket(clientId, ServerPackets.EntitySpawn(64 + i, ToNetworkEntity(entity)));
+            _serverPacketService.SendPacket(clientId, ServerPackets.EntitySpawn(64 + i, ToNetworkEntity(entity)));
         }
     }
 

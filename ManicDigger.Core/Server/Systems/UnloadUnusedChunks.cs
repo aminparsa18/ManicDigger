@@ -25,11 +25,13 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
     private readonly IServerMapStorage _serverMapStorage;
     private readonly ISaveGameService _saveGameService;
+    private readonly IServerClientService _serverClientService;
 
-    public ServerSystemUnloadUnusedChunks(IModEvents modEvents, IServerMapStorage serverMapStorage, ISaveGameService saveGameService) : base(modEvents)
+    public ServerSystemUnloadUnusedChunks(IModEvents modEvents, IServerMapStorage serverMapStorage, ISaveGameService saveGameService, IServerClientService serverClientService) : base(modEvents)
     {
         _serverMapStorage = serverMapStorage;
         _saveGameService = saveGameService;
+        _serverClientService = serverClientService;
     }
 
     // -------------------------------------------------------------------------
@@ -70,13 +72,13 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     /// <paramref name="chunkPos"/>. Bot players are ignored — they do not keep
     /// chunks resident.
     /// </summary>
-    private static bool ShouldUnload(Server server, Vector3i chunkPos)
+    private bool ShouldUnload(Server server, Vector3i chunkPos)
     {
         Vector3i globalPos = ChunkToGlobalPos(server, chunkPos);
         int unloadDist = (int)(server.ChunkDrawDistance * GameConstants.ServerChunkSize * UnloadDistanceMultiplier);
         int unloadDistSq = unloadDist * unloadDist;
 
-        foreach ((int _, ClientOnServer? client) in server.Clients)
+        foreach ((int _, ClientOnServer? client) in _serverClientService.Clients)
         {
             if (client.IsBot)
             {
@@ -110,7 +112,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
         _serverMapStorage.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);
 
-        foreach ((int clientId, ClientOnServer _) in server.Clients)
+        foreach ((int clientId, ClientOnServer _) in _serverClientService.Clients)
         {
             server.ClientSeenChunkRemove(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z);
         }

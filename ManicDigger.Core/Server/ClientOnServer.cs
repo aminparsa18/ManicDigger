@@ -16,7 +16,7 @@ public class ClientOnServer
         State = ClientStateOnServer.Connecting;
         QueryClient = true;
         Ping = new Ping();
-        PlayerName = Server.InvalidPlayerName;
+        PlayerName = GameConstants.InvalidPlayerName;
         Model = "player.txt";
         chunksseenTime = [];
         heightmapchunksseen = [];

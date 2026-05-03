@@ -20,4 +20,9 @@
     public const int entityLocalIdStart = 256;
 
     public const int ServerChunkSize = 32;
+
+    public const int ServerConsoleId = -1;
+
+    public const string InvalidPlayerName = "invalid";
+
 }

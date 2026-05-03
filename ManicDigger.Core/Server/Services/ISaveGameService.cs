@@ -15,6 +15,7 @@ public class SaveGameService : ISaveGameService
     private readonly IServerMapStorage _serverMapStorage;
     private readonly IServerConfig _config;
     private readonly ILanguageService _languageService;
+    private readonly GameTimer _gameTimer;
 
     // Needed by LoadDatabase to reset per-client chunk visibility after a world switch.
     public Dictionary<int, ClientOnServer> Clients { get; set; } = [];
@@ -28,7 +29,6 @@ public class SaveGameService : ISaveGameService
 
     public int Seed { get; set; }
     public long SimulationCurrentFrame { get; set; }
-    public long TimeOfDayTicks { get; set; }
     public int LastMonsterId { get; set; }
     public Dictionary<string, PacketServerPlayerStats> PlayerStats { get; set; }
     public Dictionary<string, byte[]> ModData { get; set; }
@@ -47,12 +47,14 @@ public class SaveGameService : ISaveGameService
         IChunkDbCompressed chunkDb,
         IServerMapStorage serverMapStorage,
         IServerConfig config,
-        ILanguageService languageService)
+        ILanguageService languageService,
+        GameTimer gameTimer)
     {
         _chunkDb = chunkDb;
         _serverMapStorage = serverMapStorage;
         _config = config;
         _languageService = languageService;
+        _gameTimer = gameTimer;
     }
 
     // ── ISaveGameService ──────────────────────────────────────────────────────
@@ -82,7 +84,7 @@ public class SaveGameService : ISaveGameService
         {
             Seed = Seed,
             SimulationCurrentFrame = SimulationCurrentFrame,
-            TimeOfDay = TimeOfDayTicks,
+            TimeOfDay = _gameTimer.Time.Ticks,
             LastMonsterId = LastMonsterId,
             PlayerStats = PlayerStats,
             ModData = ModData,
@@ -112,7 +114,6 @@ public class SaveGameService : ISaveGameService
                 ? new Random().Next()
                 : _config.Seed;
 
-            TimeOfDayTicks = TimeSpan.Parse("08:00").Ticks;
             _chunkDb.SetGlobalData(Save());
             return;
         }
@@ -133,7 +134,6 @@ public class SaveGameService : ISaveGameService
         SimulationCurrentFrame = (int)save.SimulationCurrentFrame;
         LastMonsterId = save.LastMonsterId;
         ModData = save.ModData;
-        TimeOfDayTicks = save.TimeOfDay;
     }
 
     /// <inheritdoc/>
@@ -216,7 +216,7 @@ public class SaveGameService : ISaveGameService
 
         string finalFilename = Path.Combine(
             GameStorePath.gamepathbackup,
-            filename + FileConstatns.DbFileExtension);
+            $"{filename}{FileConstatns.DbFileExtension}");
 
         List<DbChunk> dbChunks = [];
         foreach (Vector3i pos in chunkPositions)
@@ -326,6 +326,9 @@ public class SaveGameService : ISaveGameService
 /// </summary>
 public interface ISaveGameService
 {
+    public int Seed { get; set; }
+    public long SimulationCurrentFrame { get; set; }
+
     /// <summary>
     /// Returns the fully-resolved path to the active save file.
     /// Replaces <c>Server.GetSaveFilename()</c> and <c>Server.SaveFilenameOverride</c>.
@@ -394,6 +397,8 @@ public interface ISaveGameService
     /// Creates a fresh save if the database contains no global data yet.
     /// </summary>
     void Load();
+
+    int LastMonsterId { get; set; }
 }
 
 /// <summary>

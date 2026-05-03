@@ -1,7 +1,7 @@
 ﻿namespace ManicDigger;
 
 public class ServerSystemModLoader(IEnumerable<IMod> mods, IModEvents modEvents, IServerModManager modManager,
-    ILanguageService languageService) : ServerSystem(modEvents)
+    ILanguageService languageService, IServerClientService serverClientService, IServerPacketService serverPacketService) : ServerSystem(modEvents)
 {
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -38,12 +38,12 @@ public class ServerSystemModLoader(IEnumerable<IMod> mods, IModEvents modEvents,
     {
         if (!server.PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.restart))
         {
-            server.SendMessage(sourceClientId, string.Format(
+            serverPacketService.SendMessage(sourceClientId, string.Format(
                 languageService.Get("Server_CommandInsufficientPrivileges"), server.colorError));
             return false;
         }
 
-        ClientOnServer caller = server.GetClient(sourceClientId);
+        ClientOnServer caller = serverClientService.GetClient(sourceClientId);
         server.SendMessageToAll(string.Format(
             languageService.Get("Server_CommandRestartModsSuccess"),
             server.colorImportant, caller.ColoredPlayername(server.colorImportant)));

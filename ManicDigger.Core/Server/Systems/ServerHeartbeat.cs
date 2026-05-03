@@ -16,11 +16,13 @@ public class ServerSystemHeartbeat : ServerSystem
     private bool hashPrinted;
     private readonly ServerHeartbeat heartbeat = new();
     private readonly ILanguageService _languageService;
+    private readonly IServerClientService _serverClientService;
     private readonly IServerConfig _config;
 
-    public ServerSystemHeartbeat(IModEvents modEvents, ILanguageService languageService, IServerConfig config) : base(modEvents)
+    public ServerSystemHeartbeat(IModEvents modEvents, ILanguageService languageService, IServerClientService serverClientService, IServerConfig config) : base(modEvents)
     {
         _languageService = languageService;
+        _serverClientService = serverClientService;
         _config = config;
         // Pre-fill the timer so the first heartbeat fires on the first tick
         elapsed = HeartbeatInterval;
@@ -71,9 +73,9 @@ public class ServerSystemHeartbeat : ServerSystem
         heartbeat.Motd = _config.Motd;
 
         List<string> playerNames = new();
-        lock (server.Clients)
+        lock (_serverClientService.Clients)
         {
-            foreach ((int _, ClientOnServer? client) in server.Clients)
+            foreach ((int _, ClientOnServer? client) in _serverClientService.Clients)
             {
                 if (!client.IsBot)
                 {

@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 namespace ManicDigger;
 
 public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb,
-    IServerMapStorage serverMapStorage, ILanguageService languageService, IServerConfig config,
-    Server server) : IServerModManager
+    IServerMapStorage serverMapStorage, ILanguageService languageService, IServerConfig config, IServerPacketService serverPacketService,
+    Server server, ISaveGameService saveGameService, IServerClientService serverClientService, IPlayerStatusService playerStatusService) : IServerModManager
 {
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
@@ -13,6 +13,9 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
     private readonly IServerMapStorage _serverMapStorage = serverMapStorage;
     private readonly ILanguageService _languageService = languageService;
     private readonly IServerConfig _config = config;
+    private readonly IServerClientService _serverClientService = serverClientService;
+    private readonly IPlayerStatusService _playerStatusService = playerStatusService;
+    private readonly IServerPacketService _serverPacketService = serverPacketService;
 
     public int GetMaxBlockTypes() => GameConstants.MAX_BLOCKTYPES;
 
@@ -187,7 +190,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
     {
         int closeplayer = -1;
         int closedistance = -1;
-        foreach (KeyValuePair<int, ClientOnServer> k in _server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
         {
             int distance = VectorUtils.DistanceSquared(new Vector3i(k.Value.PositionMul32GlX / 32, k.Value.PositionMul32GlZ / 32, k.Value.PositionMul32GlY / 32), new Vector3i(x, y, z));
             if (closedistance == -1 || distance < closedistance)
@@ -204,7 +207,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void GrabBlocks(int player, int block, int amount)
     {
-        Inventory inventory = _server.GetPlayerInventory(_server.GetClient(player).PlayerName);
+        Inventory inventory = _server.GetPlayerInventory(_serverClientService.GetClient(player).PlayerName);
 
         InventoryItem item = new()
         {
@@ -223,13 +226,13 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void NotifyInventory(int player)
     {
-        _server.GetClient(player).IsInventoryDirty = true;
+        _serverClientService.GetClient(player).IsInventoryDirty = true;
         _server.NotifyInventory(player);
     }
 
     public string ColorError => _server.colorError;
 
-    public void SendMessage(int player, string p) => _server.SendMessage(player, p);
+    public void SendMessage(int player, string p) => _serverPacketService.SendMessage(player, p);
 
     public void RegisterPrivilege(string p)
     {
@@ -239,9 +242,9 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
             _server.AllPrivileges.Add(p);
         }
         // Direct modification of console client as mods are loaded after privileges are assigned
-        if (!_server.ServerConsoleClient.Privileges.Contains(p))
+        if (!_serverClientService.ServerConsoleClient.Privileges.Contains(p))
         {
-            _server.ServerConsoleClient.Privileges.Add(p);
+            _serverClientService.ServerConsoleClient.Privileges.Add(p);
         }
     }
 
@@ -255,7 +258,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public object GetOption(string optionname) => modoptions[optionname];
 
-    public int Seed => _server.Seed;
+    public int Seed => saveGameService.Seed;
 
     public int Index3d(int x, int y, int h, int sizex, int sizey) => (((h * sizey) + y) * sizex) + x;
 
@@ -278,9 +281,9 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void RegisterOnSave(Action f) => _server.OnSave.Add(f);
 
-    public string GetPlayerIp(int player) => _server.GetClient(player).Socket.RemoteEndPoint().AddressToString();
+    public string GetPlayerIp(int player) => _serverClientService.GetClient(player).Socket.RemoteEndPoint().AddressToString();
 
-    public string GetPlayerName(int player) => _server.GetClient(player).PlayerName;
+    public string GetPlayerName(int player) => _serverClientService.GetClient(player).PlayerName;
 
     public List<string> required { get; set; } = [];
 
@@ -305,7 +308,8 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void AddToStartInventory(string blocktype, int amount) => _blockRegistry.StartInventoryAmount[GetBlockId(blocktype)] = amount;
 
-    public long GetCurrentTick() => _server.GetSimulationCurrentFrame();
+    public long GetCurrentTick() => saveGameService.SimulationCurrentFrame;
+    public long SetCurrentTick(int tick) => saveGameService.SimulationCurrentFrame = tick;
 
     public void SetDaysPerYear(int days)
     {
@@ -335,7 +339,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void UpdateBlockTypes()
     {
-        foreach (KeyValuePair<int, ClientOnServer> k in _server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
         {
             _server.SendBlockTypes(k.Key);
         }
@@ -364,62 +368,62 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void EnableShadows(bool value) => _server.EnableShadows = value;
 
-    public float GetPlayerPositionX(int player) => (float)_server.GetClient(player).PositionMul32GlX / 32;
+    public float GetPlayerPositionX(int player) => (float)_serverClientService.GetClient(player).PositionMul32GlX / 32;
 
-    public float GetPlayerPositionY(int player) => (float)_server.GetClient(player).PositionMul32GlZ / 32;
+    public float GetPlayerPositionY(int player) => (float)_serverClientService.GetClient(player).PositionMul32GlZ / 32;
 
-    public float GetPlayerPositionZ(int player) => (float)_server.GetClient(player).PositionMul32GlY / 32;
+    public float GetPlayerPositionZ(int player) => (float)_serverClientService.GetClient(player).PositionMul32GlY / 32;
 
     public void SetPlayerPosition(int player, float x, float y, float z)
     {
         ServerEntityPositionAndOrientation pos;
-        if (_server.Clients[player].PositionOverride == null)
+        if (_serverClientService.Clients[player].PositionOverride == null)
         {
             //No position override so far. Clone from player position
-            pos = _server.Clients[player].Entity.Position.Clone();
+            pos = _serverClientService.Clients[player].Entity.Position.Clone();
         }
         else
         {
             //Position has already been modified. Clone from override to prevent data loss
-            pos = _server.Clients[player].PositionOverride.Clone();
+            pos = _serverClientService.Clients[player].PositionOverride.Clone();
         }
 
         pos.X = x;
         pos.Y = z;
         pos.Z = y;
-        _server.Clients[player].PositionOverride = pos;
+        _serverClientService.Clients[player].PositionOverride = pos;
     }
 
-    public int GetPlayerHeading(int player) => _server.GetClient(player).PositionHeading;
+    public int GetPlayerHeading(int player) => _serverClientService.GetClient(player).PositionHeading;
 
-    public int GetPlayerPitch(int player) => _server.GetClient(player).PositionPitch;
+    public int GetPlayerPitch(int player) => _serverClientService.GetClient(player).PositionPitch;
 
-    public int GetPlayerStance(int player) => _server.GetClient(player).Stance;
+    public int GetPlayerStance(int player) => _serverClientService.GetClient(player).Stance;
 
     public void SetPlayerOrientation(int player, int heading, int pitch, int stance)
     {
         ServerEntityPositionAndOrientation pos;
-        if (_server.Clients[player].PositionOverride == null)
+        if (_serverClientService.Clients[player].PositionOverride == null)
         {
             //No position override so far. Clone from player position
-            pos = _server.Clients[player].Entity.Position.Clone();
+            pos = _serverClientService.Clients[player].Entity.Position.Clone();
         }
         else
         {
             //Position has already been modified. Clone from override to prevent data loss
-            pos = _server.Clients[player].PositionOverride.Clone();
+            pos = _serverClientService.Clients[player].PositionOverride.Clone();
         }
 
         pos.Heading = (byte)heading;
         pos.Pitch = (byte)pitch;
         pos.Stance = (byte)stance;
-        _server.Clients[player].PositionOverride = pos;
+        _serverClientService.Clients[player].PositionOverride = pos;
     }
 
     public int[] AllPlayers()
     {
         List<int> players = [];
-        foreach (KeyValuePair<int, ClientOnServer> k in _server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
         {
             players.Add(k.Key);
         }
@@ -460,20 +464,20 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         }
     }
 
-    public int GetPlayerPermissionLevel(int player) => _server.Clients[player].ClientGroup.Level;
+    public int GetPlayerPermissionLevel(int player) => _serverClientService.Clients[player].ClientGroup.Level;
 
     public void SetCreative(bool value) => _config.IsCreative = value;
 
     public void SetWorldSize(int x, int y, int z) => _serverMapStorage.Reset(x, y, z);
 
-    public int[] GetScreenResolution(int player) => _server.Clients[player].WindowSize;
+    public int[] GetScreenResolution(int player) => _serverClientService.Clients[player].WindowSize;
 
     public void SendDialog(int player, string id, Dialog dialog) => _server.SendDialog(player, id, dialog);
 
     public void SetPlayerModel(int player, string model, string texture)
     {
-        _server.Clients[player].Model = model;
-        _server.Clients[player].Texture = texture;
+        _serverClientService.Clients[player].Model = model;
+        _serverClientService.Clients[player].Texture = texture;
         _server.PlayerEntitySetDirty(player);
     }
     public void RenderHint(RenderHint hint) => _server.RenderHint = hint;
@@ -482,43 +486,43 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
     public int GetPlayerHealth(int player)
     {
         string name = GetPlayerName(player);
-        return _server.GetPlayerStats(name).CurrentHealth;
+        return _playerStatusService.GetPlayerStats(name).CurrentHealth;
     }
 
     public int GetPlayerMaxHealth(int player)
     {
         string name = GetPlayerName(player);
-        return _server.GetPlayerStats(name).MaxHealth;
+        return _playerStatusService.GetPlayerStats(name).MaxHealth;
     }
 
     public void SetPlayerHealth(int player, int health, int maxhealth)
     {
         string name = GetPlayerName(player);
-        _server.GetPlayerStats(name).CurrentHealth = health;
-        _server.GetPlayerStats(name).MaxHealth = maxhealth;
-        _server.Clients[player].IsPlayerStatsDirty = true;
-        _server.NotifyPlayerStats(player);
+        _playerStatusService.GetPlayerStats(name).CurrentHealth = health;
+        _playerStatusService.GetPlayerStats(name).MaxHealth = maxhealth;
+        _serverClientService.Clients[player].IsPlayerStatsDirty = true;
+        _playerStatusService.NotifyPlayerStats(player);
     }
 
     public int GetPlayerOxygen(int player)
     {
         string name = GetPlayerName(player);
-        return _server.GetPlayerStats(name).CurrentOxygen;
+        return _playerStatusService.GetPlayerStats(name).CurrentOxygen;
     }
 
     public int GetPlayerMaxOxygen(int player)
     {
         string name = GetPlayerName(player);
-        return _server.GetPlayerStats(name).MaxOxygen;
+        return _playerStatusService.GetPlayerStats(name).MaxOxygen;
     }
 
     public void SetPlayerOxygen(int player, int oxygen, int maxoxygen)
     {
         string name = GetPlayerName(player);
-        _server.GetPlayerStats(name).CurrentOxygen = oxygen;
-        _server.GetPlayerStats(name).MaxOxygen = maxoxygen;
-        _server.Clients[player].IsPlayerStatsDirty = true;
-        _server.NotifyPlayerStats(player);
+        _playerStatusService.GetPlayerStats(name).CurrentOxygen = oxygen;
+        _playerStatusService.GetPlayerStats(name).MaxOxygen = maxoxygen;
+        _serverClientService.Clients[player].IsPlayerStatsDirty = true;
+        _playerStatusService.NotifyPlayerStats(player);
     }
 
     public float[] GetDefaultSpawnPosition(int player)
@@ -534,10 +538,10 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         if (IsValidPos(x, y, z))
         {
             // Will fail for numbers it cannot parse. Should not happen due to previous check.
-            _server.ServerClient.DefaultSpawn.Coords = string.Format("{0},{1},{2}", x, y, z);
+            _serverClientService.ServerClient.DefaultSpawn.Coords = string.Format("{0},{1},{2}", x, y, z);
             _server.DefaultPlayerSpawn = new Vector3i(x, y, z);
             // Mark ServerClient as dirty for saving
-            _server.ServerClientNeedsSaving = true;
+            _serverClientService.ServerClientNeedsSaving = true;
         }
         else
         {
@@ -613,18 +617,18 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public string ServerPort => "!SERVER_PORT!";
 
-    public float GetPlayerPing(int player) => _server.Clients[player].LastPing;
+    public float GetPlayerPing(int player) => _serverClientService.Clients[player].LastPing;
 
     public int AddBot(string name)
     {
-        int id = _server.GenerateClientId();
+        int id = _serverClientService.GenerateClientId();
         ClientOnServer c = new()
         {
             Id = id,
             IsBot = true,
             PlayerName = name
         };
-        _server.Clients[id] = c;
+        _serverClientService.Clients[id] = c;
         c.State = ClientStateOnServer.Playing;
         DummyNetwork network = new();
         c.Socket = new DummyNetConnection(network);
@@ -636,26 +640,26 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         return id;
     }
 
-    public bool IsBot(int player) => _server.Clients[player].IsBot;
+    public bool IsBot(int player) => _serverClientService.Clients[player].IsBot;
 
     public void SetPlayerHeight(int player, float eyeheight, float modelheight)
     {
-        _server.Clients[player].EyeHeight = eyeheight;
-        _server.Clients[player].ModelHeight = modelheight;
+        _serverClientService.Clients[player].EyeHeight = eyeheight;
+        _serverClientService.Clients[player].ModelHeight = modelheight;
         _server.PlayerEntitySetDirty(player);
     }
 
     public void DisablePrivilege(string privilege) => _server.Disabledprivileges[privilege] = true;
 
-    public Inventory GetInventory(int player) => _server.GetPlayerInventory(_server.Clients[player].PlayerName);
+    public Inventory GetInventory(int player) => _server.GetPlayerInventory(_serverClientService.Clients[player].PlayerName);
 
-    public int GetActiveMaterialSlot(int player) => _server.Clients[player].ActiveMaterialSlot;
+    public int GetActiveMaterialSlot(int player) => _serverClientService.Clients[player].ActiveMaterialSlot;
 
     public void FollowPlayer(int player, int target, bool tpp) => _server.SendPacketFollow(player, target, tpp);
 
-    public void SetPlayerSpectator(int player, bool isSpectator) => _server.Clients[player].IsSpectator = isSpectator;
+    public void SetPlayerSpectator(int player, bool isSpectator) => _serverClientService.Clients[player].IsSpectator = isSpectator;
 
-    public bool IsPlayerSpectator(int player) => _server.Clients[player].IsSpectator;
+    public bool IsPlayerSpectator(int player) => _serverClientService.Clients[player].IsSpectator;
 
     public BlockType GetBlockType(int block) => _blockRegistry.BlockTypes[block];
 
@@ -687,7 +691,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void DisconnectPlayer(int player, string message)
     {
-        _server.SendPacket(player, ServerPackets.DisconnectPlayer(message));
+        _serverPacketService.SendPacket(player, ServerPackets.DisconnectPlayer(message));
         _server.KillPlayer(player);
     }
 
@@ -699,11 +703,11 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public int MaxPlayers => _config.MaxClients;
 
-    public ServerClient GetServerClient() => _server.ServerClient;
+    public ServerClient GetServerClient() => _serverClientService.ServerClient;
 
     public long TotalReceivedBytes => _server.TotalReceivedBytes;
 
-    public long TotalSentBytes => _server.TotalSentBytes;
+    public long TotalSentBytes => _serverPacketService.TotalSentBytes;
 
     public void SetPlayerNameColor(int player, string color)
     {
@@ -712,7 +716,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
             color.Equals("&8") || color.Equals("&9") || color.Equals("&a") || color.Equals("&b") ||
             color.Equals("&c") || color.Equals("&d") || color.Equals("&e") || color.Equals("&f"))
         {
-            _server.Clients[player].DisplayColor = color;
+            _serverClientService.Clients[player].DisplayColor = color;
             _server.PlayerEntitySetDirty(player);
         }
     }

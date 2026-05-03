@@ -1,17 +1,23 @@
+using ManicDigger;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using static ManicDigger.ServerPacketService;
 
 public class ServerMonitor
 {
     private ServerMonitorConfig config;
     public IGameExit Exit;
     private readonly ILanguageService _languageService;
+    private readonly IServerClientService _serverClientService;
+    private readonly IServerPacketService _serverPacketService;
     private readonly Server server;
     private readonly Dictionary<int, MonitorClient> monitorClients;
 
-    public ServerMonitor(Server server, IGameExit exit, ILanguageService languageService)
+    public ServerMonitor(Server server, IGameExit exit, ILanguageService languageService, IServerClientService serverClientService, IServerPacketService serverPacketService)
     {
         this.server = server;
+        this._serverClientService = serverClientService;
+        this._serverPacketService = serverPacketService;
         this._languageService = languageService;
         this.LoadConfig();
         this.Exit = exit;
@@ -51,7 +57,7 @@ public class ServerMonitor
         value.PacketsReceived++;
         if (value.PacketsReceived > config.MaxPackets)
         {
-            server.Kick(server.ServerConsoleId, clientId, "Packet Overflow");
+            server.Kick(GameConstants.ServerConsoleId, clientId, "Packet Overflow");
             return false;
         }
 
@@ -75,7 +81,7 @@ public class ServerMonitor
             case PacketType.Message:
                 if (monitorClients[clientId].MessagePunished())
                 {
-                    server.SendMessage(clientId, _languageService.ServerMonitorChatNotSent(), Server.MessageType.Error);
+                    _serverPacketService.SendMessage(clientId, _languageService.ServerMonitorChatNotSent(), MessageType.Error);
                     return false;
                 }
 
@@ -95,14 +101,14 @@ public class ServerMonitor
     private bool ActionSetBlock(int clientId)
     {
         this.monitorClients[clientId].SetBlockPunishment = new Punishment();//infinte duration
-        this.server.ServerMessageToAll(string.Format(_languageService.ServerMonitorBuildingDisabled(), server.GetClient(clientId).PlayerName), Server.MessageType.Important);
+        this.server.ServerMessageToAll(string.Format(_languageService.ServerMonitorBuildingDisabled(), _serverClientService.GetClient(clientId).PlayerName), MessageType.Important);
         return false;
     }
 
     private bool ActionMessage(int clientId)
     {
         this.monitorClients[clientId].MessagePunishment = new Punishment(new TimeSpan(0, 0, config.MessageBanTime));
-        this.server.ServerMessageToAll(string.Format(_languageService.ServerMonitorChatMuted(), server.GetClient(clientId).PlayerName, config.MessageBanTime), Server.MessageType.Important);
+        this.server.ServerMessageToAll(string.Format(_languageService.ServerMonitorChatMuted(), _serverClientService.GetClient(clientId).PlayerName, config.MessageBanTime), MessageType.Important);
         return false;
     }
 

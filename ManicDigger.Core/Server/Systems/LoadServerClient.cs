@@ -24,11 +24,13 @@ public class ServerSystemLoadServerClient : ServerSystem
 
     private readonly IServerMapStorage _serverMapStorage;
     private readonly ILanguageService _languageService;
+    private readonly IServerClientService _serverClientService;
 
-    public ServerSystemLoadServerClient(IModEvents modEvents, IServerMapStorage serverMapStorage, ILanguageService languageService) : base(modEvents)
+    public ServerSystemLoadServerClient(IModEvents modEvents, IServerMapStorage serverMapStorage, ILanguageService languageService, IServerClientService serverClientService) : base(modEvents)
     {
         _serverMapStorage = serverMapStorage;
         _languageService = languageService;
+        _serverClientService = serverClientService;
     }
 
     // -------------------------------------------------------------------------
@@ -41,9 +43,9 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
     {
-        if (server.ServerClientNeedsSaving)
+        if (_serverClientService.ServerClientNeedsSaving)
         {
-            server.ServerClientNeedsSaving = false;
+            _serverClientService.ServerClientNeedsSaving = false;
             SaveServerClient(server);
         }
     }
@@ -90,14 +92,14 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// <see cref="XmlSerializer"/> format. Groups are sorted after a successful load.
     /// </summary>
     /// <returns><c>true</c> on success; <c>false</c> if deserialization fails.</returns>
-    private static bool TryLoadCurrentFormat(Server server, string path)
+    private bool TryLoadCurrentFormat(Server server, string path)
     {
         try
         {
             string json = File.ReadAllText(path);
-            server.ServerClient = JsonSerializer.Deserialize<ServerClient>(json, JsonOptions)
+            _serverClientService.ServerClient = JsonSerializer.Deserialize<ServerClient>(json, JsonOptions)
                                   ?? new ServerClient();
-            server.ServerClient.Groups.Sort();
+            _serverClientService.ServerClient.Groups.Sort();
             SaveServerClient(server);
             return true;
         }
@@ -125,7 +127,7 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// </summary>
     private void ResolveSpawn(Server server)
     {
-        if (server.ServerClient.DefaultSpawn == null)
+        if (_serverClientService.ServerClient.DefaultSpawn == null)
         {
             int x = _serverMapStorage.MapSizeX / 2;
             int y = _serverMapStorage.MapSizeY / 2;
@@ -134,7 +136,7 @@ public class ServerSystemLoadServerClient : ServerSystem
             return;
         }
 
-        Spawn spawn = server.ServerClient.DefaultSpawn;
+        Spawn spawn = _serverClientService.ServerClient.DefaultSpawn;
         int spawnZ = spawn.z ?? VectorUtils.BlockHeight(_serverMapStorage, 0, spawn.x, spawn.y);
         server.DefaultPlayerSpawn = new Vector3i(spawn.x, spawn.y, spawnZ);
     }
@@ -154,12 +156,12 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// </exception>
     private void ResolveDefaultGroups(Server server)
     {
-        server.DefaultGroupGuest = server.ServerClient.Groups
-            .Find(g => g.Name.Equals(server.ServerClient.DefaultGroupGuests))
+        server.DefaultGroupGuest = _serverClientService.ServerClient.Groups
+            .Find(g => g.Name.Equals(_serverClientService.ServerClient.DefaultGroupGuests))
             ?? throw new Exception(_languageService.ServerClientConfigGuestGroupNotFound());
 
-        server.DefaultGroupRegistered = server.ServerClient.Groups
-            .Find(g => g.Name.Equals(server.ServerClient.DefaultGroupRegistered))
+        server.DefaultGroupRegistered = _serverClientService.ServerClient.Groups
+            .Find(g => g.Name.Equals(_serverClientService.ServerClient.DefaultGroupRegistered))
             ?? throw new Exception(_languageService.ServerClientConfigRegisteredGroupNotFound());
     }
 
@@ -172,26 +174,26 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// If the object has not yet been initialized, or if its groups or client
     /// lists are empty, defaults are populated before saving.
     /// </summary>
-    public static void SaveServerClient(Server server)
+    public void SaveServerClient(Server server)
     {
         Directory.CreateDirectory(GameStorePath.gamepathconfig);
 
-        server.ServerClient ??= new ServerClient();
+        _serverClientService.ServerClient ??= new ServerClient();
 
-        if (server.ServerClient.Groups.Count == 0)
+        if (_serverClientService.ServerClient.Groups.Count == 0)
         {
-            server.ServerClient.Groups = ServerClientMisc.getDefaultGroups();
+            _serverClientService.ServerClient.Groups = ServerClientMisc.getDefaultGroups();
         }
 
-        if (server.ServerClient.Clients.Count == 0)
+        if (_serverClientService.ServerClient.Clients.Count == 0)
         {
-            server.ServerClient.Clients = ServerClientMisc.getDefaultClients();
+            _serverClientService.ServerClient.Clients = ServerClientMisc.getDefaultClients();
         }
 
-        server.ServerClient.Clients.Sort();
+        _serverClientService.ServerClient.Clients.Sort();
 
         File.WriteAllText(
             Path.Combine(GameStorePath.gamepathconfig, ClientFilename),
-            JsonSerializer.Serialize(server.ServerClient, JsonOptions));
+            JsonSerializer.Serialize(_serverClientService.ServerClient, JsonOptions));
     }
 }

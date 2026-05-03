@@ -7,10 +7,14 @@ public class ServerSystemBanList : ServerSystem
     private const string BanlistFilename = "ServerBanlist.json";
 
     private readonly ILanguageService _languageService;
+    private readonly IServerClientService _serverClientService;
+    private readonly IServerPacketService _serverPacketService;
 
-    public ServerSystemBanList(IModEvents modEvents, ILanguageService languageService) : base(modEvents)
-    {
+    public ServerSystemBanList(IModEvents modEvents, ILanguageService languageService, IServerClientService serverClientService, IServerPacketService serverPacketService) : base(modEvents)
+    {   
         _languageService = languageService;
+        _serverClientService = serverClientService;
+        _serverPacketService = serverPacketService;
     }
 
     protected override void Initialize(Server server) => LoadBanlist(server);
@@ -22,7 +26,7 @@ public class ServerSystemBanList : ServerSystem
             SaveBanlist(server);
         }
 
-        foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
+        foreach (KeyValuePair<int, ClientOnServer> k in _serverClientService.Clients)
         {
             CheckAndKickBannedClient(server, k.Key, k.Value);
         }
@@ -35,7 +39,7 @@ public class ServerSystemBanList : ServerSystem
         if (server.BanList.IsIPBanned(ip))
         {
             string reason = server.BanList.GetIPEntry(ip).Reason ?? "";
-            server.SendPacket(clientId, ServerPackets.DisconnectPlayer(
+            _serverPacketService.SendPacket(clientId, ServerPackets.DisconnectPlayer(
                 string.Format(_languageService.ServerIPBanned(), reason)));
             LogAndKick(server, clientId, $"Banned IP {ip} tries to connect.");
             return;
@@ -45,7 +49,7 @@ public class ServerSystemBanList : ServerSystem
         if (server.BanList.IsUserBanned(username))
         {
             string reason = server.BanList.GetUserEntry(username).Reason ?? "";
-            server.SendPacket(clientId, ServerPackets.DisconnectPlayer(
+            _serverPacketService.SendPacket(clientId, ServerPackets.DisconnectPlayer(
                 string.Format(_languageService.ServerUsernameBanned(), reason)));
             LogAndKick(server, clientId, $"{ip} fails to join (banned username: {username}).");
         }
@@ -68,7 +72,7 @@ public class ServerSystemBanList : ServerSystem
         string colorError = server.colorError;
 
         void SendInvalidArgs()
-            => server.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
+            => _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandInvalidArgs"));
 
         bool TryParseId(out int id) => int.TryParse(args[0], out id);
         bool TryParseDuration(int index, out int duration) => int.TryParse(args[index], out duration);
@@ -115,7 +119,7 @@ public class ServerSystemBanList : ServerSystem
 
                 if (tbanipByIdDur <= 0)
                 {
-                    server.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandTimeBanInvalidValue"));
+                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandTimeBanInvalidValue"));
                     return true;
                 }
 
@@ -131,7 +135,7 @@ public class ServerSystemBanList : ServerSystem
 
                 if (tbanipDur <= 0)
                 {
-                    server.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandTimeBanInvalidValue"));
+                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandTimeBanInvalidValue"));
                     return true;
                 }
 
@@ -147,7 +151,7 @@ public class ServerSystemBanList : ServerSystem
 
                 if (tbanByIdDur <= 0)
                 {
-                    server.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandTimeBanInvalidValue"));
+                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandTimeBanInvalidValue"));
                     return true;
                 }
 
@@ -163,7 +167,7 @@ public class ServerSystemBanList : ServerSystem
 
                 if (tbanDur <= 0)
                 {
-                    server.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandTimeBanInvalidValue"));
+                    _serverPacketService.SendMessage(sourceClientId, colorError + _languageService.Get("Server_CommandTimeBanInvalidValue"));
                     return true;
                 }
 
@@ -195,13 +199,13 @@ public class ServerSystemBanList : ServerSystem
 
     public bool Ban(Server server, int sourceClientId, string target, string reason = "")
     {
-        ClientOnServer targetClient = server.GetClient(target);
+        ClientOnServer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             return Ban(server, sourceClientId, targetClient.Id, reason);
         }
 
-        server.SendMessage(sourceClientId, string.Format(
+        _serverPacketService.SendMessage(sourceClientId, string.Format(
             _languageService.Get("Server_CommandPlayerNotFound"), server.colorError, target));
         return false;
     }
@@ -213,7 +217,7 @@ public class ServerSystemBanList : ServerSystem
             return false;
         }
 
-        ClientOnServer target = server.GetClient(targetClientId);
+        ClientOnServer target = _serverClientService.GetClient(targetClientId);
         if (target == null)
         {
             return SendNonexistentId(server, sourceClientId, targetClientId);
@@ -226,7 +230,7 @@ public class ServerSystemBanList : ServerSystem
 
         reason = FormatReason(server, reason);
         string targetName = target.PlayerName;
-        string sourceName = server.GetClient(sourceClientId).PlayerName;
+        string sourceName = _serverClientService.GetClient(sourceClientId).PlayerName;
 
         server.BanList.BanPlayer(targetName, sourceName, reason);
         SaveBanlist(server);
@@ -239,13 +243,13 @@ public class ServerSystemBanList : ServerSystem
 
     public bool BanIP(Server server, int sourceClientId, string target, string reason = "")
     {
-        ClientOnServer targetClient = server.GetClient(target);
+        ClientOnServer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             return BanIP(server, sourceClientId, targetClient.Id, reason);
         }
 
-        server.SendMessage(sourceClientId, string.Format(
+        _serverPacketService.SendMessage(sourceClientId, string.Format(
             _languageService.Get("Server_CommandPlayerNotFound"), server.colorError, target));
         return false;
     }
@@ -257,7 +261,7 @@ public class ServerSystemBanList : ServerSystem
             return false;
         }
 
-        ClientOnServer target = server.GetClient(targetClientId);
+        ClientOnServer target = _serverClientService.GetClient(targetClientId);
         if (target == null)
         {
             return SendNonexistentId(server, sourceClientId, targetClientId);
@@ -270,7 +274,7 @@ public class ServerSystemBanList : ServerSystem
 
         reason = FormatReason(server, reason);
         string targetName = target.PlayerName;
-        string sourceName = server.GetClient(sourceClientId).PlayerName;
+        string sourceName = _serverClientService.GetClient(sourceClientId).PlayerName;
 
         server.BanList.BanIP(target.Socket.RemoteEndPoint().AddressToString(), sourceName, reason);
         SaveBanlist(server);
@@ -283,13 +287,13 @@ public class ServerSystemBanList : ServerSystem
 
     public bool TimeBan(Server server, int sourceClientId, string target, string reason, int duration)
     {
-        ClientOnServer targetClient = server.GetClient(target);
+        ClientOnServer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             return TimeBan(server, sourceClientId, targetClient.Id, reason, duration);
         }
 
-        server.SendMessage(sourceClientId, string.Format(
+        _serverPacketService.SendMessage(sourceClientId, string.Format(
             _languageService.Get("Server_CommandPlayerNotFound"), server.colorError, target));
         return false;
     }
@@ -301,7 +305,7 @@ public class ServerSystemBanList : ServerSystem
             return false;
         }
 
-        ClientOnServer target = server.GetClient(targetClientId);
+        ClientOnServer target = _serverClientService.GetClient(targetClientId);
         if (target == null)
         {
             return SendNonexistentId(server, sourceClientId, targetClientId);
@@ -314,14 +318,14 @@ public class ServerSystemBanList : ServerSystem
 
         reason = FormatReason(server, reason);
         string targetName = target.PlayerName;
-        string sourceName = server.GetClient(sourceClientId).PlayerName;
+        string sourceName = _serverClientService.GetClient(sourceClientId).PlayerName;
 
         server.BanList.TimeBanPlayer(targetName, sourceName, reason, duration);
         SaveBanlist(server);
         server.SendMessageToAll(string.Format(_languageService.Get("Server_CommandTimeBanMessage"),
             server.colorImportant, target.ColoredPlayername(server.colorImportant),
-            server.GetClient(sourceClientId).ColoredPlayername(server.colorImportant), duration, reason));
-        server.SendPacket(targetClientId, ServerPackets.DisconnectPlayer(
+            _serverClientService.GetClient(sourceClientId).ColoredPlayername(server.colorImportant), duration, reason));
+        _serverPacketService.SendPacket(targetClientId, ServerPackets.DisconnectPlayer(
             string.Format(_languageService.Get("Server_CommandTimeBanNotification"), duration, reason)));
         server.ServerEventLog($"{sourceName} bans {targetName} for {duration} minutes.{reason}");
         server.KillPlayer(targetClientId);
@@ -330,13 +334,13 @@ public class ServerSystemBanList : ServerSystem
 
     public bool TimeBanIP(Server server, int sourceClientId, string target, string reason, int duration)
     {
-        ClientOnServer targetClient = server.GetClient(target);
+        ClientOnServer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
             return TimeBanIP(server, sourceClientId, targetClient.Id, reason, duration);
         }
 
-        server.SendMessage(sourceClientId, string.Format(
+        _serverPacketService.SendMessage(sourceClientId, string.Format(
             _languageService.Get("Server_CommandPlayerNotFound"), server.colorError, target));
         return false;
     }
@@ -348,7 +352,7 @@ public class ServerSystemBanList : ServerSystem
             return false;
         }
 
-        ClientOnServer target = server.GetClient(targetClientId);
+        ClientOnServer target = _serverClientService.GetClient(targetClientId);
         if (target == null)
         {
             return SendNonexistentId(server, sourceClientId, targetClientId);
@@ -361,14 +365,14 @@ public class ServerSystemBanList : ServerSystem
 
         reason = FormatReason(server, reason);
         string targetName = target.PlayerName;
-        string sourceName = server.GetClient(sourceClientId).PlayerName;
+        string sourceName = _serverClientService.GetClient(sourceClientId).PlayerName;
 
         server.BanList.TimeBanIP(target.Socket.RemoteEndPoint().AddressToString(), sourceName, reason, duration);
         SaveBanlist(server);
         server.SendMessageToAll(string.Format(_languageService.Get("Server_CommandTimeIPBanMessage"),
             server.colorImportant, target.ColoredPlayername(server.colorImportant),
-            server.GetClient(sourceClientId).ColoredPlayername(server.colorImportant), duration, reason));
-        server.SendPacket(targetClientId, ServerPackets.DisconnectPlayer(
+            _serverClientService.GetClient(sourceClientId).ColoredPlayername(server.colorImportant), duration, reason));
+        _serverPacketService.SendPacket(targetClientId, ServerPackets.DisconnectPlayer(
             string.Format(_languageService.Get("Server_CommandTimeIPBanNotification"), duration, reason)));
         server.ServerEventLog($"{sourceName} IP bans {targetName} for {duration} minutes.{reason}");
         server.KillPlayer(targetClientId);
@@ -382,9 +386,9 @@ public class ServerSystemBanList : ServerSystem
             return false;
         }
 
-        if (server.GetClient(target) != null)
+        if (_serverClientService.GetClient(target) != null)
         {
-            server.SendMessage(sourceClientId, string.Format(
+            _serverPacketService.SendMessage(sourceClientId, string.Format(
                 _languageService.Get("Server_CommandBanOfflineTargetOnline"), server.colorError, target));
             return false;
         }
@@ -392,32 +396,32 @@ public class ServerSystemBanList : ServerSystem
         reason = FormatReason(server, reason);
 
         // If the player has a config entry, verify rank and remove it
-        Client targetConfigEntry = server.ServerClient.Clients.Find(
+        Client targetConfigEntry = _serverClientService.ServerClient.Clients.Find(
             c => c.Name.Equals(target, StringComparison.InvariantCultureIgnoreCase));
 
         if (targetConfigEntry != null)
         {
-            Group targetGroup = server.ServerClient.Groups.Find(g => g.Name.Equals(targetConfigEntry.Group));
+            Group targetGroup = _serverClientService.ServerClient.Groups.Find(g => g.Name.Equals(targetConfigEntry.Group));
             if (targetGroup == null)
             {
-                server.SendMessage(sourceClientId, string.Format(
+                _serverPacketService.SendMessage(sourceClientId, string.Format(
                     _languageService.Get("Server_CommandInvalidGroup"), server.colorError));
                 return false;
             }
 
-            ClientOnServer sourceClient = server.GetClient(sourceClientId);
+            ClientOnServer sourceClient = _serverClientService.GetClient(sourceClientId);
             if (targetGroup.IsSuperior(sourceClient.ClientGroup) || targetGroup.EqualLevel(sourceClient.ClientGroup))
             {
-                server.SendMessage(sourceClientId, string.Format(
+                _serverPacketService.SendMessage(sourceClientId, string.Format(
                     _languageService.Get("Server_CommandTargetUserSuperior"), server.colorError));
                 return false;
             }
 
-            server.ServerClient.Clients.Remove(targetConfigEntry);
-            server.ServerClientNeedsSaving = true;
+            _serverClientService.ServerClient.Clients.Remove(targetConfigEntry);
+            _serverClientService.ServerClientNeedsSaving = true;
         }
 
-        ClientOnServer source = server.GetClient(sourceClientId);
+        ClientOnServer source = _serverClientService.GetClient(sourceClientId);
         server.BanList.BanPlayer(target, source.PlayerName, reason);
         SaveBanlist(server);
         server.SendMessageToAll(string.Format(_languageService.Get("Server_CommandBanOfflineMessage"),
@@ -439,12 +443,12 @@ public class ServerSystemBanList : ServerSystem
             SaveBanlist(server);
             if (!exists)
             {
-                server.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), server.colorError, target));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), server.colorError, target));
             }
             else
             {
-                server.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandUnbanSuccess"), server.colorSuccess, target));
-                server.ServerEventLog($"{server.GetClient(sourceClientId).PlayerName} unbans player {target}.");
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandUnbanSuccess"), server.colorSuccess, target));
+                server.ServerEventLog($"{_serverClientService.GetClient(sourceClientId).PlayerName} unbans player {target}.");
             }
 
             return true;
@@ -456,18 +460,18 @@ public class ServerSystemBanList : ServerSystem
             SaveBanlist(server);
             if (!exists)
             {
-                server.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandUnbanIPNotFound"), server.colorError, target));
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandUnbanIPNotFound"), server.colorError, target));
             }
             else
             {
-                server.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandUnbanIPSuccess"), server.colorSuccess, target));
-                server.ServerEventLog($"{server.GetClient(sourceClientId).PlayerName} unbans IP {target}.");
+                _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandUnbanIPSuccess"), server.colorSuccess, target));
+                server.ServerEventLog($"{_serverClientService.GetClient(sourceClientId).PlayerName} unbans IP {target}.");
             }
 
             return true;
         }
 
-        server.SendMessage(sourceClientId, $"{server.colorError}Invalid type: {type}");
+        _serverPacketService.SendMessage(sourceClientId, $"{server.colorError}Invalid type: {type}");
         return false;
     }
 
@@ -539,17 +543,17 @@ public class ServerSystemBanList : ServerSystem
             return true;
         }
 
-        server.SendMessage(sourceClientId, string.Format(
+        _serverPacketService.SendMessage(sourceClientId, string.Format(
             _languageService.Get("Server_CommandInsufficientPrivileges"), server.colorError));
         return false;
     }
 
     private bool CheckTargetRank(Server server, int sourceClientId, ClientOnServer target)
     {
-        ClientOnServer source = server.GetClient(sourceClientId);
+        ClientOnServer source = _serverClientService.GetClient(sourceClientId);
         if (target.ClientGroup.IsSuperior(source.ClientGroup) || target.ClientGroup.EqualLevel(source.ClientGroup))
         {
-            server.SendMessage(sourceClientId, string.Format(
+            _serverPacketService.SendMessage(sourceClientId, string.Format(
                 _languageService.Get("Server_CommandTargetUserSuperior"), server.colorError));
             return false;
         }
@@ -559,7 +563,7 @@ public class ServerSystemBanList : ServerSystem
 
     private bool SendNonexistentId(Server server, int sourceClientId, int targetClientId)
     {
-        server.SendMessage(sourceClientId, string.Format(
+        _serverPacketService.SendMessage(sourceClientId, string.Format(
             _languageService.Get("Server_CommandNonexistantID"), server.colorError, targetClientId));
         return false;
     }
@@ -574,9 +578,9 @@ public class ServerSystemBanList : ServerSystem
         server.SendMessageToAll(string.Format(_languageService.Get(broadcastKey),
             server.colorImportant,
             target.ColoredPlayername(server.colorImportant),
-            server.GetClient(sourceClientId).ColoredPlayername(server.colorImportant),
+            _serverClientService.GetClient(sourceClientId).ColoredPlayername(server.colorImportant),
             reason));
-        server.SendPacket(targetClientId, ServerPackets.DisconnectPlayer(
+        _serverPacketService.SendPacket(targetClientId, ServerPackets.DisconnectPlayer(
             string.Format(_languageService.Get(notificationKey), reason)));
         server.KillPlayer(targetClientId);
     }

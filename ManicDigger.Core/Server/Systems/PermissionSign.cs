@@ -21,12 +21,17 @@ public class ServerSystemPermissionSign : ServerSystem
     private readonly IServerModManager _serverModManager;
     private readonly IServerMapStorage _serverMapStorage;
     private readonly ILanguageService _languageService;
+    private readonly IServerClientService _serverClientService;
+    private readonly IServerPacketService _serverPacketService;
 
-    public ServerSystemPermissionSign(IModEvents modEvents, IServerModManager serverModManager, IServerMapStorage serverMapStorage, ILanguageService languageService) : base(modEvents)
+    public ServerSystemPermissionSign(IModEvents modEvents, IServerModManager serverModManager, IServerMapStorage serverMapStorage, IServerClientService serverClientService, 
+        ILanguageService languageService, IServerPacketService serverPacketService) : base(modEvents)
     {
         _serverModManager = serverModManager;
         _serverMapStorage = serverMapStorage;
+        _serverClientService = serverClientService;
         _languageService = languageService;
+        _serverPacketService = serverPacketService;
     }
 
     // -------------------------------------------------------------------------
@@ -174,7 +179,7 @@ public class ServerSystemPermissionSign : ServerSystem
             return;
 
         DialogFont font = new("Verdana", 11f, DialogFontStyle.Bold);
-        List<Group> groups = server.ServerClient.Groups;
+        List<Group> groups = _serverClientService.ServerClient.Groups;
         int widgetCount = 0;
 
         Dialog d = new()
@@ -204,7 +209,7 @@ public class ServerSystemPermissionSign : ServerSystem
         d.Widgets[widgetCount++] = okButton;
         d.Widgets[widgetCount++] = Widget.MakeText("Set player", font, 200, 50, ColorUtils.ColorFromArgb(255, 0, 0, 0));
 
-        server.Clients[args.Player].EditingSign = new ServerEntityId
+        _serverClientService.Clients[args.Player].EditingSign = new ServerEntityId
         {
             ChunkX = args.ChunkX,
             ChunkY = args.ChunkY,
@@ -234,7 +239,7 @@ public class ServerSystemPermissionSign : ServerSystem
             return;
         }
 
-        ClientOnServer client = server.Clients[args.Player];
+        ClientOnServer client = _serverClientService.Clients[args.Player];
         ServerEntityId id = client.EditingSign;
         client.EditingSign = null;
 
@@ -265,7 +270,7 @@ public class ServerSystemPermissionSign : ServerSystem
         if (args.WidgetId == OkWidgetId)
         {
             string candidate = args.TextBoxValue[1];
-            Group matchedGroup = server.ServerClient.Groups
+            Group matchedGroup = _serverClientService.ServerClient.Groups
                 .FirstOrDefault(g => g.Name == candidate);
             name = candidate;
             if (matchedGroup != null)
@@ -278,7 +283,7 @@ public class ServerSystemPermissionSign : ServerSystem
 
         if (args.WidgetId.StartsWith(GroupIdPrefix))
         {
-            Group matchedGroup = server.ServerClient.Groups
+            Group matchedGroup = _serverClientService.ServerClient.Groups
                 .FirstOrDefault(g => GroupIdPrefix + g.Name == args.WidgetId);
             if (matchedGroup == null)
             {
@@ -344,7 +349,7 @@ public class ServerSystemPermissionSign : ServerSystem
                             continue;
                         }
 
-                        ClientOnServer client = server.Clients[args.Player];
+                        ClientOnServer client = _serverClientService.Clients[args.Player];
 
                         bool allowed = entity.PermissionSign.Type switch
                         {
@@ -379,7 +384,7 @@ public class ServerSystemPermissionSign : ServerSystem
             return true;
         }
 
-        server.SendMessage(player,
+        _serverPacketService.SendMessage(player,
             server.colorError + _languageService.Get("Server_CommandInsufficientPrivileges"));
         return false;
     }

@@ -5,11 +5,13 @@ public class ServerSystemSign : ServerSystem
     private Server server;
     private readonly IServerModManager _modManager;
     private readonly IServerMapStorage _serverMapStorage;
+    private readonly IServerClientService _serverClientService;
 
-    public ServerSystemSign(IModEvents modEvents, IServerModManager modManager, IServerMapStorage serverMapStorage) : base(modEvents)
+    public ServerSystemSign(IModEvents modEvents, IServerModManager modManager, IServerMapStorage serverMapStorage, IServerClientService serverClientService) : base(modEvents)
     {
         _modManager = modManager;
         _serverMapStorage = serverMapStorage;
+        _serverClientService = serverClientService;
     }
 
     protected override void Initialize(Server server)
@@ -107,7 +109,7 @@ public class ServerSystemSign : ServerSystem
             ]
         };
 
-        server.Clients[args.Player].EditingSign = new ServerEntityId
+        _serverClientService.Clients[args.Player].EditingSign = new ServerEntityId
         {
             ChunkX = args.ChunkX,
             ChunkY = args.ChunkY,
@@ -125,7 +127,7 @@ public class ServerSystemSign : ServerSystem
             return;
         }
 
-        ClientOnServer client = server.Clients[args.Player];
+        ClientOnServer client = _serverClientService.Clients[args.Player];
         string newText = args.TextBoxValue[1];
         ServerEntityId id = client.EditingSign;
 

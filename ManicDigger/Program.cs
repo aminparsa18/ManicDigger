@@ -137,6 +137,7 @@ public class Program
         services.AddScoped<ISingleplayerScreen, SingleplayerScreen>();
         services.AddScoped<IScreenMultiplayer, MultiplayerScreen>();
 
+        services.AddSingleton<Server>();
         services.AddSingleton<ServerSystemLoadFirst>();
         services.AddSingleton<ServerSystemLoadConfig>();
         services.AddSingleton<ServerSystemHeartbeat>();
@@ -151,7 +152,7 @@ public class Program
         services.AddSingleton<ServerSystemNotifyEntities>();
         services.AddSingleton<ServerSystemLoadLast>();
 
-        services.AddSingleton<ServerSystemRegistry>();
+        services.AddSingleton<ServerSystemBootstraper>();
     }
 
     // ── Startup ───────────────────────────────────────────────────────────────

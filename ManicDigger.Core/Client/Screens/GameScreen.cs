@@ -1,4 +1,4 @@
-﻿using ManicDigger;
+﻿using Microsoft.Extensions.DependencyInjection;
 using OpenTK.Windowing.Common;
 using Serilog;
 
@@ -16,10 +16,9 @@ public interface IScreenGame : IScreenBase
 /// Bridges platform input events to the game, manages the singleplayer
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
-public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager, IServerModManager modManager, IChunkDbCompressed chunkDb,
-    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, ICompression compression, IServerMapStorage serverMapStorage,
-    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry, IModEvents modEvents, ILanguageService languageService,
-    IServerConfig serverConfig, ServerSystemRegistry serverSystemRegistry) : ScreenBase(platform, openGlService, assetManager), IScreenGame
+public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager,
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, 
+    IDummyNetwork dummyNetwork, IGame game, IServiceProvider serviceProvider) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;
@@ -29,14 +28,6 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     private readonly IGameExit gameExit = gameExit;
     private readonly IScreenManager _menu = menu;
     private readonly IDummyNetwork _dummyNetwork = dummyNetwork;
-    private readonly IBlockRegistry _blockRegistry = blockRegistry;
-    private readonly IModEvents _modEvents = modEvents;
-    private readonly IServerModManager _modManager = modManager;
-    private readonly ICompression _compression = compression;
-    private readonly IChunkDbCompressed _chunkDb = chunkDb;
-    private readonly IServerMapStorage _serverMapStorage = serverMapStorage;
-    private readonly ILanguageService _languageService = languageService;
-    private readonly IServerConfig _serverConfig = serverConfig;
 
     /// <summary>
     /// Initialises the game with the given connection parameters and starts the
@@ -93,12 +84,12 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         Log.Debug("Single-player server thread started");
         DummyNetServer netServer = new(_dummyNetwork);
 
-        Server server = new(gameExit, GameService, _blockRegistry, _chunkDb, _languageService, AssetManager,
-            _modEvents, _modManager, _compression, _serverMapStorage, _serverConfig, serverSystemRegistry)
-        {
-            SaveFilenameOverride = singleplayerSavePath,
-            MainSockets = new NetServer[3]
-        };
+        ServerSystemBootstraper bootstrapper = serviceProvider.GetRequiredService<ServerSystemBootstraper>();
+        Server server = bootstrapper.Server;
+
+        server.SaveFilenameOverride = singleplayerSavePath;
+        server.MainSockets = new NetServer[3];
+        server.MainSockets[0] = new DummyNetServer(_dummyNetwork);
 
         server.MainSockets[0] = netServer;
 

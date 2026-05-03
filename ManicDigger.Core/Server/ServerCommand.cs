@@ -606,16 +606,16 @@ public partial class Server
 
                 break;
             default:
-                for (int i = 0; i < _systems.Count; i++)
+                for (int i = 0; i < Systems.Count; i++)
                 {
-                    if (_systems[i] == null)
+                    if (Systems[i] == null)
                     {
                         continue;
                     }
 
                     try
                     {
-                        if (_systems[i].OnCommand(this, sourceClientId, command, argument))
+                        if (Systems[i].OnCommand(this, sourceClientId, command, argument))
                         {
                             return;
                         }

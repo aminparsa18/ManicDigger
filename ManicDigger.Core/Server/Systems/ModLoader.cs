@@ -21,7 +21,7 @@ namespace ManicDigger;
 /// mods in topological order.
 /// </para>
 /// </summary>
-public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegistry, IModEvents modEvents, IServerModManager modManager) : ServerSystem(modEvents)
+public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegistry, IModEvents modEvents, IServerModManager modManager, ILanguageService languageService) : ServerSystem(modEvents)
 {
     /// <summary>All successfully compiled and instantiated mods, keyed by type name.</summary>
     private readonly Dictionary<string, IMod> mods = [];
@@ -39,6 +39,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
     private readonly IModEvents _modEvents = modEvents;
     private readonly IServerModManager _modManager = modManager;
+    private readonly ILanguageService _languageService = languageService;
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -76,13 +77,13 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
         if (!server.PlayerHasPrivilege(sourceClientId, ServerClientMisc.Privilege.restart))
         {
             server.SendMessage(sourceClientId, string.Format(
-                server.Language.Get("Server_CommandInsufficientPrivileges"), server.colorError));
+                _languageService.Get("Server_CommandInsufficientPrivileges"), server.colorError));
             return false;
         }
 
         ClientOnServer caller = server.GetClient(sourceClientId);
         server.SendMessageToAll(string.Format(
-            server.Language.Get("Server_CommandRestartModsSuccess"),
+            _languageService.Get("Server_CommandRestartModsSuccess"),
             server.colorImportant, caller.ColoredPlayername(server.colorImportant)));
         server.ServerEventLog($"{caller.PlayerName} restarts mods.");
 

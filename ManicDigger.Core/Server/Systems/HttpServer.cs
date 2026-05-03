@@ -6,9 +6,11 @@ public class ServerSystemHttpServer : ServerSystem
 {
     private HttpListener _listener;
     private CancellationTokenSource _cts;
+    private readonly ILanguageService _languageService;
 
-    public ServerSystemHttpServer(IModEvents modEvents) : base(modEvents)
+    public ServerSystemHttpServer(IModEvents modEvents, ILanguageService languageService) : base(modEvents)
     {
+        _languageService = languageService;
     }
 
     protected override void Initialize(Server server)
@@ -28,11 +30,11 @@ public class ServerSystemHttpServer : ServerSystem
 
             _ = ListenAsync(server, _cts.Token);
 
-            Console.WriteLine(server.Language.ServerHTTPServerStarted(), httpPort);
+            Console.WriteLine(_languageService.ServerHTTPServerStarted(), httpPort);
         }
         catch
         {
-            Console.WriteLine(server.Language.ServerHTTPServerError(), httpPort);
+            Console.WriteLine(_languageService.ServerHTTPServerError(), httpPort);
         }
     }
 

@@ -17,8 +17,8 @@ public interface IScreenGame : IScreenBase
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
 public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager, IServerModManager modManager, IChunkDbCompressed chunkDb,
-    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, ICompression compression,
-    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry, IModEvents modEvents) : ScreenBase(platform, openGlService, assetManager), IScreenGame
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, ICompression compression, IServerMapStorage serverMapStorage,
+    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry, IModEvents modEvents, ILanguageService languageService) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;
@@ -33,6 +33,8 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     private readonly IServerModManager _modManager = modManager;
     private readonly ICompression _compression = compression;
     private readonly IChunkDbCompressed _chunkDb = chunkDb;
+    private readonly IServerMapStorage _serverMapStorage = serverMapStorage;
+    private readonly ILanguageService _languageService = languageService;
 
     /// <summary>
     /// Initialises the game with the given connection parameters and starts the
@@ -89,7 +91,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         Log.Debug("Single-player server thread started");
         DummyNetServer netServer = new(_dummyNetwork);
 
-        Server server = new(gameExit, GameService, _blockRegistry, _chunkDb, AssetManager, _modEvents, _modManager, _compression)
+        Server server = new(gameExit, GameService, _blockRegistry, _chunkDb, _languageService, AssetManager, _modEvents, _modManager, _compression, _serverMapStorage)
         {
             SaveFilenameOverride = singleplayerSavePath,
             MainSockets = new NetServer[3]

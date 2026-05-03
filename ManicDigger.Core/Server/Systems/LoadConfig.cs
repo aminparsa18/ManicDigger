@@ -18,9 +18,11 @@ public class ServerSystemLoadConfig : ServerSystem
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
+    private readonly ILanguageService _languageService;
 
-    public ServerSystemLoadConfig(IModEvents modEvents) : base(modEvents)
+    public ServerSystemLoadConfig(IModEvents modEvents, ILanguageService languageService) : base(modEvents)
     {
+        _languageService = languageService;
     }
 
     // -------------------------------------------------------------------------
@@ -64,13 +66,13 @@ public class ServerSystemLoadConfig : ServerSystem
     /// After a successful load the server language is switched to the operator's
     /// configured locale.
     /// </summary>
-    public static void LoadConfig(Server server)
+    public void LoadConfig(Server server)
     {
         string path = Path.Combine(GameStorePath.gamepathconfig, ConfigFilename);
 
         if (!File.Exists(path))
         {
-            Console.WriteLine(server.Language.ServerConfigNotFound());
+            Console.WriteLine(_languageService.ServerConfigNotFound());
             SaveConfig(server);
             return;
         }
@@ -82,8 +84,8 @@ public class ServerSystemLoadConfig : ServerSystem
         }
 
         // Switch to the operator-defined locale now that config is populated
-        server.Language.OverrideLanguage = server.Config.ServerLanguage;
-        Console.WriteLine(server.Language.ServerConfigLoaded());
+        _languageService.OverrideLanguage = server.Config.ServerLanguage;
+        Console.WriteLine(_languageService.ServerConfigLoaded());
     }
 
     /// <summary>
@@ -110,16 +112,16 @@ public class ServerSystemLoadConfig : ServerSystem
     /// <c>ServerConfig.txt.old</c>, logs a message either way, then resets
     /// <see cref="Server.Config"/> to <c>null</c> and writes a fresh default config.
     /// </summary>
-    private static void TryBackupAndReset(Server server, string path)
+    private void TryBackupAndReset(Server server, string path)
     {
         try
         {
             File.Copy(path, path + ".old");
-            Console.WriteLine(server.Language.ServerConfigCorruptBackup());
+            Console.WriteLine(_languageService.ServerConfigCorruptBackup());
         }
         catch
         {
-            Console.WriteLine(server.Language.ServerConfigCorruptNoBackup());
+            Console.WriteLine(_languageService.ServerConfigCorruptNoBackup());
         }
 
         server.Config = null;
@@ -139,7 +141,7 @@ public class ServerSystemLoadConfig : ServerSystem
     /// before the file is written.
     /// </para>
     /// </summary>
-    public static void SaveConfig(Server server)
+    public void SaveConfig(Server server)
     {
         Directory.CreateDirectory(GameStorePath.gamepathconfig);
 
@@ -165,31 +167,29 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Enter without input leaves the default value in place.
     /// </summary>
     /// <returns>A new <see cref="ServerConfig"/> populated with the operator's choices.</returns>
-    private static ServerConfig CreateConfigInteractively(Server server)
+    private ServerConfig CreateConfigInteractively(Server server)
     {
-        LanguageService lang = server.Language;
-
         ServerConfig config = new()
         {
             // Default to the host machine's locale
             ServerLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName
         };
 
-        Console.WriteLine(lang.ServerSetupFirstStart());
-        Console.WriteLine(lang.ServerSetupQuestion());
+        Console.WriteLine(_languageService.ServerSetupFirstStart());
+        Console.WriteLine(_languageService.ServerSetupQuestion());
 
-        if (!ReadAccept(lang))
+        if (!ReadAccept())
         {
             return config;
         }
 
-        config.Public = PromptBool(lang.ServerSetupPublic(), lang);
-        config.Name = PromptString(lang.ServerSetupName());
-        config.Motd = PromptString(lang.ServerSetupMOTD());
-        config.WelcomeMessage = PromptString(lang.ServerSetupWelcomeMessage());
-        config.Port = PromptPort(lang);
-        config.MaxClients = PromptMaxClients(lang);
-        config.EnableHTTPServer = PromptBool(lang.ServerSetupEnableHTTP(), lang);
+        config.Public = PromptBool(_languageService.ServerSetupPublic());
+        config.Name = PromptString(_languageService.ServerSetupName());
+        config.Motd = PromptString(_languageService.ServerSetupMOTD());
+        config.WelcomeMessage = PromptString(_languageService.ServerSetupWelcomeMessage());
+        config.Port = PromptPort();
+        config.MaxClients = PromptMaxClients();
+        config.EnableHTTPServer = PromptBool(_languageService.ServerSetupEnableHTTP());
 
         return config;
     }
@@ -198,18 +198,18 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Reads a yes/no answer from the console and returns <c>true</c> if the
     /// input matches the localised accept word (case-insensitive).
     /// </summary>
-    private static bool ReadAccept(LanguageService lang)
+    private bool ReadAccept()
     {
         string line = Console.ReadLine();
         return !string.IsNullOrEmpty(line) &&
-               line.Equals(lang.ServerSetupAccept(), StringComparison.InvariantCultureIgnoreCase);
+               line.Equals(_languageService.ServerSetupAccept(), StringComparison.InvariantCultureIgnoreCase);
     }
 
     /// <summary>Prompts for a boolean yes/no answer and returns the result.</summary>
-    private static bool PromptBool(string prompt, LanguageService lang)
+    private bool PromptBool(string prompt)
     {
         Console.WriteLine(prompt);
-        return ReadAccept(lang);
+        return ReadAccept();
     }
 
     /// <summary>
@@ -228,9 +228,9 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Returns the <see cref="ServerConfig"/> default if the input is empty,
     /// out of range, or non-numeric.
     /// </summary>
-    private static int PromptPort(LanguageService lang)
+    private int PromptPort()
     {
-        Console.WriteLine(lang.ServerSetupPort());
+        Console.WriteLine(_languageService.ServerSetupPort());
         string line = Console.ReadLine();
         if (string.IsNullOrEmpty(line))
         {
@@ -244,11 +244,11 @@ public class ServerSystemLoadConfig : ServerSystem
                 return port;
             }
 
-            Console.WriteLine(lang.ServerSetupPortInvalidValue());
+            Console.WriteLine(_languageService.ServerSetupPortInvalidValue());
         }
         else
         {
-            Console.WriteLine(lang.ServerSetupPortInvalidInput());
+            Console.WriteLine(_languageService.ServerSetupPortInvalidInput());
         }
 
         return new ServerConfig().Port;
@@ -259,9 +259,9 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Returns the <see cref="ServerConfig"/> default if input is empty,
     /// non-positive, or non-numeric.
     /// </summary>
-    private static int PromptMaxClients(LanguageService lang)
+    private int PromptMaxClients()
     {
-        Console.WriteLine(lang.ServerSetupMaxClients());
+        Console.WriteLine(_languageService.ServerSetupMaxClients());
         string line = Console.ReadLine();
         if (string.IsNullOrEmpty(line))
         {
@@ -275,11 +275,11 @@ public class ServerSystemLoadConfig : ServerSystem
                 return players;
             }
 
-            Console.WriteLine(lang.ServerSetupMaxClientsInvalidValue());
+            Console.WriteLine(_languageService.ServerSetupMaxClientsInvalidValue());
         }
         else
         {
-            Console.WriteLine(lang.ServerSetupMaxClientsInvalidInput());
+            Console.WriteLine(_languageService.ServerSetupMaxClientsInvalidInput());
         }
 
         return new ServerConfig().MaxClients;

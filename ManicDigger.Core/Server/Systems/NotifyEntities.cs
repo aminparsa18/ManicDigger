@@ -19,8 +19,11 @@ public class ServerSystemNotifyEntities : ServerSystem
     private const int EntityPositionUpdatesPerSecond = 10;
     private const int SpawnMaxEntities = 32;
 
-    public ServerSystemNotifyEntities(IModEvents modEvents) : base(modEvents)
+    private readonly IServerMapStorage _serverMapStorage;
+
+    public ServerSystemNotifyEntities(IModEvents modEvents, IServerMapStorage serverMapStorage) : base(modEvents)
     {
+        _serverMapStorage = serverMapStorage;
     }
 
     // -------------------------------------------------------------------------
@@ -254,7 +257,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// world entities from the 3×3×3 chunk neighbourhood around the player,
     /// sorted nearest-first.
     /// </summary>
-    private static void FindNearEntities(Server server, ClientOnServer client, int maxCount, ServerEntityId[] result)
+    private void FindNearEntities(Server server, ClientOnServer client, int maxCount, ServerEntityId[] result)
     {
         int playerX = client.PositionMul32GlX / 32;
         int playerY = client.PositionMul32GlZ / 32;
@@ -272,12 +275,12 @@ public class ServerSystemNotifyEntities : ServerSystem
                     int chunkY = (playerY / server.ChunkSize) + dy;
                     int chunkZ = (playerZ / server.ChunkSize) + dz;
 
-                    if (!VectorUtils.IsValidChunkPos(server.Map, chunkX, chunkY, chunkZ, server.ChunkSize))
+                    if (!VectorUtils.IsValidChunkPos(_serverMapStorage, chunkX, chunkY, chunkZ, server.ChunkSize))
                     {
                         continue;
                     }
 
-                    ServerChunk chunk = server.Map.GetChunk(
+                    ServerChunk chunk = _serverMapStorage.GetChunk(
                         chunkX * server.ChunkSize,
                         chunkY * server.ChunkSize,
                         chunkZ * server.ChunkSize);
@@ -365,8 +368,8 @@ public class ServerSystemNotifyEntities : ServerSystem
     }
 
     /// <summary>Retrieves the <see cref="ServerEntity"/> for a given <see cref="ServerEntityId"/>.</summary>
-    private static ServerEntity GetEntity(Server server, ServerEntityId id)
-        => server.Map.GetChunk(
+    private ServerEntity GetEntity(Server server, ServerEntityId id)
+        => _serverMapStorage.GetChunk(
             id.ChunkX * server.ChunkSize,
             id.ChunkY * server.ChunkSize,
             id.ChunkZ * server.ChunkSize)
@@ -375,7 +378,7 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// <summary>
     /// Returns the block-space position of a world entity as a <see cref="Vector3i"/>.
     /// </summary>
-    private static Vector3i EntityBlockPosition(Server server, ServerEntityId id)
+    private Vector3i EntityBlockPosition(Server server, ServerEntityId id)
     {
         ServerEntityPositionAndOrientation pos = GetEntity(server, id).Position;
         return new Vector3i((int)pos.X, (int)pos.Y, (int)pos.Z);

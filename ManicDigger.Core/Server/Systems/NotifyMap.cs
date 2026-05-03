@@ -12,10 +12,12 @@ using System.Runtime.InteropServices;
 public class ServerSystemNotifyMap : ServerSystem
 {
     private readonly ICompression _compression;
+    private readonly IServerMapStorage _serverMapStorage;
 
-    public ServerSystemNotifyMap(IModEvents modEvents, ICompression compression) : base(modEvents)
+    public ServerSystemNotifyMap(IModEvents modEvents, ICompression compression, IServerMapStorage serverMapStorage) : base(modEvents)
     {
         _compression = compression;
+        _serverMapStorage = serverMapStorage;
     }
 
     // -------------------------------------------------------------------------
@@ -150,7 +152,7 @@ public class ServerSystemNotifyMap : ServerSystem
     private void SendChunk(Server server, int clientId, Vector3i globalPos, Vector3i chunkPos)
     {
         ClientOnServer client = server.Clients[clientId];
-        ServerChunk chunk = server.Map.GetChunk(globalPos.X, globalPos.Y, globalPos.Z);
+        ServerChunk chunk = _serverMapStorage.GetChunk(globalPos.X, globalPos.Y, globalPos.Z);
         server.ClientSeenChunkSet(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z, server.SimulationCurrentFrame);
 
         bool isSolid = IsSolidChunk(chunk.Data);
@@ -166,7 +168,7 @@ public class ServerSystemNotifyMap : ServerSystem
 
             // Send heightmap for this column
             ReadOnlySpan<byte> heightmapBytes = MemoryMarshal.AsBytes(
-                server.Map.Heightmap.GetChunk(globalPos.X, globalPos.Y).AsSpan());
+                _serverMapStorage.Heightmap.GetChunk(globalPos.X, globalPos.Y).AsSpan());
 
             Packet_ServerHeightmapChunk heightmapPacket = new()
             {

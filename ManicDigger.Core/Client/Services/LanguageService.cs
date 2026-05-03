@@ -39,6 +39,12 @@ public class LanguageService : ILanguageService
     /// </summary>
     public void LoadTranslations()
     {
+        if(strings.Count > 0)
+        {
+            // Already loaded — don't load again
+            return;
+        }
+
         string[] fileList = FileHelper.DirectoryGetFiles(Path.Combine("data", "localization"));
 
         foreach (string file in fileList)

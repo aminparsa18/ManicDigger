@@ -23,8 +23,11 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     // Chunks inspected per tick. Kept small to avoid stalling the server loop.
     private const int InspectionsPerTick = 100;
 
-    public ServerSystemUnloadUnusedChunks(IModEvents modEvents) : base(modEvents)
+    private readonly IServerMapStorage _serverMapStorage;
+
+    public ServerSystemUnloadUnusedChunks(IModEvents modEvents, IServerMapStorage serverMapStorage) : base(modEvents)
     {
+        _serverMapStorage = serverMapStorage;
     }
 
     // -------------------------------------------------------------------------
@@ -43,7 +46,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
             Vector3i chunkPos = new();
             VectorIndexUtil.PosInt(iterationIndex, chunksX, chunksY, ref chunkPos);
 
-            ServerChunk chunk = server.Map.GetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z);
+            ServerChunk chunk = _serverMapStorage.GetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z);
 
             if (chunk != null && ShouldUnload(server, chunkPos))
             {
@@ -95,14 +98,14 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     /// memory and marks it unseen for all connected clients so it will be
     /// re-sent if a player re-enters the area.
     /// </summary>
-    private static void UnloadChunk(Server server, Vector3i chunkPos, ServerChunk chunk)
+    private void UnloadChunk(Server server, Vector3i chunkPos, ServerChunk chunk)
     {
         if (chunk.DirtyForSaving)
         {
             server.DoSaveChunk(chunkPos.X, chunkPos.Y, chunkPos.Z, chunk);
         }
 
-        server.Map.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);
+        _serverMapStorage.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);
 
         foreach (var (clientId, _) in server.Clients)
         {

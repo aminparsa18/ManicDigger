@@ -93,11 +93,8 @@ public sealed class DummyNetConnection : NetConnection
         _network = network;
     }
 
-    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0)
-    {
-        var packet = MemoryPackSerializer.Deserialize<Packet_Server>(payload.Span);
-        _network.ClientInbox.Enqueue(payload.ToArray());
-    }
+    public override void SendMessage(ReadOnlyMemory<byte> payload, MyNetDeliveryMethod method, int sequenceChannel = 0) 
+        => _network.ClientInbox.Enqueue(payload.ToArray());
 
     public override IpEndpoint RemoteEndPoint() => IpEndpointDefault.Create("127.0.0.1");
 

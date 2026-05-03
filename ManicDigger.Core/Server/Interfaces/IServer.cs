@@ -12,7 +12,6 @@ public interface IServer
     ServerConfig Config { get; set; }
     bool ConfigNeedsSaving { get; set; }
     List<CraftingRecipe> CraftingRecipes { get; set; }
-    CraftingTableTool CraftingTableTool { get; set; }
     Group? DefaultGroupGuest { get; set; }
     Group DefaultGroupRegistered { get; set; }
     Vector3i DefaultPlayerSpawn { get; set; }
@@ -24,10 +23,8 @@ public interface IServer
     List<ActiveHttpModule> HttpModules { get; set; }
     Dictionary<string, Inventory> Inventory { get; set; }
     bool IsSinglePlayer { get; }
-    LanguageService Language { get; set; }
     int LastMonsterId { get; set; }
     NetServer[] MainSockets { get; set; }
-    ServerMapStorage Map { get; set; }
     Dictionary<string, byte[]> ModData { get; set; }
     List<string> ModPaths { get; set; }
     List<Action> OnLoad { get; set; }

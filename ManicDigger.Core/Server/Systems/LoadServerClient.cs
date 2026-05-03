@@ -22,8 +22,13 @@ public class ServerSystemLoadServerClient : ServerSystem
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public ServerSystemLoadServerClient(IModEvents modEvents) : base(modEvents)
+    private readonly IServerMapStorage _serverMapStorage;
+    private readonly ILanguageService _languageService;
+
+    public ServerSystemLoadServerClient(IModEvents modEvents, IServerMapStorage serverMapStorage, ILanguageService languageService) : base(modEvents)
     {
+        _serverMapStorage = serverMapStorage;
+        _languageService = languageService;
     }
 
     // -------------------------------------------------------------------------
@@ -61,13 +66,13 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// Thrown if the guest or registered default group name in the config does not
     /// match any group defined in <c>ServerClient.txt</c>.
     /// </exception>
-    public static void LoadServerClient(Server server)
+    public void LoadServerClient(Server server)
     {
         string path = Path.Combine(GameStorePath.gamepathconfig, ClientFilename);
 
         if (!File.Exists(path))
         {
-            Console.WriteLine(server.Language.ServerClientConfigNotFound());
+            Console.WriteLine(_languageService.ServerClientConfigNotFound());
             SaveServerClient(server);
         }
         else
@@ -77,7 +82,7 @@ public class ServerSystemLoadServerClient : ServerSystem
 
         ResolveSpawn(server);
         ResolveDefaultGroups(server);
-        Console.WriteLine(server.Language.ServerClientConfigLoaded());
+        Console.WriteLine(_languageService.ServerClientConfigLoaded());
     }
 
     /// <summary>
@@ -118,19 +123,19 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// When no configured spawn exists, <see cref="Server.DontSpawnPlayerInWater"/>
     /// is applied to push the position above any water surface.
     /// </summary>
-    private static void ResolveSpawn(Server server)
+    private void ResolveSpawn(Server server)
     {
         if (server.ServerClient.DefaultSpawn == null)
         {
-            int x = server.Map.MapSizeX / 2;
-            int y = server.Map.MapSizeY / 2;
-            int z = VectorUtils.BlockHeight(server.Map, 0, x, y);
+            int x = _serverMapStorage.MapSizeX / 2;
+            int y = _serverMapStorage.MapSizeY / 2;
+            int z = VectorUtils.BlockHeight(_serverMapStorage, 0, x, y);
             server.DefaultPlayerSpawn = server.DontSpawnPlayerInWater(new Vector3i(x, y, z));
             return;
         }
 
         var spawn = server.ServerClient.DefaultSpawn;
-        int spawnZ = spawn.z ?? VectorUtils.BlockHeight(server.Map, 0, spawn.x, spawn.y);
+        int spawnZ = spawn.z ?? VectorUtils.BlockHeight(_serverMapStorage, 0, spawn.x, spawn.y);
         server.DefaultPlayerSpawn = new Vector3i(spawn.x, spawn.y, spawnZ);
     }
 
@@ -147,15 +152,15 @@ public class ServerSystemLoadServerClient : ServerSystem
     /// Thrown if either group name cannot be found, indicating a misconfigured
     /// <c>ServerClient.txt</c>.
     /// </exception>
-    private static void ResolveDefaultGroups(Server server)
+    private void ResolveDefaultGroups(Server server)
     {
         server.DefaultGroupGuest = server.ServerClient.Groups
             .Find(g => g.Name.Equals(server.ServerClient.DefaultGroupGuests))
-            ?? throw new Exception(server.Language.ServerClientConfigGuestGroupNotFound());
+            ?? throw new Exception(_languageService.ServerClientConfigGuestGroupNotFound());
 
         server.DefaultGroupRegistered = server.ServerClient.Groups
             .Find(g => g.Name.Equals(server.ServerClient.DefaultGroupRegistered))
-            ?? throw new Exception(server.Language.ServerClientConfigRegisteredGroupNotFound());
+            ?? throw new Exception(_languageService.ServerClientConfigRegisteredGroupNotFound());
     }
 
     // -------------------------------------------------------------------------

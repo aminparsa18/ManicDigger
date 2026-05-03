@@ -15,9 +15,11 @@ public class ServerSystemHeartbeat : ServerSystem
     private float elapsed;
     private bool hashPrinted;
     private readonly ServerHeartbeat heartbeat = new();
+    private readonly ILanguageService _languageService;
 
-    public ServerSystemHeartbeat(IModEvents modEvents) : base(modEvents)
+    public ServerSystemHeartbeat(IModEvents modEvents, ILanguageService languageService) : base(modEvents)
     {
+        _languageService = languageService;
         // Pre-fill the timer so the first heartbeat fires on the first tick
         elapsed = HeartbeatInterval;
     }
@@ -93,14 +95,14 @@ public class ServerSystemHeartbeat : ServerSystem
                 hashPrinted = true;
             }
 
-            Console.WriteLine(server.Language.ServerHeartbeatSent());
+            Console.WriteLine(_languageService.ServerHeartbeatSent());
         }
         catch (Exception e)
         {
 #if DEBUG
             Console.WriteLine(e.ToString());
 #endif
-            Console.WriteLine("{0} ({1})", server.Language.ServerHeartbeatError(), e.Message);
+            Console.WriteLine("{0} ({1})", _languageService.ServerHeartbeatError(), e.Message);
         }
     }
 

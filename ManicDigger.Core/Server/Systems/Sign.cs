@@ -4,10 +4,12 @@ public class ServerSystemSign : ServerSystem
 {
     private Server server;
     private readonly IServerModManager _modManager;
+    private readonly IServerMapStorage _serverMapStorage;
 
-    public ServerSystemSign(IModEvents modEvents, IServerModManager modManager) : base(modEvents)
+    public ServerSystemSign(IModEvents modEvents, IServerModManager modManager, IServerMapStorage serverMapStorage) : base(modEvents)
     {
         _modManager = modManager;
+        _serverMapStorage = serverMapStorage;
     }
 
     protected override void Initialize(Server server)
@@ -24,7 +26,7 @@ public class ServerSystemSign : ServerSystem
         if (_modManager.GetBlockName(args.Tool) != "Sign")
             return;
 
-        if (server.Map.GetChunk(args.X, args.Y, args.Z) == null)
+        if (_serverMapStorage.GetChunk(args.X, args.Y, args.Z) == null)
             return;
 
         if (!server.CheckBuildPrivileges(args.Player, args.X, args.Y, args.Z, PacketBlockSetMode.Create))

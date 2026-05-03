@@ -1,5 +1,3 @@
-
-
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -7,12 +5,14 @@ public class ServerMonitor
 {
     private ServerMonitorConfig config;
     public IGameExit Exit;
+    private readonly ILanguageService _languageService;
     private readonly Server server;
     private readonly Dictionary<int, MonitorClient> monitorClients;
 
-    public ServerMonitor(Server server, IGameExit exit)
+    public ServerMonitor(Server server, IGameExit exit, ILanguageService languageService)
     {
         this.server = server;
+        this._languageService = languageService;
         this.LoadConfig();
         this.Exit = exit;
         this.monitorClients = [];
@@ -75,7 +75,7 @@ public class ServerMonitor
             case PacketType.Message:
                 if (monitorClients[clientId].MessagePunished())
                 {
-                    server.SendMessage(clientId, server.Language.ServerMonitorChatNotSent(), Server.MessageType.Error);
+                    server.SendMessage(clientId, _languageService.ServerMonitorChatNotSent(), Server.MessageType.Error);
                     return false;
                 }
 
@@ -95,14 +95,14 @@ public class ServerMonitor
     private bool ActionSetBlock(int clientId)
     {
         this.monitorClients[clientId].SetBlockPunishment = new Punishment();//infinte duration
-        this.server.ServerMessageToAll(string.Format(server.Language.ServerMonitorBuildingDisabled(), server.GetClient(clientId).PlayerName), Server.MessageType.Important);
+        this.server.ServerMessageToAll(string.Format(_languageService.ServerMonitorBuildingDisabled(), server.GetClient(clientId).PlayerName), Server.MessageType.Important);
         return false;
     }
 
     private bool ActionMessage(int clientId)
     {
         this.monitorClients[clientId].MessagePunishment = new Punishment(new TimeSpan(0, 0, config.MessageBanTime));
-        this.server.ServerMessageToAll(string.Format(server.Language.ServerMonitorChatMuted(), server.GetClient(clientId).PlayerName, config.MessageBanTime), Server.MessageType.Important);
+        this.server.ServerMessageToAll(string.Format(_languageService.ServerMonitorChatMuted(), server.GetClient(clientId).PlayerName, config.MessageBanTime), Server.MessageType.Important);
         return false;
     }
 
@@ -203,7 +203,7 @@ public class ServerMonitor
         string path = Path.Combine(GameStorePath.gamepathconfig, filename);
         if (!File.Exists(path))
         {
-            Console.WriteLine(server.Language.ServerMonitorConfigNotFound());
+            Console.WriteLine(_languageService.ServerMonitorConfigNotFound());
             this.config = new ServerMonitorConfig();
             SaveConfig();
         }
@@ -221,7 +221,7 @@ public class ServerMonitor
             }
         }
 
-        Console.WriteLine(server.Language.ServerMonitorConfigLoaded());
+        Console.WriteLine(_languageService.ServerMonitorConfigLoaded());
     }
 
     public void SaveConfig()

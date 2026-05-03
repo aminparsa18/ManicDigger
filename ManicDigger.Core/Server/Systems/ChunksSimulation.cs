@@ -5,10 +5,12 @@ public class ServerSystemChunksSimulation : ServerSystem
 {
     private Random _rnd;
     private IBlockRegistry _blockRegistry;
+    private readonly IServerMapStorage _serverMapStorage;
 
-    public ServerSystemChunksSimulation(IBlockRegistry blockRegistry, IModEvents modEvents) : base(modEvents)
+    public ServerSystemChunksSimulation(IBlockRegistry blockRegistry, IServerMapStorage serverMapStorage, IModEvents modEvents) : base(modEvents)
     {
         _blockRegistry = blockRegistry;
+        _serverMapStorage = serverMapStorage;
     }
 
     public int[] MonsterTypesUnderground = [1, 2];
@@ -59,12 +61,12 @@ public class ServerSystemChunksSimulation : ServerSystem
 
                 foreach (Vector3i chunkPos in ChunksAroundPlayer(server, playerPos))
                 {
-                    if (!VectorUtils.IsValidPos(server.Map, chunkPos.X, chunkPos.Y, chunkPos.Z))
+                    if (!VectorUtils.IsValidPos(_serverMapStorage, chunkPos.X, chunkPos.Y, chunkPos.Z))
                     {
                         continue;
                     }
 
-                    ServerChunk chunk = server.Map.GetChunkValid(
+                    ServerChunk chunk = _serverMapStorage.GetChunkValid(
                         server.InvertChunk(chunkPos.X),
                         server.InvertChunk(chunkPos.Y),
                         server.InvertChunk(chunkPos.Z));
@@ -97,7 +99,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                 {
                     UpdateChunk(server, oldestPos);
 
-                    ServerChunk chunk = server.Map.GetChunkValid(
+                    ServerChunk chunk = _serverMapStorage.GetChunkValid(
                         server.InvertChunk(oldestPos.X),
                         server.InvertChunk(oldestPos.Y),
                         server.InvertChunk(oldestPos.Z));
@@ -156,9 +158,9 @@ public class ServerSystemChunksSimulation : ServerSystem
     // Chunk enumeration
     // -------------------------------------------------------------------------
 
-    private static IEnumerable<Vector3i> ChunksAroundPlayer(Server server, Vector3i playerPos)
+    private IEnumerable<Vector3i> ChunksAroundPlayer(Server server, Vector3i playerPos)
     {
-        int zDrawDistance = server.InvertChunk(server.Map.MapSizeZ);
+        int zDrawDistance = server.InvertChunk(_serverMapStorage.MapSizeZ);
         unchecked
         {
             for (int x = -server.ChunkDrawDistance; x <= server.ChunkDrawDistance; x++)
@@ -172,7 +174,7 @@ public class ServerSystemChunksSimulation : ServerSystem
                             playerPos.Y + (y * server.ChunkSize),
                             z * server.ChunkSize);
 
-                        if (VectorUtils.IsValidPos(server.Map, p.X, p.Y, p.Z))
+                        if (VectorUtils.IsValidPos(_serverMapStorage, p.X, p.Y, p.Z))
                         {
                             yield return p;
                         }
@@ -188,7 +190,7 @@ public class ServerSystemChunksSimulation : ServerSystem
 
     public void AddMonsters(Server server, Vector3i chunkPos)
     {
-        ServerChunk chunk = server.Map.GetChunkValid(
+        ServerChunk chunk = _serverMapStorage.GetChunkValid(
             chunkPos.X / server.ChunkSize,
             chunkPos.Y / server.ChunkSize,
             chunkPos.Z / server.ChunkSize);
@@ -199,14 +201,14 @@ public class ServerSystemChunksSimulation : ServerSystem
             int py = chunkPos.Y + _rnd.Next(server.ChunkSize);
             int pz = chunkPos.Z + _rnd.Next(server.ChunkSize);
 
-            if (!IsValidSpawnPosition(server, px, py, pz))
+            if (!IsValidSpawnPosition(px, py, pz))
             {
                 continue;
             }
 
-            int monsterType = ChooseMonsterType(server, px, py, pz);
+            int monsterType = ChooseMonsterType(px, py, pz);
 
-            if (IsOpenGround(server, px, py, pz))
+            if (IsOpenGround(px, py, pz))
             {
                 chunk.Monsters.Add(new Monster
                 {
@@ -221,22 +223,22 @@ public class ServerSystemChunksSimulation : ServerSystem
         }
     }
 
-    private static bool IsValidSpawnPosition(Server server, int px, int py, int pz)
-        => VectorUtils.IsValidPos(server.Map, px, py, pz) &&
-        VectorUtils.IsValidPos(server.Map, px, py, pz + 1) &&
-        VectorUtils.IsValidPos(server.Map, px, py, pz - 1);
+    private bool IsValidSpawnPosition(int px, int py, int pz)
+        => VectorUtils.IsValidPos(_serverMapStorage, px, py, pz) &&
+        VectorUtils.IsValidPos(_serverMapStorage, px, py, pz + 1) &&
+        VectorUtils.IsValidPos(_serverMapStorage, px, py, pz - 1);
 
-    private int ChooseMonsterType(Server server, int px, int py, int pz)
+    private int ChooseMonsterType(int px, int py, int pz)
     {
-        int surfaceHeight = VectorUtils.BlockHeight(server.Map, 0, px, py);
+        int surfaceHeight = VectorUtils.BlockHeight(_serverMapStorage, 0, px, py);
         return pz >= surfaceHeight
             ? MonsterTypesOnGround[_rnd.Next(MonsterTypesOnGround.Length)]
             : MonsterTypesUnderground[_rnd.Next(MonsterTypesUnderground.Length)];
     }
 
-    private bool IsOpenGround(Server server, int px, int py, int pz)
-        => server.Map.GetBlock(px, py, pz) == 0 &&
-        server.Map.GetBlock(px, py, pz + 1) == 0 &&
-        server.Map.GetBlock(px, py, pz - 1) != 0 &&
-        !_blockRegistry.BlockTypes[server.Map.GetBlock(px, py, pz - 1)].IsFluid();
+    private bool IsOpenGround(int px, int py, int pz)
+        => _serverMapStorage.GetBlock(px, py, pz) == 0 &&
+        _serverMapStorage.GetBlock(px, py, pz + 1) == 0 &&
+        _serverMapStorage.GetBlock(px, py, pz - 1) != 0 &&
+        !_blockRegistry.BlockTypes[_serverMapStorage.GetBlock(px, py, pz - 1)].IsFluid();
 }

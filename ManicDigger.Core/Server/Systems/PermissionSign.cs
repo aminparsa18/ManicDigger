@@ -19,10 +19,14 @@ public class ServerSystemPermissionSign : ServerSystem
     private const string DialogKey = "UseSign";
 
     private readonly IServerModManager _serverModManager;
+    private readonly IServerMapStorage _serverMapStorage;
+    private readonly ILanguageService _languageService;
 
-    public ServerSystemPermissionSign(IModEvents modEvents, IServerModManager serverModManager) : base(modEvents)
+    public ServerSystemPermissionSign(IModEvents modEvents, IServerModManager serverModManager, IServerMapStorage serverMapStorage, ILanguageService languageService) : base(modEvents)
     {
         _serverModManager = serverModManager;
+        _serverMapStorage = serverMapStorage;
+        _languageService = languageService;
     }
 
     // -------------------------------------------------------------------------
@@ -54,7 +58,7 @@ public class ServerSystemPermissionSign : ServerSystem
         if (_serverModManager.GetBlockName(args.Tool) != "PermissionSign")
             return;
 
-        if (server.Map.GetChunk(args.X, args.Y, args.Z) == null)
+        if (_serverMapStorage.GetChunk(args.X, args.Y, args.Z) == null)
             return;
 
         if (!server.CheckBuildPrivileges(args.Player, args.X, args.Y, args.Z, PacketBlockSetMode.Create))
@@ -315,12 +319,12 @@ public class ServerSystemPermissionSign : ServerSystem
                     int cy = (blockY / server.ChunkSize) + dy;
                     int cz = (blockZ / server.ChunkSize) + dz;
 
-                    if (!VectorUtils.IsValidChunkPos(server.Map, cx, cy, cz, server.ChunkSize))
+                    if (!VectorUtils.IsValidChunkPos(_serverMapStorage, cx, cy, cz, server.ChunkSize))
                     {
                         continue;
                     }
 
-                    ServerChunk chunk = server.Map.GetChunkAt(cx, cy, cz);
+                    ServerChunk chunk = _serverMapStorage.GetChunkAt(cx, cy, cz);
                     if (chunk == null)
                     {
                         return;
@@ -376,7 +380,7 @@ public class ServerSystemPermissionSign : ServerSystem
         }
 
         server.SendMessage(player,
-            server.colorError + server.Language.Get("Server_CommandInsufficientPrivileges"));
+            server.colorError + _languageService.Get("Server_CommandInsufficientPrivileges"));
         return false;
     }
 

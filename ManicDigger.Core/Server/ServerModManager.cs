@@ -3,11 +3,14 @@ using System.Runtime.InteropServices;
 
 namespace ManicDigger;
 
-public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb) : IServerModManager
+public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb,
+    IServerMapStorage serverMapStorage, ILanguageService languageService) : IServerModManager
 {
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
     private readonly IChunkDbCompressed _chunkDb = chunkDb;
+    private readonly IServerMapStorage _serverMapStorage = serverMapStorage;
+    private readonly ILanguageService _languageService = languageService;
 
     public int GetMaxBlockTypes() => GameConstants.MAX_BLOCKTYPES;
 
@@ -48,11 +51,11 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         _blockRegistry.RegisterBlockType(id, _blockRegistry.BlockTypes[id]);
     }
 
-    public int GetMapSizeX() => server.Map.MapSizeX;
-    public int GetMapSizeY() => server.Map.MapSizeY;
-    public int GetMapSizeZ() => server.Map.MapSizeZ;
+    public int GetMapSizeX() => _serverMapStorage.MapSizeX;
+    public int GetMapSizeY() => _serverMapStorage.MapSizeY;
+    public int GetMapSizeZ() => _serverMapStorage.MapSizeZ;
 
-    public int GetBlock(int x, int y, int z) => server.Map.GetBlock(x, y, z);
+    public int GetBlock(int x, int y, int z) => _serverMapStorage.GetBlock(x, y, z);
 
     public string GetBlockName(int blockType) => _blockRegistry.BlockTypes[blockType].Name;
 
@@ -165,13 +168,13 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         server.CraftingRecipes.Add(r);
     }
 
-    public void SetString(string language, string id, string translation) => server.Language.Override(language, id, translation);
+    public void SetString(string language, string id, string translation) => _languageService.Override(language, id, translation);
 
     public string GetString(string id)
         //Returns string depending on server language
-        => server.Language.Get(id);
+        => _languageService.Get(id);
 
-    public bool IsValidPos(int x, int y, int z) => VectorUtils.IsValidPos(server.Map, x, y, z);
+    public bool IsValidPos(int x, int y, int z) => VectorUtils.IsValidPos(_serverMapStorage, x, y, z);
 
     public void RegisterTimer(Action a, double interval) => server.Timers[new Timer() { INTERVAL = interval }] = delegate { a(); };
 
@@ -460,7 +463,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void SetCreative(bool value) => server.Config.IsCreative = value;
 
-    public void SetWorldSize(int x, int y, int z) => server.Map.Reset(x, y, z);
+    public void SetWorldSize(int x, int y, int z) => _serverMapStorage.Reset(x, y, z);
 
     public int[] GetScreenResolution(int player) => server.Clients[player].WindowSize;
 
@@ -625,8 +628,8 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         DummyNetwork network = new();
         c.Socket = new DummyNetConnection(network);
         c.Ping.Timeout = TimeSpan.MaxValue;
-        c.chunksseen = new bool[server.Map.MapSizeX / server.ChunkSize
-                                * server.Map.MapSizeY / server.ChunkSize * server.Map.MapSizeZ / server.ChunkSize];
+        c.chunksseen = new bool[_serverMapStorage.MapSizeX / server.ChunkSize
+                                * _serverMapStorage.MapSizeY / server.ChunkSize * _serverMapStorage.MapSizeZ / server.ChunkSize];
         c.AssignGroup(server.DefaultGroupRegistered);
         server.PlayerEntitySetDirty(id);
         return id;

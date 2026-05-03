@@ -3,10 +3,11 @@ using System.Runtime.InteropServices;
 
 namespace ManicDigger;
 
-public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry) : IServerModManager
+public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb) : IServerModManager
 {
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
+    private readonly IChunkDbCompressed _chunkDb = chunkDb;
 
     public int GetMaxBlockTypes() => GameConstants.MAX_BLOCKTYPES;
 
@@ -672,7 +673,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry) 
 
     public void LogServerEvent(string serverEvent) => server.ServerEventLog(serverEvent);
 
-    public void SetWorldDatabaseReadOnly(bool readOnly) => server.Map.d_ChunkDb.ReadOnly = readOnly;
+    public void SetWorldDatabaseReadOnly(bool readOnly) => _chunkDb.ReadOnly = readOnly;
 
     public string CurrentWorld => server.GetSaveFilename();
 

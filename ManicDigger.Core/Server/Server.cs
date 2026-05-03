@@ -16,10 +16,11 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     private readonly IServerModManager _modManager;
     private readonly IModEvents _modEvents;
     private readonly ICompression _networkCompression;
+    private readonly IChunkDbCompressed _chunkDb;
 
     public List<ServerSystem> Systems { get; set; }
 
-    public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry,
+    public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb,
         IAssetManager assetManager, IModEvents modEvents, IServerModManager modManager, ICompression compression)
     {
         gameplatform = gameService;
@@ -29,6 +30,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         _networkCompression = compression;
         _modManager = modManager;
         _modEvents = modEvents;
+        _chunkDb = chunkDb;
 
         Systems =
         [
@@ -236,7 +238,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     public void OnConfigLoaded()
     {
         //Initialize server map
-        ServerMapStorage map = new(_blockRegistry, _modEvents); ;
+        ServerMapStorage map = new(_blockRegistry, _modEvents, _chunkDb);
         // _blockRegistry.Start();
         map.Heightmap = new ChunkedMap2d<ushort>(map.MapSizeX, map.MapSizeY);
         map.Reset(Config.MapSizeX, Config.MapSizeY, Config.MapSizeZ);
@@ -247,8 +249,6 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         //Initialize game components
         CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = _blockRegistry };
         _localConnectionsOnly = true;
-        ChunkDbCompressed chunkdb = new() { InnerChunkDb = new ChunkDbRegion(), Compression = new CompressionGzip() };
-        map.d_ChunkDb = chunkdb;
         _dataItems = new GameDataItemsBlocks() { d_Data = _blockRegistry };
         if (MainSockets == null)
         {
@@ -408,8 +408,8 @@ public partial class Server : IServer, ICurrentTime, IDropItem
 
     private void LoadGame(string filename)
     {
-        Map.d_ChunkDb.Open(filename);
-        byte[] globaldata = Map.d_ChunkDb.GetGlobalData();
+        _chunkDb.Open(filename);
+        byte[] globaldata = _chunkDb.GetGlobalData();
         if (globaldata == null)
         {
             //no savegame yet
@@ -422,7 +422,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
                 Seed = Config.Seed;
             }
 
-            Map.d_ChunkDb.SetGlobalData(SaveGame());
+            _chunkDb.SetGlobalData(SaveGame());
             this._gameTimer.Init(TimeSpan.Parse("08:00").Ticks);
             return;
         }
@@ -511,7 +511,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         }
 
         string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{backupFilename}{FileConstatns.DbFileExtension}");
-        Map.d_ChunkDb.Backup(finalFilename);
+        _chunkDb.Backup(finalFilename);
         return true;
     }
 
@@ -523,9 +523,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
             //todo load
         }
 
-        ChunkDbCompressed dbcompressed = (ChunkDbCompressed)Map.d_ChunkDb;
-        ChunkDbRegion db = (ChunkDbRegion)dbcompressed.InnerChunkDb;
-        db.ClearTemporaryChunks();
+        _chunkDb.InnerChunkDb.ClearTemporaryChunks();
         Map.Clear();
         LoadGame(filename);
         foreach (KeyValuePair<int, ClientOnServer> k in Clients)
@@ -562,14 +560,14 @@ public partial class Server : IServer, ICurrentTime, IDropItem
                     tosave.Add(new DbChunk() { Position = new Vector3i() { X = cx, Y = cy, Z = cz }, Chunk = MemoryPackSerializer.Serialize(c) });
                     if (tosave.Count > 200)
                     {
-                        Map.d_ChunkDb.SetChunks(tosave);
+                        _chunkDb.SetChunks(tosave);
                         tosave.Clear();
                     }
                 }
             }
         }
 
-        Map.d_ChunkDb.SetChunks(tosave);
+        _chunkDb.SetChunks(tosave);
     }
 
     private const string SaveFilenameWithoutExtension = "default";
@@ -578,7 +576,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     public string GetSaveFilename() 
         => SaveFilenameOverride ?? Path.Combine(GameStorePath.gamepathsaves, SaveFilenameWithoutExtension + FileConstatns.DbFileExtension);
 
-    private void SaveGlobalData() => Map.d_ChunkDb.SetGlobalData(SaveGame());
+    private void SaveGlobalData() => _chunkDb.SetGlobalData(SaveGame());
 
     public ServerConfig Config { get; set; }
     public ServerBanlist BanList { get; set; }
@@ -726,7 +724,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         SaveGlobalData();
     }
 
-    internal void DoSaveChunk(int x, int y, int z, ServerChunk c) => ChunkDbHelper.SetChunk(Map.d_ChunkDb, x, y, z, MemoryPackSerializer.Serialize(c));
+    internal void DoSaveChunk(int x, int y, int z, ServerChunk c) => ChunkDbHelper.SetChunk(_chunkDb, x, y, z, MemoryPackSerializer.Serialize(c));
 
     private const int SEND_CHUNKS_PER_SECOND = 10;
     private const int SEND_MONSTER_UDAPTES_PER_SECOND = 3;

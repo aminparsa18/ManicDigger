@@ -12,13 +12,19 @@
 ///    Collapsed to a single <c>InnerChunkDb.SetGlobalData(Compress(data))</c>
 ///    call, removing the duplicate branch and the inconsistency.
 /// </summary>
-public class ChunkDbCompressed : IChunkDb
+public class ChunkDbCompressed : IChunkDbCompressed
 {
     /// <summary>The underlying storage backend.</summary>
-    public IChunkDb InnerChunkDb { get; set; }
+    public IChunkDbRegion InnerChunkDb { get; }
 
     /// <summary>The compression algorithm to apply.</summary>
-    public ICompression Compression { get; set; }
+    private readonly ICompression Compression;
+
+    public ChunkDbCompressed(IChunkDbRegion innerChunkDb, ICompression compression)
+    {
+        InnerChunkDb = innerChunkDb;
+        Compression = compression;
+    }
 
     /// <inheritdoc/>
     public void Open(string filename) => InnerChunkDb.Open(filename);
@@ -86,4 +92,8 @@ public class ChunkDbCompressed : IChunkDb
             yield return new DbChunk { Position = c.Position, Chunk = Compress(c.Chunk) };
         }
     }
+}
+public interface IChunkDbCompressed : IChunkDb 
+{
+    IChunkDbRegion InnerChunkDb { get; }
 }

@@ -51,6 +51,8 @@ public class Program
         services.AddSingleton<IServerModManager, ServerModManager>();
         services.AddSingleton<IBlockRegistry, BlockRegistry>();
         services.AddSingleton<ICompression, CompressionGzip>();
+        services.AddSingleton<IChunkDbCompressed, ChunkDbCompressed>();
+        services.AddSingleton<IChunkDbRegion, ChunkDbRegion>();
 
         // ScreenManager satisfies both contracts from the same singleton instance.
         services.AddSingleton<ScreenManager>();

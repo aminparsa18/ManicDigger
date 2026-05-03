@@ -54,7 +54,7 @@ using OpenTK.Mathematics;
 ///   <item>Region files stay open for the session lifetime, amortising the O(N) table read across all subsequent accesses.</item>
 /// </list>
 /// </summary>
-public sealed class ChunkDbRegion : IChunkDb, IDisposable
+public sealed class ChunkDbRegion : IChunkDbRegion, IDisposable
 {
     // ── Configuration ─────────────────────────────────────────────────────────
 
@@ -807,4 +807,9 @@ public sealed class ChunkDbRegion : IChunkDb, IDisposable
             get => (Flags & 1) != 0;
         }
     }
+}
+
+public interface IChunkDbRegion : IChunkDb 
+{
+    void ClearTemporaryChunks();
 }

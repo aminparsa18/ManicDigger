@@ -210,7 +210,7 @@ public partial class Server
             x /= ChunkSize;
             y /= ChunkSize;
             z /= ChunkSize;
-            global::ChunkDbHelper.DeleteChunk(Map.d_ChunkDb, x, y, z);
+            global::ChunkDbHelper.DeleteChunk(_chunkDb, x, y, z);
             Map.SetChunkValid(x, y, z, null);
             // update related chunk at clients
             foreach (var k in Clients)
@@ -239,7 +239,7 @@ public partial class Server
 
         if (chunks.Count != 0)
         {
-            global::ChunkDbHelper.DeleteChunks(Map.d_ChunkDb, chunks);
+            global::ChunkDbHelper.DeleteChunks(_chunkDb, chunks);
             // force to update chunks at clients
             foreach (var k in Clients)
             {
@@ -273,7 +273,7 @@ public partial class Server
             y /= ChunkSize;
             z /= ChunkSize;
 
-            byte[] serializedChunk = global::ChunkDbHelper.GetChunkFromFile(Map.d_ChunkDb, x, y, z, finalFilename);
+            byte[] serializedChunk = global::ChunkDbHelper.GetChunkFromFile(_chunkDb, x, y, z, finalFilename);
             if (serializedChunk != null)
             {
                 ServerChunk c = DeserializeChunk(serializedChunk);
@@ -305,7 +305,7 @@ public partial class Server
         string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{filename}{FileConstatns.DbFileExtension}");
 
         Dictionary<Vector3i, ushort[]> deserializedChunks = [];
-        Dictionary<Vector3i, byte[]> serializedChunks = global::ChunkDbHelper.GetChunksFromFile(Map.d_ChunkDb, chunks, finalFilename);
+        Dictionary<Vector3i, byte[]> serializedChunks = global::ChunkDbHelper.GetChunksFromFile(_chunkDb, chunks, finalFilename);
 
         foreach (var k in serializedChunks)
         {
@@ -367,8 +367,7 @@ public partial class Server
 
         if (dbchunks.Count != 0)
         {
-            IChunkDb d_ChunkDb = new ChunkDbCompressed() { InnerChunkDb = new ChunkDbRegion(), Compression = new CompressionGzip() };
-            d_ChunkDb.SetChunksToFile(dbchunks, finalFilename);
+            _chunkDb.SetChunksToFile(dbchunks, finalFilename);
         }
         else
         {

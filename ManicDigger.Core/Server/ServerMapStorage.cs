@@ -15,18 +15,20 @@ public class ServerMapStorage : IMapStorage
 
     private readonly IBlockRegistry _blockRegistry;
     private readonly IModEvents _modEvents;
+    private readonly IChunkDbCompressed _chunkDb;
 
-    public ServerMapStorage(IBlockRegistry blockRegistry, IModEvents modEvents, int chunkSize = 32)
+
+    public ServerMapStorage(IBlockRegistry blockRegistry, IModEvents modEvents, IChunkDbCompressed chunkDb, int chunkSize = 32)
     {
         _blockRegistry = blockRegistry;
         _modEvents = modEvents;
+        _chunkDb = chunkDb;
         // Route through the property setter so chunksizebits, isPower2Chunk,
         // and _chunksX are always derived from the same source of truth.
         // Never assign chunksize directly — the three fields must move together.
         ChunkSize = chunkSize;
     }
 
-    public IChunkDb d_ChunkDb { get; set; }
     public int MapSizeX => mapSizeX;
     public int MapSizeY => mapSizeY;
     public int MapSizeZ => mapSizeZ;
@@ -127,7 +129,7 @@ public class ServerMapStorage : IMapStorage
         }
 
         // Try loading from the database first.
-        byte[] serializedChunk = ChunkDbHelper.GetChunk(d_ChunkDb, x, y, z);
+        byte[] serializedChunk = ChunkDbHelper.GetChunk(_chunkDb, x, y, z);
         if (serializedChunk != null)
         {
             ServerChunk deserialized = DeserializeChunk(serializedChunk);

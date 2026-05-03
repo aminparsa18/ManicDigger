@@ -209,7 +209,7 @@ public class LoginScreen : ScreenBase, ILoginScreen
                     SaveUsername();
                 }
 
-                _menu.StartGame(false, null, new ConnectionData
+                _menu.StartGame(false, new ConnectionData
                 {
                     Ip = serverIp,
                     Port = serverPort,

@@ -1200,14 +1200,14 @@ public class War : IMod
             if (args.Argument == "edit")
             {
                 warmode = WarMode.Edit;
-                m.LoadWorld(m.CurrentWorld);
+               // m.LoadWorld(m.CurrentWorld);
                 m.SetWorldDatabaseReadOnly(false);
                 Restart();
             }
             else if (args.Argument == "tdm")
             {
                 warmode = WarMode.TeamDeathmatch;
-                m.LoadWorld(m.CurrentWorld);
+              //  m.LoadWorld(m.CurrentWorld);
                 m.SetWorldDatabaseReadOnly(true);
                 Restart();
             }

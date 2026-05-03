@@ -128,7 +128,7 @@ public class ServerSystemNotifyMap : ServerSystem
     /// </summary>
     private void LoadAndSendChunk(Server server, int clientId, Vector3i chunkPos, Stopwatch stopwatch)
     {
-        server.LoadChunk(chunkPos.X, chunkPos.Y, chunkPos.Z);
+        _serverMapStorage.LoadChunk(chunkPos.X, chunkPos.Y, chunkPos.Z);
 
         if (!server.ClientSeenChunk(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z))
         {

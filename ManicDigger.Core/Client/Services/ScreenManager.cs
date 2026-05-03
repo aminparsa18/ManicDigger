@@ -103,7 +103,7 @@ public class ScreenManager : IScreenManager
 
         if (args.Length > 0)
         {
-            StartGame(false, null, ConnectionData.FromUri(new Uri(args[0])));
+            StartGame(false, ConnectionData.FromUri(new Uri(args[0])));
         }
 
         _gameService.Start();
@@ -185,10 +185,10 @@ public class ScreenManager : IScreenManager
     /// <param name="singleplayer"><c>true</c> to start a local server; <c>false</c> for a remote connection.</param>
     /// <param name="singleplayerSavePath">Path to the save file; ignored when <paramref name="singleplayer"/> is <c>false</c>.</param>
     /// <param name="connectData">Remote connection parameters; ignored when <paramref name="singleplayer"/> is <c>true</c>.</param>
-    public void StartGame(bool singleplayer, string singleplayerSavePath, ConnectionData connectData)
+    public void StartGame(bool singleplayer, ConnectionData connectData)
     {
         ScreenGame screenGame = (ScreenGame)_screenFactory.CreateScreenGame();
-        screenGame.Start(singleplayer, singleplayerSavePath, connectData);
+        screenGame.Start(singleplayer, connectData);
         screen = screenGame;
     }
 
@@ -205,13 +205,13 @@ public class ScreenManager : IScreenManager
             Auth = loginResultData.AuthCode,
             Username = username
         };
-        StartGame(false, null, connectData);
+        StartGame(false, connectData);
     }
 
     /// <summary>Starts a single-player session using an existing save file.</summary>
     /// <param name="filename">Absolute path to the <c>.mddbs</c> save file.</param>
-    public void ConnectToSingleplayer(string filename)
-        => StartGame(true, filename, null);
+    public void ConnectToSingleplayer()
+        => StartGame(true, null);
 
     // -------------------------------------------------------------------------
     // Login / account helpers

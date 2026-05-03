@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using ManicDigger;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTK.Windowing.Common;
 using Serilog;
 
@@ -8,7 +9,7 @@ using Serilog;
 /// </summary>
 public interface IScreenGame : IScreenBase
 {
-    void Start(bool singleplayer, string singleplayerSavePath, ConnectionData connectData);
+    void Start(bool singleplayer, ConnectionData connectData);
 }
 
 /// <summary>
@@ -16,7 +17,7 @@ public interface IScreenGame : IScreenBase
 /// Bridges platform input events to the game, manages the singleplayer
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
-public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager,
+public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager, ISaveGameService saveGameService,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, 
     IDummyNetwork dummyNetwork, IGame game, IServiceProvider serviceProvider) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
@@ -24,7 +25,6 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     private readonly IGame game = game;
     private ConnectionData connectData;
     private bool singleplayer;
-    private string singleplayerSavePath;
     private readonly IGameExit gameExit = gameExit;
     private readonly IScreenManager _menu = menu;
     private readonly IDummyNetwork _dummyNetwork = dummyNetwork;
@@ -39,10 +39,9 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     /// </param>
     /// <param name="singleplayerSavePath_">Path to the singleplayer save directory.</param>
     /// <param name="connectData_">Remote server address and credentials (multiplayer only).</param>
-    public void Start(bool singleplayer_, string singleplayerSavePath_, ConnectionData connectData_)
+    public void Start(bool singleplayer_, ConnectionData connectData_)
     {
         singleplayer = singleplayer_;
-        singleplayerSavePath = singleplayerSavePath_;
         connectData = connectData_;
 
         game.IsSinglePlayer = singleplayer;
@@ -63,7 +62,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
             // Platform provides its own singleplayer server (e.g. mobile).
             Task.Run(() =>
             {
-                ServerThreadStart(singleplayerSavePath);
+                ServerThreadStart();
             });
 
             // Prime the server inbox so the handshake starts immediately.
@@ -79,21 +78,14 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         }
     }
 
-    private void ServerThreadStart(string singleplayerSavePath)
+    private void ServerThreadStart()
     {
         Log.Debug("Single-player server thread started");
-        DummyNetServer netServer = new(_dummyNetwork);
 
         ServerSystemBootstraper bootstrapper = serviceProvider.GetRequiredService<ServerSystemBootstraper>();
         Server server = bootstrapper.Server;
 
-        server.SaveFilenameOverride = singleplayerSavePath;
-        server.MainSockets = new NetServer[3];
         server.MainSockets[0] = new DummyNetServer(_dummyNetwork);
-
-        server.MainSockets[0] = netServer;
-
-       // serviceProvider.GetRequiredService<ModBootstrapper>();
 
         while (true)
         {
@@ -155,7 +147,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         if (game.IsReconnecting)
         {
             game.Dispose();
-            _menu.StartGame(singleplayer, singleplayerSavePath, connectData);
+            _menu.StartGame(singleplayer, connectData);
             return;
         }
 

@@ -24,10 +24,12 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     private const int InspectionsPerTick = 100;
 
     private readonly IServerMapStorage _serverMapStorage;
+    private readonly ISaveGameService _saveGameService;
 
-    public ServerSystemUnloadUnusedChunks(IModEvents modEvents, IServerMapStorage serverMapStorage) : base(modEvents)
+    public ServerSystemUnloadUnusedChunks(IModEvents modEvents, IServerMapStorage serverMapStorage, ISaveGameService saveGameService) : base(modEvents)
     {
         _serverMapStorage = serverMapStorage;
+        _saveGameService = saveGameService;
     }
 
     // -------------------------------------------------------------------------
@@ -103,7 +105,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     {
         if (chunk.DirtyForSaving)
         {
-            server.DoSaveChunk(chunkPos.X, chunkPos.Y, chunkPos.Z, chunk);
+            _saveGameService.DoSaveChunk(chunkPos.X, chunkPos.Y, chunkPos.Z, chunk);
         }
 
         _serverMapStorage.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);

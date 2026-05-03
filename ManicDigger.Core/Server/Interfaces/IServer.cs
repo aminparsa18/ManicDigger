@@ -29,7 +29,6 @@ public interface IServer
     int Port { get; set; }
     string ReceivedKey { get; set; }
     RenderHint RenderHint { get; set; }
-    string SaveFilenameOverride { get; set; }
     int Seed { get; set; }
     ServerClient ServerClient { get; set; }
     bool ServerClientNeedsSaving { get; set; }
@@ -52,7 +51,6 @@ public interface IServer
     bool AnswerMessage(int sourceClientId, string message);
     bool AreaAdd(int sourceClientId, int id, string coords, string[] permittedGroups, string[] permittedUsers, int? level);
     bool AreaDelete(int sourceClientId, int id);
-    bool BackupDatabase(string backupFilename);
     bool ChangeGroup(int sourceClientId, string target, string newGroupName);
     bool ChangeGroupOffline(int sourceClientId, string target, string newGroupName);
     void ChatLog(string p);
@@ -86,7 +84,6 @@ public interface IServer
     Inventory GetPlayerInventory(string playername);
     Vector3i GetPlayerSpawnPositionMul32(int clientid);
     PacketServerPlayerStats GetPlayerStats(string playername);
-    string GetSaveFilename();
     int GetSimulationCurrentFrame();
     GameTimer GetTimer();
     bool Give(int sourceClientId, string target, string blockname, int amount);
@@ -99,8 +96,6 @@ public interface IServer
     bool Kick(int sourceClientId, string target, string reason);
     void KillPlayer(int clientid);
     bool List(int sourceClientId, string type);
-    void LoadChunk(int cx, int cy, int cz);
-    bool LoadDatabase(string filename);
     bool Login(int sourceClientId, string targetGroupString, string password);
     bool Monsters(int sourceClientId, string option);
     void NotifyInventory(int clientid);

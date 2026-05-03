@@ -679,10 +679,6 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void SetWorldDatabaseReadOnly(bool readOnly) => _chunkDb.ReadOnly = readOnly;
 
-    public string CurrentWorld => _server.GetSaveFilename();
-
-    public void LoadWorld(string filename) => _server.LoadDatabase(filename);
-
     public string[] ModPaths => [.. _server.ModPaths];
 
     public void SendExplosion(int player, float x, float y, float z, bool relativeposition, float range, float time) => _server.SendExplosion(player, x, y, z, relativeposition, range, time);

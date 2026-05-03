@@ -367,46 +367,6 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         ChatLog(string.Format("{0}: {1}", ServerConsoleClient.PlayerName, message));
     }
 
-    private void LoadGame(string filename)
-    {
-        _chunkDb.Open(filename);
-        byte[] globaldata = _chunkDb.GetGlobalData();
-        if (globaldata == null)
-        {
-            //no savegame yet
-            if (_config.RandomSeed)
-            {
-                Seed = new Random().Next();
-            }
-            else
-            {
-                Seed = _config.Seed;
-            }
-
-            _chunkDb.SetGlobalData(SaveGame());
-            this._gameTimer.Init(TimeSpan.Parse("08:00").Ticks);
-            return;
-        }
-
-        ManicDiggerSave save = MemoryPackSerializer.Deserialize<ManicDiggerSave>(globaldata);
-        Seed = save.Seed;
-        _serverMapStorage.Reset(_serverMapStorage.MapSizeX, _serverMapStorage.MapSizeY, _serverMapStorage.MapSizeZ);
-        if (_config.IsCreative)
-        {
-            this.Inventory = Inventory = new Dictionary<string, Inventory>(StringComparer.InvariantCultureIgnoreCase);
-        }
-        else
-        {
-            this.Inventory = save.Inventory;
-        }
-
-        this.PlayerStats = save.PlayerStats;
-        this.SimulationCurrentFrame = (int)save.SimulationCurrentFrame;
-        this._gameTimer.Init(save.TimeOfDay);
-        this.LastMonsterId = save.LastMonsterId;
-        this.ModData = save.ModData;
-    }
-
     private readonly string _serverPathLogs = Path.Combine(GameStorePath.GetStorePath(), "Logs");
     public void ChatLog(string p)
     {
@@ -431,33 +391,6 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     public Dictionary<string, byte[]> ModData { get; set; } = [];
 
     private Dictionary<string, PacketServerPlayerStats> PlayerStats = new(StringComparer.InvariantCultureIgnoreCase);
-
-    private byte[] SaveGame()
-    {
-        for (int i = 0; i < OnSave.Count; i++)
-        {
-            OnSave[i]();
-        }
-
-        ManicDiggerSave save = new()
-        {
-            Seed = Seed,
-            SimulationCurrentFrame = SimulationCurrentFrame,
-            TimeOfDay = _gameTimer.Time.Ticks,
-            LastMonsterId = LastMonsterId,
-            PlayerStats = PlayerStats,
-            ModData = ModData,
-        };
-
-        SaveAllLoadedChunks();
-
-        if (!_config.IsCreative)
-        {
-            save.Inventory = Inventory;
-        }
-
-        return MemoryPackSerializer.Serialize(save);
-    }
 
     public bool BackupDatabase(string backupFilename)
     {
@@ -496,40 +429,6 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         }
 
         return true;
-    }
-
-    private void SaveAllLoadedChunks()
-    {
-        List<DbChunk> tosave = [];
-        for (int cx = 0; cx < _serverMapStorage.MapSizeX / GameConstants.ServerChunkSize; cx++)
-        {
-            for (int cy = 0; cy < _serverMapStorage.MapSizeY / GameConstants.ServerChunkSize; cy++)
-            {
-                for (int cz = 0; cz < _serverMapStorage.MapSizeZ / GameConstants.ServerChunkSize; cz++)
-                {
-                    ServerChunk c = _serverMapStorage.GetChunkValid(cx, cy, cz);
-                    if (c == null)
-                    {
-                        continue;
-                    }
-
-                    if (!c.DirtyForSaving)
-                    {
-                        continue;
-                    }
-
-                    c.DirtyForSaving = false;
-                    tosave.Add(new DbChunk() { Position = new Vector3i() { X = cx, Y = cy, Z = cz }, Chunk = MemoryPackSerializer.Serialize(c) });
-                    if (tosave.Count > 200)
-                    {
-                        _chunkDb.SetChunks(tosave);
-                        tosave.Clear();
-                    }
-                }
-            }
-        }
-
-        _chunkDb.SetChunks(tosave);
     }
 
     private const string SaveFilenameWithoutExtension = "default";

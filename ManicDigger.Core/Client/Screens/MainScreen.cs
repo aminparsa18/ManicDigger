@@ -166,16 +166,16 @@ public class MainScreen : ScreenBase, IMainScreen
     public override void OnKeyDown(KeyEventArgs e)
     {
 #if DEBUG
-        // F5 — launch default singleplayer save (legacy .mdss format).
+        // F5 — launch current singleplayer save (legacy .mdss format).
         if (e.KeyChar == (int)Keys.F5)
         {
             singlePlayerService.SinglePlayerServerAvailable = false;
-            _navigator.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mdss"), null);
+            _navigator.StartGame(true, null);
         }
-        // F6 — launch default singleplayer save (database .mddbs format).
+        // F6 — launch current singleplayer save (database .mddbs format).
         if (e.KeyChar == (int)Keys.F6)
         {
-            _navigator.StartGame(true, Path.Combine(GameService.GameSavePath, "Default.mddbs"), null);
+            _navigator.StartGame(true, null);
         }
 #endif
     }

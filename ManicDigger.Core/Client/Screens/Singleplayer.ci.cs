@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using ManicDigger;
+
+/// <summary>
 /// Screen that shows available singleplayer save files and lets the player
 /// launch, create, or modify a world.
 /// </summary>
@@ -23,6 +25,7 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
     private readonly IScreenManager _menu;
     private readonly ISinglePlayerService singlePlayerService;
     private readonly ILanguageService _languageService;
+    private readonly ISaveGameService saveGameService;
 
     /// <summary>
     /// Save files discovered on first render. <c>null</c> until the first call to
@@ -33,7 +36,7 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
     private string title;
 
     public SingleplayerScreen(IGameService platform, IOpenGlService platformOpenGl, IAssetManager assetManager,
-        ISinglePlayerService singlePlayerService, ILanguageService languageService, IScreenManager menu) : base(platform, platformOpenGl, assetManager)
+        ISinglePlayerService singlePlayerService, ILanguageService languageService, IScreenManager menu, ISaveGameService saveGameService) : base(platform, platformOpenGl, assetManager)
     {
         play = new MenuWidget
         {
@@ -76,6 +79,7 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
         this._menu = menu;
         this._languageService = languageService;
         this.singlePlayerService = singlePlayerService;
+        this.saveGameService = saveGameService;
     }
 
     /// <inheritdoc/>
@@ -239,9 +243,15 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
         {
             string extension = singlePlayerService.SinglePlayerServerAvailable ? "mddbs" : "mdss";
             string result = FileOpenDialog(extension, "Manic Digger Savegame", GameService.GameSavePath);
+
+            if (result != null)
+                saveGameService.InitialiseSession(SaveTarget.FromFile(result));
+            else
+                saveGameService.InitialiseSession(SaveTarget.NewGame());
+
             if (result != null)
             {
-                _menu.ConnectToSingleplayer(result);
+                _menu.ConnectToSingleplayer();
             }
         }
     }

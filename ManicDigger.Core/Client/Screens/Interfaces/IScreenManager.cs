@@ -7,8 +7,8 @@
     void StartConnectToIp();
     void Login(string user, string password, string serverHash, string token,
         LoginResult loginResult, LoginData loginResultData);
-    void StartGame(bool singleplayer, string savePath, ConnectionData connectData);
-    void ConnectToSingleplayer(string filename);
+    void StartGame(bool singleplayer, ConnectionData connectData);
+    void ConnectToSingleplayer();
     void ConnectToGame(LoginData loginData, string username);
 }
 

@@ -21,7 +21,7 @@ namespace ManicDigger;
 /// mods in topological order.
 /// </para>
 /// </summary>
-public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegistry, IModEvents modEvents) : ServerSystem(modEvents)
+public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegistry, IModEvents modEvents, IServerModManager modManager) : ServerSystem(modEvents)
 {
     /// <summary>All successfully compiled and instantiated mods, keyed by type name.</summary>
     private readonly Dictionary<string, IMod> mods = [];
@@ -38,6 +38,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
     private readonly IModEvents _modEvents = modEvents;
+    private readonly IServerModManager _modManager = modManager;
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -107,9 +108,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// </param>
     private void LoadMods(Server server, bool restart)
     {
-        server.ModManager = new ServerModManager(gameExit, _blockRegistry );
-        ServerModManager manager = server.ModManager;
-        manager.Start(server);
+        _modManager.Start(server);
 
         Dictionary<string, string> scripts = GetScriptSources(server);
         Console.WriteLine($"[ModLoader] GetScriptSources returned {scripts.Count} scripts:");
@@ -121,7 +120,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
         CompileScripts(scripts, restart);
         Console.WriteLine($"[ModLoader] After CompileScripts, mods.Count = {mods.Count}");
 
-        StartMods(manager, manager.required);
+        StartMods(_modManager.required);
     }
 
     // -------------------------------------------------------------------------
@@ -431,21 +430,21 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// <param name="currentRequires">
     /// The dependency list populated by the mod manager during <see cref="IMod.PreStart"/>.
     /// </param>
-    private void StartMods(IServerModManager manager, List<string> currentRequires)
+    private void StartMods(List<string> currentRequires)
     {
         modRequirements.Clear();
         loadedMods.Clear();
 
         foreach (KeyValuePair<string, IMod> k in mods)
         {
-            k.Value.PreStart(manager);
+            k.Value.PreStart(_modManager);
             modRequirements[k.Key] = [.. currentRequires];
             currentRequires.Clear();
         }
 
         foreach (KeyValuePair<string, IMod> k in mods)
         {
-            StartModWithDependencies(k.Key, k.Value, manager);
+            StartModWithDependencies(k.Key, k.Value);
         }
     }
 
@@ -453,7 +452,7 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// Starts a single mod, recursively ensuring all of its declared dependencies
     /// are started first. Already-started mods are skipped.
     /// </summary>
-    private void StartModWithDependencies(string name, IMod mod, IServerModManager manager)
+    private void StartModWithDependencies(string name, IMod mod)
     {
         if (loadedMods.ContainsKey(name))
         {
@@ -470,11 +469,11 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
                     continue;
                 }
 
-                StartModWithDependencies(dependency, depMod, manager);
+                StartModWithDependencies(dependency, depMod);
             }
         }
 
-        mod.Start(manager, _modEvents);
+        mod.Start(_modManager, _modEvents);
         loadedMods[name] = true;
     }
 

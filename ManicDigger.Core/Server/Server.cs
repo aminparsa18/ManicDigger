@@ -7,23 +7,25 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static ManicDigger.Mods.ModNetworkProcess;
 
-public partial class Server : ICurrentTime, IDropItem
+public partial class Server : IServer, ICurrentTime, IDropItem
 {
     private readonly IGameService gameplatform;
     private readonly IGameExit _gameExit;
     private IBlockRegistry _blockRegistry;
     private readonly IAssetManager _assetManager;
+    private readonly IServerModManager _modManager;
     private readonly IModEvents _modEvents;
 
     public List<ServerSystem> Systems { get; set; }
 
     public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry,
-        IAssetManager assetManager, IModEvents modEvents)
+        IAssetManager assetManager, IModEvents modEvents, IServerModManager modManager)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
         _blockRegistry = blockRegistry;
         _assetManager = assetManager;
+        _modManager = modManager;
         _modEvents = modEvents;
 
         Systems =
@@ -39,7 +41,7 @@ public partial class Server : ICurrentTime, IDropItem
             new ServerSystemNotifyPing(gameplatform, gameExit, _modEvents),
             new ServerSystemChunksSimulation(_blockRegistry, _modEvents),
             new ServerSystemBanList(_modEvents),
-            new ServerSystemModLoader(gameExit, blockRegistry, _modEvents),
+            new ServerSystemModLoader(gameExit, blockRegistry, _modEvents, _modManager),
             new ServerSystemLoadServerClient(_modEvents),
             new ServerSystemNotifyEntities(_modEvents),
             // This ServerSystem should always be loaded last
@@ -54,7 +56,6 @@ public partial class Server : ICurrentTime, IDropItem
 
     public ServerMapStorage Map { get; set; }
     public CraftingTableTool CraftingTableTool { get; set; }
-    public IChunkDb ChunkDb { get; set; }
     public ICompression NetworkCompression { get; set; }
     public NetServer[] MainSockets { get; set; }
 
@@ -250,7 +251,6 @@ public partial class Server : ICurrentTime, IDropItem
         CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = _blockRegistry };
         _localConnectionsOnly = true;
         ChunkDbCompressed chunkdb = new() { InnerChunkDb = new ChunkDbRegion(), Compression = new CompressionGzip() };
-        ChunkDb = chunkdb;
         map.d_ChunkDb = chunkdb;
         NetworkCompression = new CompressionGzip();
         _dataItems = new GameDataItemsBlocks() { d_Data = _blockRegistry };
@@ -378,7 +378,6 @@ public partial class Server : ICurrentTime, IDropItem
 
     public List<string> AllPrivileges { get; set; } = [];
     public List<string> ModPaths { get; set; } = [];
-    public ServerModManager ModManager { get; set; }
     public string GameMode { get; set; } = "Fortress";
     public int ServerConsoleId { get; } = -1;
     public ClientOnServer ServerConsoleClient { get; set; }
@@ -413,8 +412,8 @@ public partial class Server : ICurrentTime, IDropItem
 
     private void LoadGame(string filename)
     {
-        ChunkDb.Open(filename);
-        byte[] globaldata = ChunkDb.GetGlobalData();
+        Map.d_ChunkDb.Open(filename);
+        byte[] globaldata = Map.d_ChunkDb.GetGlobalData();
         if (globaldata == null)
         {
             //no savegame yet
@@ -427,7 +426,7 @@ public partial class Server : ICurrentTime, IDropItem
                 Seed = Config.Seed;
             }
 
-            ChunkDb.SetGlobalData(SaveGame());
+            Map.d_ChunkDb.SetGlobalData(SaveGame());
             this._gameTimer.Init(TimeSpan.Parse("08:00").Ticks);
             return;
         }
@@ -516,13 +515,12 @@ public partial class Server : ICurrentTime, IDropItem
         }
 
         string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{backupFilename}{FileConstatns.DbFileExtension}");
-        ChunkDb.Backup(finalFilename);
+        Map.d_ChunkDb.Backup(finalFilename);
         return true;
     }
 
     public bool LoadDatabase(string filename)
     {
-        Map.d_ChunkDb = ChunkDb;
         SaveAll();
         if (filename != GetSaveFilename())
         {
@@ -568,14 +566,14 @@ public partial class Server : ICurrentTime, IDropItem
                     tosave.Add(new DbChunk() { Position = new Vector3i() { X = cx, Y = cy, Z = cz }, Chunk = MemoryPackSerializer.Serialize(c) });
                     if (tosave.Count > 200)
                     {
-                        ChunkDb.SetChunks(tosave);
+                        Map.d_ChunkDb.SetChunks(tosave);
                         tosave.Clear();
                     }
                 }
             }
         }
 
-        ChunkDb.SetChunks(tosave);
+        Map.d_ChunkDb.SetChunks(tosave);
     }
 
     private const string SaveFilenameWithoutExtension = "default";
@@ -591,7 +589,7 @@ public partial class Server : ICurrentTime, IDropItem
         return Path.Combine(GameStorePath.gamepathsaves, SaveFilenameWithoutExtension + FileConstatns.DbFileExtension);
     }
 
-    private void SaveGlobalData() => ChunkDb.SetGlobalData(SaveGame());
+    private void SaveGlobalData() => Map.d_ChunkDb.SetGlobalData(SaveGame());
 
     public ServerConfig Config { get; set; }
     public ServerBanlist BanList { get; set; }
@@ -739,7 +737,7 @@ public partial class Server : ICurrentTime, IDropItem
         SaveGlobalData();
     }
 
-    internal void DoSaveChunk(int x, int y, int z, ServerChunk c) => ChunkDbHelper.SetChunk(ChunkDb, x, y, z, MemoryPackSerializer.Serialize(c));
+    internal void DoSaveChunk(int x, int y, int z, ServerChunk c) => ChunkDbHelper.SetChunk(Map.d_ChunkDb, x, y, z, MemoryPackSerializer.Serialize(c));
 
     private const int SEND_CHUNKS_PER_SECOND = 10;
     private const int SEND_MONSTER_UDAPTES_PER_SECOND = 3;
@@ -961,7 +959,7 @@ public partial class Server : ICurrentTime, IDropItem
         return p;
     }
 
-    public static Vector3i PlayerBlockPosition(ClientOnServer c) => new(c.PositionMul32GlX / 32, c.PositionMul32GlZ / 32, c.PositionMul32GlY / 32);
+    public Vector3i PlayerBlockPosition(ClientOnServer c) => new(c.PositionMul32GlX / 32, c.PositionMul32GlZ / 32, c.PositionMul32GlY / 32);
 
     public void KillPlayer(int clientid)
     {
@@ -2326,7 +2324,7 @@ public partial class Server : ICurrentTime, IDropItem
         NotifyBlock(x, y, z, blocktype);
     }
 
-    public static byte[] Serialize(Packet_Server p) => MemoryPackSerializer.Serialize(p);
+    public byte[] Serialize(Packet_Server p) => MemoryPackSerializer.Serialize(p);
 
     private string GenerateUsername(string name)
     {
@@ -2421,11 +2419,11 @@ public partial class Server : ICurrentTime, IDropItem
     }
 
     public int DrawDistance { get; set; } = 512;
-    public static int ChunkSize { get; set; } = 32;
+    public int ChunkSize { get; set; } = 32;
 
-    public static double InvertedChunkSize { get; set; } = 1.0 / 32;
+    public double InvertedChunkSize { get; set; } = 1.0 / 32;
 
-    public static int InvertChunk(int num) => (int)(num * InvertedChunkSize);
+    public int InvertChunk(int num) => (int)(num * InvertedChunkSize);
 
     public int ChunkDrawDistance { get { return DrawDistance / ChunkSize; } }
 
@@ -2480,7 +2478,7 @@ public partial class Server : ICurrentTime, IDropItem
     }
 
 
-    public static IEnumerable<byte[]> Parts(byte[] blob, int partsize)
+    public IEnumerable<byte[]> Parts(byte[] blob, int partsize)
     {
         for (int i = 0; i < blob.Length; i += partsize)
         {
@@ -2533,7 +2531,7 @@ public partial class Server : ICurrentTime, IDropItem
         }
     }
 
-    public static int SerializeFloat(float p) => (int)(p * 32);
+    public int SerializeFloat(float p) => (int)(p * 32);
 
     private void SendSunLevels(int clientid)
     {

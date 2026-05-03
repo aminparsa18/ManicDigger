@@ -583,6 +583,10 @@ public interface IServerModManager
     /// </summary>
     /// <returns><i>true</i> if server is about to shutdown</returns>
     bool IsShuttingDown { get; }
+
+    List<string> required { get; set; }
+
+    void Start(Server server);
 }
 
 public class ModInfo

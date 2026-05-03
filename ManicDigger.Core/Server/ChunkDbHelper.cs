@@ -28,12 +28,9 @@ public static class ChunkDbHelper
     public static byte[] GetChunk(IChunkDb db, int x, int y, int z)
     {
         List<byte[]> chunks = [.. db.GetChunks([new Vector3i(x, y, z)])];
-        if (chunks.Count > 1)
-        {
-            throw new InvalidOperationException($"Expected at most 1 chunk at ({x},{y},{z}), got {chunks.Count}.");
-        }
-
-        return chunks.Count == 0 ? null : chunks[0];
+        return chunks.Count > 1
+            ? throw new InvalidOperationException($"Expected at most 1 chunk at ({x},{y},{z}), got {chunks.Count}.")
+            : chunks.Count == 0 ? null : chunks[0];
     }
 
     /// <summary>

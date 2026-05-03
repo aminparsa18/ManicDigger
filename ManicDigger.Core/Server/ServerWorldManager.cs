@@ -210,7 +210,7 @@ public partial class Server
             x /= ChunkSize;
             y /= ChunkSize;
             z /= ChunkSize;
-            global::ChunkDbHelper.DeleteChunk(ChunkDb, x, y, z);
+            global::ChunkDbHelper.DeleteChunk(Map.d_ChunkDb, x, y, z);
             Map.SetChunkValid(x, y, z, null);
             // update related chunk at clients
             foreach (var k in Clients)
@@ -239,7 +239,7 @@ public partial class Server
 
         if (chunks.Count != 0)
         {
-            global::ChunkDbHelper.DeleteChunks(ChunkDb, chunks);
+            global::ChunkDbHelper.DeleteChunks(Map.d_ChunkDb, chunks);
             // force to update chunks at clients
             foreach (var k in Clients)
             {
@@ -273,7 +273,7 @@ public partial class Server
             y /= ChunkSize;
             z /= ChunkSize;
 
-            byte[] serializedChunk = global::ChunkDbHelper.GetChunkFromFile(ChunkDb, x, y, z, finalFilename);
+            byte[] serializedChunk = global::ChunkDbHelper.GetChunkFromFile(Map.d_ChunkDb, x, y, z, finalFilename);
             if (serializedChunk != null)
             {
                 ServerChunk c = DeserializeChunk(serializedChunk);
@@ -305,7 +305,7 @@ public partial class Server
         string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{filename}{FileConstatns.DbFileExtension}");
 
         Dictionary<Vector3i, ushort[]> deserializedChunks = [];
-        Dictionary<Vector3i, byte[]> serializedChunks = global::ChunkDbHelper.GetChunksFromFile(ChunkDb, chunks, finalFilename);
+        Dictionary<Vector3i, byte[]> serializedChunks = global::ChunkDbHelper.GetChunksFromFile(Map.d_ChunkDb, chunks, finalFilename);
 
         foreach (var k in serializedChunks)
         {
@@ -321,7 +321,7 @@ public partial class Server
         return deserializedChunks;
     }
 
-    private static ServerChunk DeserializeChunk(byte[] serializedChunk)
+    private ServerChunk DeserializeChunk(byte[] serializedChunk)
     {
         ServerChunk c = MemoryPackSerializer.Deserialize<ServerChunk>(serializedChunk);
         //convert savegame to new format

@@ -3,13 +3,10 @@ using OpenTK.Mathematics;
 
 public interface IServer
 {
-    static abstract int ChunkSize { get; set; }
-    static abstract double InvertedChunkSize { get; set; }
+    int ChunkSize { get; set; }
+    double InvertedChunkSize { get; set; }
     List<string> AllPrivileges { get; set; }
     ServerBanlist BanList { get; set; }
-    BlockRegistry BlockTypeRegistry { get; set; }
-    Dictionary<int, BlockType> BlockTypes { get; set; }
-    IChunkDb ChunkDb { get; set; }
     int ChunkDrawDistance { get; }
     Dictionary<int, ClientOnServer> Clients { get; set; }
     ServerConfig Config { get; set; }
@@ -32,7 +29,6 @@ public interface IServer
     NetServer[] MainSockets { get; set; }
     ServerMapStorage Map { get; set; }
     Dictionary<string, byte[]> ModData { get; set; }
-    ServerModManager ModManager { get; set; }
     List<string> ModPaths { get; set; }
     ICompression NetworkCompression { get; set; }
     List<Action> OnLoad { get; set; }
@@ -54,11 +50,11 @@ public interface IServer
     long TotalSentBytes { get; set; }
     TimeSpan Uptime { get; }
 
-    static abstract int InvertChunk(int num);
-    static abstract IEnumerable<byte[]> Parts(byte[] blob, int partsize);
-    static abstract Vector3i PlayerBlockPosition(ClientOnServer c);
-    static abstract byte[] Serialize(Packet_Server p);
-    static abstract int SerializeFloat(float p);
+    abstract int InvertChunk(int num);
+    abstract IEnumerable<byte[]> Parts(byte[] blob, int partsize);
+    abstract Vector3i PlayerBlockPosition(ClientOnServer c);
+    abstract byte[] Serialize(Packet_Server p);
+    abstract int SerializeFloat(float p);
     void AddEntity(int x, int y, int z, ServerEntity e);
     bool Announcement(int sourceClientId, string message);
     bool AnswerMessage(int sourceClientId, string message);

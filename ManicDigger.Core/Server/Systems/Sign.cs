@@ -3,9 +3,11 @@
 public class ServerSystemSign : ServerSystem
 {
     private Server server;
+    private readonly IServerModManager _modManager;
 
-    public ServerSystemSign(IModEvents modEvents) : base(modEvents)
+    public ServerSystemSign(IModEvents modEvents, IServerModManager modManager) : base(modEvents)
     {
+        _modManager = modManager;
     }
 
     protected override void Initialize(Server server)
@@ -19,7 +21,7 @@ public class ServerSystemSign : ServerSystem
 
     private void OnUseWithTool(BlockUseWithToolArgs args)
     {
-        if (server.ModManager.GetBlockName(args.Tool) != "Sign")
+        if (_modManager.GetBlockName(args.Tool) != "Sign")
             return;
 
         if (server.Map.GetChunk(args.X, args.Y, args.Z) == null)
@@ -40,8 +42,8 @@ public class ServerSystemSign : ServerSystem
         };
 
         e.Position.Heading = EntityHeading.GetHeading(
-            server.ModManager.GetPlayerPositionX(args.Player),
-            server.ModManager.GetPlayerPositionY(args.Player),
+            _modManager.GetPlayerPositionX(args.Player),
+            _modManager.GetPlayerPositionY(args.Player),
             e.Position.X,
             e.Position.Z
         );

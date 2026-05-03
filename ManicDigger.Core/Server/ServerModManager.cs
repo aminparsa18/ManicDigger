@@ -60,7 +60,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry) 
     public void SetBlock(int x, int y, int z, int tileType) => server.SetBlockAndNotify(x, y, z, tileType);
 
     private Server server;
-    internal void Start(Server server) => this.server = server;
+    public void Start(Server server) => this.server = server;
 
     public void SetSunLevels(int[] sunLevels) => server.SetSunLevels(sunLevels);
 
@@ -246,7 +246,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry) 
 
     private readonly Dictionary<string, object> modoptions = [];
 
-    public int GetChunkSize() => Server.ChunkSize;
+    public int GetChunkSize() => server.ChunkSize;
 
     public object GetOption(string optionname) => modoptions[optionname];
 
@@ -277,7 +277,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry) 
 
     public string GetPlayerName(int player) => server.GetClient(player).PlayerName;
 
-    public List<string> required = [];
+    public List<string> required { get; set; } = [];
 
     public void RequireMod(string modname) => required.Add(modname);
 
@@ -624,8 +624,8 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry) 
         DummyNetwork network = new();
         c.Socket = new DummyNetConnection(network);
         c.Ping.Timeout = TimeSpan.MaxValue;
-        c.chunksseen = new bool[server.Map.MapSizeX / Server.ChunkSize
-                                * server.Map.MapSizeY / Server.ChunkSize * server.Map.MapSizeZ / Server.ChunkSize];
+        c.chunksseen = new bool[server.Map.MapSizeX / server.ChunkSize
+                                * server.Map.MapSizeY / server.ChunkSize * server.Map.MapSizeZ / server.ChunkSize];
         c.AssignGroup(server.DefaultGroupRegistered);
         server.PlayerEntitySetDirty(id);
         return id;
@@ -672,7 +672,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry) 
 
     public void LogServerEvent(string serverEvent) => server.ServerEventLog(serverEvent);
 
-    public void SetWorldDatabaseReadOnly(bool readOnly) => server.ChunkDb.ReadOnly = readOnly;
+    public void SetWorldDatabaseReadOnly(bool readOnly) => server.Map.d_ChunkDb.ReadOnly = readOnly;
 
     public string CurrentWorld => server.GetSaveFilename();
 

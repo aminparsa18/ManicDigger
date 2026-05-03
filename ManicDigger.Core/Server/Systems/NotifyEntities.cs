@@ -134,8 +134,8 @@ public class ServerSystemNotifyEntities : ServerSystem
             else
             {
                 // Skip players beyond the configured draw distance
-                Vector3i otherPos = Server.PlayerBlockPosition(server.Clients[k.Key]);
-                Vector3i selfPos = Server.PlayerBlockPosition(server.Clients[clientId]);
+                Vector3i otherPos = server.PlayerBlockPosition(server.Clients[k.Key]);
+                Vector3i selfPos = server.PlayerBlockPosition(server.Clients[clientId]);
                 int drawDistanceSq = server.Config.PlayerDrawDistance * server.Config.PlayerDrawDistance;
                 if (VectorUtils.DistanceSquared(otherPos, selfPos) > drawDistanceSq)
                 {
@@ -268,19 +268,19 @@ public class ServerSystemNotifyEntities : ServerSystem
             {
                 for (int dz = -1; dz <= 1; dz++)
                 {
-                    int chunkX = (playerX / Server.ChunkSize) + dx;
-                    int chunkY = (playerY / Server.ChunkSize) + dy;
-                    int chunkZ = (playerZ / Server.ChunkSize) + dz;
+                    int chunkX = (playerX / server.ChunkSize) + dx;
+                    int chunkY = (playerY / server.ChunkSize) + dy;
+                    int chunkZ = (playerZ / server.ChunkSize) + dz;
 
-                    if (!VectorUtils.IsValidChunkPos(server.Map, chunkX, chunkY, chunkZ, Server.ChunkSize))
+                    if (!VectorUtils.IsValidChunkPos(server.Map, chunkX, chunkY, chunkZ, server.ChunkSize))
                     {
                         continue;
                     }
 
                     ServerChunk chunk = server.Map.GetChunk(
-                        chunkX * Server.ChunkSize,
-                        chunkY * Server.ChunkSize,
-                        chunkZ * Server.ChunkSize);
+                        chunkX * server.ChunkSize,
+                        chunkY * server.ChunkSize,
+                        chunkZ * server.ChunkSize);
 
                     if (chunk?.Entities == null)
                     {
@@ -367,9 +367,9 @@ public class ServerSystemNotifyEntities : ServerSystem
     /// <summary>Retrieves the <see cref="ServerEntity"/> for a given <see cref="ServerEntityId"/>.</summary>
     private static ServerEntity GetEntity(Server server, ServerEntityId id)
         => server.Map.GetChunk(
-            id.ChunkX * Server.ChunkSize,
-            id.ChunkY * Server.ChunkSize,
-            id.ChunkZ * Server.ChunkSize)
+            id.ChunkX * server.ChunkSize,
+            id.ChunkY * server.ChunkSize,
+            id.ChunkZ * server.ChunkSize)
         .Entities[id.Id];
 
     /// <summary>

@@ -80,7 +80,7 @@ public class ScriptConsole
     public Vector3i GetPosition()
     {
         var client = m_server.GetClient(m_client);
-        return Server.PlayerBlockPosition(client);
+        return m_server.PlayerBlockPosition(client);
     }
 
     public void SetBlock(double x, double y, double z, double material)
@@ -96,7 +96,7 @@ public class ScriptConsole
     public void DeleteChunkRange(double x1, double y1, double z1, double x2, double y2, double z2)
     {
         List<Vector3i> chunkPositions = [];
-        int chunksize = Server.ChunkSize;
+        int chunksize = m_server.ChunkSize;
         for (int x = (int)x1; x < (int)x2; x += chunksize)
         {
             for (int y = (int)y1; y < (int)y2; y += chunksize)
@@ -124,7 +124,7 @@ public class ScriptConsole
     public Dictionary<Vector3i, ushort[]> GetChunksFromDatabase(double x1, double y1, double z1, double x2, double y2, double z2, string file)
     {
         List<Vector3i> chunkPositions = [];
-        int chunksize = Server.ChunkSize;
+        int chunksize = m_server.ChunkSize;
         for (int x = (int)x1; x < (int)x2; x += chunksize)
         {
             for (int y = (int)y1; y < (int)y2; y += chunksize)
@@ -144,7 +144,7 @@ public class ScriptConsole
     public void CopyChunksToDatabase(double x1, double y1, double z1, double x2, double y2, double z2, string file)
     {
         List<Vector3i> chunkPositions = [];
-        int chunksize = Server.ChunkSize;
+        int chunksize = m_server.ChunkSize;
         for (int x = (int)x1; x < (int)x2; x += chunksize)
         {
             for (int y = (int)y1; y < (int)y2; y += chunksize)

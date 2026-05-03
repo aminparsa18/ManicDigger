@@ -48,7 +48,9 @@ public class Program
         services.AddSingleton<ITaskScheduler, TaskScheduler>();
         services.AddSingleton<IAssetManager, AssetManager>();
         services.AddSingleton<ILanguageService, LanguageService>();
+        services.AddSingleton<IServerModManager, ServerModManager>();
         services.AddSingleton<IBlockRegistry, BlockRegistry>();
+        services.AddSingleton<IServer, Server>();
 
         // ScreenManager satisfies both contracts from the same singleton instance.
         services.AddSingleton<ScreenManager>();

@@ -66,8 +66,8 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     /// </summary>
     private static bool ShouldUnload(Server server, Vector3i chunkPos)
     {
-        var globalPos = ChunkToGlobalPos(chunkPos);
-        int unloadDist = (int)(server.ChunkDrawDistance * Server.ChunkSize * UnloadDistanceMultiplier);
+        var globalPos = ChunkToGlobalPos(server, chunkPos);
+        int unloadDist = (int)(server.ChunkDrawDistance * server.ChunkSize * UnloadDistanceMultiplier);
         int unloadDistSq = unloadDist * unloadDist;
 
         foreach (var (_, client) in server.Clients)
@@ -77,7 +77,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
                 continue;
             }
 
-            if (VectorUtils.DistanceSquared(Server.PlayerBlockPosition(client), globalPos) <= unloadDistSq)
+            if (VectorUtils.DistanceSquared(server.PlayerBlockPosition(client), globalPos) <= unloadDistSq)
             {
                 return false;
             }
@@ -115,8 +115,8 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     // -------------------------------------------------------------------------
 
     /// <summary>Converts chunk-space coordinates to block-space (global) coordinates.</summary>
-    private static Vector3i ChunkToGlobalPos(Vector3i chunkPos)
-        => new(chunkPos.X * Server.ChunkSize,
-            chunkPos.Y * Server.ChunkSize,
-            chunkPos.Z * Server.ChunkSize);
+    private static Vector3i ChunkToGlobalPos(Server server, Vector3i chunkPos)
+        => new(chunkPos.X * server.ChunkSize,
+            chunkPos.Y * server.ChunkSize,
+            chunkPos.Z * server.ChunkSize);
 }

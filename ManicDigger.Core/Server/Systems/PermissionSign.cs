@@ -18,8 +18,11 @@ public class ServerSystemPermissionSign : ServerSystem
     private const string OkWidgetId = "UsePermissionSign_OK";
     private const string DialogKey = "UseSign";
 
-    public ServerSystemPermissionSign(IModEvents modEvents) : base(modEvents)
+    private readonly IServerModManager _serverModManager;
+
+    public ServerSystemPermissionSign(IModEvents modEvents, IServerModManager serverModManager) : base(modEvents)
     {
+        _serverModManager = serverModManager;
     }
 
     // -------------------------------------------------------------------------
@@ -48,7 +51,7 @@ public class ServerSystemPermissionSign : ServerSystem
     /// </summary>
     private void OnUseWithTool(BlockUseWithToolArgs args)
     {
-        if (server.ModManager.GetBlockName(args.Tool) != "PermissionSign")
+        if (_serverModManager.GetBlockName(args.Tool) != "PermissionSign")
             return;
 
         if (server.Map.GetChunk(args.X, args.Y, args.Z) == null)
@@ -76,8 +79,8 @@ public class ServerSystemPermissionSign : ServerSystem
         };
 
         e.Position.Heading = EntityHeading.GetHeading(
-            server.ModManager.GetPlayerPositionX(args.Player),
-            server.ModManager.GetPlayerPositionY(args.Player),
+            _serverModManager.GetPlayerPositionX(args.Player),
+            _serverModManager.GetPlayerPositionY(args.Player),
             e.Position.X, e.Position.Z);
 
         server.AddEntity(args.X, args.Y, args.Z, e);
@@ -308,11 +311,11 @@ public class ServerSystemPermissionSign : ServerSystem
             {
                 for (int dz = -1; dz <= 1; dz++)
                 {
-                    int cx = (blockX / Server.ChunkSize) + dx;
-                    int cy = (blockY / Server.ChunkSize) + dy;
-                    int cz = (blockZ / Server.ChunkSize) + dz;
+                    int cx = (blockX / server.ChunkSize) + dx;
+                    int cy = (blockY / server.ChunkSize) + dy;
+                    int cz = (blockZ / server.ChunkSize) + dz;
 
-                    if (!VectorUtils.IsValidChunkPos(server.Map, cx, cy, cz, Server.ChunkSize))
+                    if (!VectorUtils.IsValidChunkPos(server.Map, cx, cy, cz, server.ChunkSize))
                     {
                         continue;
                     }

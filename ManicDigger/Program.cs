@@ -133,10 +133,10 @@ public class Program
         services.AddScoped<IModBase, ModGuiChat>();
         services.AddScoped<IModBase, ModScreenshot>();
 
-        services.AddScoped<IMod, AdvanceWorldGenerator>();
-        services.AddScoped<IMod, BuildLog>();
         services.AddScoped<IMod, Core>();
         services.AddScoped<IMod, CoreBlocks>();
+        services.AddScoped<IMod, AdvanceWorldGenerator>();
+        services.AddScoped<IMod, BuildLog>();
         services.AddScoped<IMod, CoreCrafting>();
         services.AddScoped<IMod, CoreEvents>();
         services.AddScoped<IMod, Doors>();

@@ -93,6 +93,8 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
 
         server.MainSockets[0] = netServer;
 
+       // serviceProvider.GetRequiredService<ModBootstrapper>();
+
         while (true)
         {
             server.Process();

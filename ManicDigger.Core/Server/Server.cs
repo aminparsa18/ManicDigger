@@ -13,7 +13,6 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     private readonly IGameExit _gameExit;
     private readonly IBlockRegistry _blockRegistry;
     private readonly IAssetManager _assetManager;
-    private readonly IServerModManager _modManager;
     private readonly IModEvents _modEvents;
     private readonly ICompression _networkCompression;
     private readonly IChunkDbCompressed _chunkDb;
@@ -24,7 +23,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     public List<ServerSystem> Systems { get; set; }
 
     public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb, ILanguageService languageService,
-    IAssetManager assetManager, IModEvents modEvents, IServerModManager modManager, ICompression compression, IServerMapStorage serverMapStorage, 
+    IAssetManager assetManager, IModEvents modEvents,ICompression compression, IServerMapStorage serverMapStorage, 
     IServerConfig config)
     {
         gameplatform = gameService;
@@ -33,7 +32,6 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         _assetManager = assetManager;
         _config = config;
         _networkCompression = compression;
-        _modManager = modManager;
         _modEvents = modEvents;
         _chunkDb = chunkDb;
         _serverMapStorage = serverMapStorage;

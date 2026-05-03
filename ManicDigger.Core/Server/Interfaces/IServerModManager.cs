@@ -585,8 +585,6 @@ public interface IServerModManager
     bool IsShuttingDown { get; }
 
     List<string> required { get; set; }
-
-    void Start(Server server);
 }
 
 public class ModInfo

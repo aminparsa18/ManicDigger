@@ -3,10 +3,6 @@ using PointG = System.Drawing.Point;
 
 public partial class Server
 {
-    internal int mapsizexchunks() => _serverMapStorage.MapSizeX / GameConstants.ServerChunkSize;
-    internal int mapsizeychunks() => _serverMapStorage.MapSizeY / GameConstants.ServerChunkSize;
-    internal int mapsizezchunks() => _serverMapStorage.MapSizeZ / GameConstants.ServerChunkSize;
-
     // generates a new spawn near initial spawn if initial spawn is in water
     public Vector3i DontSpawnPlayerInWater(Vector3i initialSpawn)
     {

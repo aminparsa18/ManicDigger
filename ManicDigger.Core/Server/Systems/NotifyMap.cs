@@ -67,7 +67,7 @@ public class ServerSystemNotifyMap : ServerSystem
     /// The chunk-space coordinates of the nearest unseen chunk,
     /// or <c>null</c> if all chunks in range have already been sent.
     /// </returns>
-    private static Vector3i? FindNearestDirtyChunk(Server server, int clientId, Vector3i playerPos)
+    private  Vector3i? FindNearestDirtyChunk(Server server, int clientId, Vector3i playerPos)
     {
         int px = playerPos.X / GameConstants.ServerChunkSize;
         int py = playerPos.Y / GameConstants.ServerChunkSize;
@@ -78,9 +78,14 @@ public class ServerSystemNotifyMap : ServerSystem
         int startX = Math.Max(0, px - halfXY);
         int startY = Math.Max(0, py - halfXY);
         int startZ = Math.Max(0, pz - halfZ);
-        int endX = Math.Min(server.mapsizexchunks() - 1, px + halfXY);
-        int endY = Math.Min(server.mapsizeychunks() - 1, py + halfXY);
-        int endZ = Math.Min(server.mapsizezchunks() - 1, pz + halfZ);
+
+        int mapSizeX = _serverMapStorage.MapSizeX / GameConstants.ServerChunkSize;
+        int mapSizeY = _serverMapStorage.MapSizeY / GameConstants.ServerChunkSize;
+        int mapSizeZ = _serverMapStorage.MapSizeZ / GameConstants.ServerChunkSize;
+
+        int endX = Math.Min(mapSizeX - 1, px + halfXY);
+        int endY = Math.Min(mapSizeY - 1, py + halfXY);
+        int endZ = Math.Min(mapSizeZ - 1, pz + halfZ);
 
         int nearestDist = int.MaxValue;
         Vector3i? nearest = null;

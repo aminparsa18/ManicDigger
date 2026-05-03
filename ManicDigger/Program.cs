@@ -136,6 +136,22 @@ public class Program
         services.AddScoped<IScreenGame, ScreenGame>();
         services.AddScoped<ISingleplayerScreen, SingleplayerScreen>();
         services.AddScoped<IScreenMultiplayer, MultiplayerScreen>();
+
+        services.AddSingleton<ServerSystemLoadFirst>();
+        services.AddSingleton<ServerSystemLoadConfig>();
+        services.AddSingleton<ServerSystemHeartbeat>();
+        services.AddSingleton<ServerSystemHttpServer>();
+        services.AddSingleton<ServerSystemUnloadUnusedChunks>();
+        services.AddSingleton<ServerSystemNotifyMap>();
+        services.AddSingleton<ServerSystemNotifyPing>();
+        services.AddSingleton<ServerSystemChunksSimulation>();
+        services.AddSingleton<ServerSystemBanList>();
+        services.AddSingleton<ServerSystemModLoader>();
+        services.AddSingleton<ServerSystemLoadServerClient>();
+        services.AddSingleton<ServerSystemNotifyEntities>();
+        services.AddSingleton<ServerSystemLoadLast>();
+
+        services.AddSingleton<ServerSystemRegistry>();
     }
 
     // ── Startup ───────────────────────────────────────────────────────────────

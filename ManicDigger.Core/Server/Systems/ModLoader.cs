@@ -21,7 +21,7 @@ namespace ManicDigger;
 /// mods in topological order.
 /// </para>
 /// </summary>
-public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegistry, IModEvents modEvents, IServerModManager modManager, ILanguageService languageService) : ServerSystem(modEvents)
+public class ServerSystemModLoader(IModEvents modEvents, IServerModManager modManager, ILanguageService languageService) : ServerSystem(modEvents)
 {
     /// <summary>All successfully compiled and instantiated mods, keyed by type name.</summary>
     private readonly Dictionary<string, IMod> mods = [];
@@ -35,8 +35,6 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
     /// <summary>Tracks which mods have been started to prevent double-starting during dependency resolution.</summary>
     private readonly Dictionary<string, bool> loadedMods = [];
 
-    private readonly IGameExit gameExit = gameExit;
-    private readonly IBlockRegistry _blockRegistry = blockRegistry;
     private readonly IModEvents _modEvents = modEvents;
     private readonly IServerModManager _modManager = modManager;
     private readonly ILanguageService _languageService = languageService;
@@ -86,11 +84,6 @@ public class ServerSystemModLoader(IGameExit gameExit, IBlockRegistry blockRegis
             _languageService.Get("Server_CommandRestartModsSuccess"),
             server.colorImportant, caller.ColoredPlayername(server.colorImportant)));
         server.ServerEventLog($"{caller.PlayerName} restarts mods.");
-
-        for (int i = 0; i < server.Systems.Count; i++)
-        {
-            server.Systems[i]?.OnRestart(server);
-        }
 
         LoadMods(server, restart: true);
         return true;

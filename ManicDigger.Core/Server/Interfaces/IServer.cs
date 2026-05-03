@@ -37,7 +37,6 @@ public interface IServer
     int ServerConsoleId { get; }
     float SIMULATION_STEP_LENGTH { get; set; }
     int SimulationCurrentFrame { get; set; }
-    List<ServerSystem> Systems { get; set; }
     Dictionary<Timer, Timer.Tick> Timers { get; set; }
     long TotalReceivedBytes { get; set; }
     long TotalSentBytes { get; set; }

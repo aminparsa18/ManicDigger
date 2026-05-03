@@ -37,9 +37,10 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
     {
-        int totalChunks = server.mapsizexchunks() * server.mapsizeychunks() * server.mapsizezchunks();
-        int chunksX = server.mapsizexchunks();
-        int chunksY = server.mapsizeychunks();
+        int chunksX = _serverMapStorage.MapSizeX / GameConstants.ServerChunkSize;
+        int chunksY = _serverMapStorage.MapSizeY / GameConstants.ServerChunkSize;
+        int chunksZ = _serverMapStorage.MapSizeZ / GameConstants.ServerChunkSize;
+        int totalChunks = chunksX * chunksY * chunksZ;
 
         for (int i = 0; i < InspectionsPerTick; i++)
         {

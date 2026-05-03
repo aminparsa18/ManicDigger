@@ -21,10 +21,11 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     private readonly ILanguageService _languageService;
     private readonly IServerConfig _config;
 
-    public List<ServerSystem> Systems { get; set; }
+    private readonly List<ServerSystem> _systems = [];
 
     public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb, ILanguageService languageService,
-        IAssetManager assetManager, IModEvents modEvents, IServerModManager modManager, ICompression compression, IServerMapStorage serverMapStorage, IServerConfig config)
+    IAssetManager assetManager, IModEvents modEvents, IServerModManager modManager, ICompression compression, IServerMapStorage serverMapStorage, 
+    IServerConfig config, ServerSystemRegistry serverSystemRegistry)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
@@ -38,27 +39,8 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         _serverMapStorage = serverMapStorage;
         _languageService = languageService;
 
-        Systems =
-        [
-            // This ServerSystem should always be loaded first
-            new ServerSystemLoadFirst(_modEvents),
-            // Regular ServerSystems
-            new ServerSystemLoadConfig(_modEvents, _languageService, _config),
-            new ServerSystemHeartbeat(_modEvents, _languageService, _config),
-            new ServerSystemHttpServer(_modEvents, _languageService, _config),
-            new ServerSystemUnloadUnusedChunks(_modEvents, _serverMapStorage),
-            new ServerSystemNotifyMap(_modEvents, _networkCompression, _serverMapStorage),
-            new ServerSystemNotifyPing(gameplatform, gameExit, _modEvents),
-            new ServerSystemChunksSimulation(_blockRegistry, _serverMapStorage, _modEvents, _config),
-            new ServerSystemBanList(_modEvents, _languageService),
-            new ServerSystemModLoader(gameExit, blockRegistry, _modEvents, _modManager, _languageService),
-            new ServerSystemLoadServerClient(_modEvents, serverMapStorage, _languageService),
-            new ServerSystemNotifyEntities(_modEvents, _serverMapStorage, _config),
-            // This ServerSystem should always be loaded last
-            new ServerSystemLoadLast(_modEvents),
-        ];
+        _systems = serverSystemRegistry.Systems;
 
-        //Load translations
         _languageService.LoadTranslations();
 
         MainSockets = new NetServer[3];
@@ -82,9 +64,9 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         float dt = (float)((double)(now - lastTimestamp) / Stopwatch.Frequency);
         lastTimestamp = now;
 
-        for (int i = 0; i < Systems.Count; i++)
+        for (int i = 0; i < _systems.Count; i++)
         {
-            Systems[i].Update(this, dt);
+            _systems[i].Update(this, dt);
         }
 
         //Save data
@@ -1561,16 +1543,15 @@ public partial class Server : IServer, ICurrentTime, IDropItem
 
     public bool CheckBuildPrivileges(int player, int x, int y, int z, PacketBlockSetMode mode)
     {
-        Server server = this;
-        if (!server.PlayerHasPrivilege(player, ServerClientMisc.Privilege.build))
+        if (!PlayerHasPrivilege(player, ServerClientMisc.Privilege.build))
         {
-            server.SendMessage(player, server.colorError + _languageService.ServerNoBuildPrivilege());
+            SendMessage(player, colorError + _languageService.ServerNoBuildPrivilege());
             return false;
         }
 
-        if (server.Clients[player].IsSpectator && !server._config.AllowSpectatorBuild)
+        if (Clients[player].IsSpectator && !_config.AllowSpectatorBuild)
         {
-            server.SendMessage(player, server.colorError + _languageService.ServerNoSpectatorBuild());
+            SendMessage(player, colorError + _languageService.ServerNoSpectatorBuild());
             return false;
         }
 
@@ -1579,10 +1560,10 @@ public partial class Server : IServer, ICurrentTime, IDropItem
             return true;
         }
 
-        if (!server._config.CanUserBuild(server.Clients[player], x, y, z)
-            && !server.ExtraPrivileges.ContainsKey(ServerClientMisc.Privilege.build))
+        if (!_config.CanUserBuild(Clients[player], x, y, z)
+            && !ExtraPrivileges.ContainsKey(ServerClientMisc.Privilege.build))
         {
-            server.SendMessage(player, server.colorError + _languageService.ServerNoBuildPermissionHere());
+            SendMessage(player, colorError + _languageService.ServerNoBuildPermissionHere());
             return false;
         }
 
@@ -1601,14 +1582,13 @@ public partial class Server : IServer, ICurrentTime, IDropItem
 
     private bool CheckUsePrivileges(int player, int x, int y, int z)
     {
-        Server server = this;
-        if (!server.PlayerHasPrivilege(player, ServerClientMisc.Privilege.use))
+        if (!PlayerHasPrivilege(player, ServerClientMisc.Privilege.use))
         {
             SendMessage(player, colorError + _languageService.ServerNoUsePrivilege());
             return false;
         }
 
-        if (server.Clients[player].IsSpectator && !server._config.AllowSpectatorUse)
+        if (Clients[player].IsSpectator && !_config.AllowSpectatorUse)
         {
             SendMessage(player, colorError + _languageService.ServerNoSpectatorUse());
             return false;

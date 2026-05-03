@@ -19,7 +19,7 @@ public interface IScreenGame : IScreenBase
 public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager, IServerModManager modManager, IChunkDbCompressed chunkDb,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, ICompression compression, IServerMapStorage serverMapStorage,
     IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry, IModEvents modEvents, ILanguageService languageService,
-    IServerConfig serverConfig) : ScreenBase(platform, openGlService, assetManager), IScreenGame
+    IServerConfig serverConfig, ServerSystemRegistry serverSystemRegistry) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;
@@ -94,11 +94,12 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         DummyNetServer netServer = new(_dummyNetwork);
 
         Server server = new(gameExit, GameService, _blockRegistry, _chunkDb, _languageService, AssetManager,
-            _modEvents, _modManager, _compression, _serverMapStorage, _serverConfig)
+            _modEvents, _modManager, _compression, _serverMapStorage, _serverConfig, serverSystemRegistry)
         {
             SaveFilenameOverride = singleplayerSavePath,
             MainSockets = new NetServer[3]
         };
+
         server.MainSockets[0] = netServer;
 
         while (true)

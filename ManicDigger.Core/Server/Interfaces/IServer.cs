@@ -30,7 +30,6 @@ public interface IServer
     ServerMapStorage Map { get; set; }
     Dictionary<string, byte[]> ModData { get; set; }
     List<string> ModPaths { get; set; }
-    ICompression NetworkCompression { get; set; }
     List<Action> OnLoad { get; set; }
     List<Action> OnSave { get; set; }
     int Port { get; set; }

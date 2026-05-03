@@ -50,7 +50,7 @@ public class Program
         services.AddSingleton<ILanguageService, LanguageService>();
         services.AddSingleton<IServerModManager, ServerModManager>();
         services.AddSingleton<IBlockRegistry, BlockRegistry>();
-        services.AddSingleton<IServer, Server>();
+        services.AddSingleton<ICompression, CompressionGzip>();
 
         // ScreenManager satisfies both contracts from the same singleton instance.
         services.AddSingleton<ScreenManager>();

@@ -17,7 +17,7 @@ public interface IScreenGame : IScreenBase
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
 public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager, IServerModManager modManager,
-    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu,
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, ICompression compression,
     IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry, IModEvents modEvents) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
     /// <summary>The game instance owned by this screen.</summary>
@@ -31,6 +31,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
     private readonly IModEvents _modEvents = modEvents;
     private readonly IServerModManager _modManager = modManager;
+    private readonly ICompression _compression = compression;
 
     /// <summary>
     /// Initialises the game with the given connection parameters and starts the
@@ -87,7 +88,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         Log.Debug("Single-player server thread started");
         DummyNetServer netServer = new(_dummyNetwork);
 
-        Server server = new(gameExit, GameService, _blockRegistry, AssetManager, _modEvents, _modManager)
+        Server server = new(gameExit, GameService, _blockRegistry, AssetManager, _modEvents, _modManager, _compression)
         {
             SaveFilenameOverride = singleplayerSavePath,
             MainSockets = new NetServer[3]

@@ -11,20 +11,22 @@ public partial class Server : IServer, ICurrentTime, IDropItem
 {
     private readonly IGameService gameplatform;
     private readonly IGameExit _gameExit;
-    private IBlockRegistry _blockRegistry;
+    private readonly IBlockRegistry _blockRegistry;
     private readonly IAssetManager _assetManager;
     private readonly IServerModManager _modManager;
     private readonly IModEvents _modEvents;
+    private readonly ICompression _networkCompression;
 
     public List<ServerSystem> Systems { get; set; }
 
     public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry,
-        IAssetManager assetManager, IModEvents modEvents, IServerModManager modManager)
+        IAssetManager assetManager, IModEvents modEvents, IServerModManager modManager, ICompression compression)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
         _blockRegistry = blockRegistry;
         _assetManager = assetManager;
+        _networkCompression = compression;
         _modManager = modManager;
         _modEvents = modEvents;
 
@@ -37,7 +39,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
             new ServerSystemHeartbeat(_modEvents),
             new ServerSystemHttpServer(_modEvents),
             new ServerSystemUnloadUnusedChunks(_modEvents),
-            new ServerSystemNotifyMap(_modEvents),
+            new ServerSystemNotifyMap(_modEvents, _networkCompression),
             new ServerSystemNotifyPing(gameplatform, gameExit, _modEvents),
             new ServerSystemChunksSimulation(_blockRegistry, _modEvents),
             new ServerSystemBanList(_modEvents),
@@ -56,7 +58,6 @@ public partial class Server : IServer, ICurrentTime, IDropItem
 
     public ServerMapStorage Map { get; set; }
     public CraftingTableTool CraftingTableTool { get; set; }
-    public ICompression NetworkCompression { get; set; }
     public NetServer[] MainSockets { get; set; }
 
     private bool _localConnectionsOnly;
@@ -241,18 +242,13 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         map.Reset(Config.MapSizeX, Config.MapSizeY, Config.MapSizeZ);
         Map = map;
 
-        //Load assets (textures, sounds, etc.)
-        string[] datapathspublic = [Path.Combine(PathHelper.DataRoot, "public"), Path.Combine("data", "public")];
-
         _assetManager.LoadAssets();
 
         //Initialize game components
-        
         CraftingTableTool = new CraftingTableTool() { d_Map = map, d_Data = _blockRegistry };
         _localConnectionsOnly = true;
         ChunkDbCompressed chunkdb = new() { InnerChunkDb = new ChunkDbRegion(), Compression = new CompressionGzip() };
         map.d_ChunkDb = chunkdb;
-        NetworkCompression = new CompressionGzip();
         _dataItems = new GameDataItemsBlocks() { d_Data = _blockRegistry };
         if (MainSockets == null)
         {
@@ -579,15 +575,8 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     private const string SaveFilenameWithoutExtension = "default";
     public string SaveFilenameOverride { get; set; }
 
-    public string GetSaveFilename()
-    {
-        if (SaveFilenameOverride != null)
-        {
-            return SaveFilenameOverride;
-        }
-
-        return Path.Combine(GameStorePath.gamepathsaves, SaveFilenameWithoutExtension + FileConstatns.DbFileExtension);
-    }
+    public string GetSaveFilename() 
+        => SaveFilenameOverride ?? Path.Combine(GameStorePath.gamepathsaves, SaveFilenameWithoutExtension + FileConstatns.DbFileExtension);
 
     private void SaveGlobalData() => Map.d_ChunkDb.SetGlobalData(SaveGame());
 
@@ -2427,7 +2416,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
 
     public int ChunkDrawDistance { get { return DrawDistance / ChunkSize; } }
 
-    public byte[] CompressChunkNetwork(ushort[] chunk) => NetworkCompression.Compress(MemoryMarshal.AsBytes(chunk.AsSpan()));
+    public byte[] CompressChunkNetwork(ushort[] chunk) => _networkCompression.Compress(MemoryMarshal.AsBytes(chunk.AsSpan()));
 
     private string[] GetRequiredBlobMd5()
         => [.. _assetManager.Assets.Select(a => a.md5)];

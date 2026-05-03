@@ -11,8 +11,11 @@ using System.Runtime.InteropServices;
 /// </summary>
 public class ServerSystemNotifyMap : ServerSystem
 {
-    public ServerSystemNotifyMap(IModEvents modEvents) : base(modEvents)
+    private readonly ICompression _compression;
+
+    public ServerSystemNotifyMap(IModEvents modEvents, ICompression compression) : base(modEvents)
     {
+        _compression = compression;
     }
 
     // -------------------------------------------------------------------------
@@ -117,7 +120,7 @@ public class ServerSystemNotifyMap : ServerSystem
     /// Loads the chunk at chunk-space position <paramref name="chunkPos"/> and
     /// sends it to <paramref name="clientId"/> if it has not already been sent.
     /// </summary>
-    private static void LoadAndSendChunk(Server server, int clientId, Vector3i chunkPos, Stopwatch stopwatch)
+    private void LoadAndSendChunk(Server server, int clientId, Vector3i chunkPos, Stopwatch stopwatch)
     {
         server.LoadChunk(chunkPos.X, chunkPos.Y, chunkPos.Z);
 
@@ -144,7 +147,7 @@ public class ServerSystemNotifyMap : ServerSystem
     /// <param name="clientId">The client to send the chunk to.</param>
     /// <param name="globalPos">Block-space origin of the chunk.</param>
     /// <param name="chunkPos">Chunk-space coordinates of the chunk.</param>
-    public static void SendChunk(Server server, int clientId, Vector3i globalPos, Vector3i chunkPos)
+    private void SendChunk(Server server, int clientId, Vector3i globalPos, Vector3i chunkPos)
     {
         ClientOnServer client = server.Clients[clientId];
         ServerChunk chunk = server.Map.GetChunk(globalPos.X, globalPos.Y, globalPos.Z);
@@ -171,7 +174,7 @@ public class ServerSystemNotifyMap : ServerSystem
                 Y = globalPos.Y,
                 SizeX = server.ChunkSize,
                 SizeY = server.ChunkSize,
-                CompressedHeightmap = server.NetworkCompression.Compress(heightmapBytes)
+                CompressedHeightmap = _compression.Compress(heightmapBytes)
             };
             server.SendPacket(clientId, server.Serialize(new Packet_Server
             {

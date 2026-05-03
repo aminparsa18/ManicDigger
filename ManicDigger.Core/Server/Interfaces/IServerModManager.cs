@@ -491,9 +491,6 @@ public interface IServerModManager
     /// <param name="serverEvent">log message</param>
     void LogServerEvent(string serverEvent);
     void SetWorldDatabaseReadOnly(bool readOnly);
-    string CurrentWorld { get; }
-
-    void LoadWorld(string filename);
     string[] ModPaths { get; }
 
     /// <summary>

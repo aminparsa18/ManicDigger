@@ -532,7 +532,7 @@ public partial class Server
                     break;
                 }
 
-                if (!BackupDatabase(argument))
+                if (!_saveGameService.BackupDatabase(argument))
                 {
                     SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandBackupFailed"), colorError));
                 }

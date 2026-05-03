@@ -19,12 +19,13 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     private readonly IServerMapStorage _serverMapStorage;
     private readonly ILanguageService _languageService;
     private readonly IServerConfig _config;
+    private readonly ISaveGameService _saveGameService;
 
     public List<ServerSystem> Systems { get; set; }
 
     public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb, ILanguageService languageService,
     IAssetManager assetManager, IModEvents modEvents,ICompression compression, IServerMapStorage serverMapStorage, 
-    IServerConfig config)
+    IServerConfig config, ISaveGameService saveGameService)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
@@ -36,6 +37,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         _chunkDb = chunkDb;
         _serverMapStorage = serverMapStorage;
         _languageService = languageService;
+        _saveGameService = saveGameService;
 
         _languageService.LoadTranslations();
 
@@ -84,7 +86,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         if ((DateTime.UtcNow - lastSave).TotalMinutes > 2)
         {
             DateTime start = DateTime.UtcNow;
-            SaveGlobalData();
+            _saveGameService.SaveGlobalData();
             DiagLog.Write(_languageService.ServerGameSaved(), DateTime.UtcNow - start);
             lastSave = DateTime.UtcNow;
         }
@@ -236,13 +238,13 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         }
 
         DiagLog.Write(_languageService.ServerLoadingSavegame());
-        if (!File.Exists(GetSaveFilename()))
+        if (!File.Exists(_saveGameService.GetSaveFilename()))
         {
             DiagLog.Write(_languageService.ServerCreatingSavegame());
         }
 
-        LoadGame(GetSaveFilename());
-        DiagLog.Write(_languageService.ServerLoadedSavegame() + GetSaveFilename());
+        _saveGameService.Load();
+        DiagLog.Write(_languageService.ServerLoadedSavegame() + _saveGameService.GetSaveFilename());
         if (_localConnectionsOnly)
         {
             _config.Port = _singlePlayerPort;
@@ -310,7 +312,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         //Maybe inform mods about shutdown?
         DiagLog.Write("[SERVER] Saving data...");
         DateTime start = DateTime.UtcNow;
-        SaveGlobalData();
+        _saveGameService.SaveGlobalData();
         DiagLog.Write(_languageService.ServerGameSaved(), DateTime.UtcNow - start);
         DiagLog.Write("[SERVER] Stopped the server!");
     }
@@ -392,52 +394,11 @@ public partial class Server : IServer, ICurrentTime, IDropItem
 
     private Dictionary<string, PacketServerPlayerStats> PlayerStats = new(StringComparer.InvariantCultureIgnoreCase);
 
-    public bool BackupDatabase(string backupFilename)
-    {
-        if (!GameStorePath.IsValidName(backupFilename))
-        {
-            DiagLog.Write($"{_languageService.ServerInvalidBackupName()}{backupFilename}");
-            return false;
-        }
+  
+   
 
-        if (!Directory.Exists(GameStorePath.gamepathbackup))
-        {
-            Directory.CreateDirectory(GameStorePath.gamepathbackup);
-        }
 
-        string finalFilename = Path.Combine(GameStorePath.gamepathbackup, $"{backupFilename}{FileConstatns.DbFileExtension}");
-        _chunkDb.Backup(finalFilename);
-        return true;
-    }
 
-    public bool LoadDatabase(string filename)
-    {
-        SaveAll();
-        if (filename != GetSaveFilename())
-        {
-            //todo load
-        }
-
-        _chunkDb.InnerChunkDb.ClearTemporaryChunks();
-        _serverMapStorage.Clear();
-        LoadGame(filename);
-        foreach (KeyValuePair<int, ClientOnServer> k in Clients)
-        {
-            //SendLevelInitialize(k.Key);
-            Array.Clear(k.Value.chunksseen, 0, k.Value.chunksseen.Length);
-            k.Value.chunksseenTime.Clear();
-        }
-
-        return true;
-    }
-
-    private const string SaveFilenameWithoutExtension = "default";
-    public string SaveFilenameOverride { get; set; }
-
-    public string GetSaveFilename()
-        => SaveFilenameOverride ?? Path.Combine(GameStorePath.gamepathsaves, SaveFilenameWithoutExtension + FileConstatns.DbFileExtension);
-
-    private void SaveGlobalData() => _chunkDb.SetGlobalData(SaveGame());
 
     public ServerBanlist BanList { get; set; }
     
@@ -565,32 +526,9 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         SendPacket(recipientClientId, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.PlayerPing, PlayerPing = p }));
     }
 
-    //on exit
-    private void SaveAll()
-    {
-        for (int x = 0; x < _serverMapStorage.MapSizeX / GameConstants.ServerChunkSize; x++)
-        {
-            for (int y = 0; y < _serverMapStorage.MapSizeY / GameConstants.ServerChunkSize; y++)
-            {
-                for (int z = 0; z < _serverMapStorage.MapSizeZ / GameConstants.ServerChunkSize; z++)
-                {
-                    if (_serverMapStorage.GetChunkValid(x, y, z) != null)
-                    {
-                        DoSaveChunk(x, y, z, _serverMapStorage.GetChunkValid(x, y, z));
-                    }
-                }
-            }
-        }
-
-        SaveGlobalData();
-    }
-
-    internal void DoSaveChunk(int x, int y, int z, ServerChunk c) => ChunkDbHelper.SetChunk(_chunkDb, x, y, z, MemoryPackSerializer.Serialize(c));
-
     private const int SEND_CHUNKS_PER_SECOND = 10;
     private const int SEND_MONSTER_UDAPTES_PER_SECOND = 3;
 
-    public void LoadChunk(int cx, int cy, int cz) => _serverMapStorage.LoadChunk(cx, cy, cz);
 
     public const string InvalidPlayerName = "invalid";
 
@@ -1652,7 +1590,7 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         if (client.Interpreter == null)
         {
             client.Interpreter = new JavaScriptInterpreter();
-            client.Console = new ScriptConsole(this, _blockRegistry, clientid);
+            client.Console = new ScriptConsole(this, _blockRegistry, _saveGameService, clientid);
             client.Console.InjectConsoleCommands(client.Interpreter);
             client.Interpreter.SetVariables(new Dictionary<string, object>() { { "client", client }, { "server", this }, });
             client.Interpreter.Execute("function inspect(obj) { for( property in obj) { out(property)}}");

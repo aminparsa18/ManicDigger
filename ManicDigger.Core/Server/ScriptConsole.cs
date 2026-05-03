@@ -3,10 +3,11 @@ using OpenTK.Mathematics;
 
 public class ScriptConsole
 {
-    public ScriptConsole(Server s, IBlockRegistry blockRegistry, int client_id)
+    public ScriptConsole(Server s, IBlockRegistry blockRegistry, ISaveGameService saveGameService, int client_id)
     {
         m_server = s;
         _blockRegistry = blockRegistry;
+        _saveGameService = saveGameService;
         m_client = client_id;
     }
 
@@ -36,6 +37,7 @@ public class ScriptConsole
     }
 
     private readonly IBlockRegistry _blockRegistry;
+    private readonly ISaveGameService _saveGameService;
     private readonly Server m_server;
     private readonly int m_client;
 
@@ -159,7 +161,7 @@ public class ScriptConsole
         m_server.SaveChunksToDatabase(chunkPositions, file);
     }
 
-    public void BackupDatabase(string backupFilename) => m_server.BackupDatabase(backupFilename);
+    public void BackupDatabase(string backupFilename) => _saveGameService.BackupDatabase(backupFilename);
 
     public int[] GetMapSize() => m_server.GetMapSize();
 

@@ -13,7 +13,6 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     private readonly IGameExit _gameExit;
     private readonly IBlockRegistry _blockRegistry;
     private readonly IAssetManager _assetManager;
-    private readonly IServerModManager _modManager;
     private readonly IModEvents _modEvents;
     private readonly ICompression _networkCompression;
     private readonly IChunkDbCompressed _chunkDb;
@@ -21,11 +20,11 @@ public partial class Server : IServer, ICurrentTime, IDropItem
     private readonly ILanguageService _languageService;
     private readonly IServerConfig _config;
 
-    private readonly List<ServerSystem> _systems = [];
+    public List<ServerSystem> Systems { get; set; }
 
     public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb, ILanguageService languageService,
-    IAssetManager assetManager, IModEvents modEvents, IServerModManager modManager, ICompression compression, IServerMapStorage serverMapStorage, 
-    IServerConfig config, ServerSystemRegistry serverSystemRegistry)
+    IAssetManager assetManager, IModEvents modEvents,ICompression compression, IServerMapStorage serverMapStorage, 
+    IServerConfig config)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
@@ -33,13 +32,10 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         _assetManager = assetManager;
         _config = config;
         _networkCompression = compression;
-        _modManager = modManager;
         _modEvents = modEvents;
         _chunkDb = chunkDb;
         _serverMapStorage = serverMapStorage;
         _languageService = languageService;
-
-        _systems = serverSystemRegistry.Systems;
 
         _languageService.LoadTranslations();
 
@@ -64,9 +60,9 @@ public partial class Server : IServer, ICurrentTime, IDropItem
         float dt = (float)((double)(now - lastTimestamp) / Stopwatch.Frequency);
         lastTimestamp = now;
 
-        for (int i = 0; i < _systems.Count; i++)
+        for (int i = 0; i < Systems.Count; i++)
         {
-            _systems[i].Update(this, dt);
+            Systems[i].Update(this, dt);
         }
 
         //Save data

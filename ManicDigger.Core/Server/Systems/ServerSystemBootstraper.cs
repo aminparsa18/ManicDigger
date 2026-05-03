@@ -1,10 +1,13 @@
 ﻿using ManicDigger;
 
-public class ServerSystemRegistry
+public class ServerSystemBootstraper
 {
     public List<ServerSystem> Systems { get; }
 
-    public ServerSystemRegistry(
+    public Server Server { get; }
+
+    public ServerSystemBootstraper(
+        Server server,
         ServerSystemLoadFirst loadFirst,
         ServerSystemLoadConfig loadConfig,
         ServerSystemHeartbeat heartbeat,
@@ -19,6 +22,8 @@ public class ServerSystemRegistry
         ServerSystemNotifyEntities notifyEntities,
         ServerSystemLoadLast loadLast)
     {
+        Server = server;
+
         Systems =
         [
             loadFirst,
@@ -35,5 +40,7 @@ public class ServerSystemRegistry
             notifyEntities,
             loadLast,
         ];
+
+        server.Systems = Systems;
     }
 }

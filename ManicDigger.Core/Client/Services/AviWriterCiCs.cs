@@ -12,7 +12,7 @@
 
     public void AddFrame(Bitmap bitmap)
     {
-        var bmp_ = bitmap;
+        Bitmap bmp_ = bitmap;
 
         using (Graphics g = Graphics.FromImage(openbmp))
         {

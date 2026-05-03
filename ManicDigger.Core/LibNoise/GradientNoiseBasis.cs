@@ -301,16 +301,16 @@ public sealed class GradientNoiseBasis
         Vector256<int> vhz = Vector256.Create(hz0, hz0, hz1, hz1, hz0, hz0, hz1, hz1);
         Vector256<int> vhs = Vector256.Create(hs);
 
-        var combined = Avx2.Add(Avx2.Add(Avx2.Add(vhx, vhy), vhz), vhs);
-        var hashed = Avx2.Xor(combined, Avx2.ShiftRightArithmetic(combined, 8));
-        var indices = Avx2.And(hashed, Vector256.Create(0xFF));
+        Vector256<int> combined = Avx2.Add(Avx2.Add(Avx2.Add(vhx, vhy), vhz), vhs);
+        Vector256<int> hashed = Avx2.Xor(combined, Avx2.ShiftRightArithmetic(combined, 8));
+        Vector256<int> indices = Avx2.And(hashed, Vector256.Create(0xFF));
 
         // ── Stage 2: gather gradient components ───────────────────────────────
         fixed (float* pgx = s_gx, pgy = s_gy, pgz = s_gz)
         {
-            var gx = Avx2.GatherVector256(pgx, indices, 4);
-            var gy = Avx2.GatherVector256(pgy, indices, 4);
-            var gz = Avx2.GatherVector256(pgz, indices, 4);
+            Vector256<float> gx = Avx2.GatherVector256(pgx, indices, 4);
+            Vector256<float> gy = Avx2.GatherVector256(pgy, indices, 4);
+            Vector256<float> gz = Avx2.GatherVector256(pgz, indices, 4);
 
             // ── Stage 3: fractional offsets + dot products ────────────────────
             float fx1 = fx - 1f, fy1 = fy - 1f, fz1 = fz - 1f;
@@ -318,7 +318,7 @@ public sealed class GradientNoiseBasis
             Vector256<float> vdy = Vector256.Create(fy, fy1, fy, fy1, fy, fy1, fy, fy1);
             Vector256<float> vdz = Vector256.Create(fz, fz, fz1, fz1, fz, fz, fz1, fz1);
 
-            var dots = Fma.MultiplyAdd(gx, vdx,
+            Vector256<float> dots = Fma.MultiplyAdd(gx, vdx,
                        Fma.MultiplyAdd(gy, vdy,
                        Avx.Multiply(gz, vdz)));
 

@@ -4,7 +4,7 @@ public partial class Server
 {
     public void ServerEventLog(string p)
     {
-        if (!Config.ServerEventLogging)
+        if (!_config.ServerEventLogging)
         {
             return;
         }
@@ -404,7 +404,7 @@ public partial class Server
                     return;
                 }
 
-                foreach (var k in Clients)
+                foreach (KeyValuePair<int, ClientOnServer> k in Clients)
                 {
                     if (k.Value.PlayerName.Equals(ss[0], StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -413,7 +413,7 @@ public partial class Server
                     }
                 }
 
-                foreach (var k in Clients)
+                foreach (KeyValuePair<int, ClientOnServer> k in Clients)
                 {
                     if (k.Value.PlayerName.StartsWith(ss[0], StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -1071,10 +1071,10 @@ public partial class Server
             return false;
         }
 
-        Config.WelcomeMessage = welcomeMessage;
+        _config.WelcomeMessage = welcomeMessage;
         SendMessageToAll(string.Format(_languageService.Get("Server_CommandWelcomeChanged"), colorSuccess, GetClient(sourceClientId).ColoredPlayername(colorSuccess), welcomeMessage));
         ServerEventLog(string.Format("{0} changes welcome message to {1}.", GetClient(sourceClientId).PlayerName, welcomeMessage));
-        ConfigNeedsSaving = true;
+        _config.ConfigNeedsSaving = true;
         return true;
     }
 
@@ -1090,15 +1090,15 @@ public partial class Server
         {
             // all logging state
             case "-s":
-                SendMessage(sourceClientId, $"Build: {Config.BuildLogging}");
-                SendMessage(sourceClientId, $"Server events: {Config.ServerEventLogging}");
-                SendMessage(sourceClientId, $"Chat: {Config.ChatLogging}");
+                SendMessage(sourceClientId, $"Build: {_config.BuildLogging}");
+                SendMessage(sourceClientId, $"Server events: {_config.ServerEventLogging}");
+                SendMessage(sourceClientId, $"Chat: {_config.ChatLogging}");
                 return true;
             case "-b":
                 if (option.Equals("on"))
                 {
-                    Config.BuildLogging = true;
-                    ConfigNeedsSaving = true;
+                    _config.BuildLogging = true;
+                    _config.ConfigNeedsSaving = true;
                     SendMessage(sourceClientId, string.Format("{0}Build logging enabled.", colorSuccess));
                     ServerEventLog(string.Format("{0} enables build logging.", GetClient(sourceClientId).PlayerName));
                     return true;
@@ -1106,20 +1106,20 @@ public partial class Server
 
                 if (option.Equals("off"))
                 {
-                    Config.BuildLogging = false;
-                    ConfigNeedsSaving = true;
+                    _config.BuildLogging = false;
+                    _config.ConfigNeedsSaving = true;
                     SendMessage(sourceClientId, string.Format("{0}Build logging disabled.", colorSuccess));
                     ServerEventLog(string.Format("{0} disables build logging.", GetClient(sourceClientId).PlayerName));
                     return true;
                 }
 
-                SendMessage(sourceClientId, string.Format("{0}Build logging: {1}", colorNormal, Config.BuildLogging));
+                SendMessage(sourceClientId, string.Format("{0}Build logging: {1}", colorNormal, _config.BuildLogging));
                 return true;
             case "-se":
                 if (option.Equals("on"))
                 {
-                    Config.ServerEventLogging = true;
-                    ConfigNeedsSaving = true;
+                    _config.ServerEventLogging = true;
+                    _config.ConfigNeedsSaving = true;
                     SendMessage(sourceClientId, string.Format("{0}Server event logging enabled.", colorSuccess));
                     ServerEventLog(string.Format("{0} enables server event logging.", GetClient(sourceClientId).PlayerName));
                     return true;
@@ -1128,19 +1128,19 @@ public partial class Server
                 if (option.Equals("off"))
                 {
                     ServerEventLog(string.Format("{0} disables server event logging.", GetClient(sourceClientId).PlayerName));
-                    Config.ServerEventLogging = false;
-                    ConfigNeedsSaving = true;
+                    _config.ServerEventLogging = false;
+                    _config.ConfigNeedsSaving = true;
                     SendMessage(sourceClientId, string.Format("{0}Server event logging disabled.", colorSuccess));
                     return true;
                 }
 
-                SendMessage(sourceClientId, string.Format("{0}Server event logging: {1}", colorNormal, Config.ServerEventLogging));
+                SendMessage(sourceClientId, string.Format("{0}Server event logging: {1}", colorNormal, _config.ServerEventLogging));
                 return true;
             case "-c":
                 if (option.Equals("on"))
                 {
-                    Config.ChatLogging = true;
-                    ConfigNeedsSaving = true;
+                    _config.ChatLogging = true;
+                    _config.ConfigNeedsSaving = true;
                     SendMessage(sourceClientId, string.Format("{0}Chat logging enabled.", colorSuccess));
                     ServerEventLog(string.Format("{0} enables chat logging.", GetClient(sourceClientId).PlayerName));
                     return true;
@@ -1148,14 +1148,14 @@ public partial class Server
 
                 if (option.Equals("off"))
                 {
-                    Config.ChatLogging = false;
-                    ConfigNeedsSaving = true;
+                    _config.ChatLogging = false;
+                    _config.ConfigNeedsSaving = true;
                     SendMessage(sourceClientId, string.Format("{0}Chat logging disabled.", colorSuccess));
                     ServerEventLog(string.Format("{0} disables chat logging.", GetClient(sourceClientId).PlayerName));
                     return true;
                 }
 
-                SendMessage(sourceClientId, string.Format("{0}Chat logging: {1}", colorNormal, Config.ChatLogging));
+                SendMessage(sourceClientId, string.Format("{0}Chat logging: {1}", colorNormal, _config.ChatLogging));
                 return true;
             default:
                 SendMessage(sourceClientId, string.Format("{0}Invalid type: {1}", colorError, type));
@@ -1229,7 +1229,7 @@ public partial class Server
                 }
 
                 SendMessage(sourceClientId, colorImportant + "List of Players:");
-                foreach (var k in Clients)
+                foreach (KeyValuePair<int, ClientOnServer> k in Clients)
                 {
                     // Format: Key Playername IP
                     SendMessage(sourceClientId, string.Format("[{0}] {1} {2}", k.Key, k.Value.ColoredPlayername(colorNormal), k.Value.Socket.RemoteEndPoint().AddressToString()));
@@ -1245,7 +1245,7 @@ public partial class Server
                 }
 
                 SendMessage(sourceClientId, colorImportant + "List of Players:");
-                foreach (var k in Clients)
+                foreach (KeyValuePair<int, ClientOnServer> k in Clients)
                 {
                     // Format: Key Playername:Group:Privileges IP
                     SendMessage(sourceClientId, string.Format("[{0}] {1}", k.Key, k.Value.ToString()));
@@ -1261,7 +1261,7 @@ public partial class Server
                 }
 
                 SendMessage(sourceClientId, $"{colorImportant}List of Areas:");
-                foreach (AreaConfig area in Config.Areas)
+                foreach (AreaConfig area in _config.Areas)
                 {
                     SendMessage(sourceClientId, area.ToString());
                 }
@@ -1362,7 +1362,7 @@ public partial class Server
             string targetName = targetClient.PlayerName;
             string sourcename = GetClient(sourceClientId).PlayerName;
             int maxStack = 9999; //TODO: Fetch this dynamically for each item - stacking
-            foreach (var (id, blockType) in _blockRegistry.BlockTypes)
+            foreach ((int id, BlockType? blockType) in _blockRegistry.BlockTypes)
             {
                 if (!blockType.IsBuildable)
                 {
@@ -1452,7 +1452,7 @@ public partial class Server
 
             Inventory inventory = GetPlayerInventory(targetName);
             InventoryUtil util = GetInventoryUtil(inventory);
-            foreach (var (id, blockType) in _blockRegistry.BlockTypes)
+            foreach ((int id, BlockType? blockType) in _blockRegistry.BlockTypes)
             {
                 if (!blockType.IsBuildable)
                 {
@@ -1566,11 +1566,11 @@ public partial class Server
             return false;
         }
 
-        Config.Monsters = option.Equals("off") ? false : true;
-        ConfigNeedsSaving = true;
-        if (!Config.Monsters)
+        _config.Monsters = option.Equals("off") ? false : true;
+        _config.ConfigNeedsSaving = true;
+        if (!_config.Monsters)
         {
-            foreach (var k in Clients)
+            foreach (KeyValuePair<int, ClientOnServer> k in Clients)
             {
                 SendPacket(k.Key, Serialize(new Packet_Server()
                 {
@@ -1592,7 +1592,7 @@ public partial class Server
             return false;
         }
 
-        if (Config.Areas.Find(v => v.Id == id) != null)
+        if (_config.Areas.Find(v => v.Id == id) != null)
         {
             SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaAddIdInUse"), colorError));
             return false;
@@ -1620,8 +1620,8 @@ public partial class Server
             newArea.Level = level;
         }
 
-        Config.Areas.Add(newArea);
-        ConfigNeedsSaving = true;
+        _config.Areas.Add(newArea);
+        _config.ConfigNeedsSaving = true;
         SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaAddSuccess"), colorSuccess, newArea.ToString()));
         ServerEventLog(string.Format("{0} adds area: {1}.", GetClient(sourceClientId), newArea.ToString()));
         return true;
@@ -1635,15 +1635,15 @@ public partial class Server
             return false;
         }
 
-        AreaConfig targetArea = Config.Areas.Find(v => v.Id == id);
+        AreaConfig targetArea = _config.Areas.Find(v => v.Id == id);
         if (targetArea == null)
         {
             SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaDeleteNonexistant"), colorError));
             return false;
         }
 
-        Config.Areas.Remove(targetArea);
-        ConfigNeedsSaving = true;
+        _config.Areas.Remove(targetArea);
+        _config.ConfigNeedsSaving = true;
         SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandAreaDeleteSuccess"), colorSuccess));
         ServerEventLog(string.Format("{0} deletes area: {1}.", GetClient(sourceClientId).PlayerName, id));
         return true;
@@ -1714,7 +1714,7 @@ public partial class Server
                 ServerClientNeedsSaving = true;
                 // Inform related players.
                 bool hasEntry = false;
-                foreach (var k in Clients)
+                foreach (KeyValuePair<int, ClientOnServer> k in Clients)
                 {
                     hasEntry = false;
                     if (k.Value.ClientGroup.Spawn != null)
@@ -1770,7 +1770,7 @@ public partial class Server
                 ServerClientNeedsSaving = true;
                 // Inform related players.
                 hasEntry = false;
-                foreach (var k in Clients)
+                foreach (KeyValuePair<int, ClientOnServer> k in Clients)
                 {
                     if (k.Value.ClientGroup.Name.Equals(targetGroup.Name))
                     {
@@ -2118,7 +2118,7 @@ public partial class Server
                 ServerClientNeedsSaving = true;
                 // Inform related players.
                 bool hasEntry = false;
-                foreach (var k in Clients)
+                foreach (KeyValuePair<int, ClientOnServer> k in Clients)
                 {
                     hasEntry = false;
                     if (k.Value.ClientGroup.FillLimit != null)
@@ -2169,7 +2169,7 @@ public partial class Server
                 ServerClientNeedsSaving = true;
                 // Inform related players.
                 hasEntry = false;
-                foreach (var k in Clients)
+                foreach (KeyValuePair<int, ClientOnServer> k in Clients)
                 {
                     if (k.Value.ClientGroup.Name.Equals(targetGroup.Name))
                     {

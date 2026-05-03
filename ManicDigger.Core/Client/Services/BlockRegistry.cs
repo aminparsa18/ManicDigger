@@ -147,7 +147,7 @@ public class BlockRegistry : IBlockRegistry
     /// <inheritdoc cref="RegisterBlockType"/>
     public void UseBlockTypes(Dictionary<int, BlockType> blocktypes)
     {
-        foreach (var (id, blockType) in blocktypes)
+        foreach ((int id, BlockType? blockType) in blocktypes)
         {
             RegisterBlockType(id, blockType);
         }

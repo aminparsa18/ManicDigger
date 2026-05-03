@@ -18,4 +18,6 @@
     public const int maxlight = 15;
 
     public const int entityLocalIdStart = 256;
+
+    public const int ServerChunkSize = 32;
 }

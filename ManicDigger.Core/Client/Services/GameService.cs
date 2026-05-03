@@ -235,7 +235,7 @@ public class GameService : IGameService
         if (resolutions == null)
         {
             resolutions = [];
-            foreach (var screen in Screen.AllScreens)
+            foreach (Screen screen in Screen.AllScreens)
             {
                 DisplayResolutionCi resolution = new()
                 {
@@ -265,7 +265,7 @@ public class GameService : IGameService
 
     public DisplayResolutionCi GetDisplayResolutionDefault()
     {
-        var screen = Screen.PrimaryScreen!;
+        Screen screen = Screen.PrimaryScreen!;
         DisplayResolutionCi r = new()
         {
             Width = screen.Bounds.Width,
@@ -446,7 +446,7 @@ public class GameService : IGameService
             return;
         }
 
-        var mouse = Window.MouseState;
+        MouseState mouse = Window.MouseState;
         float xdelta = mouse.Delta.X;
         float ydelta = mouse.Delta.Y;
 
@@ -466,7 +466,7 @@ public class GameService : IGameService
 
     private void Mouse_ButtonDown(MouseButtonEventArgs e)
     {
-        var pos = Window.MousePosition;
+        Vector2 pos = Window.MousePosition;
         if (TouchTest)
         {
             TouchEventArgs args = new();
@@ -487,7 +487,7 @@ public class GameService : IGameService
 
     private void Mouse_ButtonUp(MouseButtonEventArgs e)
     {
-        var pos = Window.MousePosition;
+        Vector2 pos = Window.MousePosition;
         if (TouchTest)
         {
             TouchEventArgs args = new();
@@ -533,7 +533,7 @@ public class GameService : IGameService
     private void GameTextInput(TextInputEventArgs e)
     {
         KeyPressEventArgs args = new() { KeyChar = (char)e.Unicode };
-        foreach (var h in KeyPressHandlers)
+        foreach (Action<KeyPressEventArgs> h in KeyPressHandlers)
         {
             h(args);
             if (args.Handled)
@@ -552,7 +552,7 @@ public class GameService : IGameService
             ShiftPressed = e.Modifiers == KeyModifiers.Shift,
             AltPressed = e.Modifiers == KeyModifiers.Alt
         };
-        foreach (var h in KeyDownHandlers)
+        foreach (Action<KeyEventArgs> h in KeyDownHandlers)
         {
             h(args);
             if (args.Handled)
@@ -565,7 +565,7 @@ public class GameService : IGameService
     private void GameKeyUp(KeyboardKeyEventArgs e)
     {
         KeyEventArgs args = new() { KeyChar = (int)e.Key };
-        foreach (var h in KeyUpHandlers)
+        foreach (Action<KeyEventArgs> h in KeyUpHandlers)
         {
             h(args);
             if (args.Handled)

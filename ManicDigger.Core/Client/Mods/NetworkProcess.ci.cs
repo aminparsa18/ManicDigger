@@ -532,7 +532,7 @@ public class ModNetworkProcess : ModBase
 
                     string[] scratch = _textureIdScratch;
 
-                    foreach (var (_, blockType) in blockTypeRegistry.BlockTypes)
+                    foreach ((int _, BlockType? blockType) in blockTypeRegistry.BlockTypes)
                     {
                         scratch[0] = blockType.TextureIdLeft;
                         scratch[1] = blockType.TextureIdRight;
@@ -557,7 +557,7 @@ public class ModNetworkProcess : ModBase
 
                     blockTypeRegistry.UseBlockTypes(blockTypeRegistry.BlockTypes);
 
-                    foreach (var (id, b) in blockTypeRegistry.BlockTypes)
+                    foreach ((int id, BlockType? b) in blockTypeRegistry.BlockTypes)
                     {
                         Game.TextureId[id] = [
                             textureList.IndexOf(b.TextureIdTop),

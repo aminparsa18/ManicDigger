@@ -7,15 +7,17 @@ public class ServerSystemHttpServer : ServerSystem
     private HttpListener _listener;
     private CancellationTokenSource _cts;
     private readonly ILanguageService _languageService;
+    private readonly IServerConfig _config;
 
-    public ServerSystemHttpServer(IModEvents modEvents, ILanguageService languageService) : base(modEvents)
+    public ServerSystemHttpServer(IModEvents modEvents, ILanguageService languageService, IServerConfig config) : base(modEvents)
     {
         _languageService = languageService;
+        _config = config;
     }
 
     protected override void Initialize(Server server)
     {
-        if (!server.Config.EnableHTTPServer || server.IsSinglePlayer)
+        if (!_config.EnableHTTPServer || server.IsSinglePlayer)
         {
             return;
         }
@@ -44,7 +46,7 @@ public class ServerSystemHttpServer : ServerSystem
         {
             try
             {
-                var context = await _listener.GetContextAsync();
+                HttpListenerContext context = await _listener.GetContextAsync();
                 _ = Task.Run(() => RouteRequest(server, context), ct);
             }
             catch (HttpListenerException)
@@ -63,11 +65,11 @@ public class ServerSystemHttpServer : ServerSystem
         try
         {
             // check main module first, then installed modules
-            var allModules = Enumerable
+            IEnumerable<IHttpModule> allModules = Enumerable
                 .Repeat<IHttpModule>(new MainHttpModule { server = server }, 1)
                 .Concat(server.HttpModules.Select(m => m.module));
 
-            var handler = allModules.FirstOrDefault(m => m.ResponsibleForRequest(context.Request));
+            IHttpModule? handler = allModules.FirstOrDefault(m => m.ResponsibleForRequest(context.Request));
 
             if (handler != null)
             {
@@ -123,7 +125,7 @@ internal class MainHttpModule : IHttpModule
     {
         StringBuilder sb = new("<html><body>");
 
-        foreach (var m in server.HttpModules.OrderBy(m => m.name))
+        foreach (ActiveHttpModule? m in server.HttpModules.OrderBy(m => m.name))
         {
             sb.Append($"<a href='/{m.name}'>{m.name}</a> - {m.description()}<br/>");
         }

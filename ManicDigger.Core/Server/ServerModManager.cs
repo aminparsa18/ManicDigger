@@ -4,13 +4,14 @@ using System.Runtime.InteropServices;
 namespace ManicDigger;
 
 public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb,
-    IServerMapStorage serverMapStorage, ILanguageService languageService) : IServerModManager
+    IServerMapStorage serverMapStorage, ILanguageService languageService, IServerConfig config) : IServerModManager
 {
     private readonly IGameExit gameExit = gameExit;
     private readonly IBlockRegistry _blockRegistry = blockRegistry;
     private readonly IChunkDbCompressed _chunkDb = chunkDb;
     private readonly IServerMapStorage _serverMapStorage = serverMapStorage;
     private readonly ILanguageService _languageService = languageService;
+    private readonly IServerConfig _config = config;
 
     public int GetMaxBlockTypes() => GameConstants.MAX_BLOCKTYPES;
 
@@ -216,7 +217,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public bool PlayerHasPrivilege(int player, string privilege) => server.PlayerHasPrivilege(player, privilege);
 
-    public bool IsCreative => server.Config.IsCreative;
+    public bool IsCreative => _config.IsCreative;
 
     public bool IsBlockFluid(int block) => _blockRegistry.BlockTypes[block].IsFluid();
 
@@ -250,7 +251,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     private readonly Dictionary<string, object> modoptions = [];
 
-    public int GetChunkSize() => server.ChunkSize;
+    public int GetChunkSize() => GameConstants.ServerChunkSize;
 
     public object GetOption(string optionname) => modoptions[optionname];
 
@@ -442,26 +443,26 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
             Level = permissionLevel,
             Coords = string.Format("{0},{1},{2},{3},{4},{5}", x1, y1, z1, x2, y2, z2)
         };
-        server.Config.Areas.Add(area);
-        server.ConfigNeedsSaving = true;
+        _config.Areas.Add(area);
+        _config.ConfigNeedsSaving = true;
     }
 
     public void RemovePermissionArea(int x1, int y1, int z1, int x2, int y2, int z2)
     {
-        for (int i = server.Config.Areas.Count - 1; i >= 0; i--)
+        for (int i = _config.Areas.Count - 1; i >= 0; i--)
         {
             string coords = string.Format("{0},{1},{2},{3},{4},{5}", x1, y1, z1, x2, y2, z2);
-            if (server.Config.Areas[i].Coords == coords)
+            if (_config.Areas[i].Coords == coords)
             {
-                server.Config.Areas.RemoveAt(i);
-                server.ConfigNeedsSaving = true;
+                _config.Areas.RemoveAt(i);
+                _config.ConfigNeedsSaving = true;
             }
         }
     }
 
     public int GetPlayerPermissionLevel(int player) => server.Clients[player].ClientGroup.Level;
 
-    public void SetCreative(bool value) => server.Config.IsCreative = value;
+    public void SetCreative(bool value) => _config.IsCreative = value;
 
     public void SetWorldSize(int x, int y, int z) => _serverMapStorage.Reset(x, y, z);
 
@@ -544,9 +545,9 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         }
     }
 
-    public string ServerName => server.Config.Name;
+    public string ServerName => _config.Name;
 
-    public string ServerMotd => server.Config.Motd;
+    public string ServerMotd => _config.Motd;
 
     [DllImport("libc")]
     private static extern int uname(IntPtr buf);
@@ -628,8 +629,8 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         DummyNetwork network = new();
         c.Socket = new DummyNetConnection(network);
         c.Ping.Timeout = TimeSpan.MaxValue;
-        c.chunksseen = new bool[_serverMapStorage.MapSizeX / server.ChunkSize
-                                * _serverMapStorage.MapSizeY / server.ChunkSize * _serverMapStorage.MapSizeZ / server.ChunkSize];
+        c.chunksseen = new bool[_serverMapStorage.MapSizeX / GameConstants.ServerChunkSize
+                                * _serverMapStorage.MapSizeY / GameConstants.ServerChunkSize * _serverMapStorage.MapSizeZ / GameConstants.ServerChunkSize];
         c.AssignGroup(server.DefaultGroupRegistered);
         server.PlayerEntitySetDirty(id);
         return id;
@@ -700,7 +701,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public void InstallHttpModule(string name, Func<string> description, IHttpModule module) => server.InstallHttpModule(name, description, module);
 
-    public int MaxPlayers => server.Config.MaxClients;
+    public int MaxPlayers => _config.MaxClients;
 
     public ServerClient GetServerClient() => server.ServerClient;
 
@@ -720,7 +721,7 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         }
     }
 
-    public int AutoRestartInterval => server.Config.AutoRestartCycle;
+    public int AutoRestartInterval => _config.AutoRestartCycle;
 
     public int ServerUptimeSeconds => (int)server.Uptime.TotalSeconds;
 

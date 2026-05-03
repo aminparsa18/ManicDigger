@@ -27,7 +27,7 @@ public class ServerSystemLoadLast : ServerSystem
         // Ensure mod data storage exists even if nothing was loaded from a savegame
         server.ModData ??= [];
 
-        foreach (var handler in server.OnLoad)
+        foreach (Action handler in server.OnLoad)
         {
             handler();
         }

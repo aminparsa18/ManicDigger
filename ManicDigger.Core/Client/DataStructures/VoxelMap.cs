@@ -347,7 +347,7 @@ public class VoxelMap : IVoxelMap
                     int srcZ = cz << csBits;
 
                     int idx = Index3d(cx, cy, cz, chunksX, chunksY); // computed once
-                    var c = GetChunk(worldX, worldY, worldZ);
+                    Chunk c = GetChunk(worldX, worldY, worldZ);
                     localchunks[idx] = c;
 
                     FillChunk(c, cs, srcX, srcY, srcZ, chunk, sizeX, sizeY, sizeZ);
@@ -446,7 +446,7 @@ public class VoxelMap : IVoxelMap
 
         for (int i = 0; i < offsets.Length; i++)
         {
-            var p = offsets[i];
+            (int x, int y, int z) p = offsets[i];
 
             if ((uint)p.x >= (uint)MapSizeX ||
                 (uint)p.y >= (uint)MapSizeY ||

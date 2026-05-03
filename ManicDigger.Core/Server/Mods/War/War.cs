@@ -113,7 +113,7 @@ public class War : IMod
     {
         for (int i = 1; i < m.GetMaxBlockTypes(); i++)
         {
-            var b = m.GetBlockType(i);
+            BlockType b = m.GetBlockType(i);
             if (b != null)
             {
                 m.GrabBlocks(playerid, i, 9999);
@@ -947,7 +947,7 @@ public class War : IMod
 
     private void UpdateTab()
     {
-        foreach (var k in new Dictionary<string, bool>(tabOpen))
+        foreach (KeyValuePair<string, bool> k in new Dictionary<string, bool>(tabOpen))
         {
             foreach (int p in m.AllPlayers())
             {

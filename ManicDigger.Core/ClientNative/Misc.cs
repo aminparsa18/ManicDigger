@@ -75,7 +75,7 @@ public class CrashReporter
 
         // Build a lightweight global logger (console / debug) for the static handler.
         // The per-instance file logger is created when CrashReporter() is newed up.
-        var cfg = new LoggerConfiguration().MinimumLevel.Fatal();
+        LoggerConfiguration cfg = new LoggerConfiguration().MinimumLevel.Fatal();
 
         if (isConsole)
         {

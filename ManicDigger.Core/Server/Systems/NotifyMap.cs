@@ -33,7 +33,7 @@ public class ServerSystemNotifyMap : ServerSystem
         while (sentAny && stopwatch.ElapsedMilliseconds < 10)
         {
             sentAny = false;
-            foreach (var (clientId, client) in server.Clients)
+            foreach ((int clientId, ClientOnServer? client) in server.Clients)
             {
                 if (client.State == ClientStateOnServer.Connecting)
                 {
@@ -69,13 +69,12 @@ public class ServerSystemNotifyMap : ServerSystem
     /// </returns>
     private static Vector3i? FindNearestDirtyChunk(Server server, int clientId, Vector3i playerPos)
     {
-        int px = playerPos.X / server.ChunkSize;
-        int py = playerPos.Y / server.ChunkSize;
-        int pz = playerPos.Z / server.ChunkSize;
+        int px = playerPos.X / GameConstants.ServerChunkSize;
+        int py = playerPos.Y / GameConstants.ServerChunkSize;
+        int pz = playerPos.Z / GameConstants.ServerChunkSize;
 
-        int halfXY = MapAreaSize(server) / server.ChunkSize / 2;
-        int halfZ = MapAreaSizeZ(server) / server.ChunkSize / 2;
-
+        int halfXY = MapAreaSize(server) / GameConstants.ServerChunkSize / 2;
+        int halfZ = MapAreaSizeZ(server) / GameConstants.ServerChunkSize / 2;
         int startX = Math.Max(0, px - halfXY);
         int startY = Math.Max(0, py - halfXY);
         int startZ = Math.Max(0, pz - halfZ);
@@ -129,9 +128,9 @@ public class ServerSystemNotifyMap : ServerSystem
         if (!server.ClientSeenChunk(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z))
         {
             Vector3i globalPos = new(
-                chunkPos.X * server.ChunkSize,
-                chunkPos.Y * server.ChunkSize,
-                chunkPos.Z * server.ChunkSize);
+                chunkPos.X * GameConstants.ServerChunkSize,
+                chunkPos.Y * GameConstants.ServerChunkSize,
+                chunkPos.Z * GameConstants.ServerChunkSize);
 
             SendChunk(server, clientId, globalPos, chunkPos);
         }
@@ -174,8 +173,8 @@ public class ServerSystemNotifyMap : ServerSystem
             {
                 X = globalPos.X,
                 Y = globalPos.Y,
-                SizeX = server.ChunkSize,
-                SizeY = server.ChunkSize,
+                SizeX = GameConstants.ServerChunkSize,
+                SizeY = GameConstants.ServerChunkSize,
                 CompressedHeightmap = _compression.Compress(heightmapBytes)
             };
             server.SendPacket(clientId, server.Serialize(new Packet_Server
@@ -208,9 +207,9 @@ public class ServerSystemNotifyMap : ServerSystem
                 X = globalPos.X,
                 Y = globalPos.Y,
                 Z = globalPos.Z,
-                SizeX = server.ChunkSize,
-                SizeY = server.ChunkSize,
-                SizeZ = server.ChunkSize
+                SizeX = GameConstants.ServerChunkSize,
+                SizeY = GameConstants.ServerChunkSize,
+                SizeZ = GameConstants.ServerChunkSize
             }
         }));
     }
@@ -220,7 +219,7 @@ public class ServerSystemNotifyMap : ServerSystem
     // -------------------------------------------------------------------------
 
     /// <summary>Returns the XY map streaming area size in blocks based on the configured draw distance.</summary>
-    public static int MapAreaSize(Server server) => server.ChunkDrawDistance * server.ChunkSize * 2;
+    public static int MapAreaSize(Server server) => server.ChunkDrawDistance * GameConstants.ServerChunkSize * 2;
 
     /// <summary>Returns the Z map streaming area size in blocks. Currently mirrors the XY area.</summary>
     public static int MapAreaSizeZ(Server server) => MapAreaSize(server);

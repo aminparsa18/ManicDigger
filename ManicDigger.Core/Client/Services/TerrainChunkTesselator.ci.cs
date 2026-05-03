@@ -289,7 +289,7 @@ public class TerrainChunkTesselator
     /// </summary>
     public void RefreshBlockTypeCache()
     {
-        foreach (var (id, b) in _blockTypeRegistry.BlockTypes)
+        foreach ((int id, BlockType? b) in _blockTypeRegistry.BlockTypes)
         {
             BlockRenderFlags flags = BlockRenderFlags.None;
 

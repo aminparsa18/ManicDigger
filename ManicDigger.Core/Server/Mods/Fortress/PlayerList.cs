@@ -246,7 +246,7 @@ public class PlayerList : IMod
 
     private void UpdateTab()
     {
-        foreach (var k in new Dictionary<string, bool>(tabOpen))
+        foreach (KeyValuePair<string, bool> k in new Dictionary<string, bool>(tabOpen))
         {
             foreach (int p in m.AllPlayers())
             {

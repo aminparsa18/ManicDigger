@@ -43,7 +43,7 @@ public class ModExpire : ModBase
         Entity grenadeEntity = Game.Entities[grenadeEntityId];
         Sprite sprite = grenadeEntity.sprite;
         Grenade grenade = grenadeEntity.grenade;
-        var blockType = _blockTypeRegistry.BlockTypes[grenade.block];
+        BlockType blockType = _blockTypeRegistry.BlockTypes[grenade.block];
 
         float posX = sprite.positionX;
         float posY = sprite.positionY;

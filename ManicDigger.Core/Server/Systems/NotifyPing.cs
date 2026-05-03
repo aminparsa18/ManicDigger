@@ -30,7 +30,7 @@ public class ServerSystemNotifyPing : ServerSystem
 
             List<int> timedOut = new();
 
-            foreach (var (clientId, client) in server.Clients)
+            foreach ((int clientId, ClientOnServer? client) in server.Clients)
             {
                 if (!client.Ping.Send(gameService.TimeMillisecondsFromStart))
                 {

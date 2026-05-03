@@ -1,4 +1,4 @@
-﻿public class ServerConfig
+﻿public class ServerConfig : IServerConfig
 {
     public int Format { get; set; }             //XML Format Version Number
     public string Name { get; set; }
@@ -32,14 +32,15 @@
     public string ServerLanguage { get; set; }
     public int PlayerDrawDistance { get; set; }
     public bool EnablePlayerPushing { get; set; }
+    public bool ConfigNeedsSaving { get; set; }
 
-    public bool IsPasswordProtected() => !string.IsNullOrEmpty(this.Password);
+    public bool IsPasswordProtected() => !string.IsNullOrEmpty(Password);
 
     public bool CanUserBuild(ClientOnServer client, int x, int y, int z)
     {
         bool canBuild = false;
         // TODO: fast tree datastructure
-        foreach (AreaConfig area in this.Areas)
+        foreach (AreaConfig area in Areas)
         {
             if (area.IsInCoords(x, y, z))
             {
@@ -56,37 +57,73 @@
     public ServerConfig()
     {
         //Set Defaults
-        this.Format = 1;
-        this.Name = "Manic Digger server";
-        this.Motd = "MOTD";
-        this.WelcomeMessage = "Welcome to my Manic Digger server!";
-        this.Port = 25565;
-        this.MaxClients = 16;
-        this.ServerMonitor = true;
-        this.ClientConnectionTimeout = 600;
-        this.ClientPlayingTimeout = 60;
-        this.BuildLogging = false;
-        this.ServerEventLogging = false;
-        this.ChatLogging = false;
-        this.AllowScripting = false;
-        this.Key = Guid.NewGuid().ToString();
-        this.IsCreative = true;
-        this.Public = true;
-        this.AllowGuests = true;
-        this.Monsters = false;
-        this.MapSizeX = 9984;
-        this.MapSizeY = 9984;
-        this.MapSizeZ = 128;
-        this.Areas = [];
-        this.AutoRestartCycle = 6;
-        this.Seed = 0;
-        this.RandomSeed = true;
-        this.EnableHTTPServer = false;
-        this.AllowSpectatorUse = false;
-        this.AllowSpectatorBuild = false;
-        this.ServerLanguage = "en";
-        this.PlayerDrawDistance = 128;
-        this.EnablePlayerPushing = true;
+        Format = 1;
+        Name = "Manic Digger server";
+        Motd = "MOTD";
+        WelcomeMessage = "Welcome to my Manic Digger server!";
+        Port = 25565;
+        MaxClients = 16;
+        ServerMonitor = true;
+        ClientConnectionTimeout = 600;
+        ClientPlayingTimeout = 60;
+        BuildLogging = false;
+        ServerEventLogging = false;
+        ChatLogging = false;
+        AllowScripting = false;
+        Key = Guid.NewGuid().ToString();
+        IsCreative = true;
+        Public = true;
+        AllowGuests = true;
+        Monsters = false;
+        MapSizeX = 9984;
+        MapSizeY = 9984;
+        MapSizeZ = 128;
+        Areas = [];
+        AutoRestartCycle = 6;
+        Seed = 0;
+        RandomSeed = true;
+        EnableHTTPServer = false;
+        AllowSpectatorUse = false;
+        AllowSpectatorBuild = false;
+        ServerLanguage = "en";
+        PlayerDrawDistance = 128;
+        EnablePlayerPushing = true;
+    }
+
+    public void CopyFrom(ServerConfig source)
+    {
+        Format = source.Format;
+        Name = source.Name;
+        Motd = source.Motd;
+        WelcomeMessage = source.WelcomeMessage;
+        Port = source.Port;
+        MaxClients = source.MaxClients;
+        AutoRestartCycle = source.AutoRestartCycle;
+        ServerMonitor = source.ServerMonitor;
+        ClientConnectionTimeout = source.ClientConnectionTimeout;
+        ClientPlayingTimeout = source.ClientPlayingTimeout;
+        BuildLogging = source.BuildLogging;
+        ServerEventLogging = source.ServerEventLogging;
+        ChatLogging = source.ChatLogging;
+        AllowScripting = source.AllowScripting;
+        Key = source.Key;
+        IsCreative = source.IsCreative;
+        Public = source.Public;
+        Password = source.Password;
+        AllowGuests = source.AllowGuests;
+        Monsters = source.Monsters;
+        MapSizeX = source.MapSizeX;
+        MapSizeY = source.MapSizeY;
+        MapSizeZ = source.MapSizeZ;
+        Areas = source.Areas;
+        Seed = source.Seed;
+        RandomSeed = source.RandomSeed;
+        EnableHTTPServer = source.EnableHTTPServer;
+        AllowSpectatorUse = source.AllowSpectatorUse;
+        AllowSpectatorBuild = source.AllowSpectatorBuild;
+        ServerLanguage = source.ServerLanguage;
+        PlayerDrawDistance = source.PlayerDrawDistance;
+        EnablePlayerPushing = source.EnablePlayerPushing;
     }
 }
 
@@ -106,19 +143,19 @@ public class AreaConfig
 
     public AreaConfig()
     {
-        this.Id = -1;
-        this.Coords = "0,0,0,0,0,0";
-        this.PermittedGroups = [];
-        this.PermittedUsers = [];
+        Id = -1;
+        Coords = "0,0,0,0,0,0";
+        PermittedGroups = [];
+        PermittedUsers = [];
     }
 
     public string Coords
     {
-        get { return this.coords; }
+        get { return coords; }
         set
         {
-            this.coords = value;
-            string[] myCoords = this.Coords.Split([',']);
+            coords = value;
+            string[] myCoords = Coords.Split([',']);
             x1 = Convert.ToInt32(myCoords[0]);
             x2 = Convert.ToInt32(myCoords[3]);
             y1 = Convert.ToInt32(myCoords[1]);

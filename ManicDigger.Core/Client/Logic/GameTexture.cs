@@ -45,7 +45,7 @@ public partial class Game
         int now = gameService.TimeMillisecondsFromStart;
 
         _textStylesToRemove.Clear();
-        foreach (var (style, tex) in CachedTextTextures)
+        foreach ((TextStyle? style, CachedTexture? tex) in CachedTextTextures)
         {
             if ((now - tex.lastuseMilliseconds) / 1000f > 1f)
             {

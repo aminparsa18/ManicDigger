@@ -6,11 +6,14 @@ public class ServerSystemChunksSimulation : ServerSystem
     private Random _rnd;
     private IBlockRegistry _blockRegistry;
     private readonly IServerMapStorage _serverMapStorage;
+    private readonly IServerConfig _config;
 
-    public ServerSystemChunksSimulation(IBlockRegistry blockRegistry, IServerMapStorage serverMapStorage, IModEvents modEvents) : base(modEvents)
+    public ServerSystemChunksSimulation(IBlockRegistry blockRegistry, IServerMapStorage serverMapStorage, IModEvents modEvents,
+        IServerConfig config) : base(modEvents)
     {
         _blockRegistry = blockRegistry;
         _serverMapStorage = serverMapStorage;
+        _config = config;
     }
 
     public int[] MonsterTypesUnderground = [1, 2];
@@ -52,7 +55,7 @@ public class ServerSystemChunksSimulation : ServerSystem
     {
         unchecked
         {
-            foreach (var k in server.Clients)
+            foreach (KeyValuePair<int, ClientOnServer> k in server.Clients)
             {
                 Vector3i playerPos = server.PlayerBlockPosition(k.Value);
 
@@ -134,18 +137,18 @@ public class ServerSystemChunksSimulation : ServerSystem
     {
         unchecked
         {
-            if (server.Config.Monsters)
+            if (_config.Monsters)
             {
                 AddMonsters(server, chunkPos);
             }
 
-            for (int xx = 0; xx < server.ChunkSize; xx++)
+            for (int xx = 0; xx < GameConstants.ServerChunkSize; xx++)
             {
                 int px = xx + chunkPos.X;
-                for (int yy = 0; yy < server.ChunkSize; yy++)
+                for (int yy = 0; yy < GameConstants.ServerChunkSize; yy++)
                 {
                     int py = yy + chunkPos.Y;
-                    for (int zz = 0; zz < server.ChunkSize; zz++)
+                    for (int zz = 0; zz < GameConstants.ServerChunkSize; zz++)
                     {
                         ModEvents.RaiseBlockUpdate(px, py, zz + chunkPos.Z);
                     }
@@ -170,9 +173,9 @@ public class ServerSystemChunksSimulation : ServerSystem
                     for (int z = 0; z < zDrawDistance; z++)
                     {
                         Vector3i p = new(
-                            playerPos.X + (x * server.ChunkSize),
-                            playerPos.Y + (y * server.ChunkSize),
-                            z * server.ChunkSize);
+                            playerPos.X + (x * GameConstants.ServerChunkSize),
+                            playerPos.Y + (y * GameConstants.ServerChunkSize),
+                            z * GameConstants.ServerChunkSize);
 
                         if (VectorUtils.IsValidPos(_serverMapStorage, p.X, p.Y, p.Z))
                         {
@@ -191,15 +194,15 @@ public class ServerSystemChunksSimulation : ServerSystem
     public void AddMonsters(Server server, Vector3i chunkPos)
     {
         ServerChunk chunk = _serverMapStorage.GetChunkValid(
-            chunkPos.X / server.ChunkSize,
-            chunkPos.Y / server.ChunkSize,
-            chunkPos.Z / server.ChunkSize);
+            chunkPos.X / GameConstants.ServerChunkSize,
+            chunkPos.Y / GameConstants.ServerChunkSize,
+            chunkPos.Z / GameConstants.ServerChunkSize);
 
         for (int tries = 0; chunk.Monsters.Count < MinMonstersPerChunk && tries < MonsterSpawnMaxTries; tries++)
         {
-            int px = chunkPos.X + _rnd.Next(server.ChunkSize);
-            int py = chunkPos.Y + _rnd.Next(server.ChunkSize);
-            int pz = chunkPos.Z + _rnd.Next(server.ChunkSize);
+            int px = chunkPos.X + _rnd.Next(GameConstants.ServerChunkSize);
+            int py = chunkPos.Y + _rnd.Next(GameConstants.ServerChunkSize);
+            int pz = chunkPos.Z + _rnd.Next(GameConstants.ServerChunkSize);
 
             if (!IsValidSpawnPosition(px, py, pz))
             {

@@ -34,7 +34,7 @@ public class WaterSimple : IMod
         {
             lastflood = DateTime.UtcNow;
             List<Vector3i> curtoflood = new(toflood.Keys);
-            foreach (var v in curtoflood)
+            foreach (Vector3i v in curtoflood)
             {
                 Flood(v);
                 toflood.Remove(v);
@@ -128,7 +128,7 @@ public class WaterSimple : IMod
             return;
         }
         //water around
-        foreach (var vv in BlocksAround(new Vector3i(x, y, z)))
+        foreach (Vector3i vv in BlocksAround(new Vector3i(x, y, z)))
         {
             if (m.IsValidPos(vv.X, vv.Y, vv.Z) &&
                 IsWater(m.GetBlock(vv.X, vv.Y, vv.Z)))

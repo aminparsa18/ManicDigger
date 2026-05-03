@@ -52,7 +52,7 @@ public class ChunkDbCompressed : IChunkDbCompressed
     public Dictionary<Vector3i, byte[]> GetChunksFromFile(IEnumerable<Vector3i> chunkpositions, string filename)
     {
         Dictionary<Vector3i, byte[]> result = [];
-        foreach (var (key, value) in InnerChunkDb.GetChunksFromFile(chunkpositions, filename))
+        foreach ((Vector3i key, byte[]? value) in InnerChunkDb.GetChunksFromFile(chunkpositions, filename))
         {
             result.Add(key, Decompress(value));
         }

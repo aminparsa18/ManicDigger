@@ -69,11 +69,11 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
     /// </summary>
     private static bool ShouldUnload(Server server, Vector3i chunkPos)
     {
-        var globalPos = ChunkToGlobalPos(server, chunkPos);
-        int unloadDist = (int)(server.ChunkDrawDistance * server.ChunkSize * UnloadDistanceMultiplier);
+        Vector3i globalPos = ChunkToGlobalPos(server, chunkPos);
+        int unloadDist = (int)(server.ChunkDrawDistance * GameConstants.ServerChunkSize * UnloadDistanceMultiplier);
         int unloadDistSq = unloadDist * unloadDist;
 
-        foreach (var (_, client) in server.Clients)
+        foreach ((int _, ClientOnServer? client) in server.Clients)
         {
             if (client.IsBot)
             {
@@ -107,7 +107,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
         _serverMapStorage.SetChunkValid(chunkPos.X, chunkPos.Y, chunkPos.Z, null);
 
-        foreach (var (clientId, _) in server.Clients)
+        foreach ((int clientId, ClientOnServer _) in server.Clients)
         {
             server.ClientSeenChunkRemove(clientId, chunkPos.X, chunkPos.Y, chunkPos.Z);
         }
@@ -119,7 +119,7 @@ public class ServerSystemUnloadUnusedChunks : ServerSystem
 
     /// <summary>Converts chunk-space coordinates to block-space (global) coordinates.</summary>
     private static Vector3i ChunkToGlobalPos(Server server, Vector3i chunkPos)
-        => new(chunkPos.X * server.ChunkSize,
-            chunkPos.Y * server.ChunkSize,
-            chunkPos.Z * server.ChunkSize);
+        => new(chunkPos.X * GameConstants.ServerChunkSize,
+            chunkPos.Y * GameConstants.ServerChunkSize,
+            chunkPos.Z * GameConstants.ServerChunkSize);
 }

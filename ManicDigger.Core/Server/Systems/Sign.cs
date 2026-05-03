@@ -125,7 +125,7 @@ public class ServerSystemSign : ServerSystem
             return;
         }
 
-        var client = server.Clients[args.Player];
+        ClientOnServer client = server.Clients[args.Player];
         string newText = args.TextBoxValue[1];
         ServerEntityId id = client.EditingSign;
 

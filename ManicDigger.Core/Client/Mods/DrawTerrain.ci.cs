@@ -156,7 +156,7 @@ public class ModDrawTerrain : ModBase
 
         RedrawChunksAroundLastPlacedBlock(_game);
 
-        var nearest = NearestDirty(_game);
+        (int x, int y, int z)? nearest = NearestDirty(_game);
         if (nearest.HasValue)
         {
             RedrawChunk(_game, nearest.Value.x, nearest.Value.y, nearest.Value.z);
@@ -427,7 +427,7 @@ public class ModDrawTerrain : ModBase
     {
         if (_blockTypeCacheDirty)
         {
-            foreach (var (id, blockType) in _blockTypeRegistry.BlockTypes)
+            foreach ((int id, BlockType? blockType) in _blockTypeRegistry.BlockTypes)
             {
                 _shadowLightRadius[id] = blockType.LightRadius;
                 _shadowIsTransparent[id] = IsTransparentForLight(_game, id);

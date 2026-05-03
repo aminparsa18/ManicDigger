@@ -64,7 +64,7 @@ public class ModReloadAmmo : ModBase
             return;
         }
 
-        var sounds = blockTypeRegistry.BlockTypes[item.BlockId].Sounds;
+        SoundSet sounds = blockTypeRegistry.BlockTypes[item.BlockId].Sounds;
         int sound = random.Next() % sounds.Reload.Length;
         Game.PlayAudio(sounds.Reload[sound] + ".ogg");
         Game.ReloadStartMilliseconds = platform.TimeMillisecondsFromStart;

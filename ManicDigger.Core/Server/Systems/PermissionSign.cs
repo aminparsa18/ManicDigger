@@ -174,7 +174,7 @@ public class ServerSystemPermissionSign : ServerSystem
             return;
 
         DialogFont font = new("Verdana", 11f, DialogFontStyle.Bold);
-        var groups = server.ServerClient.Groups;
+        List<Group> groups = server.ServerClient.Groups;
         int widgetCount = 0;
 
         Dialog d = new()
@@ -315,11 +315,11 @@ public class ServerSystemPermissionSign : ServerSystem
             {
                 for (int dz = -1; dz <= 1; dz++)
                 {
-                    int cx = (blockX / server.ChunkSize) + dx;
-                    int cy = (blockY / server.ChunkSize) + dy;
-                    int cz = (blockZ / server.ChunkSize) + dz;
+                    int cx = (blockX / GameConstants.ServerChunkSize) + dx;
+                    int cy = (blockY / GameConstants.ServerChunkSize) + dy;
+                    int cz = (blockZ / GameConstants.ServerChunkSize) + dz;
 
-                    if (!VectorUtils.IsValidChunkPos(_serverMapStorage, cx, cy, cz, server.ChunkSize))
+                    if (!VectorUtils.IsValidChunkPos(_serverMapStorage, cx, cy, cz, GameConstants.ServerChunkSize))
                     {
                         continue;
                     }
@@ -330,7 +330,7 @@ public class ServerSystemPermissionSign : ServerSystem
                         return;
                     }
 
-                    foreach (var (_, entity) in chunk.Entities)
+                    foreach ((int _, ServerEntity? entity) in chunk.Entities)
                     {
                         if (entity?.PermissionSign == null || entity.DrawArea == null)
                         {

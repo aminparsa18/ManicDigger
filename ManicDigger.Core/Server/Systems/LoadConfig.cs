@@ -19,10 +19,12 @@ public class ServerSystemLoadConfig : ServerSystem
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
     private readonly ILanguageService _languageService;
+    private readonly IServerConfig _serverConfig;
 
-    public ServerSystemLoadConfig(IModEvents modEvents, ILanguageService languageService) : base(modEvents)
+    public ServerSystemLoadConfig(IModEvents modEvents, ILanguageService languageService, IServerConfig serverConfig) : base(modEvents)
     {
         _languageService = languageService;
+        _serverConfig = serverConfig;
     }
 
     // -------------------------------------------------------------------------
@@ -35,17 +37,17 @@ public class ServerSystemLoadConfig : ServerSystem
     /// </summary>
     protected override void Initialize(Server server)
     {
-        LoadConfig(server);
+        LoadConfig();
         server.OnConfigLoaded();
     }
 
     /// <inheritdoc/>
     protected override void OnUpdate(Server server, float dt)
     {
-        if (server.ConfigNeedsSaving)
+        if (_serverConfig.ConfigNeedsSaving)
         {
-            server.ConfigNeedsSaving = false;
-            SaveConfig(server);
+            _serverConfig.ConfigNeedsSaving = false;
+            SaveConfig();
         }
     }
 
@@ -66,25 +68,25 @@ public class ServerSystemLoadConfig : ServerSystem
     /// After a successful load the server language is switched to the operator's
     /// configured locale.
     /// </summary>
-    public void LoadConfig(Server server)
+    public void LoadConfig()
     {
         string path = Path.Combine(GameStorePath.gamepathconfig, ConfigFilename);
 
         if (!File.Exists(path))
         {
             Console.WriteLine(_languageService.ServerConfigNotFound());
-            SaveConfig(server);
+            SaveConfig();
             return;
         }
 
-        if (!TryLoadCurrentFormat(server, path))
+        if (!TryLoadCurrentFormat(path))
         {
-            TryBackupAndReset(server, path);
+            TryBackupAndReset(path);
             return;
         }
 
         // Switch to the operator-defined locale now that config is populated
-        _languageService.OverrideLanguage = server.Config.ServerLanguage;
+        _languageService.OverrideLanguage = _serverConfig.ServerLanguage;
         Console.WriteLine(_languageService.ServerConfigLoaded());
     }
 
@@ -92,13 +94,14 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Attempts to deserialize the config file using the current <see cref="XmlSerializer"/> format.
     /// </summary>
     /// <returns><c>true</c> on success; <c>false</c> if the file could not be parsed.</returns>
-    private static bool TryLoadCurrentFormat(Server server, string path)
+    private bool TryLoadCurrentFormat(string path)
     {
         try
         {
             string json = File.ReadAllText(path);
-            server.Config = JsonSerializer.Deserialize<ServerConfig>(json, JsonOptions)
-                            ?? new ServerConfig();
+            ServerConfig loaded = JsonSerializer.Deserialize<ServerConfig>(json, JsonOptions)
+                                  ?? new ServerConfig();
+            _serverConfig.CopyFrom(loaded);   // mutate in place — DI consumers see the update
             return true;
         }
         catch
@@ -110,13 +113,13 @@ public class ServerSystemLoadConfig : ServerSystem
     /// <summary>
     /// Called when both load attempts fail. Tries to copy the corrupt file to
     /// <c>ServerConfig.txt.old</c>, logs a message either way, then resets
-    /// <see cref="Server.Config"/> to <c>null</c> and writes a fresh default config.
+    /// <see cref="Server._config"/> to <c>null</c> and writes a fresh default config.
     /// </summary>
-    private void TryBackupAndReset(Server server, string path)
+    private void TryBackupAndReset( string path)
     {
         try
         {
-            File.Copy(path, path + ".old");
+            File.Copy(path, $"{path}.old");
             Console.WriteLine(_languageService.ServerConfigCorruptBackup());
         }
         catch
@@ -124,8 +127,8 @@ public class ServerSystemLoadConfig : ServerSystem
             Console.WriteLine(_languageService.ServerConfigCorruptNoBackup());
         }
 
-        server.Config = null;
-        SaveConfig(server);
+        _serverConfig.CopyFrom(new ServerConfig());
+        SaveConfig();
     }
 
     // -------------------------------------------------------------------------
@@ -133,28 +136,33 @@ public class ServerSystemLoadConfig : ServerSystem
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Serializes <see cref="Server.Config"/> to <c>ServerConfig.txt</c> in the
+    /// Serializes <see cref="Server._config"/> to <c>ServerConfig.txt</c> in the
     /// game config directory.
     /// <para>
-    /// If <see cref="Server.Config"/> is <c>null</c> (i.e. first run), the operator
+    /// If <see cref="Server._config"/> is <c>null</c> (i.e. first run), the operator
     /// is prompted interactively on the console to supply basic server settings
     /// before the file is written.
     /// </para>
     /// </summary>
-    public void SaveConfig(Server server)
+    public void SaveConfig()
     {
         Directory.CreateDirectory(GameStorePath.gamepathconfig);
 
-        server.Config ??= CreateConfigInteractively(server);
-
-        if (server.Config.Areas.Count == 0)
+        // First run — no config file exists yet. Prompt the operator and
+        // copy the answers into the live DI-registered instance.
+        if (!File.Exists(Path.Combine(GameStorePath.gamepathconfig, ConfigFilename)))
         {
-            server.Config.Areas = ServerConfigMisc.getDefaultAreas();
+            _serverConfig.CopyFrom(CreateConfigInteractively());
+        }
+
+        if (_serverConfig.Areas.Count == 0)
+        {
+            _serverConfig.Areas = ServerConfigMisc.getDefaultAreas();
         }
 
         File.WriteAllText(
             Path.Combine(GameStorePath.gamepathconfig, ConfigFilename),
-            JsonSerializer.Serialize(server.Config, JsonOptions));
+            JsonSerializer.Serialize(_serverConfig, JsonOptions));
     }
 
     // -------------------------------------------------------------------------
@@ -167,7 +175,7 @@ public class ServerSystemLoadConfig : ServerSystem
     /// Enter without input leaves the default value in place.
     /// </summary>
     /// <returns>A new <see cref="ServerConfig"/> populated with the operator's choices.</returns>
-    private ServerConfig CreateConfigInteractively(Server server)
+    private ServerConfig CreateConfigInteractively()
     {
         ServerConfig config = new()
         {

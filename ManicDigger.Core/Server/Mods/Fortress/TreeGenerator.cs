@@ -148,7 +148,7 @@ public class TreeGenerator : IMod
 
     private void SpruceCanopyTier(int x, int y, int z, int maxK)
     {
-        foreach (var (dx, dy) in Dirs8)
+        foreach ((int dx, int dy) in Dirs8)
         {
             // Cardinal directions get full length, diagonals get half
             bool cardinal = dx == 0 || dy == 0;
@@ -186,7 +186,7 @@ public class TreeGenerator : IMod
             Set(x, y, z + i, BLOCK_OAKTRUNK);
         }
 
-        foreach (var (dx, dy) in Dirs8)
+        foreach ((int dx, int dy) in Dirs8)
         {
             bool cardinal = dx == 0 || dy == 0;
             int bx = x + (cardinal ? dx : 0);
@@ -244,7 +244,7 @@ public class TreeGenerator : IMod
 
     private void BirchCanopyTier(int x, int y, int z, int maxK)
     {
-        foreach (var (dx, dy) in Dirs8)
+        foreach ((int dx, int dy) in Dirs8)
         {
             bool cardinal = dx == 0 || dy == 0;
             for (int k = 1; k < maxK; k++)

@@ -146,7 +146,7 @@ public sealed class MeshDrawer : IMeshDrawer
     /// <inheritdoc/>
     public void SetMatrixUniformProjection()
     {
-        var p = pMatrix.Peek();
+        Matrix4 p = pMatrix.Peek();
         _openGlService.SetMatrixUniformProjection(ref p);
     }
 
@@ -155,7 +155,7 @@ public sealed class MeshDrawer : IMeshDrawer
     /// <summary>Uploads the top of <see cref="mvMatrix"/> to the shader's model-view uniform.</summary>
     private void SetMatrixUniformModelView()
     {
-        var mv = mvMatrix.Peek();
+        Matrix4 mv = mvMatrix.Peek();
         _openGlService.SetMatrixUniformModelView(ref mv);
     }
 

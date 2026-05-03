@@ -224,10 +224,10 @@ public class FastNoiseBasis
         fixed (int* pperm = _permutations)
         fixed (float* pgrad = _gradients)
         {
-            var p2 = Avx2.GatherVector128(pperm, idx2, 4);
+            Vector128<int> p2 = Avx2.GatherVector128(pperm, idx2, 4);
             // p2 = [perm[a], perm[a+1], perm[b], perm[b+1]]
 
-            var corners = Sse2.Add(p2, Vector128.Create(cz));
+            Vector128<int> corners = Sse2.Add(p2, Vector128.Create(cz));
             // corners = [aa, ab, ba, bb]
 
             // ── Level 3: expand to 8 gradient indices + gather ────────────────
@@ -241,11 +241,11 @@ public class FastNoiseBasis
             //   0xEE = 0b11_10_11_10 → [c[2], c[3], c[2], c[3]] = [ba, bb, ba, bb]
 
             Vector128<int> adv = Vector128.Create(0, 0, 1, 1);
-            var lo128 = Sse2.Add(Sse2.Shuffle(corners, 0x44), adv); // [aa, ab, aa+1, ab+1]
-            var hi128 = Sse2.Add(Sse2.Shuffle(corners, 0xEE), adv); // [ba, bb, ba+1, bb+1]
+            Vector128<int> lo128 = Sse2.Add(Sse2.Shuffle(corners, 0x44), adv); // [aa, ab, aa+1, ab+1]
+            Vector128<int> hi128 = Sse2.Add(Sse2.Shuffle(corners, 0xEE), adv); // [ba, bb, ba+1, bb+1]
             Vector256<int> gradIdx = Vector256.Create(lo128, hi128);
 
-            var grads = Avx2.GatherVector256(pgrad, gradIdx, 4);
+            Vector256<float> grads = Avx2.GatherVector256(pgrad, gradIdx, 4);
             // grads = [grad[aa], grad[ab], grad[aa+1], grad[ab+1],
             //          grad[ba], grad[bb], grad[ba+1], grad[bb+1]]
 

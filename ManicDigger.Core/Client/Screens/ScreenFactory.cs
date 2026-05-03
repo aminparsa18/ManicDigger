@@ -14,7 +14,7 @@ public sealed class ScreenFactory : IScreenFactory
 
     public ILoginScreen CreateLoginScreen(string serverHash, string ip, int port)
     {
-        var screen = _sp.GetRequiredService<ILoginScreen>();
+        ILoginScreen screen = _sp.GetRequiredService<ILoginScreen>();
         screen.Configure(serverHash, ip, port);   // runtime params separated from ctor
         return screen;
     }

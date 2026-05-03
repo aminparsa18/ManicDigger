@@ -70,7 +70,7 @@ public sealed class AudioService : IAudioService, IDisposable
         EnsureInitialised();
         AL.Listener(ALListener3f.Position, posX, posY, posZ);
         Vector3 orientation = new(orientX, orientY, orientZ);
-        var up = Vector3.UnitY;
+        Vector3 up = Vector3.UnitY;
         AL.Listener(ALListenerfv.Orientation, ref orientation, ref up);
     }
 

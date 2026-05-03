@@ -31,7 +31,7 @@ public class ServerMonitor
         while (!Exit.Exit)
         {
             Thread.Sleep(TimeSpan.FromSeconds(config.TimeIntervall));
-            foreach (var k in monitorClients)
+            foreach (KeyValuePair<int, MonitorClient> k in monitorClients)
             {
                 k.Value.BlocksSet = 0;
                 k.Value.MessagesSent = 0;

@@ -54,6 +54,7 @@ public class Program
         services.AddSingleton<IChunkDbCompressed, ChunkDbCompressed>();
         services.AddSingleton<IChunkDbRegion, ChunkDbRegion>();
         services.AddSingleton<IServerMapStorage, ServerMapStorage>();
+        services.AddSingleton<IServerConfig, ServerConfig>();
 
         // ScreenManager satisfies both contracts from the same singleton instance.
         services.AddSingleton<ScreenManager>();

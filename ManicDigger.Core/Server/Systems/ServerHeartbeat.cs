@@ -16,10 +16,12 @@ public class ServerSystemHeartbeat : ServerSystem
     private bool hashPrinted;
     private readonly ServerHeartbeat heartbeat = new();
     private readonly ILanguageService _languageService;
+    private readonly IServerConfig _config;
 
-    public ServerSystemHeartbeat(IModEvents modEvents, ILanguageService languageService) : base(modEvents)
+    public ServerSystemHeartbeat(IModEvents modEvents, ILanguageService languageService, IServerConfig config) : base(modEvents)
     {
         _languageService = languageService;
+        _config = config;
         // Pre-fill the timer so the first heartbeat fires on the first tick
         elapsed = HeartbeatInterval;
     }
@@ -35,7 +37,7 @@ public class ServerSystemHeartbeat : ServerSystem
         while (elapsed >= HeartbeatInterval)
         {
             elapsed -= HeartbeatInterval;
-            if (server.Config.Public)
+            if (_config.Public)
             {
                 heartbeat.GameMode = server.GameMode;
                 ThreadPool.QueueUserWorkItem(async (_) => await SendHeartbeat(server));
@@ -54,24 +56,24 @@ public class ServerSystemHeartbeat : ServerSystem
     /// </summary>
     public async Task SendHeartbeat(Server server)
     {
-        if (server.Config?.Key == null)
+        if (_config?.Key == null)
         {
             return;
         }
 
-        heartbeat.Name = server.Config.Name;
-        heartbeat.MaxClients = server.Config.MaxClients;
-        heartbeat.PasswordProtected = server.Config.IsPasswordProtected();
-        heartbeat.AllowGuests = server.Config.AllowGuests;
-        heartbeat.Port = server.Config.Port;
+        heartbeat.Name = _config.Name;
+        heartbeat.MaxClients = _config.MaxClients;
+        heartbeat.PasswordProtected = _config.IsPasswordProtected();
+        heartbeat.AllowGuests = _config.AllowGuests;
+        heartbeat.Port = _config.Port;
         heartbeat.Version = GameVersion.Version;
-        heartbeat.Key = server.Config.Key;
-        heartbeat.Motd = server.Config.Motd;
+        heartbeat.Key = _config.Key;
+        heartbeat.Motd = _config.Motd;
 
         List<string> playerNames = new();
         lock (server.Clients)
         {
-            foreach (var (_, client) in server.Clients)
+            foreach ((int _, ClientOnServer? client) in server.Clients)
             {
                 if (!client.IsBot)
                 {
@@ -87,7 +89,7 @@ public class ServerSystemHeartbeat : ServerSystem
         {
             //TODO: its not hosted yet
             // await heartbeat.SendHeartbeatAsync();
-            server.ReceivedKey = heartbeat.ReceivedKey;
+            //server.ReceivedKey = heartbeat.ReceivedKey;
 
             if (!hashPrinted)
             {
@@ -188,7 +190,7 @@ public class ServerHeartbeat
         };
 
         using FormUrlEncodedContent content = new(formData);
-        using var response = await HttpClient.PostAsync(listUrl, content);
+        using HttpResponseMessage response = await HttpClient.PostAsync(listUrl, content);
         response.EnsureSuccessStatusCode();
         ReceivedKey = await response.Content.ReadAsStringAsync();
     }

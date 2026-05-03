@@ -34,7 +34,7 @@ public static class OggDecoder
         while ((samplesRead = reader.ReadSamples(floatBuf, 0, frameSize)) > 0)
         {
             int byteCount = samplesRead * 2;
-            var pcmSpan = pcmChunk.AsSpan(0, byteCount);
+            Span<byte> pcmSpan = pcmChunk.AsSpan(0, byteCount);
 
             for (int i = 0; i < samplesRead; i++)
             {

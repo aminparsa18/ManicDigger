@@ -170,7 +170,7 @@ public class TaskScheduler : ITaskScheduler
     /// <summary>Executes all pending commit actions then clears the queue.</summary>
     private void FlushCommitActions()
     {
-        foreach (var action in CommitActions)
+        foreach (Action action in CommitActions)
         {
             action();
         }

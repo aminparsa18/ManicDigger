@@ -394,7 +394,7 @@ public class ModPicking : ModBase
         int posy = newtileY;
         int posz = newtileZ;
         Game.CurrentAttackedBlock = new Vector3i(posx, posy, posz);
-        var key = (posx, posy, posz);
+        (int posx, int posy, int posz) key = (posx, posy, posz);
 
         if (!Game.blockHealth.ContainsKey(key))
         {
@@ -811,7 +811,7 @@ public class ModPicking : ModBase
     /// </summary>
     internal void ClearFillArea()
     {
-        foreach (var ((x, y, z), value) in fillarea)
+        foreach (((int x, int y, int z), float value) in fillarea)
         {
             Game.SetBlock(x, y, z, (int)value);
             Game.RedrawBlock(x, y, z);

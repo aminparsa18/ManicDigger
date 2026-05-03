@@ -29,7 +29,7 @@ public class PixelBuffer
     /// <summary>Creates a <see cref="PixelBuffer"/> populated with pixels from <paramref name="bitmap"/>.</summary>
     public static PixelBuffer FromBitmap(Bitmap bitmap)
     {
-        var buffer = Create(bitmap.Width, bitmap.Height);
+        PixelBuffer buffer = Create(bitmap.Width, bitmap.Height);
         ReadFromBitmap(bitmap, buffer.Argb);
         return buffer;
     }

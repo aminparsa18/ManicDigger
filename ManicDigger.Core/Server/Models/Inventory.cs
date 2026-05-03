@@ -76,9 +76,9 @@ public class InventoryUtil
 
     public Point? ItemAtCell(Point p)
     {
-        foreach (var k in d_Inventory.Items)
+        foreach (KeyValuePair<GridPoint, InventoryItem> k in d_Inventory.Items)
         {
-            foreach (var pp in ItemCells(new Point(k.Key.X, k.Key.Y)))
+            foreach (Point pp in ItemCells(new Point(k.Key.X, k.Key.Y)))
             {
                 if (p.X == pp.X && p.Y == pp.Y)
                 {
@@ -171,7 +171,7 @@ public class InventoryUtil
                         Point?[] p = ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), out int pCount);
                         if (p != null && pCount == 1)
                         {
-                            var stacked = d_Items.Stack(d_Inventory.Items[new GridPoint(p[0].Value.X, p[0].Value.Y)], item);
+                            InventoryItem stacked = d_Items.Stack(d_Inventory.Items[new GridPoint(p[0].Value.X, p[0].Value.Y)], item);
                             if (stacked != null)
                             {
                                 d_Inventory.Items[new GridPoint(x, y)] = stacked;
@@ -320,7 +320,7 @@ public class InventoryServer : IInventoryController
         if (pos.Type == PacketInventoryPositionType.MainArea)
         {
             Point? selected = null;
-            foreach (var k in d_Inventory.Items)
+            foreach (KeyValuePair<GridPoint, InventoryItem> k in d_Inventory.Items)
             {
                 if (pos.AreaX >= k.Key.X && pos.AreaY >= k.Key.Y
                     && pos.AreaX < k.Key.X + d_Items.ItemSizeX(k.Value)
@@ -355,7 +355,7 @@ public class InventoryServer : IInventoryController
                 }
                 else //1
                 {
-                    var swapWith = itemsAtArea[0];
+                    Point? swapWith = itemsAtArea[0];
                     //try to stack                        
                     InventoryItem stackResult = d_Items.Stack(d_Inventory.Items[new GridPoint(swapWith.Value.X, swapWith.Value.Y)], d_Inventory.DragDropItem);
                     if (stackResult != null)
@@ -471,7 +471,7 @@ public class InventoryServer : IInventoryController
                     Point?[] p = d_InventoryUtil.ItemsAtArea(x, y, d_Items.ItemSizeX(item), d_Items.ItemSizeY(item), out int pCount);
                     if (p != null && pCount == 1)
                     {
-                        var stacked = d_Items.Stack(d_Inventory.Items[new GridPoint(p[0].Value.X, p[0].Value.Y)], item);
+                        InventoryItem stacked = d_Items.Stack(d_Inventory.Items[new GridPoint(p[0].Value.X, p[0].Value.Y)], item);
                         if (stacked != null)
                         {
                             d_Inventory.Items[new GridPoint(x, y)] = stacked;

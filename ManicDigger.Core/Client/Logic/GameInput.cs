@@ -319,7 +319,7 @@ public partial class Game
 
         if (GuiState != GuiState.MapLoading)
         {
-            foreach (var mod in ClientMods)
+            foreach (IModBase mod in ClientMods)
             {
                 mod.OnKeyDown(eKey);
                 if (eKey.Handled)
@@ -584,7 +584,7 @@ public partial class Game
         if (CurrentlyAttackedEntity != -1 && Entities[CurrentlyAttackedEntity].usable)
         {
             OnUseEntityArgs args = new() { Id = CurrentlyAttackedEntity };
-            foreach (var t in ClientMods)
+            foreach (IModBase t in ClientMods)
             {
                 if (t == null)
                 {

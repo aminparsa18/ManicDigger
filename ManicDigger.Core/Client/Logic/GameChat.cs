@@ -252,7 +252,7 @@
                 string[] split = arguments.Split(':');
                 if (split.Length == 2)
                 {
-                    var (result, message) = Task.Run(() => new QueryClient(gameService.NetworkService).QueryAsync(split[0], int.Parse(split[1]))).GetAwaiter().GetResult();
+                    (QueryResult? result, string? message) = Task.Run(() => new QueryClient(gameService.NetworkService).QueryAsync(split[0], int.Parse(split[1]))).GetAwaiter().GetResult();
 
                     if (result != null)
                     {

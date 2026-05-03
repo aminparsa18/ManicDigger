@@ -3,14 +3,11 @@ using OpenTK.Mathematics;
 
 public interface IServer
 {
-    int ChunkSize { get; set; }
     double InvertedChunkSize { get; set; }
     List<string> AllPrivileges { get; set; }
     ServerBanlist BanList { get; set; }
     int ChunkDrawDistance { get; }
     Dictionary<int, ClientOnServer> Clients { get; set; }
-    ServerConfig Config { get; set; }
-    bool ConfigNeedsSaving { get; set; }
     List<CraftingRecipe> CraftingRecipes { get; set; }
     Group? DefaultGroupGuest { get; set; }
     Group DefaultGroupRegistered { get; set; }

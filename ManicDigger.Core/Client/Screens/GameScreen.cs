@@ -18,7 +18,8 @@ public interface IScreenGame : IScreenBase
 /// </summary>
 public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager, IServerModManager modManager, IChunkDbCompressed chunkDb,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, ICompression compression, IServerMapStorage serverMapStorage,
-    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry, IModEvents modEvents, ILanguageService languageService) : ScreenBase(platform, openGlService, assetManager), IScreenGame
+    IDummyNetwork dummyNetwork, IGame game, IBlockRegistry blockRegistry, IModEvents modEvents, ILanguageService languageService,
+    IServerConfig serverConfig) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;
@@ -35,6 +36,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     private readonly IChunkDbCompressed _chunkDb = chunkDb;
     private readonly IServerMapStorage _serverMapStorage = serverMapStorage;
     private readonly ILanguageService _languageService = languageService;
+    private readonly IServerConfig _serverConfig = serverConfig;
 
     /// <summary>
     /// Initialises the game with the given connection parameters and starts the
@@ -91,7 +93,8 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         Log.Debug("Single-player server thread started");
         DummyNetServer netServer = new(_dummyNetwork);
 
-        Server server = new(gameExit, GameService, _blockRegistry, _chunkDb, _languageService, AssetManager, _modEvents, _modManager, _compression, _serverMapStorage)
+        Server server = new(gameExit, GameService, _blockRegistry, _chunkDb, _languageService, AssetManager,
+            _modEvents, _modManager, _compression, _serverMapStorage, _serverConfig)
         {
             SaveFilenameOverride = singleplayerSavePath,
             MainSockets = new NetServer[3]
@@ -179,7 +182,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     /// </summary>
     private void HandleExit()
     {
-        var redirect = game.Redirect;
+        Packet_ServerRedirect redirect = game.Redirect;
 
         if (redirect == null)
         {
@@ -190,7 +193,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         // Synchronously query the redirect target.
         // NOTE: This is a deliberate sync-over-async call on the render thread;
         // the game loop is already stopped at this point so blocking is acceptable.
-        var (qresult, message) = Task.Run(() =>
+        (QueryResult? qresult, string? message) = Task.Run(() =>
             new QueryClient(GameService.NetworkService).QueryAsync(redirect.IP, redirect.Port)
         ).GetAwaiter().GetResult();
 

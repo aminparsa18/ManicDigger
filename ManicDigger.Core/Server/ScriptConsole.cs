@@ -72,14 +72,14 @@ public class ScriptConsole
 
     public void PrintPosition()
     {
-        var client = m_server.GetClient(m_client);
-        var pos = GetPosition();
+        ClientOnServer client = m_server.GetClient(m_client);
+        Vector3i pos = GetPosition();
         Print(string.Format("Position: X {0}, Y {1}, Z{2}", pos.X, pos.Y, pos.Z));
     }
 
     public Vector3i GetPosition()
     {
-        var client = m_server.GetClient(m_client);
+        ClientOnServer client = m_server.GetClient(m_client);
         return m_server.PlayerBlockPosition(client);
     }
 
@@ -96,7 +96,7 @@ public class ScriptConsole
     public void DeleteChunkRange(double x1, double y1, double z1, double x2, double y2, double z2)
     {
         List<Vector3i> chunkPositions = [];
-        int chunksize = m_server.ChunkSize;
+        int chunksize = GameConstants.ServerChunkSize;
         for (int x = (int)x1; x < (int)x2; x += chunksize)
         {
             for (int y = (int)y1; y < (int)y2; y += chunksize)
@@ -124,7 +124,7 @@ public class ScriptConsole
     public Dictionary<Vector3i, ushort[]> GetChunksFromDatabase(double x1, double y1, double z1, double x2, double y2, double z2, string file)
     {
         List<Vector3i> chunkPositions = [];
-        int chunksize = m_server.ChunkSize;
+        int chunksize = GameConstants.ServerChunkSize;
         for (int x = (int)x1; x < (int)x2; x += chunksize)
         {
             for (int y = (int)y1; y < (int)y2; y += chunksize)
@@ -144,7 +144,7 @@ public class ScriptConsole
     public void CopyChunksToDatabase(double x1, double y1, double z1, double x2, double y2, double z2, string file)
     {
         List<Vector3i> chunkPositions = [];
-        int chunksize = m_server.ChunkSize;
+        int chunksize = GameConstants.ServerChunkSize;
         for (int x = (int)x1; x < (int)x2; x += chunksize)
         {
             for (int y = (int)y1; y < (int)y2; y += chunksize)
@@ -230,7 +230,7 @@ public class Turtle
 
     public void load() // pop position and direction from the stack and set them
     {
-        var array = m_stack.Pop();
+        Vector3i[] array = m_stack.Pop();
         if (array == null)
         {
             return;

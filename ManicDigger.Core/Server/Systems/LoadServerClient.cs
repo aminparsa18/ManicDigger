@@ -134,7 +134,7 @@ public class ServerSystemLoadServerClient : ServerSystem
             return;
         }
 
-        var spawn = server.ServerClient.DefaultSpawn;
+        Spawn spawn = server.ServerClient.DefaultSpawn;
         int spawnZ = spawn.z ?? VectorUtils.BlockHeight(_serverMapStorage, 0, spawn.x, spawn.y);
         server.DefaultPlayerSpawn = new Vector3i(spawn.x, spawn.y, spawnZ);
     }

@@ -462,7 +462,7 @@ public class ModAutoCamera : ModBase
         if (_writeAccum >= _frameInterval)
         {
             _writeAccum -= _frameInterval;
-            var bmp = _platform.GrabScreenshot();
+            Bitmap bmp = _platform.GrabScreenshot();
             _avi.AddFrame(bmp);
             bmp.Dispose();
         }

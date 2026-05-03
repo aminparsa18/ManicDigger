@@ -65,7 +65,7 @@ public class BlockId : IMod
                 Console.WriteLine("No expected IDs!");
             }
 
-            foreach (var b in expectedBlocks)
+            foreach (KeyValuePair<int, string> b in expectedBlocks)
             {
                 Console.WriteLine($"{b.Key}: {b.Value}");
             }
@@ -94,7 +94,7 @@ public class BlockId : IMod
             Console.WriteLine("## New Block IDs (storing to savegame):");
         }
 
-        foreach (var k in reassignedBlocks)
+        foreach (KeyValuePair<int, Block> k in reassignedBlocks)
         {
             newBlockIDs.Add(k.Key, k.Value.Name);
             if (DEBUG)
@@ -164,12 +164,12 @@ public class BlockId : IMod
         List<int> keysToRemove = [];
 
         // Assign block IDs which exist in assigned blocks and expected blocks (apply expected IDs).
-        foreach (var k in assignedBlocks)
+        foreach (KeyValuePair<int, Block> k in assignedBlocks)
         {
             if (expectedBlocks.ContainsValue(k.Value.Name))
             {
                 int index = 0;
-                foreach (var kk in expectedBlocks)
+                foreach (KeyValuePair<int, string> kk in expectedBlocks)
                 {
                     if (kk.Value.Equals(k.Value.Name))
                     {
@@ -200,7 +200,7 @@ public class BlockId : IMod
             Console.WriteLine("# Missing block definitions which are expected:");
         }
 
-        foreach (var k in expectedBlocks)
+        foreach (KeyValuePair<int, string> k in expectedBlocks)
         {
             if (DEBUG)
             {
@@ -210,7 +210,7 @@ public class BlockId : IMod
             reassignedBlocks.Add(k.Key, new Block { Name = k.Value, Type = unknownBlock });
         }
         // Add remaining blocks from assignedBlocks.
-        foreach (var k in assignedBlocks)
+        foreach (KeyValuePair<int, Block> k in assignedBlocks)
         {
             // generate index
             int i = 0;

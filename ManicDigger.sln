@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		..\..\..\Downloads\BlockTypes_README.html = ..\..\..\Downloads\BlockTypes_README.html
 		BlockTypes_README.html = BlockTypes_README.html
+		COPYING.md = COPYING.md
 		README.md = README.md
 		README_fBm.md = README_fBm.md
 	EndProjectSection

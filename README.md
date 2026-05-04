@@ -6,6 +6,30 @@ This project is based on the excellent work of the original [manicdigger/manicdi
 
 ---
 
+## What is Manic Digger?
+
+Manic Digger is a multiplayer voxel sandbox. The world is made up of 16×16×16 block
+chunks. Players can build, dig, farm, trade, and play game modes (such as a team-based
+war mod) that are defined entirely by server-side mods.
+
+Key features:
+- **Moddable server** — game rules, block types, seasons, and events are defined by mods implementing `IMod`, in either C# or JavaScript
+- **Procedural terrain** — fractal Brownian motion world generation with biome blending and seasonal block changes
+- **Smooth lighting** — per-vertex ambient occlusion across chunk boundaries
+- **Multiplayer** — reliable UDP networking via ENet with server queries and player redirection
+
+For technical details on specific systems see the dedicated documentation:
+
+| Topic | File |
+|-------|------|
+| World generation (fBm, biomes, domain warping) | `README_fBm.md` |
+| Terrain tessellation & chunk rendering | `TerrainChunkTesselator_README.md` |
+| Mesh batching & draw call organisation | `MeshBatcher_README.md` |
+| Client terrain orchestration & lighting | `DRAWTERRAIN_README.md` |
+| Block type reference | `BlockTypes_README.html` |
+
+---
+
 ## What's Different in This Fork
 
 The original project was built on old OpenTK, which is no longer maintained. This fork migrates the entire client to **OpenTK 4.x**, which is built on top of GLFW and supports modern platforms and runtimes.
@@ -111,11 +135,52 @@ Migrated from `OpenTK.Graphics.OpenGL` to `OpenTK.Graphics.OpenGL4`. The old nam
 
 ---
 
+## Architecture Overview
+
+```
+Server                          Client (main thread)        Client (background thread)
+──────                          ────────────────────        ──────────────────────────
+IMod implementations            IGameClient (contract)      ModDrawTerrain.UpdateTerrain
+CoreBlocks (block registry)     ClientModManager            TerrainChunkTesselator
+WorldGenerator                  MeshBatcher.Draw()          LightBase / LightBetweenChunks
+ENet socket                     Batcher.Add() / Remove()    ArrayPool geometry buffers
+SQLite persistence              OpenAL audio
+```
+
+Mods on both sides never hold a direct reference to `Game`. All access goes through
+`IGameClient` (client) or `IServerModManager` (server), keeping mods isolated from
+engine internals. See `ClientModManager.cs` for the client-side adapter.
+
+---
+
+## Dependencies
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `OpenTK` | 4.9.4 | Windowing, OpenGL, math |
+| `OpenTK.Audio.OpenAL` | 4.9.4 | 3-D positional audio |
+| `NVorbis` | 0.10.5 | OGG/Vorbis decoding |
+| `ENet-CSharp` | 2.4.8 | Reliable UDP networking |
+| `MemoryPack` | 1.21.4 | Binary packet serialisation |
+| `Microsoft.Extensions.DependencyInjection` | 10.0.7 | IoC / mod wiring |
+| `Microsoft.Extensions.Logging` | 10.0.7 | Logging abstraction |
+| `Serilog.Extensions.Logging` | 10.0.0 | Serilog → ILogger adapter |
+| `Serilog.Sinks.Console` | 6.1.1 | Console log output |
+| `Serilog.Sinks.File` | 7.0.0 | File log output |
+| `System.Data.SQLite.Core` | 1.0.119 | Chunk & player persistence |
+| `Microsoft.CodeAnalysis.CSharp` | 5.3.0 | In-process C# mod compilation |
+| `Jint` | 4.7.1 | JavaScript mod scripting |
+| `WebSocketSharp-netstandard` | 1.0.1 | HTTP/WebSocket server for mod pages |
+
+The noise library used for world generation is a **fully managed C# port** — there is no dependency on the original C++ LibNoise library.
+
+---
+
 ## Roadmap
 
 - [x] Migrate rendering code away from the fixed-function pipeline to modern OpenGL (shaders, VAOs, VBOs)
 - [ ] Switch from Compatibility Profile to Core Profile
-- [ ] Full 64-bit support
+- [x] Full 64-bit support
 - [ ] Cross-platform testing (Linux, macOS)
 
 ---
@@ -128,6 +193,13 @@ Requires **.NET 10** and **Visual Studio 2022+** or the `dotnet` CLI.
 dotnet build
 dotnet run --project ManicDigger
 ```
+
+---
+
+## License
+
+Manic Digger is released into the public domain under the [Unlicense](COPYING.md).
+Third-party dependency licenses are listed in [`COPYING.md`](COPYING.md).
 
 ---
 

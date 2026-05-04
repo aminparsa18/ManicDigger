@@ -33,6 +33,46 @@ public class ModPicking : ModBase
     /// </summary>
     internal bool fastclicking;
 
+    // ── Block-break physics particle settings ─────────────────────────────────
+
+    /// <summary>Downward acceleration applied to airborne particles (world units / s²).</summary>
+    private const float ParticleGravity = 80f;
+
+    /// <summary>Fraction of vertical speed kept after each ground bounce (0 = no bounce, 1 = perfect).</summary>
+    private const float ParticleBounce = 0.38f;
+
+    /// <summary>Fraction of horizontal speed kept each time a particle lands.</summary>
+    private const float ParticleFriction = 0.70f;
+
+    /// <summary>Upward velocity below which a bouncing particle is considered at rest.</summary>
+    private const float MinBounceVelocity = 0.9f;
+
+    /// <summary>How many block-face particles to spawn per break.</summary>
+    private const int ParticleCount = 14;
+
+    /// <summary>
+    /// Carries the per-frame physics state of a single break particle.
+    /// <c>Ent</c> is the live entity whose sprite position we update in place
+    /// every frame — the entity system handles rendering and expiry automatically.
+    /// </summary>
+    private struct PhysicsParticle
+    {
+        /// <summary>Reference to the sprite entity; we write positionX/Y/Z each frame.</summary>
+        public Entity Ent;
+
+        /// <summary>Current velocity vector (Y is up, same convention as render / camera space).</summary>
+        public float VX, VY, VZ;
+
+        /// <summary>Seconds of life remaining — mirrors <c>Ent.expires</c> so we can remove from the list.</summary>
+        public float Life;
+
+        /// <summary>True once the particle has settled on a surface and stopped moving.</summary>
+        public bool Grounded;
+    }
+
+    /// <summary>All currently active physics particles, updated every draw frame.</summary>
+    private readonly List<PhysicsParticle> _physicsParticles = new(64);
+
     private readonly IGameService platform;
     private readonly IVoxelMap voxelMap;
     private readonly ICameraService cameraService;
@@ -62,6 +102,12 @@ public class ModPicking : ModBase
         {
             UpdatePicking();
         }
+    }
+
+    /// <inheritdoc/>
+    public override void OnNewFrameDraw3d(float dt)
+    {
+        UpdateParticlePhysics(dt);
     }
 
     /// <inheritdoc/>
@@ -404,6 +450,8 @@ public class ModPicking : ModBase
         {
             Game.BlockHealth.Remove(key);
             Game.CurrentAttackedBlock = null;
+            int brokenBlockType = voxelMap.GetBlock(posx, posy, posz);
+            SpawnBlockBreakEffect(tile, brokenBlockType);
             OnPick(newtileX, posy, posz,
                 (int)tile.Current()[0], (int)tile.Current()[2], (int)tile.Current()[1],
                 tile.CollisionPos, right: false);
@@ -800,6 +848,272 @@ public class ModPicking : ModBase
         }
 
         Game.SendSetBlockAndUpdateSpeculative(activeMaterial, x, y, z, mode);
+    }
+
+    /// <summary>
+    /// Spawns <paramref name="debrisCount"/> small debris sprites around
+    /// (<paramref name="cx"/>, <paramref name="cy"/>, <paramref name="cz"/>).
+    /// Each sprite is placed at a random offset within ±0.7 blocks and is
+    /// given a randomised size (3–9 pixels) and lifetime (0.10–0.45 s).
+    /// The slight positive Y bias means debris tends to appear above the
+    /// block centre rather than below it, which reads more naturally when
+    /// viewed from above.
+    /// </summary>
+    private void SpawnBlockBreakDebris(float cx, float cy, float cz, int debrisCount)
+    {
+        for (int i = 0; i < debrisCount; i++)
+        {
+            // Random offset — full XZ spread, half spread on Y with upward bias.
+            float ox = (float)(random.NextDouble() - 0.5) * 1.4f;
+            float oy = (float)(random.NextDouble() * 0.9 - 0.15f);
+            float oz = (float)(random.NextDouble() - 0.5) * 1.4f;
+
+            // Staggered lifetime: earliest pieces vanish after 100 ms,
+            // latest after 450 ms — gives the cloud a natural fade.
+            float life = 0.10f + (float)random.NextDouble() * 0.35f;
+
+            // Randomised size so the debris cloud looks irregular rather
+            // than a uniform grid of identically sized sprites.
+            int size = 3 + random.Next(7);
+
+            Game.EntityAddLocal(new Entity
+            {
+                sprite = new Sprite
+                {
+                    positionX = cx + ox,
+                    positionY = cy + oy,
+                    positionZ = cz + oz,
+                    image = "Gray.png",
+                    size = size
+                },
+                expires = Expires.Create(life)
+            });
+        }
+    }
+
+    /// <summary>
+    /// Advances all active physics particles by one frame.
+    /// Applies gravity, integrates position, detects ground contact,
+    /// and applies bounce / friction on landing.
+    /// Called from <see cref="OnNewFrameDraw3d"/> so it runs once per rendered frame.
+    /// </summary>
+    private void UpdateParticlePhysics(float dt)
+    {
+        for (int i = _physicsParticles.Count - 1; i >= 0; i--)
+        {
+            PhysicsParticle p = _physicsParticles[i];
+
+            // ── Expire ───────────────────────────────────────────────────────
+            p.Life -= dt;
+            if (p.Life <= 0f)
+            {
+                _physicsParticles.RemoveAt(i);
+                continue;
+            }
+
+            // ── Physics (skipped once the particle has settled) ───────────────
+            if (!p.Grounded)
+            {
+                // Gravity pulls in -Y (render-space convention: Y is up).
+                p.VY -= ParticleGravity * dt;
+
+                // Euler integration.
+                p.Ent.sprite.positionX += p.VX * dt;
+                p.Ent.sprite.positionY += p.VY * dt;
+                p.Ent.sprite.positionZ += p.VZ * dt;
+
+                // ── Ground detection ─────────────────────────────────────────
+                // SampleGroundY reads the voxel map to find the actual terrain
+                // surface, so particles land on the real block geometry rather
+                // than an arbitrary flat plane.
+                float groundY = SampleGroundY(
+                    p.Ent.sprite.positionX,
+                    p.Ent.sprite.positionY,
+                    p.Ent.sprite.positionZ);
+
+                if (p.Ent.sprite.positionY < groundY)
+                {
+                    p.Ent.sprite.positionY = groundY;
+
+                    float bounceSpeed = MathF.Abs(p.VY) * ParticleBounce;
+
+                    if (bounceSpeed > MinBounceVelocity)
+                    {
+                        // Reflect upward, lose energy, slow horizontal movement.
+                        p.VY = bounceSpeed;
+                        p.VX *= ParticleFriction;
+                        p.VZ *= ParticleFriction;
+                    }
+                    else
+                    {
+                        // Not enough energy to bounce — rest on the surface.
+                        // The particle will stay here until its lifetime expires.
+                        p.VX = 0f;
+                        p.VY = 0f;
+                        p.VZ = 0f;
+                        p.Grounded = true;
+                    }
+                }
+            }
+
+            _physicsParticles[i] = p;
+        }
+    }
+
+    /// <summary>
+    /// Returns the world-space render Y of the first solid block surface directly
+    /// below the position (<paramref name="rx"/>, <paramref name="ry"/>, <paramref name="rz"/>).
+    ///
+    /// <para>
+    /// <b>Coordinate mapping</b> (render → block space):
+    /// <list type="bullet">
+    ///   <item>render X → block X (unchanged)</item>
+    ///   <item>render Y → block Z (height axis in block space)</item>
+    ///   <item>render Z → block Y (second horizontal axis)</item>
+    /// </list>
+    /// <c>voxelMap.GetBlock(blockX, blockY, blockZ)</c> therefore becomes
+    /// <c>voxelMap.GetBlock((int)rx, (int)rz, scanZ)</c> where <c>scanZ</c>
+    /// steps downward from the particle's current block height.
+    /// </para>
+    ///
+    /// <para>
+    /// If particles clip through floors or float above surfaces, try swapping
+    /// the second and third arguments to <c>voxelMap.GetBlock</c> — that is the
+    /// only axis-mapping that may need adjustment across different build targets.
+    /// </para>
+    /// </summary>
+    private float SampleGroundY(float rx, float ry, float rz)
+    {
+        int blockX = (int)MathF.Floor(rx);
+        int blockY = (int)MathF.Floor(rz);      // render Z → block Y (horizontal)
+        int startZ = (int)MathF.Floor(ry) - 1;  // start one block below particle
+
+        // Clamp the start so we never scan above the world ceiling.
+        startZ = Math.Min(startZ, 128);
+
+        for (int blockZ = startZ; blockZ >= 0; blockZ--)
+        {
+            // Non-air block found — surface is at the top face of this block.
+            // In render space the top face Y = blockZ + 1 (1:1 block scale).
+            if (voxelMap.GetBlock(blockX, blockY, blockZ) != 0)
+                return blockZ + 1f;
+        }
+
+        return 0f; // fell off the bottom of the map
+    }
+
+    /// <summary>
+    /// Spawns the full Minecraft Bedrock-style block break effect at the broken block.
+    ///
+    /// <para>
+    /// Three visual layers:
+    /// <list type="number">
+    ///   <item>
+    ///     <b>Flash</b> — single large sprite at the block centre that vanishes in
+    ///     ~60 ms, simulating the initial impact bloom.
+    ///   </item>
+    ///   <item>
+    ///     <b>Physics particles</b> — <see cref="ParticleCount"/> small sprites that
+    ///     launch outward with random velocities, arc under gravity, bounce once or
+    ///     twice on landing, then rest on the terrain surface until their lifetime ends.
+    ///     Positions are updated every frame by <see cref="UpdateParticlePhysics"/>.
+    ///   </item>
+    /// </list>
+    /// </para>
+    ///
+    /// <para>
+    /// Particle origin uses <c>tile.CollisionPos</c> (the exact ray/face intersection
+    /// point) rather than the integer block centre, so the burst originates precisely
+    /// at the face that was hit rather than always from the block's geometric centre.
+    /// </para>
+    /// </summary>
+    private void SpawnBlockBreakEffect(BlockPosSide tile, int blockType)
+    {
+        // CollisionPos is in render/camera space (Y-up), same space used by
+        // entity sprite positions and the picking ray.
+        float cx = tile.CollisionPos.X;
+        float cy = tile.CollisionPos.Y;
+        float cz = tile.CollisionPos.Z;
+
+        // ── Layer 1: impact flash ─────────────────────────────────────────────
+        Game.EntityAddLocal(new Entity
+        {
+            sprite = new Sprite
+            {
+                positionX = cx,
+                positionY = cy,
+                positionZ = cz,
+                image = GetParticleTexture(blockType),   // replace with block-coloured texture later
+                size = 22
+            },
+            expires = Expires.Create(0.06f)
+        });
+
+        // ── Layer 2: physics particles ────────────────────────────────────────
+        for (int i = 0; i < ParticleCount; i++)
+        {
+            // Random horizontal direction + upward bias.
+            float angle = (float)(random.NextDouble() * Math.PI * 2.0);
+            float hspeed = 2.0f + (float)random.NextDouble() * 4.0f;  // horizontal burst
+            float vspeed = 4.0f + (float)random.NextDouble() * 5.5f;  // upward launch
+
+            // Small random origin offset so the burst looks volumetric,
+            // not like all particles shoot from one geometric point.
+            float ox = (float)(random.NextDouble() - 0.5) * 0.45f;
+            float oy = (float)(random.NextDouble() - 0.5) * 0.45f;
+            float oz = (float)(random.NextDouble() - 0.5) * 0.45f;
+
+            // Stagger lifetime so particles don't all disappear at once.
+            float life = 1.2f + (float)random.NextDouble() * 1.4f;
+            int size = 3 + random.Next(7);
+
+            Entity e = new()
+            {
+                sprite = new Sprite
+                {
+                    positionX = cx + ox,
+                    positionY = cy + oy,
+                    positionZ = cz + oz,
+                    image = GetParticleTexture(blockType),
+                    size = size
+                },
+                expires = Expires.Create(life)
+            };
+            Game.EntityAddLocal(e);
+
+            // Register for per-frame physics updates.
+            _physicsParticles.Add(new PhysicsParticle
+            {
+                Ent = e,
+                VX = MathF.Cos(angle) * hspeed,
+                VY = vspeed,                      // Y is up in render space
+                VZ = MathF.Sin(angle) * hspeed,
+                Life = life,
+                Grounded = false
+            });
+        }
+    }
+
+    /// <summary>
+    /// Terrain texture filenames captured from the server's UseTerrainTextures packet.
+    /// Index N in this array corresponds to atlas texture index N.
+    /// Populated by <see cref="SetTerrainTextureNames"/>; null until the first
+    /// terrain texture packet arrives.
+    /// </summary>
+    private string[] _terrainTextureNames;
+
+    private string GetParticleTexture(int blockType)
+    {
+        //if (_terrainTextureNames == null) return "blood.png";
+
+        int[]? faceIds = Game.TextureId?[blockType];
+        if (faceIds == null || faceIds.Length == 0) return "blood.png";
+
+        int atlasIndex = faceIds[0];
+        if (atlasIndex < 0 ) return "blood.png";
+
+        string name = Game.GetTextureNameById(atlasIndex);
+        return string.IsNullOrWhiteSpace(name) ? "blood.png" : name;
     }
 
     /// <summary>

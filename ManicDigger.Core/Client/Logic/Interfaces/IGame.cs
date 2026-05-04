@@ -115,6 +115,9 @@ public interface IGame : IDisposable
     /// <summary>Returns the current field of view (radians).</summary>
     float CurrentFov();
 
+    /// <summary>Additive FOV offset in radians applied on top of the base FOV. Used for sprint zoom.</summary>
+    float FovOffset { get; set; }
+
     float MoveSpeedNow();
 
     void SetFog();
@@ -161,6 +164,9 @@ public interface IGame : IDisposable
 
     /// <summary>Loads or returns a cached GPU texture by name.</summary>
     int GetTexture(string p);
+
+    /// <summary>Returns the name of the texture asset for the given GPU texture ID.</summary>
+    string GetTextureNameById(int id);
 
     /// <summary>Loads a texture by name, or uploads <paramref name="bmp"/> if not yet cached.</summary>
     int GetTextureOrLoad(string name, Bitmap bmp);

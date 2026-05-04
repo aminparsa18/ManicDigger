@@ -344,6 +344,8 @@ public partial class Game : IGame
         }
     }
 
+    public float FovOffset { get; set; }
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -449,7 +451,6 @@ public partial class Game : IGame
     private void InitCamera()
     {
         Camera = Matrix4.Identity;
-
         CameraEye = Vector3.Zero;
         CameraMatrix = new CameraMatrixProvider();
         fov = MathF.PI / 3;

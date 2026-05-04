@@ -305,7 +305,7 @@ public partial class Game
     public void Draw2dTextures(Draw2dData[] todraw, int todrawLength, int textureid)
     {
         int count = 0;
-        for (int i = 0; i < todrawLength; i++)
+        for ( int i = 0; i < todrawLength; i++)
         {
             Draw2dData d = todraw[i];
             RectangleF rect = TextureAtlas.TextureCoords2d(d.inAtlasId, GameConstants.MAX_BLOCKTYPES_SQRT);

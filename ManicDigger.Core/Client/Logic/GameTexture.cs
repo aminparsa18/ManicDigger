@@ -94,6 +94,12 @@ public partial class Game
     }
 
     /// <summary>
+    /// Returns the name of the texture asset for the given GPU texture ID.
+    /// </summary>
+    public string GetTextureNameById(int id) 
+        => textures.FirstOrDefault(x => x.Value == id).Key;
+
+    /// <summary>
     /// Returns the cached GPU texture for <paramref name="name"/>,
     /// uploading <paramref name="bmp"/> on first access.
     /// </summary>

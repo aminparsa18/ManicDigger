@@ -227,13 +227,10 @@ public partial class Game
             {
                 float ironFov = _blockRegistry.BlockTypes[item.BlockId].IronSightsFov;
                 if (ironFov != 0)
-                {
-                    return fov * ironFov;
-                }
+                    return (fov + FovOffset) * ironFov;
             }
         }
-
-        return fov;
+        return fov + FovOffset;
     }
 
     /// <summary>

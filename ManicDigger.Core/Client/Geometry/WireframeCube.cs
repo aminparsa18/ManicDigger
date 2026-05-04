@@ -1,20 +1,9 @@
-﻿using OpenTK.Mathematics;
-
-/// <summary>
+﻿/// <summary>
 /// Provides a factory method for generating a wireframe unit cube <see cref="GeometryModel"/>,
 /// rendered as line loops around each of the 6 faces.
 /// </summary>
 public class WireframeCube
 {
-    /// <summary>Number of faces on a cube.</summary>
-    private const int FaceCount = 6;
-
-    /// <summary>Number of vertices per face (one quad = 4 corners).</summary>
-    private const int VerticesPerFace = 4;
-
-    /// <summary>Number of indices per face (4 edges × 2 endpoints = 8).</summary>
-    private const int IndicesPerFace = 8;
-
     /// <summary>
     /// Builds a wireframe unit cube <see cref="GeometryModel"/> centred at the origin,
     /// with extents from -1 to +1 on each axis.
@@ -23,50 +12,40 @@ public class WireframeCube
     /// <returns>A <see cref="GeometryModel"/> representing the wireframe cube.</returns>
     public static GeometryModel Create()
     {
-        GeometryModel m = new()
+        // 8 unique corners of the unit cube
+        float[] xyz =
+        [
+        -1, -1, -1,  //  0
+         1, -1, -1,  //  1
+         1,  1, -1,  //  2
+        -1,  1, -1,  //  3
+        -1, -1,  1,  //  4
+         1, -1,  1,  //  5
+         1,  1,  1,  //  6
+        -1,  1,  1,  //  7
+        ];
+
+        // 12 unique edges, each as a pair of vertex indices
+        int[] indices =
+        [
+        0, 1,  1, 2,  2, 3,  3, 0,  // back face
+        4, 5,  5, 6,  6, 7,  7, 4,  // front face
+        0, 4,  1, 5,  2, 6,  3, 7,  // connecting edges
+        ];
+
+        // Full white, fully opaque — tint at draw time if needed
+        byte[] rgba = new byte[8 * 4];
+        Array.Fill(rgba, (byte)255);
+
+        return new GeometryModel
         {
             Mode = (int)DrawMode.Lines,
-            Xyz = new float[VerticesPerFace * FaceCount * 3],
-            Uv = new float[VerticesPerFace * FaceCount * 2],
-            Rgba = new byte[VerticesPerFace * FaceCount * 4],
-            Indices = new int[IndicesPerFace * FaceCount]
+            VerticesCount = 8,
+            IndicesCount = 24,
+            Xyz = xyz,
+            Uv = new float[8 * 2],
+            Rgba = rgba, // defaults to 0,0,0,0 — set colour at draw time
+            Indices = indices,
         };
-        DrawLineLoop(m, new Vector3(-1, -1, -1), new Vector3(-1, 1, -1), new Vector3(1, 1, -1), new Vector3(1, -1, -1)); // Back face
-        DrawLineLoop(m, new Vector3(-1, -1, -1), new Vector3(1, -1, -1), new Vector3(1, -1, 1), new Vector3(-1, -1, 1)); // Bottom face
-        DrawLineLoop(m, new Vector3(-1, -1, -1), new Vector3(-1, -1, 1), new Vector3(-1, 1, 1), new Vector3(-1, 1, -1)); // Left face
-        DrawLineLoop(m, new Vector3(-1, -1, 1), new Vector3(1, -1, 1), new Vector3(1, 1, 1), new Vector3(-1, 1, 1)); // Front face
-        DrawLineLoop(m, new Vector3(-1, 1, -1), new Vector3(-1, 1, 1), new Vector3(1, 1, 1), new Vector3(1, 1, -1)); // Top face
-        DrawLineLoop(m, new Vector3(1, -1, -1), new Vector3(1, 1, -1), new Vector3(1, 1, 1), new Vector3(1, -1, 1)); // Right face
-
-        return m;
-    }
-
-    /// <summary>
-    /// Adds 4 vertices and 8 line indices forming a closed quad loop (4 edges)
-    /// for one face of the wireframe cube.
-    /// </summary>
-    /// <param name="m">The model data being built.</param>
-    /// <param name="p0">First corner of the face.</param>
-    /// <param name="p1">Second corner of the face.</param>
-    /// <param name="p2">Third corner of the face.</param>
-    /// <param name="p3">Fourth corner of the face.</param>
-    private static void DrawLineLoop(GeometryModel m, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
-    {
-        int start = m.VerticesCount;
-
-        GeometryModel.AddVertex(m, p0.X, p0.Y, p0.Z);
-        GeometryModel.AddVertex(m, p1.X, p1.Y, p1.Z);
-        GeometryModel.AddVertex(m, p2.X, p2.Y, p2.Z);
-        GeometryModel.AddVertex(m, p3.X, p3.Y, p3.Z);
-
-        // Each edge is two indices — connect corners in a loop: 0→1→2→3→0.
-        m.Indices[m.IndicesCount++] = start + 0;
-        m.Indices[m.IndicesCount++] = start + 1;
-        m.Indices[m.IndicesCount++] = start + 1;
-        m.Indices[m.IndicesCount++] = start + 2;
-        m.Indices[m.IndicesCount++] = start + 2;
-        m.Indices[m.IndicesCount++] = start + 3;
-        m.Indices[m.IndicesCount++] = start + 3;
-        m.Indices[m.IndicesCount++] = start + 0;
     }
 }

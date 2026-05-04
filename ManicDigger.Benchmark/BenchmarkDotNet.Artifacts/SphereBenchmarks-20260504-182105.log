@@ -1,0 +1,970 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 8 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1/" /p:OutDir="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0/" /p:OutputPath="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0/" /p:PublishDir="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\publish/" in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1
+// command took 0.78 sec and exited with 0
+// start dotnet  build -c Release --no-restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1/" /p:OutDir="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0/" /p:OutputPath="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0/" /p:PublishDir="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\publish/" --output "C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0/" in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1
+// command took 8.66 sec and exited with 0
+// ***** Done, took 00:00:09 (9.49 sec)   *****
+// Found 8 benchmarks:
+//   SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=8]
+//   SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=8]
+//   SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=32]
+//   SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=32]
+//   SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=8]
+//   SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=8]
+//   SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=32]
+//   SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=32]
+
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=8]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-YFEFPZ-1.dll --anonymousPipes 2056 2852 --benchmarkName "SphereBenchmarks.Original(Segments: 16, Rings: 8)" --job "IterationCount=10, WarmupCount=3" --benchmarkId 0 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 141200.00 ns, 141.2000 us/op
+WorkloadJitting  1: 1 op, 543900.00 ns, 543.9000 us/op
+
+OverheadJitting  2: 16 op, 294300.00 ns, 18.3938 us/op
+WorkloadJitting  2: 16 op, 390100.00 ns, 24.3813 us/op
+
+WorkloadPilot    1: 16 op, 82200.00 ns, 5.1375 us/op
+WorkloadPilot    2: 32 op, 158700.00 ns, 4.9594 us/op
+WorkloadPilot    3: 64 op, 334700.00 ns, 5.2297 us/op
+WorkloadPilot    4: 128 op, 644900.00 ns, 5.0383 us/op
+WorkloadPilot    5: 256 op, 1163100.00 ns, 4.5434 us/op
+WorkloadPilot    6: 512 op, 2270200.00 ns, 4.4340 us/op
+WorkloadPilot    7: 1024 op, 4562500.00 ns, 4.4556 us/op
+WorkloadPilot    8: 2048 op, 8985400.00 ns, 4.3874 us/op
+WorkloadPilot    9: 4096 op, 14984100.00 ns, 3.6582 us/op
+WorkloadPilot   10: 8192 op, 27279700.00 ns, 3.3300 us/op
+WorkloadPilot   11: 16384 op, 53946600.00 ns, 3.2926 us/op
+WorkloadPilot   12: 32768 op, 77921000.00 ns, 2.3780 us/op
+WorkloadPilot   13: 65536 op, 134562500.00 ns, 2.0533 us/op
+WorkloadPilot   14: 131072 op, 271974200.00 ns, 2.0750 us/op
+WorkloadPilot   15: 262144 op, 542491100.00 ns, 2.0694 us/op
+
+OverheadWarmup   1: 262144 op, 734500.00 ns, 2.8019 ns/op
+OverheadWarmup   2: 262144 op, 745100.00 ns, 2.8423 ns/op
+OverheadWarmup   3: 262144 op, 860500.00 ns, 3.2825 ns/op
+OverheadWarmup   4: 262144 op, 738800.00 ns, 2.8183 ns/op
+OverheadWarmup   5: 262144 op, 750200.00 ns, 2.8618 ns/op
+OverheadWarmup   6: 262144 op, 765000.00 ns, 2.9182 ns/op
+OverheadWarmup   7: 262144 op, 744600.00 ns, 2.8404 ns/op
+
+OverheadActual   1: 262144 op, 851100.00 ns, 3.2467 ns/op
+OverheadActual   2: 262144 op, 761000.00 ns, 2.9030 ns/op
+OverheadActual   3: 262144 op, 738900.00 ns, 2.8187 ns/op
+OverheadActual   4: 262144 op, 945300.00 ns, 3.6060 ns/op
+OverheadActual   5: 262144 op, 745500.00 ns, 2.8439 ns/op
+OverheadActual   6: 262144 op, 749200.00 ns, 2.8580 ns/op
+OverheadActual   7: 262144 op, 744400.00 ns, 2.8397 ns/op
+OverheadActual   8: 262144 op, 756400.00 ns, 2.8854 ns/op
+OverheadActual   9: 262144 op, 734800.00 ns, 2.8030 ns/op
+OverheadActual  10: 262144 op, 754600.00 ns, 2.8786 ns/op
+OverheadActual  11: 262144 op, 750200.00 ns, 2.8618 ns/op
+OverheadActual  12: 262144 op, 750700.00 ns, 2.8637 ns/op
+OverheadActual  13: 262144 op, 737300.00 ns, 2.8126 ns/op
+OverheadActual  14: 262144 op, 750000.00 ns, 2.8610 ns/op
+OverheadActual  15: 262144 op, 751500.00 ns, 2.8667 ns/op
+
+WorkloadWarmup   1: 262144 op, 537151000.00 ns, 2.0491 us/op
+WorkloadWarmup   2: 262144 op, 541789300.00 ns, 2.0668 us/op
+WorkloadWarmup   3: 262144 op, 546747100.00 ns, 2.0857 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 262144 op, 536429100.00 ns, 2.0463 us/op
+WorkloadActual   2: 262144 op, 546554600.00 ns, 2.0849 us/op
+WorkloadActual   3: 262144 op, 555445200.00 ns, 2.1189 us/op
+WorkloadActual   4: 262144 op, 541074700.00 ns, 2.0640 us/op
+WorkloadActual   5: 262144 op, 538338100.00 ns, 2.0536 us/op
+WorkloadActual   6: 262144 op, 542248400.00 ns, 2.0685 us/op
+WorkloadActual   7: 262144 op, 539958600.00 ns, 2.0598 us/op
+WorkloadActual   8: 262144 op, 545915900.00 ns, 2.0825 us/op
+WorkloadActual   9: 262144 op, 546199400.00 ns, 2.0836 us/op
+WorkloadActual  10: 262144 op, 536607300.00 ns, 2.0470 us/op
+
+// AfterActualRun
+WorkloadResult   1: 262144 op, 535678900.00 ns, 2.0435 us/op
+WorkloadResult   2: 262144 op, 545804400.00 ns, 2.0821 us/op
+WorkloadResult   3: 262144 op, 554695000.00 ns, 2.1160 us/op
+WorkloadResult   4: 262144 op, 540324500.00 ns, 2.0612 us/op
+WorkloadResult   5: 262144 op, 537587900.00 ns, 2.0507 us/op
+WorkloadResult   6: 262144 op, 541498200.00 ns, 2.0657 us/op
+WorkloadResult   7: 262144 op, 539208400.00 ns, 2.0569 us/op
+WorkloadResult   8: 262144 op, 545165700.00 ns, 2.0796 us/op
+WorkloadResult   9: 262144 op, 545449200.00 ns, 2.0807 us/op
+WorkloadResult  10: 262144 op, 535857100.00 ns, 2.0441 us/op
+// GC:  88 2 0 1656750080 262144
+// Threading:  0 0 262144
+
+// AfterAll
+// Benchmark Process 28192 has exited with code 0.
+
+Mean = 2.068 μs, StdErr = 0.007 μs (0.34%), N = 10, StdDev = 0.022 μs
+Min = 2.043 μs, Q1 = 2.052 μs, Median = 2.063 μs, Q3 = 2.080 μs, Max = 2.116 μs
+IQR = 0.028 μs, LowerFence = 2.010 μs, UpperFence = 2.123 μs
+ConfidenceInterval = [2.034 μs; 2.102 μs] (CI 99.9%), Margin = 0.034 μs (1.62% of Mean)
+Skewness = 0.74, Kurtosis = 2.53, MValue = 2
+
+// ** Remained 7 (87.5%) benchmark(s) to run. Estimated finish 2026-05-04 18:22 (0h 1m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=8]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-YFEFPZ-1.dll --anonymousPipes 672 676 --benchmarkName "SphereBenchmarks.Rewritten(Segments: 16, Rings: 8)" --job "IterationCount=10, WarmupCount=3" --benchmarkId 1 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 225000.00 ns, 225.0000 us/op
+WorkloadJitting  1: 1 op, 639000.00 ns, 639.0000 us/op
+
+OverheadJitting  2: 16 op, 290300.00 ns, 18.1438 us/op
+WorkloadJitting  2: 16 op, 360800.00 ns, 22.5500 us/op
+
+WorkloadPilot    1: 16 op, 71700.00 ns, 4.4813 us/op
+WorkloadPilot    2: 32 op, 135900.00 ns, 4.2469 us/op
+WorkloadPilot    3: 64 op, 260700.00 ns, 4.0734 us/op
+WorkloadPilot    4: 128 op, 530500.00 ns, 4.1445 us/op
+WorkloadPilot    5: 256 op, 935700.00 ns, 3.6551 us/op
+WorkloadPilot    6: 512 op, 1818100.00 ns, 3.5510 us/op
+WorkloadPilot    7: 1024 op, 3519700.00 ns, 3.4372 us/op
+WorkloadPilot    8: 2048 op, 6710000.00 ns, 3.2764 us/op
+WorkloadPilot    9: 4096 op, 10946700.00 ns, 2.6725 us/op
+WorkloadPilot   10: 8192 op, 17494100.00 ns, 2.1355 us/op
+WorkloadPilot   11: 16384 op, 35207200.00 ns, 2.1489 us/op
+WorkloadPilot   12: 32768 op, 67436600.00 ns, 2.0580 us/op
+WorkloadPilot   13: 65536 op, 49889800.00 ns, 761.2579 ns/op
+WorkloadPilot   14: 131072 op, 98856800.00 ns, 754.2175 ns/op
+WorkloadPilot   15: 262144 op, 198094500.00 ns, 755.6705 ns/op
+WorkloadPilot   16: 524288 op, 407913500.00 ns, 778.0333 ns/op
+WorkloadPilot   17: 1048576 op, 829344300.00 ns, 790.9244 ns/op
+
+OverheadWarmup   1: 1048576 op, 2940600.00 ns, 2.8044 ns/op
+OverheadWarmup   2: 1048576 op, 2964700.00 ns, 2.8274 ns/op
+OverheadWarmup   3: 1048576 op, 3032300.00 ns, 2.8918 ns/op
+OverheadWarmup   4: 1048576 op, 2927900.00 ns, 2.7923 ns/op
+OverheadWarmup   5: 1048576 op, 2913000.00 ns, 2.7781 ns/op
+OverheadWarmup   6: 1048576 op, 2941500.00 ns, 2.8052 ns/op
+OverheadWarmup   7: 1048576 op, 2947600.00 ns, 2.8111 ns/op
+OverheadWarmup   8: 1048576 op, 2992900.00 ns, 2.8543 ns/op
+OverheadWarmup   9: 1048576 op, 2999100.00 ns, 2.8602 ns/op
+OverheadWarmup  10: 1048576 op, 2977200.00 ns, 2.8393 ns/op
+
+OverheadActual   1: 1048576 op, 3005900.00 ns, 2.8666 ns/op
+OverheadActual   2: 1048576 op, 2947300.00 ns, 2.8108 ns/op
+OverheadActual   3: 1048576 op, 2912300.00 ns, 2.7774 ns/op
+OverheadActual   4: 1048576 op, 2906600.00 ns, 2.7719 ns/op
+OverheadActual   5: 1048576 op, 2915000.00 ns, 2.7800 ns/op
+OverheadActual   6: 1048576 op, 2957200.00 ns, 2.8202 ns/op
+OverheadActual   7: 1048576 op, 2976000.00 ns, 2.8381 ns/op
+OverheadActual   8: 1048576 op, 2925700.00 ns, 2.7902 ns/op
+OverheadActual   9: 1048576 op, 2938600.00 ns, 2.8025 ns/op
+OverheadActual  10: 1048576 op, 3131300.00 ns, 2.9862 ns/op
+OverheadActual  11: 1048576 op, 2933400.00 ns, 2.7975 ns/op
+OverheadActual  12: 1048576 op, 2926300.00 ns, 2.7907 ns/op
+OverheadActual  13: 1048576 op, 2999600.00 ns, 2.8606 ns/op
+OverheadActual  14: 1048576 op, 2956900.00 ns, 2.8199 ns/op
+OverheadActual  15: 1048576 op, 2973700.00 ns, 2.8359 ns/op
+
+WorkloadWarmup   1: 1048576 op, 815492100.00 ns, 777.7139 ns/op
+WorkloadWarmup   2: 1048576 op, 820703200.00 ns, 782.6836 ns/op
+WorkloadWarmup   3: 1048576 op, 810661600.00 ns, 773.1071 ns/op
+
+// BeforeActualRun
+WorkloadActual   1: 1048576 op, 821833600.00 ns, 783.7616 ns/op
+WorkloadActual   2: 1048576 op, 812977500.00 ns, 775.3158 ns/op
+WorkloadActual   3: 1048576 op, 813734700.00 ns, 776.0379 ns/op
+WorkloadActual   4: 1048576 op, 819610300.00 ns, 781.6413 ns/op
+WorkloadActual   5: 1048576 op, 820326800.00 ns, 782.3246 ns/op
+WorkloadActual   6: 1048576 op, 842582400.00 ns, 803.5492 ns/op
+WorkloadActual   7: 1048576 op, 813777900.00 ns, 776.0791 ns/op
+WorkloadActual   8: 1048576 op, 828951500.00 ns, 790.5498 ns/op
+WorkloadActual   9: 1048576 op, 813357300.00 ns, 775.6780 ns/op
+WorkloadActual  10: 1048576 op, 840875100.00 ns, 801.9210 ns/op
+
+// AfterActualRun
+WorkloadResult   1: 1048576 op, 818886300.00 ns, 780.9508 ns/op
+WorkloadResult   2: 1048576 op, 810030200.00 ns, 772.5050 ns/op
+WorkloadResult   3: 1048576 op, 810787400.00 ns, 773.2271 ns/op
+WorkloadResult   4: 1048576 op, 816663000.00 ns, 778.8305 ns/op
+WorkloadResult   5: 1048576 op, 817379500.00 ns, 779.5138 ns/op
+WorkloadResult   6: 1048576 op, 839635100.00 ns, 800.7384 ns/op
+WorkloadResult   7: 1048576 op, 810830600.00 ns, 773.2683 ns/op
+WorkloadResult   8: 1048576 op, 826004200.00 ns, 787.7390 ns/op
+WorkloadResult   9: 1048576 op, 810410000.00 ns, 772.8672 ns/op
+WorkloadResult  10: 1048576 op, 837927800.00 ns, 799.1102 ns/op
+// GC:  370 0 0 6979321856 1048576
+// Threading:  0 0 1048576
+
+// AfterAll
+// Benchmark Process 17056 has exited with code 0.
+
+Mean = 781.875 ns, StdErr = 3.368 ns (0.43%), N = 10, StdDev = 10.650 ns
+Min = 772.505 ns, Q1 = 773.237 ns, Median = 779.172 ns, Q3 = 786.042 ns, Max = 800.738 ns
+IQR = 12.805 ns, LowerFence = 754.031 ns, UpperFence = 805.249 ns
+ConfidenceInterval = [765.774 ns; 797.976 ns] (CI 99.9%), Margin = 16.101 ns (2.06% of Mean)
+Skewness = 0.76, Kurtosis = 1.88, MValue = 2
+
+// ** Remained 6 (75.0%) benchmark(s) to run. Estimated finish 2026-05-04 18:22 (0h 1m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=32]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-YFEFPZ-1.dll --anonymousPipes 2848 2220 --benchmarkName "SphereBenchmarks.Original(Segments: 16, Rings: 32)" --job "IterationCount=10, WarmupCount=3" --benchmarkId 2 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 145500.00 ns, 145.5000 us/op
+WorkloadJitting  1: 1 op, 526100.00 ns, 526.1000 us/op
+
+OverheadJitting  2: 16 op, 279800.00 ns, 17.4875 us/op
+WorkloadJitting  2: 16 op, 594500.00 ns, 37.1563 us/op
+
+WorkloadPilot    1: 16 op, 337800.00 ns, 21.1125 us/op
+WorkloadPilot    2: 32 op, 569700.00 ns, 17.8031 us/op
+WorkloadPilot    3: 64 op, 1104800.00 ns, 17.2625 us/op
+WorkloadPilot    4: 128 op, 2201500.00 ns, 17.1992 us/op
+WorkloadPilot    5: 256 op, 4208200.00 ns, 16.4383 us/op
+WorkloadPilot    6: 512 op, 8518100.00 ns, 16.6369 us/op
+WorkloadPilot    7: 1024 op, 15298600.00 ns, 14.9400 us/op
+WorkloadPilot    8: 2048 op, 27711000.00 ns, 13.5308 us/op
+WorkloadPilot    9: 4096 op, 55443900.00 ns, 13.5361 us/op
+WorkloadPilot   10: 8192 op, 82578500.00 ns, 10.0804 us/op
+WorkloadPilot   11: 16384 op, 131900400.00 ns, 8.0506 us/op
+WorkloadPilot   12: 32768 op, 269187300.00 ns, 8.2149 us/op
+WorkloadPilot   13: 65536 op, 531323100.00 ns, 8.1073 us/op
+
+OverheadWarmup   1: 65536 op, 191900.00 ns, 2.9282 ns/op
+OverheadWarmup   2: 65536 op, 187400.00 ns, 2.8595 ns/op
+OverheadWarmup   3: 65536 op, 188700.00 ns, 2.8793 ns/op
+OverheadWarmup   4: 65536 op, 193000.00 ns, 2.9449 ns/op
+OverheadWarmup   5: 65536 op, 183900.00 ns, 2.8061 ns/op
+OverheadWarmup   6: 65536 op, 182200.00 ns, 2.7802 ns/op
+OverheadWarmup   7: 65536 op, 191700.00 ns, 2.9251 ns/op
+OverheadWarmup   8: 65536 op, 212400.00 ns, 3.2410 ns/op
+OverheadWarmup   9: 65536 op, 184400.00 ns, 2.8137 ns/op
+
+OverheadActual   1: 65536 op, 233700.00 ns, 3.5660 ns/op
+OverheadActual   2: 65536 op, 187300.00 ns, 2.8580 ns/op
+OverheadActual   3: 65536 op, 189400.00 ns, 2.8900 ns/op
+OverheadActual   4: 65536 op, 209400.00 ns, 3.1952 ns/op
+OverheadActual   5: 65536 op, 193800.00 ns, 2.9572 ns/op
+OverheadActual   6: 65536 op, 189500.00 ns, 2.8915 ns/op
+OverheadActual   7: 65536 op, 192000.00 ns, 2.9297 ns/op
+OverheadActual   8: 65536 op, 189400.00 ns, 2.8900 ns/op
+OverheadActual   9: 65536 op, 186000.00 ns, 2.8381 ns/op
+OverheadActual  10: 65536 op, 194200.00 ns, 2.9633 ns/op
+OverheadActual  11: 65536 op, 184400.00 ns, 2.8137 ns/op
+OverheadActual  12: 65536 op, 187400.00 ns, 2.8595 ns/op
+OverheadActual  13: 65536 op, 187400.00 ns, 2.8595 ns/op
+OverheadActual  14: 65536 op, 188100.00 ns, 2.8702 ns/op
+OverheadActual  15: 65536 op, 184900.00 ns, 2.8214 ns/op
+
+WorkloadWarmup   1: 65536 op, 537147200.00 ns, 8.1962 us/op
+WorkloadWarmup   2: 65536 op, 537829200.00 ns, 8.2066 us/op
+WorkloadWarmup   3: 65536 op, 526294100.00 ns, 8.0306 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 65536 op, 532117400.00 ns, 8.1195 us/op
+WorkloadActual   2: 65536 op, 526429900.00 ns, 8.0327 us/op
+WorkloadActual   3: 65536 op, 529918300.00 ns, 8.0859 us/op
+WorkloadActual   4: 65536 op, 522130800.00 ns, 7.9671 us/op
+WorkloadActual   5: 65536 op, 536650400.00 ns, 8.1886 us/op
+WorkloadActual   6: 65536 op, 527526300.00 ns, 8.0494 us/op
+WorkloadActual   7: 65536 op, 535401800.00 ns, 8.1696 us/op
+WorkloadActual   8: 65536 op, 533597100.00 ns, 8.1420 us/op
+WorkloadActual   9: 65536 op, 530671300.00 ns, 8.0974 us/op
+WorkloadActual  10: 65536 op, 532078200.00 ns, 8.1189 us/op
+
+// AfterActualRun
+WorkloadResult   1: 65536 op, 531928000.00 ns, 8.1166 us/op
+WorkloadResult   2: 65536 op, 526240500.00 ns, 8.0298 us/op
+WorkloadResult   3: 65536 op, 529728900.00 ns, 8.0830 us/op
+WorkloadResult   4: 65536 op, 521941400.00 ns, 7.9642 us/op
+WorkloadResult   5: 65536 op, 536461000.00 ns, 8.1857 us/op
+WorkloadResult   6: 65536 op, 527336900.00 ns, 8.0465 us/op
+WorkloadResult   7: 65536 op, 535212400.00 ns, 8.1667 us/op
+WorkloadResult   8: 65536 op, 533407700.00 ns, 8.1392 us/op
+WorkloadResult   9: 65536 op, 530481900.00 ns, 8.0945 us/op
+WorkloadResult  10: 65536 op, 531888800.00 ns, 8.1160 us/op
+// GC:  86 3 0 1622147072 65536
+// Threading:  0 0 65536
+
+// AfterAll
+// Benchmark Process 30908 has exited with code 0.
+
+Mean = 8.094 μs, StdErr = 0.021 μs (0.26%), N = 10, StdDev = 0.067 μs
+Min = 7.964 μs, Q1 = 8.056 μs, Median = 8.105 μs, Q3 = 8.134 μs, Max = 8.186 μs
+IQR = 0.078 μs, LowerFence = 7.939 μs, UpperFence = 8.250 μs
+ConfidenceInterval = [7.993 μs; 8.195 μs] (CI 99.9%), Margin = 0.101 μs (1.25% of Mean)
+Skewness = -0.44, Kurtosis = 2.07, MValue = 2
+
+// ** Remained 5 (62.5%) benchmark(s) to run. Estimated finish 2026-05-04 18:22 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=32]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-YFEFPZ-1.dll --anonymousPipes 2912 2908 --benchmarkName "SphereBenchmarks.Rewritten(Segments: 16, Rings: 32)" --job "IterationCount=10, WarmupCount=3" --benchmarkId 3 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 334700.00 ns, 334.7000 us/op
+WorkloadJitting  1: 1 op, 643400.00 ns, 643.4000 us/op
+
+OverheadJitting  2: 16 op, 287400.00 ns, 17.9625 us/op
+WorkloadJitting  2: 16 op, 1029500.00 ns, 64.3438 us/op
+
+WorkloadPilot    1: 16 op, 220800.00 ns, 13.8000 us/op
+WorkloadPilot    2: 32 op, 394300.00 ns, 12.3219 us/op
+WorkloadPilot    3: 64 op, 777000.00 ns, 12.1406 us/op
+WorkloadPilot    4: 128 op, 1403800.00 ns, 10.9672 us/op
+WorkloadPilot    5: 256 op, 2948000.00 ns, 11.5156 us/op
+WorkloadPilot    6: 512 op, 5759400.00 ns, 11.2488 us/op
+WorkloadPilot    7: 1024 op, 9031800.00 ns, 8.8201 us/op
+WorkloadPilot    8: 2048 op, 14768100.00 ns, 7.2110 us/op
+WorkloadPilot    9: 4096 op, 36082700.00 ns, 8.8093 us/op
+WorkloadPilot   10: 8192 op, 62519600.00 ns, 7.6318 us/op
+WorkloadPilot   11: 16384 op, 58995200.00 ns, 3.6008 us/op
+WorkloadPilot   12: 32768 op, 85014500.00 ns, 2.5944 us/op
+WorkloadPilot   13: 65536 op, 177437200.00 ns, 2.7075 us/op
+WorkloadPilot   14: 131072 op, 343733800.00 ns, 2.6225 us/op
+WorkloadPilot   15: 262144 op, 671406100.00 ns, 2.5612 us/op
+
+OverheadWarmup   1: 262144 op, 759200.00 ns, 2.8961 ns/op
+OverheadWarmup   2: 262144 op, 753700.00 ns, 2.8751 ns/op
+OverheadWarmup   3: 262144 op, 791200.00 ns, 3.0182 ns/op
+OverheadWarmup   4: 262144 op, 751600.00 ns, 2.8671 ns/op
+OverheadWarmup   5: 262144 op, 748400.00 ns, 2.8549 ns/op
+OverheadWarmup   6: 262144 op, 740300.00 ns, 2.8240 ns/op
+OverheadWarmup   7: 262144 op, 740900.00 ns, 2.8263 ns/op
+OverheadWarmup   8: 262144 op, 732600.00 ns, 2.7946 ns/op
+
+OverheadActual   1: 262144 op, 843100.00 ns, 3.2162 ns/op
+OverheadActual   2: 262144 op, 748100.00 ns, 2.8538 ns/op
+OverheadActual   3: 262144 op, 766800.00 ns, 2.9251 ns/op
+OverheadActual   4: 262144 op, 760600.00 ns, 2.9015 ns/op
+OverheadActual   5: 262144 op, 753900.00 ns, 2.8759 ns/op
+OverheadActual   6: 262144 op, 765400.00 ns, 2.9198 ns/op
+OverheadActual   7: 262144 op, 726800.00 ns, 2.7725 ns/op
+OverheadActual   8: 262144 op, 759300.00 ns, 2.8965 ns/op
+OverheadActual   9: 262144 op, 742300.00 ns, 2.8316 ns/op
+OverheadActual  10: 262144 op, 750900.00 ns, 2.8645 ns/op
+OverheadActual  11: 262144 op, 744400.00 ns, 2.8397 ns/op
+OverheadActual  12: 262144 op, 754900.00 ns, 2.8797 ns/op
+OverheadActual  13: 262144 op, 757200.00 ns, 2.8885 ns/op
+OverheadActual  14: 262144 op, 753700.00 ns, 2.8751 ns/op
+OverheadActual  15: 262144 op, 735400.00 ns, 2.8053 ns/op
+
+WorkloadWarmup   1: 262144 op, 691676100.00 ns, 2.6385 us/op
+WorkloadWarmup   2: 262144 op, 687429300.00 ns, 2.6223 us/op
+WorkloadWarmup   3: 262144 op, 668811200.00 ns, 2.5513 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 262144 op, 676516000.00 ns, 2.5807 us/op
+WorkloadActual   2: 262144 op, 702372000.00 ns, 2.6793 us/op
+WorkloadActual   3: 262144 op, 684489900.00 ns, 2.6111 us/op
+WorkloadActual   4: 262144 op, 680801000.00 ns, 2.5970 us/op
+WorkloadActual   5: 262144 op, 727784700.00 ns, 2.7763 us/op
+WorkloadActual   6: 262144 op, 680605000.00 ns, 2.5963 us/op
+WorkloadActual   7: 262144 op, 691993600.00 ns, 2.6397 us/op
+WorkloadActual   8: 262144 op, 693325300.00 ns, 2.6448 us/op
+WorkloadActual   9: 262144 op, 686117500.00 ns, 2.6173 us/op
+WorkloadActual  10: 262144 op, 702766400.00 ns, 2.6808 us/op
+
+// AfterActualRun
+WorkloadResult   1: 262144 op, 675762100.00 ns, 2.5778 us/op
+WorkloadResult   2: 262144 op, 701618100.00 ns, 2.6765 us/op
+WorkloadResult   3: 262144 op, 683736000.00 ns, 2.6082 us/op
+WorkloadResult   4: 262144 op, 680047100.00 ns, 2.5942 us/op
+WorkloadResult   5: 262144 op, 679851100.00 ns, 2.5934 us/op
+WorkloadResult   6: 262144 op, 691239700.00 ns, 2.6369 us/op
+WorkloadResult   7: 262144 op, 692571400.00 ns, 2.6420 us/op
+WorkloadResult   8: 262144 op, 685363600.00 ns, 2.6145 us/op
+WorkloadResult   9: 262144 op, 702012500.00 ns, 2.6780 us/op
+// GC:  352 8 0 6627000320 262144
+// Threading:  0 0 262144
+
+// AfterAll
+// Benchmark Process 26332 has exited with code 0.
+
+Mean = 2.625 μs, StdErr = 0.012 μs (0.46%), N = 9, StdDev = 0.036 μs
+Min = 2.578 μs, Q1 = 2.594 μs, Median = 2.614 μs, Q3 = 2.642 μs, Max = 2.678 μs
+IQR = 0.048 μs, LowerFence = 2.523 μs, UpperFence = 2.714 μs
+ConfidenceInterval = [2.564 μs; 2.685 μs] (CI 99.9%), Margin = 0.061 μs (2.31% of Mean)
+Skewness = 0.31, Kurtosis = 1.44, MValue = 2
+
+// ** Remained 4 (50.0%) benchmark(s) to run. Estimated finish 2026-05-04 18:22 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=8]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-YFEFPZ-1.dll --anonymousPipes 1520 2944 --benchmarkName "SphereBenchmarks.Original(Segments: 64, Rings: 8)" --job "IterationCount=10, WarmupCount=3" --benchmarkId 4 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 139900.00 ns, 139.9000 us/op
+WorkloadJitting  1: 1 op, 614400.00 ns, 614.4000 us/op
+
+OverheadJitting  2: 16 op, 280000.00 ns, 17.5000 us/op
+WorkloadJitting  2: 16 op, 559400.00 ns, 34.9625 us/op
+
+WorkloadPilot    1: 16 op, 364400.00 ns, 22.7750 us/op
+WorkloadPilot    2: 32 op, 573500.00 ns, 17.9219 us/op
+WorkloadPilot    3: 64 op, 1107700.00 ns, 17.3078 us/op
+WorkloadPilot    4: 128 op, 2282700.00 ns, 17.8336 us/op
+WorkloadPilot    5: 256 op, 4374700.00 ns, 17.0887 us/op
+WorkloadPilot    6: 512 op, 8345700.00 ns, 16.3002 us/op
+WorkloadPilot    7: 1024 op, 14954900.00 ns, 14.6044 us/op
+WorkloadPilot    8: 2048 op, 27135200.00 ns, 13.2496 us/op
+WorkloadPilot    9: 4096 op, 53854500.00 ns, 13.1481 us/op
+WorkloadPilot   10: 8192 op, 86334500.00 ns, 10.5389 us/op
+WorkloadPilot   11: 16384 op, 135061700.00 ns, 8.2435 us/op
+WorkloadPilot   12: 32768 op, 282050500.00 ns, 8.6075 us/op
+WorkloadPilot   13: 65536 op, 559831900.00 ns, 8.5424 us/op
+
+OverheadWarmup   1: 65536 op, 187500.00 ns, 2.8610 ns/op
+OverheadWarmup   2: 65536 op, 189900.00 ns, 2.8976 ns/op
+OverheadWarmup   3: 65536 op, 187600.00 ns, 2.8625 ns/op
+OverheadWarmup   4: 65536 op, 187600.00 ns, 2.8625 ns/op
+OverheadWarmup   5: 65536 op, 188000.00 ns, 2.8687 ns/op
+
+OverheadActual   1: 65536 op, 188100.00 ns, 2.8702 ns/op
+OverheadActual   2: 65536 op, 192400.00 ns, 2.9358 ns/op
+OverheadActual   3: 65536 op, 186600.00 ns, 2.8473 ns/op
+OverheadActual   4: 65536 op, 191300.00 ns, 2.9190 ns/op
+OverheadActual   5: 65536 op, 186000.00 ns, 2.8381 ns/op
+OverheadActual   6: 65536 op, 195700.00 ns, 2.9861 ns/op
+OverheadActual   7: 65536 op, 189800.00 ns, 2.8961 ns/op
+OverheadActual   8: 65536 op, 186400.00 ns, 2.8442 ns/op
+OverheadActual   9: 65536 op, 191000.00 ns, 2.9144 ns/op
+OverheadActual  10: 65536 op, 189100.00 ns, 2.8854 ns/op
+OverheadActual  11: 65536 op, 187400.00 ns, 2.8595 ns/op
+OverheadActual  12: 65536 op, 180000.00 ns, 2.7466 ns/op
+OverheadActual  13: 65536 op, 196200.00 ns, 2.9938 ns/op
+OverheadActual  14: 65536 op, 192000.00 ns, 2.9297 ns/op
+OverheadActual  15: 65536 op, 183100.00 ns, 2.7939 ns/op
+
+WorkloadWarmup   1: 65536 op, 562004200.00 ns, 8.5755 us/op
+WorkloadWarmup   2: 65536 op, 558344500.00 ns, 8.5197 us/op
+WorkloadWarmup   3: 65536 op, 562171500.00 ns, 8.5781 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 65536 op, 562663700.00 ns, 8.5856 us/op
+WorkloadActual   2: 65536 op, 556858000.00 ns, 8.4970 us/op
+WorkloadActual   3: 65536 op, 555620700.00 ns, 8.4781 us/op
+WorkloadActual   4: 65536 op, 561782700.00 ns, 8.5721 us/op
+WorkloadActual   5: 65536 op, 559699300.00 ns, 8.5403 us/op
+WorkloadActual   6: 65536 op, 552190800.00 ns, 8.4258 us/op
+WorkloadActual   7: 65536 op, 557698800.00 ns, 8.5098 us/op
+WorkloadActual   8: 65536 op, 558844100.00 ns, 8.5273 us/op
+WorkloadActual   9: 65536 op, 554055900.00 ns, 8.4542 us/op
+WorkloadActual  10: 65536 op, 557798200.00 ns, 8.5113 us/op
+
+// AfterActualRun
+WorkloadResult   1: 65536 op, 562474600.00 ns, 8.5827 us/op
+WorkloadResult   2: 65536 op, 556668900.00 ns, 8.4941 us/op
+WorkloadResult   3: 65536 op, 555431600.00 ns, 8.4752 us/op
+WorkloadResult   4: 65536 op, 561593600.00 ns, 8.5692 us/op
+WorkloadResult   5: 65536 op, 559510200.00 ns, 8.5374 us/op
+WorkloadResult   6: 65536 op, 552001700.00 ns, 8.4229 us/op
+WorkloadResult   7: 65536 op, 557509700.00 ns, 8.5069 us/op
+WorkloadResult   8: 65536 op, 558655000.00 ns, 8.5244 us/op
+WorkloadResult   9: 65536 op, 553866800.00 ns, 8.4513 us/op
+WorkloadResult  10: 65536 op, 557609100.00 ns, 8.5084 us/op
+// GC:  86 3 0 1622147072 65536
+// Threading:  0 0 65536
+
+// AfterAll
+// Benchmark Process 27884 has exited with code 0.
+
+Mean = 8.507 μs, StdErr = 0.016 μs (0.18%), N = 10, StdDev = 0.050 μs
+Min = 8.423 μs, Q1 = 8.480 μs, Median = 8.508 μs, Q3 = 8.534 μs, Max = 8.583 μs
+IQR = 0.054 μs, LowerFence = 8.399 μs, UpperFence = 8.616 μs
+ConfidenceInterval = [8.432 μs; 8.582 μs] (CI 99.9%), Margin = 0.075 μs (0.88% of Mean)
+Skewness = -0.09, Kurtosis = 1.8, MValue = 2
+
+// ** Remained 3 (37.5%) benchmark(s) to run. Estimated finish 2026-05-04 18:22 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=8]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-YFEFPZ-1.dll --anonymousPipes 2944 2960 --benchmarkName "SphereBenchmarks.Rewritten(Segments: 64, Rings: 8)" --job "IterationCount=10, WarmupCount=3" --benchmarkId 5 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 143200.00 ns, 143.2000 us/op
+WorkloadJitting  1: 1 op, 637200.00 ns, 637.2000 us/op
+
+OverheadJitting  2: 16 op, 280200.00 ns, 17.5125 us/op
+WorkloadJitting  2: 16 op, 1039000.00 ns, 64.9375 us/op
+
+WorkloadPilot    1: 16 op, 234000.00 ns, 14.6250 us/op
+WorkloadPilot    2: 32 op, 439900.00 ns, 13.7469 us/op
+WorkloadPilot    3: 64 op, 827200.00 ns, 12.9250 us/op
+WorkloadPilot    4: 128 op, 1624500.00 ns, 12.6914 us/op
+WorkloadPilot    5: 256 op, 2905300.00 ns, 11.3488 us/op
+WorkloadPilot    6: 512 op, 5839600.00 ns, 11.4055 us/op
+WorkloadPilot    7: 1024 op, 9443400.00 ns, 9.2221 us/op
+WorkloadPilot    8: 2048 op, 16386400.00 ns, 8.0012 us/op
+WorkloadPilot    9: 4096 op, 30000300.00 ns, 7.3243 us/op
+WorkloadPilot   10: 8192 op, 61683900.00 ns, 7.5298 us/op
+WorkloadPilot   11: 16384 op, 61126200.00 ns, 3.7308 us/op
+WorkloadPilot   12: 32768 op, 105910100.00 ns, 3.2321 us/op
+WorkloadPilot   13: 65536 op, 192044500.00 ns, 2.9304 us/op
+WorkloadPilot   14: 131072 op, 370247700.00 ns, 2.8248 us/op
+WorkloadPilot   15: 262144 op, 765894500.00 ns, 2.9217 us/op
+
+OverheadWarmup   1: 262144 op, 741700.00 ns, 2.8294 ns/op
+OverheadWarmup   2: 262144 op, 728900.00 ns, 2.7805 ns/op
+OverheadWarmup   3: 262144 op, 746900.00 ns, 2.8492 ns/op
+OverheadWarmup   4: 262144 op, 771600.00 ns, 2.9434 ns/op
+OverheadWarmup   5: 262144 op, 857900.00 ns, 3.2726 ns/op
+OverheadWarmup   6: 262144 op, 762800.00 ns, 2.9099 ns/op
+OverheadWarmup   7: 262144 op, 763000.00 ns, 2.9106 ns/op
+OverheadWarmup   8: 262144 op, 755600.00 ns, 2.8824 ns/op
+
+OverheadActual   1: 262144 op, 759700.00 ns, 2.8980 ns/op
+OverheadActual   2: 262144 op, 762100.00 ns, 2.9072 ns/op
+OverheadActual   3: 262144 op, 753700.00 ns, 2.8751 ns/op
+OverheadActual   4: 262144 op, 755100.00 ns, 2.8805 ns/op
+OverheadActual   5: 262144 op, 750400.00 ns, 2.8625 ns/op
+OverheadActual   6: 262144 op, 757400.00 ns, 2.8893 ns/op
+OverheadActual   7: 262144 op, 737900.00 ns, 2.8149 ns/op
+OverheadActual   8: 262144 op, 741300.00 ns, 2.8278 ns/op
+OverheadActual   9: 262144 op, 741900.00 ns, 2.8301 ns/op
+OverheadActual  10: 262144 op, 749500.00 ns, 2.8591 ns/op
+OverheadActual  11: 262144 op, 757700.00 ns, 2.8904 ns/op
+OverheadActual  12: 262144 op, 754900.00 ns, 2.8797 ns/op
+OverheadActual  13: 262144 op, 753100.00 ns, 2.8728 ns/op
+OverheadActual  14: 262144 op, 749100.00 ns, 2.8576 ns/op
+OverheadActual  15: 262144 op, 759900.00 ns, 2.8988 ns/op
+
+WorkloadWarmup   1: 262144 op, 775968200.00 ns, 2.9601 us/op
+WorkloadWarmup   2: 262144 op, 772677800.00 ns, 2.9475 us/op
+WorkloadWarmup   3: 262144 op, 760489700.00 ns, 2.9010 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 262144 op, 775327000.00 ns, 2.9576 us/op
+WorkloadActual   2: 262144 op, 778860400.00 ns, 2.9711 us/op
+WorkloadActual   3: 262144 op, 783276800.00 ns, 2.9880 us/op
+WorkloadActual   4: 262144 op, 771750800.00 ns, 2.9440 us/op
+WorkloadActual   5: 262144 op, 780723100.00 ns, 2.9782 us/op
+WorkloadActual   6: 262144 op, 785131800.00 ns, 2.9950 us/op
+WorkloadActual   7: 262144 op, 776231300.00 ns, 2.9611 us/op
+WorkloadActual   8: 262144 op, 799897400.00 ns, 3.0514 us/op
+WorkloadActual   9: 262144 op, 759472900.00 ns, 2.8972 us/op
+WorkloadActual  10: 262144 op, 796456800.00 ns, 3.0382 us/op
+
+// AfterActualRun
+WorkloadResult   1: 262144 op, 774573300.00 ns, 2.9548 us/op
+WorkloadResult   2: 262144 op, 778106700.00 ns, 2.9682 us/op
+WorkloadResult   3: 262144 op, 782523100.00 ns, 2.9851 us/op
+WorkloadResult   4: 262144 op, 770997100.00 ns, 2.9411 us/op
+WorkloadResult   5: 262144 op, 779969400.00 ns, 2.9753 us/op
+WorkloadResult   6: 262144 op, 784378100.00 ns, 2.9922 us/op
+WorkloadResult   7: 262144 op, 775477600.00 ns, 2.9582 us/op
+WorkloadResult   8: 262144 op, 758719200.00 ns, 2.8943 us/op
+WorkloadResult   9: 262144 op, 795703100.00 ns, 3.0354 us/op
+// GC:  354 0 0 6677331968 262144
+// Threading:  0 0 262144
+
+// AfterAll
+// Benchmark Process 6960 has exited with code 0.
+
+Mean = 2.967 μs, StdErr = 0.013 μs (0.43%), N = 9, StdDev = 0.039 μs
+Min = 2.894 μs, Q1 = 2.955 μs, Median = 2.968 μs, Q3 = 2.985 μs, Max = 3.035 μs
+IQR = 0.030 μs, LowerFence = 2.909 μs, UpperFence = 3.031 μs
+ConfidenceInterval = [2.902 μs; 3.032 μs] (CI 99.9%), Margin = 0.065 μs (2.18% of Mean)
+Skewness = -0.13, Kurtosis = 2.56, MValue = 2
+
+// ** Remained 2 (25.0%) benchmark(s) to run. Estimated finish 2026-05-04 18:22 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=32]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-YFEFPZ-1.dll --anonymousPipes 2948 2988 --benchmarkName "SphereBenchmarks.Original(Segments: 64, Rings: 32)" --job "IterationCount=10, WarmupCount=3" --benchmarkId 6 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 164200.00 ns, 164.2000 us/op
+WorkloadJitting  1: 1 op, 624900.00 ns, 624.9000 us/op
+
+OverheadJitting  2: 16 op, 280200.00 ns, 17.5125 us/op
+WorkloadJitting  2: 16 op, 1986800.00 ns, 124.1750 us/op
+
+WorkloadPilot    1: 16 op, 982800.00 ns, 61.4250 us/op
+WorkloadPilot    2: 32 op, 1637400.00 ns, 51.1688 us/op
+WorkloadPilot    3: 64 op, 3424900.00 ns, 53.5141 us/op
+WorkloadPilot    4: 128 op, 6709200.00 ns, 52.4156 us/op
+WorkloadPilot    5: 256 op, 12406200.00 ns, 48.4617 us/op
+WorkloadPilot    6: 512 op, 23231800.00 ns, 45.3746 us/op
+WorkloadPilot    7: 1024 op, 45414300.00 ns, 44.3499 us/op
+WorkloadPilot    8: 2048 op, 82819700.00 ns, 40.4393 us/op
+WorkloadPilot    9: 4096 op, 140988000.00 ns, 34.4209 us/op
+WorkloadPilot   10: 8192 op, 277865800.00 ns, 33.9192 us/op
+WorkloadPilot   11: 16384 op, 553361100.00 ns, 33.7745 us/op
+
+OverheadWarmup   1: 16384 op, 48200.00 ns, 2.9419 ns/op
+OverheadWarmup   2: 16384 op, 45900.00 ns, 2.8015 ns/op
+OverheadWarmup   3: 16384 op, 45900.00 ns, 2.8015 ns/op
+OverheadWarmup   4: 16384 op, 45700.00 ns, 2.7893 ns/op
+OverheadWarmup   5: 16384 op, 47600.00 ns, 2.9053 ns/op
+OverheadWarmup   6: 16384 op, 47100.00 ns, 2.8748 ns/op
+
+OverheadActual   1: 16384 op, 47500.00 ns, 2.8992 ns/op
+OverheadActual   2: 16384 op, 46500.00 ns, 2.8381 ns/op
+OverheadActual   3: 16384 op, 47400.00 ns, 2.8931 ns/op
+OverheadActual   4: 16384 op, 47300.00 ns, 2.8870 ns/op
+OverheadActual   5: 16384 op, 45400.00 ns, 2.7710 ns/op
+OverheadActual   6: 16384 op, 46400.00 ns, 2.8320 ns/op
+OverheadActual   7: 16384 op, 47600.00 ns, 2.9053 ns/op
+OverheadActual   8: 16384 op, 46000.00 ns, 2.8076 ns/op
+OverheadActual   9: 16384 op, 46500.00 ns, 2.8381 ns/op
+OverheadActual  10: 16384 op, 47200.00 ns, 2.8809 ns/op
+OverheadActual  11: 16384 op, 47900.00 ns, 2.9236 ns/op
+OverheadActual  12: 16384 op, 50000.00 ns, 3.0518 ns/op
+OverheadActual  13: 16384 op, 46700.00 ns, 2.8503 ns/op
+OverheadActual  14: 16384 op, 47300.00 ns, 2.8870 ns/op
+OverheadActual  15: 16384 op, 48400.00 ns, 2.9541 ns/op
+
+WorkloadWarmup   1: 16384 op, 557598900.00 ns, 34.0331 us/op
+WorkloadWarmup   2: 16384 op, 548349500.00 ns, 33.4686 us/op
+WorkloadWarmup   3: 16384 op, 554094300.00 ns, 33.8192 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 16384 op, 554492700.00 ns, 33.8435 us/op
+WorkloadActual   2: 16384 op, 547398400.00 ns, 33.4105 us/op
+WorkloadActual   3: 16384 op, 554332400.00 ns, 33.8338 us/op
+WorkloadActual   4: 16384 op, 558454000.00 ns, 34.0853 us/op
+WorkloadActual   5: 16384 op, 552043000.00 ns, 33.6940 us/op
+WorkloadActual   6: 16384 op, 547695400.00 ns, 33.4287 us/op
+WorkloadActual   7: 16384 op, 554232500.00 ns, 33.8277 us/op
+WorkloadActual   8: 16384 op, 549241800.00 ns, 33.5231 us/op
+WorkloadActual   9: 16384 op, 552027500.00 ns, 33.6931 us/op
+WorkloadActual  10: 16384 op, 547028600.00 ns, 33.3880 us/op
+
+// AfterActualRun
+WorkloadResult   1: 16384 op, 554445400.00 ns, 33.8407 us/op
+WorkloadResult   2: 16384 op, 547351100.00 ns, 33.4077 us/op
+WorkloadResult   3: 16384 op, 554285100.00 ns, 33.8309 us/op
+WorkloadResult   4: 16384 op, 558406700.00 ns, 34.0824 us/op
+WorkloadResult   5: 16384 op, 551995700.00 ns, 33.6911 us/op
+WorkloadResult   6: 16384 op, 547648100.00 ns, 33.4258 us/op
+WorkloadResult   7: 16384 op, 554185200.00 ns, 33.8248 us/op
+WorkloadResult   8: 16384 op, 549194500.00 ns, 33.5202 us/op
+WorkloadResult   9: 16384 op, 551980200.00 ns, 33.6902 us/op
+WorkloadResult  10: 16384 op, 546981300.00 ns, 33.3851 us/op
+// GC:  85 11 0 1613496320 16384
+// Threading:  0 0 16384
+
+// AfterAll
+// Benchmark Process 38112 has exited with code 0.
+
+Mean = 33.670 μs, StdErr = 0.073 μs (0.22%), N = 10, StdDev = 0.231 μs
+Min = 33.385 μs, Q1 = 33.449 μs, Median = 33.691 μs, Q3 = 33.829 μs, Max = 34.082 μs
+IQR = 0.380 μs, LowerFence = 32.879 μs, UpperFence = 34.399 μs
+ConfidenceInterval = [33.320 μs; 34.020 μs] (CI 99.9%), Margin = 0.350 μs (1.04% of Mean)
+Skewness = 0.19, Kurtosis = 1.62, MValue = 2
+
+// ** Remained 1 (12.5%) benchmark(s) to run. Estimated finish 2026-05-04 18:22 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=32]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-YFEFPZ-1.dll --anonymousPipes 2900 676 --benchmarkName "SphereBenchmarks.Rewritten(Segments: 64, Rings: 32)" --job "IterationCount=10, WarmupCount=3" --benchmarkId 7 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-YFEFPZ-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 130800.00 ns, 130.8000 us/op
+WorkloadJitting  1: 1 op, 652500.00 ns, 652.5000 us/op
+
+OverheadJitting  2: 16 op, 281000.00 ns, 17.5625 us/op
+WorkloadJitting  2: 16 op, 1930900.00 ns, 120.6813 us/op
+
+WorkloadPilot    1: 16 op, 513300.00 ns, 32.0813 us/op
+WorkloadPilot    2: 32 op, 772200.00 ns, 24.1313 us/op
+WorkloadPilot    3: 64 op, 1704700.00 ns, 26.6359 us/op
+WorkloadPilot    4: 128 op, 3345600.00 ns, 26.1375 us/op
+WorkloadPilot    5: 256 op, 5418100.00 ns, 21.1645 us/op
+WorkloadPilot    6: 512 op, 8277600.00 ns, 16.1672 us/op
+WorkloadPilot    7: 1024 op, 17461900.00 ns, 17.0526 us/op
+WorkloadPilot    8: 2048 op, 31336500.00 ns, 15.3010 us/op
+WorkloadPilot    9: 4096 op, 63258200.00 ns, 15.4439 us/op
+WorkloadPilot   10: 8192 op, 90885900.00 ns, 11.0945 us/op
+WorkloadPilot   11: 16384 op, 172824000.00 ns, 10.5483 us/op
+WorkloadPilot   12: 32768 op, 321230900.00 ns, 9.8032 us/op
+WorkloadPilot   13: 65536 op, 646282500.00 ns, 9.8615 us/op
+
+OverheadWarmup   1: 65536 op, 191900.00 ns, 2.9282 ns/op
+OverheadWarmup   2: 65536 op, 191100.00 ns, 2.9160 ns/op
+OverheadWarmup   3: 65536 op, 189000.00 ns, 2.8839 ns/op
+OverheadWarmup   4: 65536 op, 218800.00 ns, 3.3386 ns/op
+OverheadWarmup   5: 65536 op, 189800.00 ns, 2.8961 ns/op
+OverheadWarmup   6: 65536 op, 190000.00 ns, 2.8992 ns/op
+OverheadWarmup   7: 65536 op, 189800.00 ns, 2.8961 ns/op
+
+OverheadActual   1: 65536 op, 185900.00 ns, 2.8366 ns/op
+OverheadActual   2: 65536 op, 184400.00 ns, 2.8137 ns/op
+OverheadActual   3: 65536 op, 184500.00 ns, 2.8152 ns/op
+OverheadActual   4: 65536 op, 189000.00 ns, 2.8839 ns/op
+OverheadActual   5: 65536 op, 188100.00 ns, 2.8702 ns/op
+OverheadActual   6: 65536 op, 187800.00 ns, 2.8656 ns/op
+OverheadActual   7: 65536 op, 186100.00 ns, 2.8397 ns/op
+OverheadActual   8: 65536 op, 187900.00 ns, 2.8671 ns/op
+OverheadActual   9: 65536 op, 185600.00 ns, 2.8320 ns/op
+OverheadActual  10: 65536 op, 187000.00 ns, 2.8534 ns/op
+OverheadActual  11: 65536 op, 188300.00 ns, 2.8732 ns/op
+OverheadActual  12: 65536 op, 190200.00 ns, 2.9022 ns/op
+OverheadActual  13: 65536 op, 190400.00 ns, 2.9053 ns/op
+OverheadActual  14: 65536 op, 182900.00 ns, 2.7908 ns/op
+OverheadActual  15: 65536 op, 190200.00 ns, 2.9022 ns/op
+
+WorkloadWarmup   1: 65536 op, 642488900.00 ns, 9.8036 us/op
+WorkloadWarmup   2: 65536 op, 628985700.00 ns, 9.5976 us/op
+WorkloadWarmup   3: 65536 op, 620137700.00 ns, 9.4626 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 65536 op, 657274900.00 ns, 10.0292 us/op
+WorkloadActual   2: 65536 op, 643816600.00 ns, 9.8239 us/op
+WorkloadActual   3: 65536 op, 635902000.00 ns, 9.7031 us/op
+WorkloadActual   4: 65536 op, 656955300.00 ns, 10.0243 us/op
+WorkloadActual   5: 65536 op, 635459900.00 ns, 9.6963 us/op
+WorkloadActual   6: 65536 op, 641686900.00 ns, 9.7914 us/op
+WorkloadActual   7: 65536 op, 692868300.00 ns, 10.5723 us/op
+WorkloadActual   8: 65536 op, 649615000.00 ns, 9.9123 us/op
+WorkloadActual   9: 65536 op, 631996800.00 ns, 9.6435 us/op
+WorkloadActual  10: 65536 op, 639801500.00 ns, 9.7626 us/op
+
+// AfterActualRun
+WorkloadResult   1: 65536 op, 657087100.00 ns, 10.0264 us/op
+WorkloadResult   2: 65536 op, 643628800.00 ns, 9.8210 us/op
+WorkloadResult   3: 65536 op, 635714200.00 ns, 9.7002 us/op
+WorkloadResult   4: 65536 op, 656767500.00 ns, 10.0215 us/op
+WorkloadResult   5: 65536 op, 635272100.00 ns, 9.6935 us/op
+WorkloadResult   6: 65536 op, 641499100.00 ns, 9.7885 us/op
+WorkloadResult   7: 65536 op, 649427200.00 ns, 9.9095 us/op
+WorkloadResult   8: 65536 op, 631809000.00 ns, 9.6406 us/op
+WorkloadResult   9: 65536 op, 639613700.00 ns, 9.7597 us/op
+// GC:  344 0 0 6513754112 65536
+// Threading:  0 0 65536
+
+// AfterAll
+// Benchmark Process 12600 has exited with code 0.
+
+Mean = 9.818 μs, StdErr = 0.047 μs (0.48%), N = 9, StdDev = 0.141 μs
+Min = 9.641 μs, Q1 = 9.700 μs, Median = 9.788 μs, Q3 = 9.909 μs, Max = 10.026 μs
+IQR = 0.209 μs, LowerFence = 9.386 μs, UpperFence = 10.223 μs
+ConfidenceInterval = [9.582 μs; 10.054 μs] (CI 99.9%), Margin = 0.236 μs (2.41% of Mean)
+Skewness = 0.36, Kurtosis = 1.45, MValue = 2
+
+// ** Remained 0 (0.0%) benchmark(s) to run. Estimated finish 2026-05-04 18:22 (0h 0m from now) **
+Successfully reverted power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts\results\SphereBenchmarks-report.csv
+  BenchmarkDotNet.Artifacts\results\SphereBenchmarks-report-github.md
+  BenchmarkDotNet.Artifacts\results\SphereBenchmarks-report.html
+
+// * Detailed results *
+SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=8]
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 2.068 μs, StdErr = 0.007 μs (0.34%), N = 10, StdDev = 0.022 μs
+Min = 2.043 μs, Q1 = 2.052 μs, Median = 2.063 μs, Q3 = 2.080 μs, Max = 2.116 μs
+IQR = 0.028 μs, LowerFence = 2.010 μs, UpperFence = 2.123 μs
+ConfidenceInterval = [2.034 μs; 2.102 μs] (CI 99.9%), Margin = 0.034 μs (1.62% of Mean)
+Skewness = 0.74, Kurtosis = 2.53, MValue = 2
+-------------------- Histogram --------------------
+[2.034 μs ; 2.130 μs) | @@@@@@@@@@
+---------------------------------------------------
+
+SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=8]
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 781.875 ns, StdErr = 3.368 ns (0.43%), N = 10, StdDev = 10.650 ns
+Min = 772.505 ns, Q1 = 773.237 ns, Median = 779.172 ns, Q3 = 786.042 ns, Max = 800.738 ns
+IQR = 12.805 ns, LowerFence = 754.031 ns, UpperFence = 805.249 ns
+ConfidenceInterval = [765.774 ns; 797.976 ns] (CI 99.9%), Margin = 16.101 ns (2.06% of Mean)
+Skewness = 0.76, Kurtosis = 1.88, MValue = 2
+-------------------- Histogram --------------------
+[768.961 ns ; 807.226 ns) | @@@@@@@@@@
+---------------------------------------------------
+
+SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=32]
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 8.094 μs, StdErr = 0.021 μs (0.26%), N = 10, StdDev = 0.067 μs
+Min = 7.964 μs, Q1 = 8.056 μs, Median = 8.105 μs, Q3 = 8.134 μs, Max = 8.186 μs
+IQR = 0.078 μs, LowerFence = 7.939 μs, UpperFence = 8.250 μs
+ConfidenceInterval = [7.993 μs; 8.195 μs] (CI 99.9%), Margin = 0.101 μs (1.25% of Mean)
+Skewness = -0.44, Kurtosis = 2.07, MValue = 2
+-------------------- Histogram --------------------
+[7.924 μs ; 8.192 μs) | @@@@@@@@@@
+---------------------------------------------------
+
+SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=16, Rings=32]
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 2.625 μs, StdErr = 0.012 μs (0.46%), N = 9, StdDev = 0.036 μs
+Min = 2.578 μs, Q1 = 2.594 μs, Median = 2.614 μs, Q3 = 2.642 μs, Max = 2.678 μs
+IQR = 0.048 μs, LowerFence = 2.523 μs, UpperFence = 2.714 μs
+ConfidenceInterval = [2.564 μs; 2.685 μs] (CI 99.9%), Margin = 0.061 μs (2.31% of Mean)
+Skewness = 0.31, Kurtosis = 1.44, MValue = 2
+-------------------- Histogram --------------------
+[2.570 μs ; 2.684 μs) | @@@@@@@@@
+---------------------------------------------------
+
+SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=8]
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 8.507 μs, StdErr = 0.016 μs (0.18%), N = 10, StdDev = 0.050 μs
+Min = 8.423 μs, Q1 = 8.480 μs, Median = 8.508 μs, Q3 = 8.534 μs, Max = 8.583 μs
+IQR = 0.054 μs, LowerFence = 8.399 μs, UpperFence = 8.616 μs
+ConfidenceInterval = [8.432 μs; 8.582 μs] (CI 99.9%), Margin = 0.075 μs (0.88% of Mean)
+Skewness = -0.09, Kurtosis = 1.8, MValue = 2
+-------------------- Histogram --------------------
+[8.393 μs ; 8.601 μs) | @@@@@@@@@@
+---------------------------------------------------
+
+SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=8]
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 2.967 μs, StdErr = 0.013 μs (0.43%), N = 9, StdDev = 0.039 μs
+Min = 2.894 μs, Q1 = 2.955 μs, Median = 2.968 μs, Q3 = 2.985 μs, Max = 3.035 μs
+IQR = 0.030 μs, LowerFence = 2.909 μs, UpperFence = 3.031 μs
+ConfidenceInterval = [2.902 μs; 3.032 μs] (CI 99.9%), Margin = 0.065 μs (2.18% of Mean)
+Skewness = -0.13, Kurtosis = 2.56, MValue = 2
+-------------------- Histogram --------------------
+[2.889 μs ; 3.060 μs) | @@@@@@@@@
+---------------------------------------------------
+
+SphereBenchmarks.'Original — duplicate seam, pole rings, inline trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=32]
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 33.670 μs, StdErr = 0.073 μs (0.22%), N = 10, StdDev = 0.231 μs
+Min = 33.385 μs, Q1 = 33.449 μs, Median = 33.691 μs, Q3 = 33.829 μs, Max = 34.082 μs
+IQR = 0.380 μs, LowerFence = 32.879 μs, UpperFence = 34.399 μs
+ConfidenceInterval = [33.320 μs; 34.020 μs] (CI 99.9%), Margin = 0.350 μs (1.04% of Mean)
+Skewness = 0.19, Kurtosis = 1.62, MValue = 2
+-------------------- Histogram --------------------
+[33.244 μs ; 34.103 μs) | @@@@@@@@@@
+---------------------------------------------------
+
+SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': Job-YFEFPZ(IterationCount=10, WarmupCount=3) [Segments=64, Rings=32]
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 9.818 μs, StdErr = 0.047 μs (0.48%), N = 9, StdDev = 0.141 μs
+Min = 9.641 μs, Q1 = 9.700 μs, Median = 9.788 μs, Q3 = 9.909 μs, Max = 10.026 μs
+IQR = 0.209 μs, LowerFence = 9.386 μs, UpperFence = 10.223 μs
+ConfidenceInterval = [9.582 μs; 10.054 μs] (CI 99.9%), Margin = 0.236 μs (2.41% of Mean)
+Skewness = 0.36, Kurtosis = 1.45, MValue = 2
+-------------------- Histogram --------------------
+[9.552 μs ;  9.855 μs) | @@@@@@
+[9.855 μs ; 10.068 μs) | @@@
+---------------------------------------------------
+
+// * Summary *
+
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.8246/25H2/2025Update/HudsonValley2)
+Intel Core i9-14900KF 3.20GHz, 1 CPU, 32 logical and 24 physical cores
+.NET SDK 10.0.203
+  [Host]     : .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+  Job-YFEFPZ : .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+
+IterationCount=10  WarmupCount=3  
+
+| Method                                                    | Segments | Rings | Mean        | Error     | StdDev    | Ratio | Gen0   | Gen1   | Allocated | Alloc Ratio |
+|---------------------------------------------------------- |--------- |------ |------------:|----------:|----------:|------:|-------:|-------:|----------:|------------:|
+| 'Original — duplicate seam, pole rings, inline trig'      | 16       | 8     |  2,068.1 ns |  33.60 ns |  22.22 ns |  1.00 | 0.3357 | 0.0076 |   6.17 KB |        1.00 |
+| 'Rewritten — pole vertices, seam wrap, pre-computed trig' | 16       | 8     |    781.9 ns |  16.10 ns |  10.65 ns |  0.38 | 0.3529 |      - |    6.5 KB |        1.05 |
+|                                                           |          |       |             |           |           |       |        |        |           |             |
+| 'Original — duplicate seam, pole rings, inline trig'      | 16       | 32    |  8,094.2 ns | 100.89 ns |  66.73 ns |  1.00 | 1.3123 | 0.0458 |  24.17 KB |        1.00 |
+| 'Rewritten — pole vertices, seam wrap, pre-computed trig' | 16       | 32    |  2,624.6 ns |  60.72 ns |  36.13 ns |  0.32 | 1.3428 | 0.0305 |  24.69 KB |        1.02 |
+|                                                           |          |       |             |           |           |       |        |        |           |             |
+| 'Original — duplicate seam, pole rings, inline trig'      | 64       | 8     |  8,507.3 ns |  75.06 ns |  49.65 ns |  1.00 | 1.3123 | 0.0458 |  24.17 KB |        1.00 |
+| 'Rewritten — pole vertices, seam wrap, pre-computed trig' | 64       | 8     |  2,967.2 ns |  64.78 ns |  38.55 ns |  0.35 | 1.3504 |      - |  24.88 KB |        1.03 |
+|                                                           |          |       |             |           |           |       |        |        |           |             |
+| 'Original — duplicate seam, pole rings, inline trig'      | 64       | 32    | 33,669.9 ns | 349.88 ns | 231.42 ns |  1.00 | 5.1880 | 0.6714 |  96.17 KB |        1.00 |
+| 'Rewritten — pole vertices, seam wrap, pre-computed trig' | 64       | 32    |  9,817.9 ns | 236.37 ns | 140.66 ns |  0.29 | 5.2490 |      - |  97.06 KB |        1.01 |
+
+// * Hints *
+Outliers
+  SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': IterationCount=10, WarmupCount=3 -> 1 outlier  was  removed (2.78 μs)
+  SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': IterationCount=10, WarmupCount=3 -> 1 outlier  was  removed, 2 outliers were detected (2.90 μs, 3.05 μs)
+  SphereBenchmarks.'Rewritten — pole vertices, seam wrap, pre-computed trig': IterationCount=10, WarmupCount=3 -> 1 outlier  was  removed (10.57 μs)
+
+// * Legends *
+  Segments    : Value of the 'Segments' parameter
+  Rings       : Value of the 'Rings' parameter
+  Mean        : Arithmetic mean of all measurements
+  Error       : Half of 99.9% confidence interval
+  StdDev      : Standard deviation of all measurements
+  Ratio       : Mean of the ratio distribution ([Current]/[Baseline])
+  Gen0        : GC Generation 0 collects per 1000 operations
+  Gen1        : GC Generation 1 collects per 1000 operations
+  Allocated   : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  Alloc Ratio : Allocated memory ratio distribution ([Current]/[Baseline])
+  1 ns        : 1 Nanosecond (0.000000001 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:01:24 (84.39 sec), executed benchmarks: 8
+
+Global total time: 00:01:34 (94.29 sec), executed benchmarks: 8
+// * Artifacts cleanup *
+Artifacts cleanup is finished

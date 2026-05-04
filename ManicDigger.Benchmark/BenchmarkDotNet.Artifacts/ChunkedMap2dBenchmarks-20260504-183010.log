@@ -1,0 +1,707 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 6 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1/" /p:OutDir="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0/" /p:OutputPath="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0/" /p:PublishDir="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\publish/" in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1
+// command took 0.8 sec and exited with 0
+// start dotnet  build -c Release --no-restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1/" /p:OutDir="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0/" /p:OutputPath="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0/" /p:PublishDir="C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\publish/" --output "C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0/" in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1
+// command took 8.82 sec and exited with 0
+// ***** Done, took 00:00:09 (9.67 sec)   *****
+// Found 6 benchmarks:
+//   ChunkedMap2dBenchmarks.'Original  — alloc all chunks (new T[])': Job-QKDGBD(InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3)
+//   ChunkedMap2dBenchmarks.'Rewritten — alloc all chunks (ArrayPool)': Job-QKDGBD(InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3)
+//   ChunkedMap2dBenchmarks.'Original  — GetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+//   ChunkedMap2dBenchmarks.'Rewritten — GetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+//   ChunkedMap2dBenchmarks.'Original  — SetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+//   ChunkedMap2dBenchmarks.'Rewritten — SetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: ChunkedMap2dBenchmarks.'Original  — alloc all chunks (new T[])': Job-QKDGBD(InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-QKDGBD-1.dll --anonymousPipes 2496 2504 --benchmarkName ChunkedMap2dBenchmarks.Original_AllocAllChunks --job "InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3" --benchmarkId 0 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-QKDGBD(InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 86900.00 ns, 86.9000 us/op
+WorkloadJitting  1: 1 op, 264400.00 ns, 264.4000 us/op
+
+OverheadWarmup   1: 1 op, 200.00 ns, 200.0000 ns/op
+OverheadWarmup   2: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   3: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   4: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   5: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   6: 1 op, 100.00 ns, 100.0000 ns/op
+
+OverheadActual   1: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   2: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   3: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   4: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   5: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   6: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   7: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   8: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   9: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  10: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  11: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  12: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  13: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  14: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  15: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  16: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  17: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  18: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  19: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  20: 1 op, 100.00 ns, 100.0000 ns/op
+
+WorkloadWarmup   1: 1 op, 14100.00 ns, 14.1000 us/op
+WorkloadWarmup   2: 1 op, 7600.00 ns, 7.6000 us/op
+WorkloadWarmup   3: 1 op, 7100.00 ns, 7.1000 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 1 op, 10300.00 ns, 10.3000 us/op
+WorkloadActual   2: 1 op, 7400.00 ns, 7.4000 us/op
+WorkloadActual   3: 1 op, 6800.00 ns, 6.8000 us/op
+WorkloadActual   4: 1 op, 6800.00 ns, 6.8000 us/op
+WorkloadActual   5: 1 op, 13400.00 ns, 13.4000 us/op
+WorkloadActual   6: 1 op, 11300.00 ns, 11.3000 us/op
+WorkloadActual   7: 1 op, 7100.00 ns, 7.1000 us/op
+WorkloadActual   8: 1 op, 7300.00 ns, 7.3000 us/op
+WorkloadActual   9: 1 op, 12000.00 ns, 12.0000 us/op
+WorkloadActual  10: 1 op, 6800.00 ns, 6.8000 us/op
+
+// AfterActualRun
+WorkloadResult   1: 1 op, 10200.00 ns, 10.2000 us/op
+WorkloadResult   2: 1 op, 7300.00 ns, 7.3000 us/op
+WorkloadResult   3: 1 op, 6700.00 ns, 6.7000 us/op
+WorkloadResult   4: 1 op, 6700.00 ns, 6.7000 us/op
+WorkloadResult   5: 1 op, 13300.00 ns, 13.3000 us/op
+WorkloadResult   6: 1 op, 11200.00 ns, 11.2000 us/op
+WorkloadResult   7: 1 op, 7000.00 ns, 7.0000 us/op
+WorkloadResult   8: 1 op, 7200.00 ns, 7.2000 us/op
+WorkloadResult   9: 1 op, 11900.00 ns, 11.9000 us/op
+WorkloadResult  10: 1 op, 6700.00 ns, 6.7000 us/op
+// GC:  0 0 0 268288 1
+// Threading:  0 0 1
+
+// AfterAll
+// Benchmark Process 7004 has exited with code 0.
+
+Mean = 8.820 μs, StdErr = 0.809 μs (9.17%), N = 10, StdDev = 2.557 μs
+Min = 6.700 μs, Q1 = 6.775 μs, Median = 7.250 μs, Q3 = 10.950 μs, Max = 13.300 μs
+IQR = 4.175 μs, LowerFence = 0.512 μs, UpperFence = 17.212 μs
+ConfidenceInterval = [4.954 μs; 12.686 μs] (CI 99.9%), Margin = 3.866 μs (43.83% of Mean)
+Skewness = 0.56, Kurtosis = 1.43, MValue = 3.33
+
+// ** Remained 5 (83.3%) benchmark(s) to run. Estimated finish 2026-05-04 18:30 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: ChunkedMap2dBenchmarks.'Rewritten — alloc all chunks (ArrayPool)': Job-QKDGBD(InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-QKDGBD-1.dll --anonymousPipes 2484 2552 --benchmarkName ChunkedMap2dBenchmarks.Rewritten_AllocAllChunks --job "InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3" --benchmarkId 1 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-QKDGBD(InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 90200.00 ns, 90.2000 us/op
+WorkloadJitting  1: 1 op, 211200.00 ns, 211.2000 us/op
+
+OverheadWarmup   1: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   2: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   3: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadWarmup   4: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   5: 1 op, 100.00 ns, 100.0000 ns/op
+
+OverheadActual   1: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   2: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   3: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   4: 1 op, 200.00 ns, 200.0000 ns/op
+OverheadActual   5: 1 op, 200.00 ns, 200.0000 ns/op
+OverheadActual   6: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   7: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   8: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   9: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  10: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  11: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  12: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  13: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  14: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  15: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  16: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  17: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  18: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  19: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  20: 1 op, 100.00 ns, 100.0000 ns/op
+
+WorkloadWarmup   1: 1 op, 16600.00 ns, 16.6000 us/op
+WorkloadWarmup   2: 1 op, 11100.00 ns, 11.1000 us/op
+WorkloadWarmup   3: 1 op, 17400.00 ns, 17.4000 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 1 op, 15900.00 ns, 15.9000 us/op
+WorkloadActual   2: 1 op, 10800.00 ns, 10.8000 us/op
+WorkloadActual   3: 1 op, 10300.00 ns, 10.3000 us/op
+WorkloadActual   4: 1 op, 10500.00 ns, 10.5000 us/op
+WorkloadActual   5: 1 op, 15800.00 ns, 15.8000 us/op
+WorkloadActual   6: 1 op, 11100.00 ns, 11.1000 us/op
+WorkloadActual   7: 1 op, 10600.00 ns, 10.6000 us/op
+WorkloadActual   8: 1 op, 10700.00 ns, 10.7000 us/op
+WorkloadActual   9: 1 op, 10400.00 ns, 10.4000 us/op
+WorkloadActual  10: 1 op, 10400.00 ns, 10.4000 us/op
+
+// AfterActualRun
+WorkloadResult   1: 1 op, 10700.00 ns, 10.7000 us/op
+WorkloadResult   2: 1 op, 10200.00 ns, 10.2000 us/op
+WorkloadResult   3: 1 op, 10400.00 ns, 10.4000 us/op
+WorkloadResult   4: 1 op, 11000.00 ns, 11.0000 us/op
+WorkloadResult   5: 1 op, 10500.00 ns, 10.5000 us/op
+WorkloadResult   6: 1 op, 10600.00 ns, 10.6000 us/op
+WorkloadResult   7: 1 op, 10300.00 ns, 10.3000 us/op
+WorkloadResult   8: 1 op, 10300.00 ns, 10.3000 us/op
+// GC:  0 0 0 268288 1
+// Threading:  0 0 1
+
+// AfterAll
+// Benchmark Process 17236 has exited with code 0.
+
+Mean = 10.500 μs, StdErr = 0.093 μs (0.88%), N = 8, StdDev = 0.262 μs
+Min = 10.200 μs, Q1 = 10.300 μs, Median = 10.450 μs, Q3 = 10.625 μs, Max = 11.000 μs
+IQR = 0.325 μs, LowerFence = 9.812 μs, UpperFence = 11.113 μs
+ConfidenceInterval = [9.999 μs; 11.001 μs] (CI 99.9%), Margin = 0.501 μs (4.77% of Mean)
+Skewness = 0.63, Kurtosis = 2.01, MValue = 2
+
+// ** Remained 4 (66.7%) benchmark(s) to run. Estimated finish 2026-05-04 18:30 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: ChunkedMap2dBenchmarks.'Original  — GetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-QKDGBD-1.dll --anonymousPipes 2472 2692 --benchmarkName ChunkedMap2dBenchmarks.Original_GetBlock --job "IterationCount=10, WarmupCount=3" --benchmarkId 2 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 124000.00 ns, 124.0000 us/op
+WorkloadJitting  1: 1 op, 592800.00 ns, 592.8000 us/op
+
+OverheadJitting  2: 16 op, 214000.00 ns, 13.3750 us/op
+WorkloadJitting  2: 16 op, 1138700.00 ns, 71.1688 us/op
+
+WorkloadPilot    1: 16 op, 898900.00 ns, 56.1813 us/op
+WorkloadPilot    2: 32 op, 1781600.00 ns, 55.6750 us/op
+WorkloadPilot    3: 64 op, 3506600.00 ns, 54.7906 us/op
+WorkloadPilot    4: 128 op, 6956100.00 ns, 54.3445 us/op
+WorkloadPilot    5: 256 op, 13874800.00 ns, 54.1984 us/op
+WorkloadPilot    6: 512 op, 27421300.00 ns, 53.5572 us/op
+WorkloadPilot    7: 1024 op, 54777400.00 ns, 53.4936 us/op
+WorkloadPilot    8: 2048 op, 98855500.00 ns, 48.2693 us/op
+WorkloadPilot    9: 4096 op, 181705900.00 ns, 44.3618 us/op
+WorkloadPilot   10: 8192 op, 363584500.00 ns, 44.3829 us/op
+WorkloadPilot   11: 16384 op, 721956300.00 ns, 44.0647 us/op
+
+OverheadWarmup   1: 16384 op, 28000.00 ns, 1.7090 ns/op
+OverheadWarmup   2: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadWarmup   3: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadWarmup   4: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadWarmup   5: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadWarmup   6: 16384 op, 26900.00 ns, 1.6418 ns/op
+OverheadWarmup   7: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadWarmup   8: 16384 op, 26900.00 ns, 1.6418 ns/op
+
+OverheadActual   1: 16384 op, 27500.00 ns, 1.6785 ns/op
+OverheadActual   2: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual   3: 16384 op, 27300.00 ns, 1.6663 ns/op
+OverheadActual   4: 16384 op, 42600.00 ns, 2.6001 ns/op
+OverheadActual   5: 16384 op, 27500.00 ns, 1.6785 ns/op
+OverheadActual   6: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadActual   7: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadActual   8: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadActual   9: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual  10: 16384 op, 27000.00 ns, 1.6479 ns/op
+OverheadActual  11: 16384 op, 27000.00 ns, 1.6479 ns/op
+OverheadActual  12: 16384 op, 55900.00 ns, 3.4119 ns/op
+OverheadActual  13: 16384 op, 27400.00 ns, 1.6724 ns/op
+OverheadActual  14: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual  15: 16384 op, 27100.00 ns, 1.6541 ns/op
+
+WorkloadWarmup   1: 16384 op, 732466600.00 ns, 44.7062 us/op
+WorkloadWarmup   2: 16384 op, 734564900.00 ns, 44.8343 us/op
+WorkloadWarmup   3: 16384 op, 741561100.00 ns, 45.2613 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 16384 op, 725577900.00 ns, 44.2858 us/op
+WorkloadActual   2: 16384 op, 727735000.00 ns, 44.4174 us/op
+WorkloadActual   3: 16384 op, 731650600.00 ns, 44.6564 us/op
+WorkloadActual   4: 16384 op, 723758900.00 ns, 44.1747 us/op
+WorkloadActual   5: 16384 op, 727511600.00 ns, 44.4038 us/op
+WorkloadActual   6: 16384 op, 724136000.00 ns, 44.1978 us/op
+WorkloadActual   7: 16384 op, 724532300.00 ns, 44.2219 us/op
+WorkloadActual   8: 16384 op, 720014100.00 ns, 43.9462 us/op
+WorkloadActual   9: 16384 op, 721422700.00 ns, 44.0321 us/op
+WorkloadActual  10: 16384 op, 728493400.00 ns, 44.4637 us/op
+
+// AfterActualRun
+WorkloadResult   1: 16384 op, 725550700.00 ns, 44.2841 us/op
+WorkloadResult   2: 16384 op, 727707800.00 ns, 44.4158 us/op
+WorkloadResult   3: 16384 op, 731623400.00 ns, 44.6547 us/op
+WorkloadResult   4: 16384 op, 723731700.00 ns, 44.1731 us/op
+WorkloadResult   5: 16384 op, 727484400.00 ns, 44.4021 us/op
+WorkloadResult   6: 16384 op, 724108800.00 ns, 44.1961 us/op
+WorkloadResult   7: 16384 op, 724505100.00 ns, 44.2203 us/op
+WorkloadResult   8: 16384 op, 719986900.00 ns, 43.9445 us/op
+WorkloadResult   9: 16384 op, 721395500.00 ns, 44.0305 us/op
+WorkloadResult  10: 16384 op, 728466200.00 ns, 44.4620 us/op
+// GC:  0 0 0 0 16384
+// Threading:  0 0 16384
+
+// AfterAll
+// Benchmark Process 19556 has exited with code 0.
+
+Mean = 44.278 μs, StdErr = 0.067 μs (0.15%), N = 10, StdDev = 0.212 μs
+Min = 43.945 μs, Q1 = 44.179 μs, Median = 44.252 μs, Q3 = 44.412 μs, Max = 44.655 μs
+IQR = 0.234 μs, LowerFence = 43.829 μs, UpperFence = 44.763 μs
+ConfidenceInterval = [43.958 μs; 44.599 μs] (CI 99.9%), Margin = 0.320 μs (0.72% of Mean)
+Skewness = 0.1, Kurtosis = 1.9, MValue = 2
+
+// ** Remained 3 (50.0%) benchmark(s) to run. Estimated finish 2026-05-04 18:30 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: ChunkedMap2dBenchmarks.'Rewritten — GetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-QKDGBD-1.dll --anonymousPipes 2604 2600 --benchmarkName ChunkedMap2dBenchmarks.Rewritten_GetBlock --job "IterationCount=10, WarmupCount=3" --benchmarkId 3 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 111200.00 ns, 111.2000 us/op
+WorkloadJitting  1: 1 op, 571600.00 ns, 571.6000 us/op
+
+OverheadJitting  2: 16 op, 211400.00 ns, 13.2125 us/op
+WorkloadJitting  2: 16 op, 1219200.00 ns, 76.2000 us/op
+
+WorkloadPilot    1: 16 op, 971000.00 ns, 60.6875 us/op
+WorkloadPilot    2: 32 op, 1927900.00 ns, 60.2469 us/op
+WorkloadPilot    3: 64 op, 3800700.00 ns, 59.3859 us/op
+WorkloadPilot    4: 128 op, 7515800.00 ns, 58.7172 us/op
+WorkloadPilot    5: 256 op, 15294700.00 ns, 59.7449 us/op
+WorkloadPilot    6: 512 op, 29473800.00 ns, 57.5660 us/op
+WorkloadPilot    7: 1024 op, 58645700.00 ns, 57.2712 us/op
+WorkloadPilot    8: 2048 op, 112135800.00 ns, 54.7538 us/op
+WorkloadPilot    9: 4096 op, 220237300.00 ns, 53.7689 us/op
+WorkloadPilot   10: 8192 op, 439879700.00 ns, 53.6963 us/op
+WorkloadPilot   11: 16384 op, 878973800.00 ns, 53.6483 us/op
+
+OverheadWarmup   1: 16384 op, 28900.00 ns, 1.7639 ns/op
+OverheadWarmup   2: 16384 op, 27300.00 ns, 1.6663 ns/op
+OverheadWarmup   3: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadWarmup   4: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadWarmup   5: 16384 op, 27400.00 ns, 1.6724 ns/op
+OverheadWarmup   6: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadWarmup   7: 16384 op, 27000.00 ns, 1.6479 ns/op
+OverheadWarmup   8: 16384 op, 26900.00 ns, 1.6418 ns/op
+
+OverheadActual   1: 16384 op, 35300.00 ns, 2.1545 ns/op
+OverheadActual   2: 16384 op, 29700.00 ns, 1.8127 ns/op
+OverheadActual   3: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual   4: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual   5: 16384 op, 27500.00 ns, 1.6785 ns/op
+OverheadActual   6: 16384 op, 26900.00 ns, 1.6418 ns/op
+OverheadActual   7: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual   8: 16384 op, 27000.00 ns, 1.6479 ns/op
+OverheadActual   9: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual  10: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadActual  11: 16384 op, 26900.00 ns, 1.6418 ns/op
+OverheadActual  12: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadActual  13: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual  14: 16384 op, 26900.00 ns, 1.6418 ns/op
+OverheadActual  15: 16384 op, 27000.00 ns, 1.6479 ns/op
+
+WorkloadWarmup   1: 16384 op, 883254200.00 ns, 53.9096 us/op
+WorkloadWarmup   2: 16384 op, 884734100.00 ns, 53.9999 us/op
+WorkloadWarmup   3: 16384 op, 889344000.00 ns, 54.2813 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 16384 op, 881982800.00 ns, 53.8320 us/op
+WorkloadActual   2: 16384 op, 882520700.00 ns, 53.8648 us/op
+WorkloadActual   3: 16384 op, 884248500.00 ns, 53.9702 us/op
+WorkloadActual   4: 16384 op, 882449100.00 ns, 53.8604 us/op
+WorkloadActual   5: 16384 op, 884138300.00 ns, 53.9635 us/op
+WorkloadActual   6: 16384 op, 883197200.00 ns, 53.9061 us/op
+WorkloadActual   7: 16384 op, 882887600.00 ns, 53.8872 us/op
+WorkloadActual   8: 16384 op, 889220500.00 ns, 54.2737 us/op
+WorkloadActual   9: 16384 op, 889533100.00 ns, 54.2928 us/op
+WorkloadActual  10: 16384 op, 884846600.00 ns, 54.0068 us/op
+
+// AfterActualRun
+WorkloadResult   1: 16384 op, 881955600.00 ns, 53.8303 us/op
+WorkloadResult   2: 16384 op, 882493500.00 ns, 53.8631 us/op
+WorkloadResult   3: 16384 op, 884221300.00 ns, 53.9686 us/op
+WorkloadResult   4: 16384 op, 882421900.00 ns, 53.8588 us/op
+WorkloadResult   5: 16384 op, 884111100.00 ns, 53.9619 us/op
+WorkloadResult   6: 16384 op, 883170000.00 ns, 53.9044 us/op
+WorkloadResult   7: 16384 op, 882860400.00 ns, 53.8855 us/op
+WorkloadResult   8: 16384 op, 884819400.00 ns, 54.0051 us/op
+// GC:  0 0 0 0 16384
+// Threading:  0 0 16384
+
+// AfterAll
+// Benchmark Process 32448 has exited with code 0.
+
+Mean = 53.910 μs, StdErr = 0.022 μs (0.04%), N = 8, StdDev = 0.062 μs
+Min = 53.830 μs, Q1 = 53.862 μs, Median = 53.895 μs, Q3 = 53.964 μs, Max = 54.005 μs
+IQR = 0.102 μs, LowerFence = 53.710 μs, UpperFence = 54.116 μs
+ConfidenceInterval = [53.791 μs; 54.028 μs] (CI 99.9%), Margin = 0.119 μs (0.22% of Mean)
+Skewness = 0.24, Kurtosis = 1.29, MValue = 2
+
+// ** Remained 2 (33.3%) benchmark(s) to run. Estimated finish 2026-05-04 18:30 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: ChunkedMap2dBenchmarks.'Original  — SetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-QKDGBD-1.dll --anonymousPipes 2504 2544 --benchmarkName ChunkedMap2dBenchmarks.Original_SetBlock --job "IterationCount=10, WarmupCount=3" --benchmarkId 4 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 92800.00 ns, 92.8000 us/op
+WorkloadJitting  1: 1 op, 566900.00 ns, 566.9000 us/op
+
+OverheadJitting  2: 16 op, 127000.00 ns, 7.9375 us/op
+WorkloadJitting  2: 16 op, 1054400.00 ns, 65.9000 us/op
+
+WorkloadPilot    1: 16 op, 883400.00 ns, 55.2125 us/op
+WorkloadPilot    2: 32 op, 1771900.00 ns, 55.3719 us/op
+WorkloadPilot    3: 64 op, 3395000.00 ns, 53.0469 us/op
+WorkloadPilot    4: 128 op, 7181500.00 ns, 56.1055 us/op
+WorkloadPilot    5: 256 op, 13793300.00 ns, 53.8801 us/op
+WorkloadPilot    6: 512 op, 27240700.00 ns, 53.2045 us/op
+WorkloadPilot    7: 1024 op, 54277900.00 ns, 53.0058 us/op
+WorkloadPilot    8: 2048 op, 98465200.00 ns, 48.0787 us/op
+WorkloadPilot    9: 4096 op, 185969100.00 ns, 45.4026 us/op
+WorkloadPilot   10: 8192 op, 377517200.00 ns, 46.0836 us/op
+WorkloadPilot   11: 16384 op, 753307700.00 ns, 45.9783 us/op
+
+OverheadWarmup   1: 16384 op, 29300.00 ns, 1.7883 ns/op
+OverheadWarmup   2: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadWarmup   3: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadWarmup   4: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadWarmup   5: 16384 op, 27500.00 ns, 1.6785 ns/op
+OverheadWarmup   6: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadWarmup   7: 16384 op, 27100.00 ns, 1.6541 ns/op
+
+OverheadActual   1: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual   2: 16384 op, 27400.00 ns, 1.6724 ns/op
+OverheadActual   3: 16384 op, 27000.00 ns, 1.6479 ns/op
+OverheadActual   4: 16384 op, 27000.00 ns, 1.6479 ns/op
+OverheadActual   5: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual   6: 16384 op, 27500.00 ns, 1.6785 ns/op
+OverheadActual   7: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadActual   8: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadActual   9: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadActual  10: 16384 op, 27400.00 ns, 1.6724 ns/op
+OverheadActual  11: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadActual  12: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadActual  13: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadActual  14: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadActual  15: 16384 op, 26900.00 ns, 1.6418 ns/op
+
+WorkloadWarmup   1: 16384 op, 742640400.00 ns, 45.3272 us/op
+WorkloadWarmup   2: 16384 op, 746073500.00 ns, 45.5367 us/op
+WorkloadWarmup   3: 16384 op, 759257900.00 ns, 46.3414 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 16384 op, 756769400.00 ns, 46.1895 us/op
+WorkloadActual   2: 16384 op, 748023700.00 ns, 45.6557 us/op
+WorkloadActual   3: 16384 op, 746959100.00 ns, 45.5908 us/op
+WorkloadActual   4: 16384 op, 751473900.00 ns, 45.8663 us/op
+WorkloadActual   5: 16384 op, 757844000.00 ns, 46.2551 us/op
+WorkloadActual   6: 16384 op, 760105000.00 ns, 46.3931 us/op
+WorkloadActual   7: 16384 op, 751608400.00 ns, 45.8745 us/op
+WorkloadActual   8: 16384 op, 756039700.00 ns, 46.1450 us/op
+WorkloadActual   9: 16384 op, 750019500.00 ns, 45.7776 us/op
+WorkloadActual  10: 16384 op, 740975300.00 ns, 45.2255 us/op
+
+// AfterActualRun
+WorkloadResult   1: 16384 op, 756742300.00 ns, 46.1879 us/op
+WorkloadResult   2: 16384 op, 747996600.00 ns, 45.6541 us/op
+WorkloadResult   3: 16384 op, 746932000.00 ns, 45.5891 us/op
+WorkloadResult   4: 16384 op, 751446800.00 ns, 45.8647 us/op
+WorkloadResult   5: 16384 op, 757816900.00 ns, 46.2535 us/op
+WorkloadResult   6: 16384 op, 760077900.00 ns, 46.3915 us/op
+WorkloadResult   7: 16384 op, 751581300.00 ns, 45.8729 us/op
+WorkloadResult   8: 16384 op, 756012600.00 ns, 46.1433 us/op
+WorkloadResult   9: 16384 op, 749992400.00 ns, 45.7759 us/op
+WorkloadResult  10: 16384 op, 740948200.00 ns, 45.2239 us/op
+// GC:  0 0 0 0 16384
+// Threading:  0 0 16384
+
+// AfterAll
+// Benchmark Process 30620 has exited with code 0.
+
+Mean = 45.896 μs, StdErr = 0.113 μs (0.25%), N = 10, StdDev = 0.356 μs
+Min = 45.224 μs, Q1 = 45.685 μs, Median = 45.869 μs, Q3 = 46.177 μs, Max = 46.391 μs
+IQR = 0.492 μs, LowerFence = 44.946 μs, UpperFence = 46.915 μs
+ConfidenceInterval = [45.358 μs; 46.434 μs] (CI 99.9%), Margin = 0.538 μs (1.17% of Mean)
+Skewness = -0.31, Kurtosis = 1.89, MValue = 2
+
+// ** Remained 1 (16.7%) benchmark(s) to run. Estimated finish 2026-05-04 18:31 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: ChunkedMap2dBenchmarks.'Rewritten — SetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet ManicDigger.Benchmark-Job-QKDGBD-1.dll --anonymousPipes 1256 2444 --benchmarkName ChunkedMap2dBenchmarks.Rewritten_SetBlock --job "IterationCount=10, WarmupCount=3" --benchmarkId 5 in C:\Users\aminp\source\repos\ManicDigger\ManicDigger.Benchmark\bin\Release\net10.0-windows\ManicDigger.Benchmark-Job-QKDGBD-1\bin\Release\net10.0-Windows7.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 90600.00 ns, 90.6000 us/op
+WorkloadJitting  1: 1 op, 1834400.00 ns, 1.8344 ms/op
+
+OverheadJitting  2: 16 op, 121200.00 ns, 7.5750 us/op
+WorkloadJitting  2: 16 op, 1171800.00 ns, 73.2375 us/op
+
+WorkloadPilot    1: 16 op, 1060400.00 ns, 66.2750 us/op
+WorkloadPilot    2: 32 op, 2037200.00 ns, 63.6625 us/op
+WorkloadPilot    3: 64 op, 4031800.00 ns, 62.9969 us/op
+WorkloadPilot    4: 128 op, 8039100.00 ns, 62.8055 us/op
+WorkloadPilot    5: 256 op, 16039400.00 ns, 62.6539 us/op
+WorkloadPilot    6: 512 op, 32123300.00 ns, 62.7408 us/op
+WorkloadPilot    7: 1024 op, 66459500.00 ns, 64.9019 us/op
+WorkloadPilot    8: 2048 op, 113925500.00 ns, 55.6277 us/op
+WorkloadPilot    9: 4096 op, 221504600.00 ns, 54.0783 us/op
+WorkloadPilot   10: 8192 op, 470398700.00 ns, 57.4217 us/op
+WorkloadPilot   11: 16384 op, 961397900.00 ns, 58.6791 us/op
+
+OverheadWarmup   1: 16384 op, 28900.00 ns, 1.7639 ns/op
+OverheadWarmup   2: 16384 op, 27000.00 ns, 1.6479 ns/op
+OverheadWarmup   3: 16384 op, 27000.00 ns, 1.6479 ns/op
+OverheadWarmup   4: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadWarmup   5: 16384 op, 27200.00 ns, 1.6602 ns/op
+OverheadWarmup   6: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadWarmup   7: 16384 op, 30000.00 ns, 1.8311 ns/op
+
+OverheadActual   1: 16384 op, 27000.00 ns, 1.6479 ns/op
+OverheadActual   2: 16384 op, 27400.00 ns, 1.6724 ns/op
+OverheadActual   3: 16384 op, 27300.00 ns, 1.6663 ns/op
+OverheadActual   4: 16384 op, 26900.00 ns, 1.6418 ns/op
+OverheadActual   5: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadActual   6: 16384 op, 27500.00 ns, 1.6785 ns/op
+OverheadActual   7: 16384 op, 29700.00 ns, 1.8127 ns/op
+OverheadActual   8: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadActual   9: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadActual  10: 16384 op, 30200.00 ns, 1.8433 ns/op
+OverheadActual  11: 16384 op, 26800.00 ns, 1.6357 ns/op
+OverheadActual  12: 16384 op, 26900.00 ns, 1.6418 ns/op
+OverheadActual  13: 16384 op, 26900.00 ns, 1.6418 ns/op
+OverheadActual  14: 16384 op, 27100.00 ns, 1.6541 ns/op
+OverheadActual  15: 16384 op, 26800.00 ns, 1.6357 ns/op
+
+WorkloadWarmup   1: 16384 op, 969079600.00 ns, 59.1479 us/op
+WorkloadWarmup   2: 16384 op, 959067200.00 ns, 58.5368 us/op
+WorkloadWarmup   3: 16384 op, 971739800.00 ns, 59.3103 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 16384 op, 981061900.00 ns, 59.8793 us/op
+WorkloadActual   2: 16384 op, 971018500.00 ns, 59.2663 us/op
+WorkloadActual   3: 16384 op, 943908800.00 ns, 57.6116 us/op
+WorkloadActual   4: 16384 op, 960004500.00 ns, 58.5940 us/op
+WorkloadActual   5: 16384 op, 969994300.00 ns, 59.2038 us/op
+WorkloadActual   6: 16384 op, 971626100.00 ns, 59.3034 us/op
+WorkloadActual   7: 16384 op, 969660100.00 ns, 59.1834 us/op
+WorkloadActual   8: 16384 op, 967001700.00 ns, 59.0211 us/op
+WorkloadActual   9: 16384 op, 972798900.00 ns, 59.3749 us/op
+WorkloadActual  10: 16384 op, 962045400.00 ns, 58.7186 us/op
+
+// AfterActualRun
+WorkloadResult   1: 16384 op, 981034900.00 ns, 59.8776 us/op
+WorkloadResult   2: 16384 op, 970991500.00 ns, 59.2646 us/op
+WorkloadResult   3: 16384 op, 943881800.00 ns, 57.6100 us/op
+WorkloadResult   4: 16384 op, 959977500.00 ns, 58.5924 us/op
+WorkloadResult   5: 16384 op, 969967300.00 ns, 59.2021 us/op
+WorkloadResult   6: 16384 op, 971599100.00 ns, 59.3017 us/op
+WorkloadResult   7: 16384 op, 969633100.00 ns, 59.1817 us/op
+WorkloadResult   8: 16384 op, 966974700.00 ns, 59.0195 us/op
+WorkloadResult   9: 16384 op, 972771900.00 ns, 59.3733 us/op
+WorkloadResult  10: 16384 op, 962018400.00 ns, 58.7169 us/op
+// GC:  0 0 0 0 16384
+// Threading:  0 0 16384
+
+// AfterAll
+// Benchmark Process 37416 has exited with code 0.
+
+Mean = 59.014 μs, StdErr = 0.192 μs (0.33%), N = 10, StdDev = 0.607 μs
+Min = 57.610 μs, Q1 = 58.793 μs, Median = 59.192 μs, Q3 = 59.292 μs, Max = 59.878 μs
+IQR = 0.500 μs, LowerFence = 58.043 μs, UpperFence = 60.042 μs
+ConfidenceInterval = [58.096 μs; 59.932 μs] (CI 99.9%), Margin = 0.918 μs (1.56% of Mean)
+Skewness = -0.95, Kurtosis = 3.31, MValue = 2
+
+// ** Remained 0 (0.0%) benchmark(s) to run. Estimated finish 2026-05-04 18:31 (0h 0m from now) **
+Successfully reverted power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts\results\ChunkedMap2dBenchmarks-report.csv
+  BenchmarkDotNet.Artifacts\results\ChunkedMap2dBenchmarks-report-github.md
+  BenchmarkDotNet.Artifacts\results\ChunkedMap2dBenchmarks-report.html
+
+// * Detailed results *
+ChunkedMap2dBenchmarks.'Original  — alloc all chunks (new T[])': Job-QKDGBD(InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3)
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 8.820 μs, StdErr = 0.809 μs (9.17%), N = 10, StdDev = 2.557 μs
+Min = 6.700 μs, Q1 = 6.775 μs, Median = 7.250 μs, Q3 = 10.950 μs, Max = 13.300 μs
+IQR = 4.175 μs, LowerFence = 0.512 μs, UpperFence = 17.212 μs
+ConfidenceInterval = [4.954 μs; 12.686 μs] (CI 99.9%), Margin = 3.866 μs (43.83% of Mean)
+Skewness = 0.56, Kurtosis = 1.43, MValue = 3.33
+-------------------- Histogram --------------------
+[ 5.142 μs ;  8.558 μs) | @@@@@@
+[ 8.558 μs ; 10.192 μs) | 
+[10.192 μs ; 13.308 μs) | @@@@
+---------------------------------------------------
+
+ChunkedMap2dBenchmarks.'Rewritten — alloc all chunks (ArrayPool)': Job-QKDGBD(InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3)
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 10.500 μs, StdErr = 0.093 μs (0.88%), N = 8, StdDev = 0.262 μs
+Min = 10.200 μs, Q1 = 10.300 μs, Median = 10.450 μs, Q3 = 10.625 μs, Max = 11.000 μs
+IQR = 0.325 μs, LowerFence = 9.812 μs, UpperFence = 11.113 μs
+ConfidenceInterval = [9.999 μs; 11.001 μs] (CI 99.9%), Margin = 0.501 μs (4.77% of Mean)
+Skewness = 0.63, Kurtosis = 2.01, MValue = 2
+-------------------- Histogram --------------------
+[10.178 μs ; 10.522 μs) | @@@@@
+[10.522 μs ; 10.822 μs) | @@
+[10.822 μs ; 11.172 μs) | @
+---------------------------------------------------
+
+ChunkedMap2dBenchmarks.'Original  — GetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 44.278 μs, StdErr = 0.067 μs (0.15%), N = 10, StdDev = 0.212 μs
+Min = 43.945 μs, Q1 = 44.179 μs, Median = 44.252 μs, Q3 = 44.412 μs, Max = 44.655 μs
+IQR = 0.234 μs, LowerFence = 43.829 μs, UpperFence = 44.763 μs
+ConfidenceInterval = [43.958 μs; 44.599 μs] (CI 99.9%), Margin = 0.320 μs (0.72% of Mean)
+Skewness = 0.1, Kurtosis = 1.9, MValue = 2
+-------------------- Histogram --------------------
+[43.851 μs ; 44.737 μs) | @@@@@@@@@@
+---------------------------------------------------
+
+ChunkedMap2dBenchmarks.'Rewritten — GetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 53.910 μs, StdErr = 0.022 μs (0.04%), N = 8, StdDev = 0.062 μs
+Min = 53.830 μs, Q1 = 53.862 μs, Median = 53.895 μs, Q3 = 53.964 μs, Max = 54.005 μs
+IQR = 0.102 μs, LowerFence = 53.710 μs, UpperFence = 54.116 μs
+ConfidenceInterval = [53.791 μs; 54.028 μs] (CI 99.9%), Margin = 0.119 μs (0.22% of Mean)
+Skewness = 0.24, Kurtosis = 1.29, MValue = 2
+-------------------- Histogram --------------------
+[53.790 μs ; 54.046 μs) | @@@@@@@@
+---------------------------------------------------
+
+ChunkedMap2dBenchmarks.'Original  — SetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 45.896 μs, StdErr = 0.113 μs (0.25%), N = 10, StdDev = 0.356 μs
+Min = 45.224 μs, Q1 = 45.685 μs, Median = 45.869 μs, Q3 = 46.177 μs, Max = 46.391 μs
+IQR = 0.492 μs, LowerFence = 44.946 μs, UpperFence = 46.915 μs
+ConfidenceInterval = [45.358 μs; 46.434 μs] (CI 99.9%), Margin = 0.538 μs (1.17% of Mean)
+Skewness = -0.31, Kurtosis = 1.89, MValue = 2
+-------------------- Histogram --------------------
+[45.007 μs ; 46.608 μs) | @@@@@@@@@@
+---------------------------------------------------
+
+ChunkedMap2dBenchmarks.'Rewritten — SetBlock hot path': Job-YFEFPZ(IterationCount=10, WarmupCount=3)
+Runtime = .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 59.014 μs, StdErr = 0.192 μs (0.33%), N = 10, StdDev = 0.607 μs
+Min = 57.610 μs, Q1 = 58.793 μs, Median = 59.192 μs, Q3 = 59.292 μs, Max = 59.878 μs
+IQR = 0.500 μs, LowerFence = 58.043 μs, UpperFence = 60.042 μs
+ConfidenceInterval = [58.096 μs; 59.932 μs] (CI 99.9%), Margin = 0.918 μs (1.56% of Mean)
+Skewness = -0.95, Kurtosis = 3.31, MValue = 2
+-------------------- Histogram --------------------
+[57.240 μs ; 58.455 μs) | @
+[58.455 μs ; 60.248 μs) | @@@@@@@@@
+---------------------------------------------------
+
+// * Summary *
+
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.8246/25H2/2025Update/HudsonValley2)
+Intel Core i9-14900KF 3.20GHz, 1 CPU, 32 logical and 24 physical cores
+.NET SDK 10.0.203
+  [Host]     : .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+  Job-QKDGBD : .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+  Job-YFEFPZ : .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+
+IterationCount=10  WarmupCount=3  
+
+| Method                                     | Job        | InvocationCount | UnrollFactor | Mean      | Error     | StdDev    | Ratio | RatioSD | Allocated | Alloc Ratio |
+|------------------------------------------- |----------- |---------------- |------------- |----------:|----------:|----------:|------:|--------:|----------:|------------:|
+| 'Original  — alloc all chunks (new T[])'   | Job-QKDGBD | 1               | 1            |  8.820 μs | 3.8662 μs | 2.5573 μs |  1.07 |    0.40 |  268288 B |        1.00 |
+| 'Rewritten — alloc all chunks (ArrayPool)' | Job-QKDGBD | 1               | 1            | 10.500 μs | 0.5007 μs | 0.2619 μs |  1.27 |    0.31 |  268288 B |        1.00 |
+|                                            |            |                 |              |           |           |           |       |         |           |             |
+| 'Original  — GetBlock hot path'            | Job-YFEFPZ | Default         | 16           | 44.278 μs | 0.3202 μs | 0.2118 μs |     ? |       ? |         - |           ? |
+| 'Rewritten — GetBlock hot path'            | Job-YFEFPZ | Default         | 16           | 53.910 μs | 0.1187 μs | 0.0621 μs |     ? |       ? |         - |           ? |
+| 'Original  — SetBlock hot path'            | Job-YFEFPZ | Default         | 16           | 45.896 μs | 0.5381 μs | 0.3559 μs |     ? |       ? |         - |           ? |
+| 'Rewritten — SetBlock hot path'            | Job-YFEFPZ | Default         | 16           | 59.014 μs | 0.9184 μs | 0.6075 μs |     ? |       ? |         - |           ? |
+
+// * Warnings *
+MinIterationTime
+  ChunkedMap2dBenchmarks.'Original  — alloc all chunks (new T[])': InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3   -> The minimum observed iteration time is 6.8μs which is very small. It's recommended to increase it to at least 100ms using more operations.
+  ChunkedMap2dBenchmarks.'Rewritten — alloc all chunks (ArrayPool)': InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3 -> The minimum observed iteration time is 10.3μs which is very small. It's recommended to increase it to at least 100ms using more operations.
+BaselineCustomAnalyzer
+  Summary -> A question mark '?' symbol indicates that it was not possible to compute the (Ratio, RatioSD, Alloc Ratio) column(s) because the baseline or benchmark could not be found, or the baseline value is too close to zero.
+
+// * Hints *
+Outliers
+  ChunkedMap2dBenchmarks.'Rewritten — alloc all chunks (ArrayPool)': InvocationCount=1, IterationCount=10, UnrollFactor=1, WarmupCount=3 -> 2 outliers were removed (15.80 μs, 15.90 μs)
+  ChunkedMap2dBenchmarks.'Rewritten — GetBlock hot path': IterationCount=10, WarmupCount=3                                               -> 2 outliers were removed (54.27 μs, 54.29 μs)
+  ChunkedMap2dBenchmarks.'Rewritten — SetBlock hot path': IterationCount=10, WarmupCount=3                                               -> 1 outlier  was  detected (57.61 μs)
+
+// * Legends *
+  Mean        : Arithmetic mean of all measurements
+  Error       : Half of 99.9% confidence interval
+  StdDev      : Standard deviation of all measurements
+  Ratio       : Mean of the ratio distribution ([Current]/[Baseline])
+  RatioSD     : Standard deviation of the ratio distribution ([Current]/[Baseline])
+  Allocated   : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  Alloc Ratio : Allocated memory ratio distribution ([Current]/[Baseline])
+  1 μs        : 1 Microsecond (0.000001 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:00:54 (54.67 sec), executed benchmarks: 6
+
+Global total time: 00:01:04 (64.74 sec), executed benchmarks: 6
+// * Artifacts cleanup *
+Artifacts cleanup is finished

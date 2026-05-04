@@ -24,7 +24,7 @@
 
     public void SendFillArea(int startx, int starty, int startz, int endx, int endy, int endz, int blockType) => SendPacketClient(ClientPackets.FillArea(startx, starty, startz, endx, endy, endz, blockType, ActiveMaterial));
 
-    private void SendRequestBlob(string[] required, int requiredCount) => SendPacketClient(ClientPackets.RequestBlob(this, required, requiredCount));
+    private void SendRequestBlob(string[] required, int requiredCount) => SendPacketClient(ClientPackets.RequestBlob(this, required));
 
     private void SendGameResolution() => SendPacketClient(ClientPackets.GameResolution(gameService.CanvasWidth, gameService.CanvasHeight));
 

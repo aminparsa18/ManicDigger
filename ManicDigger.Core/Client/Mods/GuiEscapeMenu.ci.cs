@@ -510,7 +510,7 @@ public class ModGuiEscapeMenu : ModBase
 
     private void ToggleResolution()
     {
-        GameOption options = Game.options;
+        GameOption options  = Game.options;
         options.Resolution++;
 
         platform.GetDisplayResolutions();

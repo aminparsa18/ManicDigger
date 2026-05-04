@@ -57,7 +57,6 @@ public partial class Game
 
         // Prevent the loading screen from immediately showing the lag symbol.
         LastReceivedMilliseconds = gameService.TimeMillisecondsFromStart;
-        EnableDrawTestCharacter = gameService.IsDebuggerAttached();
 
         int detectedSize = openGlService.GlGetMaxTextureSize();
         maxTextureSize = Math.Max(detectedSize, 1024);

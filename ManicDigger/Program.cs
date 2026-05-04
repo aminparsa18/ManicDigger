@@ -115,7 +115,6 @@ public class Program
         services.AddScoped<IModBase, ModSkySphereAnimated>();
         services.AddScoped<IModBase, SunMoonRenderer>();
         services.AddScoped<IModBase, ModDrawTerrain>();
-        services.AddScoped<IModBase, ModDrawArea>();
         services.AddScoped<IModBase, ModDrawSprites>();
         services.AddScoped<IModBase, ModDrawMinecarts>();
         services.AddScoped<IModBase, ModDrawLinesAroundSelectedBlock>();
@@ -128,7 +127,6 @@ public class Program
         services.AddScoped<IModBase, ModClearInactivePlayersDrawInfo>();
 
         // ── HUD / 2D overlay ──────────────────────────────────────────────────
-        services.AddScoped<IModBase, ModDrawHand2d>();
         services.AddScoped<IModBase, ModDrawHand3d>();
         services.AddScoped<IModBase, ModDrawText>();
         services.AddScoped<IModBase, ModDraw2dMisc>();

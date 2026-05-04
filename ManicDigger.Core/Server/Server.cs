@@ -2143,7 +2143,6 @@ public partial class Server : IServer, IDropItem
         SendLevelProgress(clientid, 0, _languageService.ServerProgressGenerating());
     }
 
-
     public IEnumerable<byte[]> Parts(byte[] blob, int partsize)
     {
         for (int i = 0; i < blob.Length; i += partsize)
@@ -2267,7 +2266,7 @@ public partial class Server : IServer, IDropItem
 
     private static string ComputeMd5(string input)
     {
-        byte[] hash = MD5.HashData(Encoding.ASCII.GetBytes(input));
+        byte[] hash = MD5.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexString(hash).ToLower();
     }
     

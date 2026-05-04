@@ -229,12 +229,12 @@ public class ClientPackets
         return p;
     }
 
-    public static Packet_Client RequestBlob(Game game, string[] required, int requiredCount)
+    public static Packet_Client RequestBlob(Game game, string[] required)
     {
         Packet_ClientRequestBlob p = new(); //{ RequestBlobMd5 = needed };
         if (GameVersionHelper.ServerVersionAtLeast(game.ServerGameVersion, 2014, 4, 13))
         {
-            p.RequestedMd5 = (required);
+            p.RequestedMd5 = required;
         }
 
         Packet_Client pp = new()

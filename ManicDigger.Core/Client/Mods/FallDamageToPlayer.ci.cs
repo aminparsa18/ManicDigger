@@ -45,6 +45,8 @@ public class ModFallDamageToPlayer : ModBase
 
     internal void UpdateFallDamageToPlayer(float dt)
     {
+        if (!Game.Spawned) return;
+
         float fallSpeed = Game.MovedZ / -Game.Basemovespeed;
 
         int posX = Game.PlayerEyesBlockX;
@@ -59,6 +61,8 @@ public class ModFallDamageToPlayer : ModBase
 
     private void ApplyFallDamage(int posX, int posY, int posZ, float fallSpeed)
     {
+        if (!Game.IsPlayerOnGround) return;  // only damage on landing
+
         if (fallSpeed < 4f)
         {
             return;

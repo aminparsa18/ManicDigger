@@ -27,12 +27,12 @@ public class ModDrawHand3d : ModBase
     private const float BobRange = 7f / 100f;
 
     /// <summary>Reference to the current game instance, set each frame in <see cref="OnNewFrameDraw3d"/>.</summary>
-    private readonly IOpenGlService platform;
-    private readonly IMeshDrawer meshDrawer;
-    private readonly IBlockRegistry blockTypeRegistry;
+    private readonly IOpenGlService _platform;
+    private readonly IMeshDrawer _meshDrawer;
+    private readonly IBlockRegistry _blockRegistry;
 
     /// <summary>Torch block renderer used to draw held torches and the empty-hand model.</summary>
-    internal BlockRendererTorch d_BlockRendererTorch;
+    private readonly BlockRendererTorch _blockRendererTorch;
 
     /// <summary>
     /// Progress of the current attack or build swing in radians.
@@ -124,9 +124,9 @@ public class ModDrawHand3d : ModBase
     /// </summary>
     public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
-        this.platform = platform;
-        this.meshDrawer = meshDrawer;
-        this.blockTypeRegistry = blockTypeRegistry;
+        this._platform = platform;
+        this._meshDrawer = meshDrawer;
+        this._blockRegistry = blockTypeRegistry;
         _attack = -1;
         _attackOffset = 0;
         _buildOffset = 0;
@@ -141,7 +141,7 @@ public class ModDrawHand3d : ModBase
         _restOffsetY = -2f / 10f;     // -0.2 units
         _bobOffsetX = -4f / 10f;     // -0.4 units (initial rest)
 
-        d_BlockRendererTorch = new BlockRendererTorch();
+        _blockRendererTorch = new BlockRendererTorch();
     }
 
     /// <inheritdoc/>
@@ -184,8 +184,8 @@ public class ModDrawHand3d : ModBase
         }
 
         return Game.IronSights
-            ? blockTypeRegistry.BlockTypes[item.BlockId].IronSightsImage
-            : blockTypeRegistry.BlockTypes[item.BlockId].handimage;
+            ? _blockRegistry.BlockTypes[item.BlockId].IronSightsImage
+            : _blockRegistry.BlockTypes[item.BlockId].handimage;
     }
 
     /// <summary>Returns the OpenGL texture ID of the terrain texture atlas.</summary>
@@ -205,12 +205,9 @@ public class ModDrawHand3d : ModBase
         if (item == null || IsCompass() || item.BlockId == 0)
         {
             // Empty hand — use the designated empty-hand block texture.
-            if (side == TileSide.Top)
-            {
-                return Game.TextureId[blockTypeRegistry.BlockIdEmptyHand][(int)TileSide.Top];
-            }
-
-            return Game.TextureId[blockTypeRegistry.BlockIdEmptyHand][(int)TileSide.Front];
+            return side == TileSide.Top
+                ? Game.TextureId[_blockRegistry.BlockIdEmptyHand][(int)TileSide.Top]
+                : Game.TextureId[_blockRegistry.BlockIdEmptyHand][(int)TileSide.Front];
         }
 
         if (item.InventoryItemType == InventoryItemType.Block)
@@ -243,7 +240,7 @@ public class ModDrawHand3d : ModBase
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
         return item != null
             && item.InventoryItemType == InventoryItemType.Block
-            && blockTypeRegistry.BlockTypes[item.BlockId].DrawType == DrawType.Torch;
+            && _blockRegistry.BlockTypes[item.BlockId].DrawType == DrawType.Torch;
     }
 
     /// <summary>
@@ -254,7 +251,7 @@ public class ModDrawHand3d : ModBase
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
         return item != null
             && item.InventoryItemType == InventoryItemType.Block
-            && item.BlockId == blockTypeRegistry.BlockIdCompass;
+            && item.BlockId == _blockRegistry.BlockIdCompass;
     }
 
     /// <summary>
@@ -302,7 +299,7 @@ public class ModDrawHand3d : ModBase
     {
         int lightByte = IsTorch() ? 255 : Math.Clamp((int)(Light() * 256), 0, 255);
 
-        platform.BindTexture2d(GetTerrainTexture());
+        _platform.BindTexture2d(GetTerrainTexture());
 
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
 
@@ -316,7 +313,7 @@ public class ModDrawHand3d : ModBase
         if (curMaterial != _cachedMaterial || curLight != _cachedLight || _modelData == null || Game.HandRedraw)
         {
             RebuildHandModel(lightByte);
-            platform.UpdateModel(_modelData); // sync rebuilt geometry to GPU
+            _platform.UpdateModel(_modelData); // sync rebuilt geometry to GPU
             Game.HandRedraw = false;
         }
 
@@ -325,28 +322,28 @@ public class ModDrawHand3d : ModBase
 
         // Push an isolated model-view matrix for the hand so it always renders in
         // front of the world geometry regardless of camera distance.
-        platform.GlClearDepthBuffer();
-        meshDrawer.GLMatrixModeModelView();
-        meshDrawer.GLPushMatrix();
-        meshDrawer.GLLoadIdentity();
+        _platform.GlClearDepthBuffer();
+        _meshDrawer.GLMatrixModeModelView();
+        _meshDrawer.GLPushMatrix();
+        _meshDrawer.GLLoadIdentity();
 
         // Position and orient the hand in view space.
-        meshDrawer.GLTranslate(
+        _meshDrawer.GLTranslate(
             (0.3f) + _bobOffsetZ - (_attackOffset * 5),
             -(1f * 15 / 10) + _bobOffsetX - (_buildOffset * 10),
             -(1f * 15 / 10) + _restOffsetY);
 
-        meshDrawer.GLRotate(30 + _restRotateX - (_attackOffset * 300), 1, 0, 0);
-        meshDrawer.GLRotate(60 + _restRotateY, 0, 1, 0);
-        meshDrawer.GLScale(1f * 8 / 10, 1f * 8 / 10, 1f * 8 / 10);
+        _meshDrawer.GLRotate(30 + _restRotateX - (_attackOffset * 300), 1, 0, 0);
+        _meshDrawer.GLRotate(60 + _restRotateY, 0, 1, 0);
+        _meshDrawer.GLScale(1f * 8 / 10, 1f * 8 / 10, 1f * 8 / 10);
 
         AdvanceBobAnimation(dt);
         AdvanceSwingAnimation(dt);
 
-        platform.BindTexture2d(GetTerrainTexture());
-        meshDrawer.DrawModelData(_modelData);
+        _platform.BindTexture2d(GetTerrainTexture());
+        _meshDrawer.DrawModelData(_modelData);
 
-        meshDrawer.GLPopMatrix();
+        _meshDrawer.GLPopMatrix();
     }
 
     /// <summary>
@@ -373,9 +370,9 @@ public class ModDrawHand3d : ModBase
         {
             // All three cases use the torch renderer: the empty-hand and compass use
             // a normal torch shape, and a real torch uses its own texture on the same shape.
-            d_BlockRendererTorch.TopTexture = GetWeaponTextureId(TileSide.Top);
-            d_BlockRendererTorch.SideTexture = GetWeaponTextureId(TileSide.Front);
-            d_BlockRendererTorch.AddTorch(blockTypeRegistry, _modelData, x, y, z, TorchType.Normal);
+            _blockRendererTorch.TopTexture = GetWeaponTextureId(TileSide.Top);
+            _blockRendererTorch.SideTexture = GetWeaponTextureId(TileSide.Front);
+            _blockRendererTorch.AddTorch(_blockRegistry, _modelData, x, y, z, TorchType.Normal);
         }
         else
         {
@@ -391,23 +388,26 @@ public class ModDrawHand3d : ModBase
     /// <param name="dt">Frame delta time in seconds.</param>
     private void AdvanceBobAnimation(float dt)
     {
-        bool moved = _prevPlayerX != Game.Player.position.x
-                  || _prevPlayerY != Game.Player.position.y
-                  || _prevPlayerZ != Game.Player.position.z;
+        bool onGround = Game.IsPlayerOnGround && Game.FreemoveLevel == 0;
+
+        bool moved = onGround
+                  && (_prevPlayerX != Game.Player.position.x
+                   || _prevPlayerY != Game.Player.position.y
+                   || _prevPlayerZ != Game.Player.position.z);
 
         _prevPlayerX = Game.Player.position.x;
         _prevPlayerY = Game.Player.position.y;
         _prevPlayerZ = Game.Player.position.z;
 
+        float speedScale = Game.MoveSpeed > 0f ? Game.MoveSpeedNow() / Game.MoveSpeed : 1f;
+
         if (moved)
         {
-            _bobTime += dt;
+            _bobTime += dt * speedScale;
             _slowdownTimer = _slowdownTimerMax;
         }
         else
         {
-            // First frame after stopping: snap the slowdown timer to the remaining
-            // half-period so the bob finishes its current half-cycle cleanly.
             if (_slowdownTimer == _slowdownTimerMax)
             {
                 _slowdownTimer = (_animPeriod / 2) - (_bobTime % (_animPeriod / 2));
@@ -420,7 +420,7 @@ public class ModDrawHand3d : ModBase
             }
             else
             {
-                _bobTime += dt;
+                _bobTime += dt * speedScale;
             }
         }
 

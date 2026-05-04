@@ -47,7 +47,7 @@ public class ModFpsHistoryGraph : ModBase
     /// <inheritdoc/>
     public override void OnKeyDown(KeyEventArgs args)
     {
-        if (args.KeyChar == (int)Keys.F7)
+        if (args.KeyChar == (int)OpenTK.Windowing.GraphicsLibraryFramework.Keys.F7)
         {
             drawFpsText = !drawFpsGraph;
             drawFpsGraph = !drawFpsGraph;
@@ -186,7 +186,7 @@ public class ModFpsHistoryGraph : ModBase
         int whiteTexture = _game.GetOrCreateWhiteTexture();
         float y = posy - (GraphHeight * (60f / fps));
 
-        _game.Draw2dTexture(whiteTexture, GraphPosX, (int)y, MaxCount, 1, -1, 0, color, false);
+        _game.Draw2dTexture(whiteTexture, GraphPosX, (int)y, MaxCount, 1, -1, GameConstants.MAX_BLOCKTYPES_SQRT, color, false);
         _game.Draw2dText(fps.ToString(), new Font("Arial", 6), GraphPosX, y, null, false);
     }
 }

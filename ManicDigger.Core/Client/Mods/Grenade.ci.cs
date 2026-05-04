@@ -15,7 +15,6 @@ public class ModGrenade : ModBase
 
     public override void OnNewFrameFixed(float args)
     {
-        float dt = args;
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity entity = Game.Entities[i];
@@ -24,29 +23,50 @@ public class ModGrenade : ModBase
                 continue;
             }
 
-            UpdateGrenade(i, dt);
+            UpdateGrenade(i, args);
         }
     }
 
-    internal void UpdateGrenade(int grenadeEntityId, float dt)
+    private void UpdateGrenade(int grenadeEntityId, float dt)
     {
         Entity grenadeEntity = Game.Entities[grenadeEntityId];
         Sprite grenadeSprite = grenadeEntity.sprite;
         Grenade grenade = grenadeEntity.grenade;
 
-        Vector3 oldPos = new(grenadeSprite.positionX, grenadeSprite.positionY, grenadeSprite.positionZ);
-        Vector3 newPos = oldPos + (new Vector3(grenade.velocityX, grenade.velocityY, grenade.velocityZ) * dt);
+        if (grenade.settled) return;
+
+        // Fix gravity ordering — update velocity first, then integrate
         grenade.velocityY -= ProjectileGravity * dt;
 
         Vector3 velocity = new(grenade.velocityX, grenade.velocityY, grenade.velocityZ);
-        Vector3 finalPos = GrenadeBounce(oldPos, newPos, ref velocity, dt);
+
+        // Substep to prevent tunneling — cap movement to half a block per step
+        const float maxStepSize = 0.4f;
+        float totalDist = velocity.Length * dt;
+        int steps = Math.Max(1, (int)MathF.Ceiling(totalDist / maxStepSize));
+        float subDt = dt / steps;
+
+        Vector3 pos = new(grenadeSprite.positionX, grenadeSprite.positionY, grenadeSprite.positionZ);
+
+        for (int s = 0; s < steps; s++)
+        {
+            Vector3 newPos = pos + velocity * subDt;
+            pos = GrenadeBounce(pos, newPos, ref velocity, subDt);
+        }
+
+        // Resting state — stop simulating if barely moving
+        if (velocity.LengthSquared < 0.05f)
+        {
+            velocity = Vector3.Zero;
+            grenade.settled = true;
+        }
 
         grenade.velocityX = velocity.X;
         grenade.velocityY = velocity.Y;
         grenade.velocityZ = velocity.Z;
-        grenadeSprite.positionX = finalPos.X;
-        grenadeSprite.positionY = finalPos.Y;
-        grenadeSprite.positionZ = finalPos.Z;
+        grenadeSprite.positionX = pos.X;
+        grenadeSprite.positionY = pos.Y;
+        grenadeSprite.positionZ = pos.Z;
     }
 
     internal Vector3 GrenadeBounce(Vector3 oldPos, Vector3 newPos, ref Vector3 velocity, float dt)
@@ -106,13 +126,15 @@ public class ModGrenade : ModBase
 
         bool empty = Game.IsTileEmptyForPhysics(px, py, pz)
                   && Game.IsTileEmptyForPhysics(px, py, pz + 1);
-        if (empty)
-        {
-            return;
-        }
+        if (empty) return;
 
         velocity[axis] = -velocity[axis];
         ApplyBounce(ref velocity, newPos, isMoving);
+
+        // Push out — move back to the face of the block we hit
+        pos[axis] = offset[axis] > 0
+            ? MathF.Floor(probe[axis == 0 ? 0 : 2]) - WallDistance
+            : MathF.Ceiling(probe[axis == 0 ? 0 : 2]) + WallDistance;
     }
 
     /// <summary>Checks and applies a bounce when the grenade hits a floor (moving down).</summary>

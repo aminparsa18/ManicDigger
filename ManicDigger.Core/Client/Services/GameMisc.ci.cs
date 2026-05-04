@@ -517,6 +517,7 @@ public class Grenade
     internal float velocityZ;
     internal int block;
     internal int sourcePlayer;
+    internal bool settled;
 }
 
 public class MenuState

@@ -1,27 +1,118 @@
 ﻿using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
+/// <summary>
+/// Handles chat display, the typing input buffer, clickable chat links,
+/// page scrolling, history navigation, and player-name autocomplete.
+/// </summary>
 public class ModGuiChat : ModBase
 {
+    // -------------------------------------------------------------------------
+    // Constants
+    // -------------------------------------------------------------------------
+
+    /// <summary>Default chat font size in points.</summary>
+    private const float DefaultChatFontSize = 11f;
+
+    /// <summary>Number of milliseconds in one second, used for expiry calculations.</summary>
+    private const float MsToSeconds = 1f / 1000f;
+
+    /// <summary>
+    /// Number of characters stripped from the start of internal player names
+    /// before display. Names are stored as "&amp;xNAME" so the first two
+    /// characters are the colour-code prefix.
+    /// </summary>
+    private const int PlayerNamePrefixLength = 2;
+
+    /// <summary>Key character for 't' — opens public chat.</summary>
+    private const int CharLowercaseT = 't';
+
+    /// <summary>Key character for 'T' — opens public chat.</summary>
+    private const int CharUppercaseT = 'T';
+
+    /// <summary>Key character for 'y' — opens team chat.</summary>
+    private const int CharLowercaseY = 'y';
+
+    /// <summary>Key character for 'Y' — opens team chat.</summary>
+    private const int CharUppercaseY = 'Y';
+
+    /// <summary>Horizontal left margin of chat lines in unscaled pixels.</summary>
+    private const float ChatMarginX = 20f;
+
+    /// <summary>Vertical position of the first chat line in unscaled pixels.</summary>
+    private const float ChatBaseY = 90f;
+
+    /// <summary>Vertical spacing between chat lines in unscaled pixels.</summary>
+    private const float ChatLineSpacing = 25f;
+
+    /// <summary>Click hit-box width of a chat line in unscaled pixels.</summary>
+    private const float ChatLineWidth = 500f;
+
+    /// <summary>Click hit-box height of a chat line in unscaled pixels.</summary>
+    private const float ChatLineHeight = 20f;
+
+    // -------------------------------------------------------------------------
+    // Public configuration
+    // -------------------------------------------------------------------------
+
+    /// <summary>Base font size for chat text, in points (before UI scale is applied).</summary>
+    internal float ChatFontSize;
+
+    /// <summary>Number of seconds a chat line remains visible when the chat box is closed.</summary>
+    internal int ChatScreenExpireTimeSeconds;
+
+    /// <summary>Maximum number of chat lines drawn at once.</summary>
+    internal int ChatLinesMaxToDraw;
+
+    /// <summary>Current page offset for scrolling through chat history (0 = latest).</summary>
+    internal int ChatPageScroll;
+
+    // -------------------------------------------------------------------------
+    // Private state
+    // -------------------------------------------------------------------------
+
+    private readonly IGameService _platform;
+
+    /// <summary>Visible chat lines for the current frame, populated by <see cref="DrawChatLines"/>.</summary>
+    private readonly Chatline[] _visibleLines;
+    private int _visibleLineCount;
+
+    /// <summary>Scaled font size computed once per frame; used to detect when fonts need rebuilding.</summary>
+    private float _currentScaledFontSize;
+
+    /// <summary>Cached bold font used for normal chat lines. Rebuilt only when the scaled size changes.</summary>
+    private Font _boldFont;
+
+    /// <summary>Cached italic font used for clickable link lines. Rebuilt only when the scaled size changes.</summary>
+    private Font _italicFont;
+
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Initialises the chat module with default display settings and pre-allocates
+    /// the visible-line buffer.
+    /// </summary>
     public ModGuiChat(IGameService platform, IGame game) : base(game)
     {
-        this.platform = platform;
-        ChatFontSize = 11;
-        currentFontSize = ChatFontSize;
+        _platform = platform;
+        ChatFontSize = DefaultChatFontSize;
         ChatScreenExpireTimeSeconds = 20;
         ChatLinesMaxToDraw = 10;
-        font = new Font("Arial", currentFontSize, currentFontStyle);
-        chatlines2 = new Chatline[1024];
+        _visibleLines = new Chatline[1024];
+
+        // Build initial fonts at unscaled size; they will be rebuilt on the
+        // first frame once Game.Scale() is known.
+        _currentScaledFontSize = DefaultChatFontSize;
+        _boldFont = new Font("Arial", _currentScaledFontSize, FontStyle.Bold);
+        _italicFont = new Font("Arial", _currentScaledFontSize, FontStyle.Italic);
     }
 
-    private readonly IGameService platform;
+    // -------------------------------------------------------------------------
+    // ModBase overrides
+    // -------------------------------------------------------------------------
 
-    internal float ChatFontSize;
-    internal int ChatScreenExpireTimeSeconds;
-    internal int ChatLinesMaxToDraw;
-    internal int ChatPageScroll;
-    private float currentFontSize = 11;
-    private FontStyle currentFontStyle = FontStyle.Regular;
-
+    /// <inheritdoc/>
     public override void OnNewFrameDraw2d(float deltaTime)
     {
         if (Game.GuiState == GuiState.MapLoading)
@@ -29,389 +120,425 @@ public class ModGuiChat : ModBase
             return;
         }
 
-        DrawChatLines(Game.GuiTyping == TypingState.Typing);
-        if (Game.GuiTyping == TypingState.Typing)
+        bool typing = Game.GuiTyping == TypingState.Typing;
+        DrawChatLines(typing);
+        if (typing)
         {
             DrawTypingBuffer(Game);
         }
     }
 
+    /// <inheritdoc/>
     public override void OnMouseDown(MouseEventArgs args)
     {
-        for (int i = 0; i < chatlines2Count; i++)
+        float scale = Game.Scale();
+        float dx = _platform.IsMousePointerLocked() ? ChatMarginX : ChatMarginX + 100f;
+        float startX = dx * scale;
+        float sizeX = ChatLineWidth * scale;
+        float sizeY = ChatLineHeight * scale;
+        float mouseX = args.GetX();
+        float mouseY = args.GetY();
+
+        for (int i = 0; i < _visibleLineCount; i++)
         {
-            float dx = 20;
-            if (!platform.IsMousePointerLocked())
+            if (!_visibleLines[i].Clickable)
             {
-                dx += 100;
+                continue;
             }
 
-            float chatlineStartX = dx * Game.Scale();
-            float chatlineStartY = (90 + (i * 25)) * Game.Scale();
-            float chatlineSizeX = 500 * Game.Scale();
-            float chatlineSizeY = 20 * Game.Scale();
-            if (args.GetX() > chatlineStartX && args.GetX() < chatlineStartX + chatlineSizeX)
+            float lineX = startX;
+            float lineY = (ChatBaseY + (i * ChatLineSpacing)) * scale;
+
+            if (mouseX > lineX && mouseX < lineX + sizeX
+             && mouseY > lineY && mouseY < lineY + sizeY)
             {
-                if (args.GetY() > chatlineStartY && args.GetY() < chatlineStartY + chatlineSizeY)
-                {
-                    //Mouse over chatline at position i
-                    if (chatlines2[i].clickable)
-                    {
-                        platform.OpenLinkInBrowser(chatlines2[i].linkTarget);
-                    }
-                }
+                _platform.OpenLinkInBrowser(_visibleLines[i].LinkTarget);
             }
         }
     }
 
-    private readonly Chatline[] chatlines2;
-    private int chatlines2Count;
-    public void DrawChatLines(bool all)
-    {
-        chatlines2Count = 0;
-        int timeNow = platform.TimeMillisecondsFromStart;
-        int scroll;
-        if (!all)
-        {
-            scroll = 0;
-        }
-        else
-        {
-            scroll = ChatPageScroll;
-        }
-
-        int first = Game.ChatLinesCount - (ChatLinesMaxToDraw * (scroll + 1));
-        if (first < 0)
-        {
-            first = 0;
-        }
-
-        int count = Game.ChatLinesCount;
-        if (count > ChatLinesMaxToDraw)
-        {
-            count = ChatLinesMaxToDraw;
-        }
-
-        for (int i = first; i < first + count; i++)
-        {
-            Chatline c = Game.ChatLines[i];
-            if (all || ((1f * (timeNow - c.timeMilliseconds) / 1000) < ChatScreenExpireTimeSeconds))
-            {
-                chatlines2[chatlines2Count++] = c;
-            }
-        }
-
-        currentFontSize = ChatFontSize * Game.Scale();
-        font = new Font("Arial", currentFontSize, currentFontStyle);
-
-        float dx = 20;
-        //if (!game.Platform.IsMousePointerLocked())
-        //{
-        //    dx += 100;
-        //}
-        for (int i = 0; i < chatlines2Count; i++)
-        {
-            if (chatlines2[i].clickable)
-            {
-                //Different display of links in chat
-                //2 = italic
-                //3 = bold italic
-                currentFontStyle = FontStyle.Italic;
-                font = new Font("Arial", currentFontSize, currentFontStyle);
-            }
-            else
-            {
-                //0 = normal
-                //1 = bold
-                currentFontStyle = FontStyle.Bold;
-                font = new Font("Arial", currentFontSize, currentFontStyle);
-            }
-
-            Game.Draw2dText(chatlines2[i].text, font, dx * Game.Scale(), (90 + (i * 25)) * Game.Scale(), null, false);
-        }
-
-        if (ChatPageScroll != 0)
-        {
-            Game.Draw2dText(string.Format("&7Page: {0}", ChatPageScroll.ToString()), font, dx * Game.Scale(), (90 + ((-1) * 25)) * Game.Scale(), null, false);
-        }
-    }
-    private Font font;
-    public void DrawTypingBuffer(IGame game)
-    {
-        currentFontSize = ChatFontSize * game.Scale();
-        font = new Font("Arial", currentFontSize, currentFontStyle);
-        string s = game.GuiTypingBuffer;
-        if (game.IsTeamchat)
-        {
-            s = string.Format("To team: {0}", s);
-        }
-
-        if (platform.IsSmallScreen())
-        {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), (platform.CanvasHeight / 2) - (100 * game.Scale()), null, true);
-        }
-        else
-        {
-            game.Draw2dText(string.Format("{0}_", s), font, 50 * game.Scale(), platform.CanvasHeight - (100 * game.Scale()), null, true);
-        }
-    }
-
+    /// <inheritdoc/>
     public override void OnKeyDown(KeyEventArgs args)
     {
         if (Game.GuiState != GuiState.Normal)
         {
-            //Don't open chat when not in normal game
             return;
         }
 
         int eKey = args.KeyChar;
-        if (eKey == Game.GetKey(Keys.KeyPad7) && Game.IsShiftPressed && Game.GuiTyping == TypingState.None) // don't need to hit enter for typing commands starting with slash
+
+        // Shift+NumPad7 opens chat with a slash prefix (command shortcut).
+        if (eKey == Game.GetKey(Keys.KeyPad7)
+         && Game.IsShiftPressed
+         && Game.GuiTyping == TypingState.None)
         {
-            Game.GuiTyping = TypingState.Typing;
-            Game.IsTyping = true;
-            Game.GuiTypingBuffer = "";
-            Game.IsTeamchat = false;
+            OpenChat(teamChat: false);
             args.Handled = true;
             return;
         }
 
-        if (eKey == Game.GetKey(Keys.PageUp) && Game.GuiTyping == TypingState.Typing)
-        {
-            ChatPageScroll++;
-            args.Handled = true;
-        }
-
-        if (eKey == Game.GetKey(Keys.PageDown) && Game.GuiTyping == TypingState.Typing)
-        {
-            ChatPageScroll--;
-            args.Handled = true;
-        }
-
-        ChatPageScroll = Math.Clamp(ChatPageScroll, 0, Game.ChatLinesCount / ChatLinesMaxToDraw);
-        if (eKey == Game.GetKey(Keys.Enter) || eKey == Game.GetKey(Keys.KeyPadEnter))
-        {
-            if (Game.GuiTyping == TypingState.Typing)
-            {
-                Game.TypingLog.Add(Game.GuiTypingBuffer);
-                Game.TypingLogPos = Game.TypingLog.Count;
-                Game.ExecuteChat(Game.GuiTypingBuffer);
-
-                Game.GuiTypingBuffer = "";
-                Game.IsTyping = false;
-
-                Game.GuiTyping = TypingState.None;
-                platform.ShowKeyboard(false);
-            }
-            else if (Game.GuiTyping == TypingState.None)
-            {
-                Game.StartTyping();
-            }
-            else if (Game.GuiTyping == TypingState.Ready)
-            {
-                Console.WriteLine("Keyboard_KeyDown ready");
-            }
-
-            args.Handled = true;
-            return;
-        }
-
+        // Page up/down scroll through chat history while the chat box is open.
         if (Game.GuiTyping == TypingState.Typing)
         {
-            int key = eKey;
-            if (key == Game.GetKey(Keys.Backspace))
+            if (eKey == Game.GetKey(Keys.PageUp))
             {
-                if (Game.GuiTypingBuffer.Length > 0)
-                {
-                    Game.GuiTypingBuffer = Game.GuiTypingBuffer[..^1];
-                }
-
-                args.Handled = true;
-                return;
-            }
-
-            if (Game.KeyboardStateRaw[Game.GetKey(Keys.LeftControl)] || Game.KeyboardStateRaw[Game.GetKey(Keys.RightControl)])
-            {
-                if (key == Game.GetKey(Keys.V))
-                {
-                    if (Clipboard.ContainsText())
-                    {
-                        Game.GuiTypingBuffer = string.Concat(Game.GuiTypingBuffer, Clipboard.GetText());
-                    }
-
-                    args.Handled = true;
-                    return;
-                }
-            }
-
-            if (key == Game.GetKey(Keys.Up))
-            {
-                Game.TypingLogPos--;
-                if (Game.TypingLogPos < 0)
-                {
-                    Game.TypingLogPos = 0;
-                }
-
-                if (Game.TypingLogPos >= 0 && Game.TypingLogPos < Game.TypingLog.Count)
-                {
-                    Game.GuiTypingBuffer = Game.TypingLog[Game.TypingLogPos];
-                }
-
+                ChatPageScroll++;
                 args.Handled = true;
             }
-
-            if (key == Game.GetKey(Keys.Down))
+            else if (eKey == Game.GetKey(Keys.PageDown))
             {
-                Game.TypingLogPos++;
-                if (Game.TypingLogPos > Game.TypingLog.Count)
-                {
-                    Game.TypingLogPos = Game.TypingLog.Count;
-                }
-
-                if (Game.TypingLogPos >= 0 && Game.TypingLogPos < Game.TypingLog.Count)
-                {
-                    Game.GuiTypingBuffer = Game.TypingLog[Game.TypingLogPos];
-                }
-
-                if (Game.TypingLogPos == Game.TypingLog.Count)
-                {
-                    Game.GuiTypingBuffer = "";
-                }
-
+                ChatPageScroll--;
                 args.Handled = true;
             }
-            //Handles player name autocomplete in chat
-            if (eKey == Game.GetKey(Keys.Tab) && Game.GuiTypingBuffer.Trim() != "")
-            {
-                string[] parts = Game.GuiTypingBuffer.Split(" ");
-                string completed = DoAutocomplete(parts[parts.Length - 1]);
-                if (completed == "")
-                {
-                    //No completion available. Abort.
-                    args.Handled = true;
-                    return;
-                }
-                else if (parts.Length == 1)
-                {
-                    //Part is first word. Format as "<name>: "
-                    Game.GuiTypingBuffer = string.Concat(completed, ": ");
-                }
-                else
-                {
-                    //Part is not first. Just complete "<name> "
-                    parts[parts.Length - 1] = completed;
-                    Game.GuiTypingBuffer = string.Concat(string.Join(" ", parts), " ");
-                }
+        }
 
-                args.Handled = true;
-                return;
+        ChatPageScroll = Math.Clamp(ChatPageScroll, 0,
+            ChatLinesMaxToDraw > 0 ? Game.ChatLinesCount / ChatLinesMaxToDraw : 0);
+
+        // Enter confirms the typed message or opens the chat box if closed.
+        if (eKey == Game.GetKey(Keys.Enter) || eKey == Game.GetKey(Keys.KeyPadEnter))
+        {
+            HandleEnterKey();
+            args.Handled = true;
+            return;
+        }
+
+        if (Game.GuiTyping != TypingState.Typing)
+        {
+            return;
+        }
+
+        // --- Keys active only while typing ---
+
+        if (eKey == Game.GetKey(Keys.Backspace))
+        {
+            if (Game.GuiTypingBuffer.Length > 0)
+            {
+                Game.GuiTypingBuffer = Game.GuiTypingBuffer[..^1];
             }
 
             args.Handled = true;
             return;
         }
+
+        // Ctrl+V — paste from clipboard.
+        if (Game.KeyboardStateRaw[Game.GetKey(Keys.LeftControl)]
+         || Game.KeyboardStateRaw[Game.GetKey(Keys.RightControl)])
+        {
+            if (eKey == Game.GetKey(Keys.V) && Clipboard.ContainsText())
+            {
+                Game.GuiTypingBuffer += Clipboard.GetText();
+            }
+
+            args.Handled = true;
+            return;
+        }
+
+        // Up/Down — navigate typing history.
+        if (eKey == Game.GetKey(Keys.Up))
+        {
+            Game.TypingLogPos = Math.Max(0, Game.TypingLogPos - 1);
+            if (Game.TypingLogPos < Game.TypingLog.Count)
+            {
+                Game.GuiTypingBuffer = Game.TypingLog[Game.TypingLogPos];
+            }
+
+            args.Handled = true;
+        }
+        else if (eKey == Game.GetKey(Keys.Down))
+        {
+            Game.TypingLogPos = Math.Min(Game.TypingLog.Count, Game.TypingLogPos + 1);
+            Game.GuiTypingBuffer = Game.TypingLogPos < Game.TypingLog.Count
+                ? Game.TypingLog[Game.TypingLogPos]
+                : "";
+
+            args.Handled = true;
+        }
+
+        // Tab — autocomplete the last word with a matching player name.
+        if (eKey == Game.GetKey(Keys.Tab)
+         && Game.GuiTypingBuffer.Trim() != "")
+        {
+            HandleTabAutocomplete();
+            args.Handled = true;
+            return;
+        }
+
+        args.Handled = true;
     }
 
+    /// <inheritdoc/>
     public override void OnKeyPress(KeyPressEventArgs args)
     {
         if (Game.GuiState != GuiState.Normal)
         {
-            //Don't open chat when not in normal game
             return;
         }
 
         int eKeyChar = args.KeyChar;
-        int chart = 116;
-        int charT = 84;
-        int chary = 121;
-        int charY = 89;
-        if ((eKeyChar == chart || eKeyChar == charT) && Game.GuiTyping == TypingState.None)
+
+        // 't' / 'T' — open public chat.
+        if ((eKeyChar == CharLowercaseT || eKeyChar == CharUppercaseT)
+         && Game.GuiTyping == TypingState.None)
         {
-            Game.GuiTyping = TypingState.Typing;
-            Game.GuiTypingBuffer = "";
-            Game.IsTeamchat = false;
+            OpenChat(teamChat: false);
             return;
         }
 
-        if ((eKeyChar == chary || eKeyChar == charY) && Game.GuiTyping == TypingState.None)
+        // 'y' / 'Y' — open team chat.
+        if ((eKeyChar == CharLowercaseY || eKeyChar == CharUppercaseY)
+         && Game.GuiTyping == TypingState.None)
         {
-            Game.GuiTyping = TypingState.Typing;
-            Game.GuiTypingBuffer = "";
-            Game.IsTeamchat = true;
+            OpenChat(teamChat: true);
             return;
         }
 
-        if (Game.GuiTyping == TypingState.Typing)
+        // Append printable characters to the typing buffer.
+        if (Game.GuiTyping == TypingState.Typing
+         && EncodingHelper.IsValidTypingChar(eKeyChar))
         {
-            int c = eKeyChar;
-            if (EncodingHelper.IsValidTypingChar(c))
-            {
-                Game.GuiTypingBuffer = string.Concat(Game.GuiTypingBuffer, (char)c);
-            }
+            Game.GuiTypingBuffer += (char)eKeyChar;
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Drawing
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Populates <see cref="_visibleLines"/> from the chat history and draws each
+    /// line using bold for normal messages and italic for clickable links.
+    /// </summary>
+    /// <param name="all">
+    /// When <see langword="true"/>, all lines in the current page are shown regardless
+    /// of age. When <see langword="false"/>, only lines newer than
+    /// <see cref="ChatScreenExpireTimeSeconds"/> are shown.
+    /// </param>
+    public void DrawChatLines(bool all)
+    {
+        _visibleLineCount = 0;
+
+        int timeNow = _platform.TimeMillisecondsFromStart;
+        int scroll = all ? ChatPageScroll : 0;
+
+        int first = Math.Max(0, Game.ChatLinesCount - (ChatLinesMaxToDraw * (scroll + 1)));
+        int count = Math.Min(Game.ChatLinesCount, ChatLinesMaxToDraw);
+
+        for (int i = first; i < first + count; i++)
+        {
+            Chatline c = Game.ChatLines[i];
+            bool fresh = (timeNow - c.TimeMilliseconds) * MsToSeconds < ChatScreenExpireTimeSeconds;
+            if (all || fresh)
+            {
+                _visibleLines[_visibleLineCount++] = c;
+            }
+        }
+
+        // Rebuild cached fonts only when the scaled size has changed.
+        float scale = Game.Scale();
+        float scaledFontSize = ChatFontSize * scale;
+        if (scaledFontSize != _currentScaledFontSize)
+        {
+            _currentScaledFontSize = scaledFontSize;
+            _boldFont = new Font("Arial", scaledFontSize, FontStyle.Bold);
+            _italicFont = new Font("Arial", scaledFontSize, FontStyle.Italic);
+        }
+
+        float baseX = ChatMarginX * scale;
+
+        for (int i = 0; i < _visibleLineCount; i++)
+        {
+            Font lineFont = _visibleLines[i].Clickable ? _italicFont : _boldFont;
+            float y = (ChatBaseY + (i * ChatLineSpacing)) * scale;
+            Game.Draw2dText(_visibleLines[i].Text, lineFont, baseX, y, null, false);
+        }
+
+        if (ChatPageScroll != 0)
+        {
+            float pageY = (ChatBaseY - ChatLineSpacing) * scale;
+            Game.Draw2dText($"&7Page: {ChatPageScroll}", _boldFont, baseX, pageY, null, false);
+        }
+    }
+
+    /// <summary>
+    /// Draws the current contents of the typing buffer at the bottom of the screen,
+    /// appending a blinking-cursor underscore.
+    /// </summary>
+    public void DrawTypingBuffer(IGame game)
+    {
+        float scaledSize = ChatFontSize * game.Scale();
+        if (scaledSize != _currentScaledFontSize)
+        {
+            _currentScaledFontSize = scaledSize;
+            _boldFont = new Font("Arial", scaledSize, FontStyle.Bold);
+            _italicFont = new Font("Arial", scaledSize, FontStyle.Italic);
+        }
+
+        string prefix = game.IsTeamchat ? "To team: " : "";
+        string display = $"{prefix}{game.GuiTypingBuffer}_";
+
+        float x = 50f * game.Scale();
+        float y = _platform.IsSmallScreen()
+            ? (_platform.CanvasHeight / 2f) - (100f * game.Scale())
+            : _platform.CanvasHeight - (100f * game.Scale());
+
+        game.Draw2dText(display, _boldFont, x, y, null, true);
+    }
+
+    // -------------------------------------------------------------------------
+    // Autocomplete
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Finds the first entity name that starts with <paramref name="text"/>
+    /// (case-insensitive) and is marked as auto-completable.
+    /// </summary>
+    /// <param name="text">The partial name typed by the player.</param>
+    /// <returns>
+    /// The full player name (without the internal colour-code prefix) if a match
+    /// is found; otherwise an empty string.
+    /// </returns>
     public string DoAutocomplete(string text)
     {
-        if (!string.IsNullOrEmpty(text))
+        if (string.IsNullOrEmpty(text))
         {
-            for (int i = 0; i < Game.Entities.Count; i++)
+            return "";
+        }
+
+        for (int i = 0; i < Game.Entities.Count; i++)
+        {
+            DrawName drawName = Game.Entities[i]?.drawName;
+            if (drawName == null || !drawName.ClientAutoComplete)
             {
-                Entity entity = Game.Entities[i];
-                if (entity == null)
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                if (entity.drawName == null)
-                {
-                    continue;
-                }
-
-                if (!entity.drawName.ClientAutoComplete)
-                {
-                    continue;
-                }
-
-                DrawName p = entity.drawName;
-                //Use substring here because player names are internally in format &xNAME (so we need to cut first 2 characters)
-                if (p.Name[2..].StartsWith(text, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return p.Name[2..];
-                }
+            // Strip the "&x" colour-code prefix once and reuse the slice.
+            string displayName = drawName.Name[PlayerNamePrefixLength..];
+            if (displayName.StartsWith(text, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return displayName;
             }
         }
 
         return "";
     }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Opens the chat typing buffer, optionally targeting the team channel.
+    /// </summary>
+    /// <param name="teamChat">
+    /// <see langword="true"/> to open team chat; <see langword="false"/> for public chat.
+    /// </param>
+    private void OpenChat(bool teamChat)
+    {
+        Game.GuiTyping = TypingState.Typing;
+        Game.IsTyping = true;
+        Game.GuiTypingBuffer = "";
+        Game.IsTeamchat = teamChat;
+    }
+
+    /// <summary>
+    /// Handles the Enter key: submits the current buffer when typing,
+    /// or opens the chat box when idle.
+    /// </summary>
+    private void HandleEnterKey()
+    {
+        if (Game.GuiTyping == TypingState.Typing)
+        {
+            Game.TypingLog.Add(Game.GuiTypingBuffer);
+            Game.TypingLogPos = Game.TypingLog.Count;
+            Game.ExecuteChat(Game.GuiTypingBuffer);
+
+            Game.GuiTypingBuffer = "";
+            Game.IsTyping = false;
+            Game.GuiTyping = TypingState.None;
+            _platform.ShowKeyboard(false);
+        }
+        else if (Game.GuiTyping == TypingState.None)
+        {
+            Game.StartTyping();
+        }
+    }
+
+    /// <summary>
+    /// Attempts to autocomplete the last word in the typing buffer with a
+    /// matching player name. Formats the result as "Name: " when it is the
+    /// first word, or appends a trailing space otherwise.
+    /// </summary>
+    private void HandleTabAutocomplete()
+    {
+        string[] parts = Game.GuiTypingBuffer.Split(' ');
+        string lastWord = parts[^1];
+        string completed = DoAutocomplete(lastWord);
+
+        if (completed == "")
+        {
+            return;
+        }
+
+        if (parts.Length == 1)
+        {
+            Game.GuiTypingBuffer = completed + ": ";
+        }
+        else
+        {
+            parts[^1] = completed;
+            Game.GuiTypingBuffer = string.Join(' ', parts) + " ";
+        }
+    }
 }
 
+// =============================================================================
+
+/// <summary>
+/// Represents a single line in the chat history, optionally carrying a
+/// clickable hyperlink.
+/// </summary>
 public class Chatline
 {
-    internal string text;
-    internal int timeMilliseconds;
-    internal bool clickable;
-    internal string linkTarget;
+    /// <summary>The formatted text displayed in the chat window.</summary>
+    internal string Text { get; set; }
 
-    internal static Chatline Create(string text_, int timeMilliseconds_)
-    {
-        Chatline c = new()
-        {
-            text = text_,
-            timeMilliseconds = timeMilliseconds_,
-            clickable = false
-        };
-        return c;
-    }
+    /// <summary>
+    /// The platform timestamp (in milliseconds) at which this line was added,
+    /// used to expire old messages from the passive display.
+    /// </summary>
+    internal int TimeMilliseconds { get; set; }
 
-    internal static Chatline CreateClickable(string text_, int timeMilliseconds_, string linkTarget_)
+    /// <summary>
+    /// When <see langword="true"/>, clicking this line opens <see cref="LinkTarget"/>
+    /// in the system browser.
+    /// </summary>
+    internal bool Clickable { get; set; }
+
+    /// <summary>
+    /// The URL opened when the player clicks this line.
+    /// Only meaningful when <see cref="Clickable"/> is <see langword="true"/>.
+    /// </summary>
+    internal string LinkTarget { get; set; }
+
+    /// <summary>Creates a non-clickable chat line with the given text and timestamp.</summary>
+    internal static Chatline Create(string text, int timeMilliseconds) => new()
     {
-        Chatline c = new()
-        {
-            text = text_,
-            timeMilliseconds = timeMilliseconds_,
-            clickable = true,
-            linkTarget = linkTarget_
-        };
-        return c;
-    }
+        Text = text,
+        TimeMilliseconds = timeMilliseconds,
+        Clickable = false,
+    };
+
+    /// <summary>
+    /// Creates a clickable chat line that opens <paramref name="linkTarget"/>
+    /// in the system browser when clicked.
+    /// </summary>
+    internal static Chatline CreateClickable(string text, int timeMilliseconds, string linkTarget) => new()
+    {
+        Text = text,
+        TimeMilliseconds = timeMilliseconds,
+        Clickable = true,
+        LinkTarget = linkTarget,
+    };
 }

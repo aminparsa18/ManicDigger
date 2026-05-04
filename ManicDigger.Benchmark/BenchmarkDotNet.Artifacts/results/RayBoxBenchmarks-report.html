@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>RayBoxBenchmarks-20260504-154800</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.8246/25H2/2025Update/HudsonValley2)
+Intel Core i9-14900KF 3.20GHz, 1 CPU, 32 logical and 24 physical cores
+.NET SDK 10.0.203
+  [Host]     : .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+  Job-YFEFPZ : .NET 10.0.7 (10.0.7, 10.0.726.21808), X64 RyuJIT x86-64-v3
+</code></pre>
+<pre><code>IterationCount=10  WarmupCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>Method                                         </th><th>N</th><th>Mean  </th><th>Error</th><th>StdDev</th><th>Ratio</th><th>RatioSD</th><th>Allocated</th><th>Alloc Ratio</th>
+</tr>
+</thead><tbody><tr><td>&#39;Woo original (heap) — guaranteed hit&#39;</td><td>100</td><td>752.3 ns</td><td>10.97 ns</td><td>7.25 ns</td><td>0.88</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo stackalloc     — guaranteed hit&#39;</td><td>100</td><td>4,021.3 ns</td><td>62.48 ns</td><td>41.32 ns</td><td>4.71</td><td>0.05</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Slab               — guaranteed hit&#39;</td><td>100</td><td>1,026.5 ns</td><td>5.16 ns</td><td>3.07 ns</td><td>1.20</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo original (heap) — guaranteed miss&#39;</td><td>100</td><td>735.9 ns</td><td>12.87 ns</td><td>8.51 ns</td><td>0.86</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo stackalloc     — guaranteed miss&#39;</td><td>100</td><td>3,344.0 ns</td><td>34.42 ns</td><td>22.77 ns</td><td>3.91</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Slab               — guaranteed miss&#39;</td><td>100</td><td>952.7 ns</td><td>3.16 ns</td><td>1.88 ns</td><td>1.11</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo original (heap) — mixed rays&#39;</td><td>100</td><td>854.5 ns</td><td>3.91 ns</td><td>2.59 ns</td><td>1.00</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo stackalloc     — mixed rays&#39;</td><td>100</td><td>3,173.5 ns</td><td>149.05 ns</td><td>98.59 ns</td><td>3.71</td><td>0.11</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Slab               — mixed rays&#39;</td><td>100</td><td>1,055.2 ns</td><td>2.15 ns</td><td>1.13 ns</td><td>1.23</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Slab precomputed invDir — mixed rays (octree ideal)&#39;</td><td>100</td><td>1,005.0 ns</td><td>6.68 ns</td><td>4.42 ns</td><td>1.18</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo original (heap) — guaranteed hit&#39;</td><td>10000</td><td>74,440.9 ns</td><td>1,293.47 ns</td><td>855.55 ns</td><td>0.31</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo stackalloc     — guaranteed hit&#39;</td><td>10000</td><td>293,451.0 ns</td><td>9,297.62 ns</td><td>6,149.80 ns</td><td>1.23</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Slab               — guaranteed hit&#39;</td><td>10000</td><td>102,037.7 ns</td><td>277.44 ns</td><td>165.10 ns</td><td>0.43</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo original (heap) — guaranteed miss&#39;</td><td>10000</td><td>63,769.4 ns</td><td>836.79 ns</td><td>553.49 ns</td><td>0.27</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo stackalloc     — guaranteed miss&#39;</td><td>10000</td><td>241,981.9 ns</td><td>6,973.53 ns</td><td>4,612.56 ns</td><td>1.02</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Slab               — guaranteed miss&#39;</td><td>10000</td><td>95,139.5 ns</td><td>435.57 ns</td><td>288.10 ns</td><td>0.40</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo original (heap) — mixed rays&#39;</td><td>10000</td><td>237,850.1 ns</td><td>1,313.94 ns</td><td>869.09 ns</td><td>1.00</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Woo stackalloc     — mixed rays&#39;</td><td>10000</td><td>483,299.8 ns</td><td>3,135.25 ns</td><td>2,073.78 ns</td><td>2.03</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Slab               — mixed rays&#39;</td><td>10000</td><td>106,997.2 ns</td><td>330.17 ns</td><td>218.38 ns</td><td>0.45</td><td>0.00</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Slab precomputed invDir — mixed rays (octree ideal)&#39;</td><td>10000</td><td>100,918.2 ns</td><td>232.09 ns</td><td>138.11 ns</td><td>0.42</td><td>0.00</td><td>-</td><td>NA</td>
+</tr></tbody></table>
+</body>
+</html>

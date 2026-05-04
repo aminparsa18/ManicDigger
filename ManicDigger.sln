@@ -19,6 +19,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDigger.Maui", "ManicDigger.Maui\ManicDigger.Maui.csproj", "{B50C1D99-A4F9-42B8-B67D-975F8021890C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F1C81588-8630-4F83-9602-3544AC76F66D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDigger.Benchmark", "ManicDigger.Benchmark\ManicDigger.Benchmark.csproj", "{EF948D54-8AD1-4F13-A9FE-737127CE907D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,9 +60,18 @@ Global
 		{B50C1D99-A4F9-42B8-B67D-975F8021890C}.FastBuild|Any CPU.Build.0 = Release|Any CPU
 		{B50C1D99-A4F9-42B8-B67D-975F8021890C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B50C1D99-A4F9-42B8-B67D-975F8021890C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF948D54-8AD1-4F13-A9FE-737127CE907D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF948D54-8AD1-4F13-A9FE-737127CE907D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF948D54-8AD1-4F13-A9FE-737127CE907D}.FastBuild|Any CPU.ActiveCfg = Release|Any CPU
+		{EF948D54-8AD1-4F13-A9FE-737127CE907D}.FastBuild|Any CPU.Build.0 = Release|Any CPU
+		{EF948D54-8AD1-4F13-A9FE-737127CE907D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF948D54-8AD1-4F13-A9FE-737127CE907D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EF948D54-8AD1-4F13-A9FE-737127CE907D} = {F1C81588-8630-4F83-9602-3544AC76F66D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D331AA92-6BEC-4175-8E65-A767983D895D}

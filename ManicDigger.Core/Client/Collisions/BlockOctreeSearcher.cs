@@ -3,144 +3,184 @@
 /// <summary>
 /// Performs octree-based spatial searches over a 3D block world,
 /// supporting line intersection tests against non-empty blocks.
+///
+/// All traversal is single-pass: the ray is tested inline at each node using
+/// the slab method with a pre-computed <c>invDir</c>, children are visited in
+/// ray-distance order for early exit, and results are written directly into a
+/// pre-allocated hit buffer — no intermediate lists, no heap allocation per call.
 /// </summary>
 public class BlockOctreeSearcher
 {
-
     /// <summary>
     /// The root bounding box of the octree search space.
-    /// Must have equal power-of-two dimensions for the octree subdivision to work correctly.
+    /// Must have equal power-of-two dimensions for subdivision to work correctly.
     /// </summary>
     public Box3 StartBox { get; set; }
 
-    /// <summary>The line currently being tested, set at the start of <see cref="LineIntersection"/>.</summary>
-    private Line3D currentLine;
-
     /// <summary>
-    /// Reusable result buffer for <see cref="LineIntersection"/> to avoid
-    /// per-call heap allocation.
+    /// Maximum number of block hits returned per <see cref="LineIntersection"/> call.
+    /// A pick ray in a voxel world realistically hits fewer than 30 blocks at any
+    /// supported view distance; 256 is a safe upper bound.
     /// </summary>
-    private readonly List<BlockPosSide> hits;
+    private const int MaxHits = 256;
 
-    public BlockOctreeSearcher()
-    {
-        hits = new List<BlockPosSide>();
-    }
+    /// <summary>Pre-allocated hit buffer — reused across calls, zero heap allocation per query.</summary>
+    private readonly BlockPosSide[] _hits = new BlockPosSide[MaxHits];
 
-    /// <summary>
-    /// Recursively searches the octree for all unit-sized leaf boxes
-    /// that satisfy <paramref name="query"/>, starting from <see cref="StartBox"/>.
-    /// Returns an empty list if <see cref="StartBox"/> has zero size.
-    /// </summary>
-    /// <param name="query">The predicate to test each box against.</param>
-    /// <returns>All matching leaf boxes.</returns>
-    private List<Box3> Search(PredicateBox3D query) 
-        => StartBox.Size.X == 0 && StartBox.Size.Y == 0 && StartBox.Size.Z == 0 ? [] : SearchRecursive(query, StartBox);
-
-    /// <summary>
-    /// Recursively subdivides <paramref name="box"/> into 8 children,
-    /// collecting all unit-sized leaves that satisfy <paramref name="query"/>.
-    /// </summary>
-    private static List<Box3> SearchRecursive(PredicateBox3D query, Box3 box)
-    {
-        if (box.Size.X == 1)
-        {
-            return [box];
-        }
-
-        List<Box3> result = new();
-        foreach (Box3 child in GetChildren(box))
-        {
-            if (query.Hit(child))
-            {
-                result.AddRange(SearchRecursive(query, child));
-            }
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// Returns the 8 equal child boxes produced by subdividing <paramref name="box"/> in half
-    /// along each axis.
-    /// </summary>
-    private static Box3[] GetChildren(Box3 box)
-    {
-        float x = box.Min.X;
-        float y = box.Min.Y;
-        float z = box.Min.Z;
-        float half = box.Size.X / 2;
-        Vector3 s = new(half, half, half);
-
-        return
-        [
-            new Box3(new Vector3(x,        y,        z       ), new Vector3(x,        y,        z       ) + s),
-            new Box3(new Vector3(x + half, y,        z       ), new Vector3(x + half, y,        z       ) + s),
-            new Box3(new Vector3(x,        y,        z + half), new Vector3(x,        y,        z + half) + s),
-            new Box3(new Vector3(x + half, y,        z + half), new Vector3(x + half, y,        z + half) + s),
-            new Box3(new Vector3(x,        y + half, z       ), new Vector3(x,        y + half, z       ) + s),
-            new Box3(new Vector3(x + half, y + half, z       ), new Vector3(x + half, y + half, z       ) + s),
-            new Box3(new Vector3(x,        y + half, z + half), new Vector3(x,        y + half, z + half) + s),
-            new Box3(new Vector3(x + half, y + half, z + half), new Vector3(x + half, y + half, z + half) + s),
-        ];
-    }
-
-    /// <summary>
-    /// Tests whether <paramref name="box"/> intersects the current line,
-    /// populating <see cref="currentHit"/> with the intersection point if so.
-    /// Called by <see cref="PredicateBox3DHit"/> during the octree search.
-    /// </summary>
-    /// <param name="box">The box to test.</param>
-    /// <returns><c>true</c> if the line intersects <paramref name="box"/>.</returns>
-    public bool BoxHit(Box3 box) => Intersection.CheckLineBox(box, currentLine, out _);
+    // ── Public API ────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Finds all non-empty blocks intersected by <paramref name="line"/>,
     /// returning their positions and exact collision points.
     /// </summary>
-    /// <param name="isEmpty">Delegate that returns <c>true</c> if a block at (x, y, z) is empty.</param>
-    /// <param name="getBlockHeight">Delegate that returns the height of a block at (x, y, z).</param>
+    /// <param name="isEmpty">Returns <c>true</c> if the block at (x, y, z) is empty.</param>
+    /// <param name="getBlockHeight">Returns the height of the block at (x, y, z).</param>
     /// <param name="line">The line segment to test against the block world.</param>
-    /// <param name="retCount">The number of hits written to the returned segment.</param>
+    /// <param name="retCount">Number of hits written into the returned segment.</param>
     /// <returns>
-    /// A segment of the internal hit buffer containing all intersected blocks.
+    /// A segment of the internal hit buffer. Valid until the next call to
+    /// <see cref="LineIntersection"/> on this instance.
     /// </returns>
-    public ArraySegment<BlockPosSide> LineIntersection(IsBlockEmptyDelegate isEmpty, GetBlockHeightDelegate getBlockHeight, Line3D line, out int retCount)
+    public ArraySegment<BlockPosSide> LineIntersection(
+        IsBlockEmptyDelegate isEmpty,
+        GetBlockHeightDelegate getBlockHeight,
+        Line3D line,
+        out int retCount)
     {
-        hits.Clear();
-        currentLine = line;
+        retCount = 0;
 
-        List<Box3> candidates = Search(PredicateBox3DHit.Create(this));
+        if (StartBox.Size.X == 0 && StartBox.Size.Y == 0 && StartBox.Size.Z == 0)
+            return new ArraySegment<BlockPosSide>(_hits, 0, 0);
 
-        for (int i = 0; i < candidates.Count; i++)
+        Vector3 origin = line.Start;
+        Vector3 dir = line.Direction;
+        Vector3 invDir = Vector3.One / dir;
+
+        // Test root once before entering traversal
+        if (Intersection.SlabTest(StartBox.Min, StartBox.Max, origin, invDir, out float tEntry))
+            Traverse(StartBox, origin, dir, invDir, tEntry, isEmpty, getBlockHeight, ref retCount);
+
+        return new ArraySegment<BlockPosSide>(_hits, 0, retCount);
+    }
+
+    // ── Core traversal ────────────────────────────────────────────────────────
+
+    /// <param name="tEntry">
+    /// Ray entry distance for <paramref name="box"/>, already confirmed by the caller.
+    /// Passed in to avoid re-testing a node that the parent already tested.
+    /// </param>
+    private void Traverse(
+        Box3 box,
+        Vector3 origin,
+        Vector3 dir,
+        Vector3 invDir,
+        float tEntry,
+        IsBlockEmptyDelegate isEmpty,
+        GetBlockHeightDelegate getBlockHeight,
+        ref int count)
+    {
+        // tEntry is already confirmed by the caller — no re-test here.
+
+        if (box.Size.X <= 1f)
         {
-            Box3 node = candidates[i];
-            int bx = (int)node.Min.X;
-            int by = (int)node.Min.Z; // note: Y/Z are swapped in world space
-            int bz = (int)node.Min.Y;
-
-            if (isEmpty(bx, by, bz))
-            {
-                continue;
-            }
-
-            Box3 adjustedBox = new(node.Min, new Vector3(
-                node.Max.X,
-                node.Min.Y + getBlockHeight(bx, by, bz),
-                node.Max.Z
-            ));
-
-            if (Intersection.HitBoundingBox(adjustedBox.Min, adjustedBox.Max, line.Start, line.Direction, out Vector3 hit))
-            {
-                hits.Add(new BlockPosSide
-                {
-                    blockPos = new Vector3(bx, bz, by), // note: Y/Z are swapped in world space
-                    collisionPos = hit
-                });
-            }
+            ProcessLeaf(box, origin, dir, invDir, isEmpty, getBlockHeight, ref count);
+            return;
         }
 
-        retCount = hits.Count;
-        return new ArraySegment<BlockPosSide>([.. hits], 0, hits.Count);
+        Span<Box3> children = stackalloc Box3[8];
+        Subdivide(box, children);
+
+        // Test each child once and collect only the ones the ray actually hits.
+        // Missed children are never added to the sort buffer — no float.MaxValue
+        // sentinels, no wasted sort comparisons.
+        Span<(float t, int i)> order = stackalloc (float, int)[8];
+        int hitCount = 0;
+
+        for (int i = 0; i < 8; i++)
+        {
+            if (Intersection.SlabTest(children[i].Min, children[i].Max, origin, invDir, out float t))
+                order[hitCount++] = (t, i);
+        }
+
+        // Insertion sort over hit children only — worst case 8, average much less.
+        for (int i = 1; i < hitCount; i++)
+        {
+            (float t, int idx) key = order[i];
+            int j = i - 1;
+            while (j >= 0 && order[j].t > key.t) { order[j + 1] = order[j]; j--; }
+            order[j + 1] = key;
+        }
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            if (count >= MaxHits) return;
+            (float t, int idx) = order[i];
+            // Pass t down — child skips its own slab test at the top of Traverse.
+            Traverse(children[idx], origin, dir, invDir, t, isEmpty, getBlockHeight, ref count);
+        }
     }
+
+    /// <summary>
+    /// Tests a unit-sized leaf node against the actual block data.
+    /// Skips empty blocks and applies the per-block height adjustment before
+    /// computing the precise hit point.
+    /// </summary>
+    private void ProcessLeaf(
+        Box3 box,
+        Vector3 origin,
+        Vector3 dir,
+        Vector3 invDir,
+        IsBlockEmptyDelegate isEmpty,
+        GetBlockHeightDelegate getBlockHeight,
+        ref int count)
+    {
+        int bx = (int)box.Min.X;
+        int by = (int)box.Min.Z; // Y/Z swapped — world space convention
+        int bz = (int)box.Min.Y;
+
+        if (isEmpty(bx, by, bz)) return;
+
+        // Adjust the box height for non-full blocks (slabs, sloped rails, etc.)
+        Box3 adjustedBox = new(
+            box.Min,
+            new Vector3(box.Max.X, box.Min.Y + getBlockHeight(bx, by, bz), box.Max.Z));
+
+        if (!Intersection.HitBoundingBoxSlabInvDir(
+                adjustedBox.Min, adjustedBox.Max, origin, dir, invDir, out Vector3 hit))
+            return;
+
+        if (count < MaxHits)
+            _hits[count++] = new BlockPosSide
+            {
+                BlockPos = new Vector3(bx, bz, by), // Y/Z swapped — world space convention
+                CollisionPos = hit,
+            };
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Fills <paramref name="children"/> with the 8 equal sub-boxes produced
+    /// by halving <paramref name="box"/> along each axis.
+    /// All arithmetic is on the stack; no heap allocation.
+    /// </summary>
+    private static void Subdivide(Box3 box, Span<Box3> children)
+    {
+        float x = box.Min.X;
+        float y = box.Min.Y;
+        float z = box.Min.Z;
+        float half = box.Size.X * 0.5f;
+
+        children[0] = Child(x, y, z, half);
+        children[1] = Child(x + half, y, z, half);
+        children[2] = Child(x, y, z + half, half);
+        children[3] = Child(x + half, y, z + half, half);
+        children[4] = Child(x, y + half, z, half);
+        children[5] = Child(x + half, y + half, z, half);
+        children[6] = Child(x, y + half, z + half, half);
+        children[7] = Child(x + half, y + half, z + half, half);
+    }
+
+    private static Box3 Child(float x, float y, float z, float half)
+        => new(new Vector3(x, y, z), new Vector3(x + half, y + half, z + half));
 }

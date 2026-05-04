@@ -7,7 +7,7 @@
 /// the larger value.
 /// </summary>
 /// <remarks>
-/// All backing arrays (<see cref="data"/>, <see cref="dataInt"/>, <see cref="baseLight"/>)
+/// All backing arrays (<see cref="Data"/>, <see cref="dataInt"/>, <see cref="BaseLight"/>)
 /// are rented from <see cref="ArrayPool{T}.Shared"/> and must be returned by calling
 /// <see cref="Release"/> before the chunk reference is discarded.
 /// </remarks>
@@ -18,7 +18,7 @@ public class Chunk
 
     /// <summary>
     /// Expanded int storage, allocated on demand when a block value ≥ 255 is written.
-    /// When non-null, <see cref="data"/> is null (and has been returned to the pool).
+    /// When non-null, <see cref="Data"/> is null (and has been returned to the pool).
     /// </summary>
     private int[] dataInt;
 
@@ -26,12 +26,12 @@ public class Chunk
     // Exactly one of data/dataInt is active at any time; the other is null.
 
     /// <summary>Compact byte storage used when all block values are below 255.</summary>
-    public byte[] data { get; set; }
+    public byte[] Data { get; set; }
 
     /// <summary>Per-block base light levels for this chunk.</summary>
-    public byte[] baseLight { get; set; }
+    public byte[] BaseLight { get; set; }
 
-    /// <summary>Whether <see cref="baseLight"/> needs to be recalculated before next use.</summary>
+    /// <summary>Whether <see cref="BaseLight"/> needs to be recalculated before next use.</summary>
     public bool BaseLightDirty { get; set; } = true;
 
     /// <summary>The last rendered state of this chunk, used by the renderer.</summary>
@@ -44,7 +44,7 @@ public class Chunk
     /// Reads from whichever backing store is currently active.
     /// </summary>
     /// <param name="pos">Flat index into the chunk's block array.</param>
-    public int GetBlock(int pos) => dataInt != null ? dataInt[pos] : data[pos];
+    public int GetBlock(int pos) => dataInt != null ? dataInt[pos] : Data[pos];
 
     /// <summary>
     /// Sets the block value at the given flat index within this chunk.
@@ -61,9 +61,9 @@ public class Chunk
             return;
         }
 
-        if (block < 255)
+        if (block <= 255)
         {
-            data[pos] = (byte)block;
+            Data[pos] = (byte)block;
             return;
         }
 
@@ -71,11 +71,11 @@ public class Chunk
         // Rent a new int array at least ChunkVolume in size.
         int n = ChunkVolume;
         int[] promoted = ArrayPool<int>.Shared.Rent(n);
-        Buffer.BlockCopy(data, 0, promoted, 0, n);
+        Buffer.BlockCopy(Data, 0, promoted, 0, n);
 
         // Return the now-redundant byte array to the pool.
-        ArrayPool<byte>.Shared.Return(data);
-        data = null;
+        ArrayPool<byte>.Shared.Return(Data);
+        Data = null;
 
         dataInt = promoted;
         dataInt[pos] = block;
@@ -85,7 +85,7 @@ public class Chunk
     /// Returns <see langword="true"/> if this chunk has been populated with block data.
     /// A chunk with no data is considered empty/unloaded.
     /// </summary>
-    public bool HasData() => data != null || dataInt != null;
+    public bool HasData() => Data != null || dataInt != null;
 
     /// <summary>
     /// Returns all pooled arrays back to <see cref="ArrayPool{T}.Shared"/> and nulls
@@ -98,10 +98,10 @@ public class Chunk
     /// </remarks>
     public void Release()
     {
-        if (data != null)
+        if (Data != null)
         {
-            ArrayPool<byte>.Shared.Return(data);
-            data = null;
+            ArrayPool<byte>.Shared.Return(Data);
+            Data = null;
         }
 
         if (dataInt != null)
@@ -110,10 +110,10 @@ public class Chunk
             dataInt = null;
         }
 
-        if (baseLight != null)
+        if (BaseLight != null)
         {
-            ArrayPool<byte>.Shared.Return(baseLight);
-            baseLight = null;
+            ArrayPool<byte>.Shared.Return(BaseLight);
+            BaseLight = null;
         }
 
         Rendered?.ReleaseLight();

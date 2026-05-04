@@ -81,7 +81,7 @@ public class ModCamera : ModBase
         if (hitCount > 0)
         {
             BlockPosSide nearest = Game.Nearest(hits, hitCount, target);
-            float pickDistance = new Vector3(nearest.blockPos[0] - target.X, nearest.blockPos[1] - target.Y, nearest.blockPos[2] - target.Z).Length;
+            float pickDistance = new Vector3(nearest.BlockPos[0] - target.X, nearest.BlockPos[1] - target.Y, nearest.BlockPos[2] - target.Z).Length;
             distance = Math.Max(MinDistance, Math.Min(pickDistance - 1, distance));
         }
 

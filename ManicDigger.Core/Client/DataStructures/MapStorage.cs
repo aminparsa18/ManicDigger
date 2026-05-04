@@ -6,7 +6,7 @@
     int GetBlock(int x, int y, int z);
 }
 
-public class MapStorage(IVoxelMap voxelMap, Action<int, int, int, int> setBlock) : IMapStorage
+public class MapStorage(IVoxelMap voxelMap) : IMapStorage
 {
     private readonly IVoxelMap _voxelMap = voxelMap;
 

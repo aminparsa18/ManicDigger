@@ -134,7 +134,7 @@ public class LightBetweenChunks
                     }
 
                     // Copy base light computed by LightBase.
-                    Array.Copy(chunk.baseLight, lightSlot, ChunkVolume);
+                    Array.Copy(chunk.BaseLight, lightSlot, ChunkVolume);
                 }
             }
         }

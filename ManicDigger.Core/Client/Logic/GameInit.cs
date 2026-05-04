@@ -17,6 +17,7 @@ public partial class Game : IGame
     private readonly ISinglePlayerService singlePlayerService;
     private readonly ITaskScheduler taskScheduler;
     private readonly IModRegistry modRegistry;
+    private readonly IGameLogger _gameLogger;
 
     public LanguageService Language { get; set; }
     public Config3d Config3d { get; set; }
@@ -112,7 +113,7 @@ public partial class Game : IGame
     public AnimationHint LocalPlayerAnimationHint { get; set; }
 
     public Packet_ServerPlayerStats PlayerStats { get; set; }
-    public Dictionary<(int x, int y, int z), float> blockHealth { get; set; } = new();
+    public Dictionary<(int x, int y, int z), float> BlockHealth { get; set; } = new();
 
     public int CurrentlyAttackedEntity { get; set; }
     public Vector3i? CurrentAttackedBlock { get; set; }
@@ -349,10 +350,11 @@ public partial class Game : IGame
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITaskScheduler taskScheduler,
         IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService, IFrustumCulling frustumCulling,
-        IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager)
+        IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager, IGameLogger gameLogger)
     {
         gameService = platform;
         openGlService = platformOpenGl;
+        _gameLogger = gameLogger;
         this.singlePlayerService = singlePlayerService;
         this.taskScheduler = taskScheduler;
         this._blockRegistry = blockTypeRegistry;
@@ -439,7 +441,7 @@ public partial class Game : IGame
 
         TotalAmmo = new int[GameConstants.MAX_BLOCKTYPES];
         LoadedAmmo = new int[GameConstants.MAX_BLOCKTYPES];
-        blockHealth = [];
+        BlockHealth = [];
         Dialogs = new VisibleDialog[512];
         TypingLog = [];
     }

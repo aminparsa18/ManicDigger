@@ -5,6 +5,7 @@ public class VegetationGrowth : IMod
     private readonly Random rnd = new();
 
     private IServerModManager? m;
+    private IBlockRegistry _blockRegistry;
     private int DirtForFarming;
     private int OakSapling;
     private int BirchSapling;
@@ -26,6 +27,11 @@ public class VegetationGrowth : IMod
     private int OakTreeTrunk;
     private int BirchTreeTrunk;
     private int SpruceTreeTrunk;
+
+    public VegetationGrowth(IBlockRegistry blockRegistry)
+    {
+        _blockRegistry = blockRegistry;
+    }
 
     public void PreStart(IServerModManager m) => m.RequireMod("CoreBlocks");
 
@@ -213,7 +219,7 @@ public class VegetationGrowth : IMod
             if (m.IsValidPos(args.X, args.Y, args.Z + 1))
             {
                 int roofBlock = m.GetBlock(args.X, args.Y, args.Z + 1);
-                if (m.IsTransparentForLight(roofBlock))
+                if (BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[roofBlock]))
                 {
                     if (IsShadow(args.X, args.Y, args.Z) && !ReflectedSunnyLight(args.X, args.Y, args.Z))
                     {
@@ -237,7 +243,8 @@ public class VegetationGrowth : IMod
     {
         if (m.GetBlock(args.X, args.Y, args.Z) == Grass)
         {
-            if (IsShadow(args.X, args.Y, args.Z) && !(ReflectedSunnyLight(args.X, args.Y, args.Z) && m.IsTransparentForLight(m.GetBlock(args.X, args.Y, args.Z + 1))))
+            if (IsShadow(args.X, args.Y, args.Z) && !(ReflectedSunnyLight(args.X, args.Y, args.Z) 
+                && BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[m.GetBlock(args.X, args.Y, args.Z + 1)])))
             {
                 m.SetBlock(args.X, args.Y, args.Z, Dirt);
             }
@@ -347,7 +354,7 @@ public class VegetationGrowth : IMod
     {
         for (int i = 1; i < 10; i++)
         {
-            if (m.IsValidPos(x, y, z + i) && !m.IsTransparentForLight(m.GetBlock(x, y, z + i)))
+            if (m.IsValidPos(x, y, z + i) && !BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[m.GetBlock(x, y, z + i)]))
             {
                 return true;
             }

@@ -240,8 +240,6 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
         }
     }
 
-    public bool IsTransparentForLight(int p) => Game.IsTransparentForLight(_blockRegistry.BlockTypes[p]);
-
     public void RegisterOptionBool(string optionname, bool default_) => modoptions[optionname] = default_;
 
     private readonly Dictionary<string, object> modoptions = [];

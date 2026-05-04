@@ -246,7 +246,7 @@ public class ModPicking : ModBase
             int ntileX = (int)pick0.Current()[0];
             int ntileY = (int)pick0.Current()[1];
             int ntileZ = (int)pick0.Current()[2];
-            if (Game.IsUsableBlock(voxelMap.GetBlock(ntileX, ntileZ, ntileY)))
+            if (blockTypeRegistry.IsUsableBlock(voxelMap.GetBlock(ntileX, ntileZ, ntileY)))
             {
                 Game.CurrentAttackedBlock = new Vector3i(ntileX, ntileZ, ntileY);
             }
@@ -393,16 +393,16 @@ public class ModPicking : ModBase
         Game.CurrentAttackedBlock = new Vector3i(posx, posy, posz);
         (int posx, int posy, int posz) key = (posx, posy, posz);
 
-        if (!Game.blockHealth.ContainsKey(key))
+        if (!Game.BlockHealth.ContainsKey(key))
         {
-            Game.blockHealth[key] = Game.GetCurrentBlockHealth(posx, posy, posz);
+            Game.BlockHealth[key] = Game.GetCurrentBlockHealth(posx, posy, posz);
         }
 
-        Game.blockHealth[key] -= random.Next(2, 4);
+        Game.BlockHealth[key] -= random.Next(2, 4);
 
         if (Game.GetCurrentBlockHealth(posx, posy, posz) <= 0)
         {
-            Game.blockHealth.Remove(key);
+            Game.BlockHealth.Remove(key);
             Game.CurrentAttackedBlock = null;
             OnPick(newtileX, posy, posz,
                 (int)tile.Current()[0], (int)tile.Current()[2], (int)tile.Current()[1],
@@ -729,38 +729,38 @@ public class ModPicking : ModBase
                 if (fillstart != null)
                 {
                     Vector3i f = fillstart.Value;
-                    if (!Game.IsFillBlock(voxelMap.GetBlock(f.X, f.Y, f.Z)))
+                    if (!blockTypeRegistry.IsFillBlock(voxelMap.GetBlock(f.X, f.Y, f.Z)))
                     {
                         fillarea[(f.X, f.Y, f.Z)] = voxelMap.GetBlock(f.X, f.Y, f.Z);
                     }
 
-                    Game.SetBlock(f.X, f.Y, f.Z, blockTypeRegistry.BlockIdFillStart);
+                    Game.PlaceBlock(f.X, f.Y, f.Z, blockTypeRegistry.BlockIdFillStart);
                     FillFill(v, fillstart);
                 }
 
-                if (!Game.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
+                if (!blockTypeRegistry.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
                 {
                     fillarea[(v.X, v.Y, v.Z)] = voxelMap.GetBlock(v.X, v.Y, v.Z);
                 }
 
-                Game.SetBlock(v.X, v.Y, v.Z, blockTypeRegistry.BlockIdCuboid);
+                Game.PlaceBlock(v.X, v.Y, v.Z, blockTypeRegistry.BlockIdCuboid);
                 fillend = v;
-                Game.RedrawBlock(v.X, v.Y, v.Z);
+                voxelMap.SetBlockDirty(v.X, v.Y, v.Z);
                 return;
             }
 
             if (activeMaterial == blockTypeRegistry.BlockIdFillStart)
             {
                 ClearFillArea();
-                if (!Game.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
+                if (!blockTypeRegistry.IsFillBlock(voxelMap.GetBlock(v.X, v.Y, v.Z)))
                 {
                     fillarea[(v.X, v.Y, v.Z)] = voxelMap.GetBlock(v.X, v.Y, v.Z);
                 }
 
-                Game.SetBlock(v.X, v.Y, v.Z, blockTypeRegistry.BlockIdFillStart);
+                Game.PlaceBlock(v.X, v.Y, v.Z, blockTypeRegistry.BlockIdFillStart);
                 fillstart = v;
                 fillend = null;
-                Game.RedrawBlock(v.X, v.Y, v.Z);
+                voxelMap.SetBlockDirty(v.X, v.Y, v.Z);
                 return;
             }
 
@@ -810,8 +810,8 @@ public class ModPicking : ModBase
     {
         foreach (((int x, int y, int z), float value) in fillarea)
         {
-            Game.SetBlock(x, y, z, (int)value);
-            Game.RedrawBlock(x, y, z);
+            Game.PlaceBlock(x, y, z, (int)value);
+            voxelMap.SetBlockDirty(x, y, z);
         }
 
         fillarea.Clear();
@@ -841,11 +841,11 @@ public class ModPicking : ModBase
                         return;
                     }
 
-                    if (!Game.IsFillBlock(voxelMap.GetBlock(x, y, z)))
+                    if (!blockTypeRegistry.IsFillBlock(voxelMap.GetBlock(x, y, z)))
                     {
                         fillarea[(x, y, z)] = voxelMap.GetBlock(x, y, z);
-                        Game.SetBlock(x, y, z, blockTypeRegistry.BlockIdFillArea);
-                        Game.RedrawBlock(x, y, z);
+                        Game.PlaceBlock(x, y, z, blockTypeRegistry.BlockIdFillArea);
+                        voxelMap.SetBlockDirty(x, y, z);
                     }
                 }
             }

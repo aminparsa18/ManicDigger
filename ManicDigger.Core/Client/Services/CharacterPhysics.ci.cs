@@ -398,7 +398,7 @@ public class ScriptCharacterPhysics : IEntityScript
 
         BlockType blocktype = blockTypeRegistry.BlockTypes[block];
         return blocktype.WalkableType == WalkableType.Fluid
-            || Game.IsEmptyForPhysics(blocktype)
+            || BlockType.IsEmptyForPhysics(blocktype)
             || IsRail(blocktype);
     }
 

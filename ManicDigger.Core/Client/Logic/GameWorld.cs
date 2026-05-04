@@ -28,71 +28,14 @@ public partial class Game
     /// </summary>
     private static readonly int[] FogDrawDistances = [32, 64, 128, 256, 512];
 
-    // ── Fix #9: self-documenting arithmetic instead of a magic-number comment ─
     private const float FogDensity = 25f / 10000f;
 
     // ── Block type queries ────────────────────────────────────────────────────
 
     /// <summary>
-    /// Returns <see langword="true"/> when <paramref name="block"/> does not
-    /// obstruct player movement (ladders and non-solid, non-fluid draw types).
-    /// </summary>
-    public static bool IsEmptyForPhysics(BlockType block)
-        => block.DrawType == DrawType.Ladder
-        || (block.WalkableType != WalkableType.Solid
-            && block.WalkableType != WalkableType.Fluid);
-
-    /// <summary>
-    /// Returns <see langword="true"/> when <paramref name="b"/> allows light
-    /// to pass through it (everything except solid blocks and closed doors).
-    /// </summary>
-    public static bool IsTransparentForLight(BlockType b)
-        => b.DrawType is not DrawType.Solid
-        and not DrawType.ClosedDoor;
-
-    /// <summary>
-    /// Returns <see langword="true"/> when the block at this ID has a name assigned.
-    /// </summary>
-    public bool IsValid(int blocktype) => _blockRegistry.BlockTypes[blocktype].Name != null;
-
-    /// <summary>
-    /// Fix #1: use registry ID instead of name-based string check.
-    /// Returns <see langword="true"/> when the block is the registered water block.
-    /// </summary>
-    public bool IsWater(int blockType)
-    {
-        string name = _blockRegistry.BlockTypes[blockType].Name;
-        return name != null && name.Contains("Water");
-    }
-
-    /// <summary>
-    /// Fix #1: use registry ID instead of name-based string check.
-    /// Returns <see langword="true"/> when the block is the registered lava block.
-    /// </summary>
-    internal bool IsLava(int blockType)
-        => _blockRegistry.BlockIdLava >= 0 && blockType == _blockRegistry.BlockIdLava;
-
-    /// <summary>
-    /// Returns <see langword="true"/> when <paramref name="blocktype"/> is one of
-    /// the fill/cuboid tool blocks that should not be treated as real terrain.
-    /// </summary>
-    public bool IsFillBlock(int blocktype)
-        => blocktype == _blockRegistry.BlockIdFillArea
-        || blocktype == _blockRegistry.BlockIdFillStart
-        || blocktype == _blockRegistry.BlockIdCuboid;
-
-    /// <summary>
-    /// Returns <see langword="true"/> when the block can be interacted with
-    /// (rail tiles or blocks with the <c>IsUsable</c> flag).
-    /// </summary>
-    public bool IsUsableBlock(int blocktype)
-        => _blockRegistry.IsRailTile(blocktype) || _blockRegistry.BlockTypes[blocktype].IsUsable;
-
-    /// <summary>
     /// Returns <see langword="true"/> when the tile at the given position does
     /// not physically obstruct the player (air, fill-area blocks, water, or
     /// out-of-bounds positions when in freemove mode).
-    /// Fix #2: IsWater now uses a registry ID comparison — no string allocation.
     /// </summary>
     public bool IsTileEmptyForPhysics(int x, int y, int z)
     {
@@ -114,7 +57,7 @@ public partial class Game
         int block = voxelMap.GetBlockValid(x, y, z);
         return block == SpecialBlockId.Empty
             || block == _blockRegistry.BlockIdFillArea
-            || IsWater(block);
+            || _blockRegistry.IsWater(block);
     }
 
     /// <summary>
@@ -134,7 +77,7 @@ public partial class Game
         }
 
         BlockType bt = _blockRegistry.BlockTypes[voxelMap.GetBlock(x, y, z)];
-        return bt.DrawType == DrawType.HalfHeight || IsEmptyForPhysics(bt);
+        return bt.DrawType == DrawType.HalfHeight || BlockType.IsEmptyForPhysics(bt);
     }
 
     // ── Block manipulation ────────────────────────────────────────────────────
@@ -143,7 +86,7 @@ public partial class Game
     /// Writes a block directly into the map, marks the owning chunk dirty,
     /// updates shadow heights, and records the position for the next chunk redraw.
     /// </summary>
-    public void SetBlock(int x, int y, int z, int tileType)
+    public void PlaceBlock(int x, int y, int z, int tileType)
     {
         voxelMap.SetBlockRaw(x, y, z, tileType);
         voxelMap.SetChunkDirty(x / GameConstants.CHUNK_SIZE, y / GameConstants.CHUNK_SIZE, z / GameConstants.CHUNK_SIZE, true, true);
@@ -154,14 +97,11 @@ public partial class Game
     }
 
     /// <summary>Writes a block and immediately marks all affected neighbour chunks for redraw.</summary>
-    public void SetTileAndUpdate(int x, int y, int z, int type)
+    public void PlaceBlockAndRedraw(int x, int y, int z, int type)
     {
-        SetBlock(x, y, z, type);
-        RedrawBlock(x, y, z);
+        PlaceBlock(x, y, z, type);
+        voxelMap.SetBlockDirty(x, y, z);
     }
-
-    /// <summary>Marks the chunk containing the given block as dirty for re-tessellation.</summary>
-    public void RedrawBlock(int x, int y, int z) => voxelMap.SetBlockDirty(x, y, z);
 
     /// <summary>Schedules a full-world re-tessellation on the next frame.</summary>
     public void RedrawAllBlocks() => ShouldRedrawAllBlocks = true;
@@ -194,7 +134,7 @@ public partial class Game
     /// <summary>
     /// Recalculates the heightmap entry for column (<paramref name="x"/>,
     /// <paramref name="y"/>) by scanning downward for the first opaque block.
-    /// Fix #6: skips the scan entirely when the changed block is below the
+    /// skips the scan entirely when the changed block is below the
     /// current heightmap value and is transparent — the height cannot have
     /// changed in that case, making most placements O(1).
     /// </summary>
@@ -209,7 +149,7 @@ public partial class Game
         if (currentHeight > 0)
         {
             int blockAtHeight = voxelMap.GetBlock(x, y, currentHeight);
-            if (!IsTransparentForLight(_blockRegistry.BlockTypes[blockAtHeight]))
+            if (!BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[blockAtHeight]))
             {
                 // The current recorded height is still solid — no change needed
                 // unless a block was placed above it (full scan still required
@@ -223,7 +163,7 @@ public partial class Game
         for (int i = voxelMap.MapSizeZ - 1; i >= 0; i--)
         {
             height = i;
-            if (!IsTransparentForLight(_blockRegistry.BlockTypes[voxelMap.GetBlock(x, y, i)]))
+            if (!BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[voxelMap.GetBlock(x, y, i)]))
             {
                 break;
             }
@@ -280,7 +220,7 @@ public partial class Game
     /// falling back to the block type's base strength when not yet damaged.
     /// </summary>
     public float GetCurrentBlockHealth(int x, int y, int z)
-        => blockHealth.TryGetValue((x, y, z), out float health)
+        => BlockHealth.TryGetValue((x, y, z), out float health)
             ? health
             : _blockRegistry.Strength[voxelMap.GetBlock(x, y, z)];
 
@@ -304,7 +244,7 @@ public partial class Game
 
         int blockid = mode == PacketBlockSetMode.Destroy ? SpecialBlockId.Empty : material;
 
-        // Fix #8: O(1) free-slot lookup via _speculativeFreeSlots stack.
+        // O(1) free-slot lookup via _speculativeFreeSlots stack.
         AddSpeculative(new Speculative
         {
             x = x,
@@ -313,11 +253,11 @@ public partial class Game
             blocktype = voxelMap.GetBlock(x, y, z),
             timeMilliseconds = gameService.TimeMillisecondsFromStart,
         });
-        SetBlock(x, y, z, blockid);
-        RedrawBlock(x, y, z);
+        PlaceBlock(x, y, z, blockid);
+        voxelMap.SetBlockDirty(x, y, z);
     }
 
-    // ── Fix #8: free-slot stack replaces linear null scan ─────────────────────
+    // ── free-slot stack replaces linear null scan ─────────────────────
     private readonly Stack<int> _speculativeFreeSlots = new();
 
     /// <summary>
@@ -338,7 +278,7 @@ public partial class Game
     /// <summary>
     /// Reverts any speculative block placements that have not been confirmed
     /// by the server within <see cref="SpeculativeTimeoutSeconds"/>.
-    /// Fix #4: freed slots are pushed onto <see cref="_speculativeFreeSlots"/>
+    /// freed slots are pushed onto <see cref="_speculativeFreeSlots"/>
     /// so <see cref="AddSpeculative"/> can reuse them without scanning.
     /// </summary>
     private void RevertSpeculative(float dt)
@@ -354,9 +294,8 @@ public partial class Game
 
             if ((now - s.Value.timeMilliseconds) / 1000f > SpeculativeTimeoutSeconds)
             {
-                RedrawBlock(s.Value.x, s.Value.y, s.Value.z);
+                voxelMap.SetBlockDirty(s.Value.x, s.Value.y, s.Value.z);
                 speculative[i] = null;
-                // Fix #4: record the freed index so AddSpeculative can reuse it.
                 _speculativeFreeSlots.Push(i);
             }
         }
@@ -368,11 +307,10 @@ public partial class Game
     /// Cycles the view distance through <see cref="FogDrawDistances"/>, skipping
     /// values that exceed <see cref="maxdrawdistance"/> (except 32, which is
     /// always available as the minimum step).
-    /// Fix #5: plain loop count instead of LINQ Count() with a predicate.
+    /// plain loop count instead of LINQ Count() with a predicate.
     /// </summary>
     public void ToggleFog()
     {
-        // Fix #5: count with a plain loop — no LINQ allocation.
         int count = 0;
         for (int i = 0; i < FogDrawDistances.Length; i++)
         {
@@ -424,7 +362,6 @@ public partial class Game
 
         openGlService.GlEnableFog();
         openGlService.GlFogFogColor(fogR, fogG, fogB, fogA);
-        // Fix #9: FogDensity = 25f / 10000f — self-documenting constant.
         openGlService.GlFogFogDensity(FogDensity);
     }
 
@@ -449,7 +386,6 @@ public partial class Game
     public float WaterLevel() => voxelMap.MapSizeZ / 2f;
 }
 
-// ── Fix #3: Speculative as a struct ──────────────────────────────────────────
 // Six small fields, no identity, stored in a fixed array.
 // As a struct the array is one contiguous allocation instead of N heap objects.
 

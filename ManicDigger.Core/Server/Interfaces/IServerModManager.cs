@@ -163,7 +163,6 @@ public interface IServerModManager
     /// <param name="p">Privilege to register</param>
     void RegisterPrivilege(string p);
 
-    bool IsTransparentForLight(int p);
     void RegisterOptionBool(string optionname, bool default_);
     int GetChunkSize();
     object GetOption(string optionname);

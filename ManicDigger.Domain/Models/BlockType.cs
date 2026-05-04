@@ -206,4 +206,23 @@ public partial class BlockType
     /// Returns <see langword="true"/> when this block's draw type is <see cref="DrawType.Fluid"/>.
     /// </summary>
     public bool IsFluid() => DrawType == DrawType.Fluid;
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="block"/> does not
+    /// obstruct player movement (ladders and non-solid, non-fluid draw types).
+    /// </summary>
+    public static bool IsEmptyForPhysics(BlockType block)
+        => block.DrawType == DrawType.Ladder
+        || (block.WalkableType != WalkableType.Solid
+            && block.WalkableType != WalkableType.Fluid);
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="b"/> allows light
+    /// to pass through it (everything except solid blocks and closed doors).
+    /// </summary>
+    public static bool IsTransparentForLight(BlockType b)
+        => b.DrawType is not DrawType.Solid
+        and not DrawType.ClosedDoor;
+
+
 }

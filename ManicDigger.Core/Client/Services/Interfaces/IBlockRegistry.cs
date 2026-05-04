@@ -42,6 +42,11 @@ public interface IBlockRegistry
     Dictionary<int, int> WhenPlayerPlacesGetsConvertedTo { get; }
 
     bool IsRailTile(int id);
+    bool IsValid(int blocktype);
+    bool IsWater(int blockType);
+    bool IsLava(int blockType);
+    bool IsFillBlock(int blocktype);
+    bool IsUsableBlock(int blocktype);
     void RegisterBlockType(int id, BlockType b);
     void Start();
     void UseBlockTypes(Dictionary<int, BlockType> blocktypes);

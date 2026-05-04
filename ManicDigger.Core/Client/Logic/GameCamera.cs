@@ -71,9 +71,9 @@ public partial class Game
     // Camera block queries
     // -------------------------------------------------------------------------
 
-    private bool WaterSwimmingCamera() => GetCameraBlock() == -1 || IsWater(GetCameraBlock());
+    private bool WaterSwimmingCamera() => GetCameraBlock() == -1 || _blockRegistry.IsWater(GetCameraBlock());
 
-    private bool LavaSwimmingCamera() => IsLava(GetCameraBlock());
+    private bool LavaSwimmingCamera() => _blockRegistry.IsLava(GetCameraBlock());
 
     private int GetCameraBlock()
     {

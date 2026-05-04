@@ -190,9 +190,6 @@ public interface IGame : IDisposable
     /// <summary>Schedules a full rebuild of all visible chunk meshes.</summary>
     void RedrawAllBlocks();
 
-    /// <summary>Schedules a mesh rebuild for the single block at the given world position.</summary>
-    void RedrawBlock(int x, int y, int z);
-
     // =========================================================================
     // Rendering — camera
     // =========================================================================
@@ -256,10 +253,10 @@ public interface IGame : IDisposable
     Font FontMapLoading { get; set; }
 
     /// <summary>Sets a block type and propagates lighting/mesh updates.</summary>
-    void SetTileAndUpdate(int x, int y, int z, int type);
+    void PlaceBlockAndRedraw(int x, int y, int z, int type);
 
     /// <summary>Sets a block type without triggering full map updates.</summary>
-    void SetBlock(int x, int y, int z, int tileType);
+    void PlaceBlock(int x, int y, int z, int tileType);
 
     /// <summary>Returns the surface height at the given column.</summary>
     int Blockheight(int x, int y, int z);
@@ -272,18 +269,6 @@ public interface IGame : IDisposable
 
     /// <summary>Returns <c>true</c> if the block at the given position allows player movement (close-range variant).</summary>
     bool IsTileEmptyForPhysicsClose(int x, int y, int z);
-
-    /// <summary>Returns <c>true</c> if <paramref name="blockType"/> is a water block.</summary>
-    bool IsWater(int blockType);
-
-    /// <summary>Returns <c>true</c> if the block type is registered and has a name.</summary>
-    bool IsValid(int blocktype);
-
-    /// <summary>Returns <c>true</c> if the block type can be used (interacted with).</summary>
-    bool IsUsableBlock(int blocktype);
-
-    /// <summary>Returns <c>true</c> if the block type is valid for fill operations.</summary>
-    bool IsFillBlock(int blocktype);
 
     /// <summary>Fires the map-loaded event and transitions out of the loading state.</summary>
     void MapLoaded();
@@ -413,7 +398,7 @@ public interface IGame : IDisposable
     Packet_ServerPlayerStats PlayerStats { get; set; }
 
     /// <summary>Per-block-position health remaining before the block breaks.</summary>
-    Dictionary<(int x, int y, int z), float> blockHealth { get; set; }
+    Dictionary<(int x, int y, int z), float> BlockHealth { get; set; }
 
     /// <summary>Returns the health remaining for the block at the given world position.</summary>
     float GetCurrentBlockHealth(int x, int y, int z);

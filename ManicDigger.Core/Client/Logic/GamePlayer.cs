@@ -66,7 +66,7 @@ public partial class Game
             return true;
         }
 
-        return IsWater(block);
+        return _blockRegistry.IsWater(block);
     }
 
     // -------------------------------------------------------------------------

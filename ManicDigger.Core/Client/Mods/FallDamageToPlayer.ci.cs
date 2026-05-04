@@ -11,11 +11,13 @@ public class ModFallDamageToPlayer : ModBase
     private int lastFallDamageTimeMilliseconds;
     private readonly IGameService platform;
     private readonly IVoxelMap voxelMap;
+    private readonly IBlockRegistry _blockRegistry;
 
-    public ModFallDamageToPlayer(IGameService platform, IVoxelMap voxelMap, IGame game) : base(game)
+    public ModFallDamageToPlayer(IGameService platform, IVoxelMap voxelMap, IGame game, IBlockRegistry blockRegistry) : base(game)
     {
         this.platform = platform;
         this.voxelMap = voxelMap;
+        this._blockRegistry = blockRegistry;
     }
 
     public override void OnNewFrameFixed(float args)
@@ -68,7 +70,7 @@ public class ModFallDamageToPlayer : ModBase
         }
 
         int blockBelow = voxelMap.GetBlock(posX, posY, posZ - 3);
-        if (blockBelow == 0 || Game.IsWater(blockBelow))
+        if (blockBelow == 0 || _blockRegistry.IsWater(blockBelow))
         {
             return;
         }

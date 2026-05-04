@@ -565,7 +565,7 @@ public partial class Game
             int posZ = CurrentAttackedBlock.Value.Z;
             int blocktype = voxelMap.GetBlock(posX, posY, posZ);
 
-            if (IsUsableBlock(blocktype))
+            if (_blockRegistry.IsUsableBlock(blocktype))
             {
                 if (_blockRegistry.IsRailTile(blocktype))
                 {

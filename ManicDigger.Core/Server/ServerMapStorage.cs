@@ -78,7 +78,7 @@ public class ServerMapStorage : IServerMapStorage
                 continue;
             }
 
-            if (!Game.IsTransparentForLight(_blockRegistry.BlockTypes[chunk.Data[VectorIndexUtil.Index3d(bx, by, bz, _chunksize, _chunksize)]]))
+            if (!BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[chunk.Data[VectorIndexUtil.Index3d(bx, by, bz, _chunksize, _chunksize)]]))
             {
                 Heightmap.SetBlock(x, y, (ushort)i);
                 return;
@@ -185,7 +185,7 @@ public class ServerMapStorage : IServerMapStorage
         for (int i = _chunksize - 1; i >= 0; i--)
         {
             height = i;
-            if (!Game.IsTransparentForLight(_blockRegistry.BlockTypes[chunk[VectorIndexUtil.Index3d(xx, yy, i, _chunksize, _chunksize)]]))
+            if (!BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[chunk[VectorIndexUtil.Index3d(xx, yy, i, _chunksize, _chunksize)]]))
             {
                 break;
             }

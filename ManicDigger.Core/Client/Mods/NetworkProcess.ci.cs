@@ -238,7 +238,7 @@ public class ModNetworkProcess : ModBase
                 break;
 
             case Packet_ServerIdEnum.SetBlock:
-                Game.SetTileAndUpdate(
+                Game.PlaceBlockAndRedraw(
                     packet.SetBlock.X, packet.SetBlock.Y, packet.SetBlock.Z,
                     packet.SetBlock.BlockType);
                 break;
@@ -259,7 +259,7 @@ public class ModNetworkProcess : ModBase
                         {
                             for (int z = startz; z <= endz && blockCount > 0; z++)
                             {
-                                Game.SetTileAndUpdate(x, y, z, packet.FillArea.BlockType);
+                                Game.PlaceBlockAndRedraw(x, y, z, packet.FillArea.BlockType);
                                 blockCount--;
                             }
                         }

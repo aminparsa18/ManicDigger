@@ -57,7 +57,7 @@ public class ModDraw2dMisc : ModBase
         }
 
         int blocktype = voxelMap.GetBlock(x, y, z);
-        if (!game.IsValid(blocktype))
+        if (!blockTypeRegistry.IsValid(blocktype))
         {
             return;
         }
@@ -80,7 +80,7 @@ public class ModDraw2dMisc : ModBase
             // Cache the translated name — used in up to two calls below.
             string name = game.Language.Get("Block_" + blockTypeRegistry.BlockTypes[blocktype].Name);
 
-            if (Game.IsUsableBlock(blocktype))
+            if (blockTypeRegistry.IsUsableBlock(blocktype))
             {
                 DrawEnemyHealthUseInfo(name, progress, true);
             }

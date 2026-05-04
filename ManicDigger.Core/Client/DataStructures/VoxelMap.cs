@@ -2,13 +2,6 @@
 
 public class VoxelMap : IVoxelMap
 {
-    private readonly IGameLogger _logger;
-
-    public VoxelMap(IGameLogger logger)
-    {
-        _logger = logger;
-    }
-
     public Chunk[] Chunks { get; private set; }
 
     public int MapSizeX { get; set; }
@@ -124,16 +117,9 @@ public class VoxelMap : IVoxelMap
 
     // ── Bulk map operations ───────────────────────────────────────────────────
 
-    private int _getMapPortionCalls;
-    private int _totalPortionVolume;
-    private int _chunksVisited;
-    private int _chunksSkipped;
     /// <inheritdoc/>
     public void GetMapPortion(int[] outPortion, int x, int y, int z, int portionsizex, int portionsizey, int portionsizez)
     {
-        _getMapPortionCalls++;
-        _totalPortionVolume += portionsizex * portionsizey * portionsizez;
-
         int totalChunks = _mapChunksX * _mapChunksY * _mapChunksZ;
 
         Array.Clear(outPortion, 0, portionsizex * portionsizey * portionsizez);
@@ -163,8 +149,7 @@ public class VoxelMap : IVoxelMap
                     if ((uint)ci >= (uint)totalChunks) continue;
 
                     Chunk chunk = Chunks[ci];
-                    _chunksVisited++;
-                    if (chunk == null || !chunk.HasData()) { _chunksSkipped++; continue; }
+                    if (chunk == null || !chunk.HasData()) { continue; }
 
                     int chunkGlobalX = cx << CsBits;
                     int blockX0 = Math.Max(x, chunkGlobalX);
@@ -195,31 +180,15 @@ public class VoxelMap : IVoxelMap
                 }
             }
         }
-
-        if (_getMapPortionCalls % 100 == 0)
-            _logger.Client.Debug(
-                "[DIAG] GetMapPortion calls={Calls} avg volume={AvgVol:F0} avg chunks visited={AvgVisited:F1} avg chunks skipped={AvgSkipped:F1} skip ratio={SkipRatio:P0}",
-                _getMapPortionCalls,
-                (float)_totalPortionVolume / _getMapPortionCalls,
-                (float)_chunksVisited / _getMapPortionCalls,
-                (float)_chunksSkipped / _getMapPortionCalls,
-                (float)_chunksSkipped / _chunksVisited);
     }
-
-    private int _setMapPortionCalls;
-    private int _dirtyCallsTotal;
-    private int _chunksWrittenTotal;
 
     /// <inheritdoc/>
     public void SetMapPortion(int x, int y, int z, int[] source, int sizeX, int sizeY, int sizeZ)
     {
-        _setMapPortionCalls++;
         int csBits = CsBits;
         int chunksX = sizeX >> csBits;
         int chunksY = sizeY >> csBits;
         int chunksZ = sizeZ >> csBits;
-        int chunksThisCall = chunksX * chunksY * chunksZ;
-        _chunksWrittenTotal += chunksThisCall;
 
         // Collect chunks that need dirtying — deduplicated by flat map index.
         // Two sets: one for block-changed chunks, one for neighbor-only dirty.
@@ -270,15 +239,6 @@ public class VoxelMap : IVoxelMap
         foreach (int ci in neighborDirty)
             if (!blocksChanged.Contains(ci))
                 SetChunkDirtyAt(ci, dirty: true, blocksChanged: false);
-
-        _dirtyCallsTotal += blocksChanged.Count + neighborDirty.Count;
-
-        if (_setMapPortionCalls % 100 == 0)
-            _logger.Client.Debug(
-                "[DIAG] SetMapPortion calls={Calls} avg chunks/call={AvgChunks:F1} avg dirty/call={AvgDirty:F1}",
-                _setMapPortionCalls,
-                (float)_chunksWrittenTotal / _setMapPortionCalls,
-                (float)_dirtyCallsTotal / _setMapPortionCalls);
     }
 
     // ── Dirty marking ─────────────────────────────────────────────────────────

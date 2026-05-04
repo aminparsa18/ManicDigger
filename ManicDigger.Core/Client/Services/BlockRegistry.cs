@@ -249,4 +249,42 @@ public class BlockRegistry : IBlockRegistry
     /// </summary>
     public bool IsRailTile(int id)
         => id >= BlockIdRailStart && id < BlockIdRailStart + 64;
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the block at this ID has a name assigned.
+    /// </summary>
+    public bool IsValid(int blocktype) => BlockTypes[blocktype].Name != null;
+
+    /// <summary>
+    /// Fix #1: use registry ID instead of name-based string check.
+    /// Returns <see langword="true"/> when the block is the registered water block.
+    /// </summary>
+    public bool IsWater(int blockType)
+    {
+        string name = BlockTypes[blockType].Name;
+        return name != null && name.Contains("Water");
+    }
+
+    /// <summary>
+    /// Fix #1: use registry ID instead of name-based string check.
+    /// Returns <see langword="true"/> when the block is the registered lava block.
+    /// </summary>
+    public bool IsLava(int blockType)
+        => BlockIdLava >= 0 && blockType == BlockIdLava;
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="blocktype"/> is one of
+    /// the fill/cuboid tool blocks that should not be treated as real terrain.
+    /// </summary>
+    public bool IsFillBlock(int blocktype)
+        => blocktype == BlockIdFillArea
+        || blocktype == BlockIdFillStart
+        || blocktype == BlockIdCuboid;
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the block can be interacted with
+    /// (rail tiles or blocks with the <c>IsUsable</c> flag).
+    /// </summary>
+    public bool IsUsableBlock(int blocktype)
+        => IsRailTile(blocktype) || BlockTypes[blocktype].IsUsable;
 }

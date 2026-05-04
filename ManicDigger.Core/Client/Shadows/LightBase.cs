@@ -59,7 +59,7 @@ public class LightBase
             _workData[i] = chunk.GetBlock(i);
         }
 
-        byte[] workLight = chunk.baseLight;
+        byte[] workLight = chunk.BaseLight;
         Array.Clear(workLight, 0, workLight.Length);
 
         Sunlight(game, cx, cy, cz, workLight, dataLightRadius, game.Sunlight);

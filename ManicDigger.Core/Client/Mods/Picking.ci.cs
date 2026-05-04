@@ -202,7 +202,7 @@ public class ModPicking : ModBase
         // Overhead camera: walk toward clicked block.
         if (Game.OverheadCamera && pick2count > 0 && left && Game.Follow == null)
         {
-            Game.PlayerDestination = new Vector3(pick2[0].blockPos[0], pick2[0].blockPos[1] + 1, pick2[0].blockPos[2]);
+            Game.PlayerDestination = new Vector3(pick2[0].BlockPos[0], pick2[0].BlockPos[1] + 1, pick2[0].BlockPos[2]);
         }
 
         // Distance check.
@@ -210,7 +210,7 @@ public class ModPicking : ModBase
         if (pickDistanceOk)
         {
             float pickDist = Vector3.Distance(
-                new Vector3(pick2[0].blockPos[0] + 0.5f, pick2[0].blockPos[1] + 0.5f, pick2[0].blockPos[2] + 0.5f),
+                new Vector3(pick2[0].BlockPos[0] + 0.5f, pick2[0].BlockPos[1] + 0.5f, pick2[0].BlockPos[2] + 0.5f),
                 new Vector3(pick.Start[0], pick.Start[1], pick.Start[2]));
             if (pickDist > CurrentPickDistance())
             {
@@ -236,10 +236,7 @@ public class ModPicking : ModBase
             Game.SelectedBlockPositionX = -1;
             Game.SelectedBlockPositionY = -1;
             Game.SelectedBlockPositionZ = -1;
-            pick0.blockPos = Vector3.Zero;
-            pick0.blockPos[0] = -1;
-            pick0.blockPos[1] = -1;
-            pick0.blockPos[2] = -1;
+            pick0.BlockPos = new(-1, -1, -1);
         }
 
         PickEntity(pick, pick2, pick2count);
@@ -345,7 +342,7 @@ public class ModPicking : ModBase
                 return;
             }
 
-            bool pickIsInvalid = pick0.blockPos[0] == -1 && pick0.blockPos[1] == -1 && pick0.blockPos[2] == -1;
+            bool pickIsInvalid = pick0.BlockPos[0] == -1 && pick0.BlockPos[1] == -1 && pick0.BlockPos[2] == -1;
             if (!pickIsInvalid)
             {
                 int blocktype = left
@@ -378,7 +375,7 @@ public class ModPicking : ModBase
 
             OnPick(newtileX, newtileZ, newtileY,
                 (int)pick0.Current()[0], (int)pick0.Current()[2], (int)pick0.Current()[1],
-                pick0.collisionPos, right);
+                pick0.CollisionPos, right);
         }
     }
 
@@ -409,7 +406,7 @@ public class ModPicking : ModBase
             Game.CurrentAttackedBlock = null;
             OnPick(newtileX, posy, posz,
                 (int)tile.Current()[0], (int)tile.Current()[2], (int)tile.Current()[1],
-                tile.collisionPos, right: false);
+                tile.CollisionPos, right: false);
         }
 
         PickingEnd(left, right, middle, isPistol);
@@ -497,9 +494,9 @@ public class ModPicking : ModBase
         float toX = pick.End[0], toY = pick.End[1], toZ = pick.End[2];
         if (pick2count > 0)
         {
-            toX = pick2[0].blockPos[0];
-            toY = pick2[0].blockPos[1];
-            toZ = pick2[0].blockPos[2];
+            toX = pick2[0].BlockPos[0];
+            toY = pick2[0].BlockPos[1];
+            toZ = pick2[0].BlockPos[2];
         }
 
         Packet_ClientShot shot = new()
@@ -595,7 +592,7 @@ public class ModPicking : ModBase
 
             // Do not allow shooting through terrain.
             bool blockedByTerrain = pick2count > 0
-                && Vector3.Distance(new Vector3(pick2[0].blockPos[0], pick2[0].blockPos[1], pick2[0].blockPos[2]), new Vector3(eyeX, eyeY, eyeZ))
+                && Vector3.Distance(new Vector3(pick2[0].BlockPos[0], pick2[0].BlockPos[1], pick2[0].BlockPos[2]), new Vector3(eyeX, eyeY, eyeZ))
                 <= Vector3.Distance(new Vector3(hit.Value.X, hit.Value.Y, hit.Value.Z), new Vector3(eyeX, eyeY, eyeZ));
             if (blockedByTerrain)
             {
@@ -952,7 +949,7 @@ public class ModPicking : ModBase
             }
 
             bool blockedByTerrain = pick2count > 0
-                && Vector3.Distance(new Vector3(pick2[0].blockPos[0] + 0.5f, pick2[0].blockPos[1] + 0.5f, pick2[0].blockPos[2] + 0.5f), new Vector3(eyeX, eyeY, eyeZ))
+                && Vector3.Distance(new Vector3(pick2[0].BlockPos[0] + 0.5f, pick2[0].BlockPos[1] + 0.5f, pick2[0].BlockPos[2] + 0.5f), new Vector3(eyeX, eyeY, eyeZ))
                 <= Vector3.Distance(new Vector3(hit.Value.X, hit.Value.Y, hit.Value.Z), new Vector3(eyeX, eyeY, eyeZ));
             if (blockedByTerrain)
             {

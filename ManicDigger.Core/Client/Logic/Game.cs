@@ -297,7 +297,7 @@ public partial class Game
         BlockPosSide nearest = null;
         for (int i = 0; i < pick2Count; i++)
         {
-            float dist = Vector3.Distance(pick2[i].blockPos, target);
+            float dist = Vector3.Distance(pick2[i].BlockPos, target);
             if (dist < minDist)
             {
                 minDist = dist;
@@ -349,8 +349,8 @@ public partial class Game
             changed = false;
             for (int i = 0; i < pickCount - 1; i++)
             {
-                if (Vector3.Distance(pick[i].blockPos, start) >
-                    Vector3.Distance(pick[i + 1].blockPos, start))
+                if (Vector3.Distance(pick[i].BlockPos, start) >
+                    Vector3.Distance(pick[i + 1].BlockPos, start))
                 {
                     (pick[i], pick[i + 1]) = (pick[i + 1], pick[i]);
                     changed = true;

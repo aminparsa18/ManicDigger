@@ -7,23 +7,14 @@
 /// </summary>
 public class BlockPosSide
 {
-    /// <summary>
-    /// Creates a new <see cref="BlockPosSide"/> at the given block grid coordinates.
-    /// </summary>
-    /// <param name="x">Block grid X coordinate.</param>
-    /// <param name="y">Block grid Y coordinate.</param>
-    /// <param name="z">Block grid Z coordinate.</param>
-    /// <returns>A new <see cref="BlockPosSide"/> with <see cref="blockPos"/> set.</returns>
-    public static BlockPosSide Create(int x, int y, int z) => new() { blockPos = new Vector3(x, y, z) };
-
     /// <summary>The integer grid position of the hit block in world space.</summary>
-    internal Vector3 blockPos;
+    public Vector3 BlockPos { get; set; }
 
     /// <summary>
     /// The exact world-space position where the collision occurred,
     /// typically on the surface of the block face that was hit.
     /// </summary>
-    internal Vector3 collisionPos;
+    public Vector3 CollisionPos { get; set; }
 
     /// <summary>
     /// Returns the block position translated by one unit in the direction
@@ -32,34 +23,34 @@ public class BlockPosSide
     /// </summary>
     public float[] Translated()
     {
-        float[] translated = [blockPos[0], blockPos[1], blockPos[2]];
+        float[] translated = [BlockPos[0], BlockPos[1], BlockPos[2]];
 
-        if (collisionPos[0] == blockPos[0])
+        if (CollisionPos[0] == BlockPos[0])
         {
             translated[0] -= 1;
         }
 
-        if (collisionPos[1] == blockPos[1])
+        if (CollisionPos[1] == BlockPos[1])
         {
             translated[1] -= 1;
         }
 
-        if (collisionPos[2] == blockPos[2])
+        if (CollisionPos[2] == BlockPos[2])
         {
             translated[2] -= 1;
         }
 
-        if (collisionPos[0] == blockPos[0] + 1)
+        if (CollisionPos[0] == BlockPos[0] + 1)
         {
             translated[0] += 1;
         }
 
-        if (collisionPos[1] == blockPos[1] + 1)
+        if (CollisionPos[1] == BlockPos[1] + 1)
         {
             translated[1] += 1;
         }
 
-        if (collisionPos[2] == blockPos[2] + 1)
+        if (CollisionPos[2] == BlockPos[2] + 1)
         {
             translated[2] += 1;
         }
@@ -70,5 +61,5 @@ public class BlockPosSide
     /// <summary>
     /// Returns the block's grid position in world space.
     /// </summary>
-    public Vector3 Current() => blockPos;
+    public Vector3 Current() => BlockPos;
 }

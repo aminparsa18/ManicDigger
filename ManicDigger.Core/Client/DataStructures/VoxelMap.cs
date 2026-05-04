@@ -64,8 +64,8 @@ public class VoxelMap : IVoxelMap
 
             chunk = new Chunk
             {
-                data = data,
-                baseLight = baseLight
+                Data = data,
+                BaseLight = baseLight
             };
             Chunks[flatIndex] = chunk;
             PhantomChunkIndices.Enqueue(flatIndex);

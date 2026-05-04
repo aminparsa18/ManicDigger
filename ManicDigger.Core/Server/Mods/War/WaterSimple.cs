@@ -69,7 +69,7 @@ public class WaterSimple : IMod
             return;
         }
 
-        this.flooded = new Dictionary<Vector3i, Vector3i>();
+        flooded = new Dictionary<Vector3i, Vector3i>();
         //sponge just built.
         if (m.IsValidPos(x, y, z) && m.GetBlock(x, y, z) == Sponge)
         {
@@ -189,9 +189,9 @@ public class WaterSimple : IMod
     {
         public Vector3i(int x, int y, int z)
         {
-            this.X = x;
-            this.Y = y;
-            this.Z = z;
+            X = x;
+            Y = y;
+            Z = z;
         }
         public int X;
         public int Y;

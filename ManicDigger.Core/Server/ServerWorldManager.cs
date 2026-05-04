@@ -357,7 +357,7 @@ public partial class Server
             int dy = pos.Y / GameConstants.ServerChunkSize;
             int dz = pos.Z / GameConstants.ServerChunkSize;
 
-            ServerChunk cc = new() { Data = this.GetChunk(pos.X, pos.Y, pos.Z) };
+            ServerChunk cc = new() { Data = GetChunk(pos.X, pos.Y, pos.Z) };
             dbchunks.Add(new DbChunk() { Position = new Vector3i() { X = dx, Y = dy, Z = dz }, Chunk = MemoryPackSerializer.Serialize(cc) });
         }
 

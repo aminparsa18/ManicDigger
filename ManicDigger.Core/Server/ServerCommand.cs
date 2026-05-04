@@ -30,7 +30,7 @@ public partial class Server
                 ss = argument.Split([' ']);
                 if (ss.Length >= 2)
                 {
-                    this.PrivateMessage(sourceClientId, ss[0], string.Join(" ", ss, 1, ss.Length - 1));
+                    PrivateMessage(sourceClientId, ss[0], string.Join(" ", ss, 1, ss.Length - 1));
                     return;
                 }
 
@@ -39,7 +39,7 @@ public partial class Server
             case "re":
                 if (!string.IsNullOrEmpty(argument))
                 {
-                    this.AnswerMessage(sourceClientId, argument);
+                    AnswerMessage(sourceClientId, argument);
                     return;
                 }
 
@@ -51,7 +51,7 @@ public partial class Server
                 ss = argument.Split([' ']);
                 if (ss.Length == 2)
                 {
-                    this.ChangeGroup(sourceClientId, ss[0], ss[1]);
+                    ChangeGroup(sourceClientId, ss[0], ss[1]);
                     return;
                 }
 
@@ -63,7 +63,7 @@ public partial class Server
                 ss = argument.Split([' ']);
                 if (ss.Length == 2)
                 {
-                    this.ChangeGroupOffline(sourceClientId, ss[0], ss[1]);
+                    ChangeGroupOffline(sourceClientId, ss[0], ss[1]);
                     return;
                 }
 
@@ -73,7 +73,7 @@ public partial class Server
                 ss = argument.Split([' ']);
                 if (ss.Length == 1)
                 {
-                    this.RemoveClientFromConfig(sourceClientId, ss[0]);
+                    RemoveClientFromConfig(sourceClientId, ss[0]);
                     return;
                 }
 
@@ -84,29 +84,29 @@ public partial class Server
                 ss = argument.Split([' ']);
                 if (ss.Length == 2)
                 {
-                    this.Login(sourceClientId, ss[0], ss[1]);
+                    Login(sourceClientId, ss[0], ss[1]);
                     return;
                 }
 
                 _serverPacketService.SendMessage(sourceClientId, GameConstants.colorError + _languageService.Get("Server_CommandInvalidArgs"));
                 return;
             case "welcome":
-                this.WelcomeMessage(sourceClientId, argument);
+                WelcomeMessage(sourceClientId, argument);
                 return;
             case "announcement":
-                this.Announcement(sourceClientId, argument);
+                Announcement(sourceClientId, argument);
                 return;
             case "logging":
                 ss = argument.Split([' ']);
                 if (ss.Length == 1)
                 {
-                    this.SetLogging(sourceClientId, ss[0], "");
+                    SetLogging(sourceClientId, ss[0], "");
                     return;
                 }
 
                 if (ss.Length == 2)
                 {
-                    this.SetLogging(sourceClientId, ss[0], ss[1]);
+                    SetLogging(sourceClientId, ss[0], ss[1]);
                     return;
                 }
 
@@ -122,27 +122,27 @@ public partial class Server
 
                 if (ss.Length >= 2)
                 {
-                    this.Kick(sourceClientId, id, string.Join(" ", ss, 1, ss.Length - 1));
+                    Kick(sourceClientId, id, string.Join(" ", ss, 1, ss.Length - 1));
                     return;
                 }
 
-                this.Kick(sourceClientId, id);
+                Kick(sourceClientId, id);
                 return;
             case "kick":
                 ss = argument.Split([' ']);
                 if (ss.Length >= 2)
                 {
-                    this.Kick(sourceClientId, ss[0], string.Join(" ", ss, 1, ss.Length - 1));
+                    Kick(sourceClientId, ss[0], string.Join(" ", ss, 1, ss.Length - 1));
                     return;
                 }
 
-                this.Kick(sourceClientId, argument);
+                Kick(sourceClientId, argument);
                 return;
             case "list":
-                this.List(sourceClientId, argument);
+                List(sourceClientId, argument);
                 return;
             case "giveall":
-                this.GiveAll(sourceClientId, argument);
+                GiveAll(sourceClientId, argument);
                 return;
             case "give":
                 ss = argument.Split([' ']);
@@ -155,7 +155,7 @@ public partial class Server
                     }
                     else
                     {
-                        this.Give(sourceClientId, ss[0], ss[1], amount);
+                        Give(sourceClientId, ss[0], ss[1], amount);
                     }
 
                     return;
@@ -170,7 +170,7 @@ public partial class Server
                     return;
                 }
 
-                this.Monsters(sourceClientId, argument);
+                Monsters(sourceClientId, argument);
                 return;
             case "area_add":
                 int areaId;
@@ -212,7 +212,7 @@ public partial class Server
                     return;
                 }
 
-                this.AreaAdd(sourceClientId, areaId, coords, permittedGroups, permittedUsers, areaLevel);
+                AreaAdd(sourceClientId, areaId, coords, permittedGroups, permittedUsers, areaLevel);
                 return;
             case "area_delete":
                 if (!int.TryParse(argument, out areaId))
@@ -221,10 +221,10 @@ public partial class Server
                     return;
                 }
 
-                this.AreaDelete(sourceClientId, areaId);
+                AreaDelete(sourceClientId, areaId);
                 return;
             case "help":
-                this.Help(sourceClientId);
+                Help(sourceClientId);
                 return;
             case "run":
             case "":
@@ -300,13 +300,13 @@ public partial class Server
                     return;
                 }
 
-                this.SetSpawnPosition(sourceClientId, ss[0], ss[1], x, y, z);
+                SetSpawnPosition(sourceClientId, ss[0], ss[1], x, y, z);
                 return;
             case "set_home":
                 // When no coordinates are given, set spawn to players current position.
                 if (string.IsNullOrEmpty(argument))
                 {
-                    this.SetSpawnPosition(sourceClientId,
+                    SetSpawnPosition(sourceClientId,
                                       _serverClientService.GetClient(sourceClientId).PositionMul32GlX / 32,
                                      _serverClientService.GetClient(sourceClientId).PositionMul32GlZ / 32,
                                       _serverClientService.GetClient(sourceClientId).PositionMul32GlY / 32);
@@ -362,7 +362,7 @@ public partial class Server
                     return;
                 }
 
-                this.SetSpawnPosition(sourceClientId, x, y, z);
+                SetSpawnPosition(sourceClientId, x, y, z);
                 return;
             case "privilege_add":
                 ss = argument.Split([' ']);
@@ -372,7 +372,7 @@ public partial class Server
                     return;
                 }
 
-                this.PrivilegeAdd(sourceClientId, ss[0], ss[1]);
+                PrivilegeAdd(sourceClientId, ss[0], ss[1]);
                 return;
             case "privilege_remove":
                 ss = argument.Split([' ']);
@@ -382,13 +382,13 @@ public partial class Server
                     return;
                 }
 
-                this.PrivilegeRemove(sourceClientId, ss[0], ss[1]);
+                PrivilegeRemove(sourceClientId, ss[0], ss[1]);
                 return;
             case "restart":
-                this.RestartServer(sourceClientId);
+                RestartServer(sourceClientId);
                 break;
             case "shutdown":
-                this.ShutdownServer(sourceClientId);
+                ShutdownServer(sourceClientId);
                 break;
             //case "crashserver": for (; ; ) ;
             case "stats":
@@ -408,7 +408,7 @@ public partial class Server
                 {
                     if (k.Value.PlayerName.Equals(ss[0], StringComparison.InvariantCultureIgnoreCase))
                     {
-                        this.TeleportToPlayer(sourceClientId, k.Key);
+                        TeleportToPlayer(sourceClientId, k.Key);
                         return;
                     }
                 }
@@ -417,7 +417,7 @@ public partial class Server
                 {
                     if (k.Value.PlayerName.StartsWith(ss[0], StringComparison.InvariantCultureIgnoreCase))
                     {
-                        this.TeleportToPlayer(sourceClientId, k.Key);
+                        TeleportToPlayer(sourceClientId, k.Key);
                         return;
                     }
                 }
@@ -472,7 +472,7 @@ public partial class Server
                     return;
                 }
 
-                this.TeleportToPosition(sourceClientId, x, y, z);
+                TeleportToPosition(sourceClientId, x, y, z);
                 break;
             case "teleport_player":
                 ss = argument.Split([' ']);
@@ -523,7 +523,7 @@ public partial class Server
                     return;
                 }
 
-                this.TeleportPlayer(sourceClientId, ss[0], x, y, z);
+                TeleportPlayer(sourceClientId, ss[0], x, y, z);
                 break;
             case "backup_database":
                 if (!_serverClientService.GetClient(sourceClientId).Privileges.Contains(Privilege.backup_database))
@@ -567,7 +567,7 @@ public partial class Server
             break;
             */
             case "reset_inventory":
-                this.ResetInventory(sourceClientId, argument);
+                ResetInventory(sourceClientId, argument);
                 return;
             case "fill_limit":
                 //           0    1      2
@@ -595,7 +595,7 @@ public partial class Server
                 }
                 else
                 {
-                    this.SetFillAreaLimit(sourceClientId, ss[0], ss[1], maxFill);
+                    SetFillAreaLimit(sourceClientId, ss[0], ss[1], maxFill);
                 }
 
                 return;
@@ -639,7 +639,7 @@ public partial class Server
         _serverPacketService.SendMessage(sourceClientId, GameConstants.colorHelp + "Available privileges:");
         foreach (string privilege in _serverClientService.GetClient(sourceClientId).Privileges)
         {
-            _serverPacketService.SendMessage(sourceClientId, string.Format("{0}{1}: {2}", GameConstants.colorHelp, privilege.ToString(), this.CommandHelp(privilege.ToString())));
+            _serverPacketService.SendMessage(sourceClientId, string.Format("{0}{1}: {2}", GameConstants.colorHelp, privilege.ToString(), CommandHelp(privilege.ToString())));
         }
     }
 
@@ -1009,8 +1009,8 @@ public partial class Server
             // If client is online, change his group
             if (_serverClientService.GetClient(target) != null)
             {
-                _serverClientService.GetClient(target).AssignGroup(this.DefaultGroupGuest);
-                SendMessageToAll(string.Format(_languageService.Get("Server_CommandSetGroupTo"), GameConstants.colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorSuccess), _serverClientService.GetClient(target).ColoredPlayername(GameConstants.colorSuccess), this.DefaultGroupGuest.GroupColorString() + DefaultGroupGuest.Name));
+                _serverClientService.GetClient(target).AssignGroup(DefaultGroupGuest);
+                SendMessageToAll(string.Format(_languageService.Get("Server_CommandSetGroupTo"), GameConstants.colorSuccess, _serverClientService.GetClient(sourceClientId).ColoredPlayername(GameConstants.colorSuccess), _serverClientService.GetClient(target).ColoredPlayername(GameConstants.colorSuccess), DefaultGroupGuest.GroupColorString() + DefaultGroupGuest.Name));
             }
 
             _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandRemoveSuccess"), GameConstants.colorSuccess, target));
@@ -1170,14 +1170,14 @@ public partial class Server
         ServerPlayer targetClient = _serverClientService.GetClient(target);
         if (targetClient != null)
         {
-            return this.Kick(sourceClientId, targetClient.Id, reason);
+            return Kick(sourceClientId, targetClient.Id, reason);
         }
 
         _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandPlayerNotFound"), GameConstants.colorError, target));
         return false;
     }
 
-    public bool Kick(int sourceClientId, int targetClientId) => this.Kick(sourceClientId, targetClientId, "");
+    public bool Kick(int sourceClientId, int targetClientId) => Kick(sourceClientId, targetClientId, "");
 
     public bool Kick(int sourceClientId, int targetClientId, string reason)
     {
@@ -1739,7 +1739,7 @@ public partial class Server
 
                     if (!hasEntry)
                     {
-                        this.SendPlayerSpawnPosition(k.Key, x, y, rZ);
+                        SendPlayerSpawnPosition(k.Key, x, y, rZ);
                     }
                 }
 
@@ -1790,7 +1790,7 @@ public partial class Server
 
                         if (!hasEntry)
                         {
-                            this.SendPlayerSpawnPosition(k.Key, x, y, rZ);
+                            SendPlayerSpawnPosition(k.Key, x, y, rZ);
                         }
                     }
                 }
@@ -1832,7 +1832,7 @@ public partial class Server
                 // Inform player if he's online.
                 if (targetClientId != null)
                 {
-                    this.SendPlayerSpawnPosition(targetClientId.Value, x, y, rZ);
+                    SendPlayerSpawnPosition(targetClientId.Value, x, y, rZ);
                 }
 
                 _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandSetSpawnPlayerSuccess"), GameConstants.colorSuccess, targetClientPlayername, x, y, rZ));
@@ -1903,7 +1903,7 @@ public partial class Server
         };
         _serverClientService.ServerClientNeedsSaving = true;
         // Send player new spawn position.
-        this.SendPlayerSpawnPosition(sourceClientId, x, y, rZ);
+        SendPlayerSpawnPosition(sourceClientId, x, y, rZ);
         return true;
     }
 
@@ -2143,7 +2143,7 @@ public partial class Server
 
                     if (!hasEntry)
                     {
-                        this.SetFillAreaLimit(k.Key);
+                        SetFillAreaLimit(k.Key);
                     }
                 }
 
@@ -2189,7 +2189,7 @@ public partial class Server
 
                         if (!hasEntry)
                         {
-                            this.SetFillAreaLimit(k.Key);
+                            SetFillAreaLimit(k.Key);
                         }
                     }
                 }
@@ -2226,7 +2226,7 @@ public partial class Server
                 // Inform player if he's online.
                 if (targetClientId != null)
                 {
-                    this.SetFillAreaLimit(targetClientId.Value);
+                    SetFillAreaLimit(targetClientId.Value);
                 }
 
                 _serverPacketService.SendMessage(sourceClientId, string.Format(_languageService.Get("Server_CommandFillLimitPlayerSuccess"), GameConstants.colorSuccess, targetClientPlayername, maxFill));

@@ -3,20 +3,20 @@ using OpenTK.Mathematics;
 
 public class ModDraw2dMisc : ModBase
 {
-    private readonly IOpenGlService platformOpenGl;
-    private readonly IGameService platform;
-    private readonly ISinglePlayerService singlePlayerService;
-    private readonly IVoxelMap voxelMap;
-    private readonly IBlockRegistry blockTypeRegistry;
+    private readonly IOpenGlService _platformOpenGl;
+    private readonly IGameService _platform;
+    private readonly ISinglePlayerService _singlePlayerService;
+    private readonly IVoxelMap _voxelMap;
+    private readonly IBlockRegistry _blockTypeRegistry;
 
     public ModDraw2dMisc(IOpenGlService platformOpenGl, IGameService platform, ISinglePlayerService singlePlayerService,
         IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
-        this.platformOpenGl = platformOpenGl;
-        this.platform = platform;
-        this.singlePlayerService = singlePlayerService;
-        this.voxelMap = voxelMap;
-        this.blockTypeRegistry = blockTypeRegistry;
+        _platformOpenGl = platformOpenGl;
+        _platform = platform;
+        _singlePlayerService = singlePlayerService;
+        _voxelMap = voxelMap;
+        _blockTypeRegistry = blockTypeRegistry;
     }
 
     public override void OnNewFrameDraw2d(float deltaTime)
@@ -51,13 +51,13 @@ public class ModDraw2dMisc : ModBase
         int y = game.SelectedBlockPositionZ;
         int z = game.SelectedBlockPositionY;
 
-        if (!voxelMap.IsValidPos(x, y, z))
+        if (!_voxelMap.IsValidPos(x, y, z))
         {
             return;
         }
 
-        int blocktype = voxelMap.GetBlock(x, y, z);
-        if (!blockTypeRegistry.IsValid(blocktype))
+        int blocktype = _voxelMap.GetBlock(x, y, z);
+        if (!_blockTypeRegistry.IsValid(blocktype))
         {
             return;
         }
@@ -73,14 +73,14 @@ public class ModDraw2dMisc : ModBase
             int x = game.CurrentAttackedBlock.Value.X;
             int y = game.CurrentAttackedBlock.Value.Y;
             int z = game.CurrentAttackedBlock.Value.Z;
-            int blocktype = voxelMap.GetBlock(x, y, z);
+            int blocktype = _voxelMap.GetBlock(x, y, z);
             float health = game.GetCurrentBlockHealth(x, y, z);
-            float progress = health / blockTypeRegistry.Strength[blocktype];
+            float progress = health / _blockTypeRegistry.Strength[blocktype];
 
             // Cache the translated name — used in up to two calls below.
-            string name = game.Language.Get("Block_" + blockTypeRegistry.BlockTypes[blocktype].Name);
+            string name = game.Language.Get("Block_" + _blockTypeRegistry.BlockTypes[blocktype].Name);
 
-            if (blockTypeRegistry.IsUsableBlock(blocktype))
+            if (_blockTypeRegistry.IsUsableBlock(blocktype))
             {
                 DrawEnemyHealthUseInfo(name, progress, true);
             }
@@ -150,18 +150,18 @@ public class ModDraw2dMisc : ModBase
         }
 
         const int AimSize = 32;
-        platformOpenGl.BindTexture2d(0);
+        _platformOpenGl.BindTexture2d(0);
 
         if (game.CurrentAimRadius() > 1)
         {
             float fov_ = game.CurrentFov();
-            game.Circle3i(platform.CanvasWidth / 2, platform.CanvasHeight / 2,
+            game.Circle3i(_platform.CanvasWidth / 2, _platform.CanvasHeight / 2,
                 game.CurrentAimRadius() * game.CurrentFov() / fov_);
         }
 
         game.Draw2dBitmapFile("target.png",
-            (platform.CanvasWidth / 2) - (AimSize / 2),
-            (platform.CanvasHeight / 2) - (AimSize / 2),
+            (_platform.CanvasWidth / 2) - (AimSize / 2),
+            (_platform.CanvasHeight / 2) - (AimSize / 2),
             AimSize, AimSize);
     }
 
@@ -174,7 +174,7 @@ public class ModDraw2dMisc : ModBase
             return;
         }
 
-        if (!platform.MouseCursorIsVisible())
+        if (!_platform.MouseCursorIsVisible())
         {
             game.Draw2dBitmapFile("mousecursor.png", game.MouseCurrentX, game.MouseCurrentY, 32, 32);
         }
@@ -190,7 +190,7 @@ public class ModDraw2dMisc : ModBase
             return;
         }
 
-        if (!blockTypeRegistry.BlockTypes[item.BlockId].IsPistol)
+        if (!_blockTypeRegistry.BlockTypes[item.BlockId].IsPistol)
         {
             return;
         }
@@ -202,15 +202,15 @@ public class ModDraw2dMisc : ModBase
             ? ColorUtils.ColorFromArgb(255, 255, 0, 0)
             : ColorUtils.ColorFromArgb(255, 255, 255, 255);
 
-        game.Draw2dText1(s, platform.CanvasWidth - game.TextSizeWidth(s, 18) - 50,
-            platform.CanvasWidth - game.TextSizeHeight(s, 18) - 50, 18, color, false);
+        game.Draw2dText1(s, _platform.CanvasWidth - game.TextSizeWidth(s, 18) - 50,
+            _platform.CanvasWidth - game.TextSizeHeight(s, 18) - 50, 18, color, false);
 
         if (loaded == 0)
         {
             const string PressR = "Press R to reload"; // TODO: move to game.language
             game.Draw2dText1(PressR,
-                platform.CanvasWidth - game.TextSizeWidth(PressR, 14) - 50,
-                platform.CanvasHeight - game.TextSizeHeight(s, 14) - 80,
+                _platform.CanvasWidth - game.TextSizeWidth(PressR, 14) - 50,
+                _platform.CanvasHeight - game.TextSizeHeight(s, 14) - 80,
                 14, ColorUtils.ColorFromArgb(255, 255, 0, 0), false);
         }
     }
@@ -245,7 +245,7 @@ public class ModDraw2dMisc : ModBase
     private void DrawDisconnected()
     {
         float lagSeconds =
-            (platform.TimeMillisecondsFromStart - Game.LastReceivedMilliseconds) / 1000f;
+            (_platform.TimeMillisecondsFromStart - Game.LastReceivedMilliseconds) / 1000f;
 
         if (lagSeconds < GameConstants.DISCONNECTED_ICON_AFTER_SECONDS)
         {
@@ -262,18 +262,18 @@ public class ModDraw2dMisc : ModBase
             return;
         }
 
-        if (Game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
+        if (Game.IsSinglePlayer && !_singlePlayerService.SinglePlayerServerLoaded)
         {
             return;
         }
 
-        Game.Draw2dBitmapFile("disconnected.png", platform.CanvasWidth - 100, 50, 50, 50);
+        Game.Draw2dBitmapFile("disconnected.png", _platform.CanvasWidth - 100, 50, 50, 50);
 
         Game.Draw2dText1(((int)lagSeconds).ToString(),
-            platform.CanvasWidth - 100, 50 + 50 + 10, 12, null, false);
+            _platform.CanvasWidth - 100, 50 + 50 + 10, 12, null, false);
 
         const string Reconnect = "Press F6 to reconnect";
         Game.Draw2dText1(Reconnect,
-            (platform.CanvasWidth / 2) - (200 / 2), 50, 12, null, false);
+            (_platform.CanvasWidth / 2) - (200 / 2), 50, 12, null, false);
     }
 }

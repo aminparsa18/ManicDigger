@@ -76,8 +76,8 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
             Widgets.Add(worldButtons[i]);
         }
 
-        this._menu = menu;
-        this._languageService = languageService;
+        _menu = menu;
+        _languageService = languageService;
         this.singlePlayerService = singlePlayerService;
         this.saveGameService = saveGameService;
     }

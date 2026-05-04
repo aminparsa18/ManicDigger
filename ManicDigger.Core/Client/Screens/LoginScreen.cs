@@ -58,8 +58,8 @@ public class LoginScreen : ScreenBase, ILoginScreen
         : base(platform, openGlService, assetManager)
     {
         this.preferences = preferences;
-        this._languageService = languageService;
-        this._menu = menu;
+        _languageService = languageService;
+        _menu = menu;
 
         // Tab chain (by list index):
         // [1] Username → [2] Password → [3] RememberMe → [0] Login → [8] Back → [1] Username
@@ -92,8 +92,8 @@ public class LoginScreen : ScreenBase, ILoginScreen
     public void Configure(string serverHash, string ip, int port)
     {
         this.serverHash = serverHash;
-        this.serverIp = ip;
-        this.serverPort = port;
+        serverIp = ip;
+        serverPort = port;
     }
 
     /// <inheritdoc/>

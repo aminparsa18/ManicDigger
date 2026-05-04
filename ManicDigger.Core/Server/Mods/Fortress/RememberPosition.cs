@@ -115,7 +115,7 @@ public class PositionStorage
 
     public PositionStorage()
     {
-        this.PlayerPositions = [];
+        PlayerPositions = [];
     }
 
     public int IsStoredAt(string player)

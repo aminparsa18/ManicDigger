@@ -896,9 +896,9 @@ public class War : IMod
 
     public bool NextPage()
     {
-        if (this.page < this.pageCount)
+        if (page < pageCount)
         {
-            this.page++;
+            page++;
             return true;
         }
 
@@ -907,9 +907,9 @@ public class War : IMod
 
     public bool PreviousPage()
     {
-        if (this.page > 0)
+        if (page > 0)
         {
-            this.page--;
+            page--;
             return true;
         }
 

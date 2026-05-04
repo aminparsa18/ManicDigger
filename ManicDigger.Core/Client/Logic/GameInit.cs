@@ -130,7 +130,7 @@ public partial class Game : IGame
     public bool IronSights { get; set; }
     public bool DrawBlockInfo { get; set; }
 
-    public VisibleDialog[] Dialogs { get; set; }
+    public Dictionary<int, VisibleDialog> Dialogs { get; set; }
     public List<string> TypingLog { get; set; }
     public int TypingLogPos { get; set; }
     public TypingState GuiTyping { get; set; }
@@ -357,11 +357,11 @@ public partial class Game : IGame
         _gameLogger = gameLogger;
         this.singlePlayerService = singlePlayerService;
         this.taskScheduler = taskScheduler;
-        this._blockRegistry = blockTypeRegistry;
+        _blockRegistry = blockTypeRegistry;
         this.modRegistry = modRegistry;
         this.voxelMap = voxelMap;
-        this.OverheadCameraK = cameraService;
-        this.FrustumCulling = frustumCulling;
+        OverheadCameraK = cameraService;
+        FrustumCulling = frustumCulling;
         _assetManager = assetManager;
         this.meshDrawer = meshDrawer;
         InitCore();
@@ -442,7 +442,7 @@ public partial class Game : IGame
         TotalAmmo = new int[GameConstants.MAX_BLOCKTYPES];
         LoadedAmmo = new int[GameConstants.MAX_BLOCKTYPES];
         BlockHealth = [];
-        Dialogs = new VisibleDialog[512];
+        Dialogs = [];
         TypingLog = [];
     }
 

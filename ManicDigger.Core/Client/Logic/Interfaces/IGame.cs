@@ -753,7 +753,7 @@ public interface IGame : IDisposable
     bool EscapeMenuRestart { get; set; }
 
     /// <summary>Active dialog overlays.</summary>
-    VisibleDialog[] Dialogs { get; set; }
+    Dictionary<int, VisibleDialog> Dialogs { get; set; }
 
     /// <summary>Returns the dialog ID for the given dialog name.</summary>
     int GetDialogId(string name);

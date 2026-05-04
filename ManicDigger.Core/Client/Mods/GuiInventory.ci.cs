@@ -66,9 +66,10 @@ public class ModGuiInventory : ModBase
     private int _scrollingDownTimeMs;
 
     /// <summary>Initialises cell dimensions and wear-place layout data.</summary>
-    public ModGuiInventory(IGameService platform, IGame game) : base(game)
+    public ModGuiInventory(IGameService platform, IGame game, IBlockRegistry blockRegistry) : base(game)
     {
         this.platform = platform;
+        _blockTypeRegistry = blockRegistry;
         // Wear-place slot origins (relative to inventory background image origin).
         _wearPlaceStart = new Point[WearPlaceCount];
         _wearPlaceStart[(int)WearPlace.RightHand] = new Point(34, 100);

@@ -65,7 +65,7 @@ public class DrawWireframeCube
 
     public DrawWireframeCube(IOpenGlService game, IMeshDrawer meshDrawer)
     {
-        this.platform = game;
+        platform = game;
         this.meshDrawer = meshDrawer;
     }
 

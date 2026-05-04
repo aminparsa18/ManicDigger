@@ -16,19 +16,19 @@ public class ServerMonitor
     public ServerMonitor(Server server, IGameExit exit, ILanguageService languageService, IClientRegistry serverClientService, IServerPacketService serverPacketService)
     {
         this.server = server;
-        this._serverClientService = serverClientService;
-        this._serverPacketService = serverPacketService;
-        this._languageService = languageService;
-        this.LoadConfig();
-        this.Exit = exit;
-        this.monitorClients = [];
+        _serverClientService = serverClientService;
+        _serverPacketService = serverPacketService;
+        _languageService = languageService;
+        LoadConfig();
+        Exit = exit;
+        monitorClients = [];
     }
 
-    public bool RemoveMonitorClient(int clientid) => this.monitorClients.Remove(clientid);
+    public bool RemoveMonitorClient(int clientid) => monitorClients.Remove(clientid);
 
     public void Start()
     {
-        Thread serverMonitorThread = new(new ThreadStart(this.Process));
+        Thread serverMonitorThread = new(new ThreadStart(Process));
         serverMonitorThread.Start();
     }
 
@@ -77,7 +77,7 @@ public class ServerMonitor
                     return true;
                 }
                 // punish client
-                return this.ActionSetBlock(clientId);
+                return ActionSetBlock(clientId);
             case PacketType.Message:
                 if (monitorClients[clientId].MessagePunished())
                 {
@@ -91,7 +91,7 @@ public class ServerMonitor
                     return true;
                 }
                 // punish client
-                return this.ActionMessage(clientId);
+                return ActionMessage(clientId);
             default:
                 return true;
         }
@@ -100,15 +100,15 @@ public class ServerMonitor
     // Actions which will be taken when client exceeds a limit.
     private bool ActionSetBlock(int clientId)
     {
-        this.monitorClients[clientId].SetBlockPunishment = new Punishment();//infinte duration
-        this.server.ServerMessageToAll(string.Format(_languageService.ServerMonitorBuildingDisabled(), _serverClientService.GetClient(clientId).PlayerName), MessageType.Important);
+        monitorClients[clientId].SetBlockPunishment = new Punishment();//infinte duration
+        server.ServerMessageToAll(string.Format(_languageService.ServerMonitorBuildingDisabled(), _serverClientService.GetClient(clientId).PlayerName), MessageType.Important);
         return false;
     }
 
     private bool ActionMessage(int clientId)
     {
-        this.monitorClients[clientId].MessagePunishment = new Punishment(new TimeSpan(0, 0, config.MessageBanTime));
-        this.server.ServerMessageToAll(string.Format(_languageService.ServerMonitorChatMuted(), _serverClientService.GetClient(clientId).PlayerName, config.MessageBanTime), MessageType.Important);
+        monitorClients[clientId].MessagePunishment = new Punishment(new TimeSpan(0, 0, config.MessageBanTime));
+        server.ServerMessageToAll(string.Format(_languageService.ServerMonitorChatMuted(), _serverClientService.GetClient(clientId).PlayerName, config.MessageBanTime), MessageType.Important);
         return false;
     }
 
@@ -122,23 +122,23 @@ public class ServerMonitor
         public Punishment? SetBlockPunishment;
         public bool SetBlockPunished()
         {
-            if (this.SetBlockPunishment == null)
+            if (SetBlockPunishment == null)
             {
                 return false;
             }
 
-            return this.SetBlockPunishment.Active();
+            return SetBlockPunishment.Active();
         }
 
         public Punishment? MessagePunishment;
         public bool MessagePunished()
         {
-            if (this.MessagePunishment == null)
+            if (MessagePunishment == null)
             {
                 return false;
             }
 
-            return this.MessagePunishment.Active();
+            return MessagePunishment.Active();
         }
     }
 
@@ -150,26 +150,26 @@ public class ServerMonitor
 
         public Punishment(TimeSpan duration)
         {
-            this.punishmentStartDate = DateTime.UtcNow;
+            punishmentStartDate = DateTime.UtcNow;
             this.duration = duration;
-            this.permanent = false;
+            permanent = false;
         }
 
         public Punishment()
         {
-            this.punishmentStartDate = DateTime.UtcNow;
-            this.duration = TimeSpan.MinValue;
-            this.permanent = true;
+            punishmentStartDate = DateTime.UtcNow;
+            duration = TimeSpan.MinValue;
+            permanent = true;
         }
 
         public bool Active()
         {
-            if (this.permanent)
+            if (permanent)
             {
                 return true;
             }
 
-            if (DateTime.UtcNow.Subtract(this.punishmentStartDate).CompareTo(duration) == -1)
+            if (DateTime.UtcNow.Subtract(punishmentStartDate).CompareTo(duration) == -1)
             {
                 return true;
             }
@@ -189,11 +189,11 @@ public class ServerMonitor
         public ServerMonitorConfig()
         {
             //Set Defaults
-            this.MaxPackets = 500;
-            this.MaxBlocks = 50;
-            this.MaxMessages = 3;
-            this.MessageBanTime = 60;
-            this.TimeIntervall = 3;
+            MaxPackets = 500;
+            MaxBlocks = 50;
+            MaxMessages = 3;
+            MessageBanTime = 60;
+            TimeIntervall = 3;
         }
     }
 
@@ -210,7 +210,7 @@ public class ServerMonitor
         if (!File.Exists(path))
         {
             Console.WriteLine(_languageService.ServerMonitorConfigNotFound());
-            this.config = new ServerMonitorConfig();
+            config = new ServerMonitorConfig();
             SaveConfig();
         }
         else
@@ -218,12 +218,12 @@ public class ServerMonitor
             try
             {
                 string json = File.ReadAllText(path);
-                this.config = JsonSerializer.Deserialize<ServerMonitorConfig>(json, JsonOptions)
+                config = JsonSerializer.Deserialize<ServerMonitorConfig>(json, JsonOptions)
                               ?? new ServerMonitorConfig();
             }
             catch
             {
-                this.config = new ServerMonitorConfig();
+                config = new ServerMonitorConfig();
             }
         }
 
@@ -237,9 +237,9 @@ public class ServerMonitor
             Directory.CreateDirectory(GameStorePath.gamepathconfig);
         }
 
-        this.config ??= new ServerMonitorConfig();
+        config ??= new ServerMonitorConfig();
         File.WriteAllText(
             Path.Combine(GameStorePath.gamepathconfig, filename),
-            JsonSerializer.Serialize(this.config, JsonOptions));
+            JsonSerializer.Serialize(config, JsonOptions));
     }
 }

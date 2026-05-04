@@ -6,10 +6,10 @@ public class ServerConsole
     public ServerConsole(Server server, IGameExit exit)
     {
         this.server = server;
-        this.Exit = exit;
+        Exit = exit;
 
         // run command line reader as seperate thread
-        Thread consoleInterpreterThread = new(new ThreadStart(this.CommandLineReader));
+        Thread consoleInterpreterThread = new(new ThreadStart(CommandLineReader));
         consoleInterpreterThread.Start();
     }
 

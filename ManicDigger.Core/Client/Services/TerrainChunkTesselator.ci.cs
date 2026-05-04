@@ -1278,9 +1278,9 @@ public class TerrainChunkTesselator
     public VerticesIndicesToLoad[] MakeChunk(int x, int y, int z,
         int[] chunk18, byte[] shadows18, float[] lightlevels_, out int retCount)
     {
-        this.currentChunk18 = chunk18;
-        this.currentChunkShadows18 = shadows18;
-        this.lightlevels = lightlevels_;
+        currentChunk18 = chunk18;
+        currentChunkShadows18 = shadows18;
+        lightlevels = lightlevels_;
 
         // Call RefreshBlockTypeCache() externally when block definitions change.
 

@@ -9,7 +9,7 @@ public class ModBullet : ModBase
 
     public ModBullet(IGame game) : base(game)
     {
-        this._game = game;
+        _game = game;
     }
 
     public override void OnNewFrameDraw3d(float dt)

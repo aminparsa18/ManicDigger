@@ -119,7 +119,6 @@ public class Program
         services.AddScoped<IModBase, ModDrawSprites>();
         services.AddScoped<IModBase, ModDrawMinecarts>();
         services.AddScoped<IModBase, ModDrawLinesAroundSelectedBlock>();
-        services.AddScoped<IModBase, ModDebugChunk>();
         services.AddScoped<IModBase, ModDrawParticleEffectBlockBreak>();
 
         // ── Entity / player rendering ─────────────────────────────────────────

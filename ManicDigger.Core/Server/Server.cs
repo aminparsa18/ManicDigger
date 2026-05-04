@@ -262,8 +262,8 @@ public partial class Server : IServer, IDropItem
         // server monitor
         if (_config.ServerMonitor)
         {
-            this.serverMonitor = new ServerMonitor(this, _gameExit, _languageService, _serverClientService, _serverPacketService);
-            this.serverMonitor.Start();
+            serverMonitor = new ServerMonitor(this, _gameExit, _languageService, _serverClientService, _serverPacketService);
+            serverMonitor.Start();
         }
 
         // set up server console interpreter
@@ -446,7 +446,7 @@ public partial class Server : IServer, IDropItem
                     / GameConstants.ServerChunkSize * _serverMapStorage.MapSizeZ / GameConstants.ServerChunkSize];
                 lock (_serverClientService.Clients)
                 {
-                    this.lastClientId = _serverClientService.GenerateClientId();
+                    lastClientId = _serverClientService.GenerateClientId();
                     c.Id = lastClientId;
                     _serverClientService.Clients[lastClientId] = c;
                 }
@@ -638,7 +638,7 @@ public partial class Server : IServer, IDropItem
     public void ResetPlayerInventory(ServerPlayer client)
     {
         Inventory ??= new Dictionary<string, Inventory>(StringComparer.InvariantCultureIgnoreCase);
-        this.Inventory[client.PlayerName] = StartInventory();
+        Inventory[client.PlayerName] = StartInventory();
         client.IsInventoryDirty = true;
         NotifyInventory(client.Id);
     }
@@ -693,7 +693,7 @@ public partial class Server : IServer, IDropItem
         if (value.QueryClient)
         {
             _serverClientService.Clients.Remove(clientid);
-            this.serverMonitor.RemoveMonitorClient(clientid);
+            serverMonitor.RemoveMonitorClient(clientid);
             return;
         }
 
@@ -705,7 +705,7 @@ public partial class Server : IServer, IDropItem
         _serverClientService.Clients.Remove(clientid);
         if (_config.ServerMonitor)
         {
-            this.serverMonitor.RemoveMonitorClient(clientid);
+            serverMonitor.RemoveMonitorClient(clientid);
         }
 
         foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
@@ -740,7 +740,7 @@ public partial class Server : IServer, IDropItem
             }
         }
 
-        if (_config.ServerMonitor && !this.serverMonitor.CheckPacket(clientid, packet))
+        if (_config.ServerMonitor && !serverMonitor.CheckPacket(clientid, packet))
         {
             DiagLog.Write("Server monitor rejected packet");
             return;
@@ -752,7 +752,7 @@ public partial class Server : IServer, IDropItem
             case PacketType.PingReply:
                 _serverClientService.Clients[clientid].Ping.Receive(gameplatform);
                 _serverClientService.Clients[clientid].LastPing = (float)_serverClientService.Clients[clientid].Ping.RoundtripMilliseconds / 1000;
-                this.NotifyPing(clientid, _serverClientService.Clients[clientid].Ping.RoundtripMilliseconds);
+                NotifyPing(clientid, _serverClientService.Clients[clientid].Ping.RoundtripMilliseconds);
                 break;
             case PacketType.PlayerIdentification:
                 {
@@ -869,16 +869,16 @@ public partial class Server : IServer, IDropItem
                         }
                         else if (_serverClientService.Clients[clientid].PlayerName.StartsWith("~"))
                         {
-                            _serverClientService.Clients[clientid].AssignGroup(this.DefaultGroupGuest);
+                            _serverClientService.Clients[clientid].AssignGroup(DefaultGroupGuest);
                         }
                         else
                         {
-                            _serverClientService.Clients[clientid].AssignGroup(this.DefaultGroupRegistered);
+                            _serverClientService.Clients[clientid].AssignGroup(DefaultGroupRegistered);
                         }
                     }
 
-                    this.SetFillAreaLimit(clientid);
-                    this.SendFreemoveState(clientid, _serverClientService.Clients[clientid].Privileges.Contains(Privilege.freemove));
+                    SetFillAreaLimit(clientid);
+                    SendFreemoveState(clientid, _serverClientService.Clients[clientid].Privileges.Contains(Privilege.freemove));
                     c.QueryClient = false;
                     _serverClientService.Clients[clientid].Entity.DrawName.Name = username;
                     if (_config.EnablePlayerPushing)
@@ -982,13 +982,13 @@ public partial class Server : IServer, IDropItem
                         break;
                     }
 
-                    if (!this.IsFillAreaValid(_serverClientService.Clients[clientid], a, b))
+                    if (!IsFillAreaValid(_serverClientService.Clients[clientid], a, b))
                     {
                         _serverPacketService.SendMessage(clientid, colorError + _languageService.ServerFillAreaInvalid());
                         break;
                     }
 
-                    this.DoFillArea(clientid, packet.FillArea, blockCount);
+                    DoFillArea(clientid, packet.FillArea, blockCount);
 
                     BuildLog(string.Format("{0} {1} {2} - {3} {4} {5} {6} {7} {8}", a.X, a.Y, a.Z, b.X, b.Y, b.Z,
                         c.PlayerName, c.Socket.RemoteEndPoint().AddressToString(),
@@ -1026,7 +1026,7 @@ public partial class Server : IServer, IDropItem
                         try
                         {
                             //Try to execute the given command
-                            this.CommandInterpreter(clientid, command, argument);
+                            CommandInterpreter(clientid, command, argument);
                         }
                         catch (Exception ex)
                         {
@@ -1497,11 +1497,11 @@ public partial class Server : IServer, IDropItem
 
         if (playerSpawn == null)
         {
-            position = new Vector3i(this.DefaultPlayerSpawn.X * 32, this.DefaultPlayerSpawn.Z * 32, this.DefaultPlayerSpawn.Y * 32);
+            position = new Vector3i(DefaultPlayerSpawn.X * 32, DefaultPlayerSpawn.Z * 32, DefaultPlayerSpawn.Y * 32);
         }
         else
         {
-            position = this.SpawnToVector3i(playerSpawn);
+            position = SpawnToVector3i(playerSpawn);
         }
 
         return position;
@@ -2036,7 +2036,7 @@ public partial class Server : IServer, IDropItem
 
     public void ServerMessageToAll(string message, MessageType color)
     {
-        this.SendMessageToAll(MessageTypeToString(color) + message);
+        SendMessageToAll(MessageTypeToString(color) + message);
         DiagLog.Write(string.Format("SERVER MESSAGE: {0}.", message));
     }
 
@@ -2401,10 +2401,10 @@ public partial class Server : IServer, IDropItem
     }
 
     private int[] sunlevels = [];
-    public void SetSunLevels(int[] sunLevels) => this.sunlevels = sunLevels;
+    public void SetSunLevels(int[] sunLevels) => sunlevels = sunLevels;
 
     private float[] lightlevels = [];
-    public void SetLightLevels(float[] lightLevels) => this.lightlevels = lightLevels;
+    public void SetLightLevels(float[] lightLevels) => lightlevels = lightLevels;
 
     public List<CraftingRecipe> CraftingRecipes { get; set; } = [];
 

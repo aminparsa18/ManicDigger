@@ -17,7 +17,7 @@ public class MainScreen : ScreenBase, IMainScreen
         buttonExit = new MenuWidget { Text = "Quit" };
 
         this.singlePlayerService = singlePlayerService;
-        this._languageService = languageService;
+        _languageService = languageService;
         _navigator = navigator;
 
         Widgets.Add(buttonSingleplayer);

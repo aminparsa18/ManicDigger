@@ -112,9 +112,6 @@ public partial class Game
 
     // ── Dialog helpers ────────────────────────────────────────────────────────
 
-    /// <summary>Number of currently active (non-null) dialogs.</summary>
-    internal int DialogsCount => Dialogs.Count(d => d != null);
-
     public int MapSizeX => voxelMap.MapSizeX;
     public int MapSizeY => voxelMap.MapSizeY;
     public int MapSizeZ => voxelMap.MapSizeZ;
@@ -129,7 +126,7 @@ public partial class Game
     /// </summary>
     public int GetDialogId(string name)
     {
-        for (int i = 0; i < Dialogs.Length; i++)
+        for (int i = 0; i < Dialogs.Count; i++)
         {
             if (Dialogs[i]?.key == name)
             {

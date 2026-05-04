@@ -30,7 +30,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
                 game.Dialogs[dialogIdx] = null;
             }
 
-            if (game.Dialogs.Length == 0)
+            if (game.Dialogs.Count == 0)
             {
                 game.SetFreeMouse(false);
             }
@@ -48,15 +48,7 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
 
             if (dialogIdx == -1)
             {
-                // Find the first empty slot.
-                for (int i = 0; i < game.Dialogs.Length; i++)
-                {
-                    if (game.Dialogs[i] == null)
-                    {
-                        game.Dialogs[i] = d2;
-                        break;
-                    }
-                }
+                game.Dialogs.Add(game.Dialogs.Count, d2);
             }
             else
             {

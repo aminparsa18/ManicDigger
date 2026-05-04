@@ -60,10 +60,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
             IDummyNetwork network = singlePlayerService.SinglePlayerServerNetwork;
 
             // Platform provides its own singleplayer server (e.g. mobile).
-            Task.Run(() =>
-            {
-                ServerThreadStart();
-            });
+            Task.Run(ServerThreadStart);
 
             // Prime the server inbox so the handshake starts immediately.
             network.ServerInbox.Enqueue([]);

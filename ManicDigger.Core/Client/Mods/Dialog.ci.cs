@@ -15,7 +15,7 @@ public class ModDialog : ModBase
     public ModDialog(IGameService platform, IGame game) : base(game)
     {
         this.platform = platform;
-        this.packetHandler = new ClientPacketHandlerDialog(platform, game);
+        packetHandler = new ClientPacketHandlerDialog(platform, game);
     }
 
     public override void OnNewFrameDraw2d(float deltaTime)
@@ -26,7 +26,7 @@ public class ModDialog : ModBase
 
     internal void DrawDialogs(IGame game)
     {
-        for (int i = 0; i < game.Dialogs.Length; i++)
+        for (int i = 0; i < game.Dialogs.Count; i++)
         {
             VisibleDialog d = game.Dialogs[i];
             if (d == null)
@@ -54,7 +54,7 @@ public class ModDialog : ModBase
 
         ForEachDialog(d => d.screen.OnKeyPress(args));
 
-        for (int k = 0; k < Game.Dialogs.Length; k++)
+        for (int k = 0; k < Game.Dialogs.Count; k++)
         {
             VisibleDialog d = Game.Dialogs[k];
             if (d == null)
@@ -88,7 +88,7 @@ public class ModDialog : ModBase
 
         if (Game.GuiState == GuiState.Normal && isEsc)
         {
-            for (int i = 0; i < Game.Dialogs.Length; i++)
+            for (int i = 0; i < Game.Dialogs.Count; i++)
             {
                 VisibleDialog d = Game.Dialogs[i];
                 if (d == null)
@@ -113,7 +113,7 @@ public class ModDialog : ModBase
             if (isEsc)
             {
                 // Close all modal dialogs
-                for (int i = 0; i < Game.Dialogs.Length; i++)
+                for (int i = 0; i < Game.Dialogs.Count; i++)
                 {
                     if (Game.Dialogs[i]?.value.IsModal == true)
                     {
@@ -144,7 +144,7 @@ public class ModDialog : ModBase
     /// <summary>Iterates all non-null dialogs and applies an action to each.</summary>
     private void ForEachDialog(Action<VisibleDialog> action)
     {
-        for (int i = 0; i < Game.Dialogs.Length; i++)
+        for (int i = 0; i < Game.Dialogs.Count; i++)
         {
             if (Game.Dialogs[i] != null)
             {

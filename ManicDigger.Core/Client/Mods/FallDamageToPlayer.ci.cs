@@ -17,7 +17,7 @@ public class ModFallDamageToPlayer : ModBase
     {
         this.platform = platform;
         this.voxelMap = voxelMap;
-        this._blockRegistry = blockRegistry;
+        _blockRegistry = blockRegistry;
     }
 
     public override void OnNewFrameFixed(float args)

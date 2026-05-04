@@ -73,8 +73,8 @@ public class ModRail : ModBase
     public ModRail(IGameService platform, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
-        this._voxelMap = voxelMap;
-        this._blockTypeRegistry = blockTypeRegistry;
+        _voxelMap = voxelMap;
+        _blockTypeRegistry = blockTypeRegistry;
         _railHeight = 0.3f;
     }
 

@@ -37,7 +37,6 @@ public partial class Game
     /// <summary>
     /// Evicts text texture cache entries that have not been used for more than
     /// one second, releasing their GPU texture handles.
-    /// Fix #1: uses a pre-allocated <see cref="_textStylesToRemove"/> list
     /// instead of allocating a new one on every eviction frame.
     /// </summary>
     public void DeleteUnusedCachedTextTextures()

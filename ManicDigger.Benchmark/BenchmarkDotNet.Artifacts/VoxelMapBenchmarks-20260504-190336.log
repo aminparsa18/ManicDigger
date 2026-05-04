@@ -1,0 +1,3 @@
+// Validating benchmarks:
+//    * Only 1 benchmark method in a group can have "Baseline = true" applied to it, group Job-SHSVTU(Toolchain=InProcessEmitToolchain, IterationCount=10, WarmupCount=3) in class VoxelMapBenchmarks has 2
+

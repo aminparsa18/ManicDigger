@@ -1,7 +1,4 @@
-﻿
-using System.Buffers;
-
-/// <summary>
+﻿/// <summary>
 /// Provides factory methods for building <see cref="GeometryModel"/> instances
 /// representing screen-aligned quads (two triangles forming a rectangle).
 /// </summary>
@@ -15,9 +12,6 @@ public class Quad
 
     /// <summary>Number of UV components per vertex (U, V).</summary>
     private const int UvComponents = 2;
-
-    /// <summary>Number of colour components per vertex (R, G, B, A).</summary>
-    private const int ColorComponents = 4;
 
     /// <summary>Number of indices forming the two triangles of a quad.</summary>
     private const int IndexCount = 6;
@@ -70,7 +64,6 @@ public class Quad
         255, 255, 255, 255,
     ];
 
-
     /// <summary>
     /// Builds a unit quad <see cref="GeometryModel"/> centred at the origin
     /// with full [0,1] UV coverage and no vertex colours.
@@ -94,70 +87,6 @@ public class Quad
         m.Indices = QuadVertexIndices;
         m.IndicesCount = IndexCount;
 
-        return m;
-    }
-
-
-    /// <summary>
-    /// Builds a quad <see cref="GeometryModel"/> with explicit screen-space destination
-    /// rectangle, source UV rectangle, and a flat vertex colour applied to all 4 vertices.
-    /// </summary>
-    /// <param name="sx">Source UV left edge.</param>
-    /// <param name="sy">Source UV bottom edge.</param>
-    /// <param name="sw">Source UV width.</param>
-    /// <param name="sh">Source UV height.</param>
-    /// <param name="dx">Destination rectangle left edge (screen space).</param>
-    /// <param name="dy">Destination rectangle bottom edge (screen space).</param>
-    /// <param name="dw">Destination rectangle width.</param>
-    /// <param name="dh">Destination rectangle height.</param>
-    /// <param name="r">Vertex colour red component.</param>
-    /// <param name="g">Vertex colour green component.</param>
-    /// <param name="b">Vertex colour blue component.</param>
-    /// <param name="a">Vertex colour alpha component.</param>
-    /// <returns>A <see cref="GeometryModel"/> representing the positioned, coloured quad.</returns>
-    public static GeometryModel CreateColored(
-        float sx, float sy, float sw, float sh,
-        float dx, float dy, float dw, float dh,
-        byte r, byte g, byte b, byte a)
-    {
-        GeometryModel m = new();
-
-        float[] xyz = [dx, dy, 0f, dx + dw, dy, 0f, dx + dw, dy + dh, 0f, dx, dy + dh, 0f];
-        m.Xyz = xyz;
-
-        float[] uv = [sx, sy, sx + sw, sy, sx + sw, sy + sh, sx, sy + sh];
-        m.Uv = uv;
-
-        // ── Avoid rgba allocation for the all-white case (most common) ────────
-        // All-white is the default colour for uncoloured sprites, inventory
-        // icons, crosshairs, etc. Return the shared array instead of allocating.
-        // For any other colour, rent from the pool.
-        if (r == 255 && g == 255 && b == 255 && a == 255)
-        {
-            m.Rgba = s_whiteRgba;
-        }
-        else
-        {
-            byte[] rgba = ArrayPool<byte>.Shared.Rent(ColorComponents * VertexCount);
-            for (int i = 0; i < VertexCount; i++)
-            {
-                rgba[(i * ColorComponents) + 0] = r;
-                rgba[(i * ColorComponents) + 1] = g;
-                rgba[(i * ColorComponents) + 2] = b;
-                rgba[(i * ColorComponents) + 3] = a;
-            }
-
-            m.Rgba = rgba;
-            // NOTE: The caller is responsible for returning rgba to the pool
-            // when the GeometryModel is destroyed. If the renderer that calls
-            // CreateColored does not track lifetimes, drop the ArrayPool.Rent()
-            // here and use `new byte[ColorComponents * VertexCount]` instead —
-            // it is still better than before because the white fast-path is free.
-        }
-
-        m.VerticesCount = VertexCount;
-        m.Indices = QuadVertexIndices;
-        m.IndicesCount = IndexCount;
         return m;
     }
 }

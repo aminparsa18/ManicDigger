@@ -74,7 +74,7 @@ public class ModGuiCrafting : ModBase
         // Lazy-initialise the tool once.
         d_CraftingTableTool ??= new CraftingTableTool
         {
-            d_Map = new MapStorage(voxelMap, Game.SetBlock),
+            d_Map = new MapStorage(voxelMap),
             d_Data = blockTypeRegistry
         };
 

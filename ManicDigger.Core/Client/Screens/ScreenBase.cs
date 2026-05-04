@@ -95,23 +95,23 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
     {
         foreach (MenuWidget w in Widgets)
         {
-            if (w.hasKeyboardFocus && (e.KeyChar == (int)Keys.Tab || e.KeyChar == (int)Keys.Enter))
+            if (w.HasKeyboardFocus && (e.KeyChar == (int)Keys.Tab || e.KeyChar == (int)Keys.Enter))
             {
-                if (w.type == UIWidgetType.Button && e.KeyChar == (int)Keys.Enter)
+                if (w.Type == UIWidgetType.Button && e.KeyChar == (int)Keys.Enter)
                 {
                     OnButton(w);
                     return;
                 }
 
-                if (w.nextWidget != -1)
+                if (w.NextWidget != -1)
                 {
                     w.LoseFocus();
-                    Widgets[w.nextWidget].GetFocus();
+                    Widgets[w.NextWidget].GetFocus();
                     return;
                 }
             }
 
-            if (w.type != UIWidgetType.Textbox || !w.editing)
+            if (w.Type != UIWidgetType.Textbox || !w.Editing)
             {
                 continue;
             }
@@ -122,7 +122,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
             {
                 if (Clipboard.ContainsText())
                 {
-                    w.text = string.Concat(w.text, Clipboard.GetText());
+                    w.Text = string.Concat(w.Text, Clipboard.GetText());
                 }
 
                 return;
@@ -130,9 +130,9 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
 
             if (key == (int)Keys.Backspace)
             {
-                if (w.text.Length > 0)
+                if (w.Text.Length > 0)
                 {
-                    w.text = w.text[..^1];
+                    w.Text = w.Text[..^1];
                 }
 
                 return;
@@ -148,14 +148,14 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
     {
         foreach (MenuWidget w in Widgets)
         {
-            if (w.type != UIWidgetType.Textbox || !w.editing)
+            if (w.Type != UIWidgetType.Textbox || !w.Editing)
             {
                 continue;
             }
 
             if (EncodingHelper.IsValidTypingChar(e.KeyChar))
             {
-                w.text = string.Concat(w.text, (char)e.KeyChar);
+                w.Text = string.Concat(w.Text, (char)e.KeyChar);
             }
         }
     }
@@ -171,13 +171,13 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
 
         foreach (MenuWidget w in Widgets)
         {
-            bool hit = VectorUtils.PointInRect(x, y, w.x, w.y, w.sizex, w.sizey);
-            w.pressed = hit;
+            bool hit = VectorUtils.PointInRect(x, y, w.X, w.Y, w.Sizex, w.Sizey);
+            w.Pressed = hit;
 
-            if (w.type == UIWidgetType.Textbox)
+            if (w.Type == UIWidgetType.Textbox)
             {
-                bool wasEditing = w.editing;
-                w.editing = hit;
+                bool wasEditing = w.Editing;
+                w.Editing = hit;
 
                 if (hit && !wasEditing)
                 {
@@ -216,17 +216,17 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
     {
         foreach (MenuWidget w in Widgets)
         {
-            w.pressed = false;
+            w.Pressed = false;
         }
 
         foreach (MenuWidget w in Widgets)
         {
-            if (w.type != UIWidgetType.Button)
+            if (w.Type != UIWidgetType.Button)
             {
                 continue;
             }
 
-            if (VectorUtils.PointInRect(x, y, w.x, w.y, w.sizex, w.sizey))
+            if (VectorUtils.PointInRect(x, y, w.X, w.Y, w.Sizex, w.Sizey))
             {
                 OnButton(w);
             }
@@ -234,7 +234,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
     }
 
     /// <summary>
-    /// Updates the <see cref="MenuWidget.hover"/> flag for every widget based on
+    /// Updates the <see cref="MenuWidget.Hover"/> flag for every widget based on
     /// the current cursor position. Emulated mouse events are ignored unless
     /// <see cref="MouseEventArgs.GetForceUsage"/> is set.
     /// </summary>
@@ -247,7 +247,7 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
 
         foreach (MenuWidget w in Widgets)
         {
-            w.hover = VectorUtils.PointInRect(e.GetX(), e.GetY(), w.x, w.y, w.sizex, w.sizey);
+            w.Hover = VectorUtils.PointInRect(e.GetX(), e.GetY(), w.X, w.Y, w.Sizex, w.Sizey);
         }
     }
 
@@ -286,18 +286,18 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
     {
         foreach (MenuWidget w in Widgets)
         {
-            if (!w.visible)
+            if (!w.Visible)
             {
                 continue;
             }
 
-            string text = w.selected ? string.Concat("&2", w.text) : w.text;
+            string text = w.Selected ? string.Concat("&2", w.Text) : w.Text;
 
-            if (w.type == UIWidgetType.Button)
+            if (w.Type == UIWidgetType.Button)
             {
                 DrawButton(w, text);
             }
-            else if (w.type == UIWidgetType.Textbox)
+            else if (w.Type == UIWidgetType.Textbox)
             {
                 DrawTextbox(w, text);
             }
@@ -478,26 +478,26 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
     }
 
     /// <summary>
-    /// Draws a single button widget using the style indicated by <see cref="MenuWidget.buttonStyle"/>.
+    /// Draws a single button widget using the style indicated by <see cref="MenuWidget.ButtonStyle"/>.
     /// </summary>
     private void DrawButton(MenuWidget w, string text)
     {
-        switch (w.buttonStyle)
+        switch (w.ButtonStyle)
         {
             case ButtonStyle.Text:
-                if (w.image != null)
+                if (w.Image != null)
                 {
-                    Draw2dQuad(GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
+                    Draw2dQuad(GetTexture(w.Image), w.X, w.Y, w.Sizex, w.Sizey);
                 }
 
-                DrawText(text, w.fontSize, w.x, w.y + (w.sizey / 2), TextAlign.Left, TextBaseline.Middle);
+                DrawText(text, w.FontSize, w.X, w.Y + (w.Sizey / 2), TextAlign.Left, TextBaseline.Middle);
                 break;
 
             case ButtonStyle.Button:
-                DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey, w.hover || w.hasKeyboardFocus);
-                if (w.description != null)
+                DrawButton(text, w.FontSize, w.X, w.Y, w.Sizex, w.Sizey, w.Hover || w.HasKeyboardFocus);
+                if (w.Description != null)
                 {
-                    DrawText(w.description, w.fontSize, w.x, w.y + (w.sizey / 2), TextAlign.Right, TextBaseline.Middle);
+                    DrawText(w.Description, w.FontSize, w.X, w.Y + (w.Sizey / 2), TextAlign.Right, TextBaseline.Middle);
                 }
 
                 break;
@@ -505,9 +505,9 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
             default:
                 // Server-list entry: text is packed as five newline-separated fields:
                 //   [0] server name  [1] player count  [2] map name  [3] game mode  [4] server version
-                string[] fields = w.text.Split('\n');
+                string[] fields = w.Text.Split('\n');
 
-                if (w.selected)
+                if (w.Selected)
                 {
                     fields[0] = string.Concat("&2", fields[0]);
                     fields[1] = string.Concat("&2", fields[1]);
@@ -516,20 +516,20 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
                 }
 
                 DrawServerButton(fields[0], fields[1], fields[2], fields[3],
-                    w.x, w.y, w.sizex, w.sizey, w.image);
+                    w.X, w.Y, w.Sizex, w.Sizey, w.Image);
 
-                if (w.description != null)
+                if (w.Description != null)
                 {
                     // Server did not respond to the last ping — show a warning icon.
                     Draw2dQuad(GetTexture("serverlist_entry_noresponse.png"),
-                        w.x - (38 * GetScale()), w.y, w.sizey / 2, w.sizey / 2);
+                        w.X - (38 * GetScale()), w.Y, w.Sizey / 2, w.Sizey / 2);
                 }
 
                 if (fields[4] != GameService.GetGameVersion())
                 {
                     // Server version differs from the client — show a version-mismatch icon.
                     Draw2dQuad(GetTexture("serverlist_entry_differentversion.png"),
-                        w.x - (38 * GetScale()), w.y + (w.sizey / 2), w.sizey / 2, w.sizey / 2);
+                        w.X - (38 * GetScale()), w.Y + (w.Sizey / 2), w.Sizey / 2, w.Sizey / 2);
                 }
 
                 break;
@@ -597,34 +597,34 @@ public class ScreenBase(IGameService gameService, IOpenGlService openGlService, 
     /// </summary>
     private void DrawTextbox(MenuWidget w, string text)
     {
-        if (w.password)
+        if (w.Password)
         {
-            text = new string('*', w.text.Length);
+            text = new string('*', w.Text.Length);
         }
 
-        if (w.editing)
+        if (w.Editing)
         {
             text = string.Concat(text, "_");
         }
 
-        if (w.buttonStyle == ButtonStyle.Text)
+        if (w.ButtonStyle == ButtonStyle.Text)
         {
-            if (w.image != null)
+            if (w.Image != null)
             {
-                Draw2dQuad(GetTexture(w.image), w.x, w.y, w.sizex, w.sizey);
+                Draw2dQuad(GetTexture(w.Image), w.X, w.Y, w.Sizex, w.Sizey);
             }
 
-            DrawText(text, w.fontSize, w.x, w.y, TextAlign.Left, TextBaseline.Top);
+            DrawText(text, w.FontSize, w.X, w.Y, TextAlign.Left, TextBaseline.Top);
         }
         else
         {
-            DrawButton(text, w.fontSize, w.x, w.y, w.sizex, w.sizey,
-                w.hover || w.editing || w.hasKeyboardFocus);
+            DrawButton(text, w.FontSize, w.X, w.Y, w.Sizex, w.Sizey,
+                w.Hover || w.Editing || w.HasKeyboardFocus);
         }
 
-        if (w.description != null)
+        if (w.Description != null)
         {
-            DrawText(w.description, w.fontSize, w.x, w.y + (w.sizey / 2), TextAlign.Right, TextBaseline.Middle);
+            DrawText(w.Description, w.FontSize, w.X, w.Y + (w.Sizey / 2), TextAlign.Right, TextBaseline.Middle);
         }
     }
 

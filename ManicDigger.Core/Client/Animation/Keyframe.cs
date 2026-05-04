@@ -5,23 +5,23 @@
 public class Keyframe
 {
     /// <summary>The animation this keyframe belongs to.</summary>
-    internal string AnimationName;
+    public string AnimationName { get; set; }
 
     /// <summary>The node (bone) this keyframe affects.</summary>
-    internal string NodeName;
+    public string NodeName { get; set; }
 
     /// <summary>Time position within the animation, measured in frames.</summary>
-    internal int Frame;
+    public int Frame { get; set; }
 
     /// <summary>The property being animated. See <see cref="KeyframeType"/>.</summary>
-    internal KeyframeType Type;
+    public KeyframeType Type { get; set; }
 
     /// <summary>X component of the keyed value.</summary>
-    internal float X;
+    public float X { get; set; }
 
     /// <summary>Y component of the keyed value.</summary>
-    internal float Y;
+    public float Y { get; set; }
 
     /// <summary>Z component of the keyed value.</summary>
-    internal float Z;
+    public float Z { get; set; }
 }

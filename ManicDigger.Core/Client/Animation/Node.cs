@@ -8,68 +8,68 @@
 public class Node
 {
     /// <summary>Unique name identifying this node within the model.</summary>
-    internal string Name;
+    public string Name { get; set; }
 
     /// <summary>
     /// Name of the parent node. Use <c>"root"</c> for top-level nodes
     /// that have no parent.
     /// </summary>
-    internal string ParentName;
+    public string ParentName { get; set; }
 
     /// <summary>Default local position X offset, in model units.</summary>
-    internal float PosX;
+    public float PosX { get; set; }
 
     /// <summary>Default local position Y offset, in model units.</summary>
-    internal float PosY;
+    public float PosY { get; set; }
 
     /// <summary>Default local position Z offset, in model units.</summary>
-    internal float PosZ;
+    public float PosZ { get; set; }
 
     /// <summary>Default rotation around the X axis, in degrees.</summary>
-    internal float RotateX;
+    public float RotateX { get; set; }
 
     /// <summary>Default rotation around the Y axis, in degrees.</summary>
-    internal float RotateY;
+    public float RotateY { get; set; }
 
     /// <summary>Default rotation around the Z axis, in degrees.</summary>
-    internal float RotateZ;
+    public float RotateZ { get; set; }
 
     /// <summary>Default cuboid width (X dimension), in pixels on the texture net.</summary>
-    internal float SizeX;
+    public float SizeX { get; set; }
 
     /// <summary>Default cuboid height (Y dimension), in pixels on the texture net.</summary>
-    internal float SizeY;
+    public float SizeY { get; set; }
 
     /// <summary>Default cuboid depth (Z dimension), in pixels on the texture net.</summary>
-    internal float SizeZ;
+    public float SizeZ { get; set; }
 
     /// <summary>Horizontal start position of this node's texture region, in pixels.</summary>
-    internal float U;
+    public float U { get; set; }
 
     /// <summary>Vertical start position of this node's texture region, in pixels.</summary>
-    internal float V;
+    public float V { get; set; }
 
     /// <summary>Pivot point X offset, used as the center of rotation, in model units.</summary>
-    internal float PivotX;
+    public float PivotX { get; set; }
 
     /// <summary>Pivot point Y offset, used as the center of rotation, in model units.</summary>
-    internal float PivotY;
+    public float PivotY { get; set; }
 
     /// <summary>Pivot point Z offset, used as the center of rotation, in model units.</summary>
-    internal float PivotZ;
+    public float PivotZ { get; set; }
 
     /// <summary>Default scale multiplier along the X axis.</summary>
-    internal float ScaleX;
+    public float ScaleX { get; set; }
 
     /// <summary>Default scale multiplier along the Y axis.</summary>
-    internal float ScaleY;
+    public float ScaleY { get; set; }
 
     /// <summary>Default scale multiplier along the Z axis.</summary>
-    internal float ScaleZ;
+    public float ScaleZ { get; set; }
 
     /// <summary>
     /// When set to <c>1</c>, this node rotates with the player's head pitch,
     /// allowing it to look up and down independently of the body.
     /// </summary>
-    internal float Head;
+    public float Head { get; set; }
 }

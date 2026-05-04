@@ -18,8 +18,8 @@ public class ModifyWorldScreen : ScreenBase
         _menu = menu;
         buttonBack = new MenuWidget
         {
-            text = "Back",
-            type = UIWidgetType.Button
+            Text = "Back",
+            Type = UIWidgetType.Button
         };
 
         Widgets.Add(buttonBack);
@@ -28,7 +28,7 @@ public class ModifyWorldScreen : ScreenBase
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonBack.text = _languageService.Get("MainMenu_ButtonBack");
+        buttonBack.Text = _languageService.Get("MainMenu_ButtonBack");
         title = _languageService.Get("MainMenu_ModifyWorld");
     }
 
@@ -40,11 +40,11 @@ public class ModifyWorldScreen : ScreenBase
         DrawBackground();
         DrawText(title, 14 * scale, GameService.CanvasWidth / 2, 0, TextAlign.Center, TextBaseline.Top);
 
-        buttonBack.x = 40 * scale;
-        buttonBack.y = GameService.CanvasHeight - (104 * scale);
-        buttonBack.sizex = 256 * scale;
-        buttonBack.sizey = 64 * scale;
-        buttonBack.fontSize = 14 * scale;
+        buttonBack.X = 40 * scale;
+        buttonBack.Y = GameService.CanvasHeight - (104 * scale);
+        buttonBack.Sizex = 256 * scale;
+        buttonBack.Sizey = 64 * scale;
+        buttonBack.FontSize = 14 * scale;
 
         DrawWidgets();
     }

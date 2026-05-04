@@ -1,10 +1,6 @@
 ﻿using System.Buffers;
 
-/// <summary>
-/// Represents the voxel world, storing block data in a sparse grid of <see cref="Chunk"/> objects.
-/// Block-space coordinates are in individual block units; chunk coordinates are derived by
-/// dividing by <see cref="GameConstants.CHUNK_SIZE"/> (or right-shifting by <see cref="GameConstants.chunksizebits"/>).
-/// </summary>
+///
 public class VoxelMap : IVoxelMap
 {
     public Chunk[] Chunks { get; private set; }
@@ -14,38 +10,25 @@ public class VoxelMap : IVoxelMap
     public int MapSizeY { get; set; }
     public int MapSizeZ { get; set; }
 
-    /// <summary>
-    /// Converts 3D coordinates into a flat array index using the layout: <c>(h * sizeY + y) * sizeX + x</c>.
-    /// Used for both block-space and chunk-space indexing depending on the size arguments passed.
-    /// </summary>
-    private static int Index3d(int x, int y, int h, int sizex, int sizey) => (((h * sizey) + y) * sizex) + x;
-
-    /// <summary>
-    /// Returns the block type at the given block-space position without performing map-bounds validation.
-    /// Returns 0 (air) if the owning chunk has not been allocated yet.
-    /// Use <see cref="GetBlock"/> for safe access that also checks bounds.
-    /// </summary>
+    /// <inheritdoc/>
     public int GetBlockValid(int x, int y, int z)
     {
         int cx = x >> GameConstants.chunksizebits;
         int cy = y >> GameConstants.chunksizebits;
         int cz = z >> GameConstants.chunksizebits;
-        int chunkpos = Index3d(cx, cy, cz, MapSizeX >> GameConstants.chunksizebits, MapSizeY >> GameConstants.chunksizebits);
+        int chunkpos = VectorIndexUtil.Index3d(cx, cy, cz, MapSizeX >> GameConstants.chunksizebits, MapSizeY >> GameConstants.chunksizebits);
         if (Chunks[chunkpos] == null)
         {
             return 0;
         }
         else
         {
-            int pos = Index3d(x & (GameConstants.CHUNK_SIZE - 1), y & (GameConstants.CHUNK_SIZE - 1), z & (GameConstants.CHUNK_SIZE - 1), GameConstants.CHUNK_SIZE, GameConstants.CHUNK_SIZE);
+            int pos = VectorIndexUtil.Index3d(x & (GameConstants.CHUNK_SIZE - 1), y & (GameConstants.CHUNK_SIZE - 1), z & (GameConstants.CHUNK_SIZE - 1), GameConstants.CHUNK_SIZE, GameConstants.CHUNK_SIZE);
             return Chunks[chunkpos].GetBlock(pos);
         }
     }
 
-    /// <summary>
-    /// Returns the chunk that contains the block at block-space coordinates,
-    /// allocating a new chunk if one does not already exist.
-    /// </summary>
+    /// <inheritdoc/>
     public Chunk GetChunk(int x, int y, int z)
     {
         if (x < 0 || y < 0 || z < 0)
@@ -59,17 +42,13 @@ public class VoxelMap : IVoxelMap
         return GetChunkAt(x, y, z);
     }
 
-    /// <summary>
-    /// Returns the chunk at the given chunk-space coordinates, allocating a new one if absent.
-    /// Backing arrays are rented from <see cref="ArrayPool{T}.Shared"/> and zeroed before use
-    /// so the caller always receives clean, initialised memory.
-    /// </summary>
+    /// <inheritdoc/>
     public Chunk GetChunkAt(int cx, int cy, int cz)
     {
         int csBits = GameConstants.chunksizebits;
         int mapsizexchunks = MapSizeX >> csBits;
         int mapsizeychunks = MapSizeY >> csBits;
-        int flatIndex = Index3d(cx, cy, cz, mapsizexchunks, mapsizeychunks);
+        int flatIndex = VectorIndexUtil.Index3d(cx, cy, cz, mapsizexchunks, mapsizeychunks);
         Chunk chunk = Chunks[flatIndex];
 
         if (chunk == null)
@@ -95,26 +74,15 @@ public class VoxelMap : IVoxelMap
         return chunk;
     }
 
-    /// <summary>
-    /// Writes a block type directly into the map without marking any chunks dirty.
-    /// Prefer this during bulk operations such as world generation to avoid redundant re-render triggers.
-    /// For interactive single-block edits, dirty-marking must be handled separately via <see cref="SetBlockDirty"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public void SetBlockRaw(int x, int y, int z, int tileType)
     {
         Chunk chunk = GetChunk(x, y, z);
-        int pos = Index3d(x & (GameConstants.CHUNK_SIZE - 1), y & (GameConstants.CHUNK_SIZE - 1), z & (GameConstants.CHUNK_SIZE - 1), GameConstants.CHUNK_SIZE, GameConstants.CHUNK_SIZE);
+        int pos = VectorIndexUtil.Index3d(x & (GameConstants.CHUNK_SIZE - 1), y & (GameConstants.CHUNK_SIZE - 1), z & (GameConstants.CHUNK_SIZE - 1), GameConstants.CHUNK_SIZE, GameConstants.CHUNK_SIZE);
         chunk.SetBlock(pos, tileType);
     }
 
-    /// <summary>
-    /// Reinitialises the map with new dimensions, discarding all existing chunk data.
-    /// All sizes must be exact multiples of <see cref="GameConstants.CHUNK_SIZE"/>.
-    /// </summary>
-    /// <remarks>
-    /// Every live chunk's pooled arrays are returned to <see cref="ArrayPool{T}.Shared"/>
-    /// before the chunk array is replaced, preventing pool leaks on world reload.
-    /// </remarks>
+    /// <inheritdoc/>
     public void Reset(int sizex, int sizey, int sizez)
     {
         // Release pooled arrays from any existing chunks before discarding the array.
@@ -133,11 +101,7 @@ public class VoxelMap : IVoxelMap
         Chunks = new Chunk[sizex / GameConstants.CHUNK_SIZE * (sizey / GameConstants.CHUNK_SIZE) * (sizez / GameConstants.CHUNK_SIZE)];
     }
 
-    /// <summary>
-    /// Reads a rectangular sub-region of the map into a flat array.
-    /// Unallocated or out-of-bounds positions are written as 0 (air).
-    /// Output array layout: <c>index = (z * sizeY + y) * sizeX + x</c>.
-    /// </summary>
+    /// <inheritdoc/>
     public void GetMapPortion(int[] outPortion, int x, int y, int z, int portionsizex, int portionsizey, int portionsizez)
     {
         int csBits = GameConstants.chunksizebits;
@@ -209,7 +173,7 @@ public class VoxelMap : IVoxelMap
         }
     }
 
-    /// <summary>Returns true when block-space coordinates fall within map bounds.</summary>
+    /// <inheritdoc/>
     public bool IsValidPos(int x, int y, int z)
     {
         if (x < 0 || y < 0 || z < 0)
@@ -225,7 +189,7 @@ public class VoxelMap : IVoxelMap
         return true;
     }
 
-    /// <summary>Returns true when chunk-space coordinates fall within map bounds.</summary>
+    /// <inheritdoc/>
     public bool IsValidChunkPos(int cx, int cy, int cz)
     {
         return cx >= 0 && cy >= 0 && cz >= 0
@@ -234,10 +198,7 @@ public class VoxelMap : IVoxelMap
             && cz < MapSizeZ / GameConstants.CHUNK_SIZE;
     }
 
-    /// <summary>
-    /// Returns the block type at the given block-space position,
-    /// or 0 (air) when the position is outside map bounds.
-    /// </summary>
+    /// <inheritdoc/>
     public int GetBlock(int x, int y, int z)
     {
         if (!IsValidPos(x, y, z))
@@ -248,11 +209,7 @@ public class VoxelMap : IVoxelMap
         return GetBlockValid(x, y, z);
     }
 
-    /// <summary>
-    /// Marks the chunk at chunk-space coordinates as dirty, optionally flagging that its block
-    /// data has changed (which also invalidates base lighting via <see cref="Chunk.baseLightDirty"/>).
-    /// Does nothing if the position is out of range or the chunk is null.
-    /// </summary>
+    /// <inheritdoc/>
     public void SetChunkDirty(int cx, int cy, int cz, bool dirty, bool blockschanged)
     {
         if (!IsValidChunkPos(cx, cy, cz))
@@ -266,27 +223,21 @@ public class VoxelMap : IVoxelMap
             return;
         }
 
-        c.rendered ??= new RenderedChunk();
-        c.rendered.Dirty = dirty;
+        c.Rendered ??= new RenderedChunk();
+        c.Rendered.Dirty = dirty;
         if (blockschanged)
         {
-            c.baseLightDirty = true;
+            c.BaseLightDirty = true;
         }
     }
 
-    /// <summary>Width of the map measured in chunks.</summary>
     public int Mapsizexchunks => MapSizeX >> GameConstants.chunksizebits;
 
-    /// <summary>Depth of the map measured in chunks.</summary>
     public int Mapsizeychunks => MapSizeY >> GameConstants.chunksizebits;
 
-    /// <summary>Height of the map measured in chunks.</summary>
     public int Mapsizezchunks => MapSizeZ >> GameConstants.chunksizebits;
 
-    /// <summary>
-    /// Marks the six face-adjacent neighbour chunks of the chunk at the given chunk-space coordinates
-    /// as dirty for re-rendering (without invalidating lighting).
-    /// </summary>
+    /// <inheritdoc/>
     public void SetChunksAroundDirty(int cx, int cy, int cz)
     {
         if (IsValidChunkPos(cx - 1, cy, cz))
@@ -320,11 +271,7 @@ public class VoxelMap : IVoxelMap
         }
     }
 
-    /// <summary>
-    /// Writes a rectangular block of data into the map and marks all affected chunks
-    /// (and their neighbours) dirty for re-rendering.
-    /// Input array layout must match <see cref="GetMapPortion"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public void SetMapPortion(int x, int y, int z, int[] chunk, int sizeX, int sizeY, int sizeZ)
     {
         int cs = GameConstants.CHUNK_SIZE;
@@ -346,7 +293,7 @@ public class VoxelMap : IVoxelMap
                     int worldZ = z + (cz << csBits);
                     int srcZ = cz << csBits;
 
-                    int idx = Index3d(cx, cy, cz, chunksX, chunksY); // computed once
+                    int idx = VectorIndexUtil.Index3d(cx, cy, cz, chunksX, chunksY); // computed once
                     Chunk c = GetChunk(worldX, worldY, worldZ);
                     localchunks[idx] = c;
 
@@ -386,11 +333,7 @@ public class VoxelMap : IVoxelMap
         }
     }
 
-    /// <summary>
-    /// Attempts to read the baked light value at a block-space position.
-    /// Returns -1 if the position is invalid, the chunk is unallocated,
-    /// or the chunk's light buffer has not been computed yet.
-    /// </summary>
+    /// <inheritdoc/>
     public int MaybeGetLight(int x, int y, int z)
     {
         if (!IsValidPos(x, y, z))
@@ -412,7 +355,7 @@ public class VoxelMap : IVoxelMap
         }
 
         Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
-        if (c?.rendered?.Light == null)
+        if (c?.Rendered?.Light == null)
         {
             return -1;
         }
@@ -421,13 +364,10 @@ public class VoxelMap : IVoxelMap
         int ly = (y & csMask) + 1;
         int lz = (z & csMask) + 1;
 
-        return c.rendered.Light[VectorIndexUtil.Index3d(lx, ly, lz, lightCS, lightCS)];
+        return c.Rendered.Light[VectorIndexUtil.Index3d(lx, ly, lz, lightCS, lightCS)];
     }
 
-    /// <summary>
-    /// Marks the chunk containing the given block and all chunks containing its 6 face-adjacent
-    /// neighbours as dirty with light invalidation. Call after any single-block edit.
-    /// </summary>
+    /// <inheritdoc/>
     public void SetBlockDirty(int x, int y, int z)
     {
         int csBits = GameConstants.chunksizebits;
@@ -464,10 +404,7 @@ public class VoxelMap : IVoxelMap
         }
     }
 
-    /// <summary>
-    /// Returns true when the chunk has been rendered at least once
-    /// (i.e. its render mesh exists and contains vertex/index data).
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsChunkRendered(int cx, int cy, int cz)
     {
         Chunk c = Chunks[VectorIndexUtil.Index3d(cx, cy, cz, Mapsizexchunks, Mapsizeychunks)];
@@ -476,6 +413,6 @@ public class VoxelMap : IVoxelMap
             return false;
         }
 
-        return c.rendered != null && c.rendered.Ids != null;
+        return c.Rendered != null && c.Rendered.Ids != null;
     }
 }

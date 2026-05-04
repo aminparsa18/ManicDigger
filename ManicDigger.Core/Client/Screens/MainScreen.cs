@@ -12,9 +12,9 @@ public class MainScreen : ScreenBase, IMainScreen
         ILanguageService languageService, IAssetManager assetManager, INavigator navigator)
         : base(platform, openGlService, assetManager)
     {
-        buttonSingleplayer = new MenuWidget { text = "Singleplayer" };
-        buttonMultiplayer = new MenuWidget { text = "Multiplayer" };
-        buttonExit = new MenuWidget { text = "Quit" };
+        buttonSingleplayer = new MenuWidget { Text = "Singleplayer" };
+        buttonMultiplayer = new MenuWidget { Text = "Multiplayer" };
+        buttonExit = new MenuWidget { Text = "Quit" };
 
         this.singlePlayerService = singlePlayerService;
         this._languageService = languageService;
@@ -50,9 +50,9 @@ public class MainScreen : ScreenBase, IMainScreen
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonSingleplayer.text = _languageService.Get("MainMenu_Singleplayer");
-        buttonMultiplayer.text = _languageService.Get("MainMenu_Multiplayer");
-        buttonExit.text = _languageService.Get("MainMenu_Quit");
+        buttonSingleplayer.Text = _languageService.Get("MainMenu_Singleplayer");
+        buttonMultiplayer.Text = _languageService.Get("MainMenu_Multiplayer");
+        buttonExit.Text = _languageService.Get("MainMenu_Quit");
     }
 
     /// <inheritdoc/>
@@ -87,21 +87,21 @@ public class MainScreen : ScreenBase, IMainScreen
 
         float centerX = (windowX / 2) - (ButtonWidth / 2 * scale);
 
-        buttonSingleplayer.x = centerX;
-        buttonSingleplayer.y = ButtonY(3, scale);
-        buttonSingleplayer.sizex = ButtonWidth * scale;
-        buttonSingleplayer.sizey = ButtonHeight * scale;
+        buttonSingleplayer.X = centerX;
+        buttonSingleplayer.Y = ButtonY(3, scale);
+        buttonSingleplayer.Sizex = ButtonWidth * scale;
+        buttonSingleplayer.Sizey = ButtonHeight * scale;
 
-        buttonMultiplayer.x = centerX;
-        buttonMultiplayer.y = ButtonY(2, scale);
-        buttonMultiplayer.sizex = ButtonWidth * scale;
-        buttonMultiplayer.sizey = ButtonHeight * scale;
+        buttonMultiplayer.X = centerX;
+        buttonMultiplayer.Y = ButtonY(2, scale);
+        buttonMultiplayer.Sizex = ButtonWidth * scale;
+        buttonMultiplayer.Sizey = ButtonHeight * scale;
 
-        buttonExit.visible = true;
-        buttonExit.x = centerX;
-        buttonExit.y = ButtonY(1, scale);
-        buttonExit.sizex = ButtonWidth * scale;
-        buttonExit.sizey = ButtonHeight * scale;
+        buttonExit.Visible = true;
+        buttonExit.X = centerX;
+        buttonExit.Y = ButtonY(1, scale);
+        buttonExit.Sizex = ButtonWidth * scale;
+        buttonExit.Sizey = ButtonHeight * scale;
 
         DrawWidgets();
     }

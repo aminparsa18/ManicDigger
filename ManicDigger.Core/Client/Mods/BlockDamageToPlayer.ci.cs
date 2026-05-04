@@ -119,17 +119,17 @@ public class DialogScreen : ModScreen
 
     public override void OnButton(MenuWidget w)
     {
-        if (w.isbutton)
+        if (w.Isbutton)
         {
             string[] textValues = new string[WidgetCount];
             for (int i = 0; i < WidgetCount; i++)
             {
-                string s = widgets[i].text;
+                string s = widgets[i].Text;
                 s ??= "";
                 textValues[i] = s;
             }
 
-            Game.SendPacketClient(ClientPackets.DialogClick(w.id, textValues, WidgetCount));
+            Game.SendPacketClient(ClientPackets.DialogClick(w.Id, textValues, WidgetCount));
         }
     }
 }

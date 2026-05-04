@@ -22,37 +22,37 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
         _menu = menu;
 
         // Tab chain (by list index): [0] Back → [1] Connect → [3] ConnectToIp → [2] Refresh → [0] Back
-        back = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
-        connect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
-        connectToIp = new MenuWidget { text = "Connect to IP", type = UIWidgetType.Button, nextWidget = 2 };
-        refresh = new MenuWidget { text = "Refresh", type = UIWidgetType.Button, nextWidget = 0 };
+        back = new MenuWidget { Text = "Back", Type = UIWidgetType.Button, NextWidget = 1 };
+        connect = new MenuWidget { Text = "Connect", Type = UIWidgetType.Button, NextWidget = 3 };
+        connectToIp = new MenuWidget { Text = "Connect to IP", Type = UIWidgetType.Button, NextWidget = 2 };
+        refresh = new MenuWidget { Text = "Refresh", Type = UIWidgetType.Button, NextWidget = 0 };
 
         page = 0;
         pageUp = new MenuWidget
         {
-            text = "",
-            type = UIWidgetType.Button,
-            buttonStyle = ButtonStyle.Text,
-            visible = false
+            Text = "",
+            Type = UIWidgetType.Button,
+            ButtonStyle = ButtonStyle.Text,
+            Visible = false
         };
         pageDown = new MenuWidget
         {
-            text = "",
-            type = UIWidgetType.Button,
-            buttonStyle = ButtonStyle.Text,
-            visible = false
+            Text = "",
+            Type = UIWidgetType.Button,
+            ButtonStyle = ButtonStyle.Text,
+            Visible = false
         };
         loggedInName = new MenuWidget
         {
-            text = "",
-            type = UIWidgetType.Button,
-            buttonStyle = ButtonStyle.Text
+            Text = "",
+            Type = UIWidgetType.Button,
+            ButtonStyle = ButtonStyle.Text
         };
         logout = new MenuWidget
         {
-            text = "",
-            type = UIWidgetType.Button,
-            buttonStyle = ButtonStyle.Button
+            Text = "",
+            Type = UIWidgetType.Button,
+            ButtonStyle = ButtonStyle.Button
         };
 
         title = "Multiplayer";
@@ -76,10 +76,10 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
         {
             MenuWidget b = new()
             {
-                text = "Invalid",
-                type = UIWidgetType.Button,
-                visible = false,
-                image = "serverlist_entry_noimage.png"
+                Text = "Invalid",
+                Type = UIWidgetType.Button,
+                Visible = false,
+                Image = "serverlist_entry_noimage.png"
             };
             serverButtons[i] = b;
             Widgets.Add(b); // 8 + i
@@ -101,10 +101,10 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
 
     public override void LoadTranslations()
     {
-        back.text = _languageService.Get("MainMenu_ButtonBack");
-        connect.text = _languageService.Get("MainMenu_MultiplayerConnect");
-        connectToIp.text = _languageService.Get("MainMenu_MultiplayerConnectIP");
-        refresh.text = _languageService.Get("MainMenu_MultiplayerRefresh");
+        back.Text = _languageService.Get("MainMenu_ButtonBack");
+        connect.Text = _languageService.Get("MainMenu_MultiplayerConnect");
+        connectToIp.Text = _languageService.Get("MainMenu_MultiplayerConnectIP");
+        refresh.Text = _languageService.Get("MainMenu_MultiplayerRefresh");
         title = _languageService.Get("MainMenu_Multiplayer");
     }
 
@@ -159,63 +159,63 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
 
         float scale = GetScale();
 
-        back.x = 40 * scale;
-        back.y = GameService.CanvasHeight - (104 * scale);
-        back.sizex = 256 * scale;
-        back.sizey = 64 * scale;
-        back.fontSize = 14 * scale;
+        back.X = 40 * scale;
+        back.Y = GameService.CanvasHeight - (104 * scale);
+        back.Sizex = 256 * scale;
+        back.Sizey = 64 * scale;
+        back.FontSize = 14 * scale;
 
-        connect.x = (GameService.CanvasWidth / 2) - (300 * scale);
-        connect.y = GameService.CanvasHeight - (104 * scale);
-        connect.sizex = 256 * scale;
-        connect.sizey = 64 * scale;
-        connect.fontSize = 14 * scale;
+        connect.X = (GameService.CanvasWidth / 2) - (300 * scale);
+        connect.Y = GameService.CanvasHeight - (104 * scale);
+        connect.Sizex = 256 * scale;
+        connect.Sizey = 64 * scale;
+        connect.FontSize = 14 * scale;
 
-        connectToIp.x = (GameService.CanvasWidth / 2) - (0 * scale);
-        connectToIp.y = GameService.CanvasHeight - (104 * scale);
-        connectToIp.sizex = 256 * scale;
-        connectToIp.sizey = 64 * scale;
-        connectToIp.fontSize = 14 * scale;
+        connectToIp.X = (GameService.CanvasWidth / 2) - (0 * scale);
+        connectToIp.Y = GameService.CanvasHeight - (104 * scale);
+        connectToIp.Sizex = 256 * scale;
+        connectToIp.Sizey = 64 * scale;
+        connectToIp.FontSize = 14 * scale;
 
-        refresh.x = (GameService.CanvasWidth / 2) + (350 * scale);
-        refresh.y = GameService.CanvasHeight - (104 * scale);
-        refresh.sizex = 256 * scale;
-        refresh.sizey = 64 * scale;
-        refresh.fontSize = 14 * scale;
+        refresh.X = (GameService.CanvasWidth / 2) + (350 * scale);
+        refresh.Y = GameService.CanvasHeight - (104 * scale);
+        refresh.Sizex = 256 * scale;
+        refresh.Sizey = 64 * scale;
+        refresh.FontSize = 14 * scale;
 
-        pageUp.x = GameService.CanvasWidth - (94 * scale);
-        pageUp.y = (100 * scale) + ((serversPerPage - 1) * 70 * scale);
-        pageUp.sizex = 64 * scale;
-        pageUp.sizey = 64 * scale;
-        pageUp.image = "serverlist_nav_down.png";
+        pageUp.X = GameService.CanvasWidth - (94 * scale);
+        pageUp.Y = (100 * scale) + ((serversPerPage - 1) * 70 * scale);
+        pageUp.Sizex = 64 * scale;
+        pageUp.Sizey = 64 * scale;
+        pageUp.Image = "serverlist_nav_down.png";
 
-        pageDown.x = GameService.CanvasWidth - (94 * scale);
-        pageDown.y = 100 * scale;
-        pageDown.sizex = 64 * scale;
-        pageDown.sizey = 64 * scale;
-        pageDown.image = "serverlist_nav_up.png";
+        pageDown.X = GameService.CanvasWidth - (94 * scale);
+        pageDown.Y = 100 * scale;
+        pageDown.Sizex = 64 * scale;
+        pageDown.Sizey = 64 * scale;
+        pageDown.Image = "serverlist_nav_up.png";
 
-        loggedInName.x = GameService.CanvasWidth - (228 * scale);
-        loggedInName.y = 32 * scale;
-        loggedInName.sizex = 128 * scale;
-        loggedInName.sizey = 32 * scale;
-        loggedInName.fontSize = 12 * scale;
-        if (loggedInName.text == "")
+        loggedInName.X = GameService.CanvasWidth - (228 * scale);
+        loggedInName.Y = 32 * scale;
+        loggedInName.Sizex = 128 * scale;
+        loggedInName.Sizey = 32 * scale;
+        loggedInName.FontSize = 12 * scale;
+        if (loggedInName.Text == "")
         {
             if (preferences.GetString("Password", "") != "")
             {
-                loggedInName.text = preferences.GetString("Username", "Invalid");
+                loggedInName.Text = preferences.GetString("Username", "Invalid");
             }
         }
 
-        logout.visible = loggedInName.text != "";
+        logout.Visible = loggedInName.Text != "";
 
-        logout.x = GameService.CanvasWidth - (228 * scale);
-        logout.y = 62 * scale;
-        logout.sizex = 128 * scale;
-        logout.sizey = 32 * scale;
-        logout.fontSize = 12 * scale;
-        logout.text = "Logout";
+        logout.X = GameService.CanvasWidth - (228 * scale);
+        logout.Y = 62 * scale;
+        logout.Sizex = 128 * scale;
+        logout.Sizey = 32 * scale;
+        logout.FontSize = 12 * scale;
+        logout.Text = "Logout";
 
         DrawBackground();
         DrawText(title, 20 * scale, GameService.CanvasWidth / 2, 10, TextAlign.Center, TextBaseline.Top);
@@ -229,7 +229,7 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
         UpdateThumbnails();
         for (int i = 0; i < serverButtonsCount; i++)
         {
-            serverButtons[i].visible = false;
+            serverButtons[i].Visible = false;
         }
 
         serversPerPage = (int)((GameService.CanvasHeight - (2 * 100 * scale)) / 70 * scale);
@@ -262,30 +262,30 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
             t = string.Format("{0}/{1}", t, s.Max.ToString());
             t = string.Format("{0}\n{1}", t, s.Version);
 
-            serverButtons[i].text = t;
-            serverButtons[i].x = 100 * scale;
-            serverButtons[i].y = (100 * scale) + (i * 70 * scale);
-            serverButtons[i].sizex = GameService.CanvasWidth - (200 * scale);
-            serverButtons[i].sizey = 64 * scale;
-            serverButtons[i].visible = true;
-            serverButtons[i].buttonStyle = ButtonStyle.ServerEntry;
+            serverButtons[i].Text = t;
+            serverButtons[i].X = 100 * scale;
+            serverButtons[i].Y = (100 * scale) + (i * 70 * scale);
+            serverButtons[i].Sizex = GameService.CanvasWidth - (200 * scale);
+            serverButtons[i].Sizey = 64 * scale;
+            serverButtons[i].Visible = true;
+            serverButtons[i].ButtonStyle = ButtonStyle.ServerEntry;
             if (s.ThumbnailError)
             {
                 //Server did not respond to ServerQuery. Maybe not reachable?
-                serverButtons[i].description = "Server did not respond to query!";
+                serverButtons[i].Description = "Server did not respond to query!";
             }
             else
             {
-                serverButtons[i].description = null;
+                serverButtons[i].Description = null;
             }
 
             if (s.ThumbnailFetched && !s.ThumbnailError)
             {
-                serverButtons[i].image = string.Format("serverlist_entry_{0}.png", s.Hash);
+                serverButtons[i].Image = string.Format("serverlist_entry_{0}.png", s.Hash);
             }
             else
             {
-                serverButtons[i].image = "serverlist_entry_noimage.png";
+                serverButtons[i].Image = "serverlist_entry_noimage.png";
             }
         }
 
@@ -357,7 +357,7 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
 
     private void PageUp()
     {
-        if (pageUp.visible && page < (serverButtonsCount / serversPerPage) - 1)
+        if (pageUp.Visible && page < (serverButtonsCount / serversPerPage) - 1)
         {
             page++;
         }
@@ -389,20 +389,20 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
         //Hide scroll buttons
         if (page == 0)
         {
-            pageDown.visible = false;
+            pageDown.Visible = false;
         }
         else
         {
-            pageDown.visible = true;
+            pageDown.Visible = true;
         }
 
         if (maxpage)
         {
-            pageUp.visible = false;
+            pageUp.Visible = false;
         }
         else
         {
-            pageUp.visible = true;
+            pageUp.Visible = true;
         }
     }
     private readonly MenuWidget back;
@@ -437,10 +437,10 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
     {
         for (int i = 0; i < serverButtonsCount; i++)
         {
-            serverButtons[i].selected = false;
+            serverButtons[i].Selected = false;
             if (serverButtons[i] == w)
             {
-                serverButtons[i].selected = true;
+                serverButtons[i].Selected = true;
                 if (serversOnList[i + (serversPerPage * page)] != null)
                 {
                     selectedServerHash = serversOnList[i + (serversPerPage * page)].Hash;
@@ -487,7 +487,7 @@ public class MultiplayerScreen : ScreenBase, IScreenMultiplayer
             preferences.Remove("Username");
             preferences.Remove("Password");
             preferences.SetValues();
-            loggedInName.text = "";
+            loggedInName.Text = "";
         }
     }
 }

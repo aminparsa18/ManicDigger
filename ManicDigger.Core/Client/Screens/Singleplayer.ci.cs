@@ -40,25 +40,25 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
     {
         play = new MenuWidget
         {
-            text = "Play"
+            Text = "Play"
         };
         newWorld = new MenuWidget
         {
-            text = "New World"
+            Text = "New World"
         };
         modify = new MenuWidget
         {
-            text = "Modify"
+            Text = "Modify"
         };
         back = new MenuWidget
         {
-            text = "Back",
-            type = UIWidgetType.Button
+            Text = "Back",
+            Type = UIWidgetType.Button
         };
         open = new MenuWidget
         {
-            text = "Create or open...",
-            type = UIWidgetType.Button
+            Text = "Create or open...",
+            Type = UIWidgetType.Button
         };
 
         title = "Singleplayer";
@@ -72,7 +72,7 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
         worldButtons = new MenuWidget[MaxWorldButtons];
         for (int i = 0; i < MaxWorldButtons; i++)
         {
-            worldButtons[i] = new MenuWidget { visible = false };
+            worldButtons[i] = new MenuWidget { Visible = false };
             Widgets.Add(worldButtons[i]);
         }
 
@@ -85,8 +85,8 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        back.text = _languageService.Get("MainMenu_ButtonBack");
-        open.text = _languageService.Get("MainMenu_SingleplayerButtonCreate");
+        back.Text = _languageService.Get("MainMenu_ButtonBack");
+        open.Text = _languageService.Get("MainMenu_SingleplayerButtonCreate");
         title = _languageService.Get("MainMenu_Singleplayer");
     }
 
@@ -101,35 +101,35 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
         float leftx = (GameService.CanvasWidth / 2) - (128 * scale);
         float y = (GameService.CanvasHeight / 2) + (0 * scale);
 
-        play.x = leftx;
-        play.y = y + (100 * scale);
-        play.sizex = 256 * scale;
-        play.sizey = 64 * scale;
-        play.fontSize = 14 * scale;
+        play.X = leftx;
+        play.Y = y + (100 * scale);
+        play.Sizex = 256 * scale;
+        play.Sizey = 64 * scale;
+        play.FontSize = 14 * scale;
 
-        newWorld.x = leftx;
-        newWorld.y = y + (170 * scale);
-        newWorld.sizex = 256 * scale;
-        newWorld.sizey = 64 * scale;
-        newWorld.fontSize = 14 * scale;
+        newWorld.X = leftx;
+        newWorld.Y = y + (170 * scale);
+        newWorld.Sizex = 256 * scale;
+        newWorld.Sizey = 64 * scale;
+        newWorld.FontSize = 14 * scale;
 
-        modify.x = leftx;
-        modify.y = y + (240 * scale);
-        modify.sizex = 256 * scale;
-        modify.sizey = 64 * scale;
-        modify.fontSize = 14 * scale;
+        modify.X = leftx;
+        modify.Y = y + (240 * scale);
+        modify.Sizex = 256 * scale;
+        modify.Sizey = 64 * scale;
+        modify.FontSize = 14 * scale;
 
-        back.x = 40 * scale;
-        back.y = GameService.CanvasHeight - (104 * scale);
-        back.sizex = 256 * scale;
-        back.sizey = 64 * scale;
-        back.fontSize = 14 * scale;
+        back.X = 40 * scale;
+        back.Y = GameService.CanvasHeight - (104 * scale);
+        back.Sizex = 256 * scale;
+        back.Sizey = 64 * scale;
+        back.FontSize = 14 * scale;
 
-        open.x = leftx;
-        open.y = y + (0 * scale);
-        open.sizex = 256 * scale;
-        open.sizey = 64 * scale;
-        open.fontSize = 14 * scale;
+        open.X = leftx;
+        open.Y = y + (0 * scale);
+        open.Sizex = 256 * scale;
+        open.Sizey = 64 * scale;
+        open.FontSize = 14 * scale;
 
         // Deferred scan: only read the filesystem once, on the first render.
         savegames ??= GetSaveGames();
@@ -137,30 +137,30 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
         // Reset all world buttons, then re-enable one per discovered save file.
         for (int i = 0; i < MaxWorldButtons; i++)
         {
-            worldButtons[i].visible = false;
+            worldButtons[i].Visible = false;
         }
 
         for (int i = 0; i < savegames.Count; i++)
         {
-            worldButtons[i].visible = true;
-            worldButtons[i].text = Path.GetFileNameWithoutExtension(savegames[i]);
-            worldButtons[i].x = leftx;
-            worldButtons[i].y = 100 + (100 * scale * i);
-            worldButtons[i].sizex = 256 * scale;
-            worldButtons[i].sizey = 64 * scale;
-            worldButtons[i].fontSize = 14 * scale;
+            worldButtons[i].Visible = true;
+            worldButtons[i].Text = Path.GetFileNameWithoutExtension(savegames[i]);
+            worldButtons[i].X = leftx;
+            worldButtons[i].Y = 100 + (100 * scale * i);
+            worldButtons[i].Sizex = 256 * scale;
+            worldButtons[i].Sizey = 64 * scale;
+            worldButtons[i].FontSize = 14 * scale;
         }
 
         // Only the Open button is active on supporting platforms.
         // Play, NewWorld, Modify, and worldButtons are reserved for a future
         // save-file browser and are hidden until that UI is implemented.
-        open.visible = singlePlayerService.SinglePlayerServerAvailable;
-        play.visible = false;
-        newWorld.visible = false;
-        modify.visible = false;
+        open.Visible = singlePlayerService.SinglePlayerServerAvailable;
+        play.Visible = false;
+        newWorld.Visible = false;
+        modify.Visible = false;
         for (int i = 0; i < savegames.Count; i++)
         {
-            worldButtons[i].visible = false;
+            worldButtons[i].Visible = false;
         }
 
         DrawWidgets();
@@ -223,14 +223,14 @@ public class SingleplayerScreen : ScreenBase, ISingleplayerScreen
     {
         for (int i = 0; i < MaxWorldButtons; i++)
         {
-            worldButtons[i].selected = false;
+            worldButtons[i].Selected = false;
         }
 
         for (int i = 0; i < MaxWorldButtons; i++)
         {
             if (worldButtons[i] == w)
             {
-                worldButtons[i].selected = true;
+                worldButtons[i].Selected = true;
             }
         }
 

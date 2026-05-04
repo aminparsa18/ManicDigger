@@ -85,41 +85,41 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
             MenuWidget b = new();
 
             // ── Single switch instead of four sequential if-blocks ────────────
-            b.type = a.Type switch
+            b.Type = a.Type switch
             {
                 WidgetType.Text => UIWidgetType.Label,
                 WidgetType.Image => UIWidgetType.Button,
                 WidgetType.TextBox => UIWidgetType.Textbox,
-                _ => b.type,
+                _ => b.Type,
             };
 
-            b.x = a.X;
-            b.y = a.Y;
-            b.sizex = a.Width;
-            b.sizey = a.Height;
-            b.text = a.Text;
+            b.X = a.X;
+            b.Y = a.Y;
+            b.Sizex = a.Width;
+            b.Sizey = a.Height;
+            b.Text = a.Text;
 
             // ── Single null-check, chained Replace calls ──────────────────────
-            if (b.text != null)
+            if (b.Text != null)
             {
-                b.text = b.text
+                b.Text = b.Text
                     .Replace("!SERVER_IP!", game.ServerInfo.ConnectData.Ip)
                     .Replace("!SERVER_PORT!", game.ServerInfo.ConnectData.Port.ToString());
             }
 
-            b.color = a.Color;
-            b.id = a.Id;
-            b.isbutton = a.ClickKey != 0;
+            b.Color = a.Color;
+            b.Id = a.Id;
+            b.Isbutton = a.ClickKey != 0;
 
             if (a.Font != null)
             {
-                b.font = new Font(
+                b.Font = new Font(
                     game.ValidFont(a.Font.FamilyName),
                     EncodingHelper.DecodeFixedPoint((int)a.Font.Size),
                     (FontStyle)a.Font.FontStyle);
             }
 
-            b.image = a.Image switch
+            b.Image = a.Image switch
             {
                 "Solid" => null,
                 null => null,
@@ -132,9 +132,9 @@ public class ClientPacketHandlerDialog : ClientPacketHandler
         // Auto-focus the first textbox widget.
         for (int i = 0; i < s.WidgetCount; i++)
         {
-            if (s.widgets[i]?.type == UIWidgetType.Textbox)
+            if (s.widgets[i]?.Type == UIWidgetType.Textbox)
             {
-                s.widgets[i].editing = true;
+                s.widgets[i].Editing = true;
                 break;
             }
         }

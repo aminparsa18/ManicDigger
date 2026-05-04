@@ -139,9 +139,9 @@ public class ModDrawTerrain : ModBase
                 continue;
             }
 
-            c.rendered ??= new RenderedChunk();
-            c.rendered.Dirty = true;
-            c.baseLightDirty = true;
+            c.Rendered ??= new RenderedChunk();
+            c.Rendered.Dirty = true;
+            c.BaseLightDirty = true;
         }
     }
 
@@ -193,12 +193,12 @@ public class ModDrawTerrain : ModBase
 
             int idx = VectorIndexUtil.Index3d(cx, cy, cz, mapSizeX, mapSizeY);
             Chunk c = _voxelMap.Chunks[idx];
-            if (c?.rendered == null)
+            if (c?.Rendered == null)
             {
                 continue;
             }
 
-            c.rendered.Dirty = true;
+            c.Rendered.Dirty = true;
         }
 
         _game.LastplacedblockX = NoChunk;
@@ -256,7 +256,7 @@ public class ModDrawTerrain : ModBase
                 {
                     int i = VectorIndexUtil.Index3d(ix, iy, iz, mxc, myc);
                     Chunk c = _voxelMap.Chunks[i];
-                    if (c?.rendered == null || !c.rendered.Dirty)
+                    if (c?.Rendered == null || !c.Rendered.Dirty)
                     {
                         continue;
                     }
@@ -279,7 +279,7 @@ public class ModDrawTerrain : ModBase
             return null;
         }
 
-        _voxelMap.Chunks[bestIdx].rendered.Dirty = false;
+        _voxelMap.Chunks[bestIdx].Rendered.Dirty = false;
 
         int biz = bestIdx / (mxc * myc);
         int biy = (bestIdx % (mxc * myc)) / mxc;
@@ -306,7 +306,7 @@ public class ModDrawTerrain : ModBase
     private void DoRedraw(TerrainRendererRedraw r)
     {
         _batcherIdsCount = 0;
-        RenderedChunk rendered = r.Chunk.rendered;
+        RenderedChunk rendered = r.Chunk.Rendered;
 
         if (rendered?.Ids != null)
         {
@@ -361,7 +361,7 @@ public class ModDrawTerrain : ModBase
             return;
         }
 
-        c.rendered ??= new RenderedChunk();
+        c.Rendered ??= new RenderedChunk();
         _chunkUpdates++;
 
         GetExtendedChunk(_game, x, y, z);
@@ -460,19 +460,19 @@ public class ModDrawTerrain : ModBase
                         continue;
                     }
 
-                    if (neighbour.baseLightDirty)
+                    if (neighbour.BaseLightDirty)
                     {
                         _lightBase.CalculateChunkBaseLight(
                             _game, cx1, cy1, cz1,
                             _shadowLightRadius, _shadowIsTransparent);
-                        neighbour.baseLightDirty = false;
+                        neighbour.BaseLightDirty = false;
                     }
                 }
             }
         }
 
         RenderedChunk rendered = _voxelMap
-            .GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).rendered;
+            .GetChunk(cx * chunksize, cy * chunksize, cz * chunksize).Rendered;
 
         if (rendered.Light == null)
         {

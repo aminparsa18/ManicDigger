@@ -16,26 +16,26 @@ public class Chunk
     /// <summary>Total number of blocks in a full chunk volume (ChunkSide³).</summary>
     private static readonly int ChunkVolume = GameConstants.CHUNK_SIZE * GameConstants.CHUNK_SIZE * GameConstants.CHUNK_SIZE;
 
-    // ── Backing stores ───────────────────────────────────────────────────────
-    // Exactly one of data/dataInt is active at any time; the other is null.
-
-    /// <summary>Compact byte storage used when all block values are below 255.</summary>
-    internal byte[] data;
-
     /// <summary>
     /// Expanded int storage, allocated on demand when a block value ≥ 255 is written.
     /// When non-null, <see cref="data"/> is null (and has been returned to the pool).
     /// </summary>
-    internal int[] dataInt;
+    private int[] dataInt;
+
+    // ── Backing stores ───────────────────────────────────────────────────────
+    // Exactly one of data/dataInt is active at any time; the other is null.
+
+    /// <summary>Compact byte storage used when all block values are below 255.</summary>
+    public byte[] data { get; set; }
 
     /// <summary>Per-block base light levels for this chunk.</summary>
-    internal byte[] baseLight;
+    public byte[] baseLight { get; set; }
 
     /// <summary>Whether <see cref="baseLight"/> needs to be recalculated before next use.</summary>
-    internal bool baseLightDirty = true;
+    public bool BaseLightDirty { get; set; } = true;
 
     /// <summary>The last rendered state of this chunk, used by the renderer.</summary>
-    internal RenderedChunk rendered;
+    public RenderedChunk Rendered { get; set; }
 
     // ── Block accessors ───────────────────────────────────────────────────────
 
@@ -116,7 +116,7 @@ public class Chunk
             baseLight = null;
         }
 
-        rendered?.ReleaseLight();
-        rendered = null;
+        Rendered?.ReleaseLight();
+        Rendered = null;
     }
 }

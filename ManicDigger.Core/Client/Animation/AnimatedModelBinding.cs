@@ -35,92 +35,92 @@ public class AnimatedModelBinding : ITableBinding
 
             if (column == "x")
             {
-                k.PosX = FloatParse(value);
+                k.PosX = IntParse(value);
             }
 
             if (column == "y")
             {
-                k.PosY = FloatParse(value);
+                k.PosY = IntParse(value);
             }
 
             if (column == "z")
             {
-                k.PosZ = FloatParse(value);
+                k.PosZ = IntParse(value);
             }
 
             if (column == "rotx")
             {
-                k.RotateX = FloatParse(value);
+                k.RotateX = IntParse(value);
             }
 
             if (column == "roty")
             {
-                k.RotateY = FloatParse(value);
+                k.RotateY = IntParse(value);
             }
 
             if (column == "rotz")
             {
-                k.RotateZ = FloatParse(value);
+                k.RotateZ = IntParse(value);
             }
 
             if (column == "sizex")
             {
-                k.SizeX = FloatParse(value);
+                k.SizeX = IntParse(value);
             }
 
             if (column == "sizey")
             {
-                k.SizeY = FloatParse(value);
+                k.SizeY = IntParse(value);
             }
 
             if (column == "sizez")
             {
-                k.SizeZ = FloatParse(value);
+                k.SizeZ = IntParse(value);
             }
 
             if (column == "u")
             {
-                k.U = FloatParse(value);
+                k.U = IntParse(value);
             }
 
             if (column == "v")
             {
-                k.V = FloatParse(value);
+                k.V = IntParse(value);
             }
 
             if (column == "pivx")
             {
-                k.PivotX = FloatParse(value);
+                k.PivotX = IntParse(value);
             }
 
             if (column == "pivy")
             {
-                k.PivotY = FloatParse(value);
+                k.PivotY = IntParse(value);
             }
 
             if (column == "pivz")
             {
-                k.PivotZ = FloatParse(value);
+                k.PivotZ = IntParse(value);
             }
 
             if (column == "scalx")
             {
-                k.ScaleX = FloatParse(value);
+                k.ScaleX = IntParse(value);
             }
 
             if (column == "scaly")
             {
-                k.ScaleY = FloatParse(value);
+                k.ScaleY = IntParse(value);
             }
 
             if (column == "scalz")
             {
-                k.ScaleZ = FloatParse(value);
+                k.ScaleZ = IntParse(value);
             }
 
             if (column == "head")
             {
-                k.Head = FloatParse(value);
+                k.Head = IntParse(value);
             }
         }
 
@@ -154,17 +154,17 @@ public class AnimatedModelBinding : ITableBinding
 
             if (column == "x")
             {
-                k.X = FloatParse(value);
+                k.X = IntParse(value);
             }
 
             if (column == "y")
             {
-                k.Y = FloatParse(value);
+                k.Y = IntParse(value);
             }
 
             if (column == "z")
             {
-                k.Z = FloatParse(value);
+                k.Z = IntParse(value);
             }
         }
 
@@ -268,13 +268,10 @@ public class AnimatedModelBinding : ITableBinding
         counts[3] = 1;
     }
 
-    /// <summary>Parses a string to int via float intermediary, as required by <see cref="IGameService"/>.</summary>
-    private int IntParse(string s) => (int)FloatParse(s);
-
-    /// <summary>Parses a string to float returning 0 on failure.</summary>
-    private static float FloatParse(string s)
+    /// <summary>Parses a string to int, as required by <see cref="IGameService"/>.</summary>
+    private static int IntParse(string s)
     {
-        _ = float.TryParse(s, out float ret);
+        _ = int.TryParse(s, out int ret);
         return ret;
     }
 }

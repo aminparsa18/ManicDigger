@@ -16,15 +16,16 @@ public class GameService : IGameService
     #region Misc
 
     public readonly IGameExit _gameExit;
+    private readonly CrashReporter _crashReporter;
 
-    public GameService(IGameExit gameExit, GameWindowNative gameWindowNative)
+    public GameService(IGameExit gameExit, GameWindowNative gameWindowNative, CrashReporter crashReporter)
     {
         _gameExit = gameExit;
         Window = gameWindowNative;
-        crashreporter = new CrashReporter();
         ThreadPool.SetMinThreads(32, 32);
         ThreadPool.SetMaxThreads(128, 128);
         start.Start();
+        _crashReporter = crashReporter;
     }
 
     public INetworkService NetworkService { get; set; }
@@ -332,8 +333,7 @@ public class GameService : IGameService
         OnTouchEnd += onTouchEnd;
     }
 
-    public CrashReporter crashreporter;
-    public void AddOnCrash(OnCrashHandler handler) => crashreporter.OnCrash += handler.OnCrash;
+    public void AddOnCrash(OnCrashHandler handler) => _crashReporter.OnCrash += handler.OnCrash;
 
     #endregion
 

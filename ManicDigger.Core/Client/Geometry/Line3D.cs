@@ -5,14 +5,14 @@
 public class Line3D
 {
     /// <summary>The start point of the line segment.</summary>
-    internal Vector3 Start;
+    public Vector3 Start { get; set; }
 
     /// <summary>The end point of the line segment.</summary>
-    internal Vector3 End;
+    public Vector3 End { get; set; }
 
     /// <summary>
     /// The unnormalized direction vector from <see cref="Start"/> to <see cref="End"/>.
     /// The magnitude equals the length of the line segment.
     /// </summary>
-    internal Vector3 Direction => End - Start;
+    public Vector3 Direction => End - Start;
 }

@@ -327,7 +327,7 @@ public class LightBetweenChunks
                         [Index3d(ncx, ncy, ncz, NeighbourhoodSize, NeighbourhoodSize)]
                         [Index3d(localX, localY, localZ, ChunkSize, ChunkSize)];
 
-                    chunk.rendered.Light[Index3d(x, y, z, OutputSize, OutputSize)] = light;
+                    chunk.Rendered.Light[Index3d(x, y, z, OutputSize, OutputSize)] = light;
                 }
             }
         }

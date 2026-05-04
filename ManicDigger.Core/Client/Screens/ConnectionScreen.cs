@@ -29,10 +29,10 @@ public class ConnectionScreen : ScreenBase, IConnectionScreen
     public ConnectionScreen(ILanguageService languageService, IGameService platform, IPreferences preferences, IOpenGlService openGlService, IAssetManager assetManager)
         : base(platform, openGlService, assetManager)
     {
-        buttonConnect = new MenuWidget { text = "Connect", type = UIWidgetType.Button, nextWidget = 3 };
-        textboxIp = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "IP", nextWidget = 2 };
-        textboxPort = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Port", nextWidget = 0 };
-        buttonBack = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
+        buttonConnect = new MenuWidget { Text = "Connect", Type = UIWidgetType.Button, NextWidget = 3 };
+        textboxIp = new MenuWidget { Text = "", Type = UIWidgetType.Textbox, Description = "IP", NextWidget = 2 };
+        textboxPort = new MenuWidget { Text = "", Type = UIWidgetType.Textbox, Description = "Port", NextWidget = 0 };
+        buttonBack = new MenuWidget { Text = "Back", Type = UIWidgetType.Button, NextWidget = 1 };
 
         this.preferences = preferences;
         this.languageService = languageService;
@@ -50,9 +50,9 @@ public class ConnectionScreen : ScreenBase, IConnectionScreen
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonConnect.text = languageService.Get("MainMenu_ConnectToIpConnect");
-        textboxIp.description = languageService.Get("MainMenu_ConnectToIpIp");
-        textboxPort.description = languageService.Get("MainMenu_ConnectToIpPort");
+        buttonConnect.Text = languageService.Get("MainMenu_ConnectToIpConnect");
+        textboxIp.Description = languageService.Get("MainMenu_ConnectToIpIp");
+        textboxPort.Description = languageService.Get("MainMenu_ConnectToIpPort");
         title = languageService.Get("MainMenu_MultiplayerConnectIP");
     }
 
@@ -63,16 +63,16 @@ public class ConnectionScreen : ScreenBase, IConnectionScreen
         {
             savedIp = preferences.GetString("ConnectToIpIp", "127.0.0.1");
             savedPort = preferences.GetString("ConnectToIpPort", "25565");
-            textboxIp.text = savedIp;
-            textboxPort.text = savedPort;
+            textboxIp.Text = savedIp;
+            textboxPort.Text = savedPort;
             loaded = true;
         }
 
         // Persist changes to preferences whenever the player edits either field.
-        if (textboxIp.text != savedIp || textboxPort.text != savedPort)
+        if (textboxIp.Text != savedIp || textboxPort.Text != savedPort)
         {
-            savedIp = textboxIp.text;
-            savedPort = textboxPort.text;
+            savedIp = textboxIp.Text;
+            savedPort = textboxPort.Text;
 
             IPreferences prefs = preferences;
             prefs.SetString("ConnectToIpIp", savedIp);
@@ -98,11 +98,11 @@ public class ConnectionScreen : ScreenBase, IConnectionScreen
         LayoutWidget(textboxPort, leftx, y + (200 * scale), 256, 64, scale);
         LayoutWidget(buttonConnect, leftx, y + (400 * scale), 256, 64, scale);
 
-        buttonBack.x = 40 * scale;
-        buttonBack.y = GameService.CanvasHeight - (104 * scale);
-        buttonBack.sizex = 256 * scale;
-        buttonBack.sizey = 64 * scale;
-        buttonBack.fontSize = 14 * scale;
+        buttonBack.X = 40 * scale;
+        buttonBack.Y = GameService.CanvasHeight - (104 * scale);
+        buttonBack.Sizex = 256 * scale;
+        buttonBack.Sizey = 64 * scale;
+        buttonBack.FontSize = 14 * scale;
 
         DrawWidgets();
     }
@@ -112,11 +112,11 @@ public class ConnectionScreen : ScreenBase, IConnectionScreen
     /// </summary>
     private static void LayoutWidget(MenuWidget w, float x, float y, float w_, float h, float scale)
     {
-        w.x = x;
-        w.y = y;
-        w.sizex = w_ * scale;
-        w.sizey = h * scale;
-        w.fontSize = 14 * scale;
+        w.X = x;
+        w.Y = y;
+        w.Sizex = w_ * scale;
+        w.Sizey = h * scale;
+        w.FontSize = 14 * scale;
     }
 
     //TODO commented for now until decoupling menu and screens is done

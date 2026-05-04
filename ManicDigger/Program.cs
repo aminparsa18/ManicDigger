@@ -12,13 +12,13 @@ public class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        CrashReporter.DefaultFileName = "ManicDiggerClientCrash.txt";
-        CrashReporter.EnableGlobalExceptionHandling(isConsole: false);
         _ = new Program(args);
     }
 
     public Program(string[] args)
     {
+        CrashReporter.EnableGlobalExceptionHandling(false);
+
         var services = new ServiceCollection();
         ConfigureServices(services);
         ServiceProvider = services.BuildServiceProvider();
@@ -29,6 +29,13 @@ public class Program
 
     private static void ConfigureServices(ServiceCollection services)
     {
+        services.AddGameLogging(
+                    minimumLevel: Serilog.Events.LogEventLevel.Debug,
+                    enableConsole: false);
+
+        // Step 3 ─ register CrashReporter itself so its ILogger<T> is injected
+        services.AddSingleton<CrashReporter>();
+
         // ── Infrastructure ────────────────────────────────────────────────────
         services.AddSingleton<GameWindowNative>();
         services.AddSingleton<IVoxelMap, VoxelMap>();

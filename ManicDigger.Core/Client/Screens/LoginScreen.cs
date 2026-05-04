@@ -63,15 +63,15 @@ public class LoginScreen : ScreenBase, ILoginScreen
 
         // Tab chain (by list index):
         // [1] Username → [2] Password → [3] RememberMe → [0] Login → [8] Back → [1] Username
-        buttonLogin = new MenuWidget { text = "Login", type = UIWidgetType.Button, nextWidget = 8 };
-        textboxUsername = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Username", nextWidget = 2 };
-        textboxPassword = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Password", password = true, nextWidget = 3 };
-        buttonRememberMe = new MenuWidget { text = "Yes", type = UIWidgetType.Button, description = "Remember me", nextWidget = 0 };
-        buttonCreateAccount = new MenuWidget { text = "Create account", type = UIWidgetType.Button };
-        textboxCreateUsername = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Username" };
-        textboxCreatePassword = new MenuWidget { text = "", type = UIWidgetType.Textbox, description = "Password", password = true };
-        buttonCreateRememberMe = new MenuWidget { text = "Yes", type = UIWidgetType.Button, description = "Remember me" };
-        buttonBack = new MenuWidget { text = "Back", type = UIWidgetType.Button, nextWidget = 1 };
+        buttonLogin = new MenuWidget { Text = "Login", Type = UIWidgetType.Button, NextWidget = 8 };
+        textboxUsername = new MenuWidget { Text = "", Type = UIWidgetType.Textbox, Description = "Username", NextWidget = 2 };
+        textboxPassword = new MenuWidget { Text = "", Type = UIWidgetType.Textbox, Description = "Password", Password = true, NextWidget = 3 };
+        buttonRememberMe = new MenuWidget { Text = "Yes", Type = UIWidgetType.Button, Description = "Remember me", NextWidget = 0 };
+        buttonCreateAccount = new MenuWidget { Text = "Create account", Type = UIWidgetType.Button };
+        textboxCreateUsername = new MenuWidget { Text = "", Type = UIWidgetType.Textbox, Description = "Username" };
+        textboxCreatePassword = new MenuWidget { Text = "", Type = UIWidgetType.Textbox, Description = "Password", Password = true };
+        buttonCreateRememberMe = new MenuWidget { Text = "Yes", Type = UIWidgetType.Button, Description = "Remember me" };
+        buttonBack = new MenuWidget { Text = "Back", Type = UIWidgetType.Button, NextWidget = 1 };
 
         title = "Login";
 
@@ -99,11 +99,11 @@ public class LoginScreen : ScreenBase, ILoginScreen
     /// <inheritdoc/>
     public override void LoadTranslations()
     {
-        buttonLogin.text = _languageService.Get("MainMenu_Login");
-        textboxUsername.description = _languageService.Get("MainMenu_LoginUsername");
-        textboxPassword.description = _languageService.Get("MainMenu_LoginPassword");
-        buttonRememberMe.description = _languageService.Get("MainMenu_LoginRemember");
-        buttonBack.text = _languageService.Get("MainMenu_ButtonBack");
+        buttonLogin.Text = _languageService.Get("MainMenu_Login");
+        textboxUsername.Description = _languageService.Get("MainMenu_LoginUsername");
+        textboxPassword.Description = _languageService.Get("MainMenu_LoginPassword");
+        buttonRememberMe.Description = _languageService.Get("MainMenu_LoginRemember");
+        buttonBack.Text = _languageService.Get("MainMenu_ButtonBack");
         title = _languageService.Get("MainMenu_Login");
 
         // Keep the toggle label in sync with the current state.
@@ -129,7 +129,7 @@ public class LoginScreen : ScreenBase, ILoginScreen
                 SaveCredentials(loginResultData.Token);
             }
 
-            _menu.ConnectToGame(loginResultData, textboxUsername.text);
+            _menu.ConnectToGame(loginResultData, textboxUsername.Text);
         }
 
         float scale = GetScale();
@@ -165,16 +165,16 @@ public class LoginScreen : ScreenBase, ILoginScreen
         LayoutWidget(buttonCreateRememberMe, rightx, y + (300 * scale), scale);
         LayoutWidget(buttonCreateAccount, rightx, y + (400 * scale), scale);
 
-        textboxCreateUsername.visible = false;
-        textboxCreatePassword.visible = false;
-        buttonCreateRememberMe.visible = false;
-        buttonCreateAccount.visible = false;
+        textboxCreateUsername.Visible = false;
+        textboxCreatePassword.Visible = false;
+        buttonCreateRememberMe.Visible = false;
+        buttonCreateAccount.Visible = false;
 
-        buttonBack.x = 40 * scale;
-        buttonBack.y = GameService.CanvasHeight - (104 * scale);
-        buttonBack.sizex = 256 * scale;
-        buttonBack.sizey = 64 * scale;
-        buttonBack.fontSize = 14 * scale;
+        buttonBack.X = 40 * scale;
+        buttonBack.Y = GameService.CanvasHeight - (104 * scale);
+        buttonBack.Sizex = 256 * scale;
+        buttonBack.Sizey = 64 * scale;
+        buttonBack.FontSize = 14 * scale;
 
         DrawWidgets();
     }
@@ -198,7 +198,7 @@ public class LoginScreen : ScreenBase, ILoginScreen
             if (serverHash != null)
             {
                 // Authenticated login via the main game servers.
-                _menu.Login(textboxUsername.text, textboxPassword.text,
+                _menu.Login(textboxUsername.Text, textboxPassword.Text,
                     serverHash, "", loginResult, loginResultData);
             }
             else
@@ -213,7 +213,7 @@ public class LoginScreen : ScreenBase, ILoginScreen
                 {
                     Ip = serverIp,
                     Port = serverPort,
-                    Username = textboxUsername.text
+                    Username = textboxUsername.Text
                 });
             }
 
@@ -223,7 +223,7 @@ public class LoginScreen : ScreenBase, ILoginScreen
         if (w == buttonCreateAccount)
         {
             loginResult = ScreenManager.CreateAccount(
-                textboxCreateUsername.text, textboxCreatePassword.text);
+                textboxCreateUsername.Text, textboxCreatePassword.Text);
             return;
         }
 
@@ -240,15 +240,15 @@ public class LoginScreen : ScreenBase, ILoginScreen
     /// </summary>
     private void TrySavedLogin()
     {
-        textboxUsername.text = preferences.GetString("Username", "");
-        textboxPassword.text = "";
+        textboxUsername.Text = preferences.GetString("Username", "");
+        textboxPassword.Text = "";
 
         string token = preferences.GetString("Password", "");
         loginResultData = new LoginData();
 
         if (serverHash != null && token != "")
         {
-            _menu.Login(textboxUsername.text, textboxPassword.text,
+            _menu.Login(textboxUsername.Text, textboxPassword.Text,
                 serverHash, token, loginResult, loginResultData);
         }
     }
@@ -259,7 +259,7 @@ public class LoginScreen : ScreenBase, ILoginScreen
     /// <param name="token">New token returned by the server, or <see langword="null"/> to leave the stored token unchanged.</param>
     private void SaveCredentials(string token)
     {
-        preferences.SetString("Username", textboxUsername.text);
+        preferences.SetString("Username", textboxUsername.Text);
         if (!string.IsNullOrEmpty(token))
         {
             preferences.SetString("Password", token);
@@ -271,7 +271,7 @@ public class LoginScreen : ScreenBase, ILoginScreen
     /// <summary>Persists only the username to preferences (used for direct-IP connections).</summary>
     private void SaveUsername()
     {
-        preferences.SetString("Username", textboxUsername.text);
+        preferences.SetString("Username", textboxUsername.Text);
         preferences.SetValues();
     }
 
@@ -284,8 +284,8 @@ public class LoginScreen : ScreenBase, ILoginScreen
             ? _languageService.Get("MainMenu_ChoiceYes")
             : _languageService.Get("MainMenu_ChoiceNo");
 
-        buttonRememberMe.text = label;
-        buttonCreateRememberMe.text = label;
+        buttonRememberMe.Text = label;
+        buttonCreateRememberMe.Text = label;
     }
 
     /// <summary>
@@ -293,10 +293,10 @@ public class LoginScreen : ScreenBase, ILoginScreen
     /// </summary>
     private static void LayoutWidget(MenuWidget w, float x, float y, float scale)
     {
-        w.x = x;
-        w.y = y;
-        w.sizex = 256 * scale;
-        w.sizey = 64 * scale;
-        w.fontSize = 14 * scale;
+        w.X = x;
+        w.Y = y;
+        w.Sizex = 256 * scale;
+        w.Sizey = 64 * scale;
+        w.FontSize = 14 * scale;
     }
 }

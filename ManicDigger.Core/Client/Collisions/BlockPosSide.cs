@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+
 /// <summary>
 /// Represents the result of a block hit test, storing both the block's
 /// grid position and the exact world-space collision point.

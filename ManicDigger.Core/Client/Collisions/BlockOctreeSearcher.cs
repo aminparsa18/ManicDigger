@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+
 /// <summary>
 /// Performs octree-based spatial searches over a 3D block world,
 /// supporting line intersection tests against non-empty blocks.
@@ -33,15 +34,8 @@ public class BlockOctreeSearcher
     /// </summary>
     /// <param name="query">The predicate to test each box against.</param>
     /// <returns>All matching leaf boxes.</returns>
-    private List<Box3> Search(PredicateBox3D query)
-    {
-        if (StartBox.Size.X == 0 && StartBox.Size.Y == 0 && StartBox.Size.Z == 0)
-        {
-            return [];
-        }
-
-        return SearchRecursive(query, StartBox);
-    }
+    private List<Box3> Search(PredicateBox3D query) 
+        => StartBox.Size.X == 0 && StartBox.Size.Y == 0 && StartBox.Size.Z == 0 ? [] : SearchRecursive(query, StartBox);
 
     /// <summary>
     /// Recursively subdivides <paramref name="box"/> into 8 children,

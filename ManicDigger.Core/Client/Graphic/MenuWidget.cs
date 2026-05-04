@@ -2,50 +2,50 @@
 {
     public MenuWidget()
     {
-        visible = true;
-        fontSize = 14;
-        nextWidget = -1;
-        hasKeyboardFocus = false;
+        Visible = true;
+        FontSize = 14;
+        NextWidget = -1;
+        HasKeyboardFocus = false;
     }
 
     public void GetFocus()
     {
-        hasKeyboardFocus = true;
-        if (type == UIWidgetType.Textbox)
+        HasKeyboardFocus = true;
+        if (Type == UIWidgetType.Textbox)
         {
-            editing = true;
+            Editing = true;
         }
     }
 
     public void LoseFocus()
     {
-        hasKeyboardFocus = false;
-        if (type == UIWidgetType.Textbox)
+        HasKeyboardFocus = false;
+        if (Type == UIWidgetType.Textbox)
         {
-            editing = false;
+            Editing = false;
         }
     }
 
-    internal string text;
-    internal float x;
-    internal float y;
-    internal float sizex;
-    internal float sizey;
-    internal bool pressed;
-    internal bool hover;
-    internal UIWidgetType type;
-    internal bool editing;
-    internal bool visible;
-    internal float fontSize;
-    internal string description;
-    internal bool password;
-    internal bool selected;
-    internal ButtonStyle buttonStyle;
-    internal string image;
-    internal int nextWidget;
-    internal bool hasKeyboardFocus;
-    internal int color;
-    internal string id;
-    internal bool isbutton;
-    internal Font font;
+    public string Text { get; set; }
+    public float X { get; set; }
+    public float Y { get; set; }
+    public float Sizex { get; set; }
+    public float Sizey { get; set; }
+    public bool Pressed { get; set; }
+    public bool Hover { get; set; }
+    public UIWidgetType Type { get; set; }
+    public bool Editing { get; set; }
+    public bool Visible { get; set; }
+    public float FontSize { get; set; }
+    public string Description { get; set; }
+    public bool Password { get; set; }
+    public bool Selected { get; set; }
+    public ButtonStyle ButtonStyle { get; set; }
+    public string Image { get; set; }
+    public int NextWidget { get; set; }
+    public bool HasKeyboardFocus { get; set; }
+    public int Color { get; set; }
+    public string Id { get; set; }
+    public bool Isbutton { get; set; }
+    public Font Font { get; set; }
 }

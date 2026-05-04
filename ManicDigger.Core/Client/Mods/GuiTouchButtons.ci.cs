@@ -55,10 +55,10 @@ public class ModGuiTouchButtons : ModScreen
         _touchIdMove = -1;
         _touchIdRotate = -1;
 
-        _buttonMenu = new MenuWidget { image = "TouchMenu.png" };
-        _buttonInventory = new MenuWidget { image = "TouchInventory.png" };
-        _buttonTalk = new MenuWidget { image = "TouchTalk.png" };
-        _buttonCamera = new MenuWidget { image = "TouchCamera.png" };
+        _buttonMenu = new MenuWidget { Image = "TouchMenu.png" };
+        _buttonInventory = new MenuWidget { Image = "TouchInventory.png" };
+        _buttonTalk = new MenuWidget { Image = "TouchTalk.png" };
+        _buttonCamera = new MenuWidget { Image = "TouchCamera.png" };
 
         widgets[0] = _buttonMenu;
         widgets[1] = _buttonInventory;
@@ -240,9 +240,9 @@ public class ModGuiTouchButtons : ModScreen
     /// <param name="scale">Current UI scale factor.</param>
     private static void LayoutButton(MenuWidget button, int slot, int buttonSize, float scale)
     {
-        button.x = 16 * scale;
-        button.y = (16 + (96 * slot)) * scale;
-        button.sizex = buttonSize * scale;
-        button.sizey = buttonSize * scale;
+        button.X = 16 * scale;
+        button.Y = (16 + (96 * slot)) * scale;
+        button.Sizex = buttonSize * scale;
+        button.Sizey = buttonSize * scale;
     }
 }

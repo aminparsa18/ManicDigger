@@ -77,7 +77,7 @@ public class ModScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w == null || w.type != UIWidgetType.Textbox || !w.editing)
+            if (w == null || w.Type != UIWidgetType.Textbox || !w.Editing)
             {
                 continue;
             }
@@ -86,9 +86,9 @@ public class ModScreen : ModBase
 
             if (key == 8) // backspace
             {
-                if (w.text.Length > 0)
+                if (w.Text.Length > 0)
                 {
-                    w.text = w.text[..^1];
+                    w.Text = w.Text[..^1];
                 }
 
                 return;
@@ -103,7 +103,7 @@ public class ModScreen : ModBase
             {
                 if (Clipboard.ContainsText())
                 {
-                    w.text = string.Concat(w.text, Clipboard.GetText());
+                    w.Text = string.Concat(w.Text, Clipboard.GetText());
                 }
 
                 return;
@@ -111,7 +111,7 @@ public class ModScreen : ModBase
 
             if (EncodingHelper.IsValidTypingChar(key))
             {
-                w.text = string.Concat(w.text, ((char)key).ToString());
+                w.Text = string.Concat(w.Text, ((char)key).ToString());
             }
         }
     }
@@ -137,35 +137,35 @@ public class ModScreen : ModBase
                 continue;
             }
 
-            bool hit = VectorUtils.PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey);
+            bool hit = VectorUtils.PointInRect(x, y, screenx + w.X, screeny + w.Y, w.Sizex, w.Sizey);
 
-            if (w.type == UIWidgetType.Button)
+            if (w.Type == UIWidgetType.Button)
             {
-                w.pressed = hit;
+                w.Pressed = hit;
                 if (hit)
                 {
                     handled = true;
                 }
             }
 
-            if (w.type == UIWidgetType.Textbox)
+            if (w.Type == UIWidgetType.Textbox)
             {
-                w.pressed = hit;
+                w.Pressed = hit;
                 if (hit)
                 {
                     handled = true;
                 }
 
-                bool wasEditing = w.editing;
-                w.editing = hit;
+                bool wasEditing = w.Editing;
+                w.Editing = hit;
 
-                if (w.editing && !wasEditing)
+                if (w.Editing && !wasEditing)
                 {
                     platform.ShowKeyboard(true);
                     editingChange = true;
                 }
 
-                if (!w.editing && wasEditing && !editingChange)
+                if (!w.Editing && wasEditing && !editingChange)
                 {
                     platform.ShowKeyboard(false);
                 }
@@ -187,19 +187,19 @@ public class ModScreen : ModBase
             MenuWidget w = widgets[i];
             if (w != null)
             {
-                w.pressed = false;
+                w.Pressed = false;
             }
         }
 
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w == null || w.type != UIWidgetType.Button)
+            if (w == null || w.Type != UIWidgetType.Button)
             {
                 continue;
             }
 
-            if (VectorUtils.PointInRect(x, y, screenx + w.x, screeny + w.y, w.sizex, w.sizey))
+            if (VectorUtils.PointInRect(x, y, screenx + w.X, screeny + w.Y, w.Sizex, w.Sizey))
             {
                 OnButton(w);
             }
@@ -220,7 +220,7 @@ public class ModScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            w?.hover = VectorUtils.PointInRect(e.GetX(), e.GetY(), screenx + w.x, screeny + w.y, w.sizex, w.sizey);
+            w?.Hover = VectorUtils.PointInRect(e.GetX(), e.GetY(), screenx + w.X, screeny + w.Y, w.Sizex, w.Sizey);
         }
     }
 
@@ -234,53 +234,53 @@ public class ModScreen : ModBase
         for (int i = 0; i < WidgetCount; i++)
         {
             MenuWidget w = widgets[i];
-            if (w == null || !w.visible)
+            if (w == null || !w.Visible)
             {
                 continue;
             }
 
-            string text = w.text;
-            if (w.selected)
+            string text = w.Text;
+            if (w.Selected)
             {
                 text = string.Concat(platform, "&2", text);
             }
 
-            if (w.type == UIWidgetType.Button)
+            if (w.Type == UIWidgetType.Button)
             {
-                if (w.buttonStyle != ButtonStyle.Text)
+                if (w.ButtonStyle != ButtonStyle.Text)
                 {
-                    if (w.image != null)
+                    if (w.Image != null)
                     {
-                        game.Draw2dBitmapFile(w.image, screenx + w.x, screeny + w.y, w.sizex, w.sizey);
+                        game.Draw2dBitmapFile(w.Image, screenx + w.X, screeny + w.Y, w.Sizex, w.Sizey);
                     }
                     else
                     {
-                        game.Draw2dTexture(game.GetOrCreateWhiteTexture(), screenx + w.x, screeny + w.y, w.sizex, w.sizey, null, 0, w.color, false);
+                        game.Draw2dTexture(game.GetOrCreateWhiteTexture(), screenx + w.X, screeny + w.Y, w.Sizex, w.Sizey, null, 0, w.Color, false);
                     }
 
-                    game.Draw2dText1(text, screenx + (int)w.x, screeny + (int)(w.y + (w.sizey / 2)), (int)w.fontSize, null, false);
+                    game.Draw2dText1(text, screenx + (int)w.X, screeny + (int)(w.Y + (w.Sizey / 2)), (int)w.FontSize, null, false);
                 }
                 // ButtonStyle.Text rendering is not yet implemented.
             }
 
-            if (w.type == UIWidgetType.Textbox)
+            if (w.Type == UIWidgetType.Textbox)
             {
-                if (w.password)
+                if (w.Password)
                 {
-                    text = new string('*', w.text.Length);
+                    text = new string('*', w.Text.Length);
                 }
 
-                if (w.editing)
+                if (w.Editing)
                 {
                     text = string.Concat(platform, text, "_");
                 }
 
-                game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, null, false);
+                game.Draw2dText(text, w.Font, screenx + w.X, screeny + w.Y, null, false);
             }
 
-            if (w.type == UIWidgetType.Label)
+            if (w.Type == UIWidgetType.Label)
             {
-                game.Draw2dText(text, w.font, screenx + w.x, screeny + w.y, ColorUtils.ColorFromArgb(255, 0, 0, 0), false);
+                game.Draw2dText(text, w.Font, screenx + w.X, screeny + w.Y, ColorUtils.ColorFromArgb(255, 0, 0, 0), false);
             }
         }
     }

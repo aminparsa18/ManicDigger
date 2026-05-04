@@ -79,7 +79,7 @@ public class ModUnloadRendererChunks : ModBase
             return;
         }
 
-        RenderedChunk rendered = chunk.rendered;
+        RenderedChunk rendered = chunk.Rendered;
         if (rendered != null)
         {
             for (int k = 0; k < rendered.IdsCount; k++)
@@ -159,7 +159,7 @@ public class ModUnloadRendererChunks : ModBase
             //      GetChunk() on 26 neighbours to check base-light: those neighbours
             //      may not exist yet so GetChunk_ rents two byte[4096] arrays each.
             // Both categories must be unloaded when outside the view-distance box.
-            bool hasRenderedGeometry = chunk.rendered?.Ids != null;
+            bool hasRenderedGeometry = chunk.Rendered?.Ids != null;
             bool hasBlockData = chunk.HasData();
             if (!hasRenderedGeometry && !hasBlockData)
             {

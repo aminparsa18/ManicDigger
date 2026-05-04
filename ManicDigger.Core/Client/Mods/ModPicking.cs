@@ -1094,14 +1094,6 @@ public class ModPicking : ModBase
         }
     }
 
-    /// <summary>
-    /// Terrain texture filenames captured from the server's UseTerrainTextures packet.
-    /// Index N in this array corresponds to atlas texture index N.
-    /// Populated by <see cref="SetTerrainTextureNames"/>; null until the first
-    /// terrain texture packet arrives.
-    /// </summary>
-    private string[] _terrainTextureNames;
-
     private string GetParticleTexture(int blockType)
     {
         //if (_terrainTextureNames == null) return "blood.png";
@@ -1112,8 +1104,8 @@ public class ModPicking : ModBase
         int atlasIndex = faceIds[0];
         if (atlasIndex < 0 ) return "blood.png";
 
-        string name = Game.GetTextureNameById(atlasIndex);
-        return string.IsNullOrWhiteSpace(name) ? "blood.png" : name;
+        string name = blockTypeRegistry.BlockTypes[blockType].Name;
+        return string.IsNullOrWhiteSpace(name) ? "blood.png" : $"{name.ToLower()}.png";
     }
 
     /// <summary>

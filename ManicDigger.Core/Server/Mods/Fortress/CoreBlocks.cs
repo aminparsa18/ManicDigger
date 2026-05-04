@@ -452,8 +452,8 @@ public class CoreBlocks : IMod
         m.SetBlockType(57, "Cactus", new BlockType()
         {
             TopBottomTextures = "CactusTopBottom",
-            SideTextures = "CactusSide",
-            TextureIdForInventory = "CactusSide",
+            SideTextures = "Cactus",
+            TextureIdForInventory = "Cactus",
             DrawType = DrawType.Cactus,
             WalkableType = WalkableType.Solid,
             Sounds = solidSounds,

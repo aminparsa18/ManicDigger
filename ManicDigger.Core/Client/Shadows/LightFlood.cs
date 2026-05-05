@@ -1,26 +1,31 @@
 ﻿/// <summary>
-/// Floods light values outward from a seed position inside a 16×16×16 chunk,
-/// using a breadth-first queue to propagate light level decay neighbour by neighbour.
+/// Floods light values outward from one or more seed positions inside a
+/// 16×16×16 chunk using breadth-first propagation.
+///
+/// Hot-path optimisations vs the original:
+///   • Pre-allocated int[] ring buffer replaces Queue&lt;int&gt; — no GC, no
+///     internal resize, sequential memory access.
+///   • Coordinate decode uses bit-ops (16 is a power of 2) instead of
+///     integer division inside the inner loop.
+///   • FloodLightFromAllSeeds seeds the BFS from every lit cell in one call
+///     so callers never need to issue one flood per lit block.
 /// </summary>
 public class LightFlood
 {
-    /// <summary>
-    /// Initialises the flood queue with an initial capacity to avoid early reallocations.
-    /// The queue is reused across <see cref="FloodLight"/> calls to avoid per-call allocation.
-    /// </summary>
-    public LightFlood()
-    {
-        _q = new Queue<int>(1024);
-    }
+    private const int ChunkSize = 16;
+    private const int ChunkVolume = ChunkSize * ChunkSize * ChunkSize; // 4 096
 
-    /// <summary>BFS queue of flat array indices pending light propagation.</summary>
-    private readonly Queue<int> _q;
+    // Ring buffer.  Each of the 4 096 cells can be re-enqueued at most 15 times
+    // (once per light level), so 4 096 × 15 = 61 440 worst-case entries.
+    // Next power of 2: 65 536.  Masking replaces modulo.
+    private const int QueueCapacity = 1 << 16; // 65 536
+    private const int QueueMask = QueueCapacity - 1;
 
-    /// <summary>Light level at which propagation stops.</summary>
-    private const int MinLight = 0;
+    private readonly int[] _queue = new int[QueueCapacity];
+    private int _head, _tail;
 
-    // Flat array index offsets for each of the 6 face-connected neighbours.
-    // Based on layout: index = (z * 16 + y) * 16 + x
+    // Flat-index offsets for the six face-connected neighbours.
+    // Layout: index = (z * 16 + y) * 16 + x
     public const int XPlus = 1;
     public const int XMinus = -1;
     public const int YPlus = 16;
@@ -28,109 +33,90 @@ public class LightFlood
     public const int ZPlus = 256;
     public const int ZMinus = -256;
 
-    /// <summary>
-    /// Converts a 3D grid coordinate into a flat array index using row-major order.
-    /// </summary>
-    /// <param name="x">Column index.</param>
-    /// <param name="y">Row index.</param>
-    /// <param name="z">Layer (depth) index.</param>
-    /// <param name="sizeX">Number of columns per row.</param>
-    /// <param name="sizeY">Number of rows per layer.</param>
-    /// <returns>The corresponding flat array index.</returns>
-    private static int Index3d(int x, int y, int z, int sizeX, int sizeY) => (((z * sizeY) + y) * sizeX) + x;
+    private static int Index3d(int x, int y, int z, int sx, int sy)
+        => ((z * sy) + y) * sx + x;
+
+    // ── Public entry points ───────────────────────────────────────────────────
 
     /// <summary>
-    /// Floods light outward from the given seed position within the chunk.
-    /// Light decays by 1 per step and stops at opaque, non-emissive blocks or at <see cref="MinLight"/>.
+    /// Floods light outward from a single seed position.
+    /// No-op if the seed has no light.
     /// </summary>
-    /// <param name="chunk">Flat block ID array for the chunk (16×16×16).</param>
-    /// <param name="light">Flat light level array, modified in place.</param>
-    /// <param name="startX">Seed X coordinate (0–15).</param>
-    /// <param name="startY">Seed Y coordinate (0–15).</param>
-    /// <param name="startZ">Seed Z coordinate (0–15).</param>
-    /// <param name="dataLightRadius">Per-block-type light emission radius.</param>
-    /// <param name="dataTransparent">Per-block-type transparency flag.</param>
-    public void FloodLight(int[] chunk, byte[] light, int startX, int startY, int startZ, int[] dataLightRadius, bool[] dataTransparent)
+    public void FloodLight(
+        int[] chunk, byte[] light,
+        int startX, int startY, int startZ,
+        int[] dataLightRadius, bool[] dataTransparent)
     {
-        int start = Index3d(startX, startY, startZ, 16, 16);
+        int start = Index3d(startX, startY, startZ, ChunkSize, ChunkSize);
+        if (light[start] == 0) return;
 
-        // Nothing to propagate if the seed has no light.
-        if (light[start] == MinLight)
-        {
-            return;
-        }
-
-        _q.Clear();
-        _q.Enqueue(start);
-
-        while (_q.Count > 0)
-        {
-            int vPos = _q.Dequeue();
-            int vLight = light[vPos];
-
-            if (vLight == MinLight)
-            {
-                continue;
-            }
-
-            int vBlock = chunk[vPos];
-
-            // Skip opaque non-emissive blocks — light cannot pass through or originate here.
-            if (!dataTransparent[vBlock] && dataLightRadius[vBlock] == 0)
-            {
-                continue;
-            }
-
-            int x = VectorIndexUtil.PosX(vPos, 16, 16);
-            int y = VectorIndexUtil.PosY(vPos, 16, 16);
-            int z = VectorIndexUtil.PosZ(vPos, 16, 16);
-
-            // Propagate to each face-connected neighbour within chunk bounds.
-            if (x < 15)
-            {
-                Push(light, vLight, vPos + XPlus);
-            }
-
-            if (x > 0)
-            {
-                Push(light, vLight, vPos + XMinus);
-            }
-
-            if (y < 15)
-            {
-                Push(light, vLight, vPos + YPlus);
-            }
-
-            if (y > 0)
-            {
-                Push(light, vLight, vPos + YMinus);
-            }
-
-            if (z < 15)
-            {
-                Push(light, vLight, vPos + ZPlus);
-            }
-
-            if (z > 0)
-            {
-                Push(light, vLight, vPos + ZMinus);
-            }
-        }
+        _head = _tail = 0;
+        Enqueue(start);
+        RunFlood(chunk, light, dataLightRadius, dataTransparent);
     }
 
     /// <summary>
-    /// Enqueues a neighbour position if its current light level is more than 1 step
-    /// below the current value, then updates it to <paramref name="vLight"/> - 1.
+    /// Seeds the BFS from every position in the chunk that already has light
+    /// and runs one combined flood pass.  Replaces calling FloodLight once per
+    /// lit block — O(n) total instead of O(n²).
     /// </summary>
-    /// <param name="light">The light array to update.</param>
-    /// <param name="vLight">The current position's light level.</param>
-    /// <param name="newPos">The flat array index of the neighbour to potentially update.</param>
-    private void Push(byte[] light, int vLight, int newPos)
+    public void FloodLightFromAllSeeds(
+        int[] chunk, byte[] light,
+        int[] dataLightRadius, bool[] dataTransparent)
     {
-        if (light[newPos] < vLight - 1)
+        _head = _tail = 0;
+        for (int pos = 0; pos < ChunkVolume; pos++)
         {
-            light[newPos] = (byte)(vLight - 1);
-            _q.Enqueue(newPos);
+            if (light[pos] > 0)
+                Enqueue(pos);
         }
+        RunFlood(chunk, light, dataLightRadius, dataTransparent);
+    }
+
+    // ── Core BFS ──────────────────────────────────────────────────────────────
+
+    private void RunFlood(int[] chunk, byte[] light, int[] dataLightRadius, bool[] dataTransparent)
+    {
+        while (_head != _tail)
+        {
+            int pos = _queue[_head & QueueMask];
+            _head++;
+
+            int vLight = light[pos];
+            if (vLight == 0) continue;
+
+            int blockId = chunk[pos];
+            if (!dataTransparent[blockId] && dataLightRadius[blockId] == 0)
+                continue;
+
+            // Bit-ops instead of integer division — 16 = 2⁴.
+            int x = pos & 15;
+            int y = (pos >> 4) & 15;
+            int z = pos >> 8;
+
+            int next = vLight - 1;
+
+            if (x < 15) TryPush(light, next, pos + XPlus);
+            if (x > 0) TryPush(light, next, pos + XMinus);
+            if (y < 15) TryPush(light, next, pos + YPlus);
+            if (y > 0) TryPush(light, next, pos + YMinus);
+            if (z < 15) TryPush(light, next, pos + ZPlus);
+            if (z > 0) TryPush(light, next, pos + ZMinus);
+        }
+    }
+
+    private void TryPush(byte[] light, int next, int newPos)
+    {
+        if (light[newPos] < next)
+        {
+            light[newPos] = (byte)next;
+            Enqueue(newPos);
+        }
+    }
+
+    private void Enqueue(int pos)
+    {
+        _queue[_tail & QueueMask] = pos;
+        _tail++;
     }
 }

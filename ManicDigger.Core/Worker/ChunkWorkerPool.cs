@@ -10,7 +10,7 @@ namespace ManicDigger.Worker;
 /// workers — one <see cref="Task"/> per worker, each running on the thread pool.
 /// Replacing <c>Thread.Sleep(1)</c> poll loops with proper channel back-pressure.
 /// </summary>
-public sealed class ChunkWorkerPool : BackgroundService, IChunkWorkQueue
+public class ChunkWorkerPool : BackgroundService, IChunkWorkQueue
 {
     // How many parallel workers process chunk jobs.
     // Default: leave one logical core free for the main/render thread.

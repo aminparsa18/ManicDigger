@@ -77,12 +77,14 @@ public class ModPicking : ModBase
     private readonly IVoxelMap voxelMap;
     private readonly ICameraService cameraService;
     private readonly IMeshDrawer meshDrawer;
+    private readonly IMeshBatcher _meshBatcher;
     private readonly IModRegistry modRegistry;
     private readonly IBlockRegistry blockTypeRegistry;
     private readonly ITerrainChunkTesselator _terrainChunkTesselator;
     private readonly Random random;
 
-    public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService, ITerrainChunkTesselator terrainChunkTesselator,
+    public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService,
+        ITerrainChunkTesselator terrainChunkTesselator, IMeshBatcher meshBatcher,
         IMeshDrawer meshDrawer, IModRegistry modRegistry, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
@@ -90,8 +92,9 @@ public class ModPicking : ModBase
         this.cameraService = cameraService;
         this.meshDrawer = meshDrawer;
         this.modRegistry = modRegistry;
-        _terrainChunkTesselator = terrainChunkTesselator;
         this.blockTypeRegistry = blockTypeRegistry;
+        _terrainChunkTesselator = terrainChunkTesselator;
+        this._meshBatcher = meshBatcher;
         _tempViewport = new int[4];
         fillarea = new();
         random = new Random();
@@ -457,6 +460,9 @@ public class ModPicking : ModBase
             OnPick(newtileX, posy, posz,
                 (int)tile.Current()[0], (int)tile.Current()[2], (int)tile.Current()[1],
                 tile.CollisionPos, right: false);
+
+            // Force immediate upload — don't wait for next frame's capped flush
+            _meshBatcher.FlushPendingUploads(int.MaxValue);
         }
 
         PickingEnd(left, right, middle, isPistol);

@@ -43,7 +43,7 @@ public class ModDrawTerrain : ModBase
     // ── Public API ────────────────────────────────────────────────────────────
 
     public int TrianglesCount() => _meshBatcher.TotalTriangleCount();
-    internal int InvertChunk(int num) => (int)(num * (1.0f / GameConstants.CHUNK_SIZE));
+    internal static int InvertChunk(int num) => (int)(num * (1.0f / GameConstants.CHUNK_SIZE));
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 

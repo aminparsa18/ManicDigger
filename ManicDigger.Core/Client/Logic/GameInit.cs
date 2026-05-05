@@ -1,5 +1,4 @@
-﻿using ManicDigger;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 
 /// <summary>
 /// Partial class containing field declarations and constructor initialization
@@ -30,12 +29,11 @@ public partial class Game : IGame
 
     internal TextRenderer textRenderer;
 
-    /// <summary>Texture IDs indexed by [blockId][TileSide].</summary>
-    public Dictionary<int, int[]> TextureId { get; set; }
+    
     public Dictionary<int, int> TextureIdForInventory { get; set; }
 
     public int TerrainTexture { get; set; }
-    public int[] TerrainTextures1d { get; set; }
+    
 
     /// <summary>Maximum texture size detected at runtime.</summary>
     internal int maxTextureSize;
@@ -292,7 +290,7 @@ public partial class Game : IGame
 
     public List<Entity> Entities { get; set; }
     private IReadOnlyList<IModBase> ClientMods => modRegistry.Mods;
-    public TerrainChunkTesselator TerrainChunkTesselator { get; set; }
+    private readonly ITerrainChunkTesselator TerrainChunkTesselator;
     private readonly IMeshDrawer meshDrawer;
     public InventoryUtilClient InventoryUtil { get; set; }
     private readonly IBlockRegistry _blockRegistry;
@@ -349,7 +347,7 @@ public partial class Game : IGame
     // Constructor
     // -------------------------------------------------------------------------
 
-    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
+    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITerrainChunkTesselator terrainChunkTesselator,
         IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService, IFrustumCulling frustumCulling,
         IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager, IGameLogger gameLogger)
     {
@@ -364,6 +362,7 @@ public partial class Game : IGame
         FrustumCulling = frustumCulling;
         _assetManager = assetManager;
         this.meshDrawer = meshDrawer;
+        TerrainChunkTesselator = terrainChunkTesselator;
         InitCore();
         InitMap();
         InitTextures();
@@ -402,7 +401,6 @@ public partial class Game : IGame
 
     private void InitTextures()
     {
-        TextureId = [];
         TextureIdForInventory = [];
         handTexture = -1;
         whitetexture = -1;

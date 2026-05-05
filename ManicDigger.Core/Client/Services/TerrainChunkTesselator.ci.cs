@@ -20,41 +20,40 @@ using ManicDigger;
 using OpenTK.Mathematics;
 using static ModDrawHand3d;
 
-public class TerrainChunkTesselator
+public class TerrainChunkTesselator : ITerrainChunkTesselator
 {
-    internal float _texrecLeft;
-    internal float _texrecRight;
-    internal float _texrecWidth;
-    internal float _texrecHeight;
-    internal int _colorWhite;
+    private float _texrecLeft;
+    private float _texrecRight;
+    private float _texrecWidth;
+    private float _texrecHeight;
+    private int _colorWhite;
 
-    internal bool EnableSmoothLight;
+    public bool EnableSmoothLight { get; set; }
 
-    private readonly IGame _terrain;
+    private readonly IVoxelMap _voxelMap;
     private readonly IGameService _platform;
     private readonly IBlockRegistry _blockTypeRegistry;
 
     private const int chunksize = 16;
 
-    internal int[] currentChunk18;
-    internal byte[] currentChunkShadows18;
-    internal byte[] currentChunkDraw16;
+    private int[] currentChunk18;
+    private byte[] currentChunkShadows18;
+    private byte[] currentChunkDraw16;
 
     /// <summary>
     /// Flat layout: index = blockPos * 6 + sideIndex.
     /// One contiguous allocation instead of a jagged byte[][] (~4096 small heap objects).
     /// </summary>
-    internal byte[] currentChunkDrawCount16Flat;
+    private byte[] currentChunkDrawCount16Flat;
 
-    internal bool started;
-    internal int mapsizex;
-    internal int mapsizey;
-    internal int mapsizez;
+    private bool started;
+    private int mapsizex;
+    private int mapsizey;
+    private int mapsizez;
 
-    internal int terrainTexturesPerAtlas;
-    internal float terrainTexturesPerAtlasInverse;
-    internal const int maxlight = 15;
-    internal float maxlightInverse;
+    private int terrainTexturesPerAtlas;
+    private float terrainTexturesPerAtlasInverse;
+    private const int maxlight = 15;
 
     // Transparent, Lowered and Fluid flags are packed into a single byte per block.
     // One allocation, one cache line covers ~64 block types simultaneously.
@@ -65,10 +64,10 @@ public class TerrainChunkTesselator
     private bool IsLowered(int id) => (_blockFlags[id] & BlockRenderFlags.Lowered) != 0;
     private bool IsFluid(int id) => (_blockFlags[id] & BlockRenderFlags.Fluid) != 0;
 
-    internal float[] lightlevels;
+    private float[] lightlevels;
 
-    internal GeometryModel[] toreturnatlas1d;
-    internal GeometryModel[] toreturnatlas1dtransparent;
+    private GeometryModel[] toreturnatlas1d;
+    private GeometryModel[] toreturnatlas1dtransparent;
 
     /// <summary>
     /// Pre-allocated return buffer for <see cref="GetFinalVerticesIndices"/>.
@@ -76,10 +75,15 @@ public class TerrainChunkTesselator
     /// </summary>
     private VerticesIndicesToLoad[] _verticesReturnBuffer;
 
-    internal float BlockShadow;
-    internal bool option_DarkenBlockSides;
-    internal bool option_DoNotDrawEdges;
-    internal float AtiArtifactFix;
+    public float BlockShadow { get; set; }
+    public bool DarkenBlockSidesOption { get; set; }
+    public int TerrainTexturesPerAtlas { get; set; }
+    public int[] TerrainTextures1d { get; set; }
+    /// <summary>Texture IDs indexed by [blockId][TileSide].</summary>
+    public Dictionary<int, int[]> TextureId { get; set; } = [];
+
+    private bool option_DoNotDrawEdges;
+    private float AtiArtifactFix;
 
     private readonly Vector3i[][] c_OcclusionNeighbors;
 
@@ -91,16 +95,16 @@ public class TerrainChunkTesselator
 
     private readonly int[] tmpnPos;
 
-    public TerrainChunkTesselator(IGame terrain, IGameService platform, IBlockRegistry blockTypeRegistry)
+    public TerrainChunkTesselator(IVoxelMap voxelMap, IGameService platform, IBlockRegistry blockTypeRegistry)
     {
-        _terrain = terrain;
+        _voxelMap = voxelMap;
         _platform = platform;
         _blockTypeRegistry = blockTypeRegistry;
         EnableSmoothLight = true;
         ENABLE_TEXTURE_TILING = true;
         _colorWhite = ColorUtils.ColorFromArgb(255, 255, 255, 255);
         BlockShadow = 0.6f;
-        option_DarkenBlockSides = true;
+        DarkenBlockSidesOption = true;
         option_DoNotDrawEdges = true;
         occ = 0.7f;
         halfocc = 0.4f;
@@ -230,16 +234,15 @@ public class TerrainChunkTesselator
         currentChunkShadows18 = new byte[(chunksize + 2) * (chunksize + 2) * (chunksize + 2)];
         currentChunkDraw16 = new byte[chunksize * chunksize * chunksize];
         currentChunkDrawCount16Flat = new byte[chunksize * chunksize * chunksize * 6];
-        mapsizex = _terrain.MapSizeX;
-        mapsizey = _terrain.MapSizeY;
-        mapsizez = _terrain.MapSizeZ;
+        mapsizex = _voxelMap.MapSizeX;
+        mapsizey = _voxelMap.MapSizeY;
+        mapsizez = _voxelMap.MapSizeZ;
         started = true;
 
         _blockFlags = new BlockRenderFlags[GameConstants.MAX_BLOCKTYPES];
 
-        maxlightInverse = 1f / maxlight;
-        terrainTexturesPerAtlas = _terrain.TerrainTexturesPerAtlas;
-        terrainTexturesPerAtlasInverse = 1f / _terrain.TerrainTexturesPerAtlas;
+        terrainTexturesPerAtlas = TerrainTexturesPerAtlas;
+        terrainTexturesPerAtlasInverse = 1f / TerrainTexturesPerAtlas;
 
         AtiArtifactFix = _platform.IsFastSystem()
             ? 1 / 32f * 0.25f   // Desktop: 32 pixels per block texture
@@ -250,7 +253,7 @@ public class TerrainChunkTesselator
         _texrecLeft = AtiArtifactFix;
         _texrecRight = _texrecLeft + _texrecWidth;
 
-        toreturnatlas1dLength = Math.Max(1, GameConstants.MAX_BLOCKTYPES / _terrain.TerrainTexturesPerAtlas);
+        toreturnatlas1dLength = Math.Max(1, GameConstants.MAX_BLOCKTYPES / TerrainTexturesPerAtlas);
         toreturnatlas1d = new GeometryModel[toreturnatlas1dLength];
         toreturnatlas1dtransparent = new GeometryModel[toreturnatlas1dLength];
 
@@ -488,7 +491,7 @@ public class TerrainChunkTesselator
         }
     }
 
-    internal bool ENABLE_TEXTURE_TILING;
+    public bool ENABLE_TEXTURE_TILING { get; set; }
 
     private int GetShadowRatio(int xx, int yy, int zz)
         => currentChunkShadows18[Index3d(xx, yy, zz, chunksize + 2, chunksize + 2)];
@@ -516,8 +519,8 @@ public class TerrainChunkTesselator
             (int)(ColorUtils.ColorG(color) * fValue),
             (int)(ColorUtils.ColorB(color) * fValue));
 
-    internal float occ;
-    internal float halfocc;
+    private float occ;
+    private float halfocc;
 
     private readonly bool[] tmpoccupied;
     private readonly int[] tmpshadowration;
@@ -624,7 +627,7 @@ public class TerrainChunkTesselator
         Vector3i[] vNeighbors, float[] fShadowRation)
     {
         int color = _colorWhite;
-        if (option_DarkenBlockSides)
+        if (DarkenBlockSidesOption)
         {
             switch (tileSide)
             {
@@ -636,7 +639,7 @@ public class TerrainChunkTesselator
             }
         }
 
-        int sidetexture = TextureId(tileType, tileSide);
+        int sidetexture = GetTextureId(tileType, tileSide);
         GeometryModel toreturn = GetModelData(tileType, sidetexture);
         float texrecTop = (terrainTexturesPerAtlasInverse * (sidetexture % terrainTexturesPerAtlas))
                            + (AtiArtifactFix * terrainTexturesPerAtlasInverse);
@@ -900,8 +903,8 @@ public class TerrainChunkTesselator
         }
         else if (drawType == DrawType.Torch)
         {
-            TorchSideTexture = TextureId(tiletype, TileSide.Left);
-            TorchTopTexture = TextureId(tiletype, TileSide.Top);
+            TorchSideTexture = GetTextureId(tiletype, TileSide.Left);
+            TorchTopTexture = GetTextureId(tiletype, TileSide.Top);
 
             TorchType type = TorchType.Normal;
             if (CanSupportTorch(currentChunk[Index3d(xx - 1, yy, zz, chunksize + 2, chunksize + 2)]))
@@ -981,18 +984,18 @@ public class TerrainChunkTesselator
     private GeometryModel GetModelData(int tiletype, int textureid)
     {
         return (IsFluid(tiletype) || (IsTransparent(tiletype) && !IsLowered(tiletype)))
-            ? toreturnatlas1dtransparent[textureid / _terrain.TerrainTexturesPerAtlas]
-            : toreturnatlas1d[textureid / _terrain.TerrainTexturesPerAtlas];
+            ? toreturnatlas1dtransparent[textureid / TerrainTexturesPerAtlas]
+            : toreturnatlas1d[textureid / TerrainTexturesPerAtlas];
     }
 
-    private int TextureId(int tiletype, TileSide side)
-        => _terrain.TextureId[tiletype][(int)side];
+    private int GetTextureId(int tiletype, TileSide side)
+        => TextureId[tiletype][(int)side];
 
     private bool CanSupportTorch(int blocktype)
         => blocktype != 0 && _blockTypeRegistry.BlockTypes[blocktype].DrawType != DrawType.Torch;
 
-    internal int TorchTopTexture;
-    internal int TorchSideTexture;
+    private int TorchTopTexture;
+    private int TorchSideTexture;
 
     private RailSlope GetRailSlope(int xx, int yy, int zz)
     {
@@ -1251,7 +1254,7 @@ public class TerrainChunkTesselator
                 v.PositionX = posX;
                 v.PositionY = posY;
                 v.PositionZ = posZ;
-                v.Texture = _terrain.TerrainTextures1d[i % _terrain.TerrainTexturesPerAtlas];
+                v.Texture = TerrainTextures1d[i % TerrainTexturesPerAtlas];
                 v.Transparent = false;
                 retCount++;
             }
@@ -1266,7 +1269,7 @@ public class TerrainChunkTesselator
                 v.PositionX = posX;
                 v.PositionY = posY;
                 v.PositionZ = posZ;
-                v.Texture = _terrain.TerrainTextures1d[i % _terrain.TerrainTexturesPerAtlas];
+                v.Texture = TerrainTextures1d[i % TerrainTexturesPerAtlas];
                 v.Transparent = true;
                 retCount++;
             }

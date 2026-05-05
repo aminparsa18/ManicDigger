@@ -22,13 +22,15 @@ public class ModNetworkProcess : ModBase
     private readonly IVoxelMap voxelMap;
     private readonly IBlockRegistry blockTypeRegistry;
     private readonly IGameLogger _gameLogger;
+    private readonly ITerrainChunkTesselator _terrainChunkTesselator;
 
-    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGameLogger gameLogger, IGame game) : base(game)
+    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGameLogger gameLogger, ITerrainChunkTesselator terrainChunkTesselator, IGame game) : base(game)
     {
         _platform = gamePlatform;
         this.voxelMap = voxelMap;
         this.blockTypeRegistry = blockTypeRegistry;
         _gameLogger = gameLogger;
+        _terrainChunkTesselator = terrainChunkTesselator;
         CurrentChunk = new byte[1024 * 64];
         CurrentChunkCount = 0;
         receivedchunk = new int[32 * 32 * 32];
@@ -559,7 +561,7 @@ public class ModNetworkProcess : ModBase
 
                     foreach ((int id, BlockType? b) in blockTypeRegistry.BlockTypes)
                     {
-                        Game.TextureId[id] = [
+                        _terrainChunkTesselator.TextureId[id] = [
                             textureList.IndexOf(b.TextureIdTop),
                             textureList.IndexOf(b.TextureIdBottom),
                             textureList.IndexOf(b.TextureIdFront),

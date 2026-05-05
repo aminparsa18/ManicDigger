@@ -143,14 +143,14 @@ public partial class Game
 
         // Fix #5: call Atlas1dheight() once and reuse the result.
         int atlas1dHeight = Atlas1dheight();
-        TerrainTexturesPerAtlas = atlas1dHeight / (atlas2dWidth / GameConstants.MAX_BLOCKTYPES_SQRT);
+        TerrainChunkTesselator.TerrainTexturesPerAtlas = atlas1dHeight / (atlas2dWidth / GameConstants.MAX_BLOCKTYPES_SQRT);
 
         Bitmap[] atlases1d = PixelBuffer.Atlas2dInto1d(atlas2d, GameConstants.MAX_BLOCKTYPES_SQRT, atlas1dHeight);
 
-        TerrainTextures1d = new int[atlases1d.Length];
+        TerrainChunkTesselator.TerrainTextures1d = new int[atlases1d.Length];
         for (int i = 0; i < atlases1d.Length; i++)
         {
-            TerrainTextures1d[i] = openGlService.LoadTextureFromBitmap(atlases1d[i]);
+            TerrainChunkTesselator.TerrainTextures1d[i] = openGlService.LoadTextureFromBitmap(atlases1d[i]);
             atlases1d[i].Dispose();
         }
     }

@@ -79,9 +79,10 @@ public class ModPicking : ModBase
     private readonly IMeshDrawer meshDrawer;
     private readonly IModRegistry modRegistry;
     private readonly IBlockRegistry blockTypeRegistry;
+    private readonly ITerrainChunkTesselator _terrainChunkTesselator;
     private readonly Random random;
 
-    public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService,
+    public ModPicking(IGameService platform, IVoxelMap voxelMap, ICameraService cameraService, ITerrainChunkTesselator terrainChunkTesselator,
         IMeshDrawer meshDrawer, IModRegistry modRegistry, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
@@ -89,6 +90,7 @@ public class ModPicking : ModBase
         this.cameraService = cameraService;
         this.meshDrawer = meshDrawer;
         this.modRegistry = modRegistry;
+        _terrainChunkTesselator = terrainChunkTesselator;
         this.blockTypeRegistry = blockTypeRegistry;
         _tempViewport = new int[4];
         fillarea = new();
@@ -1098,7 +1100,7 @@ public class ModPicking : ModBase
     {
         //if (_terrainTextureNames == null) return "blood.png";
 
-        int[]? faceIds = Game.TextureId?[blockType];
+        int[]? faceIds = _terrainChunkTesselator.TextureId?[blockType];
         if (faceIds == null || faceIds.Length == 0) return "blood.png";
 
         int atlasIndex = faceIds[0];

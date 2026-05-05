@@ -138,20 +138,11 @@ public interface IGame : IDisposable
     // Rendering — textures
     // =========================================================================
 
-    /// <summary>Texture IDs indexed by <c>[blockTypeId][TileSide]</c>.</summary>
-    Dictionary<int, int[]> TextureId { get; }
-
     /// <summary>Per-block-type texture ID used in inventory rendering.</summary>
     Dictionary<int, int> TextureIdForInventory { get; set; }
 
     /// <summary>OpenGL ID of the composite terrain texture atlas.</summary>
     int TerrainTexture { get; set; }
-
-    /// <summary>Per-atlas-slice OpenGL texture handles.</summary>
-    int[] TerrainTextures1d { get; }
-
-    /// <summary>Number of terrain textures packed into a single atlas.</summary>
-    int TerrainTexturesPerAtlas { get; }
 
     /// <summary>The hand/held-item texture ID.</summary>
     int handTexture { get; set; }
@@ -183,9 +174,6 @@ public interface IGame : IDisposable
     // =========================================================================
     // Rendering — terrain & mesh
     // =========================================================================
-
-    /// <summary>Terrain chunk tesselator used to build chunk geometry.</summary>
-    TerrainChunkTesselator TerrainChunkTesselator { get; }
 
     /// <summary>When <c>true</c>, all chunk meshes are rebuilt next frame.</summary>
     bool ShouldRedrawAllBlocks { get; set; }

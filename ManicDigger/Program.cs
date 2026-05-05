@@ -50,6 +50,7 @@ public class Program
         services.AddSingleton<IFrustumCulling, FrustumCulling>();
         services.AddSingleton<IMeshBatcher, MeshBatcher>();
         services.AddSingleton<IMeshDrawer, MeshDrawer>();
+        services.AddSingleton<ITerrainChunkTesselator, TerrainChunkTesselator>();
         services.AddSingleton<ISinglePlayerService, SinglePlayerService>();
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
         services.AddSingleton<IScreenFactory, ScreenFactory>();

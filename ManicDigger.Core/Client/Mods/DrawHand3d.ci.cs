@@ -30,6 +30,7 @@ public class ModDrawHand3d : ModBase
     private readonly IOpenGlService _platform;
     private readonly IMeshDrawer _meshDrawer;
     private readonly IBlockRegistry _blockRegistry;
+    private readonly ITerrainChunkTesselator _terrainChunkTesselator;
 
     /// <summary>Torch block renderer used to draw held torches and the empty-hand model.</summary>
     private readonly BlockRendererTorch _blockRendererTorch;
@@ -122,11 +123,12 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Initialises all animation parameters and creates the torch renderer dependency.
     /// </summary>
-    public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
+    public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, ITerrainChunkTesselator terrainChunkTesselator, IGame game) : base(game)
     {
         this._platform = platform;
         this._meshDrawer = meshDrawer;
         this._blockRegistry = blockTypeRegistry;
+        _terrainChunkTesselator = terrainChunkTesselator;
         _attack = -1;
         _attackOffset = 0;
         _buildOffset = 0;
@@ -206,13 +208,13 @@ public class ModDrawHand3d : ModBase
         {
             // Empty hand — use the designated empty-hand block texture.
             return side == TileSide.Top
-                ? Game.TextureId[_blockRegistry.BlockIdEmptyHand][(int)TileSide.Top]
-                : Game.TextureId[_blockRegistry.BlockIdEmptyHand][(int)TileSide.Front];
+                ? _terrainChunkTesselator.TextureId[_blockRegistry.BlockIdEmptyHand][(int)TileSide.Top]
+                : _terrainChunkTesselator.TextureId[_blockRegistry.BlockIdEmptyHand][(int)TileSide.Front];
         }
 
         if (item.InventoryItemType == InventoryItemType.Block)
         {
-            return Game.TextureId[item.BlockId][(int)side];
+            return _terrainChunkTesselator.TextureId[item.BlockId][(int)side];
         }
 
         // TODO: return texture for non-block items.

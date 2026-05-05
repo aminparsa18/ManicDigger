@@ -115,7 +115,6 @@ public partial class Game
     public int MapSizeX => voxelMap.MapSizeX;
     public int MapSizeY => voxelMap.MapSizeY;
     public int MapSizeZ => voxelMap.MapSizeZ;
-    public int TerrainTexturesPerAtlas { get; set; }
 
     public bool EnableDraw2d { get => ENABLE_DRAW2D; set => ENABLE_DRAW2D = value; }
 

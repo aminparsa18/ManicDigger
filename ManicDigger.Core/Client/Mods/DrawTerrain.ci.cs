@@ -33,6 +33,7 @@ public class ModDrawTerrain : ModBase
     private readonly IVoxelMap _voxelMap;
     private readonly IMeshBatcher meshBatcher;
     private readonly IBlockRegistry _blockTypeRegistry;
+    private readonly ITerrainChunkTesselator _terrainChunkTesselator;
 
     private readonly LightBase _lightBase;
     private readonly LightBetweenChunks _lightBetweenChunks;
@@ -65,12 +66,13 @@ public class ModDrawTerrain : ModBase
     private int _backgroundRunning; // 0 = idle, 1 = running (Interlocked)
 
     public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap, IMeshBatcher meshBatcher,
-        IBlockRegistry blockRegistry, IGame game) : base(game)
+        IBlockRegistry blockRegistry, IGame game, ITerrainChunkTesselator terrainChunkTesselator) : base(game)
     {
         _platform = platform;
         _voxelMap = voxelMap;
         _blockTypeRegistry = blockRegistry;
         this.meshBatcher = meshBatcher;
+        _terrainChunkTesselator = terrainChunkTesselator;
         _currentChunk = new int[BufferedChunkVolume];
         _currentChunkShadows = new byte[BufferedChunkVolume];
         _batcherIds = new int[1024];
@@ -132,7 +134,7 @@ public class ModDrawTerrain : ModBase
         chunksize = GameConstants.CHUNK_SIZE;
         bufferedChunkSize = chunksize + 2;
         invertedChunkSize = 1.0f / chunksize;
-        _game.TerrainChunkTesselator.Start();
+        _terrainChunkTesselator.Start();
         _terrainStarted = true;
     }
 
@@ -389,7 +391,7 @@ public class ModDrawTerrain : ModBase
         if (!IsUniformChunk(_currentChunk, BufferedChunkVolume))
         {
             CalculateShadows(_game, x, y, z);
-            VerticesIndicesToLoad[] meshes = _game.TerrainChunkTesselator.MakeChunk(
+            VerticesIndicesToLoad[] meshes = _terrainChunkTesselator.MakeChunk(
                 x, y, z, _currentChunk, _currentChunkShadows,
                 _game.LightLevels, out meshCount);
 

@@ -37,10 +37,6 @@ public partial class Game
         };
         Config3d = config3d;
 
-        // ── Rendering subsystems ──────────────────────────────────────────────
-
-        TerrainChunkTesselator = new TerrainChunkTesselator(this, gameService, _blockRegistry);
-
         // ── World / map ───────────────────────────────────────────────────────
         voxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);
         Heightmap = new ChunkedMap2d<int>(voxelMap.MapSizeX, voxelMap.MapSizeY);

@@ -6,13 +6,14 @@ public class ModGuiEscapeMenu : ModBase
     private readonly IGameService platform;
     private readonly IPreferences preferences;
     private readonly IOpenGlService openGlService;
+    private readonly ITerrainChunkTesselator _terrainChunkTesselator;
 
-    public ModGuiEscapeMenu(IGameService platform, IPreferences preferences, IOpenGlService openGlService, IGame game) : base(game)
+    public ModGuiEscapeMenu(IGameService platform, IPreferences preferences, IOpenGlService openGlService, IGame game, ITerrainChunkTesselator terrainChunkTesselator) : base(game)
     {
         this.platform = platform;
         this.preferences = preferences;
         this.openGlService = openGlService;
-
+        _terrainChunkTesselator = terrainChunkTesselator;
         fonts = new string[4];
         fonts[0] = "Nice";
         fonts[1] = "Simple";
@@ -196,16 +197,16 @@ public class ModGuiEscapeMenu : ModBase
         if (b == graphicsOptionSmoothShadows)
         {
             options.Smoothshadows = !options.Smoothshadows;
-            Game.TerrainChunkTesselator.EnableSmoothLight = options.Smoothshadows;
+            _terrainChunkTesselator.EnableSmoothLight = options.Smoothshadows;
             if (options.Smoothshadows)
             {
                 options.BlockShadowSave = 0.7f;
-                Game.TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
+                _terrainChunkTesselator.BlockShadow = options.BlockShadowSave;
             }
             else
             {
                 options.BlockShadowSave = 0.6f;
-                Game.TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
+                _terrainChunkTesselator.BlockShadow = options.BlockShadowSave;
             }
 
             Game.RedrawAllBlocks();
@@ -214,7 +215,7 @@ public class ModGuiEscapeMenu : ModBase
         if (b == graphicsOptionDarkenSides)
         {
             options.EnableBlockShadow = !options.EnableBlockShadow;
-            Game.TerrainChunkTesselator.option_DarkenBlockSides = options.EnableBlockShadow;
+            _terrainChunkTesselator.DarkenBlockSidesOption = options.EnableBlockShadow;
             Game.RedrawAllBlocks();
         }
 
@@ -770,9 +771,9 @@ public class ModGuiEscapeMenu : ModBase
             Game.Language.OverrideLanguage = options.ClientLanguage;
         }
 
-        Game.TerrainChunkTesselator.EnableSmoothLight = options.Smoothshadows;
-        Game.TerrainChunkTesselator.BlockShadow = options.BlockShadowSave;
-        Game.TerrainChunkTesselator.option_DarkenBlockSides = options.EnableBlockShadow;
+        _terrainChunkTesselator.EnableSmoothLight = options.Smoothshadows;
+        _terrainChunkTesselator.BlockShadow = options.BlockShadowSave;
+        _terrainChunkTesselator.DarkenBlockSidesOption = options.EnableBlockShadow;
         Game.EnableLog = options.Framerate;
         UseFullscreen();
         Game.UseVsync();
@@ -827,8 +828,8 @@ public class ModGuiEscapeMenu : ModBase
 
         options.Framerate = Game.EnableLog;
         options.Fullscreen = platform.GetWindowState() == WindowState.Fullscreen;
-        options.Smoothshadows = Game.TerrainChunkTesselator.EnableSmoothLight;
-        options.EnableBlockShadow = Game.TerrainChunkTesselator.option_DarkenBlockSides;
+        options.Smoothshadows = _terrainChunkTesselator.EnableSmoothLight;
+        options.EnableBlockShadow = _terrainChunkTesselator.DarkenBlockSidesOption;
 
         SaveOptions_(options);
     }

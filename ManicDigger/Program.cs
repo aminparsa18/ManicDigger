@@ -1,6 +1,8 @@
 ﻿using ManicDigger;
+using ManicDigger.Extensions;
 using ManicDigger.Mods;
 using ManicDigger.Mods.Fortress;
+using ManicDigger.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 
@@ -159,7 +161,6 @@ public class Program
         services.AddScoped<IMod, VandalFinder>();
         services.AddScoped<IMod, VegetationGrowth>();
 
-
        // services.AddSingleton<ModBootstrapper>();
 
         services.AddScoped<IMainScreen, MainScreen>();
@@ -184,6 +185,10 @@ public class Program
         services.AddSingleton<ServerSystemLoadLast>();
 
         services.AddSingleton<ServerSystemBootstraper>();
+
+        services.AddWorkerInfrastructure();
+        services.AddSingleton<WorkerHostAccessor>();
+
     }
 
     // ── Startup ───────────────────────────────────────────────────────────────

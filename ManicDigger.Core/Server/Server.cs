@@ -61,44 +61,18 @@ public partial class Server : IServer, IDropItem
 
     private readonly DateTimeOffset startedAt = DateTimeOffset.UtcNow;
     public TimeSpan Uptime => DateTimeOffset.UtcNow - startedAt;
-    private long lastTimestamp = Stopwatch.GetTimestamp();
 
-    public void Process()
+    public void Process(float dt)
     {
-        long now = Stopwatch.GetTimestamp();
-        float dt = (float)((double)(now - lastTimestamp) / Stopwatch.Frequency);
-        lastTimestamp = now;
-
         for (int i = 0; i < Systems.Count; i++)
         {
             Systems[i].Update(this, dt);
         }
 
-        //Save data
-        ProcessSave();
         //Do server stuff
         ProcessMain();
-
-        //When a value of 0 or less is given, don't restart
-        if (_config.AutoRestartCycle > 0 && Uptime.TotalHours >= _config.AutoRestartCycle)
-        {
-            //Restart interval elapsed
-            Restart();
-        }
     }
-
-    private DateTime lastSave = DateTime.UtcNow;
-    private void ProcessSave()
-    {
-        if ((DateTime.UtcNow - lastSave).TotalMinutes > 2)
-        {
-            DateTime start = DateTime.UtcNow;
-            _saveGameService.SaveGlobalData();
-            DiagLog.Write(_languageService.ServerGameSaved(), DateTime.UtcNow - start);
-            lastSave = DateTime.UtcNow;
-        }
-    }
-
+   
     /// <summary>
     /// Tell the clients the time
     /// </summary>
@@ -124,7 +98,6 @@ public partial class Server : IServer, IDropItem
     }
 
     private readonly GameTimer _gameTimer = new();
-    private int _nLastHourChangeNotify = 0;
 
     public void ProcessMain()
     {
@@ -133,30 +106,14 @@ public partial class Server : IServer, IDropItem
             return;
         }
 
-        if (_gameTimer.Tick() && _gameTimer.GetQuarterHourPartOfDay() != _nLastHourChangeNotify)
-        {
-            _nLastHourChangeNotify = _gameTimer.GetQuarterHourPartOfDay();
-
-            foreach (KeyValuePair<int, ServerPlayer> c in _serverClientService.Clients)
-            {
-                NotifySeason(c.Key);
-            }
-        }
-
-        double currenttime = GetTime() - starttime;
-        double deltaTime = currenttime - oldtime;
-        accumulator += deltaTime;
-        double dt = GameConstants.SIMULATION_STEP_LENGTH;
-        while (accumulator > dt)
-        {
-            _saveGameService.SimulationCurrentFrame++;
-            accumulator -= dt;
-        }
-
-        oldtime = currenttime;
-
-        NetIncomingMessage msg;
         long tickStart = Stopwatch.GetTimestamp();
+
+        // Advance in-game time. SeasonBroadcastTask handles the client notification
+        // when the quarter-hour changes — no broadcast check needed here.
+        _gameTimer.Tick();
+
+        // SimulationLoop already provides fixed-step timing — one frame per tick.
+        _saveGameService.SimulationCurrentFrame++;
 
         //Process client packets
         for (int i = 0; i < MainSockets.Length; i++)
@@ -167,6 +124,7 @@ public partial class Server : IServer, IDropItem
                 continue;
             }
 
+            NetIncomingMessage msg;
             while ((msg = mainSocket.ReadMessage()) != null)
             {
                 ProcessNetMessage(msg, mainSocket);
@@ -207,6 +165,12 @@ public partial class Server : IServer, IDropItem
             //Print an error if the value gets too big - TODO: Adjust
             DiagLog.Write("Server process takes too long! Overloaded? ({0}ms)", lastServerTick);
         }
+    }
+
+    public void BroadcastSeason()
+    {
+        foreach (KeyValuePair<int, ServerPlayer> c in _serverClientService.Clients)
+            NotifySeason(c.Key);
     }
 
     public void OnConfigLoaded()
@@ -399,12 +363,7 @@ public partial class Server : IServer, IDropItem
     }
 
     private bool disposed = false;
-    private readonly double starttime = GetTime();
 
-    private static double GetTime() => (double)DateTime.UtcNow.Ticks / (10 * 1000 * 1000);
-
-    private double oldtime;
-    private double accumulator;
     private float lastServerTick;
     private int lastClientId;
 

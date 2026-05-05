@@ -711,8 +711,6 @@ public class ServerModManager(IGameExit gameExit, IBlockRegistry blockRegistry, 
 
     public int AutoRestartInterval => _config.AutoRestartCycle;
 
-    public int ServerUptimeSeconds => (int)_server.Uptime.TotalSeconds;
-
     public void SendPlayerRedirect(int player, string ip, int port) => _server.SendServerRedirect(player, ip, port);
 
     public bool IsShuttingDown => gameExit.Exit;

@@ -16,7 +16,6 @@
 
 	<ItemGroup>
 		<!-- SQLite -->
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
 		<!-- Jint JavaScript engine -->
 		<PackageReference Include="Jint" Version="4.7.1" />
 	</ItemGroup>

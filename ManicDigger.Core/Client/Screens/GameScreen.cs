@@ -1,7 +1,6 @@
-﻿using ManicDigger;
+﻿using ManicDigger.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTK.Windowing.Common;
-using Serilog;
 
 /// <summary>
 /// Extends the base screen contract with the game-session initialisation
@@ -19,7 +18,7 @@ public interface IScreenGame : IScreenBase
 /// </summary>
 public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager, ISaveGameService saveGameService,
     ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, 
-    IDummyNetwork dummyNetwork, IGame game, IServiceProvider serviceProvider) : ScreenBase(platform, openGlService, assetManager), IScreenGame
+    IDummyNetwork dummyNetwork, IGame game, IServiceProvider serviceProvider, WorkerHost workerHost) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
     /// <summary>The game instance owned by this screen.</summary>
     private readonly IGame game = game;
@@ -28,6 +27,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     private readonly IGameExit gameExit = gameExit;
     private readonly IScreenManager _menu = menu;
     private readonly IDummyNetwork _dummyNetwork = dummyNetwork;
+    private readonly WorkerHost _workerHost = workerHost;
 
     /// <summary>
     /// Initialises the game with the given connection parameters and starts the
@@ -41,6 +41,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     /// <param name="connectData_">Remote server address and credentials (multiplayer only).</param>
     public void Start(bool singleplayer_, ConnectionData connectData_)
     {
+
         singleplayer = singleplayer_;
         connectData = connectData_;
 
@@ -59,8 +60,16 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
         {
             IDummyNetwork network = singlePlayerService.SinglePlayerServerNetwork;
 
-            // Platform provides its own singleplayer server (e.g. mobile).
-            Task.Run(ServerThreadStart);
+            // Wire the server socket BEFORE starting workers so the first
+            // simulation tick already has a valid socket to drain.
+            ServerSystemBootstraper bootstrapper = serviceProvider.GetRequiredService<ServerSystemBootstraper>();
+            Server server = bootstrapper.Server;
+            server.MainSockets[0] = new DummyNetServer(_dummyNetwork);
+
+            // Start simulation loop + chunk workers + periodic tasks.
+            // WorkerHost sets SinglePlayerServerLoaded = true once everything is live.
+            // Fire-and-forget is fine — startup is fast, socket is already wired above.
+            _ = _workerHost.StartAsync();
 
             // Prime the server inbox so the handshake starts immediately.
             network.ServerInbox.Enqueue([]);
@@ -73,38 +82,6 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
             game.NetClient = CreateNetClient()
                 ?? throw new InvalidOperationException("No network transport available.");
         }
-    }
-
-    private void ServerThreadStart()
-    {
-        Log.Debug("Single-player server thread started");
-
-        ServerSystemBootstraper bootstrapper = serviceProvider.GetRequiredService<ServerSystemBootstraper>();
-        Server server = bootstrapper.Server;
-
-        server.MainSockets[0] = new DummyNetServer(_dummyNetwork);
-
-        while (true)
-        {
-            server.Process();
-            Thread.Sleep(1);
-            singlePlayerService.SinglePlayerServerLoaded = true;
-
-            if (gameExit?.Exit == true)
-            {
-                server.Stop();
-                break;
-            }
-
-            if (singlePlayerService.SinglePlayerServerExit)
-            {
-                server.Exit();
-                singlePlayerService.SinglePlayerServerExit = false;
-            }
-        }
-
-        gameExit.Exit = false;
-        Log.Debug("Single-player server thread stopped cleanly");
     }
 
     /// <summary>

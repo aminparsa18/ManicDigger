@@ -531,12 +531,6 @@ public interface IServerModManager
     int AutoRestartInterval { get; }
 
     /// <summary>
-    /// Returns the number of seconds the server has been running
-    /// </summary>
-    /// <returns>Server uptime in seconds</returns>
-    int ServerUptimeSeconds { get; }
-
-    /// <summary>
     /// Sends a redirection request to the specified client. The target server has to be public!
     /// </summary>
     /// <param name="player"></param>

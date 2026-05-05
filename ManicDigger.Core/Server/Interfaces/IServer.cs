@@ -91,8 +91,9 @@ public interface IServer
     bool PrivateMessage(int sourceClientId, string recipient, string message);
     bool PrivilegeAdd(int sourceClientId, string target, string privilege);
     bool PrivilegeRemove(int sourceClientId, string target, string privilege);
-    void Process();
+    void Process(float dt);
     void ProcessMain();
+    void BroadcastSeason();
     void ReceiveServerConsole(string message);
     bool RemoveClientFromConfig(int sourceClientId, string target);
     bool ResetInventory(int sourceClientId, string target);

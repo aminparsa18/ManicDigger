@@ -24,12 +24,13 @@ public partial class Server : IServer, IDropItem
     private readonly PlayerStatusService _playerStatusService;
     private readonly IClientRegistry _serverClientService;
     private readonly IServerPacketService _serverPacketService;
+    private readonly IGameLogger _gameLogger;
 
     public List<ServerSystem> Systems { get; set; }
 
     public Server(IGameExit gameExit, IGameService gameService, IBlockRegistry blockRegistry, IChunkDbCompressed chunkDb, ILanguageService languageService,
     IAssetManager assetManager, IModEvents modEvents,ICompression compression, IServerMapStorage serverMapStorage, IServerPacketService serverPacketService,
-    IServerConfig config, ISaveGameService saveGameService, PlayerStatusService playerStatusService, IClientRegistry serverClientService)
+    IServerConfig config, ISaveGameService saveGameService, PlayerStatusService playerStatusService, IClientRegistry serverClientService, IGameLogger gameLogger)
     {
         gameplatform = gameService;
         _gameExit = gameExit;
@@ -45,6 +46,7 @@ public partial class Server : IServer, IDropItem
         _playerStatusService = playerStatusService;
         _serverClientService = serverClientService;
         _serverPacketService = serverPacketService;
+        _gameLogger = gameLogger;
 
         _languageService.LoadTranslations();
 
@@ -682,16 +684,23 @@ public partial class Server : IServer, IDropItem
     {
         ServerPlayer c = _serverClientService.Clients[clientid];
         Packet_Client packet = MemoryPackSerializer.Deserialize<Packet_Client>(data.AsSpan(0, data.Length));
+        _gameLogger.Server.Debug($"Received packet {packet.Id} from client {clientid} (QueryClient={c.QueryClient})");
+
         if (c.QueryClient)
         {
-            if (packet.Id is not (PacketType.ServerQuery or PacketType.PlayerIdentification))
+            if (packet.Id is not (
+                PacketType.ServerQuery or
+                PacketType.PlayerIdentification or
+                PacketType.PingReply))
             {
-                //Reject all packets other than ServerQuery or PlayerIdentification
-                DiagLog.Write("Rejected packet from not authenticated client");
+                _gameLogger.Server.Debug($"Rejected packet {packet.Id} from unauthenticated client {clientid}");
                 _serverPacketService.SendPacket(clientid, ServerPackets.DisconnectPlayer("Either send PlayerIdentification or ServerQuery!"));
                 KillPlayer(clientid);
                 return;
             }
+
+            if (packet.Id == PacketType.PingReply)
+                return;
         }
 
         if (_config.ServerMonitor && !serverMonitor.CheckPacket(clientid, packet))
@@ -834,6 +843,7 @@ public partial class Server : IServer, IDropItem
                     SetFillAreaLimit(clientid);
                     SendFreemoveState(clientid, _serverClientService.Clients[clientid].Privileges.Contains(Privilege.freemove));
                     c.QueryClient = false;
+                    _gameLogger.Server.Debug($"Client {clientid} authenticated successfully in TryReadPacket() case: PacketType.PlayerIdentification");
                     _serverClientService.Clients[clientid].Entity.DrawName.Name = username;
                     if (_config.EnablePlayerPushing)
                     {

@@ -25,7 +25,7 @@ public class ModLoadPlayerTextures : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame(float args)
+    public override void OnFrame(float args)
     {
         if (Game.GuiState == GuiState.MapLoading)
         {

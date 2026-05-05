@@ -11,7 +11,7 @@ public class ModNetworkEntity(IGameService gameService, IVoxelMap voxelMap, IGam
     /// <summary>True once the three packet handlers have been registered.</summary>
     private bool _handlersRegistered;
 
-    public override void OnNewFrame(float args)
+    public override void OnFrame(float args)
     {
         // Register once — previously wrote to the handler dictionary every frame.
         if (!_handlersRegistered)

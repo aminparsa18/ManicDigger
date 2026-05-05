@@ -274,17 +274,6 @@ public partial class Game
         return height;
     }
 
-    // ── Per-frame update ──────────────────────────────────────────────────────
-
-    /// <summary>Calls the read-only main-thread hook on all registered mods.</summary>
-    public void Update(float dt)
-    {
-        for (int i = 0; i < ClientMods.Count; i++)
-        {
-            ClientMods[i]?.OnNewFrameReadOnlyMainThread(dt);
-        }
-    }
-
     // ── Block picking ─────────────────────────────────────────────────────────
 
     /// <summary>Returns the nearest <see cref="BlockPosSide"/> to <paramref name="target"/>.</summary>

@@ -25,7 +25,7 @@ public class SunMoonRenderer(IMeshDrawer meshDrawer, IGame game) : ModBase(game)
         t = (hour - 6) / 24f * TwoPi;
     }
 
-    public override void OnNewFrameDraw3d(float dt)
+    public override void OnRender3d(float dt)
     {
         if (sunTexture == -1)
         {

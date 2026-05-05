@@ -2,77 +2,66 @@
 
 /// <summary>
 /// Base class for all client-side mods. Override only the hooks you need.
+///
+/// Threading is not your concern here — the game loop calls these hooks
+/// on the correct thread at the correct time. Background work (chunk
+/// tessellation, world gen) goes through <see cref="IChunkWorkQueue"/>,
+/// not through mod hooks.
 /// </summary>
 public abstract class ModBase(IGame game) : IModBase
 {
     protected IGame Game = game;
 
-    /// <summary>Called each tick on the main thread; game state is read-only.</summary>
-    public virtual void OnReadOnlyMainThread(float dt) { }
+    // ── Logic ─────────────────────────────────────────────────────────────────
 
-    /// <summary>Called each tick on a background thread; game state is read-only.</summary>
-    public virtual void OnReadOnlyBackgroundThread(float dt) { }
+    /// <summary>
+    /// Called once per fixed timestep tick (75 Hz).
+    /// Use for physics, movement, game logic — anything that must be
+    /// frame-rate independent.
+    /// </summary>
+    public virtual void OnUpdate(float dt) { }
 
-    /// <summary>Called each tick on the main thread; game state may be modified.</summary>
-    public virtual void OnReadWriteMainThread(float dt) { }
+    /// <summary>
+    /// Called once per render frame (variable rate).
+    /// Use for anything that should track real elapsed time rather than
+    /// the fixed tick, such as animations or UI transitions.
+    /// </summary>
+    public virtual void OnFrame(float dt) { }
 
-    /// <summary>Called when the player issues a client-side command. Return <see langword="true"/> to mark the command as handled.</summary>
+    // ── Render ────────────────────────────────────────────────────────────────
+
+    /// <summary>Called before the 3D draw pass. Use to set up camera or GL state.</summary>
+    public virtual void OnBeforeRender3d(float dt) { }
+
+    /// <summary>Called during the 3D draw pass. Depth test is active.</summary>
+    public virtual void OnRender3d(float dt) { }
+
+    /// <summary>Called during the 2D overlay pass. Projection is orthographic.</summary>
+    public virtual void OnRender2d(float dt) { }
+
+    // ── Input ─────────────────────────────────────────────────────────────────
+
     public virtual bool OnClientCommand(ClientCommandArgs args) => false;
 
-    /// <summary>Called at the start of each frame.</summary>
-    public virtual void OnNewFrame(float args) { }
-
-    /// <summary>Called each fixed-timestep frame update.</summary>
-    public virtual void OnNewFrameFixed(float args) { }
-
-    /// <summary>Called during the 2D draw pass of each frame.</summary>
-    public virtual void OnNewFrameDraw2d(float deltaTime) { }
-
-    /// <summary>Called before the 3D draw pass of each frame.</summary>
-    public virtual void OnBeforeNewFrameDraw3d(float deltaTime) { }
-
-    /// <summary>Called during the 3D draw pass of each frame.</summary>
-    public virtual void OnNewFrameDraw3d(float deltaTime) { }
-
-    /// <summary>Called during the read-only main thread phase of each frame.</summary>
-    public virtual void OnNewFrameReadOnlyMainThread(float deltaTime) { }
-
-    /// <summary>Called when a keyboard key is pressed down.</summary>
     public virtual void OnKeyDown(KeyEventArgs args) { }
-
-    /// <summary>Called when a character key is pressed (text input).</summary>
     public virtual void OnKeyPress(KeyPressEventArgs args) { }
-
-    /// <summary>Called when a keyboard key is released.</summary>
     public virtual void OnKeyUp(KeyEventArgs args) { }
 
-    /// <summary>Called when a mouse button is released.</summary>
-    public virtual void OnMouseUp(MouseEventArgs args) { }
-
-    /// <summary>Called when a mouse button is pressed down.</summary>
     public virtual void OnMouseDown(MouseEventArgs args) { }
-
-    /// <summary>Called when the mouse cursor moves.</summary>
+    public virtual void OnMouseUp(MouseEventArgs args) { }
     public virtual void OnMouseMove(MouseEventArgs args) { }
-
-    /// <summary>Called when the mouse wheel is scrolled.</summary>
     public virtual void OnMouseWheelChanged(MouseWheelEventArgs args) { }
 
-    /// <summary>Called when a touch gesture begins.</summary>
     public virtual void OnTouchStart(TouchEventArgs e) { }
-
-    /// <summary>Called when a touch gesture moves.</summary>
     public virtual void OnTouchMove(TouchEventArgs e) { }
-
-    /// <summary>Called when a touch gesture ends.</summary>
     public virtual void OnTouchEnd(TouchEventArgs e) { }
 
-    /// <summary>Called when the player uses (right-clicks) an entity.</summary>
-    public virtual void OnUseEntity(OnUseEntityArgs e) { }
+    // ── Entity interaction ────────────────────────────────────────────────────
 
-    /// <summary>Called when the player hits (left-clicks) an entity.</summary>
+    public virtual void OnUseEntity(OnUseEntityArgs e) { }
     public virtual void OnHitEntity(OnUseEntityArgs e) { }
 
-    /// <summary>Called when the mod is unloaded. Release any resources here.</summary>
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
     public virtual void Dispose() { }
 }

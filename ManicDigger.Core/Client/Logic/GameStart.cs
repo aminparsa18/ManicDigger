@@ -61,7 +61,6 @@ public partial class Game
         int detectedSize = openGlService.GlGetMaxTextureSize();
         maxTextureSize = Math.Max(detectedSize, 1024);
 
-        taskScheduler.Initialise();
         MapLoadingStart();
     }
 

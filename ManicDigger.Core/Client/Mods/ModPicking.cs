@@ -96,7 +96,7 @@ public class ModPicking : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameReadOnlyMainThread(float deltaTime)
+    public override void OnFrame(float deltaTime)
     {
         if (Game.GuiState == GuiState.Normal)
         {
@@ -105,7 +105,7 @@ public class ModPicking : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw3d(float dt)
+    public override void OnRender3d(float dt)
     {
         UpdateParticlePhysics(dt);
     }

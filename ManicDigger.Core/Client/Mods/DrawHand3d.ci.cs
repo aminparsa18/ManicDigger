@@ -145,7 +145,7 @@ public class ModDrawHand3d : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnRender3d(float deltaTime)
     {
 
         if (!Game.EnableTppView && Game.ENABLE_DRAW2D)

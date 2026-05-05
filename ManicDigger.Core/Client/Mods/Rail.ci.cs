@@ -79,7 +79,7 @@ public class ModRail : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameFixed(float args)
+    public override void OnUpdate(float args)
     {
         d_RailMapUtil ??= new RailMapUtil(_voxelMap, _blockTypeRegistry) { game = Game };
         RailOnNewFrame(args);

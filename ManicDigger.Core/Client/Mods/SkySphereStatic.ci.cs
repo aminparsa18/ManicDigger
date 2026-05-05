@@ -19,7 +19,7 @@ public class ModSkySphereStatic : ModBase
         this.meshDrawer = meshDrawer;
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnRender3d(float deltaTime)
     {
         platform.GlDisableFog();
         DrawSkySphere();

@@ -173,7 +173,7 @@ public class ModAutoCamera : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame(float dt)
+    public override void OnFrame(float dt)
     {
         if (!_isPlaying)
         {

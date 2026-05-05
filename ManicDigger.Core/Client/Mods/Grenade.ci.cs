@@ -13,7 +13,7 @@ public class ModGrenade : ModBase
     {
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnUpdate(float args)
     {
         for (int i = 0; i < Game.Entities.Count; i++)
         {

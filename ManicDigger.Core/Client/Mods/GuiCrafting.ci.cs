@@ -69,7 +69,7 @@ public class ModGuiCrafting : ModBase
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnRender2d(float deltaTime)
     {
         // Lazy-initialise the tool once.
         d_CraftingTableTool ??= new CraftingTableTool
@@ -91,7 +91,7 @@ public class ModGuiCrafting : ModBase
         }
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnUpdate(float args)
     {
         if (Game.GuiState == GuiState.CraftingRecipes)
         {

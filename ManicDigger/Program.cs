@@ -55,7 +55,6 @@ public class Program
         services.AddSingleton<IScreenFactory, ScreenFactory>();
         services.AddSingleton<IModRegistry, ModRegistry>();
         services.AddSingleton<IModEvents, ModEvents>();
-        services.AddSingleton<ITaskScheduler, TaskScheduler>();
         services.AddSingleton<IAssetManager, AssetManager>();
         services.AddSingleton<ILanguageService, LanguageService>();
         services.AddSingleton<IServerModManager, ServerModManager>();
@@ -78,8 +77,6 @@ public class Program
         services.AddSingleton<IGame, Game>();
 
         // ── Player logic ──────────────────────────────────────────────────────
-        services.AddScoped<IModBase, ModDrawMain>();
-        services.AddScoped<IModBase, ModUpdateMain>();
         services.AddScoped<IModBase, ModNetworkProcess>();
         services.AddScoped<IModBase, ModNetworkEntity>();
         services.AddScoped<IModBase, ModFallDamageToPlayer>();
@@ -120,7 +117,6 @@ public class Program
         services.AddScoped<IModBase, ModDrawSprites>();
         services.AddScoped<IModBase, ModDrawMinecarts>();
         services.AddScoped<IModBase, ModDrawLinesAroundSelectedBlock>();
-        services.AddScoped<IModBase, ModDrawParticleEffectBlockBreak>();
 
         // ── Entity / player rendering ─────────────────────────────────────────
         services.AddScoped<IModBase, ModDrawPlayers>();

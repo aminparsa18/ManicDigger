@@ -1,6 +1,7 @@
 ﻿using ManicDigger.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTK.Windowing.Common;
+using static ManicDigger.Mods.ModNetworkProcess;
 
 /// <summary>
 /// Extends the base screen contract with the game-session initialisation
@@ -17,7 +18,7 @@ public interface IScreenGame : IScreenBase
 /// embedded server lifecycle, and handles reconnect / exit-to-menu transitions.
 /// </summary>
 public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAssetManager assetManager, ISaveGameService saveGameService,
-    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, 
+    ISinglePlayerService singlePlayerService, IPreferences preferences, IGameExit gameExit, IScreenManager menu, IGameLogger gameLogger,
     IDummyNetwork dummyNetwork, IGame game, IServiceProvider serviceProvider, WorkerHost workerHost) : ScreenBase(platform, openGlService, assetManager), IScreenGame
 {
     /// <summary>The game instance owned by this screen.</summary>
@@ -28,6 +29,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     private readonly IScreenManager _menu = menu;
     private readonly IDummyNetwork _dummyNetwork = dummyNetwork;
     private readonly WorkerHost _workerHost = workerHost;
+    private readonly IGameLogger _gameLogger = gameLogger;
 
     /// <summary>
     /// Initialises the game with the given connection parameters and starts the
@@ -56,6 +58,7 @@ public class ScreenGame(IGameService platform, IOpenGlService openGlService, IAs
     /// </summary>
     private void Connect()
     {
+        _gameLogger.Client.Debug($"Connect() called — singleplayer={singleplayer}");
         if (singleplayer)
         {
             IDummyNetwork network = singlePlayerService.SinglePlayerServerNetwork;

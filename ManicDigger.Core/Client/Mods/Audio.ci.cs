@@ -20,7 +20,7 @@ public sealed class ModAudio : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame(float dt)
+    public override void OnFrame(float dt)
     {
         if (_assetManager.AssetsLoadProgress < 1f)
         {
@@ -37,7 +37,7 @@ public sealed class ModAudio : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameFixed(float dt)
+    public override void OnUpdate(float dt)
     {
         if (Game.GuiState == GuiState.MapLoading)
         {

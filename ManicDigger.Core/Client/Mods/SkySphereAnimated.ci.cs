@@ -22,10 +22,10 @@ public class ModSkySphereAnimated : ModBase
         stars = new ModSkySphereStatic(platform, meshDrawer, game);
     }
 
-    public override void OnNewFrameDraw3d(float deltaTime)
+    public override void OnRender3d(float deltaTime)
     {
         Game.SkySphereNight = false;
-        stars.OnNewFrameDraw3d(deltaTime);
+        stars.OnRender3d(deltaTime);
         platform.GlDisableFog();
         DrawSkySphere();
         Game.SetFog();

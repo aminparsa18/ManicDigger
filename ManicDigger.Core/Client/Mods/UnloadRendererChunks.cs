@@ -10,10 +10,10 @@ public class ModUnloadRendererChunks : ModBase
     /// <summary>Reference to the current game instance, refreshed every background tick.</summary>
     private readonly IVoxelMap _voxelMap;
     private readonly IMeshBatcher meshBatcher;
-    private readonly ITaskScheduler taskScheduler;
 
     private int _pendingUnloadIndex = -1;
     private readonly Action _unloadAction;
+    private int _backgroundRunning; // 0 = idle, 1 = running (Interlocked)
 
     /// <summary>Edge length of one chunk in blocks.</summary>
     private int _chunkSize;
@@ -48,6 +48,67 @@ public class ModUnloadRendererChunks : ModBase
         _unloadAction = ExecuteUnload; // allocated once, reused forever
     }
 
+    public override void OnFrame(float dt)
+    {
+        if (Interlocked.CompareExchange(ref _backgroundRunning, 1, 0) == 0)
+        {
+            Task.Run(() =>
+            {
+                try { ScanForUnloads(); }
+                finally { Interlocked.Exchange(ref _backgroundRunning, 0); }
+            });
+        }
+    }
+
+    private void ScanForUnloads()
+    {
+        RefreshChunkGridDimensions();
+
+        int px = (int)(Game.LocalPositionX * _invertedChunk);
+        int py = (int)(Game.LocalPositionZ * _invertedChunk);
+        int pz = (int)(Game.LocalPositionY * _invertedChunk);
+
+        int halfXY = (int)(MapAreaSize() * _invertedChunk * 0.5f);
+        int halfZ = (int)(MapAreaSizeZ() * _invertedChunk * 0.5f);
+
+        int startX = Math.Max(px - halfXY, 0);
+        int startY = Math.Max(py - halfXY, 0);
+        int startZ = Math.Max(pz - halfZ, 0);
+        int endX = Math.Min(px + halfXY, _mapSizeXChunks - 1);
+        int endY = Math.Min(py + halfXY, _mapSizeYChunks - 1);
+        int endZ = Math.Min(pz + halfZ, _mapSizeZChunks - 1);
+
+        int totalChunks = _mapSizeXChunks * _mapSizeYChunks * _mapSizeZChunks;
+        int checksPerTick = Math.Max(100, totalChunks / (5 * 75));
+
+        for (int i = 0; i < checksPerTick; i++)
+        {
+            if (++_unloadIterator >= totalChunks)
+                _unloadIterator = 0;
+
+            VectorIndexUtil.PosInt(_unloadIterator, _mapSizeXChunks, _mapSizeYChunks, ref _unloadXyzTemp);
+            int x = _unloadXyzTemp.X;
+            int y = _unloadXyzTemp.Y;
+            int z = _unloadXyzTemp.Z;
+
+            int flatIndex = VectorIndexUtil.Index3d(x, y, z, _mapSizeXChunks, _mapSizeYChunks);
+            Chunk chunk = _voxelMap.Chunks[flatIndex];
+            if (chunk == null) continue;
+
+            bool hasRenderedGeometry = chunk.Rendered?.Ids != null;
+            bool hasBlockData = chunk.HasData();
+            if (!hasRenderedGeometry && !hasBlockData) continue;
+
+            if (x < startX || y < startY || z < startZ
+             || x > endX || y > endY || z > endZ)
+            {
+                _pendingUnloadIndex = flatIndex;
+                Game.QueueActionCommit(_unloadAction);
+                if (hasRenderedGeometry) break;
+            }
+        }
+    }
+
     /// <summary>
     /// Creates a main-thread <see cref="Action"/> that removes a single chunk's
     /// geometry from the batcher and resets its render state so it can be
@@ -68,27 +129,20 @@ public class ModUnloadRendererChunks : ModBase
     private void ExecuteUnload()
     {
         int chunkFlatIndex = _pendingUnloadIndex;
-        if (chunkFlatIndex == -1)
-        {
-            return;
-        }
+        if (chunkFlatIndex == -1) return;
 
         Chunk chunk = _voxelMap.Chunks[chunkFlatIndex];
-        if (chunk == null)
-        {
-            return;
-        }
+        if (chunk == null) return;
 
         RenderedChunk rendered = chunk.Rendered;
         if (rendered != null)
         {
             for (int k = 0; k < rendered.IdsCount; k++)
-            {
                 meshBatcher.Remove(rendered.Ids[k]);
-            }
 
             rendered.Ids = null;
             rendered.Dirty = true;
+
             if (rendered.LightRented && rendered.Light != null)
             {
                 System.Buffers.ArrayPool<byte>.Shared.Return(rendered.Light);
@@ -100,88 +154,6 @@ public class ModUnloadRendererChunks : ModBase
 
         chunk.Release();
         _voxelMap.Chunks[chunkFlatIndex] = null;
-    }
-
-    /// <inheritdoc/>
-    public override void OnReadOnlyBackgroundThread(float dt)
-    {
-        RefreshChunkGridDimensions();
-
-        // Compute the view-distance box in chunk coordinates.
-        int px = (int)(Game.LocalPositionX * _invertedChunk);
-        int py = (int)(Game.LocalPositionZ * _invertedChunk);
-        int pz = (int)(Game.LocalPositionY * _invertedChunk);
-
-        int halfXY = (int)(MapAreaSize() * _invertedChunk * 0.5f);
-        int halfZ = (int)(MapAreaSizeZ() * _invertedChunk * 0.5f);
-
-        int startX = Math.Max(px - halfXY, 0);
-        int startY = Math.Max(py - halfXY, 0);
-        int startZ = Math.Max(pz - halfZ, 0);
-        int endX = Math.Min(px + halfXY, _mapSizeXChunks - 1);
-        int endY = Math.Min(py + halfXY, _mapSizeYChunks - 1);
-        int endZ = Math.Min(pz + halfZ, _mapSizeZChunks - 1);
-
-        int totalChunks = _mapSizeXChunks * _mapSizeYChunks * _mapSizeZChunks;
-
-        // scan full array over ~10 frames regardless of machine speed
-        // At 75 ticks/sec this completes a full pass every ~133ms, plenty fast enough
-        int checksPerTick = Math.Max(100, totalChunks / (5 * 75));
-
-        for (int i = 0; i < checksPerTick; i++)
-        {
-            // Advance and wrap the round-robin iterator.
-            if (++_unloadIterator >= totalChunks)
-            {
-                _unloadIterator = 0;
-            }
-
-            VectorIndexUtil.PosInt(_unloadIterator, _mapSizeXChunks, _mapSizeYChunks, ref _unloadXyzTemp);
-            int x = _unloadXyzTemp.X;
-            int y = _unloadXyzTemp.Y;
-            int z = _unloadXyzTemp.Z;
-
-            int flatIndex = VectorIndexUtil.Index3d(x, y, z, _mapSizeXChunks, _mapSizeYChunks);
-            Chunk chunk = _voxelMap.Chunks[flatIndex];
-
-            // Skip empty slots — nothing to free.
-            if (chunk == null)
-            {
-                continue;
-            }
-
-            // Determine whether this chunk holds any state worth freeing.
-            // Previously only rendered chunks (rendered.Ids != null) were unloaded.
-            // That left two invisible sources of unbounded memory growth:
-            //   1. Chunks received from the server but outside render distance —
-            //      they have block data but are never tessellated, so Ids stays null.
-            //   2. Phantom chunks allocated by CalculateShadows when it called
-            //      GetChunk() on 26 neighbours to check base-light: those neighbours
-            //      may not exist yet so GetChunk_ rents two byte[4096] arrays each.
-            // Both categories must be unloaded when outside the view-distance box.
-            bool hasRenderedGeometry = chunk.Rendered?.Ids != null;
-            bool hasBlockData = chunk.HasData();
-            if (!hasRenderedGeometry && !hasBlockData)
-            {
-                continue;
-            }
-
-            // If the chunk is outside the view-distance box, queue its removal.
-            if (x < startX || y < startY || z < startZ
-             || x > endX || y > endY || z > endZ)
-            {
-                _pendingUnloadIndex = flatIndex;
-                taskScheduler.Enqueue(_unloadAction);
-                // Rate-limit only for rendered chunks (GPU removal needed).
-                // Data-only chunks are CPU-only and cheap — continue scanning
-                // so we can drain multiple per tick and keep pace with the
-                // server's chunk send rate during fast exploration.
-                if (hasRenderedGeometry)
-                {
-                    break;
-                }
-            }
-        }
     }
 
     /// <summary>

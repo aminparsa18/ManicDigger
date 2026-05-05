@@ -20,7 +20,7 @@ public class ModScreenshot : ModBase
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnRender2d(float deltaTime)
     {
         if (takeScreenshot)
         {

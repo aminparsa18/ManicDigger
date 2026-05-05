@@ -10,6 +10,9 @@ using OpenTK.Windowing.Common;
 /// </summary>
 public interface IGame : IDisposable
 {
+    //temporary : will be replaced in worker pool
+    void QueueActionCommit(Action action);
+
     // =========================================================================
     // Platform & core
     // =========================================================================
@@ -30,13 +33,7 @@ public interface IGame : IDisposable
     // Frame / update loop
     // =========================================================================
 
-    /// <summary>Called by the platform once per rendered frame.</summary>
-    void MainThreadOnRenderFrame(float deltaTime);
-
     void OnRenderFrame(float deltaTime);
-
-    /// <summary>Advances all fixed-timestep game logic by <paramref name="dt"/> seconds.</summary>
-    void Update(float dt);
 
     // =========================================================================
     // Rendering — 2-D

@@ -1,4 +1,6 @@
-﻿public partial class Game
+﻿using static ManicDigger.Mods.ModNetworkProcess;
+
+public partial class Game
 {
     public bool IsTeamchat { get; set; }
 

@@ -20,15 +20,15 @@ public class ModNetworkProcess : ModBase
 {
     private readonly IGameService _platform;
     private readonly IVoxelMap voxelMap;
-    private readonly ITaskScheduler taskScheduler;
     private readonly IBlockRegistry blockTypeRegistry;
+    private readonly IGameLogger _gameLogger;
 
-    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, ITaskScheduler taskScheduler, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
+    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGameLogger gameLogger, IGame game) : base(game)
     {
         _platform = gamePlatform;
         this.voxelMap = voxelMap;
-        this.taskScheduler = taskScheduler;
         this.blockTypeRegistry = blockTypeRegistry;
+        _gameLogger = gameLogger;
         CurrentChunk = new byte[1024 * 64];
         CurrentChunkCount = 0;
         receivedchunk = new int[32 * 32 * 32];
@@ -48,7 +48,7 @@ public class ModNetworkProcess : ModBase
     private static int Index3d(int x, int y, int h, int sizex, int sizey)
         => (((h * sizey) + y) * sizex) + x;
 
-    public override void OnReadOnlyBackgroundThread(float dt)
+    public override void OnFrame(float dt)
         => NetworkProcess();
 
     public void NetworkProcess()
@@ -59,7 +59,6 @@ public class ModNetworkProcess : ModBase
             return;
         }
 
-        // ── Fix #7: while loop instead of for(;;) with two break conditions ───
         NetIncomingMessage msg;
         while (Game.InvalidVersionPacketIdentification == null
             && (msg = Game.NetClient.ReadMessage()) != null)
@@ -84,7 +83,7 @@ public class ModNetworkProcess : ModBase
         packet = MemoryPackSerializer.Deserialize<Packet_Server>(
             data.AsSpan(0, dataLength));
         ProcessInBackground(packet);
-        taskScheduler.Enqueue(() => ProcessPacket(packet));
+        ProcessPacket(packet);
         Game.LastReceivedMilliseconds = Game.CurrentTimeMilliseconds;
     }
 
@@ -192,6 +191,7 @@ public class ModNetworkProcess : ModBase
         {
             case Packet_ServerIdEnum.ServerIdentification:
                 {
+                    _gameLogger.Client.Debug($"Received Identification packet");
                     string invalidversionstr = Game.Language.InvalidVersionConnectAnyway();
                     Game.ServerGameVersion = packet.Identification.MdProtocolVersion;
                     if (Game.ServerGameVersion != _platform.GetGameVersion())

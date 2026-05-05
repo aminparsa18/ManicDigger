@@ -12,7 +12,7 @@ public class ModExpire : ModBase
         _blockTypeRegistry = blockTypeRegistry;
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnUpdate(float args)
     {
         float dt = args;
         for (int i = 0; i < Game.Entities.Count; i++)

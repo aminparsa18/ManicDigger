@@ -18,7 +18,7 @@ public class ModGuiPlayerStats : ModBase
         this.platform = platform;
     }
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnRender2d(float deltaTime)
     {
         if (Game.GuiState == GuiState.MapLoading || Game.PlayerStats == null)
         {

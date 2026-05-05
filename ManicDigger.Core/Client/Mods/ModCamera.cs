@@ -58,14 +58,13 @@ public class ModCamera : ModBase
         this._gameService = gameService;
     }
 
-    public override void OnBeforeNewFrameDraw3d(float deltaTime)
+    public override void OnBeforeRender3d(float deltaTime)
     {
         _dt = deltaTime;
         Game.Camera = Game.OverheadCamera ? OverheadCamera() : FppCamera();
-       // UpdateSprintFov();
     }
 
-    public override void OnNewFrame(float deltaTime)
+    public override void OnFrame(float deltaTime)
     {
         UpdateSprintFov();
         DrawSprintVignette();

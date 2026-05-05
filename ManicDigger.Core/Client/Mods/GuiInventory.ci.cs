@@ -284,7 +284,7 @@ public class ModGuiInventory : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnRender2d(float deltaTime)
     {
         if (inventoryService == null)
         {

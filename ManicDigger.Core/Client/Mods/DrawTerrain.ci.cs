@@ -32,7 +32,6 @@ public class ModDrawTerrain : ModBase
     private readonly IGameService _platform;
     private readonly IVoxelMap _voxelMap;
     private readonly IMeshBatcher meshBatcher;
-    private readonly ITaskScheduler taskScheduler;
     private readonly IBlockRegistry _blockTypeRegistry;
 
     private readonly LightBase _lightBase;
@@ -62,14 +61,16 @@ public class ModDrawTerrain : ModBase
 
     private readonly Vector3i[] _blocksAround7Buffer = new Vector3i[7];
 
+    // Guard prevents a second tessellation task firing before the first commits.
+    private int _backgroundRunning; // 0 = idle, 1 = running (Interlocked)
+
     public ModDrawTerrain(IGameService platform, IVoxelMap voxelMap, IMeshBatcher meshBatcher,
-        IBlockRegistry blockRegistry, ITaskScheduler taskScheduler, IGame game) : base(game)
+        IBlockRegistry blockRegistry, IGame game) : base(game)
     {
         _platform = platform;
         _voxelMap = voxelMap;
         _blockTypeRegistry = blockRegistry;
         this.meshBatcher = meshBatcher;
-        this.taskScheduler = taskScheduler;
         _currentChunk = new int[BufferedChunkVolume];
         _currentChunkShadows = new byte[BufferedChunkVolume];
         _batcherIds = new int[1024];
@@ -88,7 +89,7 @@ public class ModDrawTerrain : ModBase
 
     // ── ModBase overrides ─────────────────────────────────────────────────────
 
-    public override void OnNewFrameDraw3d(float _)
+    public override void OnRender3d(float _)
     {
         if (Game.ShouldRedrawAllBlocks)
         {
@@ -100,10 +101,25 @@ public class ModDrawTerrain : ModBase
         UpdatePerformanceInfo(Game);
     }
 
-    public override void OnReadOnlyBackgroundThread(float dt)
+    public override void OnFrame(float dt)
     {
-        UpdateTerrain(Game);
-        taskScheduler.Enqueue(MainThreadCommit);
+        // Only fire a new background task if the previous one has committed.
+        // TODO: replace Task.Run with ChunkWorkerPool when chunk jobs are implemented.
+        if (Interlocked.CompareExchange(ref _backgroundRunning, 1, 0) == 0)
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    UpdateTerrain(Game);
+                    Game.QueueActionCommit(MainThreadCommit);
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _backgroundRunning, 0);
+                }
+            });
+        }
     }
 
     //public override void Dispose() => Clear();

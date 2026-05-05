@@ -15,7 +15,6 @@ public partial class Game : IGame
     private readonly IGameService gameService;
     private readonly IOpenGlService openGlService;
     private readonly ISinglePlayerService singlePlayerService;
-    private readonly ITaskScheduler taskScheduler;
     private readonly IModRegistry modRegistry;
     private readonly IGameLogger _gameLogger;
 
@@ -350,7 +349,7 @@ public partial class Game : IGame
     // Constructor
     // -------------------------------------------------------------------------
 
-    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITaskScheduler taskScheduler,
+    public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService,
         IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService, IFrustumCulling frustumCulling,
         IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager, IGameLogger gameLogger)
     {
@@ -358,7 +357,6 @@ public partial class Game : IGame
         openGlService = platformOpenGl;
         _gameLogger = gameLogger;
         this.singlePlayerService = singlePlayerService;
-        this.taskScheduler = taskScheduler;
         _blockRegistry = blockTypeRegistry;
         this.modRegistry = modRegistry;
         this.voxelMap = voxelMap;

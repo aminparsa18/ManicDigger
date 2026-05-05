@@ -16,7 +16,7 @@ public class ModCameraKeys : ModBase
         this.cameraService = cameraService;
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnUpdate(float args)
     {
         if (Game.GuiState == GuiState.MapLoading)
         {

@@ -18,7 +18,7 @@ public class ModDialog : ModBase
         packetHandler = new ClientPacketHandlerDialog(platform, game);
     }
 
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnRender2d(float deltaTime)
     {
         Game.PacketHandlers[(int)Packet_ServerIdEnum.Dialog] = packetHandler;
         DrawDialogs(Game);

@@ -67,7 +67,7 @@ public class ModGuiTouchButtons : ModScreen
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrameDraw2d(float deltaTime)
+    public override void OnRender2d(float deltaTime)
     {
         if (!_touchButtonsEnabled)
         {

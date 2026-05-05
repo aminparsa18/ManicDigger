@@ -20,7 +20,7 @@ public class ModFallDamageToPlayer : ModBase
         _blockRegistry = blockRegistry;
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnUpdate(float args)
     {
         if (Game.GuiState == GuiState.MapLoading)
         {

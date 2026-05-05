@@ -29,7 +29,7 @@ public class ModBlockDamageToPlayer : ModBase
         this.blockTypeRegistry = blockTypeRegistry;
     }
 
-    public override void OnNewFrameFixed(float args)
+    public override void OnUpdate(float args)
     {
         if (Game.GuiState == GuiState.MapLoading || Game.FollowId() != null)
         {

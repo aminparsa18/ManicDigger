@@ -37,7 +37,7 @@ public class ModFpsHistoryGraph : ModBase
     }
 
     /// <inheritdoc/>
-    public override void OnNewFrame(float dt)
+    public override void OnFrame(float dt)
     {
         UpdateGraph(dt);
         UpdateTitleFps(dt);

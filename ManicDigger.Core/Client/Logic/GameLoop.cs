@@ -1,126 +1,104 @@
 ﻿using OpenTK.Mathematics;
+using System.Collections.Concurrent;
+using static ManicDigger.Mods.ModNetworkProcess;
 
 public partial class Game
 {
     // ── Fixed-timestep constants ──────────────────────────────────────────────
 
-    /// <summary>Number of fixed-logic ticks per second.</summary>
     private const int FixedTickRate = 75;
-
-    /// <summary>Delta time (seconds) passed to each <see cref="FrameTick"/> call.</summary>
     private const float FixedTickDt = 1f / FixedTickRate;
-
-    /// <summary>Value of <see cref="EnableLog"/> that simulates ~20 ms frame lag.</summary>
+    private const float MouseSmoothingDt = 1f / 75f;
     private const int EnableLogSimulateLag = 2;
+    private const int MaxTicksPerFrame = 3;
+    private const int MaxCommitsPerFrame = 32;
 
-    // Recomputed only when the colour changes, not every frame.
+    // ── Commit queue (background → main thread) ───────────────────────────────
+
+    /// <summary>
+    /// Thread-safe queue for actions produced by background workers
+    /// (chunk tessellation results, light updates) that must be applied
+    /// on the main thread. Replaces TaskScheduler.CommitActions.
+    /// </summary>
+    public ConcurrentQueue<Action> CommitQueue { get; } = new();
+
+    public void QueueActionCommit(Action action) => CommitQueue.Enqueue(action);
+
+    // ── Clear colour cache ────────────────────────────────────────────────────
+
     private float _clearColorRf, _clearColorGf, _clearColorBf, _clearColorAf;
     private int _lastClearColorR = -1, _lastClearColorG = -1,
-                  _lastClearColorB = -1, _lastClearColorA = -1;
+                _lastClearColorB = -1, _lastClearColorA = -1;
 
     // ── Entry point ───────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Top-level per-frame entry point. Delegates to the task scheduler which
-    /// orchestrates background and main-thread mod hooks.
+    /// Top-level per-frame entry point called by <c>Window.RenderFrame</c>.
+    /// Drives fixed update, drains background commits, then renders.
+    /// No scheduler, no mod indirection — just a straight call sequence.
     /// </summary>
-    public void OnRenderFrame(float deltaTime)
-        => taskScheduler.Update(deltaTime);
-
-    /// <summary>
-    /// Main-thread render path. Drives the fixed-update accumulator, dispatches
-    /// 3D and 2D draw hooks to all registered mods, and handles the map-loading
-    /// screen as a fast-exit special case.
-    /// </summary>
-    public void MainThreadOnRenderFrame(float deltaTime)
+    public void OnRenderFrame(float dt)
     {
         UpdateResize();
         UpdateClearColor();
-        UpdateMouseSmoothing(deltaTime);
+        UpdateMouseSmoothing(dt);
 
-        // Required in Mono for running the terrain background thread.
         gameService.ApplicationDoEvents();
 
-        // Fixed-timestep accumulator — capped at 1 s to prevent spiral-of-death
-        // when the renderer stalls (e.g. window resize, focus loss).
-        accumulator = Math.Min(accumulator + deltaTime, 1f);
-        int maxTicksPerFrame = 3; // never run more than 3 physics ticks per render frame
-        while (accumulator >= FixedTickDt && maxTicksPerFrame-- > 0)
+        // Fixed timestep — capped at 1 s to prevent spiral-of-death.
+        accumulator = Math.Min(accumulator + dt, 1f);
+        int ticks = MaxTicksPerFrame;
+        while (accumulator >= FixedTickDt && ticks-- > 0)
         {
-            FrameTick(FixedTickDt);
+            FixedUpdate(FixedTickDt);
             accumulator -= FixedTickDt;
         }
 
-        // During map loading only the 2D pass (progress bar, status text) runs.
+        // Drain results from ChunkWorkerPool and other background workers.
+        DrainCommitQueue();
+
+        // Per-frame mod hook (variable dt).
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.OnFrame(dt);
+
+        TryInitialiseConnection();
+
+        // Map loading — only 2D pass needed.
         if (GuiState == GuiState.MapLoading)
         {
-            RunDraw2dAndEndFrame(deltaTime);
+            Render2d(dt);
             return;
         }
 
-        // Fix #4: named constant instead of magic number.
         if (EnableLog == EnableLogSimulateLag)
-        {
             Thread.SpinWait(20_000_000);
-        }
 
-        SetAmbientLight(Terraincolor());
-        openGlService.GlClearColorBufferAndDepthBuffer();
-        openGlService.BindTexture2d(TerrainTexture);
-
-        for (int i = 0; i < ClientMods.Count; i++)
-        {
-            ClientMods[i]?.OnBeforeNewFrameDraw3d(deltaTime);
-        }
-
-        meshDrawer.GLMatrixModeModelView();
-        meshDrawer.GLLoadMatrix(Camera);
-        CameraMatrix.LastModelViewMatrix = Camera;
-        FrustumCulling.CalcFrustumEquations();
-
-        openGlService.GlEnableDepthTest();
-        for (int i = 0; i < ClientMods.Count; i++)
-        {
-            ClientMods[i]?.OnNewFrameDraw3d(deltaTime);
-        }
-
-        RunDraw2dAndEndFrame(deltaTime);
+        Render3d(dt);
+        Render2d(dt);
     }
 
-    // ── Fixed update tick ─────────────────────────────────────────────────────
+    // ── Fixed update ──────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Advances game logic by one fixed time step.
-    /// Runs mod fixed hooks, entity scripts, physics revert, audio listener
-    /// positioning, and player velocity estimation.
+    /// One fixed timestep tick — mod logic, entity scripts, physics, audio.
     /// </summary>
-    internal void FrameTick(float dt)
+    private void FixedUpdate(float dt)
     {
         for (int i = 0; i < ClientMods.Count; i++)
-        {
-            ClientMods[i].OnNewFrameFixed(dt);
-        }
+            ClientMods[i]?.OnUpdate(dt);
 
         for (int i = 0; i < Entities.Count; i++)
         {
             Entity e = Entities[i];
-            if (e == null)
-            {
-                continue;
-            }
-
+            if (e == null) continue;
             for (int k = 0; k < e.scriptsCount; k++)
-            {
                 e.scripts[k].OnNewFrameFixed(i, dt);
-            }
         }
 
         RevertSpeculative(dt);
 
         if (GuiState == GuiState.MapLoading)
-        {
             return;
-        }
 
         Vector3 vel;
         vel.X = (Player.position.x - lastplayerpositionX) * FixedTickRate;
@@ -133,49 +111,60 @@ public partial class Game
         lastplayerpositionZ = Player.position.z;
     }
 
-    // ── 2D pass + end-of-frame work ───────────────────────────────────────────
+    // ── Render passes ─────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Runs the 2D overlay pass, fires the end-of-frame mod hook, resets click
-    /// state, and initiates the server connection on the first eligible frame.
-    /// </summary>
-    internal void RunDraw2dAndEndFrame(float dt)
+    private void Render3d(float dt)
     {
-        // ── Drain the commit queue ────────────────────────────────────────────
-        // Cap at 32 actions per frame so a sudden flood can't stall rendering.
-        // Unprocessed actions stay in the queue and drain over subsequent frames.
-        int maxCommitsPerFrame = 32;
-        while (maxCommitsPerFrame-- > 0 && taskScheduler.Dequeue(out Action? action))
-        {
-            action();
-        }
+        SetAmbientLight(Terraincolor());
+        openGlService.GlClearColorBufferAndDepthBuffer();
+        openGlService.BindTexture2d(TerrainTexture);
 
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.OnBeforeRender3d(dt);
+
+        meshDrawer.GLMatrixModeModelView();
+        meshDrawer.GLLoadMatrix(Camera);
+        CameraMatrix.LastModelViewMatrix = Camera;
+        FrustumCulling.CalcFrustumEquations();
+
+        openGlService.GlEnableDepthTest();
+
+        for (int i = 0; i < ClientMods.Count; i++)
+            ClientMods[i]?.OnRender3d(dt);
+    }
+
+    private void Render2d(float dt)
+    {
         SetAmbientLight(ColorUtils.ColorFromArgb(255, 255, 255, 255));
         Draw2d(dt);
 
         for (int i = 0; i < ClientMods.Count; i++)
-        {
-            ClientMods[i]?.OnNewFrame(dt);
-        }
+            ClientMods[i]?.OnRender2d(dt);
 
         MouseLeftClick = false;
         mouserightclick = false;
         mouseleftdeclick = false;
-
-        TryInitialiseConnection();
     }
 
+    // ── Commit queue ──────────────────────────────────────────────────────────
+
     /// <summary>
-    /// Initiates the server connection on the first eligible frame.
-    /// Extracted from <see cref="RunDraw2dAndEndFrame"/> — starting a network
-    /// connection has nothing to do with drawing.
+    /// Drains background-to-main-thread actions, capped at
+    /// <see cref="MaxCommitsPerFrame"/> so a flood can't stall rendering.
     /// </summary>
+    private void DrainCommitQueue()
+    {
+        int remaining = MaxCommitsPerFrame;
+        while (remaining-- > 0 && CommitQueue.TryDequeue(out Action? action))
+            action();
+    }
+
+    // ── Connection init ───────────────────────────────────────────────────────
+
     private void TryInitialiseConnection()
     {
-        if (StartedConnecting)
-        {
-            return;
-        }
+        _gameLogger.Client.Debug($"TryInitialiseConnection — IsSinglePlayer={IsSinglePlayer} ServerLoaded={singlePlayerService.SinglePlayerServerLoaded} ServerAvailable={singlePlayerService.SinglePlayerServerAvailable} StartedConnecting={StartedConnecting}");
+        if (StartedConnecting) return;
 
         if (!IsSinglePlayer
          || singlePlayerService.SinglePlayerServerLoaded
@@ -188,39 +177,25 @@ public partial class Game
 
     // ── Resize / viewport ─────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Detects canvas size changes and triggers a viewport + projection update.
-    /// </summary>
     private void UpdateResize()
     {
         int w = gameService.CanvasWidth;
         int h = gameService.CanvasHeight;
-        if (lastWidth == w && lastHeight == h)
-        {
-            return;
-        }
-
+        if (lastWidth == w && lastHeight == h) return;
         lastWidth = w;
         lastHeight = h;
         OnResize();
     }
 
-    /// <summary>Updates the OpenGL viewport and projection matrix after a resize.</summary>
     internal void OnResize()
     {
         openGlService.GlViewport(0, 0, gameService.CanvasWidth, gameService.CanvasHeight);
         Set3dProjection2();
-        if (sendResize)
-        {
-            SendGameResolution();
-        }
+        if (sendResize) SendGameResolution();
     }
 
     // ── Per-frame helpers ─────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Sets the GL clear colour.
-    /// </summary>
     private void UpdateClearColor()
     {
         if (GuiState == GuiState.MapLoading)
@@ -229,11 +204,8 @@ public partial class Game
             return;
         }
 
-        // Recompute only when any component has changed.
-        if (clearcolorR != _lastClearColorR
-         || clearcolorG != _lastClearColorG
-         || clearcolorB != _lastClearColorB
-         || clearcolorA != _lastClearColorA)
+        if (clearcolorR != _lastClearColorR || clearcolorG != _lastClearColorG
+         || clearcolorB != _lastClearColorB || clearcolorA != _lastClearColorA)
         {
             _clearColorRf = clearcolorR / 255f;
             _clearColorGf = clearcolorG / 255f;
@@ -248,14 +220,9 @@ public partial class Game
         openGlService.GlClearColorRgbaf(_clearColorRf, _clearColorGf, _clearColorBf, _clearColorAf);
     }
 
-    /// <summary>
-    /// Advances the mouse-smoothing accumulator and fires viewport control
-    /// updates at a fixed rate of 300 Hz, independent of frame rate.
-    /// </summary>
-    private void UpdateMouseSmoothing(float deltaTime)
+    private void UpdateMouseSmoothing(float dt)
     {
-        const float MouseSmoothingDt = 1f / 75f;
-        mouseSmoothingAccum += deltaTime;
+        mouseSmoothingAccum += dt;
         while (mouseSmoothingAccum > MouseSmoothingDt)
         {
             mouseSmoothingAccum -= MouseSmoothingDt;

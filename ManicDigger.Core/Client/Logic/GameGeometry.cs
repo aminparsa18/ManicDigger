@@ -411,7 +411,7 @@ public partial class Game
 
         for (int i = 0; i < ClientMods.Count; i++)
         {
-            ClientMods[i]?.OnNewFrameDraw2d(dt);
+            ClientMods[i]?.OnRender2d(dt);
         }
 
         // Fix #3: evict stale text textures once per frame here, not inside Draw2dText.

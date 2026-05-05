@@ -54,7 +54,7 @@ public class ModFly : ModBase
     }
 
     // ── Feed freemove + vertical intent into Controls every physics tick ──────
-    public override void OnNewFrameFixed(float dt)
+    public override void OnUpdate(float dt)
     {
         if (!flyActive)
         {

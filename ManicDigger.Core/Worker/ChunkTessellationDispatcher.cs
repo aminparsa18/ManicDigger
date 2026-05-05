@@ -13,11 +13,10 @@ public sealed class ChunkTessellationDispatcher : IChunkWorkDispatcher
     private const int BufferedChunkEdge = 18;
     private const int BufferedChunkVolume = BufferedChunkEdge * BufferedChunkEdge * BufferedChunkEdge;
 
-    private readonly IGame _game;
     private readonly IVoxelMap _voxelMap;
     private readonly IBlockRegistry _blockRegistry;
     private readonly IMeshBatcher _meshBatcher;
-
+    private readonly ILightManager _lightManager;
     private readonly ITerrainChunkTesselator _tesselator;
     private readonly ThreadLocal<ChunkTessellationContext> _context;
 
@@ -26,17 +25,17 @@ public sealed class ChunkTessellationDispatcher : IChunkWorkDispatcher
     private bool _started;
 
     public ChunkTessellationDispatcher(
-        IGame game,
         IVoxelMap voxelMap,
         ITerrainChunkTesselator tesselator,
         IBlockRegistry blockRegistry,
+        ILightManager lightManager,
         IMeshBatcher meshBatcher)
     {
-        _game = game;
         _voxelMap = voxelMap;
         _tesselator = tesselator;
         _blockRegistry = blockRegistry;
         _meshBatcher = meshBatcher;
+        _lightManager = lightManager;
 
         _context = new ThreadLocal<ChunkTessellationContext>(
             () => _tesselator.CreateContext(),
@@ -93,7 +92,7 @@ public sealed class ChunkTessellationDispatcher : IChunkWorkDispatcher
 
             VerticesIndicesToLoad[] meshes = _tesselator.MakeChunk(
                 x, y, z,
-                _game.LightLevels,
+                _lightManager.LightLevels,
                 ctx,
                 out meshCount);
 
@@ -148,7 +147,7 @@ public sealed class ChunkTessellationDispatcher : IChunkWorkDispatcher
                     if (neighbour.BaseLightDirty)
                     {
                         ctx.LightBase.CalculateChunkBaseLight(
-                            _game, cx1, cy1, cz1,
+                            cx1, cy1, cz1,
                             ctx.ShadowLightRadius, ctx.ShadowIsTransparent);
                         neighbour.BaseLightDirty = false;
                         anyBaseLightChanged = true;
@@ -168,8 +167,7 @@ public sealed class ChunkTessellationDispatcher : IChunkWorkDispatcher
 
         if (anyBaseLightChanged)
         {
-            ctx.LightBetweenChunks.CalculateLightBetweenChunks(
-                _game, cx, cy, cz,
+            ctx.LightBetweenChunks.CalculateLightBetweenChunks(cx, cy, cz,
                 ctx.ShadowLightRadius, ctx.ShadowIsTransparent);
         }
 

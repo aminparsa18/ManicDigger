@@ -39,7 +39,7 @@ public partial class Game
     /// </summary>
     public bool IsTileEmptyForPhysics(int x, int y, int z)
     {
-        if (z >= voxelMap.MapSizeZ)
+        if (z >= _voxelMap.MapSizeZ)
         {
             return true;
         }
@@ -49,12 +49,12 @@ public partial class Game
             return Controls.FreeMove;
         }
 
-        if (x >= voxelMap.MapSizeX || y >= voxelMap.MapSizeY)
+        if (x >= _voxelMap.MapSizeX || y >= _voxelMap.MapSizeY)
         {
             return Controls.FreeMove;
         }
 
-        int block = voxelMap.GetBlockValid(x, y, z);
+        int block = _voxelMap.GetBlockValid(x, y, z);
         return block == SpecialBlockId.Empty
             || block == _blockRegistry.BlockIdFillArea
             || _blockRegistry.IsWater(block);
@@ -71,12 +71,12 @@ public partial class Game
             return true;
         }
 
-        if (!voxelMap.IsValidPos(x, y, z))
+        if (!_voxelMap.IsValidPos(x, y, z))
         {
             return false;
         }
 
-        BlockType bt = _blockRegistry.BlockTypes[voxelMap.GetBlock(x, y, z)];
+        BlockType bt = _blockRegistry.BlockTypes[_voxelMap.GetBlock(x, y, z)];
         return bt.DrawType == DrawType.HalfHeight || BlockType.IsEmptyForPhysics(bt);
     }
 
@@ -88,8 +88,8 @@ public partial class Game
     /// </summary>
     public void PlaceBlock(int x, int y, int z, int tileType)
     {
-        voxelMap.SetBlockRaw(x, y, z, tileType);
-        voxelMap.SetChunkDirty(x / GameConstants.CHUNK_SIZE, y / GameConstants.CHUNK_SIZE, z / GameConstants.CHUNK_SIZE, true, true);
+        _voxelMap.SetBlockRaw(x, y, z, tileType);
+        _voxelMap.SetChunkDirty(x / GameConstants.CHUNK_SIZE, y / GameConstants.CHUNK_SIZE, z / GameConstants.CHUNK_SIZE, true, true);
         ShadowsOnSetBlock(x, y, z);
         LastplacedblockX = x;
         LastplacedblockY = y;
@@ -100,36 +100,13 @@ public partial class Game
     public void PlaceBlockAndRedraw(int x, int y, int z, int type)
     {
         PlaceBlock(x, y, z, type);
-        voxelMap.SetBlockDirty(x, y, z);
+        _voxelMap.SetBlockDirty(x, y, z);
     }
 
     /// <summary>Schedules a full-world re-tessellation on the next frame.</summary>
     public void RedrawAllBlocks() => ShouldRedrawAllBlocks = true;
 
     // ── Lighting / shadows ────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Returns the baked light level at a block position, falling back to
-    /// sunlight when above the heightmap or to <see cref="minlight"/> when
-    /// lighting data is unavailable.
-    /// </summary>
-    public int GetLight(int x, int y, int z)
-    {
-        int light = voxelMap.MaybeGetLight(x, y, z);
-        if (light != -1)
-        {
-            return light;
-        }
-
-        if (x >= 0 && x < voxelMap.MapSizeX
-         && y >= 0 && y < voxelMap.MapSizeY
-         && z >= Heightmap.GetBlock(x, y))
-        {
-            return Sunlight;
-        }
-
-        return GameConstants.minlight;
-    }
 
     /// <summary>
     /// Recalculates the heightmap entry for column (<paramref name="x"/>,
@@ -140,7 +117,7 @@ public partial class Game
     /// </summary>
     private void UpdateColumnHeight(int x, int y)
     {
-        int currentHeight = Heightmap.GetBlock(x, y);
+        int currentHeight = _voxelMap.Heightmap.GetBlock(x, y);
 
         // If the changed block is below the current height and transparent,
         // the heightmap cannot have changed — skip the full scan.
@@ -148,7 +125,7 @@ public partial class Game
         // (the new height is simply the placement Z).
         if (currentHeight > 0)
         {
-            int blockAtHeight = voxelMap.GetBlock(x, y, currentHeight);
+            int blockAtHeight = _voxelMap.GetBlock(x, y, currentHeight);
             if (!BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[blockAtHeight]))
             {
                 // The current recorded height is still solid — no change needed
@@ -159,17 +136,17 @@ public partial class Game
 
         // Full scan fallback — still O(MapSizeZ) in the general case.
         // TODO: optimize further with an incremental heightmap.
-        int height = voxelMap.MapSizeZ - 1;
-        for (int i = voxelMap.MapSizeZ - 1; i >= 0; i--)
+        int height = _voxelMap.MapSizeZ - 1;
+        for (int i = _voxelMap.MapSizeZ - 1; i >= 0; i--)
         {
             height = i;
-            if (!BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[voxelMap.GetBlock(x, y, i)]))
+            if (!BlockType.IsTransparentForLight(_blockRegistry.BlockTypes[_voxelMap.GetBlock(x, y, i)]))
             {
                 break;
             }
         }
 
-        Heightmap.SetBlock(x, y, height);
+        _voxelMap.Heightmap.SetBlock(x, y, height);
     }
 
     /// <summary>
@@ -179,9 +156,9 @@ public partial class Game
     /// </summary>
     private void ShadowsOnSetBlock(int x, int y, int z)
     {
-        int oldheight = Heightmap.GetBlock(x, y);
+        int oldheight = _voxelMap.Heightmap.GetBlock(x, y);
         UpdateColumnHeight(x, y);
-        int newheight = Heightmap.GetBlock(x, y);
+        int newheight = _voxelMap.Heightmap.GetBlock(x, y);
 
         int min = Math.Min(oldheight, newheight);
         int max = Math.Max(oldheight, newheight);
@@ -189,7 +166,7 @@ public partial class Game
         {
             if (i / GameConstants.CHUNK_SIZE != z / GameConstants.CHUNK_SIZE)
             {
-                voxelMap.SetChunkDirty(x / GameConstants.CHUNK_SIZE, y / GameConstants.CHUNK_SIZE, i / GameConstants.CHUNK_SIZE, true, true);
+                _voxelMap.SetChunkDirty(x / GameConstants.CHUNK_SIZE, y / GameConstants.CHUNK_SIZE, i / GameConstants.CHUNK_SIZE, true, true);
             }
         }
 
@@ -204,9 +181,9 @@ public partial class Game
                     int cx = (x / GameConstants.CHUNK_SIZE) + xx - 1;
                     int cy = (y / GameConstants.CHUNK_SIZE) + yy - 1;
                     int cz = (z / GameConstants.CHUNK_SIZE) + zz - 1;
-                    if (voxelMap.IsValidChunkPos(cx, cy, cz))
+                    if (_voxelMap.IsValidChunkPos(cx, cy, cz))
                     {
-                        voxelMap.SetChunkDirty(cx, cy, cz, true, false);
+                        _voxelMap.SetChunkDirty(cx, cy, cz, true, false);
                     }
                 }
             }
@@ -222,7 +199,7 @@ public partial class Game
     public float GetCurrentBlockHealth(int x, int y, int z)
         => BlockHealth.TryGetValue((x, y, z), out float health)
             ? health
-            : _blockRegistry.Strength[voxelMap.GetBlock(x, y, z)];
+            : _blockRegistry.Strength[_voxelMap.GetBlock(x, y, z)];
 
     // ── Speculative block placement ───────────────────────────────────────────
 
@@ -250,11 +227,11 @@ public partial class Game
             x = x,
             y = y,
             z = z,
-            blocktype = voxelMap.GetBlock(x, y, z),
+            blocktype = _voxelMap.GetBlock(x, y, z),
             timeMilliseconds = gameService.TimeMillisecondsFromStart,
         });
         PlaceBlock(x, y, z, blockid);
-        voxelMap.SetBlockDirty(x, y, z);
+        _voxelMap.SetBlockDirty(x, y, z);
     }
 
     // ── free-slot stack replaces linear null scan ─────────────────────
@@ -294,7 +271,7 @@ public partial class Game
 
             if ((now - s.Value.timeMilliseconds) / 1000f > SpeculativeTimeoutSeconds)
             {
-                voxelMap.SetBlockDirty(s.Value.x, s.Value.y, s.Value.z);
+                _voxelMap.SetBlockDirty(s.Value.x, s.Value.y, s.Value.z);
                 speculative[i] = null;
                 _speculativeFreeSlots.Push(i);
             }
@@ -347,7 +324,7 @@ public partial class Game
         }
 
         int fogR, fogG, fogB, fogA;
-        if (SkySphereNight && !shadowssimple)
+        if (_lightManager.SkySphereNight && !_lightManager.ShadowsSimple)
         {
             fogR = fogG = fogB = 0;
             fogA = 255;
@@ -383,7 +360,7 @@ public partial class Game
     }
 
     /// <summary>Returns the Z coordinate of the water surface (half the map height).</summary>
-    public float WaterLevel() => voxelMap.MapSizeZ / 2f;
+    public float WaterLevel() => _voxelMap.MapSizeZ / 2f;
 }
 
 // Six small fields, no identity, stored in a fixed array.

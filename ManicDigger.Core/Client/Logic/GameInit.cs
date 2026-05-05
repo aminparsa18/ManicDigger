@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 
 /// <summary>
 /// Partial class containing field declarations and constructor initialization
@@ -13,6 +14,7 @@ public partial class Game : IGame
 
     private readonly IGameService gameService;
     private readonly IOpenGlService openGlService;
+    private readonly ILightManager _lightManager;
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IModRegistry modRegistry;
     private readonly IGameLogger _gameLogger;
@@ -59,8 +61,7 @@ public partial class Game : IGame
     // World / map
     // -------------------------------------------------------------------------
 
-    private IVoxelMap voxelMap;
-    public ChunkedMap2d<int> Heightmap { get; set; }
+    private readonly IVoxelMap _voxelMap;
 
     public int LastplacedblockX { get; set; }
     public int LastplacedblockY { get; set; }
@@ -199,21 +200,6 @@ public partial class Game : IGame
     private int maxdrawdistance;
 
     // -------------------------------------------------------------------------
-    // Lighting
-    // -------------------------------------------------------------------------
-
-    public float[] LightLevels { get; set; }
-    public int Sunlight { get; set; }
-    public int[] NightLevels { get; set; }
-    public Vector3 sunPosition { get; set; }
-    public Vector3 moonPosition { get; set; }
-    public bool isNight { get; set; }
-    public bool fancySkysphere { get; set; }
-    public bool SkySphereNight { get; set; }
-    private readonly ModSkySphereStatic skysphere;
-    public bool shadowssimple { get; set; }
-
-    // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
 
@@ -349,15 +335,16 @@ public partial class Game : IGame
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITerrainChunkTesselator terrainChunkTesselator,
         IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService, IFrustumCulling frustumCulling,
-        IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager, IGameLogger gameLogger)
+        IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager, IGameLogger gameLogger, ILightManager lightManager)
     {
         gameService = platform;
         openGlService = platformOpenGl;
         _gameLogger = gameLogger;
         this.singlePlayerService = singlePlayerService;
+        _lightManager = lightManager;
         _blockRegistry = blockTypeRegistry;
         this.modRegistry = modRegistry;
-        this.voxelMap = voxelMap;
+        this._voxelMap = voxelMap;
         OverheadCameraK = cameraService;
         FrustumCulling = frustumCulling;
         _assetManager = assetManager;
@@ -368,7 +355,6 @@ public partial class Game : IGame
         InitTextures();
         InitPlayer();
         InitCamera();
-        InitLighting();
         InitInput();
         InitOptions();
         InitNetworking();
@@ -459,16 +445,6 @@ public partial class Game : IGame
         TPP_CAMERA_DISTANCE_MIN = 1;
         TPP_CAMERA_DISTANCE_MAX = 10;
         enableCameraControl = true;
-    }
-
-    private void InitLighting()
-    {
-        Sunlight = 15;
-        LightLevels = new float[16];
-        for (int i = 0; i < 16; i++)
-        {
-            LightLevels[i] = 0.15f;
-        }
     }
 
     private void InitInput()

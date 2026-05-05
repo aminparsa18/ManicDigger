@@ -20,6 +20,9 @@ public interface IVoxelMap
     int MapSizeY { get; set; }
     int MapSizeZ { get; set; }
 
+    /// <summary>Cached surface height map.</summary>
+    ChunkedMap2d<int> Heightmap { get; set; }
+
     /// <summary>
     /// Returns the block type at the given block-space position,
     /// or 0 (air) when the position is outside map bounds.

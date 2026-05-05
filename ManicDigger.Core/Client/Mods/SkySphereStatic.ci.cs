@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using ManicDigger;
+
+/// <summary>
 /// Renders a static textured sky sphere, switching between day and night textures based on game state.
 /// </summary>
 public class ModSkySphereStatic : ModBase
@@ -12,11 +14,13 @@ public class ModSkySphereStatic : ModBase
     private GeometryModel skyModel;
     private readonly IOpenGlService platform;
     private readonly IMeshDrawer meshDrawer;
+    private readonly ILightManager _lightManager;
 
-    public ModSkySphereStatic(IOpenGlService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
+    public ModSkySphereStatic(IOpenGlService platform, IMeshDrawer meshDrawer, ILightManager lightManager, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
+        _lightManager = lightManager;
     }
 
     public override void OnRender3d(float deltaTime)
@@ -35,7 +39,7 @@ public class ModSkySphereStatic : ModBase
         }
 
         // Simple shadows always use the day texture
-        SkyTexture = (!Game.SkySphereNight || Game.shadowssimple)
+        SkyTexture = (!_lightManager.SkySphereNight || _lightManager.ShadowsSimple)
             ? skySphereTexture
             : skySphereNightTexture;
 

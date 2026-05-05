@@ -38,8 +38,8 @@ public partial class Game
         Config3d = config3d;
 
         // ── World / map ───────────────────────────────────────────────────────
-        voxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);
-        Heightmap = new ChunkedMap2d<int>(voxelMap.MapSizeX, voxelMap.MapSizeY);
+        _voxelMap.Reset(DefaultMapSizeX, DefaultMapSizeY, DefaultMapSizeZ);
+        _voxelMap.Heightmap = new ChunkedMap2d<int>(_voxelMap.MapSizeX, _voxelMap.MapSizeY);
 
         // ── Inventory ─────────────────────────────────────────────────────────
         Packet_Inventory inventory = new() { RightHand = new InventoryItem[10] };

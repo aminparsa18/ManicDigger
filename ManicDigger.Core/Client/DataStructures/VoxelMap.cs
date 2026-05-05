@@ -15,6 +15,8 @@ public class VoxelMap : IVoxelMap
     private int _mapChunksY;
     private int _mapChunksZ;
 
+    public ChunkedMap2d<int> Heightmap { get; set; }
+
     public int Mapsizexchunks => _mapChunksX;
     public int Mapsizeychunks => _mapChunksY;
     public int Mapsizezchunks => _mapChunksZ;

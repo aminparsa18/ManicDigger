@@ -23,14 +23,17 @@ public class ModNetworkProcess : ModBase
     private readonly IBlockRegistry blockTypeRegistry;
     private readonly IGameLogger _gameLogger;
     private readonly ITerrainChunkTesselator _terrainChunkTesselator;
+    private readonly ILightManager _lightManager;
 
-    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGameLogger gameLogger, ITerrainChunkTesselator terrainChunkTesselator, IGame game) : base(game)
+    public ModNetworkProcess(IGameService gamePlatform, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry,
+        IGameLogger gameLogger, ITerrainChunkTesselator terrainChunkTesselator, ILightManager lightManager, IGame game) : base(game)
     {
         _platform = gamePlatform;
         this.voxelMap = voxelMap;
         this.blockTypeRegistry = blockTypeRegistry;
         _gameLogger = gameLogger;
         _terrainChunkTesselator = terrainChunkTesselator;
+        _lightManager = lightManager;
         CurrentChunk = new byte[1024 * 64];
         CurrentChunkCount = 0;
         receivedchunk = new int[32 * 32 * 32];
@@ -157,7 +160,7 @@ public class ModNetworkProcess : ModBase
                     {
                         for (int yy = 0; yy < p.SizeY; yy++)
                         {
-                            Game.Heightmap.SetBlock(
+                            voxelMap.Heightmap.SetBlock(
                                 p.X + xx, p.Y + yy,
                                 heights[VectorIndexUtil.Index2d(xx, yy, p.SizeX)]);
                         }
@@ -336,26 +339,26 @@ public class ModNetworkProcess : ModBase
                         packet.Season.Hour = 12 * GameConstants.HourDetail;
                     }
 
-                    if (Game.NightLevels == null)
+                    if (_lightManager.NightLevels == null)
                     {
                         break;
                     }
 
-                    if (packet.Season.Hour >= Game.NightLevels.Length)
+                    if (packet.Season.Hour >= _lightManager.NightLevels.Length)
                     {
                         break;
                     }
 
-                    int sunlight = Game.NightLevels[packet.Season.Hour];
-                    Game.SkySphereNight = sunlight < 8;
+                    int sunlight = _lightManager.NightLevels[packet.Season.Hour];
+                    _lightManager.SkySphereNight = sunlight < 8;
                     //Game.SunMoonRenderer.day_length_in_seconds =
                     //    60 * 60 * 24 / packet.Season.DayNightCycleSpeedup;
                     //int hour = packet.Season.Hour / Game.HourDetail;
                     //if (Game.SunMoonRenderer.GetHour() != hour)
                     //    Game.SunMoonRenderer.SetHour(hour);
-                    if (Game.Sunlight != sunlight)
+                    if (_lightManager.Sunlight != sunlight)
                     {
-                        Game.Sunlight = sunlight;
+                        _lightManager.Sunlight = sunlight;
                         Game.RedrawAllBlocks();
                     }
 
@@ -416,13 +419,13 @@ public class ModNetworkProcess : ModBase
                 break;
 
             case Packet_ServerIdEnum.SunLevels:
-                Game.NightLevels = packet.SunLevels.Sunlevels;
+                _lightManager.NightLevels = packet.SunLevels.Sunlevels;
                 break;
 
             case Packet_ServerIdEnum.LightLevels:
                 for (int i = 0; i < packet.LightLevels.Lightlevels.Length; i++)
                 {
-                    Game.LightLevels[i] = EncodingHelper.DecodeFixedPoint(packet.LightLevels.Lightlevels[i]);
+                    _lightManager.LightLevels[i] = EncodingHelper.DecodeFixedPoint(packet.LightLevels.Lightlevels[i]);
                 }
 
                 break;

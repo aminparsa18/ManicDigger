@@ -51,12 +51,12 @@ public partial class Game
         int by = (int)MathF.Floor(EyesPosZ);
         int bz = (int)MathF.Floor(EyesPosY);
 
-        if (!voxelMap.IsValidPos(bx, by, bz))
+        if (!_voxelMap.IsValidPos(bx, by, bz))
         {
             return Player.position.y < WaterLevel() ? -1 : 0;
         }
 
-        return voxelMap.GetBlockValid(bx, by, bz);
+        return _voxelMap.GetBlockValid(bx, by, bz);
     }
 
     // -------------------------------------------------------------------------
@@ -84,7 +84,7 @@ public partial class Game
     /// </summary>
     public bool SwimmingBody()
     {
-        int block = voxelMap.GetBlock(
+        int block = _voxelMap.GetBlock(
             (int)Player.position.x,
             (int)Player.position.z,
             (int)(Player.position.y + 1));
@@ -122,7 +122,7 @@ public partial class Game
     /// </summary>
     public int BlockUnderPlayer()
     {
-        if (!voxelMap.IsValidPos(
+        if (!_voxelMap.IsValidPos(
                 (int)Player.position.x,
                 (int)Player.position.z,
                 (int)Player.position.y - 1))
@@ -130,7 +130,7 @@ public partial class Game
             return -1;
         }
 
-        return voxelMap.GetBlock(
+        return _voxelMap.GetBlock(
             (int)Player.position.x,
             (int)Player.position.z,
             (int)Player.position.y - 1);

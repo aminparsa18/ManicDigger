@@ -1,4 +1,6 @@
 ﻿
+using ManicDigger;
+
 /// <summary>
 /// Calculates base lighting for a single 16×16×16 chunk.
 /// Handles sunlight seeding from the heightmap, sunlight flood-fill,
@@ -17,6 +19,7 @@ public class LightBase
     private readonly LightFlood _flood;
 
     private readonly IVoxelMap voxelMap;
+    private readonly ILightManager _lightManager;
 
     /// <summary>
     /// Reused flat block ID buffer, copied from the chunk before each light calculation
@@ -24,10 +27,11 @@ public class LightBase
     /// </summary>
     private readonly int[] _workData;
 
-    public LightBase(IVoxelMap voxelMap)
+    public LightBase(IVoxelMap voxelMap, ILightManager lightManager)
     {
         _flood = new LightFlood();
         this.voxelMap = voxelMap;
+        this._lightManager = lightManager;
         _workData = new int[ChunkVolume];
     }
 
@@ -43,7 +47,6 @@ public class LightBase
     /// <param name="dataLightRadius">Per-block-type light emission radius lookup.</param>
     /// <param name="transparentForLight">Per-block-type transparency flag lookup.</param>
     public void CalculateChunkBaseLight(
-        IGame game,
         int cx,
         int cy,
         int cz,
@@ -62,7 +65,7 @@ public class LightBase
         byte[] workLight = chunk.BaseLight;
         Array.Clear(workLight, 0, workLight.Length);
 
-        Sunlight(game, cx, cy, cz, workLight, dataLightRadius, game.Sunlight);
+        Sunlight(cx, cy, cz, workLight, dataLightRadius, _lightManager.Sunlight);
         SunlightFlood(_workData, workLight, dataLightRadius, transparentForLight);
         LightEmitting(_workData, workLight, dataLightRadius, transparentForLight);
     }
@@ -90,8 +93,7 @@ public class LightBase
     /// <param name="workLight">The light buffer to seed into.</param>
     /// <param name="dataLightRadius">Per-block-type light emission radius lookup.</param>
     /// <param name="sunlight">The sunlight intensity value to seed.</param>
-    private static void Sunlight(
-        IGame game,
+    private void Sunlight(
         int cx,
         int cy,
         int cz,
@@ -105,7 +107,7 @@ public class LightBase
         {
             for (int yy = 0; yy < ChunkSize; yy++)
             {
-                int height = GetLightHeight(game, cx, cy, xx, yy);
+                int height = GetLightHeight(cx, cy, xx, yy);
 
                 // Convert world-space height to chunk-local Z.
                 int z = height - baseHeight;
@@ -144,9 +146,9 @@ public class LightBase
     ///     The world-space Z at which sunlight first enters this column,
     ///     or 0 if the heightmap chunk is not yet loaded.
     /// </returns>
-    private static int GetLightHeight(IGame game, int cx, int cy, int xx, int yy)
+    private int GetLightHeight(int cx, int cy, int xx, int yy)
     {
-        int[] heightmapChunk = game.Heightmap.GetOrAllocChunk(cx * GameConstants.CHUNK_SIZE, cy * GameConstants.CHUNK_SIZE);
+        int[] heightmapChunk = voxelMap.Heightmap.GetOrAllocChunk(cx * GameConstants.CHUNK_SIZE, cy * GameConstants.CHUNK_SIZE);
 
         if (heightmapChunk == null)
         {

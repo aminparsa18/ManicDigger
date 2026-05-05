@@ -48,6 +48,7 @@ public class Program
         services.AddSingleton<IPreferences, Preferences>();
         services.AddSingleton<IOpenGlService, OpenGlService>();
         services.AddSingleton<IFrustumCulling, FrustumCulling>();
+        services.AddSingleton<ILightManager, LightManager>();
         services.AddSingleton<IMeshBatcher, MeshBatcher>();
         services.AddSingleton<IMeshDrawer, MeshDrawer>();
         services.AddSingleton<ITerrainChunkTesselator, TerrainChunkTesselator>();

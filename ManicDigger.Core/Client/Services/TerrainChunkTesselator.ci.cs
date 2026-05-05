@@ -34,6 +34,7 @@ public class TerrainChunkTesselator : ITerrainChunkTesselator
     private readonly IVoxelMap _voxelMap;
     private readonly IGameService _platform;
     private readonly IBlockRegistry _blockTypeRegistry;
+    private readonly ILightManager _lightManager;
 
     private const int chunksize = 16;
 
@@ -72,11 +73,12 @@ public class TerrainChunkTesselator : ITerrainChunkTesselator
     // Populated once in the constructor; read-only thereafter.
     private readonly int[,] _cornerHeightLookup;
 
-    public TerrainChunkTesselator(IVoxelMap voxelMap, IGameService platform, IBlockRegistry blockTypeRegistry)
+    public TerrainChunkTesselator(IVoxelMap voxelMap, IGameService platform, IBlockRegistry blockTypeRegistry, ILightManager lightManager)
     {
         _voxelMap = voxelMap;
         _platform = platform;
         _blockTypeRegistry = blockTypeRegistry;
+        _lightManager = lightManager;
         EnableSmoothLight = true;
         ENABLE_TEXTURE_TILING = true;
         _colorWhite = ColorUtils.ColorFromArgb(255, 255, 255, 255);
@@ -234,7 +236,7 @@ public class TerrainChunkTesselator : ITerrainChunkTesselator
     /// inside the <see cref="ThreadLocal{T}"/> factory.
     /// </summary>
     public ChunkTessellationContext CreateContext()
-        => new ChunkTessellationContext(_voxelMap, _atlasCount);
+        => new ChunkTessellationContext(_voxelMap, _lightManager, _atlasCount);
 
     /// <summary>
     /// Rebuilds the per-block render flag cache from the current block type definitions.

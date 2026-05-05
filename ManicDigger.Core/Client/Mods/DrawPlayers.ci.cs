@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using ManicDigger;
+using OpenTK.Mathematics;
 using System.Text;
 
 /// <summary>
@@ -11,14 +12,16 @@ public class ModDrawPlayers : ModBase
     private readonly IFrustumCulling frustumCulling;
     private readonly IMeshDrawer meshDrawer;
     private readonly IOpenGlService openGlService;
+    private readonly ILightManager _lightManager;
 
     public ModDrawPlayers(IGameService platform, IVoxelMap voxelMap, IFrustumCulling frustumCulling,
-        IMeshDrawer meshDrawer, IOpenGlService openGlService, IGame game) : base(game)
+        IMeshDrawer meshDrawer, IOpenGlService openGlService, ILightManager lightManager, IGame game) : base(game)
     {
         this.platform = platform;
         this.voxelMap = voxelMap;
         this.frustumCulling = frustumCulling;
         this.meshDrawer = meshDrawer;
+        this._lightManager = lightManager;
         this.openGlService = openGlService;
     }
 
@@ -64,7 +67,7 @@ public class ModDrawPlayers : ModBase
 
             p.playerDrawInfo ??= new PlayerDrawInfo();
 
-            float shadow = (float)Game.GetLight((int)p.position.x, (int)p.position.z, (int)p.position.y) / GameConstants.maxlight;
+            float shadow = (float)_lightManager.GetLight((int)p.position.x, (int)p.position.z, (int)p.position.y) / GameConstants.maxlight;
             float speed = i == Game.LocalPlayerId ? GetLocalPlayerSpeed(Game) : GetNetworkPlayerSpeed(p, deltaTime);
 
             EnsureRenderer(p);

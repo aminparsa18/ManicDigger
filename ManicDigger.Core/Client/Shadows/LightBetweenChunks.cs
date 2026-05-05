@@ -71,7 +71,6 @@ public class LightBetweenChunks
     /// <param name="dataLightRadius">Per-block-type light emission radius lookup.</param>
     /// <param name="dataTransparent">Per-block-type transparency flag lookup.</param>
     public void CalculateLightBetweenChunks(
-        IGame game,
         int cx,
         int cy,
         int cz,

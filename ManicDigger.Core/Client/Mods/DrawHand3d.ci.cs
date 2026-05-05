@@ -31,6 +31,7 @@ public class ModDrawHand3d : ModBase
     private readonly IMeshDrawer _meshDrawer;
     private readonly IBlockRegistry _blockRegistry;
     private readonly ITerrainChunkTesselator _terrainChunkTesselator;
+    private readonly ILightManager _lightManager;
 
     /// <summary>Torch block renderer used to draw held torches and the empty-hand model.</summary>
     private readonly BlockRendererTorch _blockRendererTorch;
@@ -123,12 +124,14 @@ public class ModDrawHand3d : ModBase
     /// <summary>
     /// Initialises all animation parameters and creates the torch renderer dependency.
     /// </summary>
-    public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, ITerrainChunkTesselator terrainChunkTesselator, IGame game) : base(game)
+    public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry,
+        ITerrainChunkTesselator terrainChunkTesselator, ILightManager lightManager, IGame game) : base(game)
     {
         this._platform = platform;
         this._meshDrawer = meshDrawer;
         this._blockRegistry = blockTypeRegistry;
         _terrainChunkTesselator = terrainChunkTesselator;
+        _lightManager = lightManager;
         _attack = -1;
         _attackOffset = 0;
         _buildOffset = 0;
@@ -230,7 +233,7 @@ public class ModDrawHand3d : ModBase
         float posx = Game.Player.position.x;
         float posy = Game.Player.position.y;
         float posz = Game.Player.position.z;
-        int light = Game.GetLight((int)posx, (int)posz, (int)posy);
+        int light = _lightManager.GetLight((int)posx, (int)posz, (int)posy);
         return 1f * light / MaxLight;
     }
 

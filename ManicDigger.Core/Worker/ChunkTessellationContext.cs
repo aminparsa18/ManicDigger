@@ -52,9 +52,9 @@ public sealed class ChunkTessellationContext
     /// <c>Math.Max(1, MAX_BLOCKTYPES / TerrainTexturesPerAtlas)</c> —
     /// must match the value computed in <see cref="TerrainChunkTesselator.Start"/>.
     /// </param>
-    public ChunkTessellationContext(IVoxelMap voxelMap, int atlasCount)
+    public ChunkTessellationContext(IVoxelMap voxelMap, ILightManager lightManager, int atlasCount)
     {
-        LightBase = new LightBase(voxelMap);
+        LightBase = new LightBase(voxelMap, lightManager);
         LightBetweenChunks = new LightBetweenChunks(voxelMap);
 
         Atlas = new GeometryModel[atlasCount];

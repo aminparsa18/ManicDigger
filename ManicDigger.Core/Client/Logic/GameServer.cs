@@ -60,18 +60,18 @@ public partial class Game
         SendRequestBlob(getAsset, getCount);
         ChatLog("[GAME] Sent BLOB request");
 
-        if (packet.Identification.MapSizeX != voxelMap.MapSizeX
-            || packet.Identification.MapSizeY != voxelMap.MapSizeY
-            || packet.Identification.MapSizeZ != voxelMap.MapSizeZ)
+        if (packet.Identification.MapSizeX != _voxelMap.MapSizeX
+            || packet.Identification.MapSizeY != _voxelMap.MapSizeY
+            || packet.Identification.MapSizeZ != _voxelMap.MapSizeZ)
         {
-            voxelMap.Reset(packet.Identification.MapSizeX,
+            _voxelMap.Reset(packet.Identification.MapSizeX,
                 packet.Identification.MapSizeY,
                 packet.Identification.MapSizeZ);
-            Heightmap.Restart(packet.Identification.MapSizeX,
+           _voxelMap.Heightmap.Restart(packet.Identification.MapSizeX,
                 packet.Identification.MapSizeY);
         }
 
-        shadowssimple = packet.Identification.DisableShadows == 1;
+        _lightManager.ShadowsSimple = packet.Identification.DisableShadows == 1;
         maxdrawdistance = 256;
         ChatLog("[GAME] Map initialized");
     }

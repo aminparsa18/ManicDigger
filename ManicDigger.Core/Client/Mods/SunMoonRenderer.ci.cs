@@ -1,7 +1,9 @@
-﻿/// <summary>
+﻿using ManicDigger;
+
+/// <summary>
 /// Renders the sun and moon as billboarded sprites and updates their positions based on time of day.
 /// </summary>
-public class SunMoonRenderer(IMeshDrawer meshDrawer, IGame game) : ModBase(game)
+public class SunMoonRenderer(IMeshDrawer meshDrawer, ILightManager lightManager, IGame game) : ModBase(game)
 {
     private const float TwoPi = 2 * MathF.PI;
     private const float OrbitRadius = 20f;
@@ -16,7 +18,7 @@ public class SunMoonRenderer(IMeshDrawer meshDrawer, IGame game) : ModBase(game)
     private int moonTexture = -1;
 
     private readonly IMeshDrawer meshDrawer = meshDrawer;
-
+    private readonly ILightManager _lightManager = lightManager;
     public int GetHour() => hour;
 
     public void SetHour(int value)
@@ -35,16 +37,16 @@ public class SunMoonRenderer(IMeshDrawer meshDrawer, IGame game) : ModBase(game)
 
         UpdateSunMoonPosition(dt);
 
-        float bodyX = (Game.isNight ? Game.moonPosition.X : Game.sunPosition.X) + Game.Player.position.x;
-        float bodyY = (Game.isNight ? Game.moonPosition.Y : Game.sunPosition.Y) + Game.Player.position.y;
-        float bodyZ = (Game.isNight ? Game.moonPosition.Z : Game.sunPosition.Z) + Game.Player.position.z;
+        float bodyX = (_lightManager.isNight ? _lightManager.moonPosition.X : _lightManager.sunPosition.X) + Game.Player.position.x;
+        float bodyY = (_lightManager.isNight ? _lightManager.moonPosition.Y : _lightManager.sunPosition.Y) + Game.Player.position.y;
+        float bodyZ = (_lightManager.isNight ? _lightManager.moonPosition.Z : _lightManager.sunPosition.Z) + Game.Player.position.z;
 
         meshDrawer.GLMatrixModeModelView();
         meshDrawer.GLPushMatrix();
         meshDrawer.GLTranslate(bodyX, bodyY, bodyZ);
         VectorUtils.Billboard(meshDrawer);
         meshDrawer.GLScale(SpriteScale, SpriteScale, SpriteScale);
-        Game.Draw2dTexture(Game.isNight ? moonTexture : sunTexture, 0, 0, ImageSize, ImageSize, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
+        Game.Draw2dTexture(_lightManager.isNight ? moonTexture : sunTexture, 0, 0, ImageSize, ImageSize, null, 0, ColorUtils.ColorFromArgb(255, 255, 255, 255), false);
         meshDrawer.GLPopMatrix();
     }
 
@@ -52,9 +54,9 @@ public class SunMoonRenderer(IMeshDrawer meshDrawer, IGame game) : ModBase(game)
     {
         t += dt * TwoPi / day_length_in_seconds;
 
-        Game.isNight = (t + TwoPi) % TwoPi > MathF.PI;
+        _lightManager.isNight = (t + TwoPi) % TwoPi > MathF.PI;
 
-        Game.sunPosition = new OpenTK.Mathematics.Vector3(MathF.Cos(t) * OrbitRadius, MathF.Sin(t) * OrbitRadius, MathF.Sin(t) * OrbitRadius);
-        Game.moonPosition = new OpenTK.Mathematics.Vector3(MathF.Cos(-t) * OrbitRadius, MathF.Sin(-t) * OrbitRadius, MathF.Sin(t) * OrbitRadius);
+        _lightManager.sunPosition = new OpenTK.Mathematics.Vector3(MathF.Cos(t) * OrbitRadius, MathF.Sin(t) * OrbitRadius, MathF.Sin(t) * OrbitRadius);
+        _lightManager.moonPosition = new OpenTK.Mathematics.Vector3(MathF.Cos(-t) * OrbitRadius, MathF.Sin(-t) * OrbitRadius, MathF.Sin(t) * OrbitRadius);
     }
 }

@@ -112,9 +112,9 @@ public partial class Game
 
     // ── Dialog helpers ────────────────────────────────────────────────────────
 
-    public int MapSizeX => voxelMap.MapSizeX;
-    public int MapSizeY => voxelMap.MapSizeY;
-    public int MapSizeZ => voxelMap.MapSizeZ;
+    public int MapSizeX => _voxelMap.MapSizeX;
+    public int MapSizeY => _voxelMap.MapSizeY;
+    public int MapSizeZ => _voxelMap.MapSizeZ;
 
     public bool EnableDraw2d { get => ENABLE_DRAW2D; set => ENABLE_DRAW2D = value; }
 
@@ -303,9 +303,9 @@ public partial class Game
         int minY = Math.Max((int)Math.Min(line.Start[1], line.End[1]), 0);
         int minZ = Math.Max((int)Math.Min(line.Start[2], line.End[2]), 0);
 
-        int maxX = Math.Min((int)Math.Max(line.Start[0], line.End[0]), voxelMap.MapSizeX);
-        int maxY = Math.Min((int)Math.Max(line.Start[1], line.End[1]), voxelMap.MapSizeZ);
-        int maxZ = Math.Min((int)Math.Max(line.Start[2], line.End[2]), voxelMap.MapSizeY);
+        int maxX = Math.Min((int)Math.Max(line.Start[0], line.End[0]), _voxelMap.MapSizeX);
+        int maxY = Math.Min((int)Math.Max(line.Start[1], line.End[1]), _voxelMap.MapSizeZ);
+        int maxZ = Math.Min((int)Math.Max(line.Start[2], line.End[2]), _voxelMap.MapSizeY);
 
         int size = (int)BitOperations.RoundUpToPowerOf2(
             (uint)Math.Max(maxX - minX + 1, Math.Max(maxY - minY + 1, maxZ - minZ + 1)));

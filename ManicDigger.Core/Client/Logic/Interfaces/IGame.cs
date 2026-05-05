@@ -207,9 +207,6 @@ public interface IGame : IDisposable
     // World / map
     // =========================================================================
 
-    /// <summary>Cached surface height map.</summary>
-    ChunkedMap2d<int> Heightmap { get; set; }
-
     /// <summary>X dimension of the voxel map in blocks.</summary>
     int MapSizeX { get; }
 
@@ -270,40 +267,6 @@ public interface IGame : IDisposable
 
     /// <summary>Returns the block type ID currently held in hand, or <c>null</c> if empty.</summary>
     int? BlockInHand();
-
-    // =========================================================================
-    // Lighting
-    // =========================================================================
-
-    /// <summary>Maps light level (0–15) to a GL colour multiplier.</summary>
-    float[] LightLevels { get; set; }
-
-    /// <summary>Current sun light level (0–15).</summary>
-    int Sunlight { get; set; }
-
-    /// <summary>Per-level night light multipliers.</summary>
-    int[] NightLevels { get; set; }
-
-    /// <summary>World-space position of the sun billboard.</summary>
-    Vector3 sunPosition { get; set; }
-
-    /// <summary>World-space position of the moon billboard.</summary>
-    Vector3 moonPosition { get; set; }
-
-    /// <summary>Whether it is currently night-time.</summary>
-    bool isNight { get; set; }
-
-    /// <summary>Whether the fancy sky-sphere shader is enabled.</summary>
-    bool fancySkysphere { get; set; }
-
-    /// <summary>Whether the night sky-sphere variant is active.</summary>
-    bool SkySphereNight { get; set; }
-
-    /// <summary>Whether simple (non-smooth) shadows are used.</summary>
-    bool shadowssimple { get; set; }
-
-    /// <summary>Returns the light level at the given world position.</summary>
-    int GetLight(int x, int y, int z);
 
     // =========================================================================
     // Player — identity & position

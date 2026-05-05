@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using ManicDigger;
+
+/// <summary>
 /// Renders an animated sky sphere whose colors are driven by sun position and sky/glow textures.
 /// </summary>
 public class ModSkySphereAnimated : ModBase
@@ -10,21 +12,23 @@ public class ModSkySphereAnimated : ModBase
     private readonly ModBase stars;
     private readonly IOpenGlService platform;
     private readonly IMeshDrawer meshDrawer;
+    private readonly ILightManager _lightManager;
     private GeometryModel skyModel;
     private int[] skyPixels;
     private int[] glowPixels;
     private bool started;
 
-    public ModSkySphereAnimated(IOpenGlService platform, IMeshDrawer meshDrawer, IGame game) : base(game)
+    public ModSkySphereAnimated(IOpenGlService platform, IMeshDrawer meshDrawer, ILightManager lightManager, IGame game) : base(game)
     {
         this.platform = platform;
         this.meshDrawer = meshDrawer;
-        stars = new ModSkySphereStatic(platform, meshDrawer, game);
+        this._lightManager = lightManager;
+        stars = new ModSkySphereStatic(platform, meshDrawer, lightManager, game);
     }
 
     public override void OnRender3d(float deltaTime)
     {
-        Game.SkySphereNight = false;
+        _lightManager.SkySphereNight = false;
         stars.OnRender3d(deltaTime);
         platform.GlDisableFog();
         DrawSkySphere();
@@ -62,10 +66,10 @@ public class ModSkySphereAnimated : ModBase
     public void Draw(float fov)
     {
         int size = 1000;
-        int segments = Game.fancySkysphere ? FancySegments : NormalSegments;
+        int segments = _lightManager.fancySkysphere ? FancySegments : NormalSegments;
 
         skyModel = GetSphereModelData2(skyModel, size, size, segments, segments,
-            skyPixels, glowPixels, Game.sunPosition.X, Game.sunPosition.Y, Game.sunPosition.Z);
+            skyPixels, glowPixels, _lightManager.sunPosition.X, _lightManager.sunPosition.Y, _lightManager.sunPosition.Z);
 
         platform.UpdateModel(skyModel);
         Game.Set3dProjection(size * 2, fov);

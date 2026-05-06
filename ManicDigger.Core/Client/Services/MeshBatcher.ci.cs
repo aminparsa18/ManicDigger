@@ -14,9 +14,10 @@ public class MeshBatcher : IMeshBatcher
 
     /// <summary>Maximum number of distinct textures that can be batched.</summary>
     private const int MaxTextures = 10;
-
+      
     private readonly IOpenGlService _platform;
     private readonly IMeshDrawer meshDrawer;
+    private readonly IGameLogger _gameLogger;
 
     /// <summary>
     /// When <c>true</c>, <see cref="Draw"/> will bind each texture before issuing
@@ -49,10 +50,11 @@ public class MeshBatcher : IMeshBatcher
     /// <summary>
     /// Initialises a new <see cref="MeshBatcher"/> with pre-allocated model slots.
     /// </summary>
-    public MeshBatcher(IOpenGlService platform, IMeshDrawer meshDrawer)
+    public MeshBatcher(IOpenGlService platform, IMeshDrawer meshDrawer, IGameLogger gameLogger)
     {
         _platform = platform;
         this.meshDrawer = meshDrawer;
+        _gameLogger = gameLogger;
         _models = new BatchEntry[ModelsMax];
 
         _modelsCount = 0;
@@ -242,7 +244,7 @@ public class MeshBatcher : IMeshBatcher
     => _pendingUnloads.Enqueue(chunk);
 
     // Modify FlushPendingUploads to also drain unloads first
-    public void FlushPendingUploads(int maxUploadsPerFrame = 8)
+    public void FlushPendingUploads(int maxUploadsPerFrame = 512)
     {
         // Unloads first — free slots before filling them
         while (_pendingUnloads.TryDequeue(out Chunk chunk))
@@ -273,6 +275,7 @@ public class MeshBatcher : IMeshBatcher
             if (p.DataRented)
                 ArrayPool<VerticesIndicesToLoad>.Shared.Return(p.Meshes);
         }
+        _gameLogger.Client.Debug($"Flushed {count - 1} pending mesh uploads.");
     }
 
     private readonly float _sqrt3Half = MathF.Sqrt(3) * 0.5f;

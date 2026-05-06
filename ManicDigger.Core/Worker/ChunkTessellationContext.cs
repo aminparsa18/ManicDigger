@@ -18,8 +18,7 @@ public sealed class ChunkTessellationContext
     public readonly bool[] ShadowIsTransparent = new bool[GameConstants.MAX_BLOCKTYPES];
     public bool BlockTypeCacheDirty = true;
 
-    public readonly LightBase LightBase;
-    public readonly LightBetweenChunks LightBetweenChunks;
+
 
     // ── Tessellator pass 1 output ─────────────────────────────────────────────
     /// <summary>Per-block TileSideFlags bitmask written by CalculateVisibleFaces.</summary>
@@ -52,11 +51,8 @@ public sealed class ChunkTessellationContext
     /// <c>Math.Max(1, MAX_BLOCKTYPES / TerrainTexturesPerAtlas)</c> —
     /// must match the value computed in <see cref="TerrainChunkTesselator.Start"/>.
     /// </param>
-    public ChunkTessellationContext(IVoxelMap voxelMap, ILightManager lightManager, int atlasCount)
+    public ChunkTessellationContext(int atlasCount)
     {
-        LightBase = new LightBase(voxelMap, lightManager);
-        LightBetweenChunks = new LightBetweenChunks(voxelMap);
-
         Atlas = new GeometryModel[atlasCount];
         AtlasTransparent = new GeometryModel[atlasCount];
         ReturnBuffer = new VerticesIndicesToLoad[atlasCount * 2];

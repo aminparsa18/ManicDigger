@@ -7,17 +7,19 @@ namespace ManicDigger.Extensions;
 public static class WorkerInfrastructureExtensions
 {
     /// <summary>
-    /// Registers the simulation loop, chunk worker pool, periodic task scheduler,
-    /// and <see cref="WorkerHost"/> as singletons. Nothing starts at registration time —
-    /// <see cref="WorkerHost.StartAsync"/> is called manually from <c>Connect()</c>
-    /// when the player enters the game screen.
+    /// Registers the simulation loop, chunk worker pools (lighting + tessellation),
+    /// periodic task scheduler, and WorkerHost as singletons.
+    ///
+    /// Lighting pool:      workerCount = max(1, ProcessorCount / 4)
+    ///                     Safe with multiple workers now that Option B (BaseLight
+    ///                     snapshot) is implemented in ChunkLightingDispatcher.
+    /// Tessellation pool:  workerCount = N  — parallel geometry factory
     ///
     /// Usage:
     /// <code>
     /// services.AddWorkerInfrastructure()
     ///         .AddScheduledTask&lt;SaveGameTask&gt;()
-    ///         .AddScheduledTask&lt;SeasonBroadcastTask&gt;()
-    ///         .AddScheduledTask&lt;StatsResetTask&gt;();
+    ///         .AddScheduledTask&lt;SeasonBroadcastTask&gt;();
     /// </code>
     /// </summary>
     public static IServiceCollection AddWorkerInfrastructure(
@@ -26,43 +28,71 @@ public static class WorkerInfrastructureExtensions
         int chunkChannelCapacity = 512,
         TimeSpan simulationTickInterval = default)
     {
-        // Chunk worker pool — registered as both its concrete type (so WorkerHost
-        // can call StartAsync/StopAsync on it) and as IChunkWorkQueue (so anything
-        // that enqueues work never takes a dependency on the concrete class).
+        // Registers IPublisher<T> / ISubscriber<T> for all event types.
+        // Must come before any service that injects IPublisher or ISubscriber.
+        services.AddMessagePipe();
 
-        services.AddSingleton<ChunkTessellationDispatcher>()
-        .AddSingleton<IChunkWorkDispatcher>(sp =>
-            sp.GetRequiredService<ChunkTessellationDispatcher>())
-        .AddSingleton(sp => new ChunkWorkerPool(
+        // ── Tessellation pool ─────────────────────────────────────────────────
+
+        services.AddSingleton<ChunkTessellationDispatcher>();
+        services.AddSingleton<IChunkWorkDispatcher>(sp =>
+            sp.GetRequiredService<ChunkTessellationDispatcher>());
+
+        services.AddSingleton(sp => new ChunkWorkerPool(
             sp.GetRequiredService<IChunkWorkDispatcher>(),
-            sp.GetRequiredService<ILogger<ChunkWorkerPool>>(),
+            sp.GetRequiredService<IGameLogger>(),
             workerCount,
             chunkChannelCapacity));
-        services.AddSingleton<IChunkWorkQueue>(sp => sp.GetRequiredService<ChunkWorkerPool>());
 
-        // Simulation loop.
+        services.AddSingleton<IChunkWorkQueue>(sp =>
+            sp.GetRequiredService<ChunkWorkerPool>());
+
+        // ── Lighting pool ─────────────────────────────────────────────────────
+        // Option B (BaseLight snapshot) is implemented — the read/write race
+        // between LightBetweenChunks.Input and LightBase is eliminated.
+        // Scale to ProcessorCount / 4: lighting is heavier per-chunk than
+        // tessellation so it needs fewer workers to saturate the tessellation queue.
+
+        int lightingWorkerCount = Math.Max(1, Environment.ProcessorCount / 4);
+
+        services.AddSingleton(sp => new ChunkLightingDispatcher(
+            sp.GetRequiredService<IChunkWorkQueue>(),
+            sp.GetRequiredService<IVoxelMap>(),
+            sp.GetRequiredService<IBlockRegistry>()));
+
+        services.AddSingleton(sp => new ChunkLightingPool(
+            sp.GetRequiredService<ChunkLightingDispatcher>(),
+            sp.GetRequiredService<IGameLogger>(),
+            lightingWorkerCount,
+            channelCapacity: lightingWorkerCount * 2));
+
+        services.AddSingleton<ILightingWorkQueue>(sp =>
+            sp.GetRequiredService<ChunkLightingPool>());
+
+        // ── Simulation loop ───────────────────────────────────────────────────
+
         services.AddSingleton(sp => new SimulationLoop(
             sp.GetRequiredService<ISimulationStep>(),
             sp.GetRequiredService<ILogger<SimulationLoop>>(),
             simulationTickInterval));
 
-        // Periodic task scheduler — collects all IScheduledTask registrations.
+        // ── Periodic scheduler ────────────────────────────────────────────────
+
         services.AddSingleton<PeriodicTaskScheduler>();
 
-        // WorkerHost owns the lifetime of all three above.
-        // Resolved and started manually in Connect().
+        // ── WorkerHost — started manually from Connect() ──────────────────────
+
         services.AddSingleton<WorkerHost>();
 
-        // ServerLifetime is the shared token — register first, everything else reads it.
         services.AddSingleton<ServerLifetime>();
         services.AddSingleton<ISimulationStep, ServerSimulationStep>();
         services.AddScheduledTask<ServerAutoRestartTask>();
         services.AddScheduledTask<SaveGameTask>();
         services.AddScheduledTask<SeasonBroadcastTask>();
+
         return services;
     }
 
-    /// <summary>Registers a <see cref="IScheduledTask"/> implementation.</summary>
     public static IServiceCollection AddScheduledTask<T>(this IServiceCollection services)
         where T : class, IScheduledTask
     {
@@ -71,12 +101,17 @@ public static class WorkerInfrastructureExtensions
     }
 }
 
+/// <summary>Enqueue a LightingChunkWorkItem here from ModDrawTerrain.</summary>
+public interface ILightingWorkQueue : IChunkWorkQueue { }
+
 /// <summary>
-/// Placeholder until chunk jobs are implemented.
-/// Does nothing — chunk work is still handled by the existing background thread path.
+/// Single-worker ChunkWorkerPool for the lighting stage.
+/// Implements ILightingWorkQueue so the DI container resolves it unambiguously
+/// alongside the tessellation ChunkWorkerPool that implements IChunkWorkQueue.
 /// </summary>
-public sealed class NullChunkWorkDispatcher : IChunkWorkDispatcher
-{
-    public Task DispatchAsync(ChunkWorkItem item, CancellationToken ct)
-        => Task.CompletedTask;
-}
+public sealed class ChunkLightingPool(
+    IChunkWorkDispatcher dispatcher,
+    IGameLogger logger,
+    int workerCount,
+    int channelCapacity)
+    : ChunkWorkerPool(dispatcher, logger, workerCount, channelCapacity), ILightingWorkQueue;

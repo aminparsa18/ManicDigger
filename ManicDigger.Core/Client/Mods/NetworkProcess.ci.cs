@@ -71,13 +71,11 @@ public class ModNetworkProcess : ModBase
             // Connect/disconnect lifecycle messages carry no payload — skip them.
             if (msg.Type != NetworkMessageType.Data)
             {
-                _gameLogger.Client.Debug($"[NET] Non-data message: {msg.Type}");
                 continue;
             }
 
             if (msg.Type != NetworkMessageType.Data || msg.Payload.Length == 0)
             {
-                _gameLogger.Client.Debug($"[NET] Skipping message type={msg.Type} length={msg.Payload.Length}");
                 continue;
             }
 
@@ -99,7 +97,6 @@ public class ModNetworkProcess : ModBase
     {
         Packet_Server packet = MemoryPackSerializer.Deserialize<Packet_Server>(
             data.AsSpan(0, dataLength));
-        _gameLogger.Client.Debug($"[NET] Packet id={packet.Id}");
         ProcessInBackground(packet);
         ProcessPacket(packet);
         Game.LastReceivedMilliseconds = Game.CurrentTimeMilliseconds;
@@ -428,7 +425,6 @@ public class ModNetworkProcess : ModBase
                 break;
 
             case Packet_ServerIdEnum.BlockType:
-                _gameLogger.Client.Debug($"[NET] BlockType id={packet.BlockType.Id}");
                 blockTypeRegistry.NewBlockTypes[packet.BlockType.Id] = packet.BlockType.Blocktype;
                 break;
 
@@ -537,7 +533,6 @@ public class ModNetworkProcess : ModBase
 
             case Packet_ServerIdEnum.BlockTypes:
                 {
-                    _gameLogger.Client.Debug($"[NET] BlockTypes — committing {blockTypeRegistry.NewBlockTypes.Count} types");
                     blockTypeRegistry.BlockTypes = blockTypeRegistry.NewBlockTypes;
                     blockTypeRegistry.NewBlockTypes = [];
 

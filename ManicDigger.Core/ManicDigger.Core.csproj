@@ -51,6 +51,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\MessagePipe\src\MessagePipe\MessagePipe.csproj" />
 	  <ProjectReference Include="..\ManicDigger.Domain\ManicDigger.Domain.csproj" />
 	</ItemGroup>
 </Project>

@@ -117,4 +117,6 @@ public interface IVoxelMap
     /// Input array layout must match <see cref="GetMapPortion"/>.
     /// </summary>
     void SetMapPortion(int x, int y, int z, int[] chunk, int sizeX, int sizeY, int sizeZ);
+
+    int ChunkFlatIndex(int cx, int cy, int cz);
 }

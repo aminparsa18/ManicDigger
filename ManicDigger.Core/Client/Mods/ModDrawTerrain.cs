@@ -1,22 +1,23 @@
-﻿using ManicDigger.Worker;
+﻿using ManicDigger.Extensions;
+using ManicDigger.Worker;
 using OpenTK.Mathematics;
 
 /// <summary>
 /// Client-side mod responsible for drawing the voxel terrain.
-/// Finding dirty chunks and enqueuing tessellation work to <see cref="IChunkWorkQueue"/>.
-/// All heavy tessellation work runs inside <see cref="ChunkTessellationDispatcher"/>.
+/// Finds dirty chunks and enqueues LightingChunkWorkItems to the lighting pool.
+/// Lighting → tessellation handoff happens entirely inside the worker pipeline.
 /// </summary>
 public class ModDrawTerrain : ModBase
 {
     public const int MaxLight = 15;
-
     private const int NoChunk = -1;
 
     private readonly IGameService _platform;
     private readonly IVoxelMap _voxelMap;
     private readonly IMeshBatcher _meshBatcher;
-    private readonly IChunkWorkQueue _chunkWorkQueue;
-    private readonly ChunkTessellationDispatcher _dispatcher;
+    private readonly ILightingWorkQueue _lightingQueue;
+    private readonly ChunkLightingDispatcher _lightingDispatcher;
+    private readonly ChunkTessellationDispatcher _tessellationDispatcher;
 
     private bool _terrainStarted;
     private int _chunkUpdates;
@@ -29,15 +30,17 @@ public class ModDrawTerrain : ModBase
         IGameService platform,
         IVoxelMap voxelMap,
         IMeshBatcher meshBatcher,
-        IChunkWorkQueue chunkWorkQueue,
-        ChunkTessellationDispatcher dispatcher,
+        ILightingWorkQueue lightingQueue,
+        ChunkLightingDispatcher lightingDispatcher,
+        ChunkTessellationDispatcher tessellationDispatcher,
         IGame game) : base(game)
     {
         _platform = platform;
         _voxelMap = voxelMap;
         _meshBatcher = meshBatcher;
-        _chunkWorkQueue = chunkWorkQueue;
-        _dispatcher = dispatcher;
+        _lightingQueue = lightingQueue;
+        _lightingDispatcher = lightingDispatcher;
+        _tessellationDispatcher = tessellationDispatcher;
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -64,23 +67,25 @@ public class ModDrawTerrain : ModBase
     {
         if (!_terrainStarted) return;
 
-        // Mark chunks around the last placed block dirty — fast, no tessellation.
         RedrawChunksAroundLastPlacedBlock();
 
-        // Enqueue one dirty chunk per worker so all workers stay busy.
-        // The channel's DropOldest policy handles overflow gracefully.
+        int mxc = _voxelMap.Mapsizexchunks;
+        int myc = _voxelMap.Mapsizeychunks;
         int slots = ChunkWorkerPool.DefaultWorkerCount;
+
         for (int i = 0; i < slots; i++)
         {
-            (int x, int y, int z)? nearest = NearestDirty();
+            (int cx, int cy, int cz, int priority)? nearest = NearestDirty();
             if (!nearest.HasValue) break;
 
+            (int cx, int cy, int cz, int priority) = nearest.Value;
+            Chunk c = _voxelMap.Chunks[VectorIndexUtil.Index3d(cx, cy, cz, mxc, myc)];
+            if (c == null) continue;
+
+            c.Rendered ??= new RenderedChunk();
+
             _chunkUpdates++;
-            _ = _chunkWorkQueue.EnqueueAsync(new ChunkWorkItem(
-                nearest.Value.x,
-                nearest.Value.y,
-                nearest.Value.z,
-                ChunkWorkType.Tessellate));
+            _lightingQueue.EnqueueAsync(new LightingChunkWorkItem(cx, cy, cz, c, Priority: priority));
         }
     }
 
@@ -88,7 +93,7 @@ public class ModDrawTerrain : ModBase
 
     public void StartTerrain()
     {
-        _dispatcher.Start();
+        _tessellationDispatcher.Start();
         _terrainStarted = true;
     }
 
@@ -108,9 +113,11 @@ public class ModDrawTerrain : ModBase
             c.Rendered.Dirty = true;
             c.BaseLightDirty = true;
         }
+
+        _lightingDispatcher.InvalidateBlockTypeCache();
     }
 
-    // ── Dirty chunk detection (main thread) ───────────────────────────────────
+    // ── Dirty chunk detection ─────────────────────────────────────────────────
 
     private void RedrawChunksAroundLastPlacedBlock()
     {
@@ -130,7 +137,9 @@ public class ModDrawTerrain : ModBase
         for (int i = 0; i < 7; i++)
         {
             Vector3i a = _blocksAround7Buffer[i];
-            int cx = InvertChunk(a.X), cy = InvertChunk(a.Y), cz = InvertChunk(a.Z);
+            int cx = InvertChunk(a.X);
+            int cy = InvertChunk(a.Y);
+            int cz = InvertChunk(a.Z);
 
             if (cx < 0 || cy < 0 || cz < 0
              || cx >= mapSizeX || cy >= mapSizeY || cz >= mapSizeZ)
@@ -146,7 +155,7 @@ public class ModDrawTerrain : ModBase
         Game.LastplacedblockZ = NoChunk;
     }
 
-    private (int x, int y, int z)? NearestDirty()
+    private (int x, int y, int z, int priority)? NearestDirty()
     {
         if (_voxelMap?.Chunks == null) return null;
 
@@ -157,14 +166,13 @@ public class ModDrawTerrain : ModBase
 
         int mxc = _voxelMap.Mapsizexchunks;
         int myc = _voxelMap.Mapsizeychunks;
-        int mzc = _voxelMap.Mapsizezchunks;
 
         int startX = Math.Max(px - half, 0);
         int startY = Math.Max(py - half, 0);
         int startZ = Math.Max(pz - half, 0);
         int endX = Math.Min(px + half, mxc - 1);
         int endY = Math.Min(py + half, myc - 1);
-        int endZ = Math.Min(pz + half, mzc - 1);
+        int endZ = Math.Min(pz + half, _voxelMap.Mapsizezchunks - 1);
 
         int bestIdx = -1;
         int bestDist = int.MaxValue;
@@ -184,14 +192,12 @@ public class ModDrawTerrain : ModBase
 
         if (bestIdx == -1) return null;
 
-        // Mark as no longer dirty immediately so a second OnFrame call this
-        // frame doesn't enqueue the same chunk twice.
         _voxelMap.Chunks[bestIdx].Rendered.Dirty = false;
 
         int biz = bestIdx / (mxc * myc);
         int biy = (bestIdx % (mxc * myc)) / mxc;
         int bix = bestIdx % mxc;
-        return (bix, biy, biz);
+        return (bix, biy, biz, bestDist);
     }
 
     private static void BlocksAround7Inplace(Vector3i pos, Vector3i[] buffer)

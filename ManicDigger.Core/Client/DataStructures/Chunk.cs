@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using ManicDigger;
+using System.Buffers;
 
 /// <summary>
 /// Stores block data for a single chunk of the voxel map.
@@ -111,6 +112,33 @@ public class Chunk
     /// A chunk with no data is considered empty/unloaded.
     /// </summary>
     public bool HasData() => Data != null || dataInt != null;
+
+    public object BaseLightLock { get; } = new();
+
+    /// <summary>
+    /// Copies <see cref="BaseLight"/> into <paramref name="destination"/> (first
+    /// <paramref name="length"/> bytes) under <see cref="BaseLightLock"/>.
+    /// If <see cref="BaseLight"/> is null, <paramref name="destination"/> is zeroed.
+    /// The caller is responsible for renting and returning <paramref name="destination"/>.
+    /// <paramref name="chunkIndex"/> is the flat map index, used by the debug race detector;
+    /// pass -1 to skip detector instrumentation.
+    /// </summary>
+    public void SnapshotBaseLight(byte[] destination, int length, int chunkIndex = -1)
+    {
+        lock (BaseLightLock)
+        {
+#if DEBUG
+            if (chunkIndex >= 0) BaseLightRaceDetector.BeginRead(chunkIndex, "SnapshotBaseLight");
+#endif
+            if (BaseLight != null)
+                BaseLight.AsSpan(0, length).CopyTo(destination.AsSpan(0, length));
+            else
+                destination.AsSpan(0, length).Fill(0);
+#if DEBUG
+            if (chunkIndex >= 0) BaseLightRaceDetector.EndRead(chunkIndex);
+#endif
+        }
+    }
 
     /// <summary>
     /// Returns all pooled arrays back to <see cref="ArrayPool{T}.Shared"/> and nulls

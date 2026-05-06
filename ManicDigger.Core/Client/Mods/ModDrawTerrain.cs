@@ -75,17 +75,17 @@ public class ModDrawTerrain : ModBase
 
         for (int i = 0; i < slots; i++)
         {
-            (int cx, int cy, int cz)? nearest = NearestDirty();
+            (int cx, int cy, int cz, int priority)? nearest = NearestDirty();
             if (!nearest.HasValue) break;
 
-            (int cx, int cy, int cz) = nearest.Value;
+            (int cx, int cy, int cz, int priority) = nearest.Value;
             Chunk c = _voxelMap.Chunks[VectorIndexUtil.Index3d(cx, cy, cz, mxc, myc)];
             if (c == null) continue;
 
             c.Rendered ??= new RenderedChunk();
 
             _chunkUpdates++;
-            _lightingQueue.EnqueueAsync(new LightingChunkWorkItem(cx, cy, cz, c));
+            _lightingQueue.EnqueueAsync(new LightingChunkWorkItem(cx, cy, cz, c, Priority: priority));
         }
     }
 
@@ -155,7 +155,7 @@ public class ModDrawTerrain : ModBase
         Game.LastplacedblockZ = NoChunk;
     }
 
-    private (int x, int y, int z)? NearestDirty()
+    private (int x, int y, int z, int priority)? NearestDirty()
     {
         if (_voxelMap?.Chunks == null) return null;
 
@@ -197,7 +197,7 @@ public class ModDrawTerrain : ModBase
         int biz = bestIdx / (mxc * myc);
         int biy = (bestIdx % (mxc * myc)) / mxc;
         int bix = bestIdx % mxc;
-        return (bix, biy, biz);
+        return (bix, biy, biz, bestDist);
     }
 
     private static void BlocksAround7Inplace(Vector3i pos, Vector3i[] buffer)

@@ -51,14 +51,36 @@ public class LightBetweenChunks
     // ── Public API ────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Full relight: Input → FloodBetweenChunks (targeted seeds) → Output.
-    /// Used after LightBase has recomputed BaseLight.
+    /// Full relight using live chunk data: Input → FloodBetweenChunks → Output.
+    /// Only safe when called from a single lighting worker (workerCount=1).
+    /// Prefer the snapshot overload when running multiple lighting workers.
     /// </summary>
     public void CalculateLightBetweenChunks(
         int cx, int cy, int cz,
         int[] dataLightRadius, bool[] dataTransparent)
     {
-        Input(cx, cy, cz);
+        InputFromLiveChunks(cx, cy, cz);
+        FloodBetweenChunks(dataLightRadius, dataTransparent);
+        Output(cx, cy, cz);
+    }
+
+    /// <summary>
+    /// Full relight using pre-snapshotted BaseLight arrays: InputFromSnapshots →
+    /// FloodBetweenChunks → Output.
+    ///
+    /// <paramref name="baseLightSnapshots"/> must be a 27-element array indexed by
+    /// <c>(z * 3 + y) * 3 + x</c> (matching <see cref="Idx"/>), where each element
+    /// is a rented <c>byte[CVol]</c> containing a point-in-time copy of the
+    /// corresponding neighbour chunk's BaseLight taken after LightBase completed.
+    /// Callers own the snapshot buffers and must return them to the pool after this
+    /// call returns.
+    /// </summary>
+    public void CalculateLightBetweenChunks(
+        int cx, int cy, int cz,
+        int[] dataLightRadius, bool[] dataTransparent,
+        byte[][] baseLightSnapshots)
+    {
+        InputFromSnapshots(cx, cy, cz, baseLightSnapshots);
         FloodBetweenChunks(dataLightRadius, dataTransparent);
         Output(cx, cy, cz);
     }
@@ -70,13 +92,18 @@ public class LightBetweenChunks
     /// </summary>
     public void RefreshRenderedLight(int cx, int cy, int cz)
     {
-        Input(cx, cy, cz);
+        InputFromLiveChunks(cx, cy, cz);
         Output(cx, cy, cz);
     }
 
     // ── Implementation ────────────────────────────────────────────────────────
 
-    private void Input(int cx, int cy, int cz)
+    /// <summary>
+    /// Reads block data and BaseLight directly from the live chunk objects.
+    /// Not safe to call concurrently with LightBase writes on the same chunks.
+    /// Used only by the single-worker path and RefreshRenderedLight.
+    /// </summary>
+    private void InputFromLiveChunks(int cx, int cy, int cz)
     {
         for (int x = 0; x < NS; x++)
             for (int y = 0; y < NS; y++)
@@ -99,17 +126,51 @@ public class LightBetweenChunks
                     for (int i = 0; i < CVol; i++)
                         data[i] = chunk.GetBlock(i);
 
-                    // ── Race detector: this READ of BaseLight races with LightBase WRITE ──
+                    lock (chunk.BaseLightLock)
+                    {
 #if DEBUG
-                    int chunkIndex = _voxelMap.ChunkFlatIndex(pcx, pcy, pcz);
-                    BaseLightRaceDetector.BeginRead(chunkIndex, "LightBetweenChunks.Input");
+                        BaseLightRaceDetector.BeginRead(
+                            _voxelMap.ChunkFlatIndex(pcx, pcy, pcz),
+                            "LightBetweenChunks.InputFromLiveChunks");
 #endif
-
-                    Array.Copy(chunk.BaseLight, light, CVol);
-
+                        Array.Copy(chunk.BaseLight, light, CVol);
 #if DEBUG
-                    BaseLightRaceDetector.EndRead(chunkIndex);
+                        BaseLightRaceDetector.EndRead(
+                            _voxelMap.ChunkFlatIndex(pcx, pcy, pcz));
 #endif
+                    }
+                }
+    }
+
+    /// <summary>
+    /// Reads block data from live chunks but BaseLight from immutable snapshots,
+    /// eliminating the read/write race with concurrent LightBase writers (Option B).
+    /// <paramref name="baseLightSnapshots"/> is indexed by <see cref="Idx"/>.
+    /// </summary>
+    private void InputFromSnapshots(int cx, int cy, int cz, byte[][] baseLightSnapshots)
+    {
+        for (int x = 0; x < NS; x++)
+            for (int y = 0; y < NS; y++)
+                for (int z = 0; z < NS; z++)
+                {
+                    int slot = Idx(x, y, z);
+                    int pcx = cx + x - 1, pcy = cy + y - 1, pcz = cz + z - 1;
+
+                    if (!_voxelMap.IsValidChunkPos(pcx, pcy, pcz))
+                    {
+                        Array.Clear(_chunksData[slot], 0, CVol);
+                        Array.Clear(_chunksLight[slot], 0, CVol);
+                        continue;
+                    }
+
+                    Chunk chunk = _voxelMap.GetChunkAt(pcx, pcy, pcz);
+                    int[] data = _chunksData[slot];
+
+                    for (int i = 0; i < CVol; i++)
+                        data[i] = chunk.GetBlock(i);
+
+                    // Snapshot is immutable at this point — no race with LightBase.
+                    Array.Copy(baseLightSnapshots[slot], _chunksLight[slot], CVol);
                 }
     }
 

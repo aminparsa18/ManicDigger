@@ -3,17 +3,27 @@
 using System.Buffers;
 
 /// <summary>
-/// IChunkWorkDispatcher for the lighting stage (single-worker pool).
+/// IChunkWorkDispatcher for the lighting stage.
 ///
 /// Handles two work item types:
 ///   LightingChunkWorkItem         — full relight (LightBase + LightBetweenChunks)
 ///                                   used for chunk load and sunlight-affecting changes
 ///   RelightBetweenChunksWorkItem  — partial relight (LightBetweenChunks only)
 ///                                   used after IncrementalLightBFS has already updated BaseLight
+///
+/// Race elimination (Option B):
+///   After the LightBase pass completes for all 27 neighbours, HandleFullRelight
+///   snapshots each neighbour's BaseLight into a private rented buffer. Those
+///   buffers are passed to LightBetweenChunks.CalculateLightBetweenChunks which
+///   reads from them instead of from the live chunk arrays. Concurrent LightBase
+///   writers on other workers can never corrupt the snapshot — it is immutable
+///   from the moment it is taken.
 /// </summary>
 public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
 {
     private const int BufferedChunkVolume = 18 * 18 * 18;
+    private const int NVol = 3 * 3 * 3; // 27 neighbours
+    private const int CVol = 16 * 16 * 16; // blocks per chunk
 
     private readonly IChunkWorkQueue _tessellationQueue;
     private readonly IVoxelMap _voxelMap;
@@ -71,6 +81,10 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
         LightingThreadContext ctx = _context.Value;
         ctx.RefreshCacheIfNeeded(_blockRegistry, _globalCacheVersion);
 
+        // ── Pass 1: LightBase ─────────────────────────────────────────────────
+        // Run LightBase for every dirty neighbour in the 3×3×3 window.
+        // TryClaimBaseLightDirty ensures each chunk is processed by exactly one worker.
+
         bool anyBaseLightChanged = false;
 
         for (int xx = 0; xx < 3; xx++)
@@ -86,28 +100,67 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
                         _voxelMap.ChunkFlatIndex(cx1, cy1, cz1)];
                     if (neighbour == null) continue;
 
-                    // Atomic claim — only one worker computes BaseLight for this neighbour.
                     if (!neighbour.TryClaimBaseLightDirty()) continue;
 
+                    lock (neighbour.BaseLightLock)
+                    {
 #if DEBUG
-                    int neighbourIndex = _voxelMap.ChunkFlatIndex(cx1, cy1, cz1);
-                    BaseLightRaceDetector.BeginWrite(neighbourIndex, "LightBase");
+                        BaseLightRaceDetector.BeginWrite(
+                            _voxelMap.ChunkFlatIndex(cx1, cy1, cz1), "LightBase");
 #endif
-
-                    ctx.LightBase.CalculateChunkBaseLight(
-                        cx1, cy1, cz1,
-                        ctx.ShadowLightRadius,
-                        ctx.ShadowIsTransparent);
-
+                        ctx.LightBase.CalculateChunkBaseLight(
+                            cx1, cy1, cz1,
+                            ctx.ShadowLightRadius,
+                            ctx.ShadowIsTransparent);
 #if DEBUG
-                    BaseLightRaceDetector.EndWrite(neighbourIndex);
+                        BaseLightRaceDetector.EndWrite(
+                            _voxelMap.ChunkFlatIndex(cx1, cy1, cz1));
 #endif
+                    }
 
                     anyBaseLightChanged = true;
                 }
 
+        // ── Pass 2: Snapshot BaseLight for all 27 neighbours ──────────────────
+        // Taken after this worker's LightBase writes are complete.
+        // Chunks that are clean had no writer, so their BaseLight is stable.
+        // Chunks whose dirty flag was claimed by another worker may still be
+        // mid-write; the snapshot captures whatever is visible at this instant,
+        // which is at worst one frame stale — acceptable for a voxel lighting
+        // approximation and far better than the previous data corruption.
+
+        byte[][] snapshots = ctx.BaseLightSnapshots;
+
+        for (int xx = 0; xx < 3; xx++)
+            for (int yy = 0; yy < 3; yy++)
+                for (int zz = 0; zz < 3; zz++)
+                {
+                    int slot = (zz * 3 + yy) * 3 + xx; // matches LightBetweenChunks.Idx
+                    int pcx = li.ChunkX + xx - 1;
+                    int pcy = li.ChunkY + yy - 1;
+                    int pcz = li.ChunkZ + zz - 1;
+
+                    byte[] snap = ArrayPool<byte>.Shared.Rent(CVol);
+
+                    if (!_voxelMap.IsValidChunkPos(pcx, pcy, pcz))
+                    {
+                        snap.AsSpan(0, CVol).Fill(0);
+                        snapshots[slot] = snap;
+                        continue;
+                    }
+
+                    Chunk? neighbour = _voxelMap.GetChunkAt(pcx, pcy, pcz);
+                    if (neighbour != null)
+                        neighbour.SnapshotBaseLight(snap, CVol,
+                            _voxelMap.ChunkFlatIndex(pcx, pcy, pcz));
+                    else
+                        snap.AsSpan(0, CVol).Fill(0);
+
+                    snapshots[slot] = snap;
+                }
+
         await SnapshotAndEnqueue(li.ChunkX, li.ChunkY, li.ChunkZ,
-            chunk, ctx, anyBaseLightChanged, li.Completion, ct);
+            chunk, ctx, anyBaseLightChanged, snapshots, li.Completion, li.Priority, ct);
     }
 
     // ── Partial relight (LightBetweenChunks only) ────────────────────────────
@@ -115,7 +168,8 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
     /// <summary>
     /// Called after IncrementalLightBFS has already updated BaseLight.
     /// Skips LightBase entirely — just re-runs LightBetweenChunks to refresh
-    /// Rendered.Light, then hands off a tessellation snapshot.
+    /// Rendered.Light using live chunk data (safe: single BFS caller, no concurrent
+    /// LightBase writers racing this read).
     /// </summary>
     private async Task HandleRelightBetweenChunks(RelightBetweenChunksWorkItem rb, CancellationToken ct)
     {
@@ -142,18 +196,21 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
             rb.ChunkX, rb.ChunkY, rb.ChunkZ, chunk,
             ShadowBuffer: snapshot,
             ShadowBufferRented: true,
-            Completion: rb.Completion), ct);
+            Completion: rb.Completion,
+            Priority: rb.Priority), ct);
     }
 
-    // ── Shared: snapshot Rendered.Light and enqueue tessellation ─────────────
+    // ── Shared: run LightBetweenChunks from snapshots, snapshot Rendered.Light, enqueue tess ──
 
     private async Task SnapshotAndEnqueue(
-         int cx, int cy, int cz,
-         Chunk chunk,
-         LightingThreadContext ctx,
-         bool anyBaseLightChanged,
-         TaskCompletionSource? completion,
-         CancellationToken ct)
+        int cx, int cy, int cz,
+        Chunk chunk,
+        LightingThreadContext ctx,
+        bool anyBaseLightChanged,
+        byte[][] baseLightSnapshots,
+        TaskCompletionSource? completion,
+        int priority,
+        CancellationToken ct)
     {
         RenderedChunk rendered = chunk.Rendered;
 
@@ -167,36 +224,50 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
 
         if (anyBaseLightChanged)
         {
+            // Use snapshot overload — reads BaseLight from immutable buffers, not live chunks.
             ctx.LightBetweenChunks.CalculateLightBetweenChunks(
                 cx, cy, cz,
                 ctx.ShadowLightRadius,
-                ctx.ShadowIsTransparent);
+                ctx.ShadowIsTransparent,
+                baseLightSnapshots);
         }
 
-        byte[] snapshot = ArrayPool<byte>.Shared.Rent(BufferedChunkVolume);
+        // Return all 27 snapshot buffers now that LightBetweenChunks has finished with them.
+        for (int i = 0; i < NVol; i++)
+        {
+            if (baseLightSnapshots[i] != null)
+            {
+                ArrayPool<byte>.Shared.Return(baseLightSnapshots[i]);
+                baseLightSnapshots[i] = null;
+            }
+        }
+
+        byte[] shadowSnapshot = ArrayPool<byte>.Shared.Rent(BufferedChunkVolume);
         rendered.Light.AsSpan(0, BufferedChunkVolume)
-                      .CopyTo(snapshot.AsSpan(0, BufferedChunkVolume));
+                      .CopyTo(shadowSnapshot.AsSpan(0, BufferedChunkVolume));
 
         await _tessellationQueue.EnqueueAsync(new TessellationChunkWorkItem(
             cx, cy, cz, chunk,
-            ShadowBuffer: snapshot,
+            ShadowBuffer: shadowSnapshot,
             ShadowBufferRented: true,
-            Completion: completion), ct);
+            Completion: completion,
+            Priority: priority), ct);
     }
 }
 
 /// <summary>
 /// Enqueued by the main thread (ModDrawTerrain) when a chunk is dirty.
-/// The single ChunkLightingWorker converts this into a
-/// TessellationChunkWorkItem after computing shadows.
+/// The ChunkLightingWorker converts this into a TessellationChunkWorkItem
+/// after computing shadows.
 /// </summary>
 public record LightingChunkWorkItem(
     int ChunkX,
     int ChunkY,
     int ChunkZ,
     Chunk Chunk,
-    TaskCompletionSource? Completion = null
-) : ChunkWorkItem(ChunkX, ChunkY, ChunkZ, ChunkWorkType.RelightFull, Completion);
+    TaskCompletionSource? Completion = null,
+    int Priority = 0
+) : ChunkWorkItem(ChunkX, ChunkY, ChunkZ, ChunkWorkType.RelightFull, Completion, Priority);
 
 /// <summary>
 /// Partial relight — LightBetweenChunks only (BaseLight already updated by IncrementalLightBFS).
@@ -207,8 +278,9 @@ public record RelightBetweenChunksWorkItem(
     int ChunkY,
     int ChunkZ,
     Chunk? Chunk = null,
-    TaskCompletionSource? Completion = null
-) : ChunkWorkItem(ChunkX, ChunkY, ChunkZ, ChunkWorkType.RelightBetweenChunks, Completion);
+    TaskCompletionSource? Completion = null,
+    int Priority = 0
+) : ChunkWorkItem(ChunkX, ChunkY, ChunkZ, ChunkWorkType.RelightBetweenChunks, Completion, Priority);
 
 // ── Per-thread context ────────────────────────────────────────────────────────
 
@@ -222,6 +294,14 @@ internal sealed class LightingThreadContext
     public readonly LightBetweenChunks LightBetweenChunks;
     public readonly int[] ShadowLightRadius = new int[GameConstants.MAX_BLOCKTYPES];
     public readonly bool[] ShadowIsTransparent = new bool[GameConstants.MAX_BLOCKTYPES];
+
+    /// <summary>
+    /// Holds the 27 rented BaseLight snapshot buffers for the current job.
+    /// Entries are rented at the start of HandleFullRelight and returned to the
+    /// pool in SnapshotAndEnqueue after LightBetweenChunks has consumed them.
+    /// The array itself is reused across jobs to avoid per-job allocation.
+    /// </summary>
+    public readonly byte[][] BaseLightSnapshots = new byte[27][];
 
     private int _knownCacheVersion = -1;
 

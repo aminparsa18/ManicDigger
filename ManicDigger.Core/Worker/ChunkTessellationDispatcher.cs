@@ -191,5 +191,6 @@ public record TessellationChunkWorkItem(
     /// </summary>
     byte[] ShadowBuffer,
     bool ShadowBufferRented,
-    TaskCompletionSource? Completion = null
+    TaskCompletionSource? Completion = null,
+    int Priority = 0
 ) : ChunkWorkItem(ChunkX, ChunkY, ChunkZ, ChunkWorkType.Tessellate, Completion);

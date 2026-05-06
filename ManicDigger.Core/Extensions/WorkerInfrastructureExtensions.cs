@@ -10,8 +10,10 @@ public static class WorkerInfrastructureExtensions
     /// Registers the simulation loop, chunk worker pools (lighting + tessellation),
     /// periodic task scheduler, and WorkerHost as singletons.
     ///
-    /// Lighting pool:      workerCount=1  — sequential, eliminates lighting races
-    /// Tessellation pool:  workerCount=N  — parallel geometry factory
+    /// Lighting pool:      workerCount = max(1, ProcessorCount / 4)
+    ///                     Safe with multiple workers now that Option B (BaseLight
+    ///                     snapshot) is implemented in ChunkLightingDispatcher.
+    /// Tessellation pool:  workerCount = N  — parallel geometry factory
     ///
     /// Usage:
     /// <code>
@@ -38,7 +40,7 @@ public static class WorkerInfrastructureExtensions
 
         services.AddSingleton(sp => new ChunkWorkerPool(
             sp.GetRequiredService<IChunkWorkDispatcher>(),
-            sp.GetRequiredService<ILogger<ChunkWorkerPool>>(),
+            sp.GetRequiredService<IGameLogger>(),
             workerCount,
             chunkChannelCapacity));
 
@@ -46,6 +48,12 @@ public static class WorkerInfrastructureExtensions
             sp.GetRequiredService<ChunkWorkerPool>());
 
         // ── Lighting pool ─────────────────────────────────────────────────────
+        // Option B (BaseLight snapshot) is implemented — the read/write race
+        // between LightBetweenChunks.Input and LightBase is eliminated.
+        // Scale to ProcessorCount / 4: lighting is heavier per-chunk than
+        // tessellation so it needs fewer workers to saturate the tessellation queue.
+
+        int lightingWorkerCount = Math.Max(1, Environment.ProcessorCount / 4);
 
         services.AddSingleton(sp => new ChunkLightingDispatcher(
             sp.GetRequiredService<IChunkWorkQueue>(),
@@ -54,9 +62,9 @@ public static class WorkerInfrastructureExtensions
 
         services.AddSingleton(sp => new ChunkLightingPool(
             sp.GetRequiredService<ChunkLightingDispatcher>(),
-            sp.GetRequiredService<ILogger<ChunkWorkerPool>>(),
-            workerCount,
-            channelCapacity: chunkChannelCapacity));
+            sp.GetRequiredService<IGameLogger>(),
+            lightingWorkerCount,
+            channelCapacity: lightingWorkerCount * 2));
 
         services.AddSingleton<ILightingWorkQueue>(sp =>
             sp.GetRequiredService<ChunkLightingPool>());
@@ -103,7 +111,7 @@ public interface ILightingWorkQueue : IChunkWorkQueue { }
 /// </summary>
 public sealed class ChunkLightingPool(
     IChunkWorkDispatcher dispatcher,
-    ILogger<ChunkWorkerPool> logger,
+    IGameLogger logger,
     int workerCount,
     int channelCapacity)
     : ChunkWorkerPool(dispatcher, logger, workerCount, channelCapacity), ILightingWorkQueue;

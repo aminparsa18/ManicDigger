@@ -12,20 +12,20 @@ public class ModSkySphereStatic : ModBase
     private int skySphereTexture = -1;
     private int skySphereNightTexture = -1;
     private GeometryModel skyModel;
-    private readonly IOpenGlService platform;
-    private readonly IMeshDrawer meshDrawer;
+    private readonly IOpenGlService _openGlService;
+    private readonly IMeshDrawer _meshDrawer;
     private readonly ILightManager _lightManager;
 
     public ModSkySphereStatic(IOpenGlService platform, IMeshDrawer meshDrawer, ILightManager lightManager, IGame game) : base(game)
     {
-        this.platform = platform;
-        this.meshDrawer = meshDrawer;
+        this._openGlService = platform;
+        this._meshDrawer = meshDrawer;
         _lightManager = lightManager;
     }
 
     public override void OnRender3d(float deltaTime)
     {
-        platform.GlDisableFog();
+        _openGlService.GlDisableFog();
         DrawSkySphere();
         Game.SetFog();
     }
@@ -53,22 +53,22 @@ public class ModSkySphereStatic : ModBase
             throw new InvalidOperationException($"error in {nameof(ModSkySphereStatic)} - {nameof(DrawSkySphere)}");
         }
 
-        skyModel ??= platform.CreateModel(Sphere.Create(SphereSize, SphereSize, SphereSegments, SphereSegments));
+        skyModel ??= _openGlService.CreateModel(Sphere.Create(SphereSize, SphereSize, SphereSegments, SphereSegments));
 
         Game.Set3dProjection(SphereSize * 2, fov);
-        meshDrawer.GLMatrixModeModelView();
-        meshDrawer.GLPushMatrix();
-        meshDrawer.GLTranslate(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z);
-        platform.BindTexture2d(SkyTexture);
-        meshDrawer.DrawModel(skyModel);
-        meshDrawer.GLPopMatrix();
+        _meshDrawer.GLMatrixModeModelView();
+        _meshDrawer.GLPushMatrix();
+        _meshDrawer.GLTranslate(Game.Player.position.x, Game.Player.position.y, Game.Player.position.z);
+        _openGlService.BindTexture2d(SkyTexture);
+        _meshDrawer.DrawModel(skyModel);
+        _meshDrawer.GLPopMatrix();
         Game.Set3dProjection(Game.Zfar(), fov);
     }
 
     private int LoadTexture(string filename)
     {
         Bitmap bmp = PixelBuffer.BitmapFromPng(Game.GetAssetFile(filename), Game.GetAssetFileLength(filename));
-        int texture = platform.LoadTextureFromBitmap(bmp);
+        int texture = _openGlService.LoadTextureFromBitmap(bmp);
         bmp.Dispose();
         return texture;
     }

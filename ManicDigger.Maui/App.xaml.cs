@@ -106,7 +106,7 @@ public class GameRunner
 
         // ── World rendering ───────────────────────────────────────────────────
         services.AddScoped<IModBase, ModSkySphereAnimated>();
-        services.AddScoped<IModBase, SunMoonRenderer>();
+        services.AddScoped<IModBase, ModSunMoon>();
         services.AddScoped<IModBase, ModDrawTerrain>();
         services.AddScoped<IModBase, ModDrawArea>();
         services.AddScoped<IModBase, ModDrawSprites>();

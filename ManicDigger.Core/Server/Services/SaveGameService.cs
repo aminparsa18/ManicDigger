@@ -187,7 +187,6 @@ public class SaveGameService : ISaveGameService
     {
         if (!GameStorePath.IsValidName(backupFilename))
         {
-            DiagLog.Write($"{_languageService.ServerInvalidBackupName()}{backupFilename}");
             return false;
         }
 

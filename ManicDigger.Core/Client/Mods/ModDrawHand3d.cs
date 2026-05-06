@@ -27,7 +27,7 @@ public class ModDrawHand3d : ModBase
     private const float BobRange = 7f / 100f;
 
     /// <summary>Reference to the current game instance, set each frame in <see cref="OnNewFrameDraw3d"/>.</summary>
-    private readonly IOpenGlService _platform;
+    private readonly IOpenGlService _openGlService;
     private readonly IMeshDrawer _meshDrawer;
     private readonly IBlockRegistry _blockRegistry;
     private readonly ITerrainChunkTesselator _terrainChunkTesselator;
@@ -127,7 +127,7 @@ public class ModDrawHand3d : ModBase
     public ModDrawHand3d(IOpenGlService platform, IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry,
         ITerrainChunkTesselator terrainChunkTesselator, ILightManager lightManager, IGame game) : base(game)
     {
-        this._platform = platform;
+        this._openGlService = platform;
         this._meshDrawer = meshDrawer;
         this._blockRegistry = blockTypeRegistry;
         _terrainChunkTesselator = terrainChunkTesselator;
@@ -304,7 +304,7 @@ public class ModDrawHand3d : ModBase
     {
         int lightByte = IsTorch() ? 255 : Math.Clamp((int)(Light() * 256), 0, 255);
 
-        _platform.BindTexture2d(GetTerrainTexture());
+        _openGlService.BindTexture2d(GetTerrainTexture());
 
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
 
@@ -318,7 +318,7 @@ public class ModDrawHand3d : ModBase
         if (curMaterial != _cachedMaterial || curLight != _cachedLight || _modelData == null || Game.HandRedraw)
         {
             RebuildHandModel(lightByte);
-            _platform.UpdateModel(_modelData); // sync rebuilt geometry to GPU
+            _openGlService.UpdateModel(_modelData); // sync rebuilt geometry to GPU
             Game.HandRedraw = false;
         }
 
@@ -327,7 +327,7 @@ public class ModDrawHand3d : ModBase
 
         // Push an isolated model-view matrix for the hand so it always renders in
         // front of the world geometry regardless of camera distance.
-        _platform.GlClearDepthBuffer();
+        _openGlService.GlClearDepthBuffer();
         _meshDrawer.GLMatrixModeModelView();
         _meshDrawer.GLPushMatrix();
         _meshDrawer.GLLoadIdentity();
@@ -345,7 +345,7 @@ public class ModDrawHand3d : ModBase
         AdvanceBobAnimation(dt);
         AdvanceSwingAnimation(dt);
 
-        _platform.BindTexture2d(GetTerrainTexture());
+        _openGlService.BindTexture2d(GetTerrainTexture());
         _meshDrawer.DrawModelData(_modelData);
 
         _meshDrawer.GLPopMatrix();

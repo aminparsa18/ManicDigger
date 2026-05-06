@@ -11,7 +11,6 @@ public class ModUnloadRendererChunks : ModBase
     private readonly IVoxelMap _voxelMap;
     private readonly IMeshBatcher meshBatcher;
 
-    private int _pendingUnloadIndex = -1;
     private int _backgroundRunning; // 0 = idle, 1 = running (Interlocked)
 
     /// <summary>Edge length of one chunk in blocks.</summary>
@@ -95,19 +94,22 @@ public class ModUnloadRendererChunks : ModBase
 
             bool hasRenderedGeometry = chunk.Rendered?.Ids != null;
             bool hasBlockData = chunk.HasData();
-            if (!hasRenderedGeometry && !hasBlockData) continue;
+            if (!hasRenderedGeometry && !hasBlockData)
+                continue;
 
             if (x < startX || y < startY || z < startZ
              || x > endX || y > endY || z > endZ)
             {
-                _pendingUnloadIndex = flatIndex;
                 // Stage geometry removal — main thread flushes it via FlushPendingUploads
                 meshBatcher.StageUnload(chunk);
                 // Release block data and null the slot immediately — safe from background thread
                 chunk.Release();
                 _voxelMap.Chunks[flatIndex] = null;
 
-                if (hasRenderedGeometry) break;
+                if (hasRenderedGeometry)
+                {
+                    break;
+                }
             }
         }
     }

@@ -29,6 +29,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManicDigger.Benchmark", "Ma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagePipe", "..\MessagePipe\src\MessagePipe\MessagePipe.csproj", "{82E58E47-B432-5F62-AE37-9D4C49639D0D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E0163E1F-EE98-4A1C-8C37-AD9230B757F2}"
+	ProjectSection(SolutionItems) = preProject
+		ManicDigger.Core\Client\Mods\AUDIO_README.md = ManicDigger.Core\Client\Mods\AUDIO_README.md
+		ManicDigger.Core\Client\Mods\CAMERA_README.md = ManicDigger.Core\Client\Mods\CAMERA_README.md
+		ManicDigger.Core\Client\Mods\DRAWTERRAIN_README.md = ManicDigger.Core\Client\Mods\DRAWTERRAIN_README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,6 +91,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{EF948D54-8AD1-4F13-A9FE-737127CE907D} = {F1C81588-8630-4F83-9602-3544AC76F66D}
+		{E0163E1F-EE98-4A1C-8C37-AD9230B757F2} = {F9C2C6E0-7CBD-4F42-BE60-7142D3AFE779}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D331AA92-6BEC-4175-8E65-A767983D895D}

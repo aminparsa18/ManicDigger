@@ -13,7 +13,7 @@ public class ModSendPosition : ModBase
 
     public override void OnFrame(float dt)
     {
-        if (!Game.Spawned)
+        if (!Game.Spawned || Game.IsSinglePlayer)
             return;
 
         if (platform.TimeMillisecondsFromStart - Game.LastPositionSentMilliseconds <= SendIntervalMs)

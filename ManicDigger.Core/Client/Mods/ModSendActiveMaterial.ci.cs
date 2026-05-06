@@ -11,6 +11,9 @@ public class ModSendActiveMaterial : ModBase
 
     public override void OnUpdate(float args)
     {
+        if (Game.IsSinglePlayer)
+            return;
+
         int activeBlock = Game.Inventory.RightHand[Game.ActiveMaterial]?.BlockId ?? 0;
 
         if (activeBlock != previousActiveMaterialBlock)

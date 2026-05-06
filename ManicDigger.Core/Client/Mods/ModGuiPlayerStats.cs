@@ -11,11 +11,11 @@ public class ModGuiPlayerStats : ModBase
     private static readonly int Red = ColorUtils.ColorFromArgb(255, 255, 0, 0);
     private static readonly int Blue = ColorUtils.ColorFromArgb(255, 0, 0, 255);
 
-    private readonly IGameService platform;
+    private readonly IGameService _gameService;
 
     public ModGuiPlayerStats(IGameService platform, IGame game) : base(game)
     {
-        this.platform = platform;
+        this._gameService = platform;
     }
 
     public override void OnRender2d(float deltaTime)
@@ -25,9 +25,9 @@ public class ModGuiPlayerStats : ModBase
             return;
         }
 
-        int barY = platform.CanvasHeight - 122;
-        int healthX = (platform.CanvasWidth / 2) - BarWidth - CenterOffset;
-        int oxygenX = (platform.CanvasWidth / 2) + CenterOffset;
+        int barY = _gameService.CanvasHeight - 122;
+        int healthX = (_gameService.CanvasWidth / 2) - BarWidth - CenterOffset;
+        int oxygenX = (_gameService.CanvasWidth / 2) + CenterOffset;
 
         DrawBar(healthX, barY, (float)Game.PlayerStats.CurrentHealth / Game.PlayerStats.MaxHealth, Red);
 

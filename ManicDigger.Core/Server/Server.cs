@@ -136,7 +136,7 @@ public partial class Server : IServer, IDropItem
         if (lastServerTick > 500)
         {
             //Print an error if the value gets too big - TODO: Adjust
-            DiagLog.Write("Server process takes too long! Overloaded? ({0}ms)", lastServerTick);
+            _gameLogger.Server.Information("Server process takes too long! Overloaded? ({0}ms)", lastServerTick);
         }
     }
 
@@ -205,14 +205,14 @@ public partial class Server : IServer, IDropItem
             Directory.CreateDirectory(GameStorePath.gamepathsaves);
         }
 
-        DiagLog.Write(_languageService.ServerLoadingSavegame());
+        _gameLogger.Server.Information(_languageService.ServerLoadingSavegame());
         if (!File.Exists(_saveGameService.GetSaveFilename()))
         {
-            DiagLog.Write(_languageService.ServerCreatingSavegame());
+            _gameLogger.Server.Information(_languageService.ServerCreatingSavegame());
         }
 
         _saveGameService.Load();
-        DiagLog.Write(_languageService.ServerLoadedSavegame() + _saveGameService.GetSaveFilename());
+        _gameLogger.Server.Information(_languageService.ServerLoadedSavegame() + _saveGameService.GetSaveFilename());
         if (_localConnectionsOnly)
         {
             _config.Port = _singlePlayerPort;
@@ -240,11 +240,11 @@ public partial class Server : IServer, IDropItem
 
         if (_config.AutoRestartCycle > 0)
         {
-            DiagLog.Write("AutoRestartInterval: {0}", _config.AutoRestartCycle);
+            _gameLogger.Server.Information("AutoRestartInterval: {0}", _config.AutoRestartCycle);
         }
         else
         {
-            DiagLog.Write("AutoRestartInterval: DISABLED");
+            _gameLogger.Server.Information("AutoRestartInterval: DISABLED");
         }
     }
 
@@ -269,14 +269,14 @@ public partial class Server : IServer, IDropItem
     public int Port { get; set; }
     public void Stop()
     {
-        DiagLog.Write("[SERVER] Doing last tick...");
+        _gameLogger.Server.Information("[SERVER] Doing last tick...");
         ProcessMain();
         //Maybe inform mods about shutdown?
-        DiagLog.Write("[SERVER] Saving data...");
+        _gameLogger.Server.Information("[SERVER] Saving data...");
         DateTime start = DateTime.UtcNow;
         _saveGameService.SaveGlobalData();
-        DiagLog.Write(_languageService.ServerGameSaved(), DateTime.UtcNow - start);
-        DiagLog.Write("[SERVER] Stopped the server!");
+        _gameLogger.Server.Information(_languageService.ServerGameSaved(), DateTime.UtcNow - start);
+        _gameLogger.Server.Information("[SERVER] Stopped the server!");
     }
 
     public void Restart()
@@ -426,7 +426,7 @@ public partial class Server : IServer, IDropItem
                 TryReadPacket(clientid, msg.Payload.ToArray());
                 break;
             case NetworkMessageType.Disconnect:
-                DiagLog.Write("Client disconnected.");
+                _gameLogger.Server.Information("Client disconnected.");
                 KillPlayer(clientid);
                 break;
         }
@@ -672,7 +672,7 @@ public partial class Server : IServer, IDropItem
         if (name != "invalid")
         {
             SendMessageToAll(string.Format(_languageService.ServerPlayerDisconnect(), coloredName));
-            DiagLog.Write(string.Format("{0} disconnects.", name));
+            _gameLogger.Server.Information(string.Format("{0} disconnects.", name));
         }
     }
 
@@ -705,7 +705,7 @@ public partial class Server : IServer, IDropItem
 
         if (_config.ServerMonitor && !serverMonitor.CheckPacket(clientid, packet))
         {
-            DiagLog.Write("Server monitor rejected packet");
+            _gameLogger.Server.Information("Server monitor rejected packet");
             return;
         }
 
@@ -738,8 +738,8 @@ public partial class Server : IServer, IDropItem
 
                     if (_config.IsPasswordProtected() && packet.Identification.ServerPassword != _config.Password)
                     {
-                        DiagLog.Write(string.Format("{0} fails to join (invalid server password).", packet.Identification.Username));
-                        DiagLog.Write(string.Format("{0} fails to join (invalid server password).", packet.Identification.Username));
+                        _gameLogger.Server.Information(string.Format("{0} fails to join (invalid server password).", packet.Identification.Username));
+                        _gameLogger.Server.Information(string.Format("{0} fails to join (invalid server password).", packet.Identification.Username));
                         _serverPacketService.SendPacket(clientid, ServerPackets.DisconnectPlayer(_languageService.ServerPasswordInvalid()));
                         KillPlayer(clientid);
                         break;
@@ -754,7 +754,7 @@ public partial class Server : IServer, IDropItem
                     if (string.IsNullOrEmpty(username) || !allowedUsername.IsMatch(username))
                     {
                         _serverPacketService.SendPacket(clientid, ServerPackets.DisconnectPlayer(_languageService.ServerUsernameInvalid()));
-                        DiagLog.Write(string.Format("{0} can't join (invalid username: {1}).", c.Socket.RemoteEndPoint().AddressToString(), username));
+                        _gameLogger.Server.Information(string.Format("{0} can't join (invalid username: {1}).", c.Socket.RemoteEndPoint().AddressToString(), username));
                         KillPlayer(clientid);
                         break;
                     }
@@ -869,7 +869,7 @@ public partial class Server : IServer, IDropItem
 
                     string ip = _serverClientService.Clients[clientid].Socket.RemoteEndPoint().AddressToString();
                     SendMessageToAll(string.Format(_languageService.ServerPlayerJoin(), _serverClientService.Clients[clientid].ColoredPlayername(colorNormal)));
-                    DiagLog.Write(string.Format("{0} {1} joins.", _serverClientService.Clients[clientid].PlayerName, ip));
+                    _gameLogger.Server.Information(string.Format("{0} {1} joins.", _serverClientService.Clients[clientid].PlayerName, ip));
                     _serverPacketService.SendMessage(clientid, colorSuccess + _config.WelcomeMessage);
                     SendBlobs(clientid, packet.RequestBlob.RequestedMd5);
                     SendBlockTypes(clientid);
@@ -997,11 +997,11 @@ public partial class Server : IServer, IDropItem
                             //This will notify client of error instead of kicking him in case of an error
                             _serverPacketService.SendMessage(clientid, "Server error while executing command!", MessageType.Error);
                             _serverPacketService.SendMessage(clientid, "Details on server console!", MessageType.Error);
-                            DiagLog.Write("Client {0} caused a command error.", clientid);
-                            DiagLog.Write("Command: /{0}", command);
-                            DiagLog.Write("Arguments: {0}", argument);
-                            DiagLog.Write(ex.Message);
-                            DiagLog.Write(ex.StackTrace);
+                            _gameLogger.Server.Error("Client {0} caused a command error.", clientid);
+                            _gameLogger.Server.Error("Command: /{0}", command);
+                            _gameLogger.Server.Error("Arguments: {0}", argument);
+                            _gameLogger.Server.Error(ex.Message);
+                            _gameLogger.Server.Error(ex.StackTrace);
                         }
                     }
                     // client command
@@ -1173,7 +1173,7 @@ public partial class Server : IServer, IDropItem
                 break;
             case PacketType.Leave:
                 //0: Leave - 1: Crash
-                DiagLog.Write("Disconnect reason: {0}", packet.Leave.Reason);
+                _gameLogger.Server.Information("Disconnect reason: {0}", packet.Leave.Reason);
                 KillPlayer(clientid);
                 break;
             case PacketType.Reload:
@@ -1182,13 +1182,13 @@ public partial class Server : IServer, IDropItem
                 //Flood/DDoS-abuse protection
                 if ((DateTime.UtcNow - lastQuery) < TimeSpan.FromMilliseconds(200))
                 {
-                    DiagLog.Write("ServerQuery rejected (too many requests)");
+                    _gameLogger.Server.Information("ServerQuery rejected (too many requests)");
                     _serverPacketService.SendPacket(clientid, ServerPackets.DisconnectPlayer("Too many requests!"));
                     KillPlayer(clientid);
                     return;
                 }
 
-                DiagLog.Write("ServerQuery processed.");
+                _gameLogger.Server.Information("ServerQuery processed.");
                 lastQuery = DateTime.UtcNow;
                 //Client only wants server information. No real client.
                 List<string> playernames = [];
@@ -1247,13 +1247,13 @@ public partial class Server : IServer, IDropItem
                         _modEvents.RaiseHitEntity(clientid, hitId.ChunkX, hitId.ChunkY, hitId.ChunkZ, hitId.Id);
                         break;
                     default:
-                        DiagLog.Write("Unknown EntityInteractionType: {0}, clientid: {1}", packet.EntityInteraction.InteractionType, clientid);
+                        _gameLogger.Server.Warning("Unknown EntityInteractionType: {0}, clientid: {1}", packet.EntityInteraction.InteractionType, clientid);
                         break;
                 }
 
                 break;
             default:
-                DiagLog.Write("Invalid packet: {0}, clientid:{1}", packet.Id, clientid);
+                _gameLogger.Server.Warning("Invalid packet: {0}, clientid:{1}", packet.Id, clientid);
                 break;
         }
     }
@@ -1486,7 +1486,7 @@ public partial class Server : IServer, IDropItem
             return;
         }
 
-        DiagLog.Write(string.Format("{0} runs script:\n{1}", client.PlayerName, script));
+        _gameLogger.Server.Information(string.Format("{0} runs script:\n{1}", client.PlayerName, script));
         if (client.Interpreter == null)
         {
             client.Interpreter = new JavaScriptInterpreter();
@@ -2001,12 +2001,12 @@ public partial class Server : IServer, IDropItem
     public void ServerMessageToAll(string message, MessageType color)
     {
         SendMessageToAll(MessageTypeToString(color) + message);
-        DiagLog.Write(string.Format("SERVER MESSAGE: {0}.", message));
+        _gameLogger.Server.Information(string.Format("SERVER MESSAGE: {0}.", message));
     }
 
     public void SendMessageToAll(string message)
     {
-        DiagLog.Write("Message to all: " + message);
+        _gameLogger.Server.Information("Message to all: " + message);
         foreach (KeyValuePair<int, ServerPlayer> k in _serverClientService.Clients)
         {
             _serverPacketService.SendMessage(k.Key, message);

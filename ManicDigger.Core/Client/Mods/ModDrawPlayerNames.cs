@@ -10,13 +10,18 @@ public class ModDrawPlayerNames : ModBase
     private const float NameTagDrawDistance = 20f;
 
     private readonly IMeshDrawer meshDrawer;
-    public ModDrawPlayerNames(IMeshDrawer meshDrawer, IGame game) : base(game)
+    private readonly ISinglePlayerService playerService;
+
+    public ModDrawPlayerNames(IMeshDrawer meshDrawer, IGame game, ISinglePlayerService playerService) : base(game)
     {
         this.meshDrawer = meshDrawer;
+        this.playerService = playerService;
     }
 
     public override void OnRender3d(float deltaTime)
     {
+        if (playerService.SinglePlayerServerLoaded)
+            return; 
         for (int i = 0; i < Game.Entities.Count; i++)
         {
             Entity e = Game.Entities[i];

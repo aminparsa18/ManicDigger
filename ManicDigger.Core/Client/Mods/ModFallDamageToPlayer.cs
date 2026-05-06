@@ -9,13 +9,13 @@ public class ModFallDamageToPlayer : ModBase
 
     private bool fallSoundPlaying;
     private int lastFallDamageTimeMilliseconds;
-    private readonly IGameService platform;
+    private readonly IGameService _gameService;
     private readonly IVoxelMap voxelMap;
     private readonly IBlockRegistry _blockRegistry;
 
     public ModFallDamageToPlayer(IGameService platform, IVoxelMap voxelMap, IGame game, IBlockRegistry blockRegistry) : base(game)
     {
-        this.platform = platform;
+        this._gameService = platform;
         this.voxelMap = voxelMap;
         _blockRegistry = blockRegistry;
     }
@@ -89,7 +89,7 @@ public class ModFallDamageToPlayer : ModBase
             _ => 1.0f
         };
 
-        int now = platform.TimeMillisecondsFromStart;
+        int now = _gameService.TimeMillisecondsFromStart;
         if ((now - lastFallDamageTimeMilliseconds) / 1000f < FallDamageCooldownSeconds)
         {
             return;

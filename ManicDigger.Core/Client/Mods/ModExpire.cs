@@ -6,10 +6,11 @@ using OpenTK.Mathematics;
 /// </summary>
 public class ModExpire : ModBase
 {
-    private readonly IBlockRegistry _blockTypeRegistry;
+    private readonly IBlockRegistry _blockRegistry;
+
     public ModExpire(IGame game, IBlockRegistry blockTypeRegistry) : base(game)
     {
-        _blockTypeRegistry = blockTypeRegistry;
+        _blockRegistry = blockTypeRegistry;
     }
 
     public override void OnUpdate(float args)
@@ -43,7 +44,7 @@ public class ModExpire : ModBase
         Entity grenadeEntity = Game.Entities[grenadeEntityId];
         Sprite sprite = grenadeEntity.sprite;
         Grenade grenade = grenadeEntity.grenade;
-        BlockType blockType = _blockTypeRegistry.BlockTypes[grenade.block];
+        BlockType blockType = _blockRegistry.BlockTypes[grenade.block];
 
         float posX = sprite.positionX;
         float posY = sprite.positionY;

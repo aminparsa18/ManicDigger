@@ -36,7 +36,6 @@ public class ModFly : ModBase
         }
 
         flyActive = !flyActive;
-        DiagLog.Write($"Flight mode {(flyActive ? "On" : "Off")}");
         if (flyActive)
         {
             Game.AddChatLine("&aFlight ON  –  Space: rise  |  Shift: sink  |  F: exit");

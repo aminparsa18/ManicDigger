@@ -120,7 +120,7 @@ public class Program
 
         // ── World rendering ───────────────────────────────────────────────────
         services.AddScoped<IModBase, ModSkySphereAnimated>();
-        services.AddScoped<IModBase, SunMoonRenderer>();
+        services.AddScoped<IModBase, ModSunMoon>();
         services.AddScoped<IModBase, ModDrawTerrain>();
         services.AddScoped<IModBase, ModDrawSprites>();
         services.AddScoped<IModBase, ModDrawMinecarts>();

@@ -3,7 +3,7 @@
 /// <summary>
 /// Renders the sun and moon as billboarded sprites and updates their positions based on time of day.
 /// </summary>
-public class SunMoonRenderer(IMeshDrawer meshDrawer, ILightManager lightManager, IGame game) : ModBase(game)
+public class ModSunMoon(IMeshDrawer meshDrawer, ILightManager lightManager, IGame game) : ModBase(game)
 {
     private const float TwoPi = 2 * MathF.PI;
     private const float OrbitRadius = 20f;

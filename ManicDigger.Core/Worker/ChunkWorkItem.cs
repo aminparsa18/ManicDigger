@@ -9,5 +9,6 @@ public record ChunkWorkItem(
     int ChunkY,
     int ChunkZ,
     ChunkWorkType Type,
-    TaskCompletionSource? Completion = null   // optional — lets callers await a specific item
+    TaskCompletionSource? Completion = null,   // optional — lets callers await a specific item
+    int Priority = 0
 );

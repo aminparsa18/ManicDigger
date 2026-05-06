@@ -38,7 +38,10 @@ public sealed class PeriodicTaskScheduler : BackgroundService
 
             for (int i = 0; i < _tasks.Count; i++)
             {
-                if (now < nextRun[i]) continue;
+                if (now < nextRun[i])
+                {
+                    continue;
+                }
 
                 try
                 {

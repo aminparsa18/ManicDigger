@@ -18,6 +18,7 @@ public partial class Game : IGame
     private readonly ISinglePlayerService singlePlayerService;
     private readonly IModRegistry modRegistry;
     private readonly IGameLogger _gameLogger;
+    private readonly IBlockChangeNotifier _blockChangeNotifier;
 
     public LanguageService Language { get; set; }
     public Config3d Config3d { get; set; }
@@ -335,7 +336,8 @@ public partial class Game : IGame
 
     public Game(IGameService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITerrainChunkTesselator terrainChunkTesselator,
         IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService, IFrustumCulling frustumCulling,
-        IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager, IGameLogger gameLogger, ILightManager lightManager)
+        IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager, IGameLogger gameLogger, ILightManager lightManager,
+       IBlockChangeNotifier blockChangeNotifier)
     {
         gameService = platform;
         openGlService = platformOpenGl;
@@ -350,6 +352,7 @@ public partial class Game : IGame
         _assetManager = assetManager;
         this.meshDrawer = meshDrawer;
         TerrainChunkTesselator = terrainChunkTesselator;
+        _blockChangeNotifier = blockChangeNotifier;
         InitCore();
         InitMap();
         InitTextures();

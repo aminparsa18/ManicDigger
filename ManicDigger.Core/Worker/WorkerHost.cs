@@ -15,7 +15,7 @@ public sealed class WorkerHost : IAsyncDisposable
     private readonly PeriodicTaskScheduler _periodicScheduler;
     private readonly ISinglePlayerService _singlePlayerService;
     private readonly ServerLifetime _lifetime;
-    private readonly ILogger<WorkerHost> _logger;
+    private readonly IGameLogger _logger;
 
     private Task? _allWorkers;
     private bool _started;
@@ -27,7 +27,7 @@ public sealed class WorkerHost : IAsyncDisposable
         PeriodicTaskScheduler periodicScheduler,
         ISinglePlayerService singlePlayerService,
         ServerLifetime lifetime,
-        ILogger<WorkerHost> logger)
+        IGameLogger logger)
     {
         _simulationLoop = simulationLoop;
         _tessellationPool = tessellationPool;
@@ -42,15 +42,18 @@ public sealed class WorkerHost : IAsyncDisposable
     {
         if (_started)
         {
-            _logger.LogWarning("WorkerHost.StartAsync called twice — ignoring");
+            _logger.Client.Warning("WorkerHost.StartAsync called twice — ignoring");
             return;
         }
 
         _started = true;
         CancellationToken ct = _lifetime.Token;
 
-        _logger.LogInformation("WorkerHost: starting workers");
+        _logger.Client.Information("WorkerHost: starting workers");
 
+#if DEBUG
+        BaseLightRaceDetector.Init(_logger); // inject ILogger<WorkerHost>
+#endif
         await _simulationLoop.StartAsync(ct);
         await _tessellationPool.StartAsync(ct);
         await _lightingPool.StartAsync(ct);       // single-worker lighting stage
@@ -64,14 +67,14 @@ public sealed class WorkerHost : IAsyncDisposable
 
         _singlePlayerService.SinglePlayerServerLoaded = true;
 
-        _logger.LogInformation("WorkerHost: all workers running");
+        _logger.Client.Information("WorkerHost: all workers running");
     }
 
     public async Task StopAsync()
     {
         if (!_started) return;
 
-        _logger.LogInformation("WorkerHost: stopping workers");
+        _logger.Client.Information("WorkerHost: stopping workers");
 
         _lifetime.SignalStop();
 
@@ -92,7 +95,7 @@ public sealed class WorkerHost : IAsyncDisposable
         _started = false;
         _singlePlayerService.SinglePlayerServerLoaded = false;
 
-        _logger.LogInformation("WorkerHost: all workers stopped");
+        _logger.Client.Information("WorkerHost: all workers stopped");
     }
 
     public async ValueTask DisposeAsync() => await StopAsync();

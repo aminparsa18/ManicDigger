@@ -1,26 +1,36 @@
-﻿/// <summary>
-/// Calculates final lighting for a chunk by sampling base light from the
-/// 3×3×3 neighbourhood of chunks surrounding it, flooding light across
-/// chunk boundaries, then writing the result into the chunk's render buffer.
+﻿using ManicDigger;
+
+/// <summary>
+/// Calculates final lighting for a chunk by sampling BaseLight from the
+/// 3×3×3 neighbourhood, flooding light across boundaries, then writing
+/// Rendered.Light.
 ///
-/// Change from original:
-///   FloodBetweenChunks no longer calls FloodLight per boundary cell.
-///   Old approach: 16×16 cells × 6 faces × 27 chunks × 2 passes
-///                 = up to ~83 000 individual FloodLight invocations.
-///   New approach: copy improved light values across all boundaries first,
-///                 then one FloodLightAll per chunk (27 × 2 = 54 BFS calls).
+/// Key optimisation over previous version:
+///   CopyFace helpers now record which destination positions received new
+///   light. FloodBetweenChunks seeds the BFS only from those positions
+///   instead of all 4096 lit positions. Chunks whose boundary cells did
+///   not improve skip the BFS entirely.
+///
+///   Worst case seeds per chunk per pass: 6 faces × 16 × 16 = 1536.
+///   Typical case: far fewer, because most boundary cells are already
+///   at least as bright as the decayed source.
 /// </summary>
 public class LightBetweenChunks
 {
-    private const int NS = 3;           // neighbourhood size per axis
-    private const int NVol = NS * NS * NS; // 27 chunks
-    private const int CS = 16;          // chunk size per axis
-    private const int CVol = CS * CS * CS; // 4096 blocks per chunk
-    private const int Out = 18;          // output buffer side (CS + 1-block border)
+    private const int NS = 3;
+    private const int NVol = NS * NS * NS;
+    private const int CS = 16;
+    private const int CVol = CS * CS * CS;
+    private const int Out = 18;
+
+    // Max boundary cells per chunk: 6 faces × 16 × 16.
+    private const int MaxSeeds = 6 * CS * CS;
 
     private readonly LightFlood _flood;
     private readonly byte[][] _chunksLight = new byte[NVol][];
     private readonly int[][] _chunksData = new int[NVol][];
+    private readonly int[][] _seeds = new int[NVol][];
+    private readonly int[] _seedCounts = new int[NVol];
     private readonly IVoxelMap _voxelMap;
 
     public LightBetweenChunks(IVoxelMap voxelMap)
@@ -31,23 +41,40 @@ public class LightBetweenChunks
         {
             _chunksLight[i] = new byte[CVol];
             _chunksData[i] = new int[CVol];
+            _seeds[i] = new int[MaxSeeds];
         }
     }
 
+    private static int Idx(int x, int y, int z) => (z * NS + y) * NS + x;
+    private static int BlockIdx(int x, int y, int z) => z * 256 + y * 16 + x;
+
+    // ── Public API ────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Full relight: Input → FloodBetweenChunks (targeted seeds) → Output.
+    /// Used after LightBase has recomputed BaseLight.
+    /// </summary>
     public void CalculateLightBetweenChunks(
         int cx, int cy, int cz,
-        int[] dataLightRadius,
-        bool[] dataTransparent)
+        int[] dataLightRadius, bool[] dataTransparent)
     {
         Input(cx, cy, cz);
         FloodBetweenChunks(dataLightRadius, dataTransparent);
         Output(cx, cy, cz);
     }
 
-    private static int Idx(int x, int y, int z) => (z * NS + y) * NS + x;
-    private static int BlockIdx(int x, int y, int z) => z * 256 + y * 16 + x;
+    /// <summary>
+    /// Fast refresh: Input → Output only (no flood).
+    /// Used after IncrementalLightBFS — cross-boundary propagation is already
+    /// correct in BaseLight so the flood step is redundant.
+    /// </summary>
+    public void RefreshRenderedLight(int cx, int cy, int cz)
+    {
+        Input(cx, cy, cz);
+        Output(cx, cy, cz);
+    }
 
-    // ── Input ─────────────────────────────────────────────────────────────────
+    // ── Implementation ────────────────────────────────────────────────────────
 
     private void Input(int cx, int cy, int cz)
     {
@@ -72,124 +99,60 @@ public class LightBetweenChunks
                     for (int i = 0; i < CVol; i++)
                         data[i] = chunk.GetBlock(i);
 
+                    // ── Race detector: this READ of BaseLight races with LightBase WRITE ──
+#if DEBUG
+                    int chunkIndex = _voxelMap.ChunkFlatIndex(pcx, pcy, pcz);
+                    BaseLightRaceDetector.BeginRead(chunkIndex, "LightBetweenChunks.Input");
+#endif
+
                     Array.Copy(chunk.BaseLight, light, CVol);
+
+#if DEBUG
+                    BaseLightRaceDetector.EndRead(chunkIndex);
+#endif
                 }
     }
 
-    // ── Flood ─────────────────────────────────────────────────────────────────
-
     /// <summary>
-    /// Two passes, each consisting of:
-    ///   1. Copy improved light values across every chunk-face boundary.
-    ///   2. One FloodLightAll per chunk to propagate them inward.
-    ///
-    /// This replaces the old per-cell FloodLight calls that fired up to
-    /// 16 × 16 = 256 times per face — now each chunk floods exactly once
-    /// per pass regardless of how many boundary cells received new light.
+    /// Two passes. Each pass:
+    ///   1. Copy improved light across all six face pairs, recording which
+    ///      destination cells received new light.
+    ///   2. For each chunk that received any new light, flood only from
+    ///      those cells. Chunks with no new boundary light skip the BFS.
     /// </summary>
     private void FloodBetweenChunks(int[] dataLightRadius, bool[] dataTransparent)
     {
         for (int pass = 0; pass < 2; pass++)
         {
-            // Step 1: propagate values across all six face pairs.
+            // Clear seed counts for this pass.
+            Array.Clear(_seedCounts, 0, NVol);
+
+            // Copy improved values across boundaries, recording changed positions.
             for (int x = 0; x < NS; x++)
                 for (int y = 0; y < NS; y++)
                     for (int z = 0; z < NS; z++)
                     {
                         byte[] src = _chunksLight[Idx(x, y, z)];
 
-                        if (z < NS - 1) CopyFaceZPlus(src, _chunksLight[Idx(x, y, z + 1)]);
-                        if (z > 0) CopyFaceZMinus(src, _chunksLight[Idx(x, y, z - 1)]);
-                        if (x < NS - 1) CopyFaceXPlus(src, _chunksLight[Idx(x + 1, y, z)]);
-                        if (x > 0) CopyFaceXMinus(src, _chunksLight[Idx(x - 1, y, z)]);
-                        if (y < NS - 1) CopyFaceYPlus(src, _chunksLight[Idx(x, y + 1, z)]);
-                        if (y > 0) CopyFaceYMinus(src, _chunksLight[Idx(x, y - 1, z)]);
+                        if (z < NS - 1) CopyFaceZ(src, _chunksLight[Idx(x, y, z + 1)], _seeds[Idx(x, y, z + 1)], ref _seedCounts[Idx(x, y, z + 1)], srcZ: 15, dstZ: 0);
+                        if (z > 0) CopyFaceZ(src, _chunksLight[Idx(x, y, z - 1)], _seeds[Idx(x, y, z - 1)], ref _seedCounts[Idx(x, y, z - 1)], srcZ: 0, dstZ: 15);
+                        if (x < NS - 1) CopyFaceX(src, _chunksLight[Idx(x + 1, y, z)], _seeds[Idx(x + 1, y, z)], ref _seedCounts[Idx(x + 1, y, z)], srcX: 15, dstX: 0);
+                        if (x > 0) CopyFaceX(src, _chunksLight[Idx(x - 1, y, z)], _seeds[Idx(x - 1, y, z)], ref _seedCounts[Idx(x - 1, y, z)], srcX: 0, dstX: 15);
+                        if (y < NS - 1) CopyFaceY(src, _chunksLight[Idx(x, y + 1, z)], _seeds[Idx(x, y + 1, z)], ref _seedCounts[Idx(x, y + 1, z)], srcY: 15, dstY: 0);
+                        if (y > 0) CopyFaceY(src, _chunksLight[Idx(x, y - 1, z)], _seeds[Idx(x, y - 1, z)], ref _seedCounts[Idx(x, y - 1, z)], srcY: 0, dstY: 15);
                     }
 
-            // Step 2: one multi-source BFS per chunk picks up all improved cells.
+            // Flood only from positions that received new light.
             for (int i = 0; i < NVol; i++)
-                _flood.FloodLightAll(_chunksData[i], _chunksLight[i], dataLightRadius, dataTransparent);
+            {
+                if (_seedCounts[i] == 0) continue;
+                _flood.FloodLightSeeded(
+                    _chunksData[i], _chunksLight[i],
+                    _seeds[i], _seedCounts[i],
+                    dataLightRadius, dataTransparent);
+            }
         }
     }
-
-    // ── Face copy helpers ─────────────────────────────────────────────────────
-    // Each helper copies the light value from the edge face of src into the
-    // opposite edge face of dst, only if it would improve the destination.
-    // The value decays by 1 crossing the boundary (same as intra-chunk decay).
-
-    private static void CopyFaceZPlus(byte[] src, byte[] dst)
-    {
-        // src z=15 → dst z=0
-        for (int y = 0; y < CS; y++)
-            for (int x = 0; x < CS; x++)
-            {
-                int sv = src[BlockIdx(x, y, 15)] - 1;
-                int di = BlockIdx(x, y, 0);
-                if (sv > 0 && dst[di] < sv) dst[di] = (byte)sv;
-            }
-    }
-
-    private static void CopyFaceZMinus(byte[] src, byte[] dst)
-    {
-        // src z=0 → dst z=15
-        for (int y = 0; y < CS; y++)
-            for (int x = 0; x < CS; x++)
-            {
-                int sv = src[BlockIdx(x, y, 0)] - 1;
-                int di = BlockIdx(x, y, 15);
-                if (sv > 0 && dst[di] < sv) dst[di] = (byte)sv;
-            }
-    }
-
-    private static void CopyFaceXPlus(byte[] src, byte[] dst)
-    {
-        // src x=15 → dst x=0
-        for (int z = 0; z < CS; z++)
-            for (int y = 0; y < CS; y++)
-            {
-                int sv = src[BlockIdx(15, y, z)] - 1;
-                int di = BlockIdx(0, y, z);
-                if (sv > 0 && dst[di] < sv) dst[di] = (byte)sv;
-            }
-    }
-
-    private static void CopyFaceXMinus(byte[] src, byte[] dst)
-    {
-        // src x=0 → dst x=15
-        for (int z = 0; z < CS; z++)
-            for (int y = 0; y < CS; y++)
-            {
-                int sv = src[BlockIdx(0, y, z)] - 1;
-                int di = BlockIdx(15, y, z);
-                if (sv > 0 && dst[di] < sv) dst[di] = (byte)sv;
-            }
-    }
-
-    private static void CopyFaceYPlus(byte[] src, byte[] dst)
-    {
-        // src y=15 → dst y=0
-        for (int z = 0; z < CS; z++)
-            for (int x = 0; x < CS; x++)
-            {
-                int sv = src[BlockIdx(x, 15, z)] - 1;
-                int di = BlockIdx(x, 0, z);
-                if (sv > 0 && dst[di] < sv) dst[di] = (byte)sv;
-            }
-    }
-
-    private static void CopyFaceYMinus(byte[] src, byte[] dst)
-    {
-        // src y=0 → dst y=15
-        for (int z = 0; z < CS; z++)
-            for (int x = 0; x < CS; x++)
-            {
-                int sv = src[BlockIdx(x, 0, z)] - 1;
-                int di = BlockIdx(x, 15, z);
-                if (sv > 0 && dst[di] < sv) dst[di] = (byte)sv;
-            }
-    }
-
-    // ── Output ────────────────────────────────────────────────────────────────
 
     private void Output(int cx, int cy, int cz)
     {
@@ -200,19 +163,46 @@ public class LightBetweenChunks
             for (int y = 0; y < Out; y++)
                 for (int z = 0; z < Out; z++)
                 {
-                    int globalX = CS - 1 + x;
-                    int globalY = CS - 1 + y;
-                    int globalZ = CS - 1 + z;
-
-                    int ncx = globalX / CS;
-                    int ncy = globalY / CS;
-                    int ncz = globalZ / CS;
-                    int localX = globalX % CS;
-                    int localY = globalY % CS;
-                    int localZ = globalZ % CS;
-
+                    int gx = CS - 1 + x, gy = CS - 1 + y, gz = CS - 1 + z;
                     renderLight[(z * Out + y) * Out + x] =
-                        _chunksLight[Idx(ncx, ncy, ncz)][BlockIdx(localX, localY, localZ)];
+                        _chunksLight[Idx(gx / CS, gy / CS, gz / CS)]
+                                    [BlockIdx(gx % CS, gy % CS, gz % CS)];
                 }
+    }
+
+    // ── Face copy helpers ─────────────────────────────────────────────────────
+    // Each records the destination index in seeds[] when the value improved.
+
+    private static void CopyFaceZ(byte[] src, byte[] dst, int[] seeds, ref int count, int srcZ, int dstZ)
+    {
+        for (int y = 0; y < CS; y++)
+            for (int x = 0; x < CS; x++)
+            {
+                int sv = src[BlockIdx(x, y, srcZ)] - 1;
+                int di = BlockIdx(x, y, dstZ);
+                if (sv > 0 && dst[di] < sv) { dst[di] = (byte)sv; seeds[count++] = di; }
+            }
+    }
+
+    private static void CopyFaceX(byte[] src, byte[] dst, int[] seeds, ref int count, int srcX, int dstX)
+    {
+        for (int z = 0; z < CS; z++)
+            for (int y = 0; y < CS; y++)
+            {
+                int sv = src[BlockIdx(srcX, y, z)] - 1;
+                int di = BlockIdx(dstX, y, z);
+                if (sv > 0 && dst[di] < sv) { dst[di] = (byte)sv; seeds[count++] = di; }
+            }
+    }
+
+    private static void CopyFaceY(byte[] src, byte[] dst, int[] seeds, ref int count, int srcY, int dstY)
+    {
+        for (int z = 0; z < CS; z++)
+            for (int x = 0; x < CS; x++)
+            {
+                int sv = src[BlockIdx(x, srcY, z)] - 1;
+                int di = BlockIdx(x, dstY, z);
+                if (sv > 0 && dst[di] < sv) { dst[di] = (byte)sv; seeds[count++] = di; }
+            }
     }
 }

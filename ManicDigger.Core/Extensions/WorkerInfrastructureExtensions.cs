@@ -31,8 +31,7 @@ public static class WorkerInfrastructureExtensions
         services.AddMessagePipe();
 
         // ── Tessellation pool ─────────────────────────────────────────────────
-        // Registered as both concrete type (WorkerHost needs StartAsync/StopAsync)
-        // and IChunkWorkQueue (ChunkLightingDispatcher enqueues into it).
+
         services.AddSingleton<ChunkTessellationDispatcher>();
         services.AddSingleton<IChunkWorkDispatcher>(sp =>
             sp.GetRequiredService<ChunkTessellationDispatcher>());
@@ -47,9 +46,7 @@ public static class WorkerInfrastructureExtensions
             sp.GetRequiredService<ChunkWorkerPool>());
 
         // ── Lighting pool ─────────────────────────────────────────────────────
-        // workerCount=1 makes lighting sequential — the same ChunkWorkerPool
-        // infrastructure, just constrained to one worker so lighting state is
-        // never touched concurrently.
+
         services.AddSingleton(sp => new ChunkLightingDispatcher(
             sp.GetRequiredService<IChunkWorkQueue>(),
             sp.GetRequiredService<IVoxelMap>(),
@@ -58,22 +55,25 @@ public static class WorkerInfrastructureExtensions
         services.AddSingleton(sp => new ChunkLightingPool(
             sp.GetRequiredService<ChunkLightingDispatcher>(),
             sp.GetRequiredService<ILogger<ChunkWorkerPool>>(),
-            workerCount: 1,
+            workerCount,
             channelCapacity: chunkChannelCapacity));
 
         services.AddSingleton<ILightingWorkQueue>(sp =>
             sp.GetRequiredService<ChunkLightingPool>());
 
         // ── Simulation loop ───────────────────────────────────────────────────
+
         services.AddSingleton(sp => new SimulationLoop(
             sp.GetRequiredService<ISimulationStep>(),
             sp.GetRequiredService<ILogger<SimulationLoop>>(),
             simulationTickInterval));
 
         // ── Periodic scheduler ────────────────────────────────────────────────
+
         services.AddSingleton<PeriodicTaskScheduler>();
 
         // ── WorkerHost — started manually from Connect() ──────────────────────
+
         services.AddSingleton<WorkerHost>();
 
         services.AddSingleton<ServerLifetime>();

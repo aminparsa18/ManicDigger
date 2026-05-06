@@ -31,11 +31,36 @@ public class Chunk
     /// <summary>Per-block base light levels for this chunk.</summary>
     public byte[] BaseLight { get; set; }
 
-    /// <summary>Whether <see cref="BaseLight"/> needs to be recalculated before next use.</summary>
-    public bool BaseLightDirty { get; set; } = true;
-
     /// <summary>The last rendered state of this chunk, used by the renderer.</summary>
     public RenderedChunk Rendered { get; set; }
+
+    // ── BaseLightDirty — atomic so multiple lighting workers never double-compute ──
+
+    /// <summary>
+    /// Backing field for <see cref="BaseLightDirty"/>.
+    /// 1 = dirty, 0 = clean. Use <see cref="Interlocked"/> for safe multi-worker access.
+    /// </summary>
+    private int _baseLightDirty = 1;
+
+    /// <summary>
+    /// Whether <see cref="BaseLight"/> needs to be recalculated.
+    /// Safe to read/write from the main thread (single writer).
+    /// Lighting workers must use <see cref="TryClaimBaseLightDirty"/> instead.
+    /// </summary>
+    public bool BaseLightDirty
+    {
+        get => _baseLightDirty == 1;
+        set => _baseLightDirty = value ? 1 : 0;
+    }
+
+    /// <summary>
+    /// Atomically checks and clears the dirty flag.
+    /// Returns <see langword="true"/> if this call successfully claimed the dirty
+    /// work — the caller must then run <c>LightBase.CalculateChunkBaseLight</c>.
+    /// Returns <see langword="false"/> if another lighting worker already claimed it.
+    /// </summary>
+    public bool TryClaimBaseLightDirty() =>
+        Interlocked.Exchange(ref _baseLightDirty, 0) == 1;
 
     // ── Block accessors ───────────────────────────────────────────────────────
 

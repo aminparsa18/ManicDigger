@@ -18,12 +18,7 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
     private readonly IChunkWorkQueue _tessellationQueue;
     private readonly IVoxelMap _voxelMap;
     private readonly IBlockRegistry _blockRegistry;
-    private readonly LightBase _lightBase;
-    private readonly LightBetweenChunks _lightBetweenChunks;
-
-    private readonly int[] _shadowLightRadius = new int[GameConstants.MAX_BLOCKTYPES];
-    private readonly bool[] _shadowIsTransparent = new bool[GameConstants.MAX_BLOCKTYPES];
-    private bool _blockTypeCacheDirty = true;
+    private readonly ThreadLocal<LightingThreadContext> _context;
 
     public ChunkLightingDispatcher(
         IChunkWorkQueue tessellationQueue,
@@ -33,11 +28,20 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
         _tessellationQueue = tessellationQueue;
         _voxelMap = voxelMap;
         _blockRegistry = blockRegistry;
-        _lightBetweenChunks = new(voxelMap);
-        _lightBase = new(voxelMap);
+        _context = new ThreadLocal<LightingThreadContext>(
+            () => new LightingThreadContext(voxelMap),
+            trackAllValues: false);
     }
 
-    public void InvalidateBlockTypeCache() => _blockTypeCacheDirty = true;
+    public void InvalidateBlockTypeCache()
+    {
+        // Each thread context has its own cache — mark all dirty.
+        // ThreadLocal doesn't expose all values when trackAllValues=false,
+        // so we use a shared volatile flag that each context checks on next use.
+        Volatile.Write(ref _globalCacheVersion, _globalCacheVersion + 1);
+    }
+
+    private volatile int _globalCacheVersion;
 
     // ── IChunkWorkDispatcher ──────────────────────────────────────────────────
 
@@ -64,10 +68,11 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
 
         chunk.Rendered ??= new RenderedChunk();
 
-        RefreshBlockTypeCache();
+        LightingThreadContext ctx = _context.Value;
+        ctx.RefreshCacheIfNeeded(_blockRegistry, _globalCacheVersion);
 
-        // Recompute BaseLight for any dirty neighbour in the 3×3×3 neighbourhood.
         bool anyBaseLightChanged = false;
+
         for (int xx = 0; xx < 3; xx++)
             for (int yy = 0; yy < 3; yy++)
                 for (int zz = 0; zz < 3; zz++)
@@ -79,16 +84,30 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
 
                     Chunk? neighbour = _voxelMap.Chunks[
                         _voxelMap.ChunkFlatIndex(cx1, cy1, cz1)];
-                    if (neighbour == null || !neighbour.BaseLightDirty) continue;
+                    if (neighbour == null) continue;
 
-                    _lightBase.CalculateChunkBaseLight(
-                        cx1, cy1, cz1, _shadowLightRadius, _shadowIsTransparent);
-                    neighbour.BaseLightDirty = false;
+                    // Atomic claim — only one worker computes BaseLight for this neighbour.
+                    if (!neighbour.TryClaimBaseLightDirty()) continue;
+
+#if DEBUG
+                    int neighbourIndex = _voxelMap.ChunkFlatIndex(cx1, cy1, cz1);
+                    BaseLightRaceDetector.BeginWrite(neighbourIndex, "LightBase");
+#endif
+
+                    ctx.LightBase.CalculateChunkBaseLight(
+                        cx1, cy1, cz1,
+                        ctx.ShadowLightRadius,
+                        ctx.ShadowIsTransparent);
+
+#if DEBUG
+                    BaseLightRaceDetector.EndWrite(neighbourIndex);
+#endif
+
                     anyBaseLightChanged = true;
                 }
 
         await SnapshotAndEnqueue(li.ChunkX, li.ChunkY, li.ChunkZ,
-            chunk, anyBaseLightChanged, li.Completion, ct);
+            chunk, ctx, anyBaseLightChanged, li.Completion, ct);
     }
 
     // ── Partial relight (LightBetweenChunks only) ────────────────────────────
@@ -105,21 +124,36 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
 
         chunk.Rendered ??= new RenderedChunk();
 
-        RefreshBlockTypeCache();
+        if (chunk.Rendered.Light == null)
+        {
+            chunk.Rendered.Light = ArrayPool<byte>.Shared.Rent(BufferedChunkVolume);
+            chunk.Rendered.LightRented = true;
+            chunk.Rendered.Light.AsSpan(0, BufferedChunkVolume).Fill(15);
+        }
 
-        // BaseLight is already correct — run LightBetweenChunks only.
-        await SnapshotAndEnqueue(rb.ChunkX, rb.ChunkY, rb.ChunkZ,
-            chunk, anyBaseLightChanged: true, rb.Completion, ct);
+        LightingThreadContext ctx = _context.Value;
+        ctx.LightBetweenChunks.RefreshRenderedLight(rb.ChunkX, rb.ChunkY, rb.ChunkZ);
+
+        byte[] snapshot = ArrayPool<byte>.Shared.Rent(BufferedChunkVolume);
+        chunk.Rendered.Light.AsSpan(0, BufferedChunkVolume)
+                            .CopyTo(snapshot.AsSpan(0, BufferedChunkVolume));
+
+        await _tessellationQueue.EnqueueAsync(new TessellationChunkWorkItem(
+            rb.ChunkX, rb.ChunkY, rb.ChunkZ, chunk,
+            ShadowBuffer: snapshot,
+            ShadowBufferRented: true,
+            Completion: rb.Completion), ct);
     }
 
     // ── Shared: snapshot Rendered.Light and enqueue tessellation ─────────────
 
     private async Task SnapshotAndEnqueue(
-        int cx, int cy, int cz,
-        Chunk chunk,
-        bool anyBaseLightChanged,
-        TaskCompletionSource? completion,
-        CancellationToken ct)
+         int cx, int cy, int cz,
+         Chunk chunk,
+         LightingThreadContext ctx,
+         bool anyBaseLightChanged,
+         TaskCompletionSource? completion,
+         CancellationToken ct)
     {
         RenderedChunk rendered = chunk.Rendered;
 
@@ -133,8 +167,10 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
 
         if (anyBaseLightChanged)
         {
-            _lightBetweenChunks.CalculateLightBetweenChunks(
-                cx, cy, cz, _shadowLightRadius, _shadowIsTransparent);
+            ctx.LightBetweenChunks.CalculateLightBetweenChunks(
+                cx, cy, cz,
+                ctx.ShadowLightRadius,
+                ctx.ShadowIsTransparent);
         }
 
         byte[] snapshot = ArrayPool<byte>.Shared.Rent(BufferedChunkVolume);
@@ -146,25 +182,6 @@ public sealed class ChunkLightingDispatcher : IChunkWorkDispatcher
             ShadowBuffer: snapshot,
             ShadowBufferRented: true,
             Completion: completion), ct);
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private void RefreshBlockTypeCache()
-    {
-        if (!_blockTypeCacheDirty) return;
-        foreach ((int id, BlockType blockType) in _blockRegistry.BlockTypes)
-        {
-            _shadowLightRadius[id] = blockType.LightRadius;
-            _shadowIsTransparent[id] = IsTransparentForLight(id);
-        }
-        _blockTypeCacheDirty = false;
-    }
-
-    private bool IsTransparentForLight(int blockId)
-    {
-        BlockType b = _blockRegistry.BlockTypes[blockId];
-        return b.DrawType is not DrawType.Solid and not DrawType.ClosedDoor;
     }
 }
 
@@ -181,7 +198,6 @@ public record LightingChunkWorkItem(
     TaskCompletionSource? Completion = null
 ) : ChunkWorkItem(ChunkX, ChunkY, ChunkZ, ChunkWorkType.RelightFull, Completion);
 
-
 /// <summary>
 /// Partial relight — LightBetweenChunks only (BaseLight already updated by IncrementalLightBFS).
 /// Used for runtime block changes that do not affect the sunlight heightmap.
@@ -193,3 +209,44 @@ public record RelightBetweenChunksWorkItem(
     Chunk? Chunk = null,
     TaskCompletionSource? Completion = null
 ) : ChunkWorkItem(ChunkX, ChunkY, ChunkZ, ChunkWorkType.RelightBetweenChunks, Completion);
+
+// ── Per-thread context ────────────────────────────────────────────────────────
+
+/// <summary>
+/// All mutable state needed by one lighting worker thread.
+/// Allocated once per thread via ThreadLocal — no sharing, no locks.
+/// </summary>
+internal sealed class LightingThreadContext
+{
+    public readonly LightBase LightBase;
+    public readonly LightBetweenChunks LightBetweenChunks;
+    public readonly int[] ShadowLightRadius = new int[GameConstants.MAX_BLOCKTYPES];
+    public readonly bool[] ShadowIsTransparent = new bool[GameConstants.MAX_BLOCKTYPES];
+
+    private int _knownCacheVersion = -1;
+
+    public LightingThreadContext(IVoxelMap voxelMap)
+    {
+        LightBase = new LightBase(voxelMap);
+        LightBetweenChunks = new LightBetweenChunks(voxelMap);
+    }
+
+    /// <summary>
+    /// Rebuilds the block-type lookup arrays if the global cache version has
+    /// advanced since this thread last refreshed.
+    /// </summary>
+    public void RefreshCacheIfNeeded(IBlockRegistry blockRegistry, int globalVersion)
+    {
+        if (_knownCacheVersion == globalVersion) return;
+
+        foreach ((int id, BlockType blockType) in blockRegistry.BlockTypes)
+        {
+            ShadowLightRadius[id] = blockType.LightRadius;
+            ShadowIsTransparent[id] = blockType.DrawType
+                is not DrawType.Solid
+                and not DrawType.ClosedDoor;
+        }
+
+        _knownCacheVersion = globalVersion;
+    }
+}

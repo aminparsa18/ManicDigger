@@ -1,19 +1,16 @@
 ﻿/// <summary>
-/// Floods light values outward from one or more seed positions inside a
-/// 16×16×16 chunk using a breadth-first approach.
+/// Floods light values outward from seed positions inside a 16×16×16 chunk.
 ///
-/// Changes from original:
-///   • Queue&lt;int&gt; replaced with a power-of-two ring buffer — no heap
-///     allocation per flood, better cache locality.
-///   • Per-dequeue x/y/z decode replaced with a static per-position
-///     neighbour-mask table — eliminates three integer divisions per step.
-///   • FloodLightAll() enables a single multi-source BFS seeded from every
-///     lit position, replacing the O(n × BFS) pair-flood loop in LightBase.
+/// Three entry points:
+///   FloodLight       — single-source BFS from one position
+///   FloodLightAll    — multi-source BFS seeded from every lit position
+///   FloodLightSeeded — multi-source BFS seeded from an explicit position list
+///                      Used by LightBetweenChunks to flood only from the cells
+///                      that actually received new light from a boundary copy,
+///                      instead of seeding from all 4096 positions.
 /// </summary>
 public sealed class LightFlood
 {
-    // ── Flat index offsets for the 6 face-connected neighbours ────────────────
-    // Layout: index = z*256 + y*16 + x
     public const int XPlus = 1;
     public const int XMinus = -1;
     public const int YPlus = 16;
@@ -21,12 +18,8 @@ public sealed class LightFlood
     public const int ZPlus = 256;
     public const int ZMinus = -256;
 
-    // ── Neighbour-mask lookup table (built once, shared across all instances) ─
-    // One byte per flat position.  Bits flag which of the 6 neighbours are in
-    // bounds so RunFlood never decodes x/y/z at runtime:
-    //   bit 0 → X+   bit 1 → X−
-    //   bit 2 → Y+   bit 3 → Y−
-    //   bit 4 → Z+   bit 5 → Z−
+    // Per-position neighbour-mask — eliminates x/y/z decode on every dequeue.
+    //   bit 0 → X+  bit 1 → X−  bit 2 → Y+  bit 3 → Y−  bit 4 → Z+  bit 5 → Z−
     private static readonly byte[] s_mask = BuildMask();
 
     private static byte[] BuildMask()
@@ -48,17 +41,9 @@ public sealed class LightFlood
         return m;
     }
 
-    // ── Power-of-two ring buffer ───────────────────────────────────────────────
-    // (index & _mask) replaces expensive modulo.
-    // 4096 initial slots = one full chunk worth; rarely grows.
-    private int[] _buf;
-    private int _head, _tail, _count, _mask;
-
-    public LightFlood(int initialCapacity = 4096)
-    {
-        _buf = new int[initialCapacity];
-        _mask = initialCapacity - 1;
-    }
+    // Power-of-two ring buffer — no heap allocation, fast modulo via &.
+    private int[] _buf = new int[4096];
+    private int _head, _tail, _count, _mask = 4095;
 
     private void Enqueue(int v)
     {
@@ -82,18 +67,12 @@ public sealed class LightFlood
         int[] next = new int[newLen];
         for (int i = 0; i < _count; i++)
             next[i] = _buf[(_head + i) & _mask];
-        _buf = next;
-        _head = 0;
-        _tail = _count;
-        _mask = newLen - 1;
+        _buf = next; _head = 0; _tail = _count; _mask = newLen - 1;
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Single-source BFS flood from one seed position.
-    /// Skips immediately if the seed cell has no light.
-    /// </summary>
+    /// <summary>Single-source BFS from one seed position.</summary>
     public void FloodLight(
         int[] chunk, byte[] light,
         int startX, int startY, int startZ,
@@ -101,18 +80,14 @@ public sealed class LightFlood
     {
         int start = startZ * 256 + startY * 16 + startX;
         if (light[start] == 0) return;
-
         _head = _tail = _count = 0;
         Enqueue(start);
         RunFlood(chunk, light, dataLightRadius, dataTransparent);
     }
 
     /// <summary>
-    /// Multi-source BFS seeded simultaneously from every lit position in the
-    /// chunk.  One call replaces N individual <see cref="FloodLight"/> calls and
-    /// visits each position at most once regardless of how many seeds there are.
-    /// Used by LightBase after sunlight seeding and by LightBetweenChunks after
-    /// boundary propagation.
+    /// Multi-source BFS seeded from every lit position.
+    /// Use after sunlight seeding where all lit positions are sources.
     /// </summary>
     public void FloodLightAll(
         int[] chunk, byte[] light,
@@ -120,13 +95,30 @@ public sealed class LightFlood
     {
         _head = _tail = _count = 0;
         for (int i = 0; i < 4096; i++)
-            if (light[i] > 0)
-                Enqueue(i);
-
+            if (light[i] > 0) Enqueue(i);
         RunFlood(chunk, light, dataLightRadius, dataTransparent);
     }
 
-    // ── Core BFS (shared by both entry points) ────────────────────────────────
+    /// <summary>
+    /// Multi-source BFS seeded from an explicit list of positions.
+    /// Used by LightBetweenChunks after copying boundary light values —
+    /// only the positions that actually received new light are seeded,
+    /// not all 4096 positions in the chunk.
+    /// Skips immediately if seedCount is zero.
+    /// </summary>
+    public void FloodLightSeeded(
+        int[] chunk, byte[] light,
+        int[] seeds, int seedCount,
+        int[] dataLightRadius, bool[] dataTransparent)
+    {
+        if (seedCount == 0) return;
+        _head = _tail = _count = 0;
+        for (int i = 0; i < seedCount; i++)
+            if (light[seeds[i]] > 0) Enqueue(seeds[i]);
+        RunFlood(chunk, light, dataLightRadius, dataTransparent);
+    }
+
+    // ── Core BFS ──────────────────────────────────────────────────────────────
 
     private void RunFlood(
         int[] chunk, byte[] light,

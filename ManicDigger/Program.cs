@@ -3,6 +3,7 @@ using ManicDigger.Extensions;
 using ManicDigger.Mods;
 using ManicDigger.Mods.Fortress;
 using ManicDigger.Worker;
+using MessagePipe;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 
@@ -48,7 +49,11 @@ public class Program
         services.AddSingleton<IPreferences, Preferences>();
         services.AddSingleton<IOpenGlService, OpenGlService>();
         services.AddSingleton<IFrustumCulling, FrustumCulling>();
-        services.AddSingleton<ILightManager, LightManager>();
+        services.AddSingleton<ILightManager>(sp => new LightManager(
+        sp.GetRequiredService<IVoxelMap>(),
+        sp.GetRequiredService<IBlockRegistry>(),
+        new Lazy<ILightingWorkQueue>(() => sp.GetRequiredService<ILightingWorkQueue>()),
+        sp.GetRequiredService<ISubscriber<BlockChangedEvent>>()));
         services.AddSingleton<IMeshBatcher, MeshBatcher>();
         services.AddSingleton<IMeshDrawer, MeshDrawer>();
         services.AddSingleton<ITerrainChunkTesselator, TerrainChunkTesselator>();
@@ -61,6 +66,7 @@ public class Program
         services.AddSingleton<ILanguageService, LanguageService>();
         services.AddSingleton<IServerModManager, ServerModManager>();
         services.AddSingleton<IBlockRegistry, BlockRegistry>();
+        services.AddSingleton<IBlockChangeNotifier, BlockChangeNotifier>();
         services.AddSingleton<ICompression, CompressionGzip>();
         services.AddSingleton<IChunkDbCompressed, ChunkDbCompressed>();
         services.AddSingleton<IChunkDbRegion, ChunkDbRegion>();

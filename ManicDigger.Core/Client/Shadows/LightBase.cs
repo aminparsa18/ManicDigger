@@ -1,32 +1,28 @@
-﻿using ManicDigger;
-
-/// <summary>
+﻿/// <summary>
 /// Calculates base lighting for a single 16×16×16 chunk.
-/// Handles sunlight seeding from the heightmap and light-emitting blocks.
-/// Does not spread light across chunk boundaries (see LightBetweenChunks).
+/// Handles sunlight seeding from the heightmap, sunlight flood-fill,
+/// and light-emitting block propagation.
+/// Does not spread light across chunk boundaries.
 ///
-/// Key change vs original: SunlightFlood no longer calls FloodLight once per
-/// pair of adjacent transparent blocks (O(n²)).  Instead it calls
-/// FloodLightFromAllSeeds once after Sunlight() seeds the top rows (O(n)).
+/// Change from original:
+///   SunlightFlood no longer calls FloodLight per mismatched pair.
+///   After sunlight seeding, one FloodLightAll call propagates from all
+///   lit positions simultaneously — O(BFS) instead of O(n × BFS).
 /// </summary>
 public class LightBase
 {
+    private const int ChunkVolume = 16 * 16 * 16;
     private const int ChunkSize = 16;
-    private const int ChunkVolume = ChunkSize * ChunkSize * ChunkSize;
 
     private readonly LightFlood _flood;
     private readonly IVoxelMap _voxelMap;
-    private readonly ILightManager _lightManager;
     private readonly int[] _workData = new int[ChunkVolume];
 
-    public LightBase(IVoxelMap voxelMap, ILightManager lightManager)
+    public LightBase(IVoxelMap voxelMap)
     {
         _flood = new LightFlood();
         _voxelMap = voxelMap;
-        _lightManager = lightManager;
     }
-
-    // ── Public API ────────────────────────────────────────────────────────────
 
     public void CalculateChunkBaseLight(
         int cx, int cy, int cz,
@@ -41,38 +37,36 @@ public class LightBase
         byte[] workLight = chunk.BaseLight;
         Array.Clear(workLight, 0, workLight.Length);
 
-        // 1. Seed sunlight from the heightmap — fills columns from entry point upward.
-        SeedSunlight(cx, cy, cz, workLight, _lightManager.Sunlight);
+        SeedSunlight(cx, cy, cz, workLight, ModDrawTerrain.MaxLight);
 
-        // 2. Propagate sunlight horizontally through transparent blocks.
-        //    One multi-source BFS from every already-lit cell — O(n) not O(n²).
-        _flood.FloodLightFromAllSeeds(_workData, workLight, dataLightRadius, transparentForLight);
+        // One multi-source BFS from every lit position replaces the old
+        // per-pair double-flood loop.  Visits each cell at most once.
+        _flood.FloodLightAll(_workData, workLight, dataLightRadius, transparentForLight);
 
-        // 3. Seed and flood emissive blocks.
-        FloodEmissive(_workData, workLight, dataLightRadius, transparentForLight);
+        SeedEmissiveBlocks(_workData, workLight, dataLightRadius, transparentForLight);
     }
 
     // ── Sunlight seeding ──────────────────────────────────────────────────────
 
-    private void SeedSunlight(int cx, int cy, int cz, byte[] workLight, int sunlight)
+    private void SeedSunlight(
+        int cx, int cy, int cz,
+        byte[] workLight,
+        int sunlight)
     {
         int baseHeight = cz * GameConstants.CHUNK_SIZE;
 
         for (int xx = 0; xx < ChunkSize; xx++)
-        {
             for (int yy = 0; yy < ChunkSize; yy++)
             {
                 int height = GetLightHeight(cx, cy, xx, yy);
+                int z = Math.Clamp(height - baseHeight, 0, ChunkSize);
 
-                int z = height - baseHeight;
-                if (z < 0) z = 0;
-                if (z > ChunkSize) continue; // sunlight enters above this chunk
+                if (z >= ChunkSize) continue;   // sunlight enters above this chunk
 
-                int pos = Index3d(xx, yy, z, ChunkSize, ChunkSize);
+                int pos = z * 256 + yy * 16 + xx;
                 for (int zz = z; zz < ChunkSize; zz++, pos += LightFlood.ZPlus)
                     workLight[pos] = (byte)sunlight;
             }
-        }
     }
 
     private int GetLightHeight(int cx, int cy, int xx, int yy)
@@ -81,44 +75,35 @@ public class LightBase
             cx * GameConstants.CHUNK_SIZE,
             cy * GameConstants.CHUNK_SIZE);
 
-        return heightmapChunk?[
-            VectorIndexUtil.Index2d(
-                xx % GameConstants.CHUNK_SIZE,
-                yy % GameConstants.CHUNK_SIZE,
-                GameConstants.CHUNK_SIZE)] ?? 0;
+        if (heightmapChunk == null) return 0;
+
+        return heightmapChunk[VectorIndexUtil.Index2d(
+            xx % GameConstants.CHUNK_SIZE,
+            yy % GameConstants.CHUNK_SIZE,
+            GameConstants.CHUNK_SIZE)];
     }
 
-    // ── Emissive blocks ───────────────────────────────────────────────────────
+    // ── Emissive block seeding ────────────────────────────────────────────────
 
-    /// <summary>
-    /// Finds every emissive block, raises its light to its emission radius if
-    /// not already higher, then floods. One FloodLight call per emissive block
-    /// (typically very few per chunk).
-    /// </summary>
-    private void FloodEmissive(
+    private void SeedEmissiveBlocks(
         int[] workData, byte[] workLight,
         int[] dataLightRadius, bool[] dataTransparent)
     {
         for (int pos = 0; pos < ChunkVolume; pos++)
         {
             int blockId = workData[pos];
-            if (blockId < 10) continue; // no block below ID 10 emits light
+            if (blockId < 10) continue;     // no block below ID 10 emits light
 
-            int radius = dataLightRadius[blockId];
-            if (radius == 0) continue;
-            if (radius <= workLight[pos]) continue;
+            int emitRadius = dataLightRadius[blockId];
+            if (emitRadius == 0 || emitRadius <= workLight[pos]) continue;
 
-            workLight[pos] = (byte)radius;
+            workLight[pos] = (byte)Math.Max(emitRadius, workLight[pos]);
 
-            int x = pos & 15;
-            int y = (pos >> 4) & 15;
-            int z = pos >> 8;
-            _flood.FloodLight(workData, workLight, x, y, z, dataLightRadius, dataTransparent);
+            // Fast x/y/z decode without division — layout is z*256 + y*16 + x
+            int xx = pos & 15;
+            int yy = (pos >> 4) & 15;
+            int zz = (pos >> 8) & 15;
+            _flood.FloodLight(workData, workLight, xx, yy, zz, dataLightRadius, dataTransparent);
         }
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private static int Index3d(int x, int y, int z, int sx, int sy)
-        => ((z * sy) + y) * sx + x;
 }

@@ -26,6 +26,10 @@ public static class WorkerInfrastructureExtensions
         int chunkChannelCapacity = 512,
         TimeSpan simulationTickInterval = default)
     {
+        // Registers IPublisher<T> / ISubscriber<T> for all event types.
+        // Must come before any service that injects IPublisher or ISubscriber.
+        services.AddMessagePipe();
+
         // ── Tessellation pool ─────────────────────────────────────────────────
         // Registered as both concrete type (WorkerHost needs StartAsync/StopAsync)
         // and IChunkWorkQueue (ChunkLightingDispatcher enqueues into it).
@@ -46,7 +50,10 @@ public static class WorkerInfrastructureExtensions
         // workerCount=1 makes lighting sequential — the same ChunkWorkerPool
         // infrastructure, just constrained to one worker so lighting state is
         // never touched concurrently.
-        services.AddSingleton<ChunkLightingDispatcher>();
+        services.AddSingleton(sp => new ChunkLightingDispatcher(
+            sp.GetRequiredService<IChunkWorkQueue>(),
+            sp.GetRequiredService<IVoxelMap>(),
+            sp.GetRequiredService<IBlockRegistry>()));
 
         services.AddSingleton(sp => new ChunkLightingPool(
             sp.GetRequiredService<ChunkLightingDispatcher>(),

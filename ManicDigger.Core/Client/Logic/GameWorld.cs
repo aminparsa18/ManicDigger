@@ -83,14 +83,29 @@ public partial class Game
     // ── Block manipulation ────────────────────────────────────────────────────
 
     /// <summary>
-    /// Writes a block directly into the map, marks the owning chunk dirty,
-    /// updates shadow heights, and records the position for the next chunk redraw.
+    /// Writes a block, marks the owning chunk dirty for tessellation,
+    /// updates the heightmap, and records the position for the next redraw.
+    ///
+    /// BlockChangeService.SetTileAndUpdate handles the actual voxel write and
+    /// publishes BlockChangedEvent.  LightingManager receives that event and
+    /// decides whether lighting work is needed — so ShadowsOnSetBlock no longer
+    /// marks the 27-chunk lighting neighbourhood dirty itself.
     /// </summary>
     public void PlaceBlock(int x, int y, int z, int tileType)
     {
-        _voxelMap.SetBlockRaw(x, y, z, tileType);
-        _voxelMap.SetChunkDirty(x / GameConstants.CHUNK_SIZE, y / GameConstants.CHUNK_SIZE, z / GameConstants.CHUNK_SIZE, true, true);
+        // Write the block and fire BlockChangedEvent.
+        // LightingManager.OnBlockChanged receives it and handles lighting.
+        _blockChangeNotifier.SetTileAndUpdate(x, y, z, tileType);
+
+        // Mark only the owning chunk dirty for tessellation.
+        _voxelMap.SetChunkDirty(
+            x / GameConstants.CHUNK_SIZE,
+            y / GameConstants.CHUNK_SIZE,
+            z / GameConstants.CHUNK_SIZE,
+            dirty: true, false);  // lightDirty handled by LightingManager
+
         ShadowsOnSetBlock(x, y, z);
+
         LastplacedblockX = x;
         LastplacedblockY = y;
         LastplacedblockZ = z;

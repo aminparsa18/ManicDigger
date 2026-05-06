@@ -33,8 +33,8 @@ public class VoxelMap : IVoxelMap
     /// Flat index into <see cref="Chunks"/> for chunk-grid coordinates.
     /// Inlined arithmetic — no helper call overhead on the hot path.
     /// </summary>
-    private int ChunkFlatIndex(int cx, int cy, int cz)
-        => cz * _mapChunksX * _mapChunksY + cy * _mapChunksX + cx;
+    public int ChunkFlatIndex(int cx, int cy, int cz)
+        => (cz * _mapChunksX * _mapChunksY) + (cy * _mapChunksX) + cx;
 
     /// <summary>Flat index within a chunk for block-local coordinates.</summary>
     private static int BlockFlatIndex(int lx, int ly, int lz)
@@ -334,7 +334,7 @@ public class VoxelMap : IVoxelMap
         int lx = (x & CsMask) + 1;
         int ly = (y & CsMask) + 1;
         int lz = (z & CsMask) + 1;
-        return c.Rendered.Light[lz * lightCS * lightCS + ly * lightCS + lx];
+        return c.Rendered.Light[(lz * lightCS * lightCS) + (ly * lightCS) + lx];
     }
 
     // ── Render state ──────────────────────────────────────────────────────────

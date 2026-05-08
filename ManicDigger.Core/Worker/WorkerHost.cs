@@ -1,5 +1,4 @@
 ﻿using ManicDigger.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace ManicDigger.Worker;
 

@@ -20,14 +20,18 @@
    - [Draw](#draw)
    - [Clear](#clear)
    - [TotalTriangleCount](#totaltrianglecount)
-5. [Internal Data Flow](#internal-data-flow)
-6. [BatchEntry Record Struct](#batchentry-record-struct)
-7. [Texture Management](#texture-management)
-8. [Render Ordering and Transparency](#render-ordering-and-transparency)
-9. [Relationship to TerrainChunkTesselator](#relationship-to-terraincunktesselator)
-10. [Performance Notes](#performance-notes)
-11. [Limits and Constants](#limits-and-constants)
-12. [External References](#external-references)
+5. [Pending Upload and Unload Queue](#pending-upload-and-unload-queue)
+   - [StageChunk](#stagechunk)
+   - [StageUnload](#stageunload)
+   - [FlushPendingUploads](#flushpeninguploads)
+6. [Internal Data Flow](#internal-data-flow)
+7. [BatchEntry Record Struct](#batchentry-record-struct)
+8. [Texture Management](#texture-management)
+9. [Render Ordering and Transparency](#render-ordering-and-transparency)
+10. [Relationship to ChunkTessellationDispatcher](#relationship-to-chunktessellationdispatcher)
+11. [Performance Notes](#performance-notes)
+12. [Limits and Constants](#limits-and-constants)
+13. [External References](#external-references)
 
 ---
 
@@ -43,28 +47,35 @@ It sits between the tessellator (which produces raw vertex data) and `glDrawElem
    buffer is fully populated before blending begins.
 
 ```
-TerrainChunkTesselator       MeshBatcher              GPU
-──────────────────────       ───────────              ───
-VerticesIndicesToLoad[] ──▶  Add(model, texture) ──▶  Solid pass
-                             Draw() each frame   ──▶  Transparent pass
-                             Remove(id)          ──▶  DeleteModel()
+ChunkTessellationDispatcher    MeshBatcher                    GPU
+───────────────────────────    ───────────                    ───
+StageChunk(chunk, meshes)  ──▶ _pendingUploads queue
+StageUnload(chunk)         ──▶ _pendingUnloads queue
+                               FlushPendingUploads() ──▶  Add / Remove
+                               Draw() each frame     ──▶  Solid pass
+                                                     ──▶  Transparent pass
 ```
 
 The class never generates geometry — it only stores, organises, and issues draw calls.
+`DoRedraw` (previously in `ModDrawTerrain`) now lives here, keeping all GPU-lifetime
+management in one place.
 
 ---
 
 ## Where It Fits in the Pipeline
 
 ```
-ModDrawTerrain (background thread)
+ChunkTessellationDispatcher (worker thread)
     │
-    └─▶ TerrainChunkTesselator.MakeChunk()
+    └─▶ StageChunk(chunk, meshes, meshCount, dataRented)
             │
-            └─▶ VerticesIndicesToLoad[]
+            └─▶ _pendingUploads  (ConcurrentQueue — thread-safe handoff)
                     │
-                    ▼  (main thread, TerrainRendererCommit)
-              MeshBatcher.Add(modelData, transparent, texture, ...)
+                    ▼  (render thread — OnRender3d)
+              MeshBatcher.FlushPendingUploads()
+                    │
+                    ├─▶ drain _pendingUnloads → Remove old slots, free light buffer
+                    └─▶ drain _pendingUploads → DoRedraw → Add new slots
                     │
                     ▼  (once per frame)
               MeshBatcher.Draw(playerX, playerY, playerZ)
@@ -74,8 +85,9 @@ ModDrawTerrain (background thread)
                                            glEnableCullFace
 ```
 
-`ModDrawTerrain` calls `Add` whenever a chunk is re-tessellated, `Remove` when a chunk is
-unloaded or replaced, and `Draw` once every render frame inside `OnNewFrameDraw3d`.
+`ModDrawTerrain` calls `FlushPendingUploads` and `Draw` each render frame.
+Worker threads call `StageChunk` (and `StageUnload` for evicted chunks) from any thread
+via the `ConcurrentQueue` — no locking required on the producer side.
 
 ---
 
@@ -147,10 +159,10 @@ public int Add(GeometryModel modelData, bool transparent, int texture,
 
 Registers a model and returns a **stable slot ID** valid until `Remove` is called.
 
-- Uploads geometry to the GPU via `_platform.CreateModel(modelData)`.
+- Uploads geometry to the GPU via `_openGlService.CreateModel(modelData)`.
 - Registers the texture handle in the `_textureIndexMap` if not already present.
-- The `centerX/Y/Z` and `radius` parameters are stored in the `BatchEntry` for future
-  frustum culling (currently stored but not yet evaluated inside `Draw`).
+- The `centerX/Y/Z` and `radius` parameters are accepted for API compatibility and future
+  frustum culling but are not stored in `BatchEntry` or evaluated inside `Draw`.
 - Throws `InvalidOperationException` if more than `MaxTextures` (10) distinct texture
   handles are registered.
 
@@ -176,8 +188,8 @@ Called once per frame. Internally:
 2. Solid pass: iterates `_tocallSolid`, binding each texture and calling `DrawModels`.
 3. Transparent pass: disables cull face, iterates `_tocallTransparent`, re-enables cull face.
 
-The player position parameters are accepted for future **view-distance culling** or
-**back-to-front sorting** of transparent models but are not currently used inside the method.
+The player position parameters are accepted for future **back-to-front sorting** of
+transparent models but are not currently used inside the method.
 
 ### `Clear`
 
@@ -200,7 +212,52 @@ debugging. Does not include empty slots.
 
 ---
 
-## Internal Data Flow
+## Pending Upload and Unload Queue
+
+Worker threads must never call `Add` or `Remove` directly — both touch GPU state.
+Instead, they write to two `ConcurrentQueue`s that are drained on the render thread by
+`FlushPendingUploads`.
+
+### `StageChunk`
+
+```csharp
+public void StageChunk(Chunk chunk, VerticesIndicesToLoad[] meshes, int meshCount, bool dataRented)
+```
+
+Called by `ChunkTessellationDispatcher` (worker thread) after `MakeChunk` completes.
+Enqueues a `PendingUpload` record — the render thread will call `DoRedraw` for it on the
+next `FlushPendingUploads`. If `dataRented` is true, the `ArrayPool<VerticesIndicesToLoad>`
+buffer is returned to the pool after `DoRedraw` finishes.
+
+### `StageUnload`
+
+```csharp
+public void StageUnload(Chunk chunk)
+```
+
+Enqueues a chunk for removal. `FlushPendingUploads` processes unloads before uploads,
+freeing slots before attempting to fill them. In addition to calling `Remove` on all
+batcher IDs, the unload path also returns the chunk's `rendered.Light` buffer to
+`ArrayPool<byte>` if it was rented, and marks `rendered.Dirty = true` so the chunk will
+be re-tessellated if it re-enters the view distance.
+
+### `FlushPendingUploads`
+
+```csharp
+public void FlushPendingUploads(int maxUploadsPerFrame = 512)
+```
+
+Called once per frame on the render thread, before `Draw`. Drains both queues in order:
+
+1. **Unload queue** (unbounded drain) — removes old batcher entries and frees light buffers.
+2. **Upload queue** (capped at `maxUploadsPerFrame`) — calls `DoRedraw` for each pending
+   chunk, which removes any existing entries for that chunk and calls `Add` for each new
+   submesh.
+
+`DoRedraw` uses a `stackalloc int[meshCount]` span for the new IDs rather than a heap
+allocation, then calls `.ToArray()` only once to persist them into `rendered.Ids`.
+
+---
 
 Per-frame `Draw` call in detail:
 
@@ -241,8 +298,6 @@ public readonly record struct BatchEntry
 {
     public bool          Empty;        // slot available for reuse?
     public int           IndicesCount; // triangle count × 3
-    public float         CenterX/Y/Z; // bounding sphere centre (world space)
-    public float         Radius;       // bounding sphere radius
     public bool          Transparent;  // which render pass?
     public int           Texture;      // logical texture index
     public GeometryModel Model;        // GPU handle
@@ -304,44 +359,35 @@ the `playerPositionX/Y/Z` parameters in `Draw` exist precisely for this future e
 
 ---
 
-## Relationship to TerrainChunkTesselator
+## Relationship to ChunkTessellationDispatcher
 
 These two classes are complementary and intentionally decoupled:
 
-| Concern | TerrainChunkTesselator | MeshBatcher |
-|---------|------------------------|-------------|
-| Runs on | Background thread | Main / render thread |
-| Input | `int[]` block data | `GeometryModel` vertex buffers |
-| Output | `VerticesIndicesToLoad[]` | GPU draw calls |
-| Knows about camera? | No | No (player pos stored, not used yet) |
+| Concern | ChunkTessellationDispatcher | MeshBatcher |
+|---|---|---|
+| Runs on | Worker thread | Render thread |
+| Input | `TessellationChunkWorkItem` | `PendingUpload` / `PendingUnload` queues |
+| Output | `StageChunk` / `StageUnload` calls | GPU draw calls |
 | GPU calls? | None | `CreateModel`, `DeleteModel`, `DrawModels` |
+| Knows about camera? | No | No (player pos accepted, not used yet) |
 | Lifetime of data | Per-chunk rebuild | Stable between dirty marks |
 
-`TerrainChunkTesselator` produces the raw geometry; `MeshBatcher` owns the GPU lifetime
-of that geometry. The handoff happens in `TerrainRendererCommit` on the main thread:
-the old slot is `Remove`d, the new geometry is `Add`ed, and the slot ID is stored back
-in the chunk's `RenderedChunk` record.
+`ChunkTessellationDispatcher` produces the raw geometry and owns the `ArrayPool` buffers
+until it calls `StageChunk`. `MeshBatcher` then owns the GPU lifetime of that geometry,
+returning pool buffers after `DoRedraw` and freeing GPU memory on `Remove`.
 
 ---
 
 ## Performance Notes
 
 | Aspect | Current behaviour | Notes |
-|--------|-------------------|-------|
+|---|---|---|
 | Texture switch cost | One `BindTexture2d` per texture per frame | Maximum 10 switches; near-optimal for this texture budget |
 | `SortListsByTexture` cost | O(n) over `_modelsCount` every frame | Unavoidable without dirty tracking; acceptable for ≤16 K slots |
 | Free-list reuse | LIFO via `Stack<int>` | Keeps `_modelsCount` compact; avoids O(n) scan growth over time |
 | Per-slot allocation | Zero — `BatchEntry` is a struct embedded in `_models[]` | No GC pressure from model add/remove churn |
 | Transparent sort | Not implemented | Can cause visual artifacts with overlapping transparent geometry |
-| Frustum culling | `CenterX/Y/Z` and `Radius` stored but unused in `Draw` | Sphere-frustum test would reduce `DrawModels` call volume significantly |
-
-The most impactful missing feature is **frustum culling inside `Draw`**. With
-`_modelsCount` at its maximum of 16 384 and a typical view frustum covering ~30–40% of
-registered chunks, culling could eliminate over half of all `DrawModels` calls per frame
-with a simple sphere-frustum intersection test using the already-stored bounding sphere.
-
-> **Reference:** [*Frustum Culling*](https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling)
-> — LearnOpenGL sphere-frustum culling implementation guide.
+| Upload cap | `maxUploadsPerFrame = 512` | Spreads GPU uploads across frames; prevents single-frame spikes on large redraws |
 
 ---
 
@@ -377,7 +423,7 @@ fixed-size `_tocallSolid[]` / `_tocallTransparent[]` arrays must grow together.
 
 > **File:** `MeshBatcher.cs`  
 > **Namespace:** `ManicDigger`  
-> **Dependencies:** `IGamePlatform`, `IMeshDrawer`, `GeometryModel`, `BatchEntry`  
-> **Thread safety:** All public methods must be called from the **main / render thread**.
-> `Add` and `Remove` modify GPU state via `CreateModel` / `DeleteModel` and are not safe
-> to call from the background tessellation thread.
+> **Dependencies:** `IOpenGlService`, `IMeshDrawer`, `IGameLogger`, `GeometryModel`, `BatchEntry`  
+> **Thread safety:** `StageChunk` and `StageUnload` are safe to call from any thread via
+> `ConcurrentQueue`. All other public methods (`Add`, `Remove`, `Draw`, `FlushPendingUploads`,
+> `Clear`) must be called from the **render thread** only.

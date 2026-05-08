@@ -24,7 +24,7 @@ public interface IGameService
     int CanvasWidth { get; }
     int CanvasHeight { get; }
     int TimeMillisecondsFromStart { get; }
-
+    Stream? OpenIconStream();
     void SaveScreenshot();
     Bitmap GrabScreenshot();
     string StoragePath { get; }

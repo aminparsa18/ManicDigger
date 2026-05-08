@@ -89,6 +89,12 @@ public partial class GameService : IGameService
         }
     }
 
+    public Stream? OpenIconStream()
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, "md.ico");
+        return File.Exists(path) ? File.OpenRead(path) : null;
+    }
+
     public void ShowKeyboard(bool show)
     {
     }

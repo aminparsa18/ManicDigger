@@ -1,35 +1,30 @@
-﻿using Microsoft.Extensions.Logging;
-using Serilog;
+﻿using ManicDigger.Extensions;
 
-namespace ManicDigger.Maui
+namespace ManicDigger.Maui;
+
+public static class MauiProgram
 {
-    public static class MauiProgram
+    public static MauiApp CreateMauiApp()
     {
-        public static MauiApp CreateMauiApp()
-        {
-            // Configure Serilog early
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.File("manicdigger.log")
-                .CreateLogger();
+        MauiAppBuilder builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
+        builder.Services.AddSharedServices();
+        builder.Services.AddClientServices();
+        builder.Services.AddServerServices();
 
-            // Global crash handler
-            CrashReporter.DefaultFileName = "ManicDiggerClientCrash.txt";
-            CrashReporter.EnableGlobalExceptionHandling(isConsole: false);
+        builder.Services.AddClientMods();
+        builder.Services.AddServerMods();
 
-            MauiAppBuilder builder = MauiApp.CreateBuilder();
-            builder
-                .UseMauiApp<App>()
-                .ConfigureFonts(fonts =>
-                {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                });
+        builder.Services.AddScreens();
 
-#if DEBUG
-            builder.Logging.AddDebug();
-#endif
+        builder.Services.AddWorkerInfrastructure();
 
-            return builder.Build();
-        }
+        return builder.Build();
     }
 }

@@ -474,7 +474,7 @@ public class ModGuiEscapeMenu : ModBase
         }
         else
         {
-            platform.SetWindowState(WindowState.Normal);
+            platform.SetWindowState(WindowState.Maximized);
             RestoreResolution();
         }
     }
@@ -552,7 +552,7 @@ public class ModGuiEscapeMenu : ModBase
         if (platform.GetWindowState() == WindowState.Fullscreen)
         {
             platform.ChangeResolution(res.Width, res.Height, res.BitsPerPixel, res.RefreshRate);
-            platform.SetWindowState(WindowState.Normal);
+            platform.SetWindowState(WindowState.Maximized);
             platform.SetWindowState(WindowState.Fullscreen);
         }
         else
@@ -735,7 +735,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             if (platform.GetWindowState() == WindowState.Fullscreen)
             {
-                platform.SetWindowState(WindowState.Normal);
+                platform.SetWindowState(WindowState.Maximized);
                 RestoreResolution();
                 SaveOptions();
             }

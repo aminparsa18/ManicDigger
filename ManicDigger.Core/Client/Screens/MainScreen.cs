@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using OpenTK.Windowing.GraphicsLibraryFramework;
+
+/// <summary>
 /// The top-level main menu screen. Displays the game logo and the three primary
 /// navigation buttons: Singleplayer, Multiplayer, and Quit.
 /// </summary>

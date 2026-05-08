@@ -419,6 +419,7 @@ public sealed class OpenGlService : IOpenGlService
     /// </summary>
     private int LoadTexture(Bitmap bmpArg, bool linearMag)
     {
+        // ── 1. Ensure power-of-two dimensions ────────────────────────────────────
         Bitmap bmp = bmpArg;
         bool converted = false;
 
@@ -433,33 +434,31 @@ public sealed class OpenGlService : IOpenGlService
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 g.DrawImage(bmpArg, 0, 0, w, h);
             }
-
             converted = true;
         }
 
+        // ── 2. Allocate and bind texture ──────────────────────────────────────────
         int id = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, id);
 
+        // ── 3. Set filtering — before upload ──────────────────────────────────────
         if (!EnableMipmaps)
         {
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                (int)TextureMinFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                (int)TextureMagFilter.Nearest);
         }
         else
         {
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 1);
-            GL.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureMaxLevel, out int mipCount);
-            GL.TexParameter(TextureTarget.Texture2D,
-                TextureParameterName.TextureMinFilter,
-                mipCount == 0
-                    ? (int)TextureMinFilter.Nearest
-                    : (int)TextureMinFilter.NearestMipmapLinear);
-            GL.TexParameter(TextureTarget.Texture2D,
-                TextureParameterName.TextureMagFilter,
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                (int)TextureMinFilter.NearestMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
                 linearMag ? (int)TextureMagFilter.Linear : (int)TextureMagFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 4);
         }
 
+        // ── 4. Upload base level ──────────────────────────────────────────────────
         BitmapData bmpData = bmp.LockBits(
             new Rectangle(0, 0, bmp.Width, bmp.Height),
             ImageLockMode.ReadOnly,
@@ -469,20 +468,24 @@ public sealed class OpenGlService : IOpenGlService
             bmpData.Width, bmpData.Height, 0,
             OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, bmpData.Scan0);
 
-        bmp.UnlockBits(bmpData);
+        bmp.UnlockBits(bmpData);   // data is on the GPU — safe to unlock
 
-        GL.Enable(EnableCap.DepthTest);
+        // ── 5. Generate mipmaps from the uploaded GPU texture ─────────────────────
+        if (EnableMipmaps)
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
+        // ── 6. Blending ───────────────────────────────────────────────────────────
         if (EnableTransparency)
         {
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
 
+        // ── 7. Cleanup ────────────────────────────────────────────────────────────
         if (converted)
-        {
             bmp.Dispose();
-        }
+
+        GL.BindTexture(TextureTarget.Texture2D, 0);   // leave no texture bound
 
         return id;
     }

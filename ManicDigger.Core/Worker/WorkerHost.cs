@@ -49,10 +49,7 @@ public sealed class WorkerHost : IAsyncDisposable
         CancellationToken ct = _lifetime.Token;
 
         _logger.Client.Information("WorkerHost: starting workers");
-
-#if DEBUG
-        BaseLightRaceDetector.Init(_logger); // inject ILogger<WorkerHost>
-#endif
+ 
         await _simulationLoop.StartAsync(ct);
         await _tessellationPool.StartAsync(ct);
         await _lightingPool.StartAsync(ct);       // single-worker lighting stage

@@ -271,7 +271,6 @@ public class MeshBatcher : IMeshBatcher
             if (p.DataRented)
                 ArrayPool<VerticesIndicesToLoad>.Shared.Return(p.Meshes);
         }
-        _gameLogger.Client.Debug($"Flushed {count - 1} pending mesh uploads.");
     }
 
     private readonly float _sqrt3Half = MathF.Sqrt(3) * 0.5f;

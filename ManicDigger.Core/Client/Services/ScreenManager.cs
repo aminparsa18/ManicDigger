@@ -1,5 +1,4 @@
-﻿using ManicDigger.Worker;
-using OpenTK.Windowing.Common;
+﻿using OpenTK.Windowing.Common;
 
 /// <summary>
 /// Manages the screens lifecycle: asset loading, screen routing, input handling,

@@ -73,8 +73,6 @@ public class ChunkWorkerPool : BackgroundService, IChunkWorkQueue
 
     private async Task WorkerLoopAsync(int workerId, CancellationToken ct)
     {
-        _logger.Client.Debug("Chunk worker {Id} started", workerId);
-
         await foreach (ChunkWorkItem item in _channel.Reader.ReadAllAsync(ct))
         {
             try
@@ -96,7 +94,5 @@ public class ChunkWorkerPool : BackgroundService, IChunkWorkQueue
                 item.Completion?.TrySetException(ex);
             }
         }
-
-        _logger.Client.Debug("Chunk worker {Id} stopped", workerId);
     }
 }

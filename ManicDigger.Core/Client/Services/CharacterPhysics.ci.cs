@@ -109,7 +109,7 @@ public class ScriptCharacterPhysics : IEntityScript
         jumpstartacceleration = 13.333f * constGravity;
         jumpstartaccelerationhalf = 9f * constGravity;
         acceleration.SetDefault();
-        game.soundnow = false; // was `new bool()` — Cito-ism for false
+        game.soundnow = false; 
 
         // ── Follow mode: suppress local input ────────────────────────────────
         // FollowId() does a linear entity scan — call once and cache.
@@ -209,8 +209,8 @@ public class ScriptCharacterPhysics : IEntityScript
         // ── Gravity: only after the chunk under the player has arrived ─────────
         bool loaded = false;
         int cx = (int)(game.Player.Position.X / GameConstants.CHUNK_SIZE);
-        int cy = (int)(game.Player.Position.Z / GameConstants.CHUNK_SIZE);
-        int cz = (int)(game.Player.Position.Y / GameConstants.CHUNK_SIZE);
+        int cy = (int)(game.Player.Position.Y / GameConstants.CHUNK_SIZE);
+        int cz = (int)(game.Player.Position.Z / GameConstants.CHUNK_SIZE);
         if (voxelMap.IsValidChunkPos(cx, cy, cz))
         {
             // Use cached chunk-count properties instead of recomputing / BlockConstants.CHUNK_SIZE.
@@ -410,7 +410,7 @@ public class ScriptCharacterPhysics : IEntityScript
     /// one axis at a time, stopping each axis independently on collision.
     /// Also detects ground contact, walls for auto-jump, and half-block step-ups.
     /// </summary>
-    public Vector3 WallSlide(Vector3 oldposition, Vector3 newposition, float modelheight)
+    private Vector3 WallSlide(Vector3 oldposition, Vector3 newposition, float modelheight)
     {
         bool high = modelheight >= 2;
 

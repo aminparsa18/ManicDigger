@@ -6,7 +6,9 @@
 public class ModFallDamageToPlayer : ModBase
 {
     private const float FallDamageCooldownSeconds = 1f;
+    private const float SpawnGracePeriodSeconds = 5f;
 
+    private bool _wasSpawned;
     private bool fallSoundPlaying;
     private int lastFallDamageTimeMilliseconds;
     private readonly IGameService _gameService;
@@ -27,6 +29,15 @@ public class ModFallDamageToPlayer : ModBase
             return;
         }
 
+        // Detect spawn — push the damage timer into the future so the
+        // first landing after spawn is always within the grace period.
+        if (Game.Spawned && !_wasSpawned)
+        {
+            lastFallDamageTimeMilliseconds = _gameService.TimeMillisecondsFromStart
+                + (int)(SpawnGracePeriodSeconds * 1000);
+        }
+        _wasSpawned = Game.Spawned;
+
         if (Game.Controls.FreeMove)
         {
             if (fallSoundPlaying)
@@ -45,7 +56,10 @@ public class ModFallDamageToPlayer : ModBase
 
     internal void UpdateFallDamageToPlayer(float dt)
     {
-        if (!Game.Spawned) return;
+        if (!Game.Spawned)
+        {
+            return;
+        }
 
         float fallSpeed = Game.MovedZ / -Game.Basemovespeed;
 
@@ -61,7 +75,10 @@ public class ModFallDamageToPlayer : ModBase
 
     private void ApplyFallDamage(int posX, int posY, int posZ, float fallSpeed)
     {
-        if (!Game.IsPlayerOnGround) return;  // only damage on landing
+        if (!Game.IsPlayerOnGround)
+        {
+            return;  // only damage on landing
+        }
 
         if (fallSpeed < 4f)
         {

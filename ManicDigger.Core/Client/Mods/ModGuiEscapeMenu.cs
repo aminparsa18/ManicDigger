@@ -786,7 +786,7 @@ public class ModGuiEscapeMenu : ModBase
         {
             Shadows = preferences.GetBool("Shadows", true),
             Font = preferences.GetInt("Font", 0),
-            DrawDistance = preferences.GetInt("DrawDistance", platform.IsFastSystem() ? 128 : 32),
+            DrawDistance = preferences.GetInt("DrawDistance", platform.IsFastSystem() ? 1024 : 32),
             UseServerTextures = preferences.GetBool("UseServerTextures", true),
             EnableSound = preferences.GetBool("EnableSound", true),
             EnableAutoJump = preferences.GetBool("EnableAutoJump", false),

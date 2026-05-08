@@ -542,7 +542,6 @@ public partial class Game
 
         if (eKey == GetKey(Keys.F))
         {
-            ToggleFog();
             AddChatLine(string.Format(Language.FogDistance(), ((int)Config3d.ViewDistance).ToString()));
             OnResize();
         }

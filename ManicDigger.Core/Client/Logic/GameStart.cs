@@ -5,7 +5,7 @@ public partial class Game
     // ── Startup constants ─────────────────────────────────────────────────────
 
     /// <summary>Default view distance in blocks on fast (desktop) hardware.</summary>
-    private const int ViewDistanceFast = 512;
+    private const int ViewDistanceFast = 1024;
 
     /// <summary>Default view distance in blocks on slow (mobile/web) hardware.</summary>
     private const int ViewDistanceSlow = 32;

@@ -9,7 +9,7 @@ public class GameOption
     {
         Shadows = false;
         Font = 0;
-        DrawDistance = 32;
+        DrawDistance = 1024;
         UseServerTextures = true;
         EnableSound = true;
         EnableAutoJump = false;

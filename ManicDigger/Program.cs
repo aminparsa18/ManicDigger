@@ -1,6 +1,9 @@
 ﻿using ManicDigger.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 public class Program
 {
@@ -15,8 +18,6 @@ public class Program
 
     public Program(string[] args)
     {
-        CrashReporter.EnableGlobalExceptionHandling(false);
-
         ServiceCollection services = new();
         ConfigureServices(services);
         ServiceProvider = services.BuildServiceProvider();
@@ -45,13 +46,16 @@ public class Program
     {
         if (!Debugger.IsAttached)
         {
-            Environment.CurrentDirectory = Path.GetDirectoryName(Application.ExecutablePath)!;
+            Environment.CurrentDirectory = Path.GetDirectoryName(AppContext.BaseDirectory)!;
         }
 
         if(ServiceProvider == null)
         {
             throw new InvalidOperationException("ServiceProvider is not initialized.");
         }
+
+        CrashReporter crashReporter = ServiceProvider.GetRequiredService<CrashReporter>();
+        crashReporter.EnableGlobalExceptionHandling(false);
 
         // 1. Mods constructed — each gets IGame injected (Game already exists)
         IEnumerable<IModBase> mods = ServiceProvider.GetServices<IModBase>();

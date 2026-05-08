@@ -39,6 +39,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="MessagePipe" Version="1.8.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
 		<PackageReference Include="ENet-CSharp" Version="2.4.8" />
 		<PackageReference Include="MemoryPack" Version="1.21.4" />
@@ -69,7 +70,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\MessagePipe\src\MessagePipe\MessagePipe.csproj" />
 	  <ProjectReference Include="..\ManicDigger.Domain\ManicDigger.Domain.csproj" />
 	</ItemGroup>
 </Project>

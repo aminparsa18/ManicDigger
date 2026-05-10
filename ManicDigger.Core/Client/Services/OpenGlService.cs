@@ -277,65 +277,65 @@ public sealed class OpenGlService : IOpenGlService
     /// <inheritdoc/>
     public void InitShaders()
     {
-        const string vertexSource = @"
-            #version 330 core
+        const string vertexSource = """
+    #version 300 es
 
-            layout(location = 0) in vec3 aPosition;
-            layout(location = 1) in vec4 aColor;
-            layout(location = 2) in vec2 aUv;
+    layout(location = 0) in vec3 aPosition;
+    layout(location = 1) in vec4 aColor;
+    layout(location = 2) in vec2 aUv;
 
-            uniform mat4 uProjection;
-            uniform mat4 uModelView;
+    uniform mat4 uProjection;
+    uniform mat4 uModelView;
 
-            out vec4 vColor;
-            out vec2 vUv;
-            out float vFogDepth;
+    out vec4 vColor;
+    out vec2 vUv;
+    out float vFogDepth;
 
-            void main()
-            {
-                vec4 viewPos = uModelView * vec4(aPosition, 1.0);
-                gl_Position  = uProjection * viewPos;
-                vColor    = aColor;
-                vUv       = aUv;
-                vFogDepth = abs(viewPos.z);
-            }
-        ";
+    void main()
+    {
+        vec4 viewPos = uModelView * vec4(aPosition, 1.0);
+        gl_Position  = uProjection * viewPos;
+        vColor    = aColor;
+        vUv       = aUv;
+        vFogDepth = abs(viewPos.z);
+    }
+    """;
 
-        const string fragmentSource = @"
-            #version 330 core
+        const string fragmentSource = """
+    #version 300 es
+    precision mediump float;
 
-            in vec4  vColor;
-            in vec2  vUv;
-            in float vFogDepth;
+    in vec4  vColor;
+    in vec2  vUv;
+    in float vFogDepth;
 
-            uniform sampler2D uTexture;
-            uniform vec3      uAmbientLight;
-            uniform vec4      uFogColor;
-            uniform float     uFogDensity;
-            uniform bool      uFogEnabled;
-            uniform bool      uUseTexture;
+    uniform sampler2D uTexture;
+    uniform vec3      uAmbientLight;
+    uniform vec4      uFogColor;
+    uniform float     uFogDensity;
+    uniform bool      uFogEnabled;
+    uniform bool      uUseTexture;
 
-            out vec4 fragColor;
+    out vec4 fragColor;
 
-            void main()
-            {
-                fragColor = uUseTexture ? texture(uTexture, vUv) * vColor : vColor;
+    void main()
+    {
+        fragColor = uUseTexture ? texture(uTexture, vUv) * vColor : vColor;
 
-                // Alpha test — only discard textured fragments; vertex-colored geometry is always opaque.
-                if (uUseTexture && fragColor.a < 0.5)
-                    discard;
+        if (uUseTexture && fragColor.a < 0.5)
+            discard;
 
-                fragColor.rgb *= uAmbientLight;
+        fragColor.rgb *= uAmbientLight;
 
-                if (uFogEnabled)
-                {
-                    float fogFactor = clamp(
-                        exp(-uFogDensity * uFogDensity * vFogDepth * vFogDepth),
-                        0.0, 1.0);
-                    fragColor.rgb = mix(uFogColor.rgb, fragColor.rgb, fogFactor);
-                }
-            }
-        ";
+        if (uFogEnabled)
+        {
+            float fogFactor = clamp(
+                exp(-uFogDensity * uFogDensity * vFogDepth * vFogDepth),
+                0.0, 1.0);
+            fragColor.rgb = mix(uFogColor.rgb, fragColor.rgb, fogFactor);
+        }
+    }
+    """;
 
         int vert = CompileShader(ShaderType.VertexShader, vertexSource);
         int frag = CompileShader(ShaderType.FragmentShader, fragmentSource);

@@ -16,19 +16,12 @@ namespace ManicDigger.Maui.Views.Components;
 
 public class GameSKGLView : SKGLView
 {
-    private IGameWindowService _gameWindowService;
     private DateTime _lastFrame = DateTime.UtcNow;
     private bool _running;
 
     public GameSKGLView()
     {
         HasRenderLoop = true;
-    }
-
-    // Called from GameView.OnAppearing after DI resolution
-    public void Initialise(IGameWindowService gameWindowService)
-    {
-        _gameWindowService = gameWindowService;
     }
 
     // ── Loop control ──────────────────────────────────────────────────────────

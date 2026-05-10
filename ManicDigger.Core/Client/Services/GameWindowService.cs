@@ -290,7 +290,6 @@ public partial class GameWindowService : IGameWindowService
 
     public List<Action<KeyEventArgs>> KeyDownHandlers { get; set; } = [];
 
-
     public List<Action<KeyEventArgs>> KeyUpHandlers = [];
     public List<Action<KeyPressEventArgs>> KeyPressHandlers = [];
 

@@ -12,7 +12,10 @@ using OpenTK.Windowing.Desktop;
 using System.Diagnostics;
 using System.Drawing;
 using System.Text.RegularExpressions;
+
 #if WINDOWS
+using ManicDigger.Maui.Platforms.Windows;
+using OpenTK.Graphics.ES30;
 using Windows.UI.Core;
 #endif
 
@@ -72,6 +75,7 @@ public sealed partial class MauiGameWindowService : IGameWindowService
         _view = view;
         view.EnableTouchEvents = true;
         view.Touch += OnSkiaTouch;
+        _initialised = false;
         view.StartLoop();
     }
 
@@ -88,8 +92,21 @@ public sealed partial class MauiGameWindowService : IGameWindowService
 
     // ── Frame dispatch (called by GameSKGLView) ───────────────────────────────
 
+    private bool _initialised;
+
     public void RaiseNewFrame(float dt)
     {
+        if (!_initialised)
+        {
+#if WINDOWS
+            GL.LoadBindings(new AngleBindingsContext());
+#endif
+            _openGlService.InitShaders();
+            _openGlService.GlClearColorRgbaf(0, 0, 0, 1);
+            _openGlService.GlEnableDepthTest();
+            _initialised = true;
+        }
+
         foreach (var h in _newFrameHandlers)
             h(dt);
     }
@@ -99,9 +116,6 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     /// <summary>No-op — render loop is driven by SKGLView.InvalidateSurface().</summary>
     public void Start()
     {
-        _openGlService.InitShaders();
-        _openGlService.GlClearColorRgbaf(0, 0, 0, 1);
-        _openGlService.GlEnableDepthTest();
     }
 
     private readonly List<Action<float>> _newFrameHandlers = [];

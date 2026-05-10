@@ -685,7 +685,6 @@ public class ScreenBase(IGameWindowService gameService, IOpenGlService openGlSer
         }
     }
 
-
     /// <summary>
     /// Registers a pre-loaded GPU texture in the renderer's cache under the given name,
     /// making it retrievable via <see cref="IMenuRenderer.GetTexture"/> without a

@@ -14,7 +14,7 @@ public class TextColorRenderer
     /// A <see cref="Bitmap"/> containing the rendered text, with transparent pixels where
     /// no glyph was drawn.
     /// </returns>
-    internal static Bitmap CreateTextTexture(TextStyle t)
+    public static Bitmap CreateTextTexture(TextStyle t)
     {
         TextPart[] parts = DecodeColors(t.Text, t.Color);
 

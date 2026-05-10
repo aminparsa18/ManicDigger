@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:ManicDigger.Maui.Views"
     Title="ManicDigger.Maui">
 
-    <ShellContent
+    <!--<ShellContent
         Title="Menu"
         ContentTemplate="{DataTemplate local:MainMenuView}"
         Route="MainMenuView" />
@@ -14,7 +14,7 @@
     <ShellContent
          Title="SinglePlayer"
          ContentTemplate="{DataTemplate local:SinglePlayerView}"
-         Route="SinglePlayerView" />
+         Route="SinglePlayerView" />-->
 
     <ShellContent
          Title="Home"

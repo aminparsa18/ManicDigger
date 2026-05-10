@@ -2,10 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ManicDigger.Maui.Views.GameView"
-             xmlns:cmp="clr-namespace:ManicDigger.Maui.Views.Components">
+             xmlns:cmp="clr-namespace:ManicDigger.Maui.Views.Components"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls">
 
-        <cmp:GameSKGLView x:Name="GlView"
+        <skia:SKGLView x:Name="GlView"
                         HorizontalOptions="Fill"
-                        VerticalOptions="Fill"/>
+                        VerticalOptions="Fill"
+                        PaintSurface="GlView_PaintSurface"
+                        WidthRequest="1280"
+                        HeightRequest="768"/>
 
 </ContentPage>

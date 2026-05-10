@@ -24,6 +24,8 @@ public partial class GameView : ContentPage
         // Attach wires touch input and starts the game loop.
         _gameWindowService.Attach(GlView);
 
+        _gameWindowService.Start();
+
         StartFpsTimer();
     }
 

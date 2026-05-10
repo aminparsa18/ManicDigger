@@ -25,6 +25,7 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     private readonly IGameExitService _gameExit;
     private readonly CrashReporter _crashReporter;
     private readonly IDisplayService _displayService;
+    private readonly IOpenGlService _openGlService;
 
     // ── Late-bound view ───────────────────────────────────────────────────────
 
@@ -45,11 +46,13 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     public MauiGameWindowService(
         IGameExitService gameExit,
         IDisplayService displayService,
+        IOpenGlService openGlService,
         CrashReporter crashReporter)
     {
         _gameExit = gameExit;
         _displayService = displayService;
         _crashReporter = crashReporter;
+        _openGlService = openGlService;
 
         _crashReporter.SetCursorVisible = MouseCursorSetVisible;
         _crashReporter.ShowErrorDialog = MessageBoxShowError;
@@ -94,7 +97,12 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     // ── IGameWindowService — render loop ──────────────────────────────────────
 
     /// <summary>No-op — render loop is driven by SKGLView.InvalidateSurface().</summary>
-    public void Start() { }
+    public void Start()
+    {
+        _openGlService.InitShaders();
+        _openGlService.GlClearColorRgbaf(0, 0, 0, 1);
+        _openGlService.GlEnableDepthTest();
+    }
 
     private readonly List<Action<float>> _newFrameHandlers = [];
     public void AddOnNewFrame(Action<float> handler) => _newFrameHandlers.Add(handler);

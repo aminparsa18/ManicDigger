@@ -2,9 +2,9 @@
 
 public sealed class DisplayService : IDisplayService
 {
-    public IReadOnlyList<DisplayResolutionCi> GetDisplayResolutions()
+    public IReadOnlyList<DisplayResolution> GetDisplayResolutions()
     {
-        List<DisplayResolutionCi> resolutions = [];
+        List<DisplayResolution> resolutions = [];
 
         if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0)
         {
@@ -21,7 +21,7 @@ public sealed class DisplayService : IDisplayService
             {
                 SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out SDL.SDL_DisplayMode mode);
 
-                DisplayResolutionCi resolution = new()
+                DisplayResolution resolution = new()
                 {
                     Width = mode.w,
                     Height = mode.h,
@@ -47,7 +47,7 @@ public sealed class DisplayService : IDisplayService
             .ThenBy(r => r.RefreshRate)];
     }
 
-    public DisplayResolutionCi GetDisplayResolutionDefault()
+    public DisplayResolution GetDisplayResolutionDefault()
     {
         // Primary display is usually display index 0
         int displayIndex = 0;
@@ -55,7 +55,7 @@ public sealed class DisplayService : IDisplayService
         if (SDL.SDL_GetDesktopDisplayMode(displayIndex, out SDL.SDL_DisplayMode mode) != 0)
         {
             // fallback
-            return new DisplayResolutionCi
+            return new DisplayResolution
             {
                 Width = 1920,
                 Height = 1080,
@@ -64,7 +64,7 @@ public sealed class DisplayService : IDisplayService
             };
         }
 
-        return new DisplayResolutionCi
+        return new DisplayResolution
         {
             Width = mode.w,
             Height = mode.h,

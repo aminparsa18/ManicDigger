@@ -1,5 +1,3 @@
-// ManicDigger.Maui/Platforms/Windows/MauiGameWindowService.cs
-//
 // MAUI-specific implementation of IGameWindowService.
 // SkiaSharp's SKGLView owns the EGL/ANGLE context — we never touch EGL directly.
 //
@@ -76,7 +74,7 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     {
         _view = view;
         view.EnableTouchEvents = true;
-        view.Touch += OnSkiaTouch;
+       // view.Touch += OnSkiaTouch;
         _isFocused = true;
         _initialised = false;
     }
@@ -87,7 +85,7 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     public void Detach()
     {
         if (_view is null) return;
-        _view.Touch -= OnSkiaTouch;
+       // _view.Touch -= OnSkiaTouch;
         _view = null;
     }
 
@@ -162,81 +160,6 @@ public sealed partial class MauiGameWindowService : IGameWindowService
 
     public bool TouchTest = false;
 
-    private void OnSkiaTouch(object? sender, SkiaSharp.Views.Maui.SKTouchEventArgs e)
-    {
-        e.Handled = true;
-
-        switch (e.ActionType)
-        {
-            case SkiaSharp.Views.Maui.SKTouchAction.Pressed:
-                if (TouchTest)
-                {
-                    var a = new TouchEventArgs();
-                    a.SetX((int)e.Location.X); a.SetY((int)e.Location.Y); a.SetId((int)e.Id);
-                    OnTouchStart?.Invoke(a);
-                }
-                else
-                {
-                    var a = new MouseEventArgs();
-                    a.X = ((int)e.Location.X); a.Y = (int)e.Location.Y;
-                    a.                    Button = e.MouseButton == SkiaSharp.Views.Maui.SKMouseButton.Right ? 1 : 0;
-                    OnMouseDown?.Invoke(a);
-                }
-                break;
-
-            case SkiaSharp.Views.Maui.SKTouchAction.Released:
-                if (TouchTest)
-                {
-                    var a = new TouchEventArgs();
-                    a.SetX((int)e.Location.X); a.SetY((int)e.Location.Y); a.SetId((int)e.Id);
-                    OnTouchEnd?.Invoke(a);
-                }
-                else
-                {
-                    var a = new MouseEventArgs();
-                    a.X = ((int)e.Location.X); a.Y = (int)e.Location.Y;
-                    OnMouseUp?.Invoke(a);
-                }
-                break;
-
-            case SkiaSharp.Views.Maui.SKTouchAction.Moved:
-                if (TouchTest)
-                {
-                    var a = new TouchEventArgs();
-                    a.SetX((int)e.Location.X); a.SetY((int)e.Location.Y); a.SetId((int)e.Id);
-                    OnTouchMove?.Invoke(a);
-                }
-                else
-                {
-                    var a = new MouseEventArgs();
-                    a.X = ((int)e.Location.X); a.Y = (int)e.Location.Y;
-                    OnMouseMove?.Invoke(a);
-                }
-                break;
-
-            case SkiaSharp.Views.Maui.SKTouchAction.WheelChanged:
-                OnMouseWheel?.Invoke(e.WheelDelta / 120f);
-                break;
-        }
-    }
-
-    // ── Keyboard — raised from GameView code-behind ───────────────────────────
-
-    public void RaiseKeyDown(KeyEventArgs args)
-    {
-        foreach (var h in KeyDownHandlers) { h(args); if (args.Handled) break; }
-    }
-
-    public void RaiseKeyUp(KeyEventArgs args)
-    {
-        foreach (var h in KeyUpHandlers) { h(args); if (args.Handled) break; }
-    }
-
-    public void RaiseKeyPress(KeyPressEventArgs args)
-    {
-        foreach (var h in KeyPressHandlers) { h(args); if (args.Handled) break; }
-    }
-
     // ── Cursor / focus ────────────────────────────────────────────────────────
 
     private bool _mousePointerLocked;
@@ -249,29 +172,7 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     public void MouseCursorSetVisible(bool value)
     {
         _mouseCursorVisible = value;
-        if (_mouseCursorVisible)
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                // Restore ALL system cursors to Windows defaults in one call
-                SystemParametersInfo(SPI_SETCURSORS, 0, IntPtr.Zero, 0);
-                ClipCursor(IntPtr.Zero);
-            });
-        }
-        else
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                // Create 1x1 invisible cursor
-                IntPtr invisible = CreateCursor(
-                    IntPtr.Zero, 0, 0, 1, 1,
-                    [0xFF], // AND mask — fully transparent
-                    [0x00]);// XOR mask — no pixels
 
-                // Replace the system arrow cursor globally
-                SetSystemCursor(invisible, OCR_NORMAL);
-            });
-        }
     }
 
     public void RequestMousePointerLock() { MouseCursorSetVisible(false); _mousePointerLocked = true; }
@@ -286,30 +187,31 @@ public sealed partial class MauiGameWindowService : IGameWindowService
 
     public void SetTitle(string title)
     {
-        var win = Microsoft.Maui.Controls.Application.Current?.Windows[0];
+        var win = Application.Current?.Windows[0];
 #if WINDOWS
-        if (win?.Handler?.PlatformView is Microsoft.UI.Xaml.Window w) w.Title = title;
+        if (win?.Handler?.PlatformView is Microsoft.UI.Xaml.Window w) 
+            w.Title = title;
 #endif
     }
 
     public void SetVSync(bool enabled) { }
-    public void WindowExit() { _gameExit.Exit = true; Microsoft.Maui.Controls.Application.Current?.Quit(); }
+    public void WindowExit() { _gameExit.Exit = true; Application.Current?.Quit(); }
     public WindowState GetWindowState() => WindowState.Normal;
     public void SetWindowState(WindowState value) { }
     public void ChangeResolution(int w, int h, int bpp, float refresh) { }
 
-    public List<DisplayResolutionCi> GetDisplayResolutions()
-        => _displayService.GetDisplayResolutions()
+    public List<DisplayResolution> GetDisplayResolutions()
+        => [.. _displayService.GetDisplayResolutions()
             .Where(r => r.Width >= 800 && r.Height >= 600 && r.BitsPerPixel >= 16)
-            .Select(r => new DisplayResolutionCi
+            .Select(r => new DisplayResolution
             {
                 Width = r.Width,
                 Height = r.Height,
                 BitsPerPixel = r.BitsPerPixel,
                 RefreshRate = r.RefreshRate,
-            }).ToList();
+            })];
 
-    public DisplayResolutionCi GetDisplayResolutionDefault()
+    public DisplayResolution GetDisplayResolutionDefault()
         => _displayService.GetDisplayResolutionDefault();
 
     public string KeyName(int key)

@@ -173,7 +173,6 @@ public partial class Game : IGame
     public int grenadetime { get; set; }
     public int grenadecookingstartMilliseconds { get; set; }
     public int pistolcycle { get; set; }
-    public bool leftpressedpicking { get; set; }
     public int lastironsightschangeMilliseconds { get; set; }
     public bool handSetAttackBuild { get; set; }    // already declared above — kept for region clarity
     public bool handSetAttackDestroy { get; set; }  // already declared above — kept for region clarity

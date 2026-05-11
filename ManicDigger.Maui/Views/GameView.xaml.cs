@@ -1,20 +1,13 @@
 ﻿using ManicDigger.Maui.Services;
 using ManicDigger.Worker;
 using OpenTK.Graphics.ES30;
-using OpenTK.Mathematics;
 using SkiaSharp.Views.Maui;
 using System.Runtime.InteropServices;
+
+#if WINDOWS
 using Application = Microsoft.Maui.Controls.Application;
 using Microsoft.UI.Xaml.Input;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-
-
-
-
-
-
-#if WINDOWS
-using Windows.UI.Core;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 #endif
@@ -29,16 +22,12 @@ public partial class GameView : ContentPage
 
     private readonly IGame _game;
     private readonly ISinglePlayerService _singlePlayerService;
-    private readonly ISaveGameService _saveGameService;
     private readonly IOpenGlService _openGlService;
-    private readonly IGameLogger _gameLogger;
     private readonly IGameWindowService _gameWindowService;
     private readonly IAssetManager _assetManager;
     private readonly IDummyNetwork _dummyNetwork;
     private readonly WorkerHost _workerHost;
     private readonly ServerSystemBootstraper _serverSystemBootstraper;
-
-    private Matrix4 pMatrix = Matrix4.Identity;
 
     [DllImport("libEGL.dll")]
     private static extern IntPtr eglGetProcAddress(string procName);
@@ -49,32 +38,29 @@ public partial class GameView : ContentPage
     }
 
     public GameView(IOpenGlService openGlService, IGameWindowService gameWindowService, IAssetManager assetManager,
-        IGameLogger gameLogger, IGame game, ISinglePlayerService singlePlayerService, IDummyNetwork dummyNetwork,
-        ISaveGameService saveGameService, WorkerHost workerHost, ServerSystemBootstraper serverSystemBootstraper)
+        IGame game, ISinglePlayerService singlePlayerService, IDummyNetwork dummyNetwork,
+        WorkerHost workerHost, ServerSystemBootstraper serverSystemBootstraper)
     {
         InitializeComponent();
         _openGlService = openGlService;
         _gameWindowService = gameWindowService;
-        _saveGameService = saveGameService;
         _assetManager = assetManager;
         _game = game;
-        _gameLogger = gameLogger;
         _singlePlayerService = singlePlayerService;
         _workerHost = workerHost;
         _dummyNetwork = dummyNetwork;
         _serverSystemBootstraper = serverSystemBootstraper;
     }
 
+#if WINDOWS
     protected override void OnHandlerChanged()
     {
         base.OnHandlerChanged();
-#if WINDOWS
         AttachWindowKeyEvents();
-#endif
+        ((MauiGameWindowService)_gameWindowService).CaptureCursor();
     }
 
-#if WINDOWS
-    void AttachWindowKeyEvents()
+    public void AttachWindowKeyEvents()
     {
         var mauiWindow = Application.Current?.Windows.FirstOrDefault();
         var nativeWindow = mauiWindow?.Handler?.PlatformView
@@ -88,6 +74,13 @@ public partial class GameView : ContentPage
                 {
                     var keyEvent = WinKeyMapper.ToKeyEventArgs(args);
                     _game.KeyDown(keyEvent);
+                    _game.KeyPress(keyEvent);
+                    if(keyEvent.KeyChar == (int)Keys.Escape && _game.GuiState == GameState.Normal)
+                    {
+                        ((MauiGameWindowService)_gameWindowService).ReleaseCursor();
+                        ShowPauseMenu();
+                        _game.GuiState = GameState.EscapeMenu;
+                    }
                     args.Handled = keyEvent.Handled;
                 }),
                 handledEventsToo: true
@@ -103,6 +96,43 @@ public partial class GameView : ContentPage
                 }),
                 handledEventsToo: true
             );
+
+            // Must set these BEFORE trying to focus
+            if (root is Microsoft.UI.Xaml.Controls.Control control)
+            {
+                control.IsTabStop = true;
+                control.AllowFocusOnInteraction = true;
+            }
+
+            root.Tapped += (s, _) => root.Focus(FocusState.Pointer);  // focus on tap
+            root.Focus(FocusState.Programmatic);                     // focus immediately
+
+            root.AddHandler(UIElement.PointerPressedEvent,
+                new PointerEventHandler((s, args) =>
+                {
+                    var glNative = GlView.Handler?.PlatformView as UIElement;
+                    var pt = args.GetCurrentPoint(glNative);
+                    _game.MouseDown(WinMouseMapper.ToMouseDownEventArgs(pt));
+                }),
+                handledEventsToo: true);
+
+            root.AddHandler(UIElement.PointerReleasedEvent,
+                new PointerEventHandler((s, args) =>
+                {
+                    var glNative = GlView.Handler?.PlatformView as UIElement;
+                    var pt = args.GetCurrentPoint(glNative);
+                    _game.MouseUp(WinMouseMapper.ToMouseUpEventArgs(pt));
+                }),
+                handledEventsToo: true);
+
+            root.AddHandler(UIElement.PointerWheelChangedEvent,
+                new PointerEventHandler((s, args) =>
+                {
+                    var glNative = GlView.Handler?.PlatformView as UIElement;
+                    var pt = args.GetCurrentPoint(glNative);
+                    _game.MouseWheelChanged(WinMouseMapper.ToMouseWheelEventArgs(pt));
+                }),
+                handledEventsToo: true);
         }
     }
 #endif
@@ -117,19 +147,11 @@ public partial class GameView : ContentPage
         {
             GlView.InvalidateSurface();
 #if WINDOWS
-            if (_gameWindowService.Focused())
+            if (_gameWindowService.Focused() && _game.GuiState == GameState.Normal)
                 ((MauiGameWindowService)_gameWindowService).RecenterCursor();
 #endif
         };
         _gameLoopTimer.Start();
-
-        string extension = _singlePlayerService.SinglePlayerServerAvailable ? "mddbs" : "mdss";
-        string path = GetDefaultSavePath(extension);
-
-        _saveGameService.InitialiseSession(
-            File.Exists(path)
-                ? SaveTarget.FromFile(path)
-                : SaveTarget.NewGame());
 
         _assetManager.LoadAssets();
 
@@ -137,13 +159,8 @@ public partial class GameView : ContentPage
         ((MauiGameWindowService)_gameWindowService).Attach(GlView);
 
         _gameWindowService.AddOnNewFrame(Draw);
-        // _gameWindowService.AddOnMouseEvent(HandleMouseDown, HandleMouseUp, HandleMouseMove, HandleMouseWheel);
-
-        _gameWindowService.Start();
 
 #if WINDOWS
-       GlView.HandlerChanged += AttachKeyEvents;
-
         _gameWindowService.RequestMousePointerLock();
 
         IntPtr hwnd = WinRT.Interop.WindowNative.GetWindowHandle(
@@ -154,75 +171,9 @@ public partial class GameView : ContentPage
         svc.StartRawInput(hwnd);
         svc.RawMouseDelta += OnRawMouseDelta;
 #endif
-
         _game.IsSinglePlayer = true;
 
         Connect();
-    }
-
-    void AttachKeyEvents(object? sender, EventArgs e)
-    {
-#if WINDOWS
-        if (GlView.Handler?.PlatformView is UIElement el)
-        {
-            // Must set these BEFORE trying to focus
-            if (el is Microsoft.UI.Xaml.Controls.Control control)
-            {
-                control.IsTabStop = true;
-                control.AllowFocusOnInteraction = true;
-            }
-
-            el.Tapped += (s, _) => el.Focus(FocusState.Pointer);  // focus on tap
-            el.Focus(FocusState.Programmatic);                     // focus immediately
-
-            el.AddHandler(UIElement.KeyDownEvent,new KeyEventHandler((s, args) =>
-                {
-                    var keyEvent = WinKeyMapper.ToKeyEventArgs(args);
-                    _game.KeyDown(keyEvent);
-                    _game.KeyPress(keyEvent);
-                }), handledEventsToo: true);
-
-            el.AddHandler(UIElement.KeyUpEvent,new KeyEventHandler((s, args) =>
-                {
-                   var keyEvent = WinKeyMapper.ToKeyEventArgs(args);
-                   _game.KeyUp(keyEvent);
-                }), handledEventsToo: true);
-
-            el.AddHandler(UIElement.PointerPressedEvent,
-           new PointerEventHandler((s, args) =>
-           {
-               var pt = args.GetCurrentPoint(el);
-               var kir = WinMouseMapper.ToMouseEventArgs(pt);
-               _game.MouseDown(WinMouseMapper.ToMouseEventArgs(pt));
-           }),
-           handledEventsToo: true);
-
-            el.AddHandler(UIElement.PointerReleasedEvent,
-                new PointerEventHandler((s, args) =>
-                {
-                    var pt = args.GetCurrentPoint(el);
-                    _game.MouseUp(WinMouseMapper.ToMouseEventArgs(pt));
-                }),
-                handledEventsToo: true);
-
-            el.AddHandler(UIElement.PointerWheelChangedEvent,
-                new PointerEventHandler((s, args) =>
-                {
-                    var pt = args.GetCurrentPoint(el);
-                    _game.MouseWheelChanged(WinMouseMapper.ToMouseWheelEventArgs(pt));
-                }),
-                handledEventsToo: true);
-        }
-#endif
-    }
-
-    private static string GetDefaultSavePath(string extension)
-    {
-        string folder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "Manic Digger Save");
-        Directory.CreateDirectory(folder); // no-op if already exists
-        return Path.Combine(folder, "Default." + extension);
     }
 
     private void Connect()
@@ -269,16 +220,21 @@ public partial class GameView : ContentPage
         svc.RawMouseDelta -= OnRawMouseDelta;
         svc.StopRawInput(hwnd);
 #endif
+        ((MauiGameWindowService)_gameWindowService).Detach();
     }
 
+#if WINDOWS
     private void OnRawMouseDelta(int dx, int dy)
     {
-        var emulated = new MouseEventArgs();
-        emulated.        MovementX = dx;
-        emulated.        MovementY = dy;
-        emulated.        Emulated = true;
+        var emulated = new MouseEventArgs
+        {
+            MovementX = dx,
+            MovementY = dy,
+            Emulated = true
+        };
         _game.MouseMove(emulated);
     }
+#endif
 
     private void GlView_PaintSurface(object sender, SKPaintGLSurfaceEventArgs e)
     {
@@ -312,12 +268,6 @@ public partial class GameView : ContentPage
         _openGlService.GlDisableDepthTest();
         _openGlService.GlDisableCullFace();
 
-        Matrix4.CreateOrthographicOffCenter(
-            0, GlView.CanvasSize.Width,
-            GlView.CanvasSize.Height, 0,
-            0, 10,
-            out pMatrix);
-
         Render(dt);
     }
 
@@ -338,43 +288,154 @@ public partial class GameView : ContentPage
         }
 
         _game.OnRenderFrame(dt);
-
     }
 
+    // =========================================================================
+    // Overlay — public API (call from your ESC key handler or mod)
+    // =========================================================================
+
+    /// <summary>
+    /// Shows the pause menu overlay and stops the game loop from stealing input.
+    /// Call this when the player presses ESC.
+    /// </summary>
+    public void ShowPauseMenu()
+    {
+        PausePanel.IsVisible = true;
+        OptionsPanel.IsVisible = false;
+        OverlayRoot.IsVisible = true;
+
+        // Release the mouse lock so the cursor is usable in the overlay.
+        _gameWindowService.ExitMousePointerLock();
+    }
+
+    /// <summary>
+    /// Hides the overlay entirely and restores input to the game.
+    /// </summary>
+    private void HideOverlay()
+    {
+        OverlayRoot.IsVisible = false;
+#if WINDOWS
+        ((MauiGameWindowService)_gameWindowService).CaptureCursor();
+#endif
+        _game.GuiState = GameState.Normal;
+    }
+
+    // =========================================================================
+    // Pause panel handlers
+    // =========================================================================
+
+    private void OnReturnToGameClicked(object sender, EventArgs e)
+        => HideOverlay();
+
+    private void OnOptionsClicked(object sender, EventArgs e)
+    {
+        PausePanel.IsVisible = false;
+        OptionsPanel.IsVisible = true;
+    }
+
+    private async void OnExitToMenuClicked(object sender, EventArgs e)
+    {
+        HideOverlay();
+        await Shell.Current.GoToAsync("//MainMenuView");
+    }
+
+    // =========================================================================
+    // Options panel — navigation
+    // =========================================================================
+
+    /// <summary>Back button inside the Options panel — returns to Pause panel.</summary>
+    private void OnOptionsBackClicked(object sender, EventArgs e)
+    {
+        OptionsPanel.IsVisible = false;
+        PausePanel.IsVisible = true;
+    }
+
+    // =========================================================================
+    // Options panel — button stubs
+    // Wire these up to your existing options logic.
+    // Each handler receives the Button so you can update its Text after toggling.
+    // =========================================================================
+
+    private void OnSmoothShadowsClicked(object sender, EventArgs e)
+    {
+        // TODO: toggle _game.Config3d.SmoothShadows
+        // BtnSmoothShadows.Text = $"Smooth Shadows: {(on ? "ON" : "OFF")}";
+    }
+
+    private void OnDarkenSidesClicked(object sender, EventArgs e)
+    {
+        // TODO: toggle _game.Config3d.DarkenSides
+        // BtnDarkenSides.Text = $"Darken Sides: {(on ? "ON" : "OFF")}";
+    }
+
+    private void OnViewDistanceClicked(object sender, EventArgs e)
+    {
+        // TODO: cycle _game.Config3d.ViewDistance through preset values
+        // BtnViewDistance.Text = $"View Distance: {value}";
+    }
+
+    private void OnFramerateClicked(object sender, EventArgs e)
+    {
+        // TODO: cycle target framerate
+        // BtnFramerate.Text = $"Framerate: {value}";
+    }
+
+    private void OnResolutionClicked(object sender, EventArgs e)
+    {
+        // TODO: cycle resolution presets
+        // BtnResolution.Text = $"Resolution: {w}x{h}";
+    }
+
+    private void OnFullscreenClicked(object sender, EventArgs e)
+    {
+        // TODO: toggle fullscreen
+        // BtnFullscreen.Text = $"Fullscreen: {(on ? "ON" : "OFF")}";
+    }
+
+    private void OnServerTexturesClicked(object sender, EventArgs e)
+    {
+        // TODO: toggle server textures
+        // BtnServerTextures.Text = $"Server Textures: {(on ? "ON" : "OFF")}";
+    }
+
+    private void OnFontClicked(object sender, EventArgs e)
+    {
+        // TODO: cycle font options
+        // BtnFont.Text = $"Font: {name}";
+    }
 }
 
 #if WINDOWS
 public static class WinMouseMapper
 {
-    public static MouseEventArgs ToMouseEventArgs(PointerPoint point)
+    public static MouseEventArgs ToMouseDownEventArgs(PointerPoint point)
     {
         return new MouseEventArgs
         {
             X = (int)point.Position.X,
             Y = (int)point.Position.Y,
-            Button = MapButton(point.Properties)
+            Button = MapPressedButton(point.Properties)
         };
     }
 
-    public static MouseEventArgs ToMouseMoveEventArgs(PointerPoint point)
+    public static MouseEventArgs ToMouseUpEventArgs(PointerPoint point)
     {
         return new MouseEventArgs
         {
             X = (int)point.Position.X,
             Y = (int)point.Position.Y,
-            Button = MapButton(point.Properties)
+            Button = MapReleasedButton(point.Properties)
         };
     }
 
     public static float ToMouseWheelEventArgs(PointerPoint point)
     {
-        var delta = point.Properties.MouseWheelDelta;
-        bool isHorizontal = point.Properties.IsHorizontalMouseWheel;
-
-        return isHorizontal ? 0f : delta / 120f;
+        return point.Properties.IsHorizontalMouseWheel
+            ? 0f
+            : point.Properties.MouseWheelDelta / 120f;
     }
 
-    private static int MapButton(PointerPointProperties props)
+    private static int MapPressedButton(PointerPointProperties props)
     {
         if (props.IsLeftButtonPressed) return (int)MouseButton.Left;
         if (props.IsRightButtonPressed) return (int)MouseButton.Right;
@@ -382,6 +443,19 @@ public static class WinMouseMapper
         if (props.IsXButton1Pressed) return (int)MouseButton.Button4;
         if (props.IsXButton2Pressed) return (int)MouseButton.Button5;
         return -1;
+    }
+
+    private static int MapReleasedButton(PointerPointProperties props)
+    {
+        return props.PointerUpdateKind switch
+        {
+            PointerUpdateKind.LeftButtonReleased => (int)MouseButton.Left,
+            PointerUpdateKind.RightButtonReleased => (int)MouseButton.Right,
+            PointerUpdateKind.MiddleButtonReleased => (int)MouseButton.Middle,
+            PointerUpdateKind.XButton1Released => (int)MouseButton.Button4,
+            PointerUpdateKind.XButton2Released => (int)MouseButton.Button5,
+            _ => -1
+        };
     }
 }
 #endif

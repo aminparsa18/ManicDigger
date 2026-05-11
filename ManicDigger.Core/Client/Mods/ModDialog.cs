@@ -103,7 +103,6 @@ public class ModDialog : ModBase
                 }
             }
 
-            Game.ShowEscapeMenu();
             args.Handled = true;
             return;
         }

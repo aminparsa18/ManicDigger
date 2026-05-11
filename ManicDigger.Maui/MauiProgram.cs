@@ -14,8 +14,7 @@ public static class MauiProgram
             .UseSkiaSharp()
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("PressStart2P-Regular.ttf", "PressStart2PRegular");
             });
         builder.Services.AddSharedServices();
         builder.Services.AddClientServices();
@@ -27,8 +26,6 @@ public static class MauiProgram
         builder.Services.AddSingleton<MauiGameWindowService>();
         builder.Services.AddSingleton<IGameWindowService>(sp =>
             sp.GetRequiredService<MauiGameWindowService>());
-
-        builder.Services.AddScreens();
 
         builder.Services.AddWorkerInfrastructure();
 

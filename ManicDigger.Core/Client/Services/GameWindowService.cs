@@ -244,16 +244,16 @@ public partial class GameWindowService : IGameWindowService
         return Enum.IsDefined(typeof(Keys), key) ? Enum.GetName(typeof(Keys), key)! : key.ToString();
     }
 
-    private List<DisplayResolutionCi> resolutions;
+    private List<DisplayResolution> resolutions;
 
-    public List<DisplayResolutionCi> GetDisplayResolutions()
+    public List<DisplayResolution> GetDisplayResolutions()
     {
         if (resolutions == null)
         {
             resolutions = [];
             foreach (var screen in _displayService.GetDisplayResolutions())
             {
-                DisplayResolutionCi resolution = new()
+                DisplayResolution resolution = new()
                 {
                     Width = screen.Width,
                     Height = screen.Height,
@@ -279,7 +279,7 @@ public partial class GameWindowService : IGameWindowService
 
     public void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate) => Window.Size = new Vector2i(width, height);
 
-    public DisplayResolutionCi GetDisplayResolutionDefault() => _displayService.GetDisplayResolutionDefault();
+    public DisplayResolution GetDisplayResolutionDefault() => _displayService.GetDisplayResolutionDefault();
 
     #endregion
 
@@ -458,7 +458,7 @@ public partial class GameWindowService : IGameWindowService
         if (xdelta != 0 || ydelta != 0)
         {
             MouseEventArgs args = new();
-            args.X = ((int)mouse.Position.X);
+            args.X = (int)mouse.Position.X;
             args.Y = (int)mouse.Position.Y;
             args.MovementX = (int)xdelta;
             args.MovementY = (int)ydelta;
@@ -483,7 +483,7 @@ public partial class GameWindowService : IGameWindowService
         else
         {
             MouseEventArgs args = new();
-            args.X = ((int)pos.X);
+            args.X = (int)pos.X;
             args.Y = (int)pos.Y;
             args.Button = (int)e.Button;
             OnMouseDown?.Invoke(args);
@@ -504,7 +504,7 @@ public partial class GameWindowService : IGameWindowService
         else
         {
             MouseEventArgs args = new();
-            args.X = ((int)pos.X);
+            args.X = (int)pos.X;
             args.Y = (int)pos.Y;
             args.Button = (int)e.Button;
             OnMouseUp?.Invoke(args);
@@ -525,12 +525,14 @@ public partial class GameWindowService : IGameWindowService
         else
         {
             Console.WriteLine("Mouse path");
-            MouseEventArgs args = new();
-            args.X = ((int)e.X);
-            args.Y = (int)e.Y;
-            args.MovementX = (int)e.DeltaX;
-            args.MovementY = (int)e.DeltaY;
-            args.Emulated = false;
+            MouseEventArgs args = new()
+            {
+                X = (int)e.X,
+                Y = (int)e.Y,
+                MovementX = (int)e.DeltaX,
+                MovementY = (int)e.DeltaY,
+                Emulated = false
+            };
             OnMouseMove?.Invoke(args);
         }
     }

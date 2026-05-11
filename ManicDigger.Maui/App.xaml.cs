@@ -1,6 +1,4 @@
-﻿// ManicDigger.Maui/App.xaml.cs
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace ManicDigger.Maui;
 

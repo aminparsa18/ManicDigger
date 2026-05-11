@@ -64,7 +64,6 @@ public static class BuilderClientModExtensions
         // ── GUI (topmost — rendered last) ─────────────────────────────────────
         services.AddScoped<IModBase, ModDialog>();
         services.AddScoped<IModBase, ModGuiTouchButtons>();
-        services.AddScoped<IModBase, ModGuiEscapeMenu>();
         services.AddScoped<IModBase, ModGuiMapLoading>();
         services.AddScoped<IModBase, ModGuiPlayerStats>();
         services.AddScoped<IModBase, ModGuiChat>();

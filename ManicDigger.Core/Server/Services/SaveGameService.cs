@@ -328,7 +328,7 @@ public readonly record struct SaveTarget
     private SaveTarget(string? path) => _path = path;
 
     /// <summary>No explicit file chosen — the service will use its default path.</summary>
-    public static SaveTarget NewGame() => new(null);
+    public static SaveTarget NewGame(string path) => new(path);
 
     /// <summary>Load from / save to a specific file the player chose.</summary>
     public static SaveTarget FromFile(string path) => new(path);

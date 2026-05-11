@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="ManicDigger.Maui.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:ManicDigger.Maui.Views"
-    Title="ManicDigger.Maui">
+    Title="ManicDigger.Maui"
+    FlyoutBehavior="Disabled">
 
-    <!--<ShellContent
+    <ShellContent
         Title="Menu"
         ContentTemplate="{DataTemplate local:MainMenuView}"
         Route="MainMenuView" />
@@ -14,7 +14,7 @@
     <ShellContent
          Title="SinglePlayer"
          ContentTemplate="{DataTemplate local:SinglePlayerView}"
-         Route="SinglePlayerView" />-->
+         Route="SinglePlayerView" />
 
     <ShellContent
          Title="Home"

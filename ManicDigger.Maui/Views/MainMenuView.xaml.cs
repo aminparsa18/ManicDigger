@@ -7,8 +7,18 @@ public partial class MainMenuView : ContentPage
 		InitializeComponent();
 	}
 
-    private async void Button_Clicked(object sender, EventArgs e)
+    private async void OnSinglePlayerClicked(object sender, EventArgs e)
     {
 		await Shell.Current.GoToAsync("//SinglePlayerView");
+    }
+
+    private void OnMultiPlayerClicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void OnExitClicked(object sender, EventArgs e)
+    {
+
     }
 }

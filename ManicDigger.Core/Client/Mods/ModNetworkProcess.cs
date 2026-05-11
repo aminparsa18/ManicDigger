@@ -206,7 +206,6 @@ public class ModNetworkProcess : ModBase
         {
             case Packet_ServerIdEnum.ServerIdentification:
                 {
-                    _gameLogger.Client.Debug($"Received Identification packet");
                     string invalidversionstr = Game.Language.InvalidVersionConnectAnyway();
                     Game.ServerGameVersion = packet.Identification.MdProtocolVersion;
                     if (Game.ServerGameVersion != _platform.GetGameVersion())

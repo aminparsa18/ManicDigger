@@ -374,15 +374,6 @@ public partial class Game
                 GuiStateBackToGame();
             }
         }
-
-        if (GuiState == GameState.Normal)
-        {
-            if (eKey.KeyChar == GetKey(Keys.Escape))
-            {
-                EscapeMenuStart();
-                return;
-            }
-        }
     }
 
     private void KeyDownNormal(int eKey)

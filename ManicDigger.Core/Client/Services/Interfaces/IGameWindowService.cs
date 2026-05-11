@@ -38,11 +38,11 @@ public interface IGameWindowService
     bool Focused();
     void AddOnCrash(OnCrashHandler handler);
     string KeyName(int key);
-    List<DisplayResolutionCi> GetDisplayResolutions();
+    List<DisplayResolution> GetDisplayResolutions();
     WindowState GetWindowState();
     void SetWindowState(WindowState value);
     void ChangeResolution(int width, int height, int bitsPerPixel, float refreshRate);
-    DisplayResolutionCi GetDisplayResolutionDefault();
+    DisplayResolution GetDisplayResolutionDefault();
 
     void MouseCursorSetVisible(bool value);
     bool MouseCursorIsVisible();

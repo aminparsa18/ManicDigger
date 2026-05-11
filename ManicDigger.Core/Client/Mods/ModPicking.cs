@@ -1,5 +1,6 @@
 ﻿using ManicDigger;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 /// <summary>
 /// Handles block and entity picking (ray-casting from the player's view),
@@ -81,10 +82,11 @@ public class ModPicking : ModBase
     private readonly IModRegistry modRegistry;
     private readonly IBlockRegistry blockTypeRegistry;
     private readonly ITerrainChunkTesselator _terrainChunkTesselator;
+    private readonly IGameLogger _gameLogger;
     private readonly Random random;
 
     public ModPicking(IGameWindowService platform, IVoxelMap voxelMap, ICameraService cameraService,
-        ITerrainChunkTesselator terrainChunkTesselator, IMeshBatcher meshBatcher,
+        ITerrainChunkTesselator terrainChunkTesselator, IMeshBatcher meshBatcher, IGameLogger gameLogger,
         IMeshDrawer meshDrawer, IModRegistry modRegistry, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         this.platform = platform;
@@ -93,6 +95,7 @@ public class ModPicking : ModBase
         this.meshDrawer = meshDrawer;
         this.modRegistry = modRegistry;
         this.blockTypeRegistry = blockTypeRegistry;
+        _gameLogger = gameLogger;
         _terrainChunkTesselator = terrainChunkTesselator;
         this._meshBatcher = meshBatcher;
         _tempViewport = new int[4];
@@ -113,9 +116,20 @@ public class ModPicking : ModBase
     public override void OnRender3d(float dt) 
         => UpdateParticlePhysics(dt);
 
+    private bool _mouseLeftHeld;
+    private bool _mouseMiddleHeld;
+    private bool _mouseRightHeld;
+    private bool _mouseLeftClick;    // edge: pressed this event
+    private bool _mouseLeftRelease;  // edge: released this event
+    private bool _mouseRightClick;   // edge: pressed this event
+
     /// <inheritdoc/>
     public override void OnMouseUp(MouseEventArgs args)
     {
+        if (args.Button == (int)MouseButton.Left) { _mouseLeftHeld = false; _mouseLeftRelease = true; }
+        if (args.Button == (int)MouseButton.Middle) _mouseMiddleHeld = false;
+        if (args.Button == (int)MouseButton.Right) _mouseRightHeld = false;
+
         if (Game.GuiState == GameState.Normal)
         {
             UpdatePicking();
@@ -125,6 +139,9 @@ public class ModPicking : ModBase
     /// <inheritdoc/>
     public override void OnMouseDown(MouseEventArgs args)
     {
+        if (args.Button == (int)MouseButton.Left) { _mouseLeftHeld = true; _mouseLeftClick = true; }
+        if (args.Button == (int)MouseButton.Middle) _mouseMiddleHeld = true;
+        if (args.Button == (int)MouseButton.Right) { _mouseRightHeld = true; _mouseRightClick = true; }
         if (Game.GuiState == GameState.Normal)
         {
             UpdatePicking();
@@ -147,6 +164,11 @@ public class ModPicking : ModBase
         }
 
         NextBullet(bulletsShot: 0);
+
+        // Edge triggers are single-consumption — cleared after the full burst resolves.
+        _mouseLeftClick = false;
+        _mouseLeftRelease = false;
+        _mouseRightClick = false;
     }
 
     /// <summary>
@@ -158,55 +180,29 @@ public class ModPicking : ModBase
     /// <param name="bulletsShot">Number of bullets already fired in this burst.</param>
     internal void NextBullet(int bulletsShot)
     {
-        bool left = Game.mouseLeft;
-        bool middle = Game.mouseMiddle;
-        bool right = Game.mouseRight;
+        bool left = _mouseLeftHeld;
+        bool middle = _mouseMiddleHeld;
+        bool right = _mouseRightHeld;
         bool isNextShot = bulletsShot != 0;
 
-        // Latch left-mouse so that held-down is treated as continuous fire.
-        if (!Game.leftpressedpicking)
-        {
-            if (Game.MouseLeftClick)
-            {
-                Game.leftpressedpicking = true;
-            }
-            else
-            {
-                left = false;
-            }
-        }
-        else
-        {
-            if (Game.mouseleftdeclick)
-            {
-                Game.leftpressedpicking = false;
-                left = false;
-            }
-        }
-
+        // leftpressedpicking latch is gone — _mouseLeftHeld is authoritative.
         if (!left)
-        {
             Game.CurrentAttackedBlock = null;
-        }
 
         InventoryItem item = Game.Inventory.RightHand[Game.ActiveMaterial];
         bool isPistol = item != null && blockTypeRegistry.BlockTypes[item.BlockId].IsPistol;
         bool isGrenade = isPistol && blockTypeRegistry.BlockTypes[item.BlockId].PistolType == PistolType.Grenade;
         bool isPistolShoot = isPistol && left;
         if (isPistol && isGrenade)
-        {
-            isPistolShoot = Game.mouseleftdeclick;
-        }
+            isPistolShoot = _mouseLeftRelease;
 
-        // Grenade cooking — start timer on left-click, auto-fire when cooked.
+        // Grenade cooking — start timer on left-press, auto-fire when cooked.
         // TODO: fix instant explosion when closing ESC menu.
-        if (Game.MouseLeftClick)
+        if (_mouseLeftClick)
         {
             Game.grenadecookingstartMilliseconds = platform.TimeMillisecondsFromStart;
             if (isPistol && isGrenade && blockTypeRegistry.BlockTypes[item.BlockId].Sounds.Shoot.Length > 0)
-            {
-                Game.PlayAudio(string.Format("{0}.ogg", blockTypeRegistry.BlockTypes[item.BlockId].Sounds.Shoot[0]));
-            }
+                Game.PlayAudio($"{blockTypeRegistry.BlockTypes[item.BlockId].Sounds.Shoot[0]}.ogg");
         }
 
         float cookWait = (platform.TimeMillisecondsFromStart - Game.grenadecookingstartMilliseconds) / 1000f;
@@ -215,7 +211,7 @@ public class ModPicking : ModBase
             if (cookWait >= Game.grenadetime && Game.grenadecookingstartMilliseconds != 0)
             {
                 isPistolShoot = true;
-                Game.mouseleftdeclick = true;
+                _mouseLeftRelease = true;   // simulate release to trigger grenade throw
             }
             else
             {
@@ -228,7 +224,7 @@ public class ModPicking : ModBase
         }
 
         // Iron sights toggle (right-click with pistol, 500 ms cooldown).
-        if (isPistol && Game.mouserightclick
+        if (isPistol && _mouseRightClick
          && (platform.TimeMillisecondsFromStart - Game.lastironsightschangeMilliseconds) >= 500)
         {
             Game.IronSights = !Game.IronSights;
@@ -239,20 +235,12 @@ public class ModPicking : ModBase
         GetPickingLine(pick, isPistolShoot);
         ArraySegment<BlockPosSide> pick2 = Game.Pick(cameraService.BlockOctreeSearcher, pick, out int pick2count);
 
-        if (left)
-        {
-            Game.handSetAttackDestroy = true;
-        }
-        else if (right)
-        {
-            Game.handSetAttackBuild = true;
-        }
+        if (left) Game.handSetAttackDestroy = true;
+        else if (right) Game.handSetAttackBuild = true;
 
         // Overhead camera: walk toward clicked block.
         if (Game.OverheadCamera && pick2count > 0 && left && Game.Follow == null)
-        {
             Game.PlayerDestination = new Vector3(pick2[0].BlockPos[0], pick2[0].BlockPos[1] + 1, pick2[0].BlockPos[2]);
-        }
 
         // Distance check.
         bool pickDistanceOk = pick2count > 0;
@@ -262,9 +250,7 @@ public class ModPicking : ModBase
                 new Vector3(pick2[0].BlockPos[0] + 0.5f, pick2[0].BlockPos[1] + 0.5f, pick2[0].BlockPos[2] + 0.5f),
                 new Vector3(pick.Start[0], pick.Start[1], pick.Start[2]));
             if (pickDist > CurrentPickDistance())
-            {
                 pickDistanceOk = false;
-            }
         }
 
         bool playerTileEmpty = Game.IsTileEmptyForPhysics(
@@ -296,18 +282,13 @@ public class ModPicking : ModBase
             int ntileY = (int)pick0.Current()[1];
             int ntileZ = (int)pick0.Current()[2];
             if (blockTypeRegistry.IsUsableBlock(voxelMap.GetBlock(ntileX, ntileZ, ntileY)))
-            {
                 Game.CurrentAttackedBlock = new Vector3i(ntileX, ntileZ, ntileY);
-            }
         }
 
         if (Game.GetFreeMouse())
         {
             if (pick2count > 0)
-            {
                 OnPick_(pick0);
-            }
-
             return;
         }
 
@@ -319,19 +300,13 @@ public class ModPicking : ModBase
         }
 
         if (left && Game.Inventory.RightHand[Game.ActiveMaterial] == null)
-        {
             Game.SendPacketClient(ClientPackets.MonsterHit(2 + (random.Next() * 4)));
-        }
 
         if ((left || right || middle) && !isGrenade)
-        {
             lastbuildMilliseconds = platform.TimeMillisecondsFromStart;
-        }
 
-        if (isGrenade && Game.mouseleftdeclick)
-        {
+        if (isGrenade && _mouseLeftRelease)
             lastbuildMilliseconds = platform.TimeMillisecondsFromStart;
-        }
 
         if (Game.ReloadStartMilliseconds != 0)
         {
@@ -360,9 +335,7 @@ public class ModPicking : ModBase
         }
 
         if (pick2count > 0)
-        {
             HandleBlockInteraction(pick0, pick2, pick2count, left, right, middle, isPistol, isGrenade);
-        }
 
         PickingEnd(left, right, middle, isPistol);
     }

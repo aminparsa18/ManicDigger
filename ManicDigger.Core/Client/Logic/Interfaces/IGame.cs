@@ -592,9 +592,6 @@ public interface IGame : IDisposable
     /// <summary>Whether the right button was clicked this frame.</summary>
     bool mouserightclick { get; set; }
 
-    /// <summary>Left-press used for block picking.</summary>
-    bool leftpressedpicking { get; set; }
-
     /// <summary>Current cursor X in canvas pixels.</summary>
     int MouseCurrentX { get; set; }
 

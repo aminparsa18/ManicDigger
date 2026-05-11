@@ -260,8 +260,20 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     private static string SanitiseFileName(string name)
         => Regex.Replace(name, $"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]", "_");
 
-    public void SaveScreenshot() { }
-    public Bitmap GrabScreenshot() => new(1, 1);
+    private readonly ClientNative.Screenshot _screenshot = new();
+
+    public void SaveScreenshot() 
+    {
+        _screenshot.d_GameWindow = Window;
+        _screenshot.SaveScreenshot();
+    }
+    public Bitmap GrabScreenshot()
+    {
+        _screenshot.d_GameWindow = Window;
+        Bitmap bmp = _screenshot.GrabScreenshot();
+        return bmp;
+    }
+
     public Stream? OpenIconStream()
     {
         string path = Path.Combine(AppContext.BaseDirectory, "md.ico");

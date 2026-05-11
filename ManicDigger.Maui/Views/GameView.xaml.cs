@@ -73,14 +73,22 @@ public partial class GameView : ContentPage
                 new KeyEventHandler((s, args) =>
                 {
                     var keyEvent = WinKeyMapper.ToKeyEventArgs(args);
-                    _game.KeyDown(keyEvent);
-                    _game.KeyPress(keyEvent);
                     if(keyEvent.KeyChar == (int)Keys.Escape && _game.GuiState == GameState.Normal)
                     {
                         ((MauiGameWindowService)_gameWindowService).ReleaseCursor();
                         ShowPauseMenu();
                         _game.GuiState = GameState.EscapeMenu;
                     }
+                    if (keyEvent.KeyChar == (int)Keys.Escape && _game.GuiState == GameState.Inventory)
+                    {
+                        ((MauiGameWindowService)_gameWindowService).CaptureCursor();
+                    }
+                    else if (keyEvent.KeyChar == (int)Keys.B && _game.GuiState == GameState.Normal)
+                    {
+                        ((MauiGameWindowService)_gameWindowService).ReleaseCursor();
+                    }
+                    _game.KeyDown(keyEvent);
+                    _game.KeyPress(keyEvent);
                     args.Handled = keyEvent.Handled;
                 }),
                 handledEventsToo: true
@@ -148,7 +156,7 @@ public partial class GameView : ContentPage
             GlView.InvalidateSurface();
 #if WINDOWS
             if (_gameWindowService.Focused() && _game.GuiState == GameState.Normal)
-                ((MauiGameWindowService)_gameWindowService).RecenterCursor();
+                ((MauiGameWindowService)_gameWindowService).TrapCursorInCenter();
 #endif
         };
         _gameLoopTimer.Start();
@@ -336,6 +344,9 @@ public partial class GameView : ContentPage
     private async void OnExitToMenuClicked(object sender, EventArgs e)
     {
         HideOverlay();
+#if WINDOWS
+        ((MauiGameWindowService)_gameWindowService).ReleaseCursor();
+#endif
         await Shell.Current.GoToAsync("//MainMenuView");
     }
 

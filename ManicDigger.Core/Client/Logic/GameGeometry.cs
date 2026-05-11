@@ -510,7 +510,6 @@ public partial class Game
 
     /// <summary>
     /// Draws <paramref name="text"/> to the screen using a cached texture.
-    /// Fix #3: <see cref="DeleteUnusedCachedTextTextures"/> is no longer called
     /// here — it runs once per frame in <see cref="Draw2d"/> instead.
     /// </summary>
     public void Draw2dText(string text, Font font, float x, float y, int? color, bool enabledepthtest)

@@ -30,6 +30,9 @@ jobs:
             -c Release -f net10.0-windows10.0.19041.0 `
             /p:Version=$version
 
+      - name: Find publish output
+        run: Get-ChildItem -Recurse MeinKraft.Maui/bin/Release | Select-Object FullName
+
       - name: Zip output
         run: |
           Compress-Archive `

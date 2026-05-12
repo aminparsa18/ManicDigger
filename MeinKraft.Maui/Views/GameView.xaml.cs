@@ -3,8 +3,6 @@ using MeinKraft.Worker;
 using OpenTK.Graphics.ES30;
 using SkiaSharp.Views.Maui;
 using System.Runtime.InteropServices;
-using OpenTK.Windowing.Common;
-
 
 #if WINDOWS
 using Application = Microsoft.Maui.Controls.Application;
@@ -40,7 +38,7 @@ public partial class GameView : ContentPage
     }
 
     public GameView(IOpenGlService openGlService, IGameWindowService gameWindowService, IAssetManager assetManager,
-        IGame game, ISinglePlayerService singlePlayerService, IDummyNetwork dummyNetwork,
+        IGame game, ISinglePlayerService singlePlayerService, IDummyNetwork dummyNetwork, ITerrainChunkTesselator terrainChunkTesselator,
         WorkerHost workerHost, ServerSystemBootstraper serverSystemBootstraper)
     {
         InitializeComponent();
@@ -53,11 +51,16 @@ public partial class GameView : ContentPage
         _dummyNetwork = dummyNetwork;
         _serverSystemBootstraper = serverSystemBootstraper;
 
-        // Wire up overlay events. OverlayMenuView owns its internal navigation
+        // Inject game services into the overlay so it can apply options directly.
+        // Must happen after InitializeComponent() so OverlayMenu is already created.
+        OverlayMenu.Initialize(_game, terrainChunkTesselator);
+
+        // Wire up overlay exit events. OverlayMenuView owns its internal navigation
         // (Pause ↔ Options); GameView only handles the two exit points that
-        // require cursor and game-state changes.
+        // require cursor and game-state changes, plus the platform fullscreen call.
         OverlayMenu.ReturnToGameRequested += (_, _) => HideOverlay();
         OverlayMenu.ExitToMenuRequested += OnExitToMenuRequested;
+        OverlayMenu.FullscreenChanged += OnFullscreenChanged;
     }
 
 #if WINDOWS
@@ -334,7 +337,35 @@ public partial class GameView : ContentPage
         await Shell.Current.GoToAsync("//MainMenuView");
     }
 
+    /// <summary>
+    /// Uses the AppWindow / OverlappedPresenter API — the only reliable way to
+    /// toggle borderless fullscreen in a MAUI WinUI3 app.
+    /// </summary>
+    private void OnFullscreenChanged(object? sender, bool fullscreen)
+    {
 #if WINDOWS
+        var window = GetParentWindow().Handler.PlatformView as MauiWinUIWindow;
+        var appWindow = GetAppWindow(window);
+
+        if (fullscreen)
+        {
+            appWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen);
+        }
+        else
+        {
+            appWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.Default);
+        }
+#endif
+    }
+
+#if WINDOWS
+    private static Microsoft.UI.Windowing.AppWindow GetAppWindow(MauiWinUIWindow? window)
+    {
+        var handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
+        var id = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(handle);
+        return Microsoft.UI.Windowing.AppWindow.GetFromWindowId(id);
+    }
+
     private void OnRawMouseDelta(int dx, int dy)
     {
         var emulated = new MouseEventArgs

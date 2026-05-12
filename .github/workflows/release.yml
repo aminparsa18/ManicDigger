@@ -25,9 +25,9 @@ jobs:
 
       - name: Publish
         run: |
-          $version = "${{ github.ref_name }}".TrimStart('v')  # strips the 'v' from v1.0.1
+          $version = "${{ github.ref_name }}".TrimStart('v')
           dotnet publish MineKraft.Maui/MineKraft.Maui.csproj `
-            -c Release -f net10.0-windows10.0.19041.0 -r win-x64 --self-contained true`
+            -c Release -f net10.0-windows10.0.19041.0 -r win-x64 --self-contained true `
             /p:Version=$version
 
       - name: Zip output

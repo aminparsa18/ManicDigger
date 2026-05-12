@@ -21,7 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		TODO_OPTIONS.txt = TODO_OPTIONS.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MineKraft.Maui", "MeinKraft.Maui\MineKraft.Maui.csproj", "{B50C1D99-A4F9-42B8-B67D-975F8021890C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeinKraft.Maui", "MeinKraft.Maui\MeinKraft.Maui.csproj", "{B50C1D99-A4F9-42B8-B67D-975F8021890C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F1C81588-8630-4F83-9602-3544AC76F66D}"
 EndProject

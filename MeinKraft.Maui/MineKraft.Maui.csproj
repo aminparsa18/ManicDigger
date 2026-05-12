@@ -5,7 +5,7 @@
 		<RootNamespace>MeinKraft.Maui</RootNamespace>
 		<ApplicationTitle>Mein Kraft</ApplicationTitle>
 		<ApplicationId>com.parsoft.meinkraft</ApplicationId>
-		<ApplicationDisplayVersion>1.0.7</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>1.1.1</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>

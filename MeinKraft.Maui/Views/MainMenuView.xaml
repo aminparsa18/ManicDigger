@@ -319,7 +319,7 @@
             </Border>
 
             <!-- Version stamp -->
-            <Label Text="v0.1  |  alpha"
+            <Label Text="v1.1.1  |  Beta"
                    FontFamily="PressStart2PRegular"
                    FontSize="7"
                    TextColor="#55ffffff"

@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'          # only runs when you push a tag like v1.0.0, v1.2.3
+      - 'v*'
 
 permissions:
   contents: write
@@ -27,17 +27,17 @@ jobs:
         run: |
           $version = "${{ github.ref_name }}".TrimStart('v')
           dotnet publish MeinKraft.Maui/MeinKraft.Maui.csproj `
-            -c Release -f net10.0-windows10.0.19041.0 -r win-x64 --self-contained true `
+            -c Release -f net10.0-windows10.0.19041.0 `
             /p:Version=$version
 
       - name: Zip output
         run: |
           Compress-Archive `
-            -Path "MeinKraft.Maui/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish/*" `
+            -Path "MeinKraft.Maui/bin/Release/net10.0-windows10.0.19041.0/publish/*" `
             -DestinationPath "MeinKraft-${{ github.ref_name }}-win-x64.zip"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: MeinKraft-${{ github.ref_name }}-win-x64.zip
-          generate_release_notes: true  # auto-generates notes from commits since last tag
+          generate_release_notes: true

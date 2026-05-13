@@ -134,7 +134,10 @@ public partial class Game
 
     private void TryInitialiseConnection()
     {
-        if (StartedConnecting) return;
+        if (StartedConnecting)
+        {
+            return;
+        }
 
         if (!IsSinglePlayer
          || singlePlayerService.SinglePlayerServerLoaded

@@ -235,7 +235,6 @@ public partial class Game
     /// <summary>Opens the escape menu and releases the mouse pointer lock.</summary>
     public void EscapeMenuStart()
     {
-        GuiState = GameState.EscapeMenu;
         MenuState = new MenuState();
         EscapeMenuRestart = true;
         gameService.ExitMousePointerLock();
@@ -244,7 +243,6 @@ public partial class Game
     /// <summary>Shows the escape menu in free-mouse mode.</summary>
     public void ShowEscapeMenu()
     {
-        GuiState = GameState.EscapeMenu;
         MenuState = new MenuState();
         SetFreeMouse(true);
     }

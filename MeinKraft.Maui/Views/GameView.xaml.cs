@@ -5,13 +5,14 @@ using SkiaSharp.Views.Maui;
 using System.Runtime.InteropServices;
 using OpenTK;
 
-
 #if WINDOWS
 using Application = Microsoft.Maui.Controls.Application;
 using Microsoft.UI.Xaml.Input;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Windowing;
+using Microsoft.UI;
 #endif
 
 namespace MeinKraft.Maui.Views;
@@ -91,13 +92,12 @@ public partial class GameView : ContentPage
     {
         base.OnHandlerChanged();
         AttachWindowKeyEvents();
-       // ((MauiGameWindowService)_gameWindowService).CaptureCursor();
     }
 
     public void AttachWindowKeyEvents()
     {
-        var mauiWindow = Application.Current?.Windows.FirstOrDefault();
-        var nativeWindow = mauiWindow?.Handler?.PlatformView
+        Microsoft.Maui.Controls.Window? mauiWindow = Application.Current?.Windows.FirstOrDefault();
+        Microsoft.UI.Xaml.Window? nativeWindow = mauiWindow?.Handler?.PlatformView
                            as Microsoft.UI.Xaml.Window;
 
         if (nativeWindow?.Content is UIElement root)
@@ -106,12 +106,11 @@ public partial class GameView : ContentPage
                 UIElement.KeyDownEvent,
                 new KeyEventHandler((s, args) =>
                 {
-                    var keyEvent = WinKeyMapper.ToKeyEventArgs(args);
+                    KeyEventArgs keyEvent = WinKeyMapper.ToKeyEventArgs(args);
                     if (keyEvent.KeyChar == (int)Keys.Escape && _game.GuiState == GameState.Normal && !OverlayMenu.IsVisible)
                     {
                         ((MauiGameWindowService)_gameWindowService).ReleaseCursor();
                         ShowPauseMenu();
-                        _game.GuiState = GameState.EscapeMenu;
                     }
                     else if (keyEvent.KeyChar == (int)Keys.Escape && _game.GuiState == GameState.Inventory)
                     {
@@ -137,7 +136,7 @@ public partial class GameView : ContentPage
                 UIElement.KeyUpEvent,
                 new KeyEventHandler((s, args) =>
                 {
-                    var keyEvent = WinKeyMapper.ToKeyEventArgs(args);
+                    KeyEventArgs keyEvent = WinKeyMapper.ToKeyEventArgs(args);
                     _game.KeyUp(keyEvent);
                     args.Handled = keyEvent.Handled;
                 }),
@@ -157,8 +156,8 @@ public partial class GameView : ContentPage
             root.AddHandler(UIElement.PointerPressedEvent,
                 new PointerEventHandler((s, args) =>
                 {
-                    var glNative = GlView.Handler?.PlatformView as UIElement;
-                    var pt = args.GetCurrentPoint(glNative);
+                    UIElement? glNative = GlView.Handler?.PlatformView as UIElement;
+                    PointerPoint pt = args.GetCurrentPoint(glNative);
                     _game.MouseDown(WinMouseMapper.ToMouseDownEventArgs(pt));
                 }),
                 handledEventsToo: true);
@@ -166,8 +165,8 @@ public partial class GameView : ContentPage
             root.AddHandler(UIElement.PointerReleasedEvent,
                 new PointerEventHandler((s, args) =>
                 {
-                    var glNative = GlView.Handler?.PlatformView as UIElement;
-                    var pt = args.GetCurrentPoint(glNative);
+                    UIElement? glNative = GlView.Handler?.PlatformView as UIElement;
+                    PointerPoint pt = args.GetCurrentPoint(glNative);
                     _game.MouseUp(WinMouseMapper.ToMouseUpEventArgs(pt));
                 }),
                 handledEventsToo: true);
@@ -175,8 +174,8 @@ public partial class GameView : ContentPage
             root.AddHandler(UIElement.PointerWheelChangedEvent,
                 new PointerEventHandler((s, args) =>
                 {
-                    var glNative = GlView.Handler?.PlatformView as UIElement;
-                    var pt = args.GetCurrentPoint(glNative);
+                    UIElement? glNative = GlView.Handler?.PlatformView as UIElement;
+                    PointerPoint pt = args.GetCurrentPoint(glNative);
                     _game.MouseWheelChanged(WinMouseMapper.ToMouseWheelEventArgs(pt));
                 }),
                 handledEventsToo: true);
@@ -214,7 +213,7 @@ public partial class GameView : ContentPage
             Application.Current.Windows[0].Handler.PlatformView
             as Microsoft.UI.Xaml.Window);
 
-        var svc = (MauiGameWindowService)_gameWindowService;
+        MauiGameWindowService svc = (MauiGameWindowService)_gameWindowService;
         svc.StartRawInput(hwnd);
         svc.RawMouseDelta += OnRawMouseDelta;
 #endif
@@ -263,7 +262,7 @@ public partial class GameView : ContentPage
             Application.Current.Windows[0].Handler.PlatformView
             as Microsoft.UI.Xaml.Window);
 
-        var svc = (MauiGameWindowService)_gameWindowService;
+        MauiGameWindowService svc = (MauiGameWindowService)_gameWindowService;
         // Lines 228-245 from original (StopRawInput + RawMouseDelta unsubscribe) unchanged:
         svc.StopRawInput(hwnd);
         svc.RawMouseDelta -= OnRawMouseDelta;
@@ -376,8 +375,8 @@ public partial class GameView : ContentPage
     private void OnFullscreenChanged(object? sender, bool fullscreen)
     {
 #if WINDOWS
-        var window = GetParentWindow().Handler.PlatformView as MauiWinUIWindow;
-        var appWindow = GetAppWindow(window);
+        MauiWinUIWindow? window = GetParentWindow().Handler.PlatformView as MauiWinUIWindow;
+        AppWindow appWindow = GetAppWindow(window);
 
         if (fullscreen)
         {
@@ -394,13 +393,13 @@ public partial class GameView : ContentPage
     private static Microsoft.UI.Windowing.AppWindow GetAppWindow(MauiWinUIWindow? window)
     {
         var handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
-        var id = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(handle);
+        WindowId id = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(handle);
         return Microsoft.UI.Windowing.AppWindow.GetFromWindowId(id);
     }
 
     private void OnRawMouseDelta(int dx, int dy)
     {
-        var emulated = new MouseEventArgs
+        MouseEventArgs emulated = new MouseEventArgs
         {
             MovementX = dx,
             MovementY = dy,

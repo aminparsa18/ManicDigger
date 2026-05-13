@@ -1,0 +1,25 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+
+namespace MeinKraft.Extensions;
+
+public static class BuilderSharedServicesExtensions
+{
+    public static IServiceCollection AddSharedServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IVoxelMap, VoxelMap>();
+        services.AddSingleton<IDummyNetwork, DummyNetwork>();
+      //  services.AddSingleton<IAssetManager, AssetManager>();
+        services.AddSingleton<ILanguageService, LanguageService>();
+        services.AddSingleton<IBlockRegistry, BlockRegistry>();
+        services.AddSingleton<ICompression, CompressionGzip>();
+       
+
+        services.AddGameLogging(
+                   minimumLevel: Serilog.Events.LogEventLevel.Debug,
+                   enableConsole: false);
+
+        services.AddSingleton<CrashReporter>();
+
+        return services;
+    }
+}

@@ -26,7 +26,7 @@ public partial class Game
 
     public void SendFillArea(int startx, int starty, int startz, int endx, int endy, int endz, int blockType) => SendPacketClient(ClientPackets.FillArea(startx, starty, startz, endx, endy, endz, blockType, ActiveMaterial));
 
-    private void SendRequestBlob(string[] required, int requiredCount) => SendPacketClient(ClientPackets.RequestBlob(this, required));
+    private void SendRequestBlob(string[] required, int requiredCount) => SendPacketClient(ClientPackets.RequestBlob(required));
 
     private void SendGameResolution() => SendPacketClient(ClientPackets.GameResolution(gameService.CanvasWidth, gameService.CanvasHeight));
 
@@ -70,14 +70,14 @@ public partial class Game
     {
         NetClient.Start();
         NetClient.Connect(serverAddress, port);
-        SendPacketClient(ClientPackets.CreateLoginPacket(gameService, username, auth));
+        SendPacketClient(ClientPackets.CreateLoginPacket(username, auth));
     }
 
     private void Connect(string serverAddress, int port, string username, string auth, string serverPassword)
     {
         NetClient.Start();
         NetClient.Connect(serverAddress, port);
-        SendPacketClient(ClientPackets.CreateLoginPacket_(gameService, username, auth, serverPassword));
+        SendPacketClient(ClientPackets.CreateLoginPacket_(username, auth, serverPassword));
     }
 
     private void Reconnect() => IsReconnecting = true;

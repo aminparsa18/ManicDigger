@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.4.11605.240
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeinKraftServer", "MeinKraftServer\MeinKraftServer.csproj", "{46D2CD51-9603-48B4-87D1-7377B5F1E51E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeinKraft.Server", "MeinKraftServer\MeinKraft.Server.csproj", "{46D2CD51-9603-48B4-87D1-7377B5F1E51E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeinKraft.Core", "MeinKraft.Core\MeinKraft.Core.csproj", "{08056549-3BE8-454C-A09A-67EDCDC81261}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeinKraft.Client", "MeinKraft.Core\MeinKraft.Client.csproj", "{08056549-3BE8-454C-A09A-67EDCDC81261}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeinKraft.Domain", "MeinKraft.Domain\MeinKraft.Domain.csproj", "{A3582245-A1D1-4135-BA90-8EFD7830DA83}"
 EndProject
@@ -33,6 +33,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E0163E1F-E
 		MeinKraft.Core\Client\Mods\CAMERA_README.md = MeinKraft.Core\Client\Mods\CAMERA_README.md
 		MeinKraft.Core\Client\Mods\DRAWTERRAIN_README.md = MeinKraft.Core\Client\Mods\DRAWTERRAIN_README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeinKraft.Shared", "MeinKraft.Shared\MeinKraft.Shared.csproj", "{6AB59F09-663E-47EB-94B0-63F9214AD9E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,6 +74,12 @@ Global
 		{EF948D54-8AD1-4F13-A9FE-737127CE907D}.FastBuild|Any CPU.Build.0 = Release|Any CPU
 		{EF948D54-8AD1-4F13-A9FE-737127CE907D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF948D54-8AD1-4F13-A9FE-737127CE907D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AB59F09-663E-47EB-94B0-63F9214AD9E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AB59F09-663E-47EB-94B0-63F9214AD9E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AB59F09-663E-47EB-94B0-63F9214AD9E7}.FastBuild|Any CPU.ActiveCfg = Release|Any CPU
+		{6AB59F09-663E-47EB-94B0-63F9214AD9E7}.FastBuild|Any CPU.Build.0 = Release|Any CPU
+		{6AB59F09-663E-47EB-94B0-63F9214AD9E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AB59F09-663E-47EB-94B0-63F9214AD9E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

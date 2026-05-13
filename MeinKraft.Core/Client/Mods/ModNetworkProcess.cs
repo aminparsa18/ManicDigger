@@ -231,7 +231,7 @@ public class ModNetworkProcess : ModBase
                 break;
 
             case Packet_ServerIdEnum.PlayerPing:
-                Game.ServerInfo.ServerPing.Receive(_platform);
+                Game.ServerInfo.ServerPing.Receive(_platform.TimeMillisecondsFromStart);
                 break;
 
             case Packet_ServerIdEnum.LevelInitialize:

@@ -113,11 +113,6 @@ public class MenuState
     internal int selected;
 }
 
-public class SpecialBlockId
-{
-    public const int Empty = 0;
-}
-
 public class OnCrashHandlerLeave : OnCrashHandler
 {
     public static OnCrashHandlerLeave Create(IGame game)

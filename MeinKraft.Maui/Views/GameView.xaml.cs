@@ -30,7 +30,6 @@ public partial class GameView : ContentPage
     private readonly IAssetManager _assetManager;
     private readonly IDummyNetwork _dummyNetwork;
     private readonly WorkerHost _workerHost;
-    private readonly ServerSystemBootstraper _serverSystemBootstraper;
 
 #if WINDOWS
     [DllImport("libEGL.dll")]
@@ -63,7 +62,7 @@ public partial class GameView : ContentPage
 
     public GameView(IOpenGlService openGlService, IGameWindowService gameWindowService, IAssetManager assetManager,
         IGame game, ISinglePlayerService singlePlayerService, IDummyNetwork dummyNetwork, ITerrainChunkTesselator terrainChunkTesselator,
-        WorkerHost workerHost, ServerSystemBootstraper serverSystemBootstraper)
+        WorkerHost workerHost)
     {
         InitializeComponent();
         _openGlService = openGlService;
@@ -73,7 +72,6 @@ public partial class GameView : ContentPage
         _singlePlayerService = singlePlayerService;
         _workerHost = workerHost;
         _dummyNetwork = dummyNetwork;
-        _serverSystemBootstraper = serverSystemBootstraper;
 
         // Inject game services into the overlay so it can apply options directly.
         // Must happen after InitializeComponent() so OverlayMenu is already created.
@@ -230,7 +228,7 @@ public partial class GameView : ContentPage
 
             // Wire the server socket BEFORE starting workers so the first
             // simulation tick already has a valid socket to drain.
-            Server server = _serverSystemBootstraper.Server;
+            ServerGameService server = _serverSystemBootstraper.Server;
             server.MainSockets[0] = new DummyNetServer(_dummyNetwork);
 
             // Start simulation loop + chunk workers + periodic tasks.

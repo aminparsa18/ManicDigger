@@ -1301,47 +1301,6 @@ public static class TileSideExt
     public const int Count = 6;
 }
 
-/// <summary>The 8 surrounding directions plus center, used for occlusion sampling.</summary>
-public enum TileDirection
-{
-    Top = 0,
-    Bottom = 1,
-    Left = 2,
-    Right = 3,
-    TopLeft = 4,
-    TopRight = 5,
-    BottomLeft = 6,
-    BottomRight = 7,
-    Center = 8,
-    Count = 9,
-}
-
-/// <summary>The four corners of a rendered face, used for smooth lighting.</summary>
-public enum Corner
-{
-    TopLeft = 0,
-    TopRight = 1,
-    BottomLeft = 2,
-    BottomRight = 3,
-}
-
-/// <summary>Rail track directions (bit-flags).</summary>
-[Flags]
-public enum RailDirectionFlags
-{
-    None = 0,
-    Horizontal = 1,
-    Vertical = 2,
-    UpLeft = 4,
-    UpRight = 8,
-    DownLeft = 16,
-    DownRight = 32,
-
-    Corners = UpLeft | UpRight | DownLeft | DownRight,
-    TwoHorizontalVertical = Horizontal | Vertical,
-    Full = Horizontal | Vertical | Corners,
-}
-
 /// <summary>Slope type for a rail tile.</summary>
 public enum RailSlope
 {
@@ -1364,44 +1323,4 @@ public enum BlockRenderFlags : byte
     Transparent = 1 << 0,
     Lowered = 1 << 1,
     Fluid = 1 << 2,
-}
-
-/// <summary>
-/// Per-block corner height modifiers for sloped geometry (rails, half-blocks).
-/// A value-type struct stored as a field — no heap allocation per block.
-/// </summary>
-public struct CornerHeights
-{
-    public float TopLeft;
-    public float TopRight;
-    public float BottomLeft;
-    public float BottomRight;
-
-    /// <summary>Returns the height for the given corner index.</summary>
-    public readonly float this[Corner c] => c switch
-    {
-        Corner.TopLeft => TopLeft,
-        Corner.TopRight => TopRight,
-        Corner.BottomLeft => BottomLeft,
-        Corner.BottomRight => BottomRight,
-        _ => 0f,
-    };
-
-    /// <summary>Resets all corners to zero for the next block.</summary>
-    public void Clear() => TopLeft = TopRight = BottomLeft = BottomRight = 0f;
-}
-
-/// <summary>
-/// A single entry in the chunk tessellator's output buffer.
-/// Stored as a struct so the pre-allocated return array is fully contiguous
-/// in memory — no per-entry heap allocation.
-/// </summary>
-public struct VerticesIndicesToLoad
-{
-    public GeometryModel ModelData { get; set; }
-    public float PositionX { get; set; }
-    public float PositionY { get; set; }
-    public float PositionZ { get; set; }
-    public bool Transparent { get; set; }
-    public int Texture { get; set; }
 }

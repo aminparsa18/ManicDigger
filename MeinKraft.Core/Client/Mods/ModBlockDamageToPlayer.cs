@@ -94,7 +94,7 @@ public class ModBlockDamageToPlayer : ModBase
             Game.PlayerStats.CurrentOxygen = Game.PlayerStats.MaxOxygen;
         }
 
-        if (GameVersionHelper.ServerVersionAtLeast(Game.ServerGameVersion, 2014, 3, 31))
+        if (GameVersion.ServerVersionAtLeast(Game.ServerGameVersion, 2014, 3, 31))
         {
             Game.SendPacketClient(ClientPackets.Oxygen(Game.PlayerStats.CurrentOxygen));
         }

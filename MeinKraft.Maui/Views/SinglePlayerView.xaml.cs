@@ -15,10 +15,6 @@ public class SaveSlot
 
 public partial class SinglePlayerView : ContentPage
 {
-    // ── Services ──────────────────────────────────────────────────────────────
-
-    private readonly ISaveGameService _saveGameService;
-
     // ── Commands (bound from XAML via RelativeSource AncestorType) ────────────
 
     public Command<SaveSlot> LoadSlotCommand { get; }
@@ -32,11 +28,9 @@ public partial class SinglePlayerView : ContentPage
 
     // ── Construction ──────────────────────────────────────────────────────────
 
-    public SinglePlayerView(ISaveGameService saveGameService)
+    public SinglePlayerView()
     {
         InitializeComponent();
-
-        _saveGameService = saveGameService;
 
         // Expose commands as properties so CollectionView item templates can bind
         // via RelativeSource AncestorType={x:Type ContentPage}.
@@ -81,7 +75,7 @@ public partial class SinglePlayerView : ContentPage
 
     private async void LoadSlot(SaveSlot slot)
     {
-        _saveGameService.InitialiseSession(SaveTarget.FromFile(slot.FilePath));
+      //  _saveGameService.InitialiseSession(SaveTarget.FromFile(slot.FilePath));
         await Shell.Current.GoToAsync("//GameView");
     }
 
@@ -147,7 +141,7 @@ public partial class SinglePlayerView : ContentPage
         Directory.CreateDirectory(SaveFolder);
         File.WriteAllText(path, string.Empty);   // sentinel file
 
-        _saveGameService.InitialiseSession(SaveTarget.NewGame(path));
+      //  _saveGameService.InitialiseSession(SaveTarget.NewGame(path));
         await Shell.Current.GoToAsync("//GameView");
     }
 

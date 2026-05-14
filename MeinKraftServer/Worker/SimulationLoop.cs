@@ -1,10 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace MeinKraft.Worker;
+﻿namespace MeinKraft.Worker;
 
 /// <summary>
 /// Replaces <c>ServerThreadStart</c>'s <c>while(true) { server.Process(); Thread.Sleep(1); }</c>.

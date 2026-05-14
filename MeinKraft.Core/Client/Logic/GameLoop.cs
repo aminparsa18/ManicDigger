@@ -139,13 +139,8 @@ public partial class Game
             return;
         }
 
-        if (!IsSinglePlayer
-         || singlePlayerService.SinglePlayerServerLoaded
-         || !singlePlayerService.SinglePlayerServerAvailable)
-        {
-            StartedConnecting = true;
-            Connect();
-        }
+        StartedConnecting = true;
+        Connect();
     }
 
     // ── Resize / viewport ─────────────────────────────────────────────────────

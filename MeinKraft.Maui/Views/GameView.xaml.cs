@@ -24,12 +24,9 @@ public partial class GameView : ContentPage
     private DateTime _lastFrame = DateTime.UtcNow;
 
     private readonly IGame _game;
-    private readonly ISinglePlayerService _singlePlayerService;
     private readonly IOpenGlService _openGlService;
     private readonly IGameWindowService _gameWindowService;
     private readonly IAssetManager _assetManager;
-    private readonly IDummyNetwork _dummyNetwork;
-    private readonly WorkerHost _workerHost;
 
 #if WINDOWS
     [DllImport("libEGL.dll")]
@@ -61,17 +58,13 @@ public partial class GameView : ContentPage
 #endif
 
     public GameView(IOpenGlService openGlService, IGameWindowService gameWindowService, IAssetManager assetManager,
-        IGame game, ISinglePlayerService singlePlayerService, IDummyNetwork dummyNetwork, ITerrainChunkTesselator terrainChunkTesselator,
-        WorkerHost workerHost)
+        IGame game, ITerrainChunkTesselator terrainChunkTesselator)
     {
         InitializeComponent();
         _openGlService = openGlService;
         _gameWindowService = gameWindowService;
         _assetManager = assetManager;
         _game = game;
-        _singlePlayerService = singlePlayerService;
-        _workerHost = workerHost;
-        _dummyNetwork = dummyNetwork;
 
         // Inject game services into the overlay so it can apply options directly.
         // Must happen after InitializeComponent() so OverlayMenu is already created.
@@ -181,7 +174,7 @@ public partial class GameView : ContentPage
     }
 #endif
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
 
@@ -217,34 +210,15 @@ public partial class GameView : ContentPage
 #endif
         _game.IsSinglePlayer = true;
 
-        Connect();
+        await Connect();
     }
 
-    private void Connect()
+    private async Task Connect()
     {
-        if (true) //single player
-        {
-            IDummyNetwork network = _singlePlayerService.SinglePlayerServerNetwork;
-
-            // Wire the server socket BEFORE starting workers so the first
-            // simulation tick already has a valid socket to drain.
-            ServerGameService server = _serverSystemBootstraper.Server;
-            server.MainSockets[0] = new DummyNetServer(_dummyNetwork);
-
-            // Start simulation loop + chunk workers + periodic tasks.
-            // WorkerHost sets SinglePlayerServerLoaded = true once everything is live.
-            // Fire-and-forget is fine — startup is fast, socket is already wired above.
-            _ = _workerHost.StartAsync();
-
-            _game.NetClient = new DummyNetClient(network);
-            _game.ConnectData = new ConnectionData { Username = "Local" };
-        }
-        //else
-        //{
-        //    game.ConnectData = connectData;
-        //    game.NetClient = CreateNetClient()
-        //        ?? throw new InvalidOperationException("No network transport available.");
-        //}
+        _game.NetClient = new EnetNetClient(_gameWindowService.NetworkService);
+        _game.NetClient.Start();
+        _game.NetClient.Connect("", 52005);
+        _game.ConnectData = new();
     }
 
     protected override void OnDisappearing()

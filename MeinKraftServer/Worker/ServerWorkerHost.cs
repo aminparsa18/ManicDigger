@@ -1,16 +1,12 @@
-﻿using MeinKraft.Extensions;
-
-namespace MeinKraft.Worker;
+﻿namespace MeinKraft.Worker;
 
 /// <summary>
 /// Manages the lifetime of all background workers for a single game session.
 /// Call StartAsync from Connect(), StopAsync on exit.
 /// </summary>
-public sealed class WorkerHost : IAsyncDisposable
+public sealed class ServerWorkerHost : IAsyncDisposable
 {
     private readonly SimulationLoop _simulationLoop;
-    private readonly ChunkWorkerPool _tessellationPool;
-    private readonly ChunkLightingPool _lightingPool;
     private readonly PeriodicTaskScheduler _periodicScheduler;
     private readonly ServerLifetime _lifetime;
     private readonly IGameLogger _logger;
@@ -18,17 +14,8 @@ public sealed class WorkerHost : IAsyncDisposable
     private Task? _allWorkers;
     private bool _started;
 
-    public WorkerHost(
-        SimulationLoop simulationLoop,
-        ChunkWorkerPool tessellationPool,
-        ChunkLightingPool lightingPool,
-        PeriodicTaskScheduler periodicScheduler,
-        ServerLifetime lifetime,
-        IGameLogger logger)
+    public ServerWorkerHost(PeriodicTaskScheduler periodicScheduler, ServerLifetime lifetime, IGameLogger logger)
     {
-        _simulationLoop = simulationLoop;
-        _tessellationPool = tessellationPool;
-        _lightingPool = lightingPool;
         _periodicScheduler = periodicScheduler;
         _lifetime = lifetime;
         _logger = logger;
@@ -48,14 +35,10 @@ public sealed class WorkerHost : IAsyncDisposable
         _logger.Client.Information("WorkerHost: starting workers");
  
         await _simulationLoop.StartAsync(ct);
-        await _tessellationPool.StartAsync(ct);
-        await _lightingPool.StartAsync(ct);       // single-worker lighting stage
         await _periodicScheduler.StartAsync(ct);
 
         _allWorkers = Task.WhenAll(
             _simulationLoop.ExecuteTask ?? Task.CompletedTask,
-            _tessellationPool.ExecuteTask ?? Task.CompletedTask,
-            _lightingPool.ExecuteTask ?? Task.CompletedTask,
             _periodicScheduler.ExecuteTask ?? Task.CompletedTask);
 
         _logger.Client.Information("WorkerHost: all workers running");
@@ -63,7 +46,10 @@ public sealed class WorkerHost : IAsyncDisposable
 
     public async Task StopAsync()
     {
-        if (!_started) return;
+        if (!_started)
+        {
+            return;
+        }
 
         _logger.Client.Information("WorkerHost: stopping workers");
 
@@ -72,8 +58,6 @@ public sealed class WorkerHost : IAsyncDisposable
         // Stop lighting first — it feeds the tessellation queue.
         // Stopping in reverse pipeline order ensures no new tessellation
         // items are enqueued after the tessellation pool has shut down.
-        await _lightingPool.StopAsync(CancellationToken.None);
-        await _tessellationPool.StopAsync(CancellationToken.None);
         await _simulationLoop.StopAsync(CancellationToken.None);
         await _periodicScheduler.StopAsync(CancellationToken.None);
 

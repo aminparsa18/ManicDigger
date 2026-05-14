@@ -229,7 +229,7 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     public string GameSavePath => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
     public string GameLogsPath => Path.Combine(StoragePath, "Logs");
 
-    public INetworkService NetworkService { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public INetworkService NetworkService { get; set; }
     public GameWindow Window { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public string GetGameVersion() => GameVersion.Version;

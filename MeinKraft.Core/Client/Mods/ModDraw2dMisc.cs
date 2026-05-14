@@ -5,16 +5,15 @@ public class ModDraw2dMisc : ModBase
 {
     private readonly IOpenGlService _platformOpenGl;
     private readonly IGameWindowService _platform;
-    private readonly ISinglePlayerService _singlePlayerService;
+    //private readonly ISinglePlayerService _singlePlayerService;
     private readonly IVoxelMap _voxelMap;
     private readonly IBlockRegistry _blockTypeRegistry;
 
-    public ModDraw2dMisc(IOpenGlService platformOpenGl, IGameWindowService platform, ISinglePlayerService singlePlayerService,
+    public ModDraw2dMisc(IOpenGlService platformOpenGl, IGameWindowService platform, 
         IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGame game) : base(game)
     {
         _platformOpenGl = platformOpenGl;
         _platform = platform;
-        _singlePlayerService = singlePlayerService;
         _voxelMap = voxelMap;
         _blockTypeRegistry = blockTypeRegistry;
     }
@@ -258,11 +257,6 @@ public class ModDraw2dMisc : ModBase
         }
 
         if (Game.InvalidVersionDrawMessage != null)
-        {
-            return;
-        }
-
-        if (Game.IsSinglePlayer && !_singlePlayerService.SinglePlayerServerLoaded)
         {
             return;
         }

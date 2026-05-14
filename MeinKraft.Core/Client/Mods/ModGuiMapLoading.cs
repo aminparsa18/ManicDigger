@@ -16,12 +16,10 @@ public class ModGuiMapLoading : ModBase
     ];
 
     private readonly IGameWindowService platform;
-    private readonly ISinglePlayerService singlePlayerService;
 
-    public ModGuiMapLoading(IGameWindowService platform, ISinglePlayerService singlePlayerService, IGame game) : base(game)
+    public ModGuiMapLoading(IGameWindowService platform, IGame game) : base(game)
     {
         this.platform = platform;
-        this.singlePlayerService = singlePlayerService;
     }
 
     public override void OnRender2d(float deltaTime)
@@ -66,11 +64,6 @@ public class ModGuiMapLoading : ModBase
         if (Game.maploadingprogress.ProgressStatus != null)
         {
             return Game.maploadingprogress.ProgressStatus;
-        }
-
-        if (Game.IsSinglePlayer && !singlePlayerService.SinglePlayerServerLoaded)
-        {
-            return "Starting game...";
         }
 
         return Game.Language.Connecting();

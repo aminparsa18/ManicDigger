@@ -15,7 +15,6 @@ public partial class Game : IGame
     private readonly IGameWindowService gameService;
     private readonly IOpenGlService openGlService;
     private readonly ILightManager _lightManager;
-    private readonly ISinglePlayerService singlePlayerService;
     private readonly IModRegistry modRegistry;
     private readonly IGameLogger _gameLogger;
     private readonly IBlockChangeNotifier _blockChangeNotifier;
@@ -330,7 +329,7 @@ public partial class Game : IGame
     // Constructor
     // -------------------------------------------------------------------------
 
-    public Game(IGameWindowService platform, IOpenGlService platformOpenGl, ISinglePlayerService singlePlayerService, ITerrainChunkTesselator terrainChunkTesselator,
+    public Game(IGameWindowService platform, IOpenGlService platformOpenGl, ITerrainChunkTesselator terrainChunkTesselator,
         IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService, IFrustumCulling frustumCulling,
         IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager, IGameLogger gameLogger, ILightManager lightManager,
        IBlockChangeNotifier blockChangeNotifier)
@@ -338,7 +337,6 @@ public partial class Game : IGame
         gameService = platform;
         openGlService = platformOpenGl;
         _gameLogger = gameLogger;
-        this.singlePlayerService = singlePlayerService;
         _lightManager = lightManager;
         _blockRegistry = blockTypeRegistry;
         this.modRegistry = modRegistry;

@@ -8,17 +8,17 @@ public static class BuilderSharedServicesExtensions
     {
         services.AddSingleton<IVoxelMap, VoxelMap>();
         services.AddSingleton<IDummyNetwork, DummyNetwork>();
-      //  services.AddSingleton<IAssetManager, AssetManager>();
         services.AddSingleton<ILanguageService, LanguageService>();
         services.AddSingleton<IBlockRegistry, BlockRegistry>();
         services.AddSingleton<ICompression, CompressionGzip>();
-       
 
         services.AddGameLogging(
                    minimumLevel: Serilog.Events.LogEventLevel.Debug,
                    enableConsole: false);
 
         services.AddSingleton<CrashReporter>();
+
+        services.AddMessagePipe();
 
         return services;
     }

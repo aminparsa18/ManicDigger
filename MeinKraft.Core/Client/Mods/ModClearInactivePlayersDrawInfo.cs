@@ -7,18 +7,16 @@ public class ModClearInactivePlayersDrawInfo : ModBase
 
     private readonly IGame _game;
     private readonly IGameWindowService _platform;
-    private readonly ISinglePlayerService _singlePlayerService;
 
-    public ModClearInactivePlayersDrawInfo(IGameWindowService platform, IGame game, ISinglePlayerService singlePlayerService) : base(game)
+    public ModClearInactivePlayersDrawInfo(IGameWindowService platform, IGame game) : base(game)
     {
         _platform = platform;
         _game = game;
-        _singlePlayerService = singlePlayerService;
     }
 
     public override void OnUpdate(float args)
     {
-        if (_singlePlayerService.SinglePlayerServerLoaded)
+        if (true) //TODO: fix after multiplayer run
             return; //no need to clear draw info in single player mode
 
         int now = _platform.TimeMillisecondsFromStart;

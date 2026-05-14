@@ -1,13 +1,12 @@
 ﻿using MeinKraft.Worker;
-
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeinKraft.Extensions;
 
-public static class WorkerInfrastructureExtensions
+public static class WorkerClientExtensions
 {
     /// <summary>
-    /// Registers the simulation loop, chunk worker pools (lighting + tessellation),
-    /// periodic task scheduler, and WorkerHost as singletons.
+    /// Registers chunk worker pools (lighting + tessellation) and WorkerHost as singletons.
     ///
     /// Lighting pool:      workerCount = max(1, ProcessorCount / 4)
     ///                     Safe with multiple workers now that Option B (BaseLight
@@ -24,8 +23,7 @@ public static class WorkerInfrastructureExtensions
     public static IServiceCollection AddWorkerInfrastructure(
         this IServiceCollection services,
         int workerCount = 0,
-        int chunkChannelCapacity = 512,
-        TimeSpan simulationTickInterval = default)
+        int chunkChannelCapacity = 512)
     {
         // Registers IPublisher<T> / ISubscriber<T> for all event types.
         // Must come before any service that injects IPublisher or ISubscriber.
@@ -68,46 +66,6 @@ public static class WorkerInfrastructureExtensions
         services.AddSingleton<ILightingWorkQueue>(sp =>
             sp.GetRequiredService<ChunkLightingPool>());
 
-        // ── Simulation loop ───────────────────────────────────────────────────
-
-        services.AddSingleton(sp => new SimulationLoop(
-            sp.GetRequiredService<ISimulationStep>(),
-            sp.GetRequiredService<ILogger<SimulationLoop>>(),
-            simulationTickInterval));
-
-        // ── Periodic scheduler ────────────────────────────────────────────────
-
-        services.AddSingleton<PeriodicTaskScheduler>();
-
-        // ── WorkerHost — started manually from Connect() ──────────────────────
-
-        services.AddSingleton<WorkerHost>();
-
-        services.AddSingleton<ServerLifetime>();
-        services.AddSingleton<ISimulationStep, ServerSimulationStep>();
-        services.AddScheduledTask<ServerAutoRestartTask>();
-        services.AddScheduledTask<SaveGameTask>();
-        services.AddScheduledTask<SeasonBroadcastTask>();
-
-        return services;
-    }
-
-    public static IServiceCollection AddScheduledTask<T>(this IServiceCollection services)
-        where T : class, IScheduledTask
-    {
-        services.AddSingleton<IScheduledTask, T>();
         return services;
     }
 }
-
-/// <summary>
-/// Single-worker ChunkWorkerPool for the lighting stage.
-/// Implements ILightingWorkQueue so the DI container resolves it unambiguously
-/// alongside the tessellation ChunkWorkerPool that implements IChunkWorkQueue.
-/// </summary>
-public sealed class ChunkLightingPool(
-    IChunkWorkDispatcher dispatcher,
-    IGameLogger logger,
-    int workerCount,
-    int channelCapacity)
-    : ChunkWorkerPool(dispatcher, logger, workerCount, channelCapacity), ILightingWorkQueue;

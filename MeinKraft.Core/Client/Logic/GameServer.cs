@@ -92,22 +92,12 @@ public partial class Game
 
     public void ExitAndSwitchServer(Packet_ServerRedirect newServer)
     {
-        if (IsSinglePlayer)
-        {
-            singlePlayerService.SinglePlayerServerExit = true;
-        }
-
         redirectTo = newServer;
         IsExitingToMainMenu = true;
     }
 
     public void ExitToMainMenu()
     {
-        if (IsSinglePlayer)
-        {
-            singlePlayerService.SinglePlayerServerExit = true;
-        }
-
         redirectTo = null;
         IsExitingToMainMenu = true;
     }

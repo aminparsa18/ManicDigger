@@ -9,7 +9,7 @@ public static class BuilderServerServicesExtensions
 
         // ── Per-session — one instance per game world ─────────────────────────
         services.AddScoped<ServerGameService>();
-        services.AddScoped<IServer, ServerGameService>(); // if IServer resolves the same instance
+        services.AddScoped<IServer>(sp => sp.GetRequiredService<ServerGameService>());
         services.AddScoped<GameTimer>();
 
         services.AddScoped<IServerMapStorage, ServerMapStorage>();

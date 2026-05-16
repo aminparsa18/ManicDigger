@@ -34,7 +34,7 @@ public partial class GameView : ContentPage
     [DllImport("libEGL.dll")]
     private static extern IntPtr eglGetProcAddress(string procName);
 
-    private class AngleBindingsContext : OpenTK.IBindingsContext
+    private class AngleBindingsContext : IBindingsContext
     {
         public IntPtr GetProcAddress(string procName) => eglGetProcAddress(procName);
     }
@@ -387,21 +387,21 @@ public partial class GameView : ContentPage
 
         if (fullscreen)
         {
-            appWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen);
+            appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
         }
         else
         {
-            appWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.Default);
+            appWindow.SetPresenter(AppWindowPresenterKind.Default);
         }
 #endif
     }
 
 #if WINDOWS
-    private static Microsoft.UI.Windowing.AppWindow GetAppWindow(MauiWinUIWindow? window)
+    private static AppWindow GetAppWindow(MauiWinUIWindow? window)
     {
         var handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
-        WindowId id = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(handle);
-        return Microsoft.UI.Windowing.AppWindow.GetFromWindowId(id);
+        WindowId id = Win32Interop.GetWindowIdFromWindow(handle);
+        return AppWindow.GetFromWindowId(id);
     }
 
     private void OnRawMouseDelta(int dx, int dy)

@@ -10,16 +10,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using SkiaSharp.Views.Maui.Controls;
-using System.Runtime.InteropServices;
 
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-
-
 #if WINDOWS
-using MeinKraft.Maui.Platforms.Windows;
-using OpenTK.Graphics.ES30;
-using Windows.UI.Core;
+using System.Runtime.InteropServices;
 #endif
 
 namespace MeinKraft.Maui.Services;
@@ -219,8 +214,8 @@ public sealed partial class MauiGameWindowService : IGameWindowService
         => _displayService.GetDisplayResolutionDefault();
 
     public string KeyName(int key)
-        => Enum.IsDefined(typeof(OpenTK.Windowing.GraphicsLibraryFramework.Keys), key)
-            ? Enum.GetName(typeof(OpenTK.Windowing.GraphicsLibraryFramework.Keys), key)!
+        => Enum.IsDefined(typeof(Keys), key)
+            ? Enum.GetName(typeof(Keys), key)!
             : key.ToString();
 
     // ── Misc ──────────────────────────────────────────────────────────────────
@@ -436,34 +431,34 @@ public sealed partial class MauiGameWindowService : IGameWindowService
 
     public void TrapCursorInCenter()
     {
-        //if (!_mousePointerLocked)
-        //{
-        //    return;
-        //}
+        if (!_mousePointerLocked)
+        {
+            return;
+        }
 
-        //IntPtr hwnd = GetMauiHwnd();
-        //if (hwnd == IntPtr.Zero)
-        //{
-        //    return;
-        //}
+        IntPtr hwnd = GetMauiHwnd();
+        if (hwnd == IntPtr.Zero)
+        {
+            return;
+        }
 
-        //GetWindowRect(hwnd, out RECT rect);
-        //SetCursorPos((rect.Left + rect.Right) / 2, (rect.Top + rect.Bottom) / 2);
+        GetWindowRect(hwnd, out RECT rect);
+        SetCursorPos((rect.Left + rect.Right) / 2, (rect.Top + rect.Bottom) / 2);
     }
 
     public void CaptureCursor()
     {
-        //MainThread.BeginInvokeOnMainThread(() =>
-        //{
-        //    // Create 1x1 invisible cursor
-        //    IntPtr invisible = CreateCursor(
-        //        IntPtr.Zero, 0, 0, 1, 1,
-        //        [0xFF], // AND mask — fully transparent
-        //        [0x00]);// XOR mask — no pixels
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            // Create 1x1 invisible cursor
+            IntPtr invisible = CreateCursor(
+                IntPtr.Zero, 0, 0, 1, 1,
+                [0xFF], // AND mask — fully transparent
+                [0x00]);// XOR mask — no pixels
 
-        //    // Replace the system arrow cursor globally
-        //    SetSystemCursor(invisible, OCR_NORMAL);
-        //});
+            // Replace the system arrow cursor globally
+            SetSystemCursor(invisible, OCR_NORMAL);
+        });
     }
 
     public void ReleaseCursor()

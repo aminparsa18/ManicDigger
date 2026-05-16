@@ -183,15 +183,6 @@ public partial class ServerGameService : IServer, IDropItem, IDisposable
         {
             MainSockets = new NetServer[3];
             MainSockets[0] = new EnetNetServer(new NetworkService());
-            //if (MainSockets[1] == null)
-            //{
-            //    MainSockets[1] = new WebSocketNetServer();
-            //}
-
-            //if (MainSockets[2] == null)
-            //{
-            //    MainSockets[2] = new TcpNetServer();
-            //}
         }
 
         AllPrivileges.AddRange(Privilege.All());
@@ -395,6 +386,7 @@ public partial class ServerGameService : IServer, IDropItem, IDisposable
                 {
                     Interval = TimeSpan.FromSeconds(1.0 / SEND_MONSTER_UDAPTES_PER_SECOND),
                 };
+
                 break;
             case NetworkMessageType.Data:
                 if (clientid == -1)

@@ -7,7 +7,6 @@ public static class BuilderSharedServicesExtensions
     public static IServiceCollection AddSharedServices(this IServiceCollection services)
     {
         services.AddSingleton<IVoxelMap, VoxelMap>();
-        services.AddSingleton<IDummyNetwork, DummyNetwork>();
         services.AddSingleton<ILanguageService, LanguageService>();
         services.AddSingleton<IBlockRegistry, BlockRegistry>();
         services.AddSingleton<ICompression, CompressionGzip>();

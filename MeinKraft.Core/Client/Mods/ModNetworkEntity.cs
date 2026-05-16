@@ -2,27 +2,24 @@
 /// Client mod that routes entity lifecycle and position packets to their handlers
 /// and drives networked-entity interpolation each frame.
 /// </summary>
-public class ModNetworkEntity : ModBase
+public class ModNetworkEntity(IGameWindowService gameService, IVoxelMap voxelMap, IGame game, IBlockRegistry blockTypeRegistry) : ModBase(game)
 {
-    private readonly ClientPacketHandlerEntitySpawn _spawn;
-    private readonly ClientPacketHandlerEntityPosition _position;
-    private readonly ClientPacketHandlerEntityDespawn _despawn;
+    private readonly ClientPacketHandlerEntitySpawn _spawn = new(gameService, voxelMap, blockTypeRegistry, game);
+    private readonly ClientPacketHandlerEntityPosition _position = new(gameService, game);
+    private readonly ClientPacketHandlerEntityDespawn _despawn = new(gameService, game);
 
-    public ModNetworkEntity(
-        IGameWindowService gameService,
-        IVoxelMap voxelMap,
-        IGame game,
-        IBlockRegistry blockTypeRegistry) : base(game)
+    /// <summary>True once the three packet handlers have been registered.</summary>
+    private bool _handlersRegistered;
+
+    public override void OnFrame(float args)
     {
-        _spawn = new ClientPacketHandlerEntitySpawn(gameService, voxelMap, blockTypeRegistry, game);
-        _position = new ClientPacketHandlerEntityPosition(gameService, game);
-        _despawn = new ClientPacketHandlerEntityDespawn(gameService, game);
-
-        // Register immediately — EntitySpawn arrives before the first OnFrame tick.
-        Game.PacketHandlers[(int)Packet_ServerIdEnum.EntitySpawn] = _spawn;
-        Game.PacketHandlers[(int)Packet_ServerIdEnum.EntityPosition] = _position;
-        Game.PacketHandlers[(int)Packet_ServerIdEnum.EntityDespawn] = _despawn;
+        // Register once — previously wrote to the handler dictionary every frame.
+        if (!_handlersRegistered)
+        {
+            Game.PacketHandlers[(int)Packet_ServerIdEnum.EntitySpawn] = _spawn;
+            Game.PacketHandlers[(int)Packet_ServerIdEnum.EntityPosition] = _position;
+            Game.PacketHandlers[(int)Packet_ServerIdEnum.EntityDespawn] = _despawn;
+            _handlersRegistered = true;
+        }
     }
-
-    public override void OnFrame(float dt) { }
 }

@@ -25,6 +25,17 @@ public class ModNetworkProcess : ModBase
     private readonly ITerrainChunkTesselator _terrainChunkTesselator;
     private readonly ILightManager _lightManager;
 
+    private readonly int[] _receivedchunk;
+    private readonly byte[] _decompressedchunk;
+
+    // Was static — safe today because ProcessPacket runs on the main thread,
+    // but fragile if a second instance ever ran concurrently. Instance field
+    // makes the threading contract explicit.
+    private readonly string[] _textureIdScratch = new string[7];
+
+    private byte[] _currentChunk;
+    private int _currentChunkCount;
+
     public ModNetworkProcess(IGameWindowService gamePlatform, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry,
         IGameLogger gameLogger, ITerrainChunkTesselator terrainChunkTesselator, ILightManager lightManager, IGame game) : base(game)
     {
@@ -34,24 +45,11 @@ public class ModNetworkProcess : ModBase
         _gameLogger = gameLogger;
         _terrainChunkTesselator = terrainChunkTesselator;
         _lightManager = lightManager;
-        CurrentChunk = new byte[1024 * 64];
-        CurrentChunkCount = 0;
-        receivedchunk = new int[32 * 32 * 32];
-        decompressedchunk = new byte[32 * 32 * 32 * 2];
+        _currentChunk = new byte[1024 * 64];
+        _currentChunkCount = 0;
+        _receivedchunk = new int[32 * 32 * 32];
+        _decompressedchunk = new byte[32 * 32 * 32 * 2];
     }
-
-    internal byte[] CurrentChunk;
-    internal int CurrentChunkCount;
-    private readonly int[] receivedchunk;
-    private readonly byte[] decompressedchunk;
-
-    // Was static — safe today because ProcessPacket runs on the main thread,
-    // but fragile if a second instance ever ran concurrently. Instance field
-    // makes the threading contract explicit.
-    private readonly string[] _textureIdScratch = new string[7];
-
-    private static int Index3d(int x, int y, int h, int sizex, int sizey)
-        => (((h * sizey) + y) * sizex) + x;
 
     public override void OnFrame(float dt)
         => NetworkProcess();
@@ -59,21 +57,12 @@ public class ModNetworkProcess : ModBase
     public void NetworkProcess()
     {
         Game.CurrentTimeMilliseconds = _platform.TimeMillisecondsFromStart;
-        if (Game.NetClient == null)
-        {
-            return;
-        }
 
         NetIncomingMessage msg;
         while (Game.InvalidVersionPacketIdentification == null
             && (msg = Game.NetClient.ReadMessage()) != null)
         {
             // Connect/disconnect lifecycle messages carry no payload — skip them.
-            if (msg.Type != NetworkMessageType.Data)
-            {
-                continue;
-            }
-
             if (msg.Type != NetworkMessageType.Data || msg.Payload.Length == 0)
             {
                 continue;
@@ -97,6 +86,7 @@ public class ModNetworkProcess : ModBase
     {
         Packet_Server packet = MemoryPackSerializer.Deserialize<Packet_Server>(
             data.AsSpan(0, dataLength));
+        _gameLogger.Client.Debug($"Received Packet Type: {packet.Id}");
         ProcessInBackground(packet);
         ProcessPacket(packet);
         Game.LastReceivedMilliseconds = Game.CurrentTimeMilliseconds;
@@ -109,14 +99,14 @@ public class ModNetworkProcess : ModBase
             case Packet_ServerIdEnum.ChunkPart:
                 {
                     byte[] arr = packet.ChunkPart.CompressedChunkPart;
-                    if (CurrentChunkCount + arr.Length > CurrentChunk.Length)
+                    if (_currentChunkCount + arr.Length > _currentChunk.Length)
                     {
-                        CurrentChunkCount = 0;
+                        _currentChunkCount = 0;
                         break;
                     }
 
-                    Buffer.BlockCopy(arr, 0, CurrentChunk, CurrentChunkCount, arr.Length);
-                    CurrentChunkCount += arr.Length;
+                    Buffer.BlockCopy(arr, 0, _currentChunk, _currentChunkCount, arr.Length);
+                    _currentChunkCount += arr.Length;
                     break;
                 }
 
@@ -124,12 +114,12 @@ public class ModNetworkProcess : ModBase
                 {
                     Packet_ServerChunk p = packet.Chunk_;
 
-                    int compressedLength = CurrentChunkCount;
-                    CurrentChunkCount = 0;
+                    int compressedLength = _currentChunkCount;
+                    _currentChunkCount = 0;
 
                     if (compressedLength != 0)
                     {
-                        GzipDecompress(CurrentChunk, compressedLength, decompressedchunk);
+                        GzipDecompress(_currentChunk, compressedLength, _decompressedchunk);
 
                         int i = 0;
                         for (int zz = 0; zz < p.SizeZ; zz++)
@@ -138,10 +128,10 @@ public class ModNetworkProcess : ModBase
                             {
                                 for (int xx = 0; xx < p.SizeX; xx++)
                                 {
-                                    int block = (decompressedchunk[i + 1] << 8) + decompressedchunk[i];
+                                    int block = (_decompressedchunk[i + 1] << 8) + _decompressedchunk[i];
                                     if (block < GameConstants.MAX_BLOCKTYPES)
                                     {
-                                        receivedchunk[Index3d(xx, yy, zz, p.SizeX, p.SizeY)] = block;
+                                        _receivedchunk[VectorIndexUtil.Index3d(xx, yy, zz, p.SizeX, p.SizeY)] = block;
                                     }
 
                                     i += 2;
@@ -151,10 +141,10 @@ public class ModNetworkProcess : ModBase
                     }
                     else
                     {
-                        Array.Clear(receivedchunk, 0, p.SizeX * p.SizeY * p.SizeZ);
+                        Array.Clear(_receivedchunk, 0, p.SizeX * p.SizeY * p.SizeZ);
                     }
 
-                    voxelMap.SetMapPortion(p.X, p.Y, p.Z, receivedchunk, p.SizeX, p.SizeY, p.SizeZ);
+                    voxelMap.SetMapPortion(p.X, p.Y, p.Z, _receivedchunk, p.SizeX, p.SizeY, p.SizeZ);
                     Game.ReceivedMapLength += compressedLength;
                     break;
                 }
@@ -163,9 +153,9 @@ public class ModNetworkProcess : ModBase
                 {
                     Packet_ServerHeightmapChunk p = packet.HeightmapChunk;
                     GzipDecompress(
-                        p.CompressedHeightmap, p.CompressedHeightmap.Length, decompressedchunk);
+                        p.CompressedHeightmap, p.CompressedHeightmap.Length, _decompressedchunk);
                     ReadOnlySpan<ushort> heights = MemoryMarshal.Cast<byte, ushort>(
-                        decompressedchunk.AsSpan(0, p.SizeX * p.SizeY * 2));
+                        _decompressedchunk.AsSpan(0, p.SizeX * p.SizeY * 2));
                     for (int xx = 0; xx < p.SizeX; xx++)
                     {
                         for (int yy = 0; yy < p.SizeY; yy++)
@@ -181,25 +171,11 @@ public class ModNetworkProcess : ModBase
         }
     }
 
-    private static void GzipDecompress(byte[] compressed, int compressedLength, byte[] ret)
-    {
-        // MemoryStream(byte[], int, int) wraps the existing array without copying.
-        // GZipStream reads from it and writes the decompressed bytes directly into
-        // ret via the Read loop — no intermediate byte[] allocation at any point.
-        using MemoryStream source = new(compressed, 0, compressedLength, writable: false);
-        using GZipStream gz = new(source, CompressionMode.Decompress);
 
-        int totalRead = 0;
-        int bytesRead;
-        while ((bytesRead = gz.Read(ret, totalRead, ret.Length - totalRead)) > 0)
-        {
-            totalRead += bytesRead;
-        }
-    }
 
     // a private Handle*() method to make this switch a clean dispatch table
     // and enable per-handler unit testing. Deferred to keep this diff focused.
-    internal void ProcessPacket(Packet_Server packet)
+    private void ProcessPacket(Packet_Server packet)
     {
         Game.PacketHandlers[(int)packet.Id]?.Handle(packet);
         switch (packet.Id)
@@ -598,4 +574,19 @@ public class ModNetworkProcess : ModBase
         }
     }
 
+    private static void GzipDecompress(byte[] compressed, int compressedLength, byte[] ret)
+    {
+        // MemoryStream(byte[], int, int) wraps the existing array without copying.
+        // GZipStream reads from it and writes the decompressed bytes directly into
+        // ret via the Read loop — no intermediate byte[] allocation at any point.
+        using MemoryStream source = new(compressed, 0, compressedLength, writable: false);
+        using GZipStream gz = new(source, CompressionMode.Decompress);
+
+        int totalRead = 0;
+        int bytesRead;
+        while ((bytesRead = gz.Read(ret, totalRead, ret.Length - totalRead)) > 0)
+        {
+            totalRead += bytesRead;
+        }
+    }
 }

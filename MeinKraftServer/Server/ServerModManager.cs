@@ -531,8 +531,7 @@ public class ServerModManager(IBlockRegistry blockRegistry, IChunkDbCompressed c
         };
         _serverClientService.Clients[id] = c;
         c.State = ClientStateOnServer.Playing;
-        DummyNetwork network = new();
-        c.Socket = new DummyNetConnection(network);
+       // c.Socket = new DummyNetConnection(network);
         c.Ping.Timeout = TimeSpan.MaxValue;
         c.chunksseen = new bool[_serverMapStorage.MapSizeX / GameConstants.ServerChunkSize
                                 * _serverMapStorage.MapSizeY / GameConstants.ServerChunkSize * _serverMapStorage.MapSizeZ / GameConstants.ServerChunkSize];

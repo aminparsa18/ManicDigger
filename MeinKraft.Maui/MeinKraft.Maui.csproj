@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net10.0-windows10.0.19041.0;net10.0-android</TargetFrameworks>
+		<TargetFrameworks>net10.0-windows10.0.19041.0;</TargetFrameworks>
 		<RootNamespace>MeinKraft.Maui</RootNamespace>
 		<ApplicationTitle>Mein Kraft</ApplicationTitle>
 		<ApplicationId>com.parsoft.meinkraft</ApplicationId>
@@ -61,14 +61,14 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.60" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
 		<PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
 		<PackageReference Include="Serilog" Version="4.*" />
 		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.2" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\MeinKraft.Core\MeinKraft.Core.csproj" />
+	  <ProjectReference Include="..\MeinKraft.Core\MeinKraft.Client.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -78,6 +78,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Views\LoginView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\MainMenuView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

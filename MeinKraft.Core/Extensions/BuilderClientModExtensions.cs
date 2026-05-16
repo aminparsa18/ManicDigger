@@ -70,7 +70,6 @@ public static class BuilderClientModExtensions
         services.AddScoped<IModBase, ModScreenshot>();
 
         services.AddSingleton<IModRegistry, ModRegistry>();
-        services.AddSingleton<IModEvents, ModEvents>();
 
         return services;
     }

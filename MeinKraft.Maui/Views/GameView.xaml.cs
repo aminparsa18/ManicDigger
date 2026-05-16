@@ -5,13 +5,14 @@ using SkiaSharp.Views.Maui;
 using System.Runtime.InteropServices;
 using OpenTK;
 
-
 #if WINDOWS
 using Application = Microsoft.Maui.Controls.Application;
 using Microsoft.UI.Xaml.Input;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Windowing;
+using Microsoft.UI;
 #endif
 
 namespace MeinKraft.Maui.Views;
@@ -23,19 +24,17 @@ public partial class GameView : ContentPage
     private DateTime _lastFrame = DateTime.UtcNow;
 
     private readonly IGame _game;
-    private readonly ISinglePlayerService _singlePlayerService;
+    private readonly IGameLogger _gameLogger;
     private readonly IOpenGlService _openGlService;
     private readonly IGameWindowService _gameWindowService;
     private readonly IAssetManager _assetManager;
-    private readonly IDummyNetwork _dummyNetwork;
-    private readonly WorkerHost _workerHost;
-    private readonly ServerSystemBootstraper _serverSystemBootstraper;
+    private readonly ClientWorkerHost _workerHost;
 
 #if WINDOWS
     [DllImport("libEGL.dll")]
     private static extern IntPtr eglGetProcAddress(string procName);
 
-    private class AngleBindingsContext : OpenTK.IBindingsContext
+    private class AngleBindingsContext : IBindingsContext
     {
         public IntPtr GetProcAddress(string procName) => eglGetProcAddress(procName);
     }
@@ -61,18 +60,15 @@ public partial class GameView : ContentPage
 #endif
 
     public GameView(IOpenGlService openGlService, IGameWindowService gameWindowService, IAssetManager assetManager,
-        IGame game, ISinglePlayerService singlePlayerService, IDummyNetwork dummyNetwork, ITerrainChunkTesselator terrainChunkTesselator,
-        WorkerHost workerHost, ServerSystemBootstraper serverSystemBootstraper)
+        IGameLogger gameLogger, IGame game, ITerrainChunkTesselator terrainChunkTesselator, ClientWorkerHost workerHost)
     {
         InitializeComponent();
         _openGlService = openGlService;
         _gameWindowService = gameWindowService;
         _assetManager = assetManager;
         _game = game;
-        _singlePlayerService = singlePlayerService;
+        _gameLogger = gameLogger;
         _workerHost = workerHost;
-        _dummyNetwork = dummyNetwork;
-        _serverSystemBootstraper = serverSystemBootstraper;
 
         // Inject game services into the overlay so it can apply options directly.
         // Must happen after InitializeComponent() so OverlayMenu is already created.
@@ -91,13 +87,12 @@ public partial class GameView : ContentPage
     {
         base.OnHandlerChanged();
         AttachWindowKeyEvents();
-       // ((MauiGameWindowService)_gameWindowService).CaptureCursor();
     }
 
     public void AttachWindowKeyEvents()
     {
-        var mauiWindow = Application.Current?.Windows.FirstOrDefault();
-        var nativeWindow = mauiWindow?.Handler?.PlatformView
+        Microsoft.Maui.Controls.Window? mauiWindow = Application.Current?.Windows.FirstOrDefault();
+        Microsoft.UI.Xaml.Window? nativeWindow = mauiWindow?.Handler?.PlatformView
                            as Microsoft.UI.Xaml.Window;
 
         if (nativeWindow?.Content is UIElement root)
@@ -106,12 +101,11 @@ public partial class GameView : ContentPage
                 UIElement.KeyDownEvent,
                 new KeyEventHandler((s, args) =>
                 {
-                    var keyEvent = WinKeyMapper.ToKeyEventArgs(args);
+                    KeyEventArgs keyEvent = WinKeyMapper.ToKeyEventArgs(args);
                     if (keyEvent.KeyChar == (int)Keys.Escape && _game.GuiState == GameState.Normal && !OverlayMenu.IsVisible)
                     {
                         ((MauiGameWindowService)_gameWindowService).ReleaseCursor();
                         ShowPauseMenu();
-                        _game.GuiState = GameState.EscapeMenu;
                     }
                     else if (keyEvent.KeyChar == (int)Keys.Escape && _game.GuiState == GameState.Inventory)
                     {
@@ -137,7 +131,7 @@ public partial class GameView : ContentPage
                 UIElement.KeyUpEvent,
                 new KeyEventHandler((s, args) =>
                 {
-                    var keyEvent = WinKeyMapper.ToKeyEventArgs(args);
+                    KeyEventArgs keyEvent = WinKeyMapper.ToKeyEventArgs(args);
                     _game.KeyUp(keyEvent);
                     args.Handled = keyEvent.Handled;
                 }),
@@ -157,8 +151,8 @@ public partial class GameView : ContentPage
             root.AddHandler(UIElement.PointerPressedEvent,
                 new PointerEventHandler((s, args) =>
                 {
-                    var glNative = GlView.Handler?.PlatformView as UIElement;
-                    var pt = args.GetCurrentPoint(glNative);
+                    UIElement? glNative = GlView.Handler?.PlatformView as UIElement;
+                    PointerPoint pt = args.GetCurrentPoint(glNative);
                     _game.MouseDown(WinMouseMapper.ToMouseDownEventArgs(pt));
                 }),
                 handledEventsToo: true);
@@ -166,8 +160,8 @@ public partial class GameView : ContentPage
             root.AddHandler(UIElement.PointerReleasedEvent,
                 new PointerEventHandler((s, args) =>
                 {
-                    var glNative = GlView.Handler?.PlatformView as UIElement;
-                    var pt = args.GetCurrentPoint(glNative);
+                    UIElement? glNative = GlView.Handler?.PlatformView as UIElement;
+                    PointerPoint pt = args.GetCurrentPoint(glNative);
                     _game.MouseUp(WinMouseMapper.ToMouseUpEventArgs(pt));
                 }),
                 handledEventsToo: true);
@@ -175,8 +169,8 @@ public partial class GameView : ContentPage
             root.AddHandler(UIElement.PointerWheelChangedEvent,
                 new PointerEventHandler((s, args) =>
                 {
-                    var glNative = GlView.Handler?.PlatformView as UIElement;
-                    var pt = args.GetCurrentPoint(glNative);
+                    UIElement? glNative = GlView.Handler?.PlatformView as UIElement;
+                    PointerPoint pt = args.GetCurrentPoint(glNative);
                     _game.MouseWheelChanged(WinMouseMapper.ToMouseWheelEventArgs(pt));
                 }),
                 handledEventsToo: true);
@@ -214,40 +208,41 @@ public partial class GameView : ContentPage
             Application.Current.Windows[0].Handler.PlatformView
             as Microsoft.UI.Xaml.Window);
 
-        var svc = (MauiGameWindowService)_gameWindowService;
+        MauiGameWindowService svc = (MauiGameWindowService)_gameWindowService;
         svc.StartRawInput(hwnd);
         svc.RawMouseDelta += OnRawMouseDelta;
 #endif
         _game.IsSinglePlayer = true;
 
-        Connect();
+        _ = Connect().ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+                MainThread.BeginInvokeOnMainThread(() =>
+                    throw t.Exception!.InnerException!);
+        });
     }
 
-    private void Connect()
+    private async Task Connect()
     {
-        if (true) //single player
+        // Start simulation loop + chunk workers + periodic tasks.
+        // WorkerHost sets SinglePlayerServerLoaded = true once everything is live.
+        // Fire-and-forget is fine — startup is fast, socket is already wired above.
+        _ = _workerHost.StartAsync();
+
+        int port = Microsoft.Maui.Storage.Preferences.Get("session_port", 0);
+        string username = Microsoft.Maui.Storage.Preferences.Get("username", "Player");
+        string apiKey = Microsoft.Maui.Storage.Preferences.Get("api_key", string.Empty);
+
+        _game.NetClient = new EnetNetClient(new NetworkService(_gameLogger));
+        _game.ConnectData = new ConnectionData
         {
-            IDummyNetwork network = _singlePlayerService.SinglePlayerServerNetwork;
-
-            // Wire the server socket BEFORE starting workers so the first
-            // simulation tick already has a valid socket to drain.
-            Server server = _serverSystemBootstraper.Server;
-            server.MainSockets[0] = new DummyNetServer(_dummyNetwork);
-
-            // Start simulation loop + chunk workers + periodic tasks.
-            // WorkerHost sets SinglePlayerServerLoaded = true once everything is live.
-            // Fire-and-forget is fine — startup is fast, socket is already wired above.
-            _ = _workerHost.StartAsync();
-
-            _game.NetClient = new DummyNetClient(network);
-            _game.ConnectData = new ConnectionData { Username = "Local" };
-        }
-        //else
-        //{
-        //    game.ConnectData = connectData;
-        //    game.NetClient = CreateNetClient()
-        //        ?? throw new InvalidOperationException("No network transport available.");
-        //}
+            Ip = "127.0.0.1",
+            Port = port,
+            Username = username,
+            Auth = apiKey,
+            ServerPassword = string.Empty,
+            IsServerPasswordProtected = false,
+        };
     }
 
     protected override void OnDisappearing()
@@ -263,7 +258,7 @@ public partial class GameView : ContentPage
             Application.Current.Windows[0].Handler.PlatformView
             as Microsoft.UI.Xaml.Window);
 
-        var svc = (MauiGameWindowService)_gameWindowService;
+        MauiGameWindowService svc = (MauiGameWindowService)_gameWindowService;
         // Lines 228-245 from original (StopRawInput + RawMouseDelta unsubscribe) unchanged:
         svc.StopRawInput(hwnd);
         svc.RawMouseDelta -= OnRawMouseDelta;
@@ -272,6 +267,7 @@ public partial class GameView : ContentPage
 
     private void GlView_PaintSurface(object sender, SKPaintGLSurfaceEventArgs e)
     {
+        try { 
         if (!_glInitialized)
         {
 #if WINDOWS
@@ -290,6 +286,16 @@ public partial class GameView : ContentPage
         _lastFrame = now;
 
         Draw(dt);
+        }
+        catch (Exception ex)
+        {
+            // Replace with your actual logger
+            System.Diagnostics.Debug.WriteLine($"[FATAL] PaintSurface crashed: {ex}");
+            File.AppendAllText(
+                Path.Combine(FileSystem.CacheDirectory, "crash.txt"),
+                $"{DateTime.UtcNow}: {ex}\n");
+            throw; // re-throw so you still see it's fatal
+        }
     }
 
     private void InitGL()
@@ -376,31 +382,31 @@ public partial class GameView : ContentPage
     private void OnFullscreenChanged(object? sender, bool fullscreen)
     {
 #if WINDOWS
-        var window = GetParentWindow().Handler.PlatformView as MauiWinUIWindow;
-        var appWindow = GetAppWindow(window);
+        MauiWinUIWindow? window = GetParentWindow().Handler.PlatformView as MauiWinUIWindow;
+        AppWindow appWindow = GetAppWindow(window);
 
         if (fullscreen)
         {
-            appWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen);
+            appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
         }
         else
         {
-            appWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.Default);
+            appWindow.SetPresenter(AppWindowPresenterKind.Default);
         }
 #endif
     }
 
 #if WINDOWS
-    private static Microsoft.UI.Windowing.AppWindow GetAppWindow(MauiWinUIWindow? window)
+    private static AppWindow GetAppWindow(MauiWinUIWindow? window)
     {
         var handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
-        var id = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(handle);
-        return Microsoft.UI.Windowing.AppWindow.GetFromWindowId(id);
+        WindowId id = Win32Interop.GetWindowIdFromWindow(handle);
+        return AppWindow.GetFromWindowId(id);
     }
 
     private void OnRawMouseDelta(int dx, int dy)
     {
-        var emulated = new MouseEventArgs
+        MouseEventArgs emulated = new MouseEventArgs
         {
             MovementX = dx,
             MovementY = dy,

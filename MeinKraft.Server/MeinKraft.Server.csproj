@@ -17,6 +17,7 @@
 		<Product>Mein Kraft</Product>
 		<Description>Core game logic for Mein Kraft</Description>
 		<Copyright>Copyright © 2026 Amin Parsa</Copyright>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="Jint" Version="4.9.1" />

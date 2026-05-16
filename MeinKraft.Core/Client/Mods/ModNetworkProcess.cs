@@ -82,14 +82,53 @@ public class ModNetworkProcess : ModBase
         }
     }
 
+    private int _setBlockCount;
+    private int _blockTypeCount;
+
     public void TryReadPacket(byte[] data, int dataLength)
     {
         Packet_Server packet = MemoryPackSerializer.Deserialize<Packet_Server>(
             data.AsSpan(0, dataLength));
-        _gameLogger.Client.Debug($"Received Packet Type: {packet.Id}");
+
+        LogPacket(packet.Id);
         ProcessInBackground(packet);
         ProcessPacket(packet);
         Game.LastReceivedMilliseconds = Game.CurrentTimeMilliseconds;
+    }
+
+    private void LogPacket(Packet_ServerIdEnum id)
+    {
+        if (id == Packet_ServerIdEnum.SetBlock)
+        {
+            FlushBatchLog(ref _blockTypeCount, Packet_ServerIdEnum.BlockType);
+            _setBlockCount++;
+            return;
+        }
+
+        if (id == Packet_ServerIdEnum.BlockType)
+        {
+            FlushBatchLog(ref _setBlockCount, Packet_ServerIdEnum.SetBlock);
+            _blockTypeCount++;
+            return;
+        }
+
+        FlushSetBlockLog();
+        FlushBlockTypeLog();
+        _gameLogger.Client.Debug("Received Packet Type: {PacketId}", id);
+    }
+
+    private void FlushSetBlockLog() => FlushBatchLog(ref _setBlockCount, Packet_ServerIdEnum.SetBlock);
+    private void FlushBlockTypeLog() => FlushBatchLog(ref _blockTypeCount, Packet_ServerIdEnum.BlockType);
+
+    private void FlushBatchLog(ref int count, Packet_ServerIdEnum id)
+    {
+        if (count == 0)
+        {
+            return;
+        }
+
+        _gameLogger.Client.Debug("Received Packet Type: {PacketId} [{Count} times]", id, count);
+        count = 0;
     }
 
     private void ProcessInBackground(Packet_Server packet)

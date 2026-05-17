@@ -25,7 +25,7 @@ public static class MauiProgram
 
         builder.Services.AddWorkerInfrastructure();
 
-        string serverUrl = "https://localhost:8275";
+        string serverUrl = "http://192.168.0.101:8276";
         string? apiKey = Microsoft.Maui.Storage.Preferences.Get("api_key", null); // null until user registers
 
         builder.Services.AddApiServices(serverUrl, apiKey);

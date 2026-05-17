@@ -90,7 +90,7 @@ public sealed class EnetNetClient : NetClient
 
     private void PollEnetEvents()
     {
-        EnetEvent? ev = _platform.EnetHostService(_host!, timeout: 0);
+        EnetEvent? ev = _platform.EnetHostService(_host, timeout: 0);
         if (ev is null)
         {
             return;

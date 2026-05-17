@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using OpenTK;
+using System.Runtime.InteropServices;
 
 public class AndroidBindingsContext : IBindingsContext
 {
@@ -9,6 +8,10 @@ public class AndroidBindingsContext : IBindingsContext
     public AndroidBindingsContext()
     {
         _libHandle = NativeLibrary.Load("libGLESv2.so");
+        if (_libHandle == IntPtr.Zero)
+        {
+            _libHandle = NativeLibrary.Load("libGLESv2.so"); // some drivers expose ES3 via v2 lib
+        }
     }
 
     public IntPtr GetProcAddress(string procName)

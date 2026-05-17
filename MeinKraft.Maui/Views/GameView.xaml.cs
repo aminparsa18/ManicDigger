@@ -2,7 +2,6 @@
 using MeinKraft.Worker;
 using OpenTK.Graphics.ES30;
 using SkiaSharp.Views.Maui;
-using Microsoft.UI.Windowing;
 using MessagePipe;
 
 namespace MeinKraft.Maui.Views;
@@ -47,7 +46,6 @@ public partial class GameView : ContentPage, IDisposable
         // require cursor and game-state changes, plus the platform fullscreen call.
         OverlayMenu.ReturnToGameRequested += (_, _) => HideOverlay();
         OverlayMenu.ExitToMenuRequested += OnExitToMenuRequested;
-        OverlayMenu.FullscreenChanged += OnFullscreenChanged;
     }
 
     private void SetupProgressUpdated(SetupProgressEventArgs e)
@@ -262,27 +260,6 @@ public partial class GameView : ContentPage, IDisposable
         ((MauiGameWindowService)_gameWindowService).ReleaseCursor();
 #endif
         await Shell.Current.GoToAsync("//MainMenuView");
-    }
-
-    /// <summary>
-    /// Uses the AppWindow / OverlappedPresenter API — the only reliable way to
-    /// toggle borderless fullscreen in a MAUI WinUI3 app.
-    /// </summary>
-    private void OnFullscreenChanged(object? sender, bool fullscreen)
-    {
-#if WINDOWS
-        MauiWinUIWindow? window = GetParentWindow().Handler.PlatformView as MauiWinUIWindow;
-        AppWindow appWindow = GetAppWindow(window);
-
-        if (fullscreen)
-        {
-            appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
-        }
-        else
-        {
-            appWindow.SetPresenter(AppWindowPresenterKind.Default);
-        }
-#endif
     }
 
     public void Dispose()

@@ -1,4 +1,6 @@
-﻿using MeinKraft.Maui.Services;
+﻿#if WINDOWS
+
+using MeinKraft.Maui.Services;
 using Microsoft.UI;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
@@ -11,7 +13,11 @@ namespace MeinKraft.Maui.Views;
 
 public partial class GameView : ContentPage
 {
-#if WINDOWS
+    public GameView()
+    {
+        OverlayMenu.FullscreenChanged += OnFullscreenChanged;
+    }
+
     protected override void OnHandlerChanged()
     {
         base.OnHandlerChanged();
@@ -19,7 +25,7 @@ public partial class GameView : ContentPage
         ((MauiGameWindowService)_gameWindowService).CaptureCursor();
     }
 
-    public void AttachWindowKeyEvents()
+    private void AttachWindowKeyEvents()
     {
         Microsoft.Maui.Controls.Window? mauiWindow = Application.Current?.Windows.FirstOrDefault();
         Microsoft.UI.Xaml.Window? nativeWindow = mauiWindow?.Handler?.PlatformView
@@ -107,6 +113,25 @@ public partial class GameView : ContentPage
         }
     }
 
+    /// <summary>
+    /// Uses the AppWindow / OverlappedPresenter API — the only reliable way to
+    /// toggle borderless fullscreen in a MAUI WinUI3 app.
+    /// </summary>
+    private void OnFullscreenChanged(object? sender, bool fullscreen)
+    {
+        MauiWinUIWindow? window = GetParentWindow().Handler.PlatformView as MauiWinUIWindow;
+        AppWindow appWindow = GetAppWindow(window);
+
+        if (fullscreen)
+        {
+            appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+        }
+        else
+        {
+            appWindow.SetPresenter(AppWindowPresenterKind.Default);
+        }
+    }
+
     private static AppWindow GetAppWindow(MauiWinUIWindow? window)
     {
         var handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
@@ -177,5 +202,5 @@ public partial class GameView : ContentPage
             };
         }
     }
-#endif
 }
+#endif

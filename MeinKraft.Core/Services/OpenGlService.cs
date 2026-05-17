@@ -287,7 +287,7 @@ public sealed class OpenGlService : IOpenGlService
     public void InitShaders()
     {
         const string vertexSource = """
-    #version 300 es
+    #version 100
 
     layout(location = 0) in vec3 aPosition;
     layout(location = 1) in vec4 aColor;
@@ -311,7 +311,7 @@ public sealed class OpenGlService : IOpenGlService
     """;
 
         const string fragmentSource = """
-    #version 300 es
+    #version 100
     precision mediump float;
 
     in vec4  vColor;
@@ -322,21 +322,23 @@ public sealed class OpenGlService : IOpenGlService
     uniform vec3      uAmbientLight;
     uniform vec4      uFogColor;
     uniform float     uFogDensity;
-    uniform bool      uFogEnabled;
-    uniform bool      uUseTexture;
+    uniform int      uFogEnabled;
+    uniform int      uUseTexture;
 
     out vec4 fragColor;
 
     void main()
     {
-        fragColor = uUseTexture ? texture(uTexture, vUv) * vColor : vColor;
+        fragColor = uUseTexture != 0 ? texture(uTexture, vUv) * vColor : vColor;
 
-        if (uUseTexture && fragColor.a < 0.5)
+        if (uUseTexture != 0 && fragColor.a < 0.5)
+        {
             discard;
-
+        }
+        
         fragColor.rgb *= uAmbientLight;
 
-        if (uFogEnabled)
+        if (uFogEnabled != 0)
         {
             float fogFactor = clamp(
                 exp(-uFogDensity * uFogDensity * vFogDepth * vFogDepth),
@@ -417,7 +419,10 @@ public sealed class OpenGlService : IOpenGlService
         GL.GetShader(shader, ShaderParameter.CompileStatus, out int status);
         if (status == 0)
         {
-            throw new Exception($"{type} compile error: {GL.GetShaderInfoLog(shader)}");
+            string log = GL.GetShaderInfoLog(shader);
+            if (string.IsNullOrEmpty(log))
+                log = "(no info log returned by driver)";
+            throw new Exception($"{type} compile error: {log}");
         }
 
         return shader;

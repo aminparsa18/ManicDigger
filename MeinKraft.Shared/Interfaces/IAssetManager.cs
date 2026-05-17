@@ -1,7 +1,5 @@
 ﻿public interface IAssetManager
 {
-    List<Asset> Assets { get; set; }
-    float AssetsLoadProgress { get; set; }
-
-    void LoadAssets();
+    List<Asset> Assets { get; }
+    Task LoadAssetsAsync(IProgress<float>? progress = null, CancellationToken ct = default);
 }

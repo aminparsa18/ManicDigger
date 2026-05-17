@@ -98,10 +98,6 @@ public sealed partial class MauiGameWindowService : IGameWindowService
     {
     }
 
-    private readonly List<Action<float>> _newFrameHandlers = [];
-    public void AddOnNewFrame(Action<float> handler) => _newFrameHandlers.Add(handler);
-    public void RemoveOnNewFrame(Action<float> handler) => _newFrameHandlers.Remove(handler);
-
     // ── IGameWindowService — input ────────────────────────────────────────────
 
     public List<Action<KeyEventArgs>> KeyDownHandlers { get; set; } = [];

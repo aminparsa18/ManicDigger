@@ -10,6 +10,7 @@ public partial class Game
 
     public void ProcessServerIdentification(Packet_Server packet)
     {
+        _publisher.Publish(new SetupProgressEventArgs() { Title = "Identified By Server..." });
         LocalPlayerId = packet.Identification.AssignedClientId;
         ServerInfo.ConnectData = ConnectData;
         ServerInfo.ServerName = packet.Identification.ServerName;

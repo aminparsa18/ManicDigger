@@ -87,6 +87,9 @@
 	  <MauiXaml Update="Views\OverlayMenuView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\SetupProgressView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\SinglePlayerView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

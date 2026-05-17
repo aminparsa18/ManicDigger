@@ -8,7 +8,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
 
-            <Style x:Key="SlotBorder" TargetType="Border">
+            <!--<Style x:Key="SlotBorder" TargetType="Border">
                 <Setter Property="VisualStateManager.VisualStateGroups">
                     <Setter.Value>
                         <VisualStateGroupList>
@@ -42,7 +42,7 @@
                         </VisualStateGroupList>
                     </Setter.Value>
                 </Setter>
-            </Style>
+            </Style>-->
 
         </ResourceDictionary>
     </ContentPage.Resources>

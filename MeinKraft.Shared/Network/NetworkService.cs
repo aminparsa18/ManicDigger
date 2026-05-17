@@ -54,7 +54,7 @@ public class NetworkService : INetworkService
     {
         if (_unflushledPackets > 0)
         {
-            _gameLogger.Client.Debug($"[ENET-SERVICE] flushing — {_unflushledPackets} packets were queued since last service");
+        //    _gameLogger.Client.Debug($"[ENET-SERVICE] flushing — {_unflushledPackets} packets were queued since last service");
             _unflushledPackets = 0;
         }
 
@@ -71,7 +71,7 @@ public class NetworkService : INetworkService
         _ = ((EnetPeerWrapper)peer).Peer.Send((byte)channelId, ref packet);
 
         _unflushledPackets++;
-        _gameLogger.Client.Debug($"[ENET-SEND] queued packet #{_unflushledPackets} unflushed");
+       // _gameLogger.Client.Debug($"[ENET-SEND] queued packet #{_unflushledPackets} unflushed");
     }
 
     public bool TcpAvailable() => true;

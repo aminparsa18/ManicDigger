@@ -1,5 +1,4 @@
-﻿using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+﻿using OpenTK.Windowing.GraphicsLibraryFramework;
 using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
 
 public partial class Game

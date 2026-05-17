@@ -3,10 +3,11 @@ using MeinKraft.Worker;
 using OpenTK.Graphics.ES30;
 using SkiaSharp.Views.Maui;
 using Microsoft.UI.Windowing;
+using MessagePipe;
 
 namespace MeinKraft.Maui.Views;
 
-public partial class GameView : ContentPage
+public partial class GameView : ContentPage, IDisposable
 {
     private bool _glInitialized = false;
     private IDispatcherTimer _gameLoopTimer;
@@ -17,10 +18,13 @@ public partial class GameView : ContentPage
     private readonly IOpenGlService _openGlService;
     private readonly IGameWindowService _gameWindowService;
     private readonly IAssetManager _assetManager;
+    private readonly IDisposable _subscription;
+
     private readonly ClientWorkerHost _workerHost;
 
     public GameView(IOpenGlService openGlService, IGameWindowService gameWindowService, IAssetManager assetManager,
-        IGameLogger gameLogger, IGame game, ITerrainChunkTesselator terrainChunkTesselator, ClientWorkerHost workerHost)
+        IGameLogger gameLogger, IGame game, ITerrainChunkTesselator terrainChunkTesselator, ClientWorkerHost workerHost,
+        ISubscriber<SetupProgressEventArgs> subscriber)
     {
         InitializeComponent();
         _openGlService = openGlService;
@@ -29,6 +33,10 @@ public partial class GameView : ContentPage
         _game = game;
         _gameLogger = gameLogger;
         _workerHost = workerHost;
+
+        var bag = DisposableBag.CreateBuilder();
+        subscriber.Subscribe(SetupProgressUpdated).AddTo(bag);
+        _subscription = bag.Build();
 
         // Inject game services into the overlay so it can apply options directly.
         // Must happen after InitializeComponent() so OverlayMenu is already created.
@@ -42,6 +50,16 @@ public partial class GameView : ContentPage
         OverlayMenu.FullscreenChanged += OnFullscreenChanged;
     }
 
+    private void SetupProgressUpdated(SetupProgressEventArgs e)
+    {
+        if (e.Progress == 100)
+        {
+            ProgressView.IsVisible = false;
+            return;
+        }
+        ProgressView.UpdateProgress(e);
+    }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -53,17 +71,25 @@ public partial class GameView : ContentPage
             GlView.InvalidateSurface();
 #if WINDOWS
             if (_gameWindowService.Focused() && _game.GuiState == GameState.Normal)
+            {
                 ((MauiGameWindowService)_gameWindowService).TrapCursorInCenter();
+            }
 #endif
         };
         _gameLoopTimer.Start();
+        ProgressView.UpdateProgress(new() { Title = "Loading Assets...", Progress = 0 });
+        _assetManager.LoadAssetsAsync();
+        _ = Connect().ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+                MainThread.BeginInvokeOnMainThread(() =>
+                    throw t.Exception!.InnerException!);
+        });
 
-        _assetManager.LoadAssets();
-
-        GlView.Focus();
+        ProgressView.UpdateProgress(new() { Title = "Attaching OpenGl Surface...", Progress = 0 });
         ((MauiGameWindowService)_gameWindowService).Attach(GlView);
 
-        _gameWindowService.AddOnNewFrame(Draw);
+        GlView.PaintSurface += GlView_PaintSurface;
 
 #if WINDOWS
         _gameWindowService.RequestMousePointerLock();
@@ -77,13 +103,6 @@ public partial class GameView : ContentPage
         svc.RawMouseDelta += OnRawMouseDelta;
 #endif
         _game.IsSinglePlayer = true;
-
-        _ = Connect().ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-                MainThread.BeginInvokeOnMainThread(() =>
-                    throw t.Exception!.InnerException!);
-        });
     }
 
     private async Task Connect()
@@ -91,6 +110,7 @@ public partial class GameView : ContentPage
         // Start simulation loop + chunk workers + periodic tasks.
         // WorkerHost sets SinglePlayerServerLoaded = true once everything is live.
         // Fire-and-forget is fine — startup is fast, socket is already wired above.
+        ProgressView.UpdateProgress(new() { Title = "Starting Game Engine...", Progress = 0 });
         _ = _workerHost.StartAsync();
 
         int port = Microsoft.Maui.Storage.Preferences.Get("session_port", 0);
@@ -129,7 +149,7 @@ public partial class GameView : ContentPage
 #endif
     }
 
-    private void GlView_PaintSurface(object sender, SKPaintGLSurfaceEventArgs e)
+    private void GlView_PaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
         try
         {
@@ -140,6 +160,7 @@ public partial class GameView : ContentPage
 #elif ANDROID
             GL.LoadBindings(new AndroidBindingsContext());
 #endif
+                ProgressView.UpdateProgress(new() { Title = "Initialising Shader...", Progress = 0 });
                 InitGL();
                 _glInitialized = true;
                 _game.Start();
@@ -165,9 +186,12 @@ public partial class GameView : ContentPage
 
     private void InitGL()
     {
-        _openGlService.InitShaders();
-        _openGlService.GlClearColorRgbaf(0, 0, 0, 1);
-        _openGlService.GlEnableDepthTest();
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            _openGlService.InitShaders();
+            _openGlService.GlClearColorRgbaf(0, 0, 0, 1);
+            _openGlService.GlEnableDepthTest();
+        });
     }
 
     private void Draw(float dt)
@@ -259,5 +283,10 @@ public partial class GameView : ContentPage
             appWindow.SetPresenter(AppWindowPresenterKind.Default);
         }
 #endif
+    }
+
+    public void Dispose()
+    {
+        _subscription.Dispose();
     }
 }

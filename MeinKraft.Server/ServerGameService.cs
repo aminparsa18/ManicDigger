@@ -170,13 +170,13 @@ public partial class ServerGameService : IServer, IDropItem, IDisposable
         _serverPacketService.SendPacket(clientid, Serialize(new Packet_Server() { Id = Packet_ServerIdEnum.Season, Season = p }));
     }
 
-    public void OnConfigLoaded()
+    public async void OnConfigLoaded()
     {
         //Initialize server map
         _serverMapStorage.Heightmap = new ChunkedMap2d<ushort>(_serverMapStorage.MapSizeX, _serverMapStorage.MapSizeY);
         _serverMapStorage.Reset(_config.MapSizeX, _config.MapSizeY, _config.MapSizeZ);
 
-        _assetManager.LoadAssets();
+        await _assetManager.LoadAssetsAsync();
 
         //Initialize game components
         _craftingTableTool = new CraftingTableTool() { d_Map = _serverMapStorage, d_Data = _blockRegistry };
@@ -2010,10 +2010,10 @@ public partial class ServerGameService : IServer, IDropItem, IDisposable
 
     private readonly int blobPartLength = 1024;
 
-    private void SendBlobs(int clientid, string[] requestedMd5)
+    private async void SendBlobs(int clientid, string[] requestedMd5)
     {
         _serverPacketService.SendPacket(clientid, ServerPackets.LevelInitialize());
-        _assetManager.LoadAssets();
+        await  _assetManager.LoadAssetsAsync();
 
         List<Asset> tosend = [];
         for (int i = 0; i < _assetManager.Assets.Count; i++)

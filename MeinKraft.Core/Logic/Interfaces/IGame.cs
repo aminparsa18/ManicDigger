@@ -1,6 +1,5 @@
 ﻿using MeinKraft;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.Common;
 
 /// <summary>
 /// The primary contract between <see cref="Game"/> and every mod, screen, and

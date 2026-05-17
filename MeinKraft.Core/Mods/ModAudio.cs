@@ -22,7 +22,7 @@ public sealed class ModAudio : ModBase
     /// <inheritdoc/>
     public override void OnFrame(float dt)
     {
-        if (_assetManager.AssetsLoadProgress < 1f)
+        if (_assetManager.Assets.Count == 0)
         {
             return;
         }

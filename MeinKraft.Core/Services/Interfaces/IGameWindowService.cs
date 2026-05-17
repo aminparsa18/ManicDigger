@@ -1,5 +1,4 @@
 ﻿using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Composite — the full platform contract used throughout the game.
@@ -9,7 +8,6 @@ using OpenTK.Windowing.Desktop;
 public interface IGameWindowService
 {
     INetworkService NetworkService { get; set; }
-    void AddOnNewFrame(Action<float> handler);
     void AddOnKeyEvent(Action<KeyEventArgs> onKeyDown,
         Action<KeyEventArgs> onKeyUp,
         Action<KeyPressEventArgs> onKeyPress);

@@ -27,6 +27,8 @@ public partial class Game
 
     private void InitSubsystems()
     {
+        _publisher.Publish(new() { Title = "Initialising SubSystems...", Progress = 0 });
+
         // ── Text / language ───────────────────────────────────────────────────
         Language.LoadTranslations();
 
@@ -57,11 +59,13 @@ public partial class Game
         int detectedSize = openGlService.GlGetMaxTextureSize();
         maxTextureSize = Math.Max(detectedSize, 1024);
 
-        MapLoadingStart();
+       // MapLoadingStart();
     }
 
     private void InitRenderer()
     {
+        _publisher.Publish(new() { Title = "Initialising Renderer...", Progress = 0 });
+
         openGlService.GlClearColorRgbaf(0, 0, 0, 1);
 
         if (Config3d.EnableBackfaceCulling)

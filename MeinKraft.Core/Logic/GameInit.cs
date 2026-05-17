@@ -1,4 +1,5 @@
 ﻿using MeinKraft;
+using MessagePipe;
 using OpenTK.Mathematics;
 
 /// <summary>
@@ -277,6 +278,7 @@ public partial class Game : IGame
     public InventoryUtilClient InventoryUtil { get; set; }
     private readonly IBlockRegistry _blockRegistry;
     private readonly IAssetManager _assetManager;
+    private readonly IPublisher<SetupProgressEventArgs> _publisher;
     public Packet_Inventory Inventory { get; set; }
 
     // -------------------------------------------------------------------------
@@ -332,7 +334,7 @@ public partial class Game : IGame
     public Game(IGameWindowService platform, IOpenGlService platformOpenGl, ITerrainChunkTesselator terrainChunkTesselator,
         IModRegistry modRegistry, IVoxelMap voxelMap, IAudioService audioService, ICameraService cameraService, IFrustumCulling frustumCulling,
         IMeshDrawer meshDrawer, IBlockRegistry blockTypeRegistry, IAssetManager assetManager, IGameLogger gameLogger, ILightManager lightManager,
-       IBlockChangeNotifier blockChangeNotifier)
+       IBlockChangeNotifier blockChangeNotifier, IPublisher<SetupProgressEventArgs> publisher)
     {
         gameService = platform;
         openGlService = platformOpenGl;
@@ -347,6 +349,7 @@ public partial class Game : IGame
         this.meshDrawer = meshDrawer;
         TerrainChunkTesselator = terrainChunkTesselator;
         _blockChangeNotifier = blockChangeNotifier;
+        _publisher = publisher;
         InitCore();
         InitMap();
         InitTextures();

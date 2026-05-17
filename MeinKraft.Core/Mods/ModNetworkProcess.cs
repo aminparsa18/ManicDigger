@@ -10,6 +10,7 @@
 //The split exists because chunk decompression is expensive and safe to do off the main thread,
 //while UI/game-state mutations must happen on the main thread
 
+using MessagePipe;
 using System.Buffers;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
@@ -24,6 +25,7 @@ public class ModNetworkProcess : ModBase
     private readonly IGameLogger _gameLogger;
     private readonly ITerrainChunkTesselator _terrainChunkTesselator;
     private readonly ILightManager _lightManager;
+    private readonly IPublisher<SetupProgressEventArgs> _publisher;
 
     private readonly int[] _receivedchunk;
     private readonly byte[] _decompressedchunk;
@@ -37,7 +39,8 @@ public class ModNetworkProcess : ModBase
     private int _currentChunkCount;
 
     public ModNetworkProcess(IGameWindowService gamePlatform, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry,
-        IGameLogger gameLogger, ITerrainChunkTesselator terrainChunkTesselator, ILightManager lightManager, IGame game) : base(game)
+        IGameLogger gameLogger, ITerrainChunkTesselator terrainChunkTesselator, ILightManager lightManager,
+        IGame game, IPublisher<SetupProgressEventArgs> publisher) : base(game)
     {
         _platform = gamePlatform;
         this.voxelMap = voxelMap;
@@ -45,6 +48,7 @@ public class ModNetworkProcess : ModBase
         _gameLogger = gameLogger;
         _terrainChunkTesselator = terrainChunkTesselator;
         _lightManager = lightManager;
+        _publisher = publisher;
         _currentChunk = new byte[1024 * 64];
         _currentChunkCount = 0;
         _receivedchunk = new int[32 * 32 * 32];
@@ -282,6 +286,7 @@ public class ModNetworkProcess : ModBase
                 break;
 
             case Packet_ServerIdEnum.LevelInitialize:
+                _publisher.Publish(new SetupProgressEventArgs { Title = "Level Initialized" });
                 _gameLogger.Client.Debug("[GAME] Initialized map loading");
                 Game.ReceivedMapLength = 0;
                 Game.InvokeMapLoadingProgress(0, 0, Game.Language.Connecting());
@@ -363,8 +368,7 @@ public class ModNetworkProcess : ModBase
                     _platform.ExitMousePointerLock();
                 }
 
-                _platform.MessageBoxShowError(
-                    packet.DisconnectPlayer.DisconnectReason, "Disconnected from server");
+                _publisher.Publish(new SetupProgressEventArgs { Title = "Disconnected by server, trying to reconnect...", Progress = -1 });
                 Game.ExitToMainMenu();
                 break;
 

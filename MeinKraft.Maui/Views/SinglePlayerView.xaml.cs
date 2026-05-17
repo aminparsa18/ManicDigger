@@ -41,16 +41,22 @@ public partial class SinglePlayerView : ContentPage
 
         try
         {
-            var worlds = await _worldApi.ListAsync();
+            IReadOnlyList<WorldInfo> worlds = await _worldApi.ListAsync();
 
             Worlds.Clear();
-            foreach (var w in worlds)
+            foreach (WorldInfo? w in worlds)
+            {
                 Worlds.Add(w);
+            }
 
             if (Worlds.Count == 0)
+            {
                 ShowEmpty();
+            }
             else
+            {
                 ShowList();
+            }
         }
         catch (Exception ex)
         {
@@ -66,7 +72,7 @@ public partial class SinglePlayerView : ContentPage
 
         try
         {
-            var session = await _sessionApi.StartAsync(world.Name);
+            StartSessionResponse? session = await _sessionApi.StartAsync(world.Name);
             if (session is null)
             {
                 ShowStatus("failed to start session.", isError: true);
@@ -99,14 +105,21 @@ public partial class SinglePlayerView : ContentPage
             maxLength: 32,
             keyboard: Keyboard.Text);
 
-        if (name is null) return;
-        if (string.IsNullOrWhiteSpace(name)) name = defaultName;
+        if (name is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            name = defaultName;
+        }
 
         ShowStatus("creating world...");
 
         try
         {
-            var world = await _worldApi.CreateAsync(name);
+            WorldInfo? world = await _worldApi.CreateAsync(name);
             if (world is null)
             {
                 ShowStatus("failed to create world.", isError: true);
@@ -129,13 +142,16 @@ public partial class SinglePlayerView : ContentPage
 
     private async Task DeleteWorldAsync(WorldInfo world)
     {
-        bool confirmed = await DisplayAlert(
+        bool confirmed = await DisplayAlertAsync(
             "Delete world?",
             $"\"{world.Name}\" will be permanently deleted.",
             "Delete",
             "Cancel");
 
-        if (!confirmed) return;
+        if (!confirmed)
+        {
+            return;
+        }
 
         ShowStatus("deleting...");
 
@@ -146,7 +162,9 @@ public partial class SinglePlayerView : ContentPage
             StatusLabel.IsVisible = false;
 
             if (Worlds.Count == 0)
+            {
                 ShowEmpty();
+            }
         }
         catch (Exception ex)
         {

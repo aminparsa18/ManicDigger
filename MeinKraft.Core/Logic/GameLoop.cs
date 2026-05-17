@@ -29,6 +29,7 @@ public partial class Game
         UpdateResize();
         UpdateClearColor();
         UpdateMouseSmoothing(dt);
+        TryInitialiseConnection();
 
         gameService.ApplicationDoEvents();
 
@@ -43,14 +44,12 @@ public partial class Game
 
         // Per-frame mod hook (variable dt).
         for (int i = 0; i < ClientMods.Count; i++)
+        {
             ClientMods[i]?.OnFrame(dt);
+        }
 
-        TryInitialiseConnection();
-
-        // Map loading — only 2D pass needed.
         if (GuiState == GameState.MapLoading)
         {
-            Render2d(dt);
             return;
         }
 
@@ -122,8 +121,8 @@ public partial class Game
         SetAmbientLight(ColorUtils.ColorFromArgb(255, 255, 255, 255));
         Draw2d(dt);
 
-        for (int i = 0; i < ClientMods.Count; i++)
-            ClientMods[i]?.OnRender2d(dt);
+        //for (int i = 0; i < ClientMods.Count; i++)
+        //    ClientMods[i]?.OnRender2d(dt);
 
         MouseLeftClick = false;
         mouserightclick = false;
@@ -155,11 +154,14 @@ public partial class Game
         OnResize();
     }
 
-    internal void OnResize()
+    private void OnResize()
     {
         openGlService.GlViewport(0, 0, gameService.CanvasWidth, gameService.CanvasHeight);
         Set3dProjection2();
-        if (sendResize) SendGameResolution();
+        if (sendResize)
+        {
+            SendGameResolution();
+        }
     }
 
     // ── Per-frame helpers ─────────────────────────────────────────────────────

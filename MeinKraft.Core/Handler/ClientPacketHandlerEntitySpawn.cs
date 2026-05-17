@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using MessagePipe;
+
+/// <summary>
 /// Handles <see cref="Packet_ServerIdEnum.EntitySpawn"/> packets,
 /// creating or updating entities and bootstrapping the local player on first spawn.
 /// </summary>
@@ -6,11 +8,14 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
 {
     private readonly IVoxelMap voxelMap;
     private readonly IBlockRegistry blockTypeRegistry;
+    private readonly IPublisher<SetupProgressEventArgs> _publisher;
 
-    public ClientPacketHandlerEntitySpawn(IGameWindowService gameService, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry, IGame game) : base(gameService, game)
+    public ClientPacketHandlerEntitySpawn(IGameWindowService gameService, IVoxelMap voxelMap, IBlockRegistry blockTypeRegistry,
+        IPublisher<SetupProgressEventArgs> publisher, IGame game) : base(gameService, game)
     {
         this.voxelMap = voxelMap;
         this.blockTypeRegistry = blockTypeRegistry;
+        _publisher = publisher;
     }
 
     public override void Handle(Packet_Server packet)
@@ -29,11 +34,24 @@ public class ClientPacketHandlerEntitySpawn : ClientPacketHandler
             game.Player = entity;
             if (!game.Spawned)
             {
-                entity.Scripts.Add(new ScriptCharacterPhysics(voxelMap, blockTypeRegistry, game));
-                game.MapLoaded();
                 game.Spawned = true;
+                _ = SpawnAfterDelayAsync(entity);
             }
         }
+    }
+
+    private readonly SynchronizationContext? _mainContext = SynchronizationContext.Current;
+
+    private async Task SpawnAfterDelayAsync(Entity entity)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(3));
+
+        _mainContext?.Post(_ =>
+        {
+            entity.Scripts.Add(new ScriptCharacterPhysics(voxelMap, blockTypeRegistry, game));
+            game.MapLoaded();
+            _publisher.Publish(new SetupProgressEventArgs() { Progress = 100, Title = "All Done!" });
+        }, null);
     }
 
     /// <summary>Converts a heading/pitch encoded as 0–255 to radians.</summary>

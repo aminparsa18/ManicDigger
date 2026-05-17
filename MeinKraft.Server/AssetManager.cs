@@ -6,46 +6,60 @@
 /// </summary>
 public class ServerAssetManager : IAssetManager
 {
-    private readonly MD5 _md5 = MD5.Create();
     private readonly string _assetsRoot;
 
-    public List<Asset> Assets { get; set; } = [];
-    public float AssetsLoadProgress { get; set; }
+    public List<Asset> Assets { get; } = [];
 
     public ServerAssetManager(IWebHostEnvironment env)
     {
         _assetsRoot = Path.Combine(env.ContentRootPath, "wwwroot");
     }
 
-    public void LoadAssets()
+    public async Task LoadAssetsAsync(IProgress<float>? progress = null, CancellationToken ct = default)
     {
-        if (Assets.Count > 0) return;
-
-        foreach (string filename in ReadManifest())
+        if (Assets.Count > 0)
         {
-            string fullPath = Path.Combine(_assetsRoot, filename);
-            byte[] data = File.ReadAllBytes(fullPath);
+            progress?.Report(1f);
+            return;
+        }
+
+        var files = await ReadManifestAsync(ct);
+        var fileList = files.ToList();
+
+        for (int i = 0; i < fileList.Count; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            byte[] data = await LoadFileAsync(fileList[i], ct);
 
             Assets.Add(new Asset
             {
                 data = data,
                 dataLength = data.Length,
-                name = Path.GetFileName(filename).ToLowerInvariant(),
+                name = Path.GetFileName(fileList[i]).ToLowerInvariant(),
                 md5 = ComputeMd5(data),
             });
-        }
 
-        AssetsLoadProgress = 1;
+            progress?.Report((float)(i + 1) / fileList.Count);
+        }
     }
 
-    private IEnumerable<string> ReadManifest()
+    private async Task<IEnumerable<string>> ReadManifestAsync(CancellationToken ct)
     {
         string manifestPath = Path.Combine(_assetsRoot, "assets_manifest.txt");
-        return File.ReadAllText(manifestPath)
-                   .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-                   .Select(line => line.Replace('\\', '/'));
+        string content = await File.ReadAllTextAsync(manifestPath, ct);
+
+        return content
+            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.Replace('\\', '/'));
     }
 
-    private string ComputeMd5(byte[] data)
-        => Convert.ToHexString(_md5.ComputeHash(data)).ToLowerInvariant();
+    private async Task<byte[]> LoadFileAsync(string filename, CancellationToken ct)
+    {
+        string fullPath = Path.Combine(_assetsRoot, filename);
+        return await File.ReadAllBytesAsync(fullPath, ct);
+    }
+
+    private static string ComputeMd5(byte[] data)
+        => Convert.ToHexString(MD5.HashData(data)).ToLowerInvariant();
 }

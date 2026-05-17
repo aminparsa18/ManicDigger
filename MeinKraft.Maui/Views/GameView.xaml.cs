@@ -58,12 +58,12 @@ public partial class GameView : ContentPage, IDisposable
         ProgressView.UpdateProgress(e);
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
 
         _gameLoopTimer = Dispatcher.CreateTimer();
-        _gameLoopTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60 fps
+        _gameLoopTimer.Interval = TimeSpan.FromMilliseconds(8); // ~60 fps
         _gameLoopTimer.Tick += (_, _) =>
         {
             GlView.InvalidateSurface();
@@ -76,13 +76,16 @@ public partial class GameView : ContentPage, IDisposable
         };
         _gameLoopTimer.Start();
         ProgressView.UpdateProgress(new() { Title = "Loading Assets...", Progress = 0 });
-        _assetManager.LoadAssetsAsync();
-        _ = Connect().ContinueWith(t =>
+        await _assetManager.LoadAssetsAsync();
+        try
         {
-            if (t.IsFaulted)
-                MainThread.BeginInvokeOnMainThread(() =>
-                    throw t.Exception!.InnerException!);
-        });
+            await Connect();
+        }
+        catch (Exception ex)
+        {
+            MainThread.BeginInvokeOnMainThread(() => throw ex);
+            return;
+        }
 
         ProgressView.UpdateProgress(new() { Title = "Attaching OpenGl Surface...", Progress = 0 });
         ((MauiGameWindowService)_gameWindowService).Attach(GlView);
@@ -114,11 +117,12 @@ public partial class GameView : ContentPage, IDisposable
         int port = Microsoft.Maui.Storage.Preferences.Get("session_port", 0);
         string username = Microsoft.Maui.Storage.Preferences.Get("username", "Player");
         string apiKey = Microsoft.Maui.Storage.Preferences.Get("api_key", string.Empty);
+        string serverIp = Microsoft.Maui.Storage.Preferences.Get("server_ip", "127.0.0.1");
 
         _game.NetClient = new EnetNetClient(new NetworkService(_gameLogger));
         _game.ConnectData = new ConnectionData
         {
-            Ip = "127.0.0.1",
+            Ip = serverIp,
             Port = port,
             Username = username,
             Auth = apiKey,
@@ -184,12 +188,9 @@ public partial class GameView : ContentPage, IDisposable
 
     private void InitGL()
     {
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
-            _openGlService.InitShaders();
-            _openGlService.GlClearColorRgbaf(0, 0, 0, 1);
-            _openGlService.GlEnableDepthTest();
-        });
+        _openGlService.InitShaders();
+        _openGlService.GlClearColorRgbaf(0, 0, 0, 1);
+        _openGlService.GlEnableDepthTest();
     }
 
     private void Draw(float dt)

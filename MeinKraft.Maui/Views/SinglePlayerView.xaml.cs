@@ -81,6 +81,7 @@ public partial class SinglePlayerView : ContentPage
 
             Microsoft.Maui.Storage.Preferences.Set("session_port", session.Port);
             Microsoft.Maui.Storage.Preferences.Set("session_id", session.SessionId.ToString());
+            Microsoft.Maui.Storage.Preferences.Set("server_ip", "192.168.0.101");
 
             await Shell.Current.GoToAsync("//GameView");
         }

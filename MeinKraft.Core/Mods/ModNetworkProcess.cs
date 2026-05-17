@@ -94,7 +94,7 @@ public class ModNetworkProcess : ModBase
         Packet_Server packet = MemoryPackSerializer.Deserialize<Packet_Server>(
             data.AsSpan(0, dataLength));
 
-      //  LogPacket(packet.Id);
+        LogPacket(packet.Id);
         ProcessInBackground(packet);
         ProcessPacket(packet);
         Game.LastReceivedMilliseconds = Game.CurrentTimeMilliseconds;

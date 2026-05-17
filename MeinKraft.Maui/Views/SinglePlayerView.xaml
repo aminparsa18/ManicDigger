@@ -7,7 +7,7 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            
+            <Color x:Key="TextDim">#aaaaaa</Color>
             <Style x:Key="VoxelButtonGreen" BasedOn="{StaticResource VoxelButton}" TargetType="Button">
                 <Setter Property="Background">
                     <Setter.Value>
@@ -173,7 +173,7 @@
                             <Border StrokeThickness="0"
                                     Padding="3"
                                     HorizontalOptions="Fill"
-                                    Style="{StaticResource SlotBorder}">
+                                    >
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                         <GradientStop Color="{StaticResource StoneEdgeTop}"    Offset="0.0" />

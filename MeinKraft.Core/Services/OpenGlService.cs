@@ -287,7 +287,7 @@ public sealed class OpenGlService : IOpenGlService
     public void InitShaders()
     {
         const string vertexSource = """
-    #version 100
+    #version 300 es
 
     layout(location = 0) in vec3 aPosition;
     layout(location = 1) in vec4 aColor;
@@ -311,7 +311,7 @@ public sealed class OpenGlService : IOpenGlService
     """;
 
         const string fragmentSource = """
-    #version 100
+    #version 300 es
     precision mediump float;
 
     in vec4  vColor;

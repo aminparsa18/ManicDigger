@@ -9,6 +9,9 @@ public partial class SetupProgressView : ContentView
 
 	internal void UpdateProgress(SetupProgressEventArgs e)
 	{
-		Title.StatusText = e.Title;
+		MainThread.BeginInvokeOnMainThread(() =>
+		{
+			Title.StatusText = e.Title;
+		});
 	}
 }

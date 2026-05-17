@@ -38,7 +38,7 @@ public static class WorkerClientExtensions
         services.AddSingleton(sp => new ChunkWorkerPool(
             sp.GetRequiredService<IChunkWorkDispatcher>(),
             sp.GetRequiredService<IGameLogger>(),
-            1,
+            2,
             chunkChannelCapacity));
 
         services.AddSingleton<IChunkWorkQueue>(sp =>
@@ -50,7 +50,7 @@ public static class WorkerClientExtensions
         // Scale to ProcessorCount / 4: lighting is heavier per-chunk than
         // tessellation so it needs fewer workers to saturate the tessellation queue.
 
-        int lightingWorkerCount = 1;// Math.Max(1, Environment.ProcessorCount / 4);
+        int lightingWorkerCount = 4;// Math.Max(1, Environment.ProcessorCount / 4);
 
         services.AddSingleton(sp => new ChunkLightingDispatcher(
             sp.GetRequiredService<IChunkWorkQueue>(),
@@ -60,7 +60,7 @@ public static class WorkerClientExtensions
         services.AddSingleton(sp => new ChunkLightingPool(
             sp.GetRequiredService<ChunkLightingDispatcher>(),
             sp.GetRequiredService<IGameLogger>(),
-            lightingWorkerCount,
+            2,
             channelCapacity: 512));
 
         services.AddSingleton<ILightingWorkQueue>(sp =>
